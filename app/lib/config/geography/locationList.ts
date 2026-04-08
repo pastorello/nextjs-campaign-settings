@@ -1,0 +1,43 @@
+import Luogo from "@/app/lib/definitions/enums/geography/Luogo";
+
+const locationList = [
+  { type: Luogo.Paradiso, value: 0, label: "Paradiso (Sole)" },
+  { type: Luogo.Luna, value: 1, label: "Elysium (Luna)" },
+  { type: Luogo.Abisso, value: 2, label: "L'Abisso" },
+  { type: Luogo.FiumeAnime, value: 3, label: "Fiume delle Anime" },
+  { type: Luogo.Inferno, value: 4, label: "Inferno" },
+  { type: Luogo.Folletti, value: 5, label: "Regno dei Folletti" },
+  { type: Luogo.Fate, value: 6, label: "Regno delle Fate" },
+  { type: Luogo.Alba, value: 7, label: "Alba dei Tempi" },
+  { type: Luogo.TerreOniriche, value: 8, label: "Terre Oniriche" },
+  { type: Luogo.Druidi, value: 9, label: "Isola dei Druidi" },
+  { type: Luogo.MonteAnKi, value: 10, label: "Monte An-ki" },
+  { type: Luogo.Raminghi, value: 11, label: "Deserto di Solenero" },
+  { type: Luogo.CustodiBianchi, value: 12, label: "Monastero di San Basilio" },
+  { type: Luogo.Annunaki, value: 13, label: "Ultima casa degli Annunaki" },
+  { type: Luogo.MaghiGrigi, value: 14, label: "Scuola dell'Invisibile" },
+  { type: Luogo.Torrerossa, value: 15, label: "Villaggio di Torrerossa" },
+  { type: Luogo.Vampiri, value: 16, label: "Miravia" },
+  { type: Luogo.Norgam, value: 17, label: "Norgam" },
+  { type: Luogo.Butwhag, value: 18, label: "Butwhag" },
+  { type: Luogo.BarakTor, value: 19, label: "Barak Thor" },
+  { type: Luogo.CustodiVerdi, value: 20, label: Luogo.CustodiVerdi },
+  { type: Luogo.MaghiNeri, value: 21, label: "Congrega delle Megere" },
+  { type: Luogo.DemoniRossi, value: 22, label: "Tempio dei Demoni Rossi" },
+  { type: Luogo.CinquePicchi, value: 23, label: "Montagna dei Cinque Picchi" },
+  {
+    type: Luogo.AvampostoOrchescho,
+    value: 24,
+    label: Luogo.AvampostoOrchescho,
+  },
+  { type: Luogo.Valleferro, value: 25, label: Luogo.Valleferro },
+  { type: Luogo.Skreebars, value: 26, label: Luogo.Skreebars },
+  { type: Luogo.TanaGoblin, value: 27, label: Luogo.TanaGoblin },
+  { type: Luogo.TorreEnoch, value: 28, label: "Torre di Enoch" },
+  { type: Luogo.Ankheet, value: 29, label: "Ankheet" },
+  { type: Luogo.Labirinto, value: 30, label: Luogo.Labirinto },
+  { type: Luogo.QuelThalas, value: 31, label: Luogo.QuelThalas },
+  { type: Luogo.IsolaCork, value: 32, label: Luogo.IsolaCork },
+];
+
+export default locationList;

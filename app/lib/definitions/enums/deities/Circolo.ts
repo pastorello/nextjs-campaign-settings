@@ -1,0 +1,27 @@
+enum Circolo {
+  Incubo = "Incubo",
+  Illusione = "Illusione",
+  NonMorti = "Non Morti",
+  Aberrazioni = "Aberrazioni",
+  Maledizioni = "Maledizioni",
+  Ombra = "Ombra",
+  Ammaliamento = "Ammaliamento",
+  Fede = "Fede",
+  Veleno = "Veleno",
+  Luce = "Luce",
+  Oracolo = "Oracolo",
+  Sogni = "Sogni",
+  Magnetismo = "Magnetismo",
+  Tempo = "Tempo",
+  Rune = "Rune",
+  Aria = "Aria",
+  Esorcismo = "Esorcismo",
+  Terra = "Terra",
+  Fuoco = "Fuoco",
+  Acqua = "Acqua",
+  Natura = "Natura",
+  Sole = "Sole",
+  Infinito = "Infinito",
+}
+
+export default Circolo;

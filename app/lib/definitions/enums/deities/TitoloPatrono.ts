@@ -1,0 +1,27 @@
+enum TitoloPatrono {
+  Tormento = "Ombra della Corruzione",
+  SenzaVolto = "Profeta dell'Eclisse",
+  Pestilenze = "Ombra delle Pestilenze",
+  CustodeSogni = "la Custode dei Sogni",
+  Forza = "Arconte della Forza",
+  Virtu = "la Regina delle Fate",
+  FuocoOscuro = "Profeta del Fuoco Oscuro",
+  Tempeste = "il Dio delle Tempeste",
+  Oltretomba = "la Dea dell'Oltretomba",
+  Messaggero = "il Custode delle Bestie",
+  Sventura = "Ombra della Sventura",
+  Montagna = "il Custode dei Boschi",
+  Folletti = "la Regina dei Folletti",
+  Morte = "Profeta della Morte",
+  Creazione = "Arconte della Creazione",
+  Corruzione = "Signore dei Demoni",
+  Vulcano = "il Dio del Vulcano",
+  Saggezza = "l'Arconte della Saggezza",
+  Acqua = "la Dea dell'Acqua Dolce",
+  Sole = "il Dio del Sole",
+  Luce = "l'Arcangelo della Luce",
+  Natura = "la Dea della Terra",
+  Padrone = "Il Padrone dei Tre Mondi",
+}
+
+export default TitoloPatrono;

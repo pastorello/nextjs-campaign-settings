@@ -1,0 +1,27 @@
+enum Tarocco {
+  IlMatto = "Il Matto",
+  IlBagatto = "il Bagatto",
+  LaPapessa = "La Papessa",
+  GliAmanti = "Gli Amanti",
+  LaFortuna = "La Fortuna",
+  LaMorte = "La Morte",
+  IlDiavolo = "Il Diavolo",
+  IlPapa = "Il Papa",
+  LAppeso = "L'Appeso",
+  LAngelo = "L'Angelo",
+  LEremita = "L'Eremita",
+  LImperatore = "L'Imperatore",
+  LImperatrice = "L'Imperatrice",
+  LeStelle = "Le Stelle",
+  LaTemperanza = "La Temperanza",
+  IlCarro = "Il Carro",
+  LaGiustizia = "La Giustizia",
+  LaForza = "La Forza",
+  LaTorre = "La Torre",
+  LaLuna = "La Luna",
+  IlMondo = "Il Mondo",
+  IlSole = "Il Sole",
+  IlConsultante = "Il Consultante",
+}
+
+export default Tarocco;

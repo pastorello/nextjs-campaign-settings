@@ -1,0 +1,27 @@
+enum Sottoclasse {
+  BardoSapienza = 0,
+  BardoValore = 1,
+  CavaliereNero = 2,
+  CavaliereBianco = 3,
+  CavaliereVerde = 4,
+  ElementaristaFuoco = 5,
+  ElementaristaAcqua = 6,
+  Fattucchiere = 7,
+  DruidoTerra = 8,
+  DruidoLuna = 9,
+  WarlockFatato = 10,
+  WarlockAntico = 11,
+  WarlockImmondo = 12,
+  Strega = 13,
+  MaestroRune = 14,
+  Oracolo = 15,
+  MagoBianco = 16,
+  Necromante = 17,
+  ChiericoMorte = 18,
+  ChiericoOscuro = 19,
+  ChiericoVita = 20,
+  Ranger = 21,
+  Nessuna = 22,
+}
+
+export default Sottoclasse;

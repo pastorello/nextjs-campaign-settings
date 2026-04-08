@@ -1,0 +1,27 @@
+enum NomePatrono {
+  MimmaLemnu = "Mimma Lemnu",
+  AluLilu = "Alu Lilu",
+  Hanbi = "Hanbi",
+  Soranus = "Soranus",
+  Maktara = "Maktara",
+  Neftara = "Neftara",
+  Namtar = "Namtar",
+  Enil = "Enil",
+  Tefnut = "Tefnut",
+  Osiride = "Osiride",
+  Labasu = "Labasu",
+  Merkal = "Merkal",
+  Ashakku = "Ashakku",
+  Pazuzu = "Pazuzu",
+  Aruru = "Aruru",
+  MukilResLemutti = "Mukil Res Lemutti",
+  Marduk = "Marduk",
+  Thot = "Thot",
+  Elune = "Elune",
+  Helios = "Helios",
+  Nusku = "Nusku",
+  Venerys = "Venerys",
+  Antico = "Grande Antico",
+}
+
+export default NomePatrono;

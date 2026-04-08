@@ -1,0 +1,26 @@
+enum Fazione {
+  RegnoBianco = "Regno di Kang",
+  RegnoRosso = "Orda dei Pelleverde",
+  RegnoGrigio = "Sultani di Solenero",
+  RegnoVerde = "Elfi Lunari",
+  RegnoGiallo = "Nani di Butwhag",
+  RegnoAzzurro = "Orde dei Barbari",
+  RegnoNero = "Regno di Blackthorne",
+  Valleferro = "Contea di Valleferro",
+  Skreebars = "Ducato di Skreebars",
+  Torrerossa = "Villaggio di Torrerossa",
+  Raminghi = "Raminghi",
+  CustodiBianchi = "Custodi della Fiamma",
+  CustodiVerdi = "Custodi dell'Albero Sacro",
+  CustodiNeri = "Custodi delle Rune",
+  MaghiBianchi = "Accademia degli Illuminati",
+  MaghiGrigi = "Scuola dell'Invisibile",
+  MaghiNeri = "Congrega delle Megere",
+  PaladiniBianchi = "Cavalieri dell'Ordine della Rosa",
+  DemoniRossi = "Demoni Rossi",
+  Annunaki = "Annunaki",
+  Folletti = "Folletti",
+  ManoNera = "Mano Nera",
+}
+
+export default Fazione;

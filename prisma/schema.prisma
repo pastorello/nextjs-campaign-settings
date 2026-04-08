@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model deities {
+  id                  Int    @id @default(autoincrement())
+  nome                String
+  titolopatrono       String
+  tipopatrono         Int
+  gradopatrono        Int
+  card                Int
+  astri               Int
+  elemento            Int
+  classe              Int
+  festivita           String @db.VarChar(255)
+  colore              Int
+  tradizione          Int
+  allineamento        Int
+  dominioallineamento Int
+  residenza           Int
+  luogo               Int
+  significato         String
+}
+
+model magicitems {
+  id          Int      @id @default(autoincrement())
+  descrizione String
+  nome        String
+  rarita      Int
+  tipo        Int
+  sintonia    Boolean?
+}
+
+model png {
+  id                  Int     @id @default(autoincrement())
+  descrizione         String?
+  nome                String
+  titolo              String? @db.VarChar(255)
+  allineamento        Int
+  dominioallineamento Int
+  mansione            String? @db.VarChar(255)
+  luogo               Int
+  fazione             Int
+  aspetto             String?
+  personalita         String?
+  motivazioni         String?
+  segreti             String?
+}
+
+model spells {
+  id             Int      @id @default(autoincrement())
+  descrizione    String
+  nome           String
+  livello        Int
+  circolo        Int[]
+  classi         Int[]
+  sottoclassi    Int[]
+  tempodilancio  String
+  gittata        String
+  componenti     String
+  durata         String
+  tirosalvezza   String?  @db.VarChar(255)
+  rituale        Boolean?
+  intensificato  String?
+  concentrazione Boolean?
+}
+
+model users {
+  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name     String @db.VarChar(255)
+  email    String @unique
+  password String
+}

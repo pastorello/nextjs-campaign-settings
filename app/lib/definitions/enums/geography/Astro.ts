@@ -1,0 +1,27 @@
+enum Astro {
+  Acquario = 0,
+  Ariete = 1,
+  Bilancia = 2,
+  Cancro = 3,
+  Capricorno = 4,
+  Gemelli = 5,
+  Giove = 6,
+  Leone = 7,
+  Luna = 8,
+  Marte = 9,
+  Mercurio = 10,
+  Nettuno = 11,
+  Pesci = 12,
+  Sagittario = 13,
+  Saturno = 14,
+  Scorpione = 15,
+  Sole = 16,
+  Terra = 17,
+  Toro = 18,
+  Urano = 19,
+  Venere = 20,
+  Vergine = 21,
+  Plutone = 22,
+}
+
+export default Astro;

@@ -1,0 +1,78 @@
+const spells = [
+  {
+    id: 90,
+    nome: "Aiuto",
+    descrizione:
+      "<p>Questo incantesimo rafforza il vigore e la determinazione degli alleati. L’incantatore sceglie fino a tre creature entro gittata. 11 massimo dei punti ferita e i punti ferita attuali di ogni bersaglio aumentano di 5 per la durata dell’incantesimo.</p>\n",
+    livello: 2,
+    circolo: [18, 19, 3, 2, 4, 20],
+    classi: [1, 4],
+    sottoClassi: [],
+    tempoDiLancio: "1Azione",
+    gittata: "30",
+    componenti: "V,S,M",
+    durata: "8 ore",
+    tiroSalvezza: "Nessuno",
+    rituale: false,
+    concentrazione: true,
+    intensificato:
+      "Quando l'incantatore lancia questo incantesimo usando uno slot incantesimo di 3° livello o superiore, i punti ferita di un bersaglio aumentano di altri 5 punti per ogni slot di livello superiore al 2°.",
+  },
+  {
+    id: 45,
+    nome: "Bacche Benefiche",
+    descrizione:
+      "<p>Fino a dieci bacche compaiono in mano all’incantatore e sono pervase di magia per la durata dell’incantesimo. Una creatura può usare la sua azione per mangiare una bacca. Mangiare una bacca ripristina 1 punto ferita e la bacca fornisce nutrimento sufficiente a sfamare una creatura per un giorno. Le bacche perdono il loro potere se non vengono mangiate entro 24 ore dal lancio di questo incantesimo.</p>\n",
+    livello: 1,
+    circolo: [21, 8, 9],
+    classi: [2, 5],
+    sottoClassi: [],
+    tempoDiLancio: "1Azione",
+    gittata: "touch",
+    componenti: "V,S,M",
+    durata: "Istantanea",
+    tiroSalvezza: "Nessuno",
+    rituale: false,
+    concentrazione: true,
+    intensificato: "",
+  },
+  {
+    id: 47,
+    nome: "Caduta Morbida",
+    descrizione:
+      "<p>L’incantatore sceglie fino a cinque creature in caduta entro gittata. La velocità di discesa di una creatura in caduta rallenta fino a 18 metri per round finché l’incantesimo non termina. Se la creatura atterra prima che l’incantesimo termini, essa non subisce alcun danno da caduta e può atterrare in piedi, e l’incantesimo termina per quella creatura.</p>\n",
+    livello: 1,
+    circolo: [17, 15, 13, 6, 1, 0, 5, 7, 14, 16],
+    classi: [6, 3, 0],
+    sottoClassi: [],
+    tempoDiLancio: "1Reazione",
+    gittata: "60",
+    componenti: "V, M",
+    durata: "1 minuto",
+    tiroSalvezza: "Nessuno",
+    rituale: false,
+    concentrazione: true,
+    intensificato: "",
+  },
+  {
+    id: 54,
+    nome: "Dardo Incantato",
+    descrizione:
+      "<p>L’incantatore crea tre dardi lucenti di forza magica. Ogni dardo colpisce una creatura scelta dall’incantatore, situata entro gittata e che egli sia in grado di vedere. Un dardo infligge 1d4+1 danni da forza al suo bersaglio. Tutti i dardi colpiscono simultaneamente e l’incantatore può dirigerli per colpire una sola creatura o più creature.</p>\n",
+    livello: 1,
+    circolo: [7, 5, 17, 13, 14, 15, 16, 6],
+    classi: [3, 6],
+    sottoClassi: [],
+    tempoDiLancio: "1Azione",
+    gittata: "120",
+    componenti: "V,S",
+    durata: "Istantanea",
+    tiroSalvezza: "Nessuno",
+    rituale: false,
+    concentrazione: true,
+    intensificato:
+      "Quando l'incantatore lancia questo incantesimo usando uno slot incantesimo di 2° livello o superiore, l'incantesimo crea un dardo aggiuntivo per ogni slot di livello superiore al 1°.",
+  },
+];
+
+export default spells;

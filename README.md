@@ -1,6 +1,6 @@
 # Campaign Settings
 
-A D&D Like Campaign settings dashboard for role playing games
+A D&D like Campaign Settings dashboard for role playing games
 
 ## Installation
 
@@ -31,6 +31,10 @@ you can generate your-sercret-key with this command:
 
 - run `pnpm prisma generate`
 - run `pnpm prisma db push` in order to create the db
+
+### Populate your DB with initial data
+
+You can populate your DB with some initial data, you can run this command: `npm run db:seed`
 
 ### Run the code
 

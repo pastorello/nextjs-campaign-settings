@@ -42,6 +42,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-20 | TypeScript strictness stops at `strict`; `target` is ES2017 | 🟡 Medium            | M      | 2     |
 | TD-21 | UI strings hardcoded; app must ship in it + en              | 🟠 High              | L      | 2     |
 | TD-22 | 282 lint warnings surfaced by TD-05                         | 🟠 High              | L      | 2     |
+| TD-23 | Migration `resetio` has drifted from the schema             | 🟠 High              | S      | 1     |
 
 ---
 
@@ -272,7 +273,7 @@ Mixed indentation (`app/api/countries/**` is 4-space, the rest 2-space) and no f
 
 A `.DS_Store` exists on disk at the repo root but is **not** tracked — `.gitignore` is doing its job. Nothing to fix.
 
-Also: the migration folder is named `20251126152855_resetio` — rename future migrations descriptively (`add_timestamps`, `add_name_indexes`).
+Also: the migration folder is named `20251126152855_resetio` — rename future migrations descriptively (`add_timestamps`, `add_name_indexes`). That same migration has also drifted from the schema — see **TD-23**.
 
 ---
 
@@ -561,6 +562,32 @@ What genuinely belongs to this item, in priority order:
 5. **`SearchParams.ts` declares an interface with no export.** Not a lint rule, found alongside these: a `.ts` file with no import or export is a global script, so the type leaks into every file as an ambient global. That is why `SpellList.tsx` references it without importing it, and why a second, different `SearchParams` type can live in `validateParams.ts` without a name collision being obvious. Give it an `export`, then fix what breaks.
 
 **Done when:** every rule in `eslint.config.mjs`'s severity block is back to `error` and `pnpm lint` still exits 0. Delete the block, not the rules.
+
+---
+
+### TD-23 🟠 The single migration has drifted from the schema
+
+**Where:** `prisma/migrations/20251126152855_resetio/migration.sql` vs `prisma/schema.prisma`
+**Found:** 2026-07-22, when TD-03 turned the `test` job green and CI's pipeline reached the `e2e` job for the first time.
+
+`prisma migrate deploy` applies the one committed migration, then `pnpm db:seed` fails:
+
+```
+column "nome" of relation "spells" does not exist
+```
+
+The migration does not reproduce the schema. Two drifts, enumerated by diffing every table:
+
+1. **`spells` is missing its `nome` column.** The migration's `CREATE TABLE "spells"` has all 15 columns except `nome`, which the schema declares (`nome String`). It is the only column drift — `deities`, `magicitems`, `png` and `users` match the schema exactly. The seed inserts `nome`, so it dies on the first spell.
+2. **Three tutorial tables the schema never had.** The migration still creates `customers`, `invoices` and `revenue` — Next.js Learn leftovers, the same tutorial origin TD-06 cleaned out of the code. They are harmless (nothing references them) but they are noise in the one artefact that is supposed to _be_ the schema.
+
+**Why it stayed hidden.** The README sets the database up with `prisma db push`, which syncs the schema directly and never reads the migration. Every developer machine and the earlier manual login/build checks used that path, so the migration has never actually run. CI's `e2e` job is the only place that uses `prisma migrate deploy`, and it only started reaching that step once `test` went green.
+
+This is the migration-side twin of the naming note already in TD-16 (`20251126152855_resetio` is not a descriptive name). The clean fix is to regenerate the migration from the current schema — but that is a destructive database operation (drop + recreate), so it needs explicit confirmation per CLAUDE.md rule 6, and it belongs with **TD-11**, which changes the schema anyway (timestamps, indexes). Doing it before TD-11 means doing it twice.
+
+**Interim:** the `e2e` job cannot pass regardless — Playwright is not installed and there are no specs (see TD-03). Marking it `continue-on-error` until it is real keeps `main`'s CI honestly green instead of red on a job nobody can satisfy yet.
+
+**Done when:** `prisma migrate reset && prisma migrate deploy` on a clean database produces a schema the seed runs against without error, and the migration contains no table absent from `schema.prisma`.
 
 ---
 

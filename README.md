@@ -17,7 +17,6 @@ POSTGRES_DB=your_DB_name
 POSTGRES_USER=your_admin_user
 POSTGRES_PASSWORD=your_secure_password
 POSTGRES_PORT=5432
-POSTGRES_URL=postgres://admin:your_secure_password@localhost:5432/your_DB_name
 AUTH_SECRET=your-sercret-key
 
 DATABASE_URL="postgresql://admin:your_secure_password@localhost:5432/your_DB_name"

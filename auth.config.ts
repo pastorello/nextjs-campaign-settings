@@ -5,9 +5,10 @@ export const authConfig = {
     signIn: "/login",
   },
   callbacks: {
-    // Gates every path the proxy matcher covers on nothing but "is there a
-    // session". Route-based branching is TD-01's job, together with the auth
-    // guards the API handlers still lack — this callback does not protect them.
+    // Gates every proxy-matched path (the dashboard) on "is there a session".
+    // The proxy matcher excludes /api, so route handlers and Server Actions
+    // guard themselves instead — see requireApiSession / requireSession (TD-01).
+    // No per-route branching is needed here; login is the only requirement.
     authorized({ auth }) {
       return !!auth?.user;
     },

@@ -1,11 +1,14 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
+import requireSession from "@/app/lib/auth/requireSession";
 import { revalidatePath } from "next/cache";
 import PngItem from "../../definitions/interfaces/png/PngItem";
 import PngMetaField from "../../definitions/enums/png/PngMetaField";
 
 export default async function updatePng(formData: PngItem) {
+  await requireSession();
+
   await prisma.png.update({
     where: {
       id: formData.id,

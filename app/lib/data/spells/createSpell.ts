@@ -1,10 +1,13 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
+import requireSession from "@/app/lib/auth/requireSession";
 import { revalidatePath } from "next/cache";
 import Spell from "../../definitions/interfaces/spells/Spell";
 
 export default async function createSpell(formData: Spell) {
+  await requireSession();
+
   const {
     nome,
     descrizione,

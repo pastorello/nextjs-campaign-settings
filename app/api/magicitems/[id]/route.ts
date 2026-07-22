@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
+import requireApiSession from "@/app/lib/auth/requireApiSession";
 import { deleteMagicItemById } from "@/app/lib/data/magicitems/deleteMagicItemById";
 
 export async function DELETE(
   request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
+  const unauthorized = await requireApiSession();
+  if (unauthorized) return unauthorized;
+
   const theParams = await context.params;
   const id = parseInt(theParams.id);
   const isDeleted = await deleteMagicItemById(id);

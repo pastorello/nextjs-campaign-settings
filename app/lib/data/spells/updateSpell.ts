@@ -2,11 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "@/app/lib/connections/prisma";
+import requireSession from "@/app/lib/auth/requireSession";
 
 import Spell from "../../definitions/interfaces/spells/Spell";
 import SpellMetaField from "../../definitions/enums/spells/SpellMetaField";
 
 export default async function updateSpell(formData: Spell) {
+  await requireSession();
+
   await prisma.spells.update({
     where: {
       id: formData.id,

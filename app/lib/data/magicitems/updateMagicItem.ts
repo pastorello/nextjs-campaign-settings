@@ -1,11 +1,14 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
+import requireSession from "@/app/lib/auth/requireSession";
 import { revalidatePath } from "next/cache";
 import MagicItem from "../../definitions/interfaces/magicitem/MagicItem";
 import MagicItemMetaField from "../../definitions/enums/magicitem/MagicItemMetaField";
 
 export default async function updateMagicItem(formData: MagicItem) {
+  await requireSession();
+
   await prisma.magicitems.update({
     where: {
       id: formData.id,

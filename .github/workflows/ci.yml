@@ -21,6 +21,11 @@ jobs:
   static:
     name: Lint & typecheck
     runs-on: ubuntu-latest
+    env:
+      # prisma.config.ts reads this through env(), so `prisma generate` refuses
+      # to load its config without it — even though this job never opens a
+      # connection. It only has to be present and well-formed, not reachable.
+      DATABASE_URL: postgresql://admin:postgres@localhost:5432/placeholder
     steps:
       - uses: actions/checkout@v4
 
@@ -46,7 +51,7 @@ jobs:
         run: pnpm lint
 
       - name: Check formatting
-        run: pnpm exec prettier --check .
+        run: pnpm format:check
 
   # ---------------------------------------------------------------------------
   # Unit and integration tests against a real Postgres.
@@ -138,6 +143,12 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # End-to-end. Slowest job, so it runs only once the cheaper ones are green.
+  #
+  # NOT YET RUNNABLE. Playwright is not a dependency, there is no
+  # playwright.config.ts and no specs exist — `pnpm test:e2e` is undefined. The
+  # job is kept as the agreed shape of the target (see docs/TESTING.md §E2E) and
+  # is currently unreachable anyway, because it needs `test`, which is red until
+  # TD-03. Do not delete it; do not expect it to pass. TD-03 wires it up.
   # ---------------------------------------------------------------------------
   e2e:
     name: E2E tests

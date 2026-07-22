@@ -1,0 +1,8 @@
+# Revisions to skip in `git blame`. Configure once per clone with:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# Only pure-formatting or pure-rename commits belong here. A commit that
+# changes behaviour must never be listed, or blame will hide the change.
+
+# style: apply Prettier across the repo (TD-05, TD-16)
+14a4c02474db3c4cc5bd701e35f46542b1413525

@@ -13,7 +13,7 @@ Two rules govern this document:
 
 **Goal:** the project builds cleanly, runs safely, and CI proves it on every commit.
 **Estimated effort:** 12–16 hours.
-**Exit criteria:** `pnpm typecheck && pnpm lint && pnpm test && pnpm build` all green in CI; no unauthenticated write path exists.
+**Exit criteria:** `pnpm typecheck && pnpm lint && pnpm test && pnpm build` all green in CI, and the E2E suite (TD-24) green as the fifth gate; no unauthenticated write path exists. Until TD-24 lands, the `e2e` job is `continue-on-error` — the four core gates are what block a merge, and they are green today.
 
 | #   | Task                                                                       | Debt  | Effort |
 | --- | -------------------------------------------------------------------------- | ----- | ------ |
@@ -24,7 +24,7 @@ Two rules govern this document:
 | 5   | Auth guards on every mutation and route handler, with tests                | TD-01 | M      |
 | 6   | Zod validation wired from `PageMeta.validator`, with tests                 | TD-02 | M      |
 | 7   | Pin `next`/`react`/`react-dom`; settle on pnpm; remove `package-lock.json` | TD-07 | S      |
-| 8   | Playwright set up; the eight critical-flow specs                           | —     | M      |
+| 8   | Playwright set up; the eight critical-flow specs                           | TD-24 | M      |
 | 9   | Rewrite the README as a portfolio README                                   | TD-17 | S      |
 
 Order matters. Deleting dead code first removes roughly half the type errors, so step 2 gets cheaper. Getting the test suite working before the security fixes means those fixes land with proof. See the execution order at the end of [`TECH_DEBT.md`](./TECH_DEBT.md).

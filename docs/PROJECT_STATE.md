@@ -116,19 +116,19 @@ Two problems follow from this, both covered in `TECH_DEBT.md`:
 
 ## 6. Current health
 
-| Check            | Result                                                                                        |
-| ---------------- | --------------------------------------------------------------------------------------------- |
-| `pnpm typecheck` | ✅ **0 errors** (19 before TD-06; `next typegen && tsc --noEmit`)                             |
-| `next build`     | ❌ **Fails** — `webpack` hook in `next.config.ts` vs. Turbopack-by-default in Next 16 (TD-18) |
-| `pnpm test`      | ✅ **27 passed** in ~1.5s (Vitest)                                                            |
-| Lint             | ⚠️ No ESLint config file exists; `next lint` is deprecated in Next 16                         |
-| Formatting       | ⚠️ No Prettier config; mixed 2-space and 4-space indentation across files                     |
-| E2E tests        | ❌ None — Playwright not installed; scoped in TESTING.md §3                                   |
-| CI               | ❌ None                                                                                       |
-| Test coverage    | 14% lines / 9% branches — thresholds set there and ratcheted upward                           |
-| Git history      | 2 commits (`first commit`, `update readme`)                                                   |
-| `.env`           | ✅ Correctly gitignored                                                                       |
-| `.DS_Store`      | ✅ Present on disk but untracked — `.gitignore` is working                                    |
+| Check               | Result                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------ |
+| `pnpm typecheck`    | ✅ **0 errors** (19 before TD-06; `next typegen && tsc --noEmit`)                                |
+| `pnpm build`        | ✅ **Passes** on Turbopack — same bundler as `dev` (TD-18)                                       |
+| `pnpm test`         | ✅ **27 passed** in ~1.5s (Vitest)                                                               |
+| `pnpm lint`         | ✅ **0 errors**, 282 warnings — backlog tracked as TD-22                                         |
+| `pnpm format:check` | ✅ Clean — Prettier applied repo-wide (TD-05/TD-16)                                              |
+| E2E tests           | ❌ None — Playwright not installed; scheduled as TD-24, after TD-01/TD-02                        |
+| CI                  | ⚠️ `static` / `test` / `build` green; `e2e` non-blocking (`continue-on-error`) until TD-24 lands |
+| Test coverage       | 14% lines / 9% branches — thresholds set there and ratcheted upward                              |
+| Git history         | 2 commits (`first commit`, `update readme`)                                                      |
+| `.env`              | ✅ Correctly gitignored                                                                          |
+| `.DS_Store`         | ✅ Present on disk but untracked — `.gitignore` is working                                       |
 
 TD-04 closed the remaining nine on 2026-07-22. Note that `typecheck` must run `next typegen` first: the route-handler signatures live in generated types that a fresh checkout does not have, so a bare `tsc --noEmit` passes vacuously.
 

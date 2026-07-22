@@ -43,6 +43,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-21 | UI strings hardcoded; app must ship in it + en              | 🟠 High              | L      | 2     |
 | TD-22 | 282 lint warnings surfaced by TD-05                         | 🟠 High              | L      | 2     |
 | TD-23 | Migration `resetio` has drifted from the schema             | 🟠 High              | S      | 1     |
+| TD-24 | Playwright E2E harness + 8 critical-flow specs              | 🟠 High              | M      | 1     |
 
 ---
 
@@ -591,32 +592,58 @@ This is the migration-side twin of the naming note already in TD-16 (`2025112615
 
 ---
 
+### TD-24 🟠 Playwright E2E harness and the eight critical-flow specs
+
+**Where:** the `e2e` job in `.github/workflows/ci.yml`; a new `e2e/` directory; `playwright.config.ts`
+**Decision:** [ADR-0002](./adr/0002-testing-stack.md) · **Plan:** [TESTING.md §E2E](./TESTING.md)
+**Blocked by:** TD-01 (auth guards) and TD-02 (validation)
+
+This item exists because the E2E layer was previously scheduled only in `ROADMAP.md` (Phase 1, step 8) with a `—` in the debt column, and was absent from the execution order below — scheduled in one document and invisible in the other. It also reconciles a contradiction: the Phase 1 exit criteria name `typecheck && lint && test && build`, which do not include E2E, yet the `e2e` job sits in the workflow. Both are now consistent: **the four gates block; `e2e` is `continue-on-error` until this item lands.**
+
+**Why it is blocked, not just late.** Four of the eight specs in TESTING.md — `auth.spec.ts`, `validation.spec.ts`, and the `-crud` specs' delete steps — assert behaviour that TD-01 and TD-02 create and change. Writing them first means writing them against flows that are about to move: an `auth.spec` that logs in and reaches a page proves nothing while every mutation is still unauthenticated, and a `validation.spec` needs the field errors TD-02 introduces. So this is the **last task of Phase 1**, after TD-01 and TD-02, not a thing to rush before them.
+
+**Scope**
+
+1. `pnpm create playwright` (it is interactive — do it locally, commit the result). Config per TESTING.md §Migration step 6: `testDir: "./e2e"`, `webServer` on `pnpm dev`, `baseURL`, `trace: "on-first-retry"`.
+2. Re-add `test:e2e` / `test:e2e:ui` scripts (removed in TD-03 when they had nothing to run).
+3. The eight specs in TESTING.md §E2E, `getByRole`/`getByLabel` throughout so they double as accessibility assertions.
+4. Cache Playwright browsers in CI (the job already has the cache step scaffolded).
+5. **Delete `continue-on-error: true` from the `e2e` job** — the job blocks again, and the Phase 1 exit criteria gain their fifth gate.
+
+**Note:** the `e2e` job also currently fails at the seed step because of TD-23. That must be fixed for the job to go green, but it is a separate cause with its own item — do not conflate the two.
+
+**Done when:** the eight specs pass in CI against a real Postgres, `continue-on-error` is gone, and `ROADMAP.md` step 8 references this ID instead of `—`.
+
+---
+
 ## Recommended execution order
 
 ```
-1. TD-06  delete dead code            → removes ~half of TD-04's errors first
-2. TD-04  fix remaining type errors
-3. TD-03  migrate to Vitest, get a green suite
-4. TD-05  ESLint + Prettier + CI      → locks in 1–3 permanently
-5. TD-01  auth guards (+ tests)       → now testable, because 3 is done
-6. TD-02  Zod validation (+ tests)
-7. TD-07  pin versions, one lockfile
-8. TD-17  portfolio README
+1. ✅ TD-06  delete dead code            → removed ~half of TD-04's errors first
+2. ✅ TD-04  fix remaining type errors
+3. ✅ TD-03  migrate to Vitest, get a green suite
+4. ✅ TD-05  ESLint + Prettier + CI      → locks in 1–3 permanently
+5.    TD-01  auth guards (+ tests)       → now testable, because 3 is done
+6.    TD-02  Zod validation (+ tests)
+7.    TD-07  pin versions, one lockfile
+8.    TD-24  Playwright + 8 E2E specs    → needs TD-01/TD-02's flows to exist; makes e2e blocking again
+9.    TD-17  portfolio README
 --- Phase 1 complete: the project is correct, safe and verified ---
-9.  TD-08  type the metadata layer
-10. TD-20a strict flags, cheap batch + ES2022 target
-11. TD-19  rename identifiers to English  → needs TD-03's tests and TD-08's typed keys
-12. TD-21  extract UI strings           → same files as TD-19, do them together
-13. TD-11  schema timestamps + indexes
-14. TD-12  single where-clause
-15. TD-02b remaining trust boundaries (env, localStorage, GeoJSON)
-16. TD-13  typed errors
-17. TD-10  real notifications
-18. TD-09  collapse duplicated components  → safest after TD-08 and TD-19
-19. TD-20b noUncheckedIndexedAccess        → last; noisiest, most valuable
-20. TD-15  accessibility pass
+10. TD-08  type the metadata layer
+11. TD-20a strict flags, cheap batch + ES2022 target
+12. TD-19  rename identifiers to English  → needs TD-03's tests and TD-08's typed keys
+13. TD-21  extract UI strings           → same files as TD-19, do them together
+14. TD-11  schema timestamps + indexes  → regenerate the migration here, fixing TD-23
+15. TD-12  single where-clause
+16. TD-02b remaining trust boundaries (env, localStorage, GeoJSON)
+17. TD-13  typed errors
+18. TD-10  real notifications
+19. TD-09  collapse duplicated components  → safest after TD-08 and TD-19
+20. TD-22  lint backlog to zero            → mostly dissolves once TD-08 lands
+21. TD-20b noUncheckedIndexedAccess        → last; noisiest, most valuable
+22. TD-15  accessibility pass              → axe assertions ride on TD-24's Playwright setup
 --- Phase 2 complete: the project is well-built ---
-16. TD-14, TD-18, then feature work
+23. ✅ TD-18 done early (unblocked the build); then TD-14, then feature work
 ```
 
-The ordering is not arbitrary: each step makes the next one cheaper or safer. In particular, do not attempt TD-09 before TD-08, and do not attempt TD-01/TD-02 before TD-03 — you want a working test suite before you touch security-critical code.
+The ordering is not arbitrary: each step makes the next one cheaper or safer. In particular, do not attempt TD-09 before TD-08, do not attempt TD-01/TD-02 before TD-03 (you want a working test suite before you touch security-critical code), and do not attempt TD-24 before TD-01/TD-02 — the E2E specs assert auth and validation flows those two items create.

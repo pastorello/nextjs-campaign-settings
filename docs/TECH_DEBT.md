@@ -92,7 +92,7 @@ Mutations are the urgent case, but they are not the only place untrusted data en
 |---|---|---|---|---|
 | 1 | Create / update payloads | `app/lib/data/*/create*.ts`, `update*.ts` | Nothing. Straight into Prisma. | 🔴 |
 | 2 | Route handler path params | `app/api/*/[id]/route.ts` | `parseInt(params.id)` — `NaN` on garbage input, passed to Prisma unchecked | 🔴 |
-| 3 | Environment variables | `auth.ts`, `app/lib/data.ts`, `app/lib/connections/sql.ts`, `app/seed/prismaSeed.ts` | `process.env.POSTGRES_URL!` — non-null assertion. A missing var fails at an unrelated call site with an opaque error. | 🟠 |
+| 3 | Environment variables | `app/lib/connections/prisma.ts`, `app/seed/prismaSeed.ts` | `process.env.DATABASE_URL!` — non-null assertion. A missing var fails at an unrelated call site with an opaque error. TD-06 removed the `POSTGRES_URL` call sites along with the raw driver, so `DATABASE_URL` is the only variable left to validate. | 🟠 |
 | 4 | Search params | `app/lib/data/validateParams.ts` | ✅ Zod, but `.parse()` throws rather than returning a result, and the return type is cast | 🟠 |
 | 5 | `localStorage` POIs | `app/modules/maps/hooks/usePOIManager.ts:40` | `JSON.parse(stored) as POI[]` — a cast, not a check. Hand-edited or stale storage crashes the map. | 🟠 |
 | 6 | GeoJSON files | `app/api/countries/**`, `WorldMap.tsx`, `MapMain.tsx` | `JSON.parse(fileContents) as GeoJSONData` | 🟡 |

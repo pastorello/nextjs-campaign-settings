@@ -1,3 +1,5 @@
+import { expect, test } from "vitest";
+
 import parseSerializedArray from "../../app/lib/utils/data/parseSerializedArray";
 
 test("parseSerializedArray", () => {

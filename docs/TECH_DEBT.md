@@ -23,9 +23,9 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-01 | Unauthenticated delete endpoints and Server Actions | 🔴 Critical | M | 1 |
 | TD-02 | No input validation at any trust boundary | 🔴 Critical | M | 1–2 |
 | TD-03 | Test suite does not run | 🔴 Critical | M | 1 |
-| TD-04 | 19 TypeScript errors on `tsc --noEmit` | 🔴 Critical | M | 1 |
+| TD-04 | 9 TypeScript errors on `tsc --noEmit` (was 19; TD-06 cleared 10) | 🔴 Critical | S | 1 |
 | TD-05 | No ESLint config, no Prettier, no CI | 🟠 High | S | 1 |
-| TD-06 | Dead code and tutorial leftovers | 🟠 High | S | 1 |
+| TD-06 | ✅ Dead code and tutorial leftovers | ~~🟠 High~~ done | S | 1 |
 | TD-07 | `next` and `react` pinned to `latest`; two lockfiles | 🟠 High | S | 1 |
 | TD-08 | `PageMeta` is loosely typed; `any` in the query layer | 🟠 High | M | 2 |
 | TD-09 | Four near-identical Card/List/Library/Form quartets | 🟠 High | L | 2 |
@@ -120,6 +120,8 @@ Steps 1–4 belong to Phase 1. Steps 5–6 can follow in Phase 2 without blockin
 
 **Where:** `jest.config.ts`, `jest.setup.ts`, `__test__/`
 
+> **Correction (2026-07-22, during TD-06):** the claim below that `npx jest` fails to start is **no longer accurate**. It runs, collecting 5 suites: 4 pass, 1 fails. The failure is `__test__/utils/generatePwdHash.test.ts`, which asserts `hashPassword("123456")` equals a hardcoded bcrypt hash — it compares an unawaited `Promise` against a string, and even awaited it could not pass, because bcrypt salts are random. Verified pre-existing on `main`. The rest of this item still stands; re-measure before starting it.
+
 `npx jest` fails immediately: `Module <rootDir>/jest.setup.ts in the setupFilesAfterEnv option was not found`, despite the file existing. Beyond that:
 
 - `testEnvironment: "jest-environment-node"` — but the suite uses Testing Library and renders React components, which needs `jsdom`.
@@ -136,22 +138,25 @@ Steps 1–4 belong to Phase 1. Steps 5–6 can follow in Phase 2 without blockin
 
 ---
 
-### TD-04 🔴 19 TypeScript errors
+### TD-04 🔴 9 TypeScript errors (was 19)
 
 **Where:** see breakdown
 
 `tsc --noEmit` currently fails. `strict: true` is set, which is good, but the errors mean type checking provides no safety net today.
 
+TD-06 cleared 10 of the original 19 by deleting dead files. What remains:
+
 | Count | Location | Error |
 |---|---|---|
-| 4 | `app/api/*/[id]/route.ts` | `{ params }: { params: { id: string } }` — in Next 15+, `params` is a `Promise`. The code already `await`s it but types it wrong. Fix: `context: { params: Promise<{ id: string }> }` |
-| 6 | `Header.tsx`, `ItemMeta.tsx`, `NotificationBar.tsx` | Imports of `react-router-dom`, `@wordpress/components`, `@wordpress/notices`, `@wordpress/data`, `../functions/isValidDataArray`, `../types/PrimitiveValue` — none exist here. Pasted from other projects. |
-| 2 | `auth.config.ts` | `import type NextAuthConfig from "next-auth"` imports the default export as a type. Should be `import type { NextAuthConfig } from "next-auth"` with `satisfies NextAuthConfig`. This also causes the implicit-`any` errors on the `authorized` callback params. |
-| 2 | `PngForm.tsx`, `SpellForm.tsx` (in `app/ui/forms/`) | `pageId` not in `PageManagerProps` — these are the dead duplicate forms (see TD-06). |
-| 1 | `app/lib/utils.ts` | `Revenue` not exported from `./definitions` — tutorial leftover. |
+| 4 | `app/api/*/[id]/route.ts` | `{ params }: { params: { id: string } }` — in Next 15+, `params` is a `Promise`. The code already `await`s it but types it wrong. Fix: `context: { params: Promise<{ id: string }> }`. Surfaces via the generated `.next/types/validator.ts`, so regenerate with `npx next typegen` before measuring. |
+| 3 | `auth.config.ts` | `import type NextAuthConfig from "next-auth"` imports the default export as a type. Should be `import type { NextAuthConfig } from "next-auth"` with `satisfies NextAuthConfig`. This also causes the two implicit-`any` errors on the `authorized` callback params. |
 | 2 | `validateParams.ts`, `admin/spells/page.tsx` | `Record<string, unknown>` vs `SearchParams`; `Promise<…>` passed where `SearchParams` expected. Async `searchParams` in Next 15+. |
 
-**Fix:** work top to bottom. About half the errors disappear by deleting dead files (TD-06). Then add `typecheck: "tsc --noEmit"` to `package.json` scripts and wire it into CI so this cannot regress.
+Cleared by TD-06: 6 errors from `Header.tsx` / `ItemMeta.tsx` / `NotificationBar.tsx` (imports of modules that do not exist here), 2 from the dead `app/ui/forms/{PngForm,SpellForm}.tsx`, 1 from `app/lib/utils.ts`'s `Revenue` import, and 1 revealed-then-fixed `ItemMeta` prop mismatch.
+
+**Fix:** work top to bottom. Then add `typecheck: "tsc --noEmit"` to `package.json` scripts and wire it into CI so this cannot regress.
+
+**Note:** `next build` currently fails for an unrelated reason — the `webpack` hook in `next.config.ts` conflicts with Turbopack being default in Next 16. That is TD-18, and it blocks the `build` step of CI.
 
 **Done when:** `npm run typecheck` exits 0 and CI enforces it.
 
@@ -172,7 +177,14 @@ There is no `.github/` directory: nothing verifies a commit.
 
 ---
 
-### TD-06 🟠 Dead code and tutorial leftovers
+### TD-06 ✅ Dead code and tutorial leftovers — **DONE (2026-07-22)**
+
+**Outcome:** `tsc --noEmit` went from **19 errors to 9**, and no file references a non-existent module. The 9 remaining are exactly TD-04's residue (4× route-handler `params`, 2× `SearchParams`, 3× `auth.config.ts`).
+
+Two findings worth carrying forward:
+
+- **The `ItemMeta` instruction below was wrong.** Pointing the import at `PrimitiveValue` surfaced 9 previously-masked errors in `SpellCard` and `DeityCard`: `ItemMeta` renders `{value}` into JSX and is always fed the output of a `PageMeta.getDatum`, which is declared `string | ReactNode` (see `renderRichText.tsx`, which returns a `<div>`). `PrimitiveValue` is simply the wrong type for that prop; it was typed as `ReactNode` instead. The broken import had been hiding the mismatch by degrading the prop to `any`.
+- **TD-03's premise is stale.** `npx jest` does *not* fail to start — it runs 5 suites, of which 1 fails (`generatePwdHash.test.ts` compares an unawaited Promise against a fixed bcrypt hash, which cannot pass; bcrypt salts are random). Verified pre-existing on `main`. Re-scope TD-03 before starting it.
 
 The project was scaffolded from the Next.js Learn dashboard tutorial and the scaffolding was never removed. A reviewer opening `app/lib/utils.ts` finds `formatCurrency`, `generateYAxis` and an import of a `Revenue` type in a D&D app — this reads as unfinished work.
 
@@ -187,13 +199,13 @@ The project was scaffolded from the Next.js Learn dashboard tutorial and the sca
 
 **Clean up:**
 
-- `app/lib/utils.ts` — remove `formatCurrency`, `formatDateToLocal`, `generateYAxis`, the `Revenue` import; keep only what is actually used.
-- `app/ui/components/ItemMeta.tsx` — fix the `../types/PrimitiveValue` import to point at `app/lib/definitions/types/PrimitiveValue`. **Do not delete**: it is imported by `DeityCard`, `SpellCard`, `MagicItemCard`, `MagicItemLibrary` and `MagicItemForm`.
-- `app/lib/connections/sql.ts` and the inline `postgres()` client in `auth.ts` — route user lookup through Prisma and drop the second driver.
-- `createSpell.ts` — remove the stray `SpellMetaField;` statement.
-- Check whether `@wordpress/html-entities` is used; if not, uninstall.
+- ✅ `app/lib/utils.ts` — deleted. Only `generatePagination` was still used (by `app/ui/components/pagination.tsx`); it moved to `app/lib/utils/data/generatePagination.ts`, matching the one-concept-per-file convention and removing the `utils.ts` / `utils/` ambiguity.
+- ✅ `app/ui/components/ItemMeta.tsx` — `value` is now typed `ReactNode`, not `PrimitiveValue` (see the note above). **Not deleted**: it is imported by `DeityCard` and `SpellCard`.
+- ✅ `app/lib/connections/sql.ts` (unreferenced) deleted; `auth.ts` `getUser` and `fetchCardData` now go through Prisma. `app/lib/data.ts` — another raw-driver tutorial leftover sitting beside `app/lib/data/` — became `app/lib/data/fetchCardData.ts`. The `postgres` package is uninstalled, which also retires the duplicate `POSTGRES_URL` env var (`DATABASE_URL` is now the only connection string; README updated). `pg` stays — `@prisma/adapter-pg` needs it.
+- ✅ `createSpell.ts` — stray `SpellMetaField;` statement and its now-unused import removed.
+- ✅ `@wordpress/html-entities` was unused — uninstalled.
 
-**Done when:** `tsc --noEmit` error count drops by roughly half and no file references a non-existent module.
+**Done when:** `tsc --noEmit` error count drops by roughly half and no file references a non-existent module. ✅ Both met.
 
 ---
 

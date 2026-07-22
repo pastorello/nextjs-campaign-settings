@@ -1,8 +1,9 @@
-import PrimitiveValue from "../types/PrimitiveValue";
+import { ReactNode } from "react";
 
 interface ItemMetaProps {
   label: string;
-  value: PrimitiveValue;
+  // Always the output of a PageMeta `getDatum`, which is `string | ReactNode`.
+  value: ReactNode;
 }
 
 const ItemMeta = ({ label, value }: ItemMetaProps) => (

@@ -109,7 +109,7 @@ Shared helpers:
 - `validateParams.ts` — Zod-validates and coerces the raw `searchParams` record.
 - `getItemsCount.ts` — generic count.
 
-Two database connections coexist: `connections/prisma.ts` (the Prisma singleton, used everywhere) and `connections/sql.ts` plus a second `postgres()` client instantiated inline in `auth.ts`. **[GAP]** `auth.ts` should go through Prisma like everything else; the raw `postgres` client and `sql.ts` are redundant. See TD-06.
+`connections/prisma.ts` (the Prisma singleton) is the **only** database connection. TD-06 removed the parallel raw-`postgres` driver — `connections/sql.ts`, the inline client in `auth.ts`, and `app/lib/data.ts` — so `DATABASE_URL` is now the single connection string.
 
 ### [GAP] Pagination reads the table twice with independently built queries
 

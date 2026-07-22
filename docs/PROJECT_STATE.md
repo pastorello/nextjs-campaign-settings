@@ -36,7 +36,7 @@ The domain vocabulary is **intentionally Italian** (`incantesimi`, `patroni`, `f
 | UI primitives | Radix UI, Headless UI, Heroicons, Lucide, Framer Motion, Vaul, Sonner | — |
 | Maps | Leaflet + custom hook layer | 1.9.4 |
 | Validation | Zod | 4.2.0 |
-| Tests | Jest + Testing Library | **currently broken — see TECH_DEBT.md** |
+| Tests | Jest + Testing Library | **runs, but 1 suite fails and coverage is ~nil — see TECH_DEBT.md TD-03** |
 
 Two lockfiles are present (`package-lock.json` and `pnpm-lock.yaml`) and the README mixes `npm` and `pnpm` commands. Package manager must be settled on one.
 
@@ -54,7 +54,7 @@ Two lockfiles are present (`package-lock.json` and `pnpm-lock.yaml`) and the REA
 │   │   ├── spells|magicitems|png|deities|geography/
 │   ├── lib/
 │   │   ├── config/          # Per-domain field metadata (the "meta" system)
-│   │   ├── connections/     # prisma.ts (singleton), sql.ts (raw postgres)
+│   │   ├── connections/     # prisma.ts (singleton) — the only DB connection
 │   │   ├── data/            # Data access: create/update/delete/fetch per domain
 │   │   ├── definitions/     # enums / interfaces / types, one per file
 │   │   ├── hooks/           # usePageManager + per-domain page managers
@@ -118,8 +118,9 @@ Two problems follow from this, both covered in `TECH_DEBT.md`:
 
 | Check | Result |
 |---|---|
-| `tsc --noEmit` | ❌ **19 errors** |
-| `jest` | ❌ **Fails to start** (`jest.setup.ts` not resolved; `testEnvironment` is `node`, not `jsdom`) |
+| `tsc --noEmit` | ❌ **9 errors** (was 19 before TD-06) |
+| `next build` | ❌ **Fails** — `webpack` hook in `next.config.ts` vs. Turbopack-by-default in Next 16 (TD-18) |
+| `jest` | ⚠️ **Runs**; 4 suites pass, 1 fails (`generatePwdHash.test.ts` — an unawaitable assertion against a random-salt bcrypt hash). Coverage is still effectively nil. |
 | Lint | ⚠️ No ESLint config file exists; `next lint` is deprecated in Next 16 |
 | Formatting | ⚠️ No Prettier config; mixed 2-space and 4-space indentation across files |
 | E2E tests | ❌ None |
@@ -129,21 +130,17 @@ Two problems follow from this, both covered in `TECH_DEBT.md`:
 | `.env` | ✅ Correctly gitignored |
 | `.DS_Store` | ✅ Present on disk but untracked — `.gitignore` is working |
 
-Of the 19 TypeScript errors, 4 are the same `params` typing bug repeated across the DELETE route handlers, and 6 come from three components (`Header.tsx`, `ItemMeta.tsx`, `NotificationBar.tsx`) that import modules which do not exist in this project — leftovers pasted in from other codebases.
+Of the 9 remaining TypeScript errors, 4 are the same `params` typing bug repeated across the DELETE route handlers, 3 stem from a single bad `import type` in `auth.config.ts`, and 2 are the async `searchParams` change in Next 15+. All are TD-04.
 
 ---
 
 ## 7. Dead code inventory
 
-Confirmed unreferenced or broken:
+**Cleared by TD-06 on 2026-07-22.** Deleted: `app/ui/components/Header.tsx`, `app/ui/components/NotificationBar.tsx`, `app/ui/forms/PngForm.tsx`, `app/ui/forms/SpellForm.tsx`, `app/lib/connections/sql.ts`, `app/lib/utils.ts` and `app/lib/data.ts`. The two survivors of those last two files moved to their conventional homes (`app/lib/utils/data/generatePagination.ts`, `app/lib/data/fetchCardData.ts`). The `postgres` and `@wordpress/html-entities` packages were uninstalled, and the stray `SpellMetaField;` statement in `createSpell.ts` is gone. `auth.ts` and `fetchCardData` now read through Prisma, so `DATABASE_URL` is the only connection string the app needs.
 
-- `app/ui/components/Header.tsx` — imports `react-router-dom` (not a dependency) and `../functions/isValidDataArray` (path does not exist). Nothing imports it.
-- `app/ui/components/NotificationBar.tsx` — imports `@wordpress/components`, `@wordpress/notices`, `@wordpress/data`, none of which are dependencies. Nothing imports it.
-- `app/ui/forms/PngForm.tsx` and `app/ui/forms/SpellForm.tsx` — superseded by `app/ui/png/PngForm.tsx` and `app/ui/spells/SpellForm.tsx`, which are the ones actually imported. The stale copies still fail typecheck.
-- `app/lib/utils.ts` — `formatCurrency`, `formatDateToLocal`, `generateYAxis`, `generatePagination` and a `Revenue` import are leftovers from the Next.js Learn tutorial. `Revenue` does not exist in `definitions.ts`, which is why the file fails typecheck.
-- `@wordpress/html-entities` is a declared dependency; verify whether it is used at all.
-- `copy-webpack-plugin` in `next.config.ts` copies Leaflet images into `public/` at build time — a `webpack` config also disables Turbopack for builds. Worth replacing with a static copy or a Turbopack-compatible approach.
-- A stray `SpellMetaField;` expression statement sits in `createSpell.ts` doing nothing.
+Still outstanding:
+
+- `copy-webpack-plugin` in `next.config.ts` copies Leaflet images into `public/` at build time. The `webpack` hook now makes `next build` **fail outright** under Next 16, where Turbopack is the default — this blocks CI's build step. The images are already committed, so deleting the hook is close to free. See TD-18.
 
 `app/lib/actions/notifications/sendNotification.ts` is not dead but is a stub: it only ever `console.log`s, and its `snackbar` channel is unimplemented. It is called from server-side code (`auth.ts`, `getQuery.ts`) where a console log is invisible to the user, so error feedback silently disappears.
 

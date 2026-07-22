@@ -3,9 +3,9 @@ import { deleteSpellById } from "@/app/lib/data/spells/deleteSpellById";
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const theParams = await params;
+  const theParams = await context.params;
   const id = parseInt(theParams.id);
   const isDeleted = await deleteSpellById(id);
 

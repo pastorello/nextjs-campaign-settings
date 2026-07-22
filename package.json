@@ -4,6 +4,7 @@
     "build": "next build",
     "dev": "next dev --turbopack",
     "start": "next start",
+    "typecheck": "next typegen && tsc --noEmit",
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",

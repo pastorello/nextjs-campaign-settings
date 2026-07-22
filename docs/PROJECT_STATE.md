@@ -118,7 +118,7 @@ Two problems follow from this, both covered in `TECH_DEBT.md`:
 
 | Check | Result |
 |---|---|
-| `tsc --noEmit` | ❌ **9 errors** (was 19 before TD-06) |
+| `pnpm typecheck` | ✅ **0 errors** (19 before TD-06; `next typegen && tsc --noEmit`) |
 | `next build` | ❌ **Fails** — `webpack` hook in `next.config.ts` vs. Turbopack-by-default in Next 16 (TD-18) |
 | `jest` | ⚠️ **Runs**; 4 suites pass, 1 fails (`generatePwdHash.test.ts` — an unawaitable assertion against a random-salt bcrypt hash). Coverage is still effectively nil. |
 | Lint | ⚠️ No ESLint config file exists; `next lint` is deprecated in Next 16 |
@@ -130,7 +130,7 @@ Two problems follow from this, both covered in `TECH_DEBT.md`:
 | `.env` | ✅ Correctly gitignored |
 | `.DS_Store` | ✅ Present on disk but untracked — `.gitignore` is working |
 
-Of the 9 remaining TypeScript errors, 4 are the same `params` typing bug repeated across the DELETE route handlers, 3 stem from a single bad `import type` in `auth.config.ts`, and 2 are the async `searchParams` change in Next 15+. All are TD-04.
+TD-04 closed the remaining nine on 2026-07-22. Note that `typecheck` must run `next typegen` first: the route-handler signatures live in generated types that a fresh checkout does not have, so a bare `tsc --noEmit` passes vacuously.
 
 ---
 

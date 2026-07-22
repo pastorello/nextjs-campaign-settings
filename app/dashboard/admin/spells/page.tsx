@@ -38,7 +38,7 @@ export default async function Page(props: {
         <ResetButton />
       </div>
       <Suspense key={query + currentPage} fallback={<TableSkeleton />}>
-        <SpellList searchParams={props.searchParams} />
+        <SpellList searchParams={searchParams} />
       </Suspense>
       <div className="mt-5 flex w-full justify-center">
         <Pagination totalPages={itemCount.filteredPages} />

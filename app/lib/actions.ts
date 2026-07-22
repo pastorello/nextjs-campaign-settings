@@ -6,7 +6,7 @@ import { sendErrorNotification } from "./actions/notifications/sendNotification"
 
 export async function authenticate(
   prevState: string | undefined,
-  formData: FormData,
+  formData: FormData
 ) {
   try {
     await signIn("credentials", formData);

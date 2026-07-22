@@ -3,20 +3,20 @@
  */
 
 export type POICategory =
-  | 'food-drink'
-  | 'shopping'
-  | 'transport'
-  | 'lodging'
-  | 'health'
-  | 'entertainment'
-  | 'nature'
-  | 'services'
-  | 'education'
-  | 'religion'
-  | 'business'
-  | 'tourism'
-  | 'emergency'
-  | 'utilities';
+  | "food-drink"
+  | "shopping"
+  | "transport"
+  | "lodging"
+  | "health"
+  | "entertainment"
+  | "nature"
+  | "services"
+  | "education"
+  | "religion"
+  | "business"
+  | "tourism"
+  | "emergency"
+  | "utilities";
 
 export interface POICategoryConfig {
   id: POICategory;
@@ -38,11 +38,11 @@ export interface POI {
 }
 
 export interface POIGeoJSON {
-  type: 'FeatureCollection';
+  type: "FeatureCollection";
   features: Array<{
-    type: 'Feature';
+    type: "Feature";
     geometry: {
-      type: 'Point';
+      type: "Point";
       coordinates: [number, number]; // [lng, lat]
     };
     properties: {

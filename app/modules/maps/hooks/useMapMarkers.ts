@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { useLeafletMap } from './useLeafletMap';
-import type { Marker } from 'leaflet';
+import { useState, useCallback, useRef, useEffect } from "react";
+import { useLeafletMap } from "./useLeafletMap";
+import type { Marker } from "leaflet";
 
 export interface MapMarker {
   id: string;
@@ -13,13 +13,13 @@ export interface MapMarker {
 
 /**
  * Hook for managing user-added markers on the map
- * 
+ *
  * Features:
  * - Add/remove markers programmatically
  * - Proper cleanup on unmount
  * - Unique ID generation for each marker
  * - Optional popup labels
- * 
+ *
  * @returns Object with marker management functions and state
  */
 export function useMapMarkers() {
@@ -37,17 +37,18 @@ export function useMapMarkers() {
   /**
    * Add a marker at the specified location
    */
-  const addMarker = useCallback(async (lat: number, lng: number, label?: string) => {
-    if (!map) return null;
+  const addMarker = useCallback(
+    async (lat: number, lng: number, label?: string) => {
+      if (!map) return null;
 
-    const id = generateId();
-    const L = await import('leaflet');
+      const id = generateId();
+      const L = await import("leaflet");
 
-    // Create Leaflet marker
-    const leafletMarker = L.marker([lat, lng], {
-      icon: L.divIcon({
-        className: 'custom-user-marker',
-        html: `
+      // Create Leaflet marker
+      const leafletMarker = L.marker([lat, lng], {
+        icon: L.divIcon({
+          className: "custom-user-marker",
+          html: `
           <div style="
             width: 24px;
             height: 24px;
@@ -69,39 +70,44 @@ export function useMapMarkers() {
             "></div>
           </div>
         `,
-        iconSize: [24, 24],
-        iconAnchor: [12, 24],
-        popupAnchor: [0, -24],
-      }),
-    }).addTo(map);
+          iconSize: [24, 24],
+          iconAnchor: [12, 24],
+          popupAnchor: [0, -24],
+        }),
+      }).addTo(map);
 
-    // Add popup with coordinates if no label provided
-    const popupContent = label || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-    leafletMarker.bindPopup(popupContent);
+      // Add popup with coordinates if no label provided
+      const popupContent = label || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      leafletMarker.bindPopup(popupContent);
 
-    // Store reference
-    leafletMarkersRef.current.set(id, leafletMarker);
+      // Store reference
+      leafletMarkersRef.current.set(id, leafletMarker);
 
-    // Update state
-    const newMarker: MapMarker = { id, lat, lng, label };
-    setMarkers(prev => [...prev, newMarker]);
+      // Update state
+      const newMarker: MapMarker = { id, lat, lng, label };
+      setMarkers((prev) => [...prev, newMarker]);
 
-    return id;
-  }, [map, generateId]);
+      return id;
+    },
+    [map, generateId]
+  );
 
   /**
    * Remove a marker by ID
    */
-  const removeMarker = useCallback((id: string) => {
-    const leafletMarker = leafletMarkersRef.current.get(id);
-    
-    if (leafletMarker && map?.hasLayer(leafletMarker)) {
-      map.removeLayer(leafletMarker);
-    }
-    
-    leafletMarkersRef.current.delete(id);
-    setMarkers(prev => prev.filter(m => m.id !== id));
-  }, [map]);
+  const removeMarker = useCallback(
+    (id: string) => {
+      const leafletMarker = leafletMarkersRef.current.get(id);
+
+      if (leafletMarker && map?.hasLayer(leafletMarker)) {
+        map.removeLayer(leafletMarker);
+      }
+
+      leafletMarkersRef.current.delete(id);
+      setMarkers((prev) => prev.filter((m) => m.id !== id));
+    },
+    [map]
+  );
 
   /**
    * Remove all markers
@@ -112,7 +118,7 @@ export function useMapMarkers() {
         map.removeLayer(leafletMarker);
       }
     });
-    
+
     leafletMarkersRef.current.clear();
     setMarkers([]);
   }, [map]);
@@ -120,15 +126,18 @@ export function useMapMarkers() {
   /**
    * Get marker by ID
    */
-  const getMarker = useCallback((id: string): MapMarker | undefined => {
-    return markers.find(m => m.id === id);
-  }, [markers]);
+  const getMarker = useCallback(
+    (id: string): MapMarker | undefined => {
+      return markers.find((m) => m.id === id);
+    },
+    [markers]
+  );
 
   // Cleanup on unmount
   useEffect(() => {
     // Copy ref value to local variable for cleanup
     const markersMap = leafletMarkersRef.current;
-    
+
     return () => {
       markersMap.forEach((leafletMarker) => {
         if (map?.hasLayer(leafletMarker)) {

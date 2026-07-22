@@ -13,15 +13,15 @@ This is a change from the earlier assumption that Italian was the only user-faci
 
 Text in this app falls into three categories, not two:
 
-| # | Category | Example | Lives in |
-|---|---|---|---|
-| 1 | UI chrome | "Salva", "Nessun risultato", "Inserisci il nome" | Components |
-| 2 | SRD domain labels | `rarita: "Raro"`, `allineamento: "Caotico Neutrale"`, `circolo: "Evocazione"` | `PageMeta.label`, options arrays in `app/lib/config/**` |
-| 3 | Campaign content | Spell names, descriptions, NPC biographies, secrets | **Postgres** |
+| #   | Category          | Example                                                                       | Lives in                                                |
+| --- | ----------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------- |
+| 1   | UI chrome         | "Salva", "Nessun risultato", "Inserisci il nome"                              | Components                                              |
+| 2   | SRD domain labels | `rarita: "Raro"`, `allineamento: "Caotico Neutrale"`, `circolo: "Evocazione"` | `PageMeta.label`, options arrays in `app/lib/config/**` |
+| 3   | Campaign content  | Spell names, descriptions, NPC biographies, secrets                           | **Postgres**                                            |
 
 Categories 1 and 2 are copy: finite, authored by the developer, and translatable once. Category 3 is user data. No i18n library touches it; making it bilingual is a schema question — translation columns or a `translations` table, dual inputs on every form, and fallback behaviour when one language is missing.
 
-Category 2 is the interesting one and is easy to overlook. Roughly 150 SRD terms — rarities, alignments, schools of magic, casting times, patron ranks — already have canonical translations in the official rulebooks. They currently sit in `PageMeta.label` and in the options arrays, which makes them structurally UI copy even though they read as domain data. They are also where most of the perceived "is this app in English?" signal lives: an English UI wrapping a dropdown that still reads *Caotico Neutrale* is not a bilingual app.
+Category 2 is the interesting one and is easy to overlook. Roughly 150 SRD terms — rarities, alignments, schools of magic, casting times, patron ranks — already have canonical translations in the official rulebooks. They currently sit in `PageMeta.label` and in the options arrays, which makes them structurally UI copy even though they read as domain data. They are also where most of the perceived "is this app in English?" signal lives: an English UI wrapping a dropdown that still reads _Caotico Neutrale_ is not a bilingual app.
 
 ## Decision
 
@@ -47,7 +47,7 @@ Worth revisiting only if the app ever gains an audience that shares settings acr
 
 ### Translate entity names but not descriptions
 
-The middle option, and genuinely tempting for SRD spells: *Palla di Fuoco* and *Fireball* are the same spell, and a bilingual name field would let either name find it.
+The middle option, and genuinely tempting for SRD spells: _Palla di Fuoco_ and _Fireball_ are the same spell, and a bilingual name field would let either name find it.
 
 Rejected because it draws the line in the wrong place. The value is real only for official SRD content, which is a minority of what this app stores — the point of the tool is homebrew, and homebrew names have no official translation. It would add a translation column used meaningfully by a fraction of rows, while leaving the descriptions beside them monolingual. Inconsistent in the UI, and awkward to explain.
 

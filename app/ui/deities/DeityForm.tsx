@@ -54,7 +54,7 @@ export default function DeityForm({
             ...acc,
             [item]: getField(item),
           }),
-          { id: page.id } as Patrono
+          { id: page.id }
         )
       );
     } else {

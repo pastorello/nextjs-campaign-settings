@@ -51,7 +51,7 @@ export default function MagicItemForm({
             ...acc,
             [item]: getField(item),
           }),
-          { id: page.id } as MagicItem
+          { id: page.id }
         )
       );
     } else {

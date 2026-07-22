@@ -21,8 +21,8 @@ const zodConfig: Record<FieldType, any> = {
       val === "true" || val === true || val === 1
         ? true
         : val === "false" || val === false || val === 0
-        ? false
-        : null,
+          ? false
+          : null,
     z.boolean().nullable().catch(null)
   ),
 };

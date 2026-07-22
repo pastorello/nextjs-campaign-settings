@@ -10,7 +10,7 @@ export default function CampaignSettingsLogo(props: {
     <div
       className={clsx(
         `${lusitana.className} flex flex-row items-center space-x-4 leading-none text-white`,
-        {},
+        {}
       )}
     >
       <div className="flex">

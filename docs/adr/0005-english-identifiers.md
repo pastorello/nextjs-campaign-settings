@@ -5,14 +5,14 @@
 - **Deciders:** Turu
 - **Related:** [TD-19](../TECH_DEBT.md), [TD-08](../TECH_DEBT.md), [ADR-0003](./0003-metadata-driven-domain-configuration.md)
 - **Supersedes:** the language convention previously stated in `CLAUDE.md`, which described the mixed state as deliberate. It was not — it was inferred from the code and recorded as intent in error.
-- **Amended by:** [ADR-0006](./0006-bilingual-ui.md). This ADR says user-facing text is Italian; ADR-0006 makes it Italian *and* English, served from message catalogues. The decision recorded here — English identifiers, Italian never in code — is unaffected.
+- **Amended by:** [ADR-0006](./0006-bilingual-ui.md). This ADR says user-facing text is Italian; ADR-0006 makes it Italian _and_ English, served from message catalogues. The decision recorded here — English identifiers, Italian never in code — is unaffected.
 
 ## Context
 
 The codebase mixes Italian and English identifiers, and the mixture does not follow a rule. It follows the order in which things were written:
 
 - Prisma models are English: `spells`, `magicitems`, `deities`
-- but one is Italian abbreviated: `png` (*personaggi non giocanti*)
+- but one is Italian abbreviated: `png` (_personaggi non giocanti_)
 - columns are Italian: `nome`, `descrizione`, `rarita`, `tempodilancio`, `sintonia`
 - functions are English: `fetchFilteredSpells`, `usePageManager`, `validateParams`
 - enums are Italian: `Allineamento`, `Fazione`, `Circolo`, `GradoPatrono`
@@ -66,7 +66,7 @@ Rejected for now on cost and risk rather than principle. It requires a tested mi
 
 Minimal diff, addresses the one identifier that actively causes confusion.
 
-Rejected because it leaves the codebase mixed *and* adds a third pattern to the existing two. If the mixture is the problem, a partial fix does not solve it; it just moves the boundary somewhere less predictable.
+Rejected because it leaves the codebase mixed _and_ adds a third pattern to the existing two. If the mixture is the problem, a partial fix does not solve it; it just moves the boundary somewhere less predictable.
 
 ### Do it immediately, before the Phase 1 hardening work
 
@@ -90,7 +90,7 @@ After TD-08 makes `PageMeta` a discriminated union with typed keys, the same ref
 
 - A large mechanical diff (~1,000 sites, 54 files) that will dominate `git blame` for those files. Mitigate by landing it as a single pure-rename commit with no behaviour change, and adding its SHA to `.git-blame-ignore-revs`.
 - `@map` adds a layer of indirection: the field is `name` in code and `nome` in the database. Anyone reading raw SQL or using `psql` sees the Italian name. Acceptable, and documented here.
-- The Italian D&D terms genuinely have no clean English equivalent in a few places — `circolo` (school of magic) and `grado patrono` are the awkward ones. Where a translation would lose meaning, keep the Italian term as a *label* in the metadata and use the English concept name as the identifier.
+- The Italian D&D terms genuinely have no clean English equivalent in a few places — `circolo` (school of magic) and `grado patrono` are the awkward ones. Where a translation would lose meaning, keep the Italian term as a _label_ in the metadata and use the English concept name as the identifier.
 
 **Neutral / follow-up**
 

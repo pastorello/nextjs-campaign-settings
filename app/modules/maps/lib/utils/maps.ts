@@ -1,11 +1,11 @@
 /**
  * Map utility functions for bounds calculation and map operations
  * Validates: Requirements 12.1
- * 
+ *
  * NOTE: This module is SSR-safe. Functions that need Leaflet use async imports.
  */
 
-import type { LatLngBounds } from 'leaflet';
+import type { LatLngBounds } from "leaflet";
 
 /**
  * Raw bounds data that can be used without Leaflet
@@ -28,7 +28,7 @@ export function calculateRawBounds(
   if (coordinates.length === 0) {
     return null;
   }
-  
+
   if (coordinates.length === 1) {
     const [lat, lng] = coordinates[0];
     const offset = 0.001;
@@ -39,19 +39,19 @@ export function calculateRawBounds(
       maxLng: lng + offset,
     };
   }
-  
+
   let minLat = coordinates[0][0];
   let maxLat = coordinates[0][0];
   let minLng = coordinates[0][1];
   let maxLng = coordinates[0][1];
-  
+
   for (const [lat, lng] of coordinates) {
     if (lat < minLat) minLat = lat;
     if (lat > maxLat) maxLat = lat;
     if (lng < minLng) minLng = lng;
     if (lng > maxLng) maxLng = lng;
   }
-  
+
   return { minLat, maxLat, minLng, maxLng };
 }
 
@@ -65,8 +65,8 @@ export async function calculateBounds(
 ): Promise<LatLngBounds | null> {
   const rawBounds = calculateRawBounds(coordinates);
   if (!rawBounds) return null;
-  
-  const L = await import('leaflet');
+
+  const L = await import("leaflet");
   return L.latLngBounds(
     [rawBounds.minLat, rawBounds.minLng],
     [rawBounds.maxLat, rawBounds.maxLng]
@@ -83,13 +83,13 @@ export async function expandBounds(
   bounds: LatLngBounds,
   percentage: number = 0.1
 ): Promise<LatLngBounds> {
-  const L = await import('leaflet');
+  const L = await import("leaflet");
   const sw = bounds.getSouthWest();
   const ne = bounds.getNorthEast();
-  
+
   const latDiff = (ne.lat - sw.lat) * percentage;
   const lngDiff = (ne.lng - sw.lng) * percentage;
-  
+
   return L.latLngBounds(
     [sw.lat - latDiff, sw.lng - lngDiff],
     [ne.lat + latDiff, ne.lng + lngDiff]
@@ -125,17 +125,19 @@ export function getBoundsCenter(bounds: LatLngBounds): [number, number] {
  * @param bounds - Leaflet LatLngBounds object
  * @returns Promise of area in square meters (approximate)
  */
-export async function calculateBoundsArea(bounds: LatLngBounds): Promise<number> {
-  const L = await import('leaflet');
+export async function calculateBoundsArea(
+  bounds: LatLngBounds
+): Promise<number> {
+  const L = await import("leaflet");
   const sw = bounds.getSouthWest();
   const ne = bounds.getNorthEast();
   const nw = L.latLng(ne.lat, sw.lng);
   const se = L.latLng(sw.lat, ne.lng);
-  
+
   // Calculate width and height using Haversine formula
   const width = sw.distanceTo(se);
   const height = sw.distanceTo(nw);
-  
+
   return width * height;
 }
 
@@ -144,7 +146,7 @@ export async function calculateBoundsArea(bounds: LatLngBounds): Promise<number>
  * Validates: Requirements 12.4
  */
 
-import type { Map as LeafletMap, Marker, TileLayer } from 'leaflet';
+import type { Map as LeafletMap, Marker, TileLayer } from "leaflet";
 
 /**
  * Safely gets the current zoom level from a map instance
@@ -152,7 +154,10 @@ import type { Map as LeafletMap, Marker, TileLayer } from 'leaflet';
  * @param defaultZoom - Default value if map is null/undefined
  * @returns Current zoom level or default
  */
-export function safeGetZoom(map: LeafletMap | null | undefined, defaultZoom: number = 13): number {
+export function safeGetZoom(
+  map: LeafletMap | null | undefined,
+  defaultZoom: number = 13
+): number {
   try {
     return map?.getZoom() ?? defaultZoom;
   } catch {
@@ -375,7 +380,9 @@ export function safeHasLayer(
  * @param map - Leaflet map instance
  * @returns True if successful
  */
-export function safeInvalidateSize(map: LeafletMap | null | undefined): boolean {
+export function safeInvalidateSize(
+  map: LeafletMap | null | undefined
+): boolean {
   try {
     if (!map) return false;
     map.invalidateSize();

@@ -1,15 +1,15 @@
 # Documentation
 
-| Document | What it is | Read it when |
-|---|---|---|
-| [`PROJECT_STATE.md`](./PROJECT_STATE.md) | Inventory: stack, layout, data model, current health, dead code | Starting a session; onboarding |
-| [`ARCHITECTURE.md`](./ARCHITECTURE.md) | How the pieces fit; the metadata layer explained; gaps marked | Touching metadata, data access or auth |
-| [`TECH_DEBT.md`](./TECH_DEBT.md) | 18 prioritised debt items with fixes and execution order | Deciding what to work on |
-| [`TESTING.md`](./TESTING.md) | Test strategy, coverage targets, Jest → Vitest migration | Writing any test |
-| [`ROADMAP.md`](./ROADMAP.md) | Five phases; feature backlog; explicit non-goals | Planning; logging an idea |
-| [`adr/`](./adr/) | Architecture decision records — the *why* behind the code | Making or revisiting a decision |
-| [`specs/`](./specs/) | Feature specs, written before implementation | Building a feature |
-| [`../CLAUDE.md`](../CLAUDE.md) | Conventions and rules for AI-assisted development | Every AI session |
+| Document                                 | What it is                                                      | Read it when                           |
+| ---------------------------------------- | --------------------------------------------------------------- | -------------------------------------- |
+| [`PROJECT_STATE.md`](./PROJECT_STATE.md) | Inventory: stack, layout, data model, current health, dead code | Starting a session; onboarding         |
+| [`ARCHITECTURE.md`](./ARCHITECTURE.md)   | How the pieces fit; the metadata layer explained; gaps marked   | Touching metadata, data access or auth |
+| [`TECH_DEBT.md`](./TECH_DEBT.md)         | 18 prioritised debt items with fixes and execution order        | Deciding what to work on               |
+| [`TESTING.md`](./TESTING.md)             | Test strategy, coverage targets, Jest → Vitest migration        | Writing any test                       |
+| [`ROADMAP.md`](./ROADMAP.md)             | Five phases; feature backlog; explicit non-goals                | Planning; logging an idea              |
+| [`adr/`](./adr/)                         | Architecture decision records — the _why_ behind the code       | Making or revisiting a decision        |
+| [`specs/`](./specs/)                     | Feature specs, written before implementation                    | Building a feature                     |
+| [`../CLAUDE.md`](../CLAUDE.md)           | Conventions and rules for AI-assisted development               | Every AI session                       |
 
 ## How these fit together
 

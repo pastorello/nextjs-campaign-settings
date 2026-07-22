@@ -24,9 +24,7 @@ const filterByMeta = (
   const parsedList: Indexable[] =
     isValidString(searchTerm) || isValidDataArray(validMetaFilters)
       ? list.filter((item: Indexable): boolean => {
-          const itemName = isValidString(item[termKey])
-            ? (item[termKey] as string)
-            : "";
+          const itemName = isValidString(item[termKey]) ? item[termKey] : "";
           const matchesTerm =
             !isValidString(searchTerm) ||
             itemName.toLowerCase().includes(searchTerm.toLowerCase()) === true;

@@ -5,7 +5,7 @@
 /**
  * Theme type
  */
-export type Theme = 'light' | 'dark';
+export type Theme = "light" | "dark";
 
 /**
  * Theme context value

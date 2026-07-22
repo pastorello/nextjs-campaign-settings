@@ -5,7 +5,7 @@
 - **Deciders:** Turu
 - **Related:** [TD-02](../TECH_DEBT.md), [TD-08](../TECH_DEBT.md), [TD-09](../TECH_DEBT.md), [ARCHITECTURE.md §2](../ARCHITECTURE.md)
 
-*Retroactive: this documents a decision already embodied in the code, so that it is preserved deliberately rather than by accident.*
+_Retroactive: this documents a decision already embodied in the code, so that it is preserved deliberately rather than by accident._
 
 ## Context
 
@@ -42,7 +42,7 @@ Declarations compose into a flat registry (`pageMetaFields.ts`) and are ordered 
 
 A `SpellForm` that lists its inputs literally, a `SpellList` that names its columns. Far more readable in isolation — anyone can open the file and see exactly what renders, with no indirection.
 
-Rejected because of the multiplication: 4 domains × 5 concerns × ~11 fields average. The duplication is not hypothetical — the codebase currently has *both*, and the four `XxxCard`/`XxxList`/`XxxLibrary`/`XxxForm` quartets are roughly 80% identical (TD-09 exists to collapse them into the metadata layer). The experiment has already run and the duplicated version lost.
+Rejected because of the multiplication: 4 domains × 5 concerns × ~11 fields average. The duplication is not hypothetical — the codebase currently has _both_, and the four `XxxCard`/`XxxList`/`XxxLibrary`/`XxxForm` quartets are roughly 80% identical (TD-09 exists to collapse them into the metadata layer). The experiment has already run and the duplicated version lost.
 
 This alternative is genuinely better for a two-domain app. It stops being better somewhere around four, which is where this project sits and past which it is heading.
 
@@ -54,7 +54,7 @@ Rejected because the schema knows storage, not presentation. It cannot know that
 
 ### An off-the-shelf schema-driven form library (React Hook Form + Zod resolvers, Formik, JSON Schema renderers)
 
-Rejected as a partial solution to the wrong scope. These solve form rendering and validation well, but the duplication problem here spans forms *and* list columns *and* filters *and* query construction. Adopting one would leave three of the five concerns unsolved and add a dependency whose abstraction competes with the one we still need to build. The Zod validators in `PageMeta` deliberately keep the door open to using such a library *underneath* this layer later.
+Rejected as a partial solution to the wrong scope. These solve form rendering and validation well, but the duplication problem here spans forms _and_ list columns _and_ filters _and_ query construction. Adopting one would leave three of the five concerns unsolved and add a dependency whose abstraction competes with the one we still need to build. The Zod validators in `PageMeta` deliberately keep the door open to using such a library _underneath_ this layer later.
 
 ### Runtime configuration in the database
 

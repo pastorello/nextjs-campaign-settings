@@ -11,7 +11,7 @@
 
 What can the user not do today, or what is painful? Written from the user's perspective — a Dungeon Master preparing or running a session. No solution language here.
 
-> Example: *Preparing a session means finding every NPC connected to a location. Today the only way is scrolling the NPC list and reading each entry, because there is no way to group or cross-reference them.*
+> Example: _Preparing a session means finding every NPC connected to a location. Today the only way is scrolling the NPC list and reading each entry, because there is no way to group or cross-reference them._
 
 ## 2. Goal
 
@@ -40,12 +40,12 @@ What the user sees and does. Cover the ordinary path first, then the edges.
 
 **Edge cases**
 
-| Situation | Expected behaviour |
-|---|---|
-| Empty state | … |
-| Validation failure | … |
-| Concurrent edit | … |
-| Very large result set | … |
+| Situation             | Expected behaviour |
+| --------------------- | ------------------ |
+| Empty state           | …                  |
+| Validation failure    | …                  |
+| Concurrent edit       | …                  |
+| Very large result set | …                  |
 
 ## 6. Data model changes
 
@@ -74,13 +74,13 @@ Testable, checkable statements. These become the test cases.
 
 ## 9. Implementation plan
 
-*Fill in after the sections above are agreed.*
+_Fill in after the sections above are agreed._
 
 **Files touched, in order**
 
-| # | File | Change |
-|---|---|---|
-| 1 | … | … |
+| #   | File | Change |
+| --- | ---- | ------ |
+| 1   | …    | …      |
 
 **Risks**
 
@@ -94,13 +94,13 @@ Testable, checkable statements. These become the test cases.
 
 Each task is one commit, independently verifiable, small enough to review in one sitting.
 
-- [ ] **T1** — … *(test: …)*
-- [ ] **T2** — … *(test: …)*
-- [ ] **T3** — … *(test: …)*
+- [ ] **T1** — … _(test: …)_
+- [ ] **T2** — … _(test: …)_
+- [ ] **T3** — … _(test: …)_
 
 ## 11. Outcome
 
-*Fill in at close.*
+_Fill in at close._
 
 - Shipped: YYYY-MM-DD
 - Deviations from spec and why: …

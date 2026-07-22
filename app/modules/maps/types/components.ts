@@ -2,8 +2,8 @@
  * Component prop type definitions
  */
 
-import type { ReactNode } from 'react';
-import type { Icon as LeafletIcon } from 'leaflet';
+import type { ReactNode } from "react";
+import type { Icon as LeafletIcon } from "leaflet";
 
 /**
  * LeafletMap component props
@@ -46,7 +46,7 @@ export interface LeafletMarkerProps {
  */
 export interface DockContainerProps {
   children: ReactNode;
-  position?: 'bottom' | 'top';
+  position?: "bottom" | "top";
   className?: string;
 }
 

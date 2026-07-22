@@ -215,7 +215,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       description: "",
       lat: initialLatStr,
       lng: initialLngStr,
-      category: (filterCategory || "food-drink") as POICategory,
+      category: filterCategory || "food-drink",
     }),
     [initialLatStr, initialLngStr, filterCategory]
   );

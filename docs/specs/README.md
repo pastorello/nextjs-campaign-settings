@@ -4,7 +4,7 @@ One spec per feature, written **before** implementation. The spec is the artefac
 
 ## Why bother, on a solo project
 
-Because the failure mode of AI-assisted development is not bad code — it is confidently-built *wrong* code. An agent given "add tagging to spells" will produce something plausible and complete in twenty minutes, and you will discover it modelled tags as a comma-separated string in an existing column only once you try to filter by them. A spec forces the twenty seconds of thought that prevents that, and it moves the expensive conversation from code review to before any code exists.
+Because the failure mode of AI-assisted development is not bad code — it is confidently-built _wrong_ code. An agent given "add tagging to spells" will produce something plausible and complete in twenty minutes, and you will discover it modelled tags as a comma-separated string in an existing column only once you try to filter by them. A spec forces the twenty seconds of thought that prevents that, and it moves the expensive conversation from code review to before any code exists.
 
 It also produces, as a by-product, a written record of product reasoning — which is exactly what a portfolio reviewer cannot otherwise see.
 
@@ -38,8 +38,8 @@ Steps 1–3 are cheap and go in one file. Do not skip straight to 4 for anything
 
 ## Index
 
-| # | Feature | Status | Phase |
-|---|---|---|---|
-| — | *No specs yet. The current phase is hardening, not feature work.* | — | — |
+| #   | Feature                                                           | Status | Phase |
+| --- | ----------------------------------------------------------------- | ------ | ----- |
+| —   | _No specs yet. The current phase is hardening, not feature work._ | —      | —     |
 
 Feature ideas live in [`../ROADMAP.md`](../ROADMAP.md) until they are ready for a spec.

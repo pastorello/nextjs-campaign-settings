@@ -71,13 +71,13 @@ app/lib/config/pagesConfig.ts           Record<PageType, PageMeta[]>
 
 ### Consumers
 
-| Consumer | File | What it uses |
-|---|---|---|
-| Form rendering | `app/ui/forms/PageForm.tsx` → `inputs/InputComponent.tsx` | `controlType`, `label`, `placeholder`, `defaultValue`, `options` |
-| Value display | `app/ui/components/ItemMeta.tsx`, `XxxCard.tsx` | `getDatum` |
-| List columns & sorting | `app/ui/*/XxxList.tsx`, `SortableHeader.tsx` | `label`, `metaField` |
-| Filtering | `app/lib/hooks/useFilterController.ts` | `fieldType`, `options` |
-| Query building | `app/lib/data/getQuery.ts` | `fieldType` → `hasSome` for arrays, equality otherwise |
+| Consumer               | File                                                      | What it uses                                                     |
+| ---------------------- | --------------------------------------------------------- | ---------------------------------------------------------------- |
+| Form rendering         | `app/ui/forms/PageForm.tsx` → `inputs/InputComponent.tsx` | `controlType`, `label`, `placeholder`, `defaultValue`, `options` |
+| Value display          | `app/ui/components/ItemMeta.tsx`, `XxxCard.tsx`           | `getDatum`                                                       |
+| List columns & sorting | `app/ui/*/XxxList.tsx`, `SortableHeader.tsx`              | `label`, `metaField`                                             |
+| Filtering              | `app/lib/hooks/useFilterController.ts`                    | `fieldType`, `options`                                           |
+| Query building         | `app/lib/data/getQuery.ts`                                | `fieldType` → `hasSome` for arrays, equality otherwise           |
 
 ### [GAP] The `validator` is declared but never executed
 

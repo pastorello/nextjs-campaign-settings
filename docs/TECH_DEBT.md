@@ -5,12 +5,12 @@
 
 ## Legend
 
-| Severity | Meaning |
-|---|---|
-| 🔴 Critical | Security hole, data loss risk, or the project does not build/run correctly |
-| 🟠 High | Blocks the "portfolio-ready" goal — a reviewer would notice within five minutes |
-| 🟡 Medium | Real quality problem, not immediately visible |
-| 🟢 Low | Polish |
+| Severity    | Meaning                                                                         |
+| ----------- | ------------------------------------------------------------------------------- |
+| 🔴 Critical | Security hole, data loss risk, or the project does not build/run correctly      |
+| 🟠 High     | Blocks the "portfolio-ready" goal — a reviewer would notice within five minutes |
+| 🟡 Medium   | Real quality problem, not immediately visible                                   |
+| 🟢 Low      | Polish                                                                          |
 
 Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
@@ -18,29 +18,29 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-| ID | Title | Severity | Effort | Phase |
-|---|---|---|---|---|
-| TD-01 | Unauthenticated delete endpoints and Server Actions | 🔴 Critical | M | 1 |
-| TD-02 | No input validation at any trust boundary | 🔴 Critical | M | 1–2 |
-| TD-03 | Test suite does not run | 🔴 Critical | M | 1 |
-| TD-04 | ✅ TypeScript errors on `tsc --noEmit` | ~~🔴 Critical~~ done | S | 1 |
-| TD-05 | No ESLint config, no Prettier, no CI | 🟠 High | S | 1 |
-| TD-06 | ✅ Dead code and tutorial leftovers | ~~🟠 High~~ done | S | 1 |
-| TD-07 | `next` and `react` pinned to `latest`; two lockfiles | 🟠 High | S | 1 |
-| TD-08 | `PageMeta` is loosely typed; `any` in the query layer | 🟠 High | M | 2 |
-| TD-09 | Four near-identical Card/List/Library/Form quartets | 🟠 High | L | 2 |
-| TD-10 | Notification system is a `console.log` stub | 🟠 High | M | 2 |
-| TD-11 | Schema has no timestamps, indexes, or relations | 🟡 Medium | M | 2 |
-| TD-12 | Pagination count and rows use separate queries | 🟡 Medium | S | 2 |
-| TD-13 | Errors surfaced as `throw new Error("Failed to fetch X")` | 🟡 Medium | M | 2 |
-| TD-14 | Map POIs persisted only to `localStorage` | 🟡 Medium | M | 3 |
-| TD-15 | No accessibility pass | 🟡 Medium | M | 2 |
-| TD-16 | Inconsistent formatting | 🟢 Low | S | 1 |
-| TD-17 | README does not match reality | 🟢 Low | S | 1 |
-| TD-18 | `copy-webpack-plugin` forces webpack over Turbopack | 🟢 Low | S | 3 |
-| TD-19 | Mixed Italian/English identifiers | 🟠 High | L | 2 |
-| TD-20 | TypeScript strictness stops at `strict`; `target` is ES2017 | 🟡 Medium | M | 2 |
-| TD-21 | UI strings hardcoded; app must ship in it + en | 🟠 High | L | 2 |
+| ID    | Title                                                       | Severity             | Effort | Phase |
+| ----- | ----------------------------------------------------------- | -------------------- | ------ | ----- |
+| TD-01 | Unauthenticated delete endpoints and Server Actions         | 🔴 Critical          | M      | 1     |
+| TD-02 | No input validation at any trust boundary                   | 🔴 Critical          | M      | 1–2   |
+| TD-03 | Test suite does not run                                     | 🔴 Critical          | M      | 1     |
+| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                      | ~~🔴 Critical~~ done | S      | 1     |
+| TD-05 | No ESLint config, no Prettier, no CI                        | 🟠 High              | S      | 1     |
+| TD-06 | ✅ Dead code and tutorial leftovers                         | ~~🟠 High~~ done     | S      | 1     |
+| TD-07 | `next` and `react` pinned to `latest`; two lockfiles        | 🟠 High              | S      | 1     |
+| TD-08 | `PageMeta` is loosely typed; `any` in the query layer       | 🟠 High              | M      | 2     |
+| TD-09 | Four near-identical Card/List/Library/Form quartets         | 🟠 High              | L      | 2     |
+| TD-10 | Notification system is a `console.log` stub                 | 🟠 High              | M      | 2     |
+| TD-11 | Schema has no timestamps, indexes, or relations             | 🟡 Medium            | M      | 2     |
+| TD-12 | Pagination count and rows use separate queries              | 🟡 Medium            | S      | 2     |
+| TD-13 | Errors surfaced as `throw new Error("Failed to fetch X")`   | 🟡 Medium            | M      | 2     |
+| TD-14 | Map POIs persisted only to `localStorage`                   | 🟡 Medium            | M      | 3     |
+| TD-15 | No accessibility pass                                       | 🟡 Medium            | M      | 2     |
+| TD-16 | Inconsistent formatting                                     | 🟢 Low               | S      | 1     |
+| TD-17 | README does not match reality                               | 🟢 Low               | S      | 1     |
+| TD-18 | `copy-webpack-plugin` forces webpack over Turbopack         | 🟢 Low               | S      | 3     |
+| TD-19 | Mixed Italian/English identifiers                           | 🟠 High              | L      | 2     |
+| TD-20 | TypeScript strictness stops at `strict`; `target` is ES2017 | 🟡 Medium            | M      | 2     |
+| TD-21 | UI strings hardcoded; app must ship in it + en              | 🟠 High              | L      | 2     |
 
 ---
 
@@ -75,8 +75,8 @@ Every `PageMeta` entry declares a Zod `validator`. Grep confirms **it is never r
 
 ```ts
 export default async function createSpell(formData: Spell) {
-  const { nome, descrizione, livello, /* … */ } = formData;
-  await prisma.spells.create({ data: { nome, descrizione, livello, /* … */ } });
+  const { nome, descrizione, livello /* … */ } = formData;
+  await prisma.spells.create({ data: { nome, descrizione, livello /* … */ } });
 }
 ```
 
@@ -88,15 +88,15 @@ Also note the stray no-op statement `SpellMetaField;` on its own line in `create
 
 Mutations are the urgent case, but they are not the only place untrusted data enters the system. The full inventory:
 
-| # | Boundary | Where | Today | Priority |
-|---|---|---|---|---|
-| 1 | Create / update payloads | `app/lib/data/*/create*.ts`, `update*.ts` | Nothing. Straight into Prisma. | 🔴 |
-| 2 | Route handler path params | `app/api/*/[id]/route.ts` | `parseInt(params.id)` — `NaN` on garbage input, passed to Prisma unchecked | 🔴 |
-| 3 | Environment variables | `app/lib/connections/prisma.ts`, `app/seed/prismaSeed.ts` | `process.env.DATABASE_URL!` — non-null assertion. A missing var fails at an unrelated call site with an opaque error. TD-06 removed the `POSTGRES_URL` call sites along with the raw driver, so `DATABASE_URL` is the only variable left to validate. | 🟠 |
-| 4 | Search params | `app/lib/data/validateParams.ts` | ✅ Zod, but `.parse()` throws rather than returning a result, and the return type is cast | 🟠 |
-| 5 | `localStorage` POIs | `app/modules/maps/hooks/usePOIManager.ts:40` | `JSON.parse(stored) as POI[]` — a cast, not a check. Hand-edited or stale storage crashes the map. | 🟠 |
-| 6 | GeoJSON files | `app/api/countries/**`, `WorldMap.tsx`, `MapMain.tsx` | `JSON.parse(fileContents) as GeoJSONData` | 🟡 |
-| 7 | Prisma results | `fetchFilteredSpells.ts:29`, `fetchFilteredPng.ts:27` | `result as Spell[]` — masks any schema/interface drift | 🟡 |
+| #   | Boundary                  | Where                                                     | Today                                                                                                                                                                                                                                                 | Priority |
+| --- | ------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 1   | Create / update payloads  | `app/lib/data/*/create*.ts`, `update*.ts`                 | Nothing. Straight into Prisma.                                                                                                                                                                                                                        | 🔴       |
+| 2   | Route handler path params | `app/api/*/[id]/route.ts`                                 | `parseInt(params.id)` — `NaN` on garbage input, passed to Prisma unchecked                                                                                                                                                                            | 🔴       |
+| 3   | Environment variables     | `app/lib/connections/prisma.ts`, `app/seed/prismaSeed.ts` | `process.env.DATABASE_URL!` — non-null assertion. A missing var fails at an unrelated call site with an opaque error. TD-06 removed the `POSTGRES_URL` call sites along with the raw driver, so `DATABASE_URL` is the only variable left to validate. | 🟠       |
+| 4   | Search params             | `app/lib/data/validateParams.ts`                          | ✅ Zod, but `.parse()` throws rather than returning a result, and the return type is cast                                                                                                                                                             | 🟠       |
+| 5   | `localStorage` POIs       | `app/modules/maps/hooks/usePOIManager.ts:40`              | `JSON.parse(stored) as POI[]` — a cast, not a check. Hand-edited or stale storage crashes the map.                                                                                                                                                    | 🟠       |
+| 6   | GeoJSON files             | `app/api/countries/**`, `WorldMap.tsx`, `MapMain.tsx`     | `JSON.parse(fileContents) as GeoJSONData`                                                                                                                                                                                                             | 🟡       |
+| 7   | Prisma results            | `fetchFilteredSpells.ts:29`, `fetchFilteredPng.ts:27`     | `result as Spell[]` — masks any schema/interface drift                                                                                                                                                                                                | 🟡       |
 
 Items 5 and 7 are the instructive ones: `as` is not validation. It silences the compiler and changes nothing at runtime. Every `as` in the table is a place where the code asserts a shape it has not checked.
 
@@ -142,7 +142,7 @@ Steps 1–4 belong to Phase 1. Steps 5–6 can follow in Phase 2 without blockin
 
 **Outcome:** `pnpm typecheck` exits **0**, down from 19 errors. `strict: true` now does real work.
 
-**One trap worth knowing, found while closing this.** Four of the nine errors surfaced only through Next's generated `.next/types/validator.ts`. That directory does not exist in a fresh checkout — so a bare `tsc --noEmit` in CI would have passed *vacuously*, silently skipping every route-handler signature, including the four broken ones this item existed to fix. The `typecheck` script is therefore `next typegen && tsc --noEmit`, not `tsc --noEmit`. Do not "simplify" it.
+**One trap worth knowing, found while closing this.** Four of the nine errors surfaced only through Next's generated `.next/types/validator.ts`. That directory does not exist in a fresh checkout — so a bare `tsc --noEmit` in CI would have passed _vacuously_, silently skipping every route-handler signature, including the four broken ones this item existed to fix. The `typecheck` script is therefore `next typegen && tsc --noEmit`, not `tsc --noEmit`. Do not "simplify" it.
 
 How each group was fixed:
 
@@ -153,11 +153,11 @@ How each group was fixed:
 
 The original breakdown, for reference:
 
-| Count | Location | Error |
-|---|---|---|
-| 4 | `app/api/*/[id]/route.ts` | `{ params }: { params: { id: string } }` — in Next 15+, `params` is a `Promise`. The code already `await`s it but types it wrong. Fix: `context: { params: Promise<{ id: string }> }`. Surfaces via the generated `.next/types/validator.ts`, so regenerate with `npx next typegen` before measuring. |
-| 3 | `auth.config.ts` | `import type NextAuthConfig from "next-auth"` imports the default export as a type. Should be `import type { NextAuthConfig } from "next-auth"` with `satisfies NextAuthConfig`. This also causes the two implicit-`any` errors on the `authorized` callback params. |
-| 2 | `validateParams.ts`, `admin/spells/page.tsx` | `Record<string, unknown>` vs `SearchParams`; `Promise<…>` passed where `SearchParams` expected. Async `searchParams` in Next 15+. |
+| Count | Location                                     | Error                                                                                                                                                                                                                                                                                                 |
+| ----- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 4     | `app/api/*/[id]/route.ts`                    | `{ params }: { params: { id: string } }` — in Next 15+, `params` is a `Promise`. The code already `await`s it but types it wrong. Fix: `context: { params: Promise<{ id: string }> }`. Surfaces via the generated `.next/types/validator.ts`, so regenerate with `npx next typegen` before measuring. |
+| 3     | `auth.config.ts`                             | `import type NextAuthConfig from "next-auth"` imports the default export as a type. Should be `import type { NextAuthConfig } from "next-auth"` with `satisfies NextAuthConfig`. This also causes the two implicit-`any` errors on the `authorized` callback params.                                  |
+| 2     | `validateParams.ts`, `admin/spells/page.tsx` | `Record<string, unknown>` vs `SearchParams`; `Promise<…>` passed where `SearchParams` expected. Async `searchParams` in Next 15+.                                                                                                                                                                     |
 
 Cleared by TD-06: 6 errors from `Header.tsx` / `ItemMeta.tsx` / `NotificationBar.tsx` (imports of modules that do not exist here), 2 from the dead `app/ui/forms/{PngForm,SpellForm}.tsx`, 1 from `app/lib/utils.ts`'s `Revenue` import, and 1 revealed-then-fixed `ItemMeta` prop mismatch.
 
@@ -191,20 +191,20 @@ There is no `.github/` directory: nothing verifies a commit.
 Two findings worth carrying forward:
 
 - **The `ItemMeta` instruction below was wrong.** Pointing the import at `PrimitiveValue` surfaced 9 previously-masked errors in `SpellCard` and `DeityCard`: `ItemMeta` renders `{value}` into JSX and is always fed the output of a `PageMeta.getDatum`, which is declared `string | ReactNode` (see `renderRichText.tsx`, which returns a `<div>`). `PrimitiveValue` is simply the wrong type for that prop; it was typed as `ReactNode` instead. The broken import had been hiding the mismatch by degrading the prop to `any`.
-- **TD-03's premise is stale.** `npx jest` does *not* fail to start — it runs 5 suites, of which 1 fails (`generatePwdHash.test.ts` compares an unawaited Promise against a fixed bcrypt hash, which cannot pass; bcrypt salts are random). Verified pre-existing on `main`. Re-scope TD-03 before starting it.
+- **TD-03's premise is stale.** `npx jest` does _not_ fail to start — it runs 5 suites, of which 1 fails (`generatePwdHash.test.ts` compares an unawaited Promise against a fixed bcrypt hash, which cannot pass; bcrypt salts are random). Verified pre-existing on `main`. Re-scope TD-03 before starting it.
 
-**The Prisma swap was verified by hand before merge.** Commit `3efca76` states that the move of `getUser` and `fetchCardData` off the raw `postgres` driver was *not* checked against a live database, because none was reachable at the time. It has since been: login succeeds and the dashboard counters render against a real Postgres. That gap is closed — the commit message is left as written, since it was accurate when authored.
+**The Prisma swap was verified by hand before merge.** Commit `3efca76` states that the move of `getUser` and `fetchCardData` off the raw `postgres` driver was _not_ checked against a live database, because none was reachable at the time. It has since been: login succeeds and the dashboard counters render against a real Postgres. That gap is closed — the commit message is left as written, since it was accurate when authored.
 
 The project was scaffolded from the Next.js Learn dashboard tutorial and the scaffolding was never removed. A reviewer opening `app/lib/utils.ts` finds `formatCurrency`, `generateYAxis` and an import of a `Revenue` type in a D&D app — this reads as unfinished work.
 
 **Delete:**
 
-| File | Reason |
-|---|---|
-| `app/ui/components/Header.tsx` | Imports `react-router-dom` (not a dependency). Nothing imports it. |
+| File                                    | Reason                                                                               |
+| --------------------------------------- | ------------------------------------------------------------------------------------ |
+| `app/ui/components/Header.tsx`          | Imports `react-router-dom` (not a dependency). Nothing imports it.                   |
 | `app/ui/components/NotificationBar.tsx` | Imports three `@wordpress/*` packages that are not dependencies. Nothing imports it. |
-| `app/ui/forms/PngForm.tsx` | Superseded by `app/ui/png/PngForm.tsx`, which is the one actually imported. |
-| `app/ui/forms/SpellForm.tsx` | Superseded by `app/ui/spells/SpellForm.tsx`. |
+| `app/ui/forms/PngForm.tsx`              | Superseded by `app/ui/png/PngForm.tsx`, which is the one actually imported.          |
+| `app/ui/forms/SpellForm.tsx`            | Superseded by `app/ui/spells/SpellForm.tsx`.                                         |
 
 **Clean up:**
 
@@ -290,7 +290,7 @@ Since the metadata layer already knows every field of every domain, this duplica
 2. Collapse the four page-manager hooks into `usePageManager(pageType)`.
 3. Keep a per-domain component only where the domain genuinely differs.
 
-**Sequencing:** do this *after* TD-08. Refactoring against `any` types means the compiler cannot help you; refactoring against a discriminated union means it catches nearly every mistake.
+**Sequencing:** do this _after_ TD-08. Refactoring against `any` types means the compiler cannot help you; refactoring against a discriminated union means it catches nearly every mistake.
 
 ---
 
@@ -358,7 +358,7 @@ Never audited. Likely issues given the component inventory: custom `Select` and 
 
 **Where:** ~1,000 occurrences across 54 of 288 TypeScript files, plus `prisma/schema.prisma` and `app/seed/initial-data/`
 **Decision:** [ADR-0005](./adr/0005-english-identifiers.md)
-**Blocked by:** TD-03 (working test suite), TD-08 (typed metadata) — see *Sequencing* below
+**Blocked by:** TD-03 (working test suite), TD-08 (typed metadata) — see _Sequencing_ below
 
 The codebase mixes languages without a rule. Models are English (`spells`, `magicitems`, `deities`) except one Italian abbreviation (`png`); columns are Italian (`nome`, `descrizione`, `rarita`, `tempodilancio`); functions are English (`fetchFilteredSpells`); enums are Italian (`Allineamento`, `Fazione`, `Circolo`). The pattern is chronological, not semantic.
 
@@ -393,15 +393,15 @@ The codebase mixes languages without a rule. Models are English (`spells`, `magi
 
 Once TD-04 and TD-08 land, `strict` starts doing real work and the next tier becomes worth enabling. None of these are on today:
 
-| Flag | What it catches | Expected cost |
-|---|---|---|
-| `noUncheckedIndexedAccess` | `arr[i]` and `record[key]` typed as `T` when they may be `undefined` | **High.** The metadata layer is full of dynamic lookups (`pageMetaFields[item]`) — this is exactly where the bugs are, and exactly why it will be noisy. Enable last, expect real work. |
-| `noUnusedLocals` / `noUnusedParameters` | Dead variables — would have caught the unused `isOnDashboard` / `isApiRoute` in `auth.config.ts` and the `SpellMetaField;` no-op | Low. Mostly deletions. |
-| `noImplicitReturns` | Functions returning `undefined` on some paths | Low. |
-| `noFallthroughCasesInSwitch` | Missing `break` | Low. |
-| `noImplicitOverride` | Accidental method shadowing | Low; few classes here. |
-| `exactOptionalPropertyTypes` | `{ x?: string }` accepting an explicit `undefined` | Medium. Relevant to `PageMeta`'s optional fields. |
-| `verbatimModuleSyntax` | Type-only imports not marked `import type` — would have caught the `auth.config.ts` import bug | Low, mechanical. |
+| Flag                                    | What it catches                                                                                                                  | Expected cost                                                                                                                                                                           |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `noUncheckedIndexedAccess`              | `arr[i]` and `record[key]` typed as `T` when they may be `undefined`                                                             | **High.** The metadata layer is full of dynamic lookups (`pageMetaFields[item]`) — this is exactly where the bugs are, and exactly why it will be noisy. Enable last, expect real work. |
+| `noUnusedLocals` / `noUnusedParameters` | Dead variables — would have caught the unused `isOnDashboard` / `isApiRoute` in `auth.config.ts` and the `SpellMetaField;` no-op | Low. Mostly deletions.                                                                                                                                                                  |
+| `noImplicitReturns`                     | Functions returning `undefined` on some paths                                                                                    | Low.                                                                                                                                                                                    |
+| `noFallthroughCasesInSwitch`            | Missing `break`                                                                                                                  | Low.                                                                                                                                                                                    |
+| `noImplicitOverride`                    | Accidental method shadowing                                                                                                      | Low; few classes here.                                                                                                                                                                  |
+| `exactOptionalPropertyTypes`            | `{ x?: string }` accepting an explicit `undefined`                                                                               | Medium. Relevant to `PageMeta`'s optional fields.                                                                                                                                       |
+| `verbatimModuleSyntax`                  | Type-only imports not marked `import type` — would have caught the `auth.config.ts` import bug                                   | Low, mechanical.                                                                                                                                                                        |
 
 Also: **`target` is `ES2017`**, which is dated for a Next 16 app and forces needless downlevelling of async/await and object spread. `ES2022` is the sensible floor.
 
@@ -423,15 +423,15 @@ Italian copy is written inline in components and in the metadata `label` and `pl
 
 **Scope — the boundary is the important part.** Three categories of text, only two of which get translated:
 
-| Category | Example | Translated? |
-|---|---|---|
-| UI chrome | "Salva", "Nessun risultato" | ✅ catalogue |
-| SRD domain labels | `rarita: "Raro"`, `circolo: "Evocazione"` | ✅ catalogue |
-| Campaign content (DB) | Spell descriptions, NPC biographies | ❌ stays as written |
+| Category              | Example                                   | Translated?         |
+| --------------------- | ----------------------------------------- | ------------------- |
+| UI chrome             | "Salva", "Nessun risultato"               | ✅ catalogue        |
+| SRD domain labels     | `rarita: "Raro"`, `circolo: "Evocazione"` | ✅ catalogue        |
+| Campaign content (DB) | Spell descriptions, NPC biographies       | ❌ stays as written |
 
 Campaign content is user data, not copy. Making it bilingual would mean translation columns and dual inputs on every form — rejected in ADR-0006 on data-entry cost. No schema change is implied by this item.
 
-The SRD label set is roughly 150 terms (rarities, alignments, schools, casting times, patron ranks) with canonical translations in the official rulebooks. It is the half that decides whether the app *feels* bilingual: an English UI with a dropdown still reading *Caotico Neutrale* has not achieved anything.
+The SRD label set is roughly 150 terms (rarities, alignments, schools, casting times, patron ranks) with canonical translations in the official rulebooks. It is the half that decides whether the app _feels_ bilingual: an English UI with a dropdown still reading _Caotico Neutrale_ has not achieved anything.
 
 **Why it is blocked by TD-08.** `label: "Livello"` becomes `labelKey: "spells.level.label"`, which changes `PageMeta`'s shape and touches every consumer that reads `label` — forms, list headers, filters, `getDataLabel`. Doing this while `PageMeta` is still loosely typed means no compiler help across ~45 field declarations.
 
@@ -464,7 +464,7 @@ The SRD label set is roughly 150 terms (rarities, alignments, schools, casting t
 
 `next.config.ts` uses a `webpack` hook to copy Leaflet marker images into `public/`. Because `dev` runs with `--turbopack` but `build` does not, dev and production use different bundlers — a real source of "works in dev, breaks in prod" bugs.
 
-**Fix:** the images are *already present* in `public/leaflet/images/` (the plugin has run and its output was committed), so this is close to a free win: delete the `webpack` hook from `next.config.ts`, uninstall `copy-webpack-plugin`, and add `--turbopack` to the build script. Verify the markers still render, then commit.
+**Fix:** the images are _already present_ in `public/leaflet/images/` (the plugin has run and its output was committed), so this is close to a free win: delete the `webpack` hook from `next.config.ts`, uninstall `copy-webpack-plugin`, and add `--turbopack` to the build script. Verify the markers still render, then commit.
 
 ---
 

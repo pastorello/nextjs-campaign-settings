@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Technical debt register
+    url: https://github.com/OWNER/REPO/blob/main/docs/TECH_DEBT.md
+    about: Check whether this is already tracked before opening a new issue.
+  - name: Roadmap
+    url: https://github.com/OWNER/REPO/blob/main/docs/ROADMAP.md
+    about: Feature ideas live here until they are ready for a spec.

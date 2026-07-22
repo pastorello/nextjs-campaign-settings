@@ -5,11 +5,15 @@
     "dev": "next dev --turbopack",
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit",
-    "lint": "next lint",
+    "lint": "eslint .",
     "test": "jest",
     "test:watch": "jest --watch",
     "db:seed": "prisma db seed",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@babel/preset-env": "^7.28.5",
@@ -59,11 +63,14 @@
     "@types/react-dom": "19.2.3",
     "eslint": "^9.39.2",
     "eslint-config-next": "16.0.10",
+    "eslint-config-prettier": "^10.1.8",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
+    "prettier": "^3.9.6",
     "prisma": "^7.1.0",
     "ts-node": "^10.9.2",
-    "tsx": "^4.21.0"
+    "tsx": "^4.21.0",
+    "typescript-eslint": "^8.65.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

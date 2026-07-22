@@ -51,7 +51,7 @@ export default function PngForm({
             ...acc,
             [item]: getField(item),
           }),
-          { id: page.id } as PngItem
+          { id: page.id }
         )
       );
     } else {

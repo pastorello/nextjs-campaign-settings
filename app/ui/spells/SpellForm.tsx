@@ -51,7 +51,7 @@ export default function SpellForm({
             ...acc,
             [item]: getField(item),
           }),
-          { id: page.id } as Spell
+          { id: page.id }
         )
       );
     } else {

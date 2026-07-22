@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "next build --turbopack",
     "dev": "next dev --turbopack",
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit",
@@ -30,7 +30,6 @@
     "autoprefixer": "10.4.23",
     "bcrypt": "^6.0.0",
     "clsx": "^2.1.1",
-    "copy-webpack-plugin": "^13.0.1",
     "dotenv": "^17.2.3",
     "framer-motion": "^12.23.26",
     "leaflet": "^1.9.4",

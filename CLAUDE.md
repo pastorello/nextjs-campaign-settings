@@ -71,11 +71,23 @@ docker-compose up       # Postgres on :5432
 1. **Every mutation checks auth.** Every Server Action and every route handler that writes must verify a session first. No exceptions. (See TD-01.)
 2. **Every mutation validates input.** Use the Zod `validator` already declared in the field's `PageMeta`. Never pass client data into `prisma.x.create({ data })` unvalidated. (See TD-02.)
 3. **No new `any`.** The codebase has 16 and is removing them. If you genuinely cannot type something, use `unknown` and narrow.
-4. **No new files in `app/ui/forms/`** — `PngForm.tsx` and `SpellForm.tsx` there are dead duplicates awaiting deletion. The live forms are in `app/ui/<domain>/`.
-5. **Do not touch `app/lib/utils.ts`'s tutorial leftovers to "improve" them** — they are scheduled for deletion (TD-06).
-6. **Never commit `.env`,** and never print secrets in output.
-7. **Do not run destructive database commands** (`prisma migrate reset`, `db push --force-reset`, `DROP`) without explicit confirmation in the conversation.
-8. **Do not upgrade `next` / `react` / `prisma` major versions** as a side effect of another task.
+4. **`app/ui/forms/` holds only the generic `PageForm.tsx` and `inputs/`.** Domain forms live in `app/ui/<domain>/`. Do not add a domain form to `app/ui/forms/` — that is how the duplicate `PngForm` / `SpellForm` pair got there in the first place.
+5. **Never commit `.env`,** and never print secrets in output.
+6. **Do not run destructive database commands** (`prisma migrate reset`, `db push --force-reset`, `DROP`) without explicit confirmation in the conversation.
+7. **Do not upgrade `next` / `react` / `prisma` major versions** as a side effect of another task.
+
+---
+
+## Decisions and rejected approaches
+
+Git history records what was done. **Nothing records what was deliberately not done** — so without this list an agent will confidently re-propose an option that was already weighed and rejected, complete with a fresh rationale. That is the single most repetitive failure mode in this project, and this section exists to prevent it.
+
+**Add an entry when** a suggestion is rejected, an approach is chosen over an obvious alternative, or an instruction written in `docs/` turns out to be wrong. Two lines each. A genuinely architectural decision goes in an ADR and is only linked from here. Keep this list short enough to be read every session — if it passes ~15 entries, prune the ones the code now makes obvious.
+
+- **2026-07-22 — No AI session log in this repo.** A sibling project (`local-social-network`) keeps a `docs/ai-log/` of per-session logs; this project deliberately does not. The durable half of that format — decisions and rejections — lives in this section instead, where it is actually read. Do not propose adding one.
+- **2026-07-22 — `ItemMeta.value` is `ReactNode`, not `PrimitiveValue`.** TD-06's written instruction to repoint the import at `PrimitiveValue` was wrong: the prop always receives `PageMeta.getDatum` output, declared `string | ReactNode`. Restoring `PrimitiveValue` re-breaks `SpellCard` and `DeityCard` with nine errors.
+- **2026-07-22 — `pg` is not dead code.** The raw `postgres` driver was removed in favour of Prisma, but `@prisma/adapter-pg` requires `pg`. `DATABASE_URL` is now the only connection string; `POSTGRES_URL` is gone.
+- **2026-07-22 — No flat file beside a directory of the same name.** `app/lib/utils.ts` and `app/lib/data.ts` were deleted and their one surviving export each moved into `app/lib/utils/data/` and `app/lib/data/`. Do not reintroduce the pattern.
 
 ---
 

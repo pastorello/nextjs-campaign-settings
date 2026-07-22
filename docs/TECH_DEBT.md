@@ -186,6 +186,8 @@ Two findings worth carrying forward:
 - **The `ItemMeta` instruction below was wrong.** Pointing the import at `PrimitiveValue` surfaced 9 previously-masked errors in `SpellCard` and `DeityCard`: `ItemMeta` renders `{value}` into JSX and is always fed the output of a `PageMeta.getDatum`, which is declared `string | ReactNode` (see `renderRichText.tsx`, which returns a `<div>`). `PrimitiveValue` is simply the wrong type for that prop; it was typed as `ReactNode` instead. The broken import had been hiding the mismatch by degrading the prop to `any`.
 - **TD-03's premise is stale.** `npx jest` does *not* fail to start — it runs 5 suites, of which 1 fails (`generatePwdHash.test.ts` compares an unawaited Promise against a fixed bcrypt hash, which cannot pass; bcrypt salts are random). Verified pre-existing on `main`. Re-scope TD-03 before starting it.
 
+**The Prisma swap was verified by hand before merge.** Commit `3efca76` states that the move of `getUser` and `fetchCardData` off the raw `postgres` driver was *not* checked against a live database, because none was reachable at the time. It has since been: login succeeds and the dashboard counters render against a real Postgres. That gap is closed — the commit message is left as written, since it was accurate when authored.
+
 The project was scaffolded from the Next.js Learn dashboard tutorial and the scaffolding was never removed. A reviewer opening `app/lib/utils.ts` finds `formatCurrency`, `generateYAxis` and an import of a `Revenue` type in a D&D app — this reads as unfinished work.
 
 **Delete:**

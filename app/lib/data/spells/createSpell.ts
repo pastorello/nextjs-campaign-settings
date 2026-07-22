@@ -3,7 +3,6 @@
 import prisma from "@/app/lib/connections/prisma";
 import { revalidatePath } from "next/cache";
 import Spell from "../../definitions/interfaces/spells/Spell";
-import SpellMetaField from "../../definitions/enums/spells/SpellMetaField";
 
 export default async function createSpell(formData: Spell) {
   const {
@@ -22,7 +21,6 @@ export default async function createSpell(formData: Spell) {
     concentrazione,
     intensificato,
   } = formData;
-  SpellMetaField;
 
   await prisma.spells.create({
     data: {

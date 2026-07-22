@@ -24,7 +24,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-02 | No input validation at any trust boundary                   | 🔴 Critical          | M      | 1–2   |
 | TD-03 | Test suite does not run                                     | 🔴 Critical          | M      | 1     |
 | TD-04 | ✅ TypeScript errors on `tsc --noEmit`                      | ~~🔴 Critical~~ done | S      | 1     |
-| TD-05 | No ESLint config, no Prettier, no CI                        | 🟠 High              | S      | 1     |
+| TD-05 | ✅ No ESLint config, no Prettier, no CI                     | ~~🟠 High~~ done     | S      | 1     |
 | TD-06 | ✅ Dead code and tutorial leftovers                         | ~~🟠 High~~ done     | S      | 1     |
 | TD-07 | `next` and `react` pinned to `latest`; two lockfiles        | 🟠 High              | S      | 1     |
 | TD-08 | `PageMeta` is loosely typed; `any` in the query layer       | 🟠 High              | M      | 2     |
@@ -35,12 +35,13 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-13 | Errors surfaced as `throw new Error("Failed to fetch X")`   | 🟡 Medium            | M      | 2     |
 | TD-14 | Map POIs persisted only to `localStorage`                   | 🟡 Medium            | M      | 3     |
 | TD-15 | No accessibility pass                                       | 🟡 Medium            | M      | 2     |
-| TD-16 | Inconsistent formatting                                     | 🟢 Low               | S      | 1     |
+| TD-16 | ✅ Inconsistent formatting                                  | ~~🟢 Low~~ done      | S      | 1     |
 | TD-17 | README does not match reality                               | 🟢 Low               | S      | 1     |
 | TD-18 | `copy-webpack-plugin` forces webpack over Turbopack         | 🟢 Low               | S      | 3     |
 | TD-19 | Mixed Italian/English identifiers                           | 🟠 High              | L      | 2     |
 | TD-20 | TypeScript strictness stops at `strict`; `target` is ES2017 | 🟡 Medium            | M      | 2     |
 | TD-21 | UI strings hardcoded; app must ship in it + en              | 🟠 High              | L      | 2     |
+| TD-22 | 293 lint warnings surfaced by TD-05                         | 🟠 High              | L      | 2     |
 
 ---
 
@@ -169,7 +170,20 @@ Cleared by TD-06: 6 errors from `Header.tsx` / `ItemMeta.tsx` / `NotificationBar
 
 ---
 
-### TD-05 🟠 No lint config, no formatter, no CI
+### TD-05 ✅ No lint config, no formatter, no CI — **DONE (2026-07-22)**
+
+**Outcome:** `pnpm lint`, `pnpm format:check` and `pnpm typecheck` all exit 0, and the CI workflow executes for the first time since it was committed. It had never passed a single run: the `static` job died on `prisma generate` for a missing `DATABASE_URL`, and `test:coverage` / `format:check` / a lint config did not exist.
+
+Two things this turned up immediately, which is the argument for doing it at all:
+
+- **A real bug.** `app/lib/utils/data/setSearchParams.ts` was the codebase's only `rules-of-hooks` violation and could never have executed — a hook called at module top level, two more hooks inside its callback, and `useRouter` imported from `next/router`, the Pages Router API. Nothing imported it. Deleted.
+- **A latent hazard.** `app/lib/definitions/interfaces/pages/SearchParams.ts` declares its interface without exporting it. A `.ts` file with no import or export is a _global script_, not a module — so `SearchParams` is an ambient global visible everywhere, which is why `SpellList.tsx` uses it without importing it. Filed under TD-22.
+
+**Severity policy, and why it is not a climbdown.** Type-aware linting reports 293 findings on the existing code. Rules the codebase currently violates are set to `warn`; every other rule stays `error`. `pnpm lint` therefore exits 0, so the CI gate can be green — while errors still block any _new_ instance of a class of problem. The alternative, shipping a gate that is red on arrival, trains everyone to scroll past it. Each downgraded rule carries a comment naming its owning item, and the backlog is TD-22.
+
+---
+
+### TD-05 (original description)
 
 There is no `eslint.config.mjs` or `.eslintrc`, so `next lint` has nothing to run — and `next lint` is deprecated in Next 16 in favour of the ESLint CLI. There is no Prettier config, and indentation is mixed 2-space and 4-space across files (`app/api/countries/**` is 4-space, everything else 2-space).
 
@@ -465,6 +479,52 @@ The SRD label set is roughly 150 terms (rarities, alignments, schools, casting t
 `next.config.ts` uses a `webpack` hook to copy Leaflet marker images into `public/`. Because `dev` runs with `--turbopack` but `build` does not, dev and production use different bundlers — a real source of "works in dev, breaks in prod" bugs.
 
 **Fix:** the images are _already present_ in `public/leaflet/images/` (the plugin has run and its output was committed), so this is close to a free win: delete the `webpack` hook from `next.config.ts`, uninstall `copy-webpack-plugin`, and add `--turbopack` to the build script. Verify the markers still render, then commit.
+
+---
+
+### TD-22 🟠 293 lint warnings surfaced by TD-05
+
+**Where:** repo-wide; concentrated in the metadata/query layer and `app/modules/maps/`
+**Blocked by:** nothing — but most of it dissolves when TD-08 lands
+**Config:** `eslint.config.mjs`, the block headed _Severity policy_
+
+Switching the linter on reported 293 findings. They are warnings so that `pnpm lint` can exit 0 and the CI gate can be meaningful; every rule not violated today is still an error, so new code cannot add to this list.
+
+| Rule                                               | Count | Files | Owner             |
+| -------------------------------------------------- | ----- | ----- | ----------------- |
+| `@typescript-eslint/no-unsafe-assignment`          | 50    | 17    | TD-08             |
+| `@typescript-eslint/no-unused-vars`                | 44    | 19    | **TD-22**         |
+| `@typescript-eslint/no-unsafe-call`                | 29    | 14    | TD-08             |
+| `@typescript-eslint/no-explicit-any`               | 28    | 17    | TD-08             |
+| `@typescript-eslint/no-unsafe-member-access`       | 28    | 12    | TD-08             |
+| `@typescript-eslint/no-unsafe-argument`            | 21    | 11    | TD-08             |
+| `@typescript-eslint/no-floating-promises`          | 14    | 12    | **TD-22**         |
+| `@typescript-eslint/no-base-to-string`             | 12    | 2     | TD-08             |
+| `@typescript-eslint/restrict-template-expressions` | 11    | 1     | TD-08             |
+| `@typescript-eslint/no-unsafe-function-type`       | 10    | 9     | TD-08             |
+| `@typescript-eslint/await-thenable`                | 9     | 5     | **TD-22**         |
+| `@typescript-eslint/no-unsafe-return`              | 9     | 8     | TD-08             |
+| `@typescript-eslint/no-misused-promises`           | 7     | 5     | **TD-22**         |
+| `react-hooks/immutability`                         | 4     | 4     | **TD-22** / TD-09 |
+| `@typescript-eslint/no-require-imports`            | 4     | 3     | TD-18             |
+| `import/no-anonymous-default-export`               | 3     | 3     | **TD-22**         |
+| `@typescript-eslint/unbound-method`                | 3     | 3     | **TD-22**         |
+| `@typescript-eslint/require-await`                 | 2     | 2     | **TD-22**         |
+| `@typescript-eslint/no-unsafe-enum-comparison`     | 2     | 2     | TD-08             |
+| `react-hooks/exhaustive-deps`                      | 2     | 2     | **TD-22**         |
+| `@typescript-eslint/no-unused-expressions`         | 1     | 1     | **TD-22**         |
+
+**Roughly 170 of the 293 are the `no-unsafe-*` family plus `no-explicit-any`** — all one problem wearing six hats, and all downstream of the loose typing TD-08 exists to fix. Do not grind through them by hand; do TD-08 and re-measure.
+
+What genuinely belongs to this item, in priority order:
+
+1. **`react-hooks/immutability` (4).** Each page-manager hook does `page.id = pageItem.id`, mutating a value returned from `usePageManager`. Direct state mutation — React is not guaranteed to see it, and it is the kind of bug that shows up as "the form sometimes saves against the wrong record". Fix needs a test. TD-09 collapses these four hooks into one, so coordinate.
+2. **`no-floating-promises` (14) and `no-misused-promises` (7).** Almost entirely `app/modules/maps/`. A rejected promise here fails silently — no toast, no console, nothing. Note the irony: the maps module is the codebase's quality bar in structure, and its async handling is the weakest part of the app.
+3. **`no-unused-vars` (44).** Mostly dead imports (`lusitana` in three admin pages, `redirect` in `createMagicItem`, `render`/`screen` in a test) and two unexported interface declarations. Cheap deletions, in the spirit of _prefer deleting to adding_.
+4. **`await-thenable` (9).** `await` applied to non-promises — the defensive `await searchParams` in every `fetchFilteredX`. Harmless today and load-bearing for the Promise-passing pattern in the admin pages, so decide the pattern first (TD-09), then clean up.
+5. **`SearchParams.ts` declares an interface with no export.** Not a lint rule, found alongside these: a `.ts` file with no import or export is a global script, so the type leaks into every file as an ambient global. That is why `SpellList.tsx` references it without importing it, and why a second, different `SearchParams` type can live in `validateParams.ts` without a name collision being obvious. Give it an `export`, then fix what breaks.
+
+**Done when:** every rule in `eslint.config.mjs`'s severity block is back to `error` and `pnpm lint` still exits 0. Delete the block, not the rules.
 
 ---
 

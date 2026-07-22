@@ -127,6 +127,32 @@ For architectural decisions (choosing a library, changing a data model, introduc
 
 ---
 
+## External skill packs
+
+Five skills from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) are installed:
+
+| Skill | Used for |
+|---|---|
+| `security-and-hardening` | TD-01, TD-02 — auth guards, boundary validation, OWASP checks |
+| `test-driven-development` | TD-03 and every subsequent change — red-green-refactor |
+| `code-review-and-quality` | Self-review before any commit; change sizing |
+| `debugging-and-error-recovery` | Any failing test or unexpected behaviour |
+| `incremental-implementation` | TD-19, TD-09, TD-21 — the wide refactors |
+
+**Precedence.** The pack supplies *method* — how to do TDD, how to run a security review, how to slice a refactor. This file and `docs/` supply *constraints* — what is true about this codebase specifically.
+
+**Where they conflict, this file wins.** The pack cannot know that the metadata layer is string-keyed, that a partial rename silently breaks filters, or that `app/ui/forms/` holds dead duplicates. Do not let a generic workflow override a project rule in the *Non-negotiable rules* section above.
+
+**Not installed, deliberately:**
+
+- `spec-driven-development` and `planning-and-task-breakdown` — this project uses `docs/specs/TEMPLATE.md` and the change workflow below. Two overlapping spec systems produce inconsistent behaviour between sessions. If you think the pack's version is better, replace ours deliberately and write an ADR — do not run both.
+- `performance-optimization` — premature. Measure after Phase 2, and only if there is a complaint.
+- The `/ship` skill and deploy tooling — there is no deployment pipeline yet.
+
+Adding more skills from the pack is fine; record it here when you do.
+
+---
+
 ## Commits and PRs
 
 Conventional Commits:

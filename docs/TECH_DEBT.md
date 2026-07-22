@@ -57,13 +57,13 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 Server Actions have the same problem for a different reason: they are POST endpoints with stable action IDs that the proxy matcher does not meaningfully protect, and no mutation function calls `auth()`.
 
-Compounding this, `authConfig.callbacks.authorized` computes `isOnDashboard` and `isApiRoute` and then ignores both, returning `isLoggedIn` for everything. The dead variables show the intent was never finished.
+Compounding this, `authConfig.callbacks.authorized` gates every matched path identically — it now returns `!!auth?.user` and nothing more, so it cannot distinguish a dashboard route from an API route even if the matcher covered the latter. (TD-04 already deleted the dead `isOnDashboard` / `isApiRoute` locals that used to sit unused here, so this is now a genuine "the branching was never written" gap, not a "written and ignored" one.)
 
 **Fix**
 
 1. Add `const session = await auth(); if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });` to every route handler.
 2. Add the same guard at the top of every `"use server"` mutation. A small `requireSession()` helper in `app/lib/auth/requireSession.ts` keeps this one line per call site.
-3. Remove the unused variables in `authorized`, or implement the route-based branching they imply.
+3. If per-route branching is actually wanted in `authorized`, implement it now — the unused variables that hinted at it are already gone, so this is net-new logic, not a cleanup.
 4. Add an integration test per endpoint asserting 401 when unauthenticated.
 
 **Done when:** every write path returns 401 without a session, and a test proves it.
@@ -292,7 +292,7 @@ The README mixes `npm` and `pnpm`, does not mention the Vitest/Playwright comman
 
 **Where:** `app/lib/definitions/interfaces/meta/PageMeta.ts`, `app/lib/data/getQuery.ts`, `validateParams.ts`
 
-16 occurrences of `any` across 6 files, concentrated in exactly the layer that most needs type safety:
+**28 occurrences of `any` across 17 files** (the linter's count via `no-explicit-any`; the original audit's "16 across 6" looked only at the metadata/query core and missed the per-domain `fetchFiltered*` / `getXCount` functions, `ListItem`, `FormField` and `controlComponents`). They are concentrated in exactly the layer that most needs type safety:
 
 ```ts
 const paramValidator: Record<FieldType, (aValue: any) => boolean> = { … };
@@ -423,11 +423,11 @@ The codebase mixes languages without a rule. Models are English (`spells`, `magi
 ### TD-20 🟡 TypeScript strictness stops at `strict`
 
 **Where:** `tsconfig.json`
-**Blocked by:** TD-04 (the 19 current errors), TD-08 (the 16 `any`s)
+**Blocked by:** TD-08 (the `any`s). TD-04 is done — the 19 errors are gone and `typecheck` exits 0.
 
-`strict: true` **is already enabled.** The problem is not that it is missing — it is that it currently has no effect, because the build has 19 outstanding errors and 16 `any` escape hatches. A strict compiler nobody listens to is decoration.
+`strict: true` **is already enabled**, and since TD-04 it does real work — `pnpm typecheck` is a genuine gate now, not decoration. What still blunts it are the `any` escape hatches: **28 across 17 files** by the linter's count (the original audit's "16 across 6" undercounted — it only looked at the metadata/query core and missed the per-domain fetch/count functions). TD-08 removes them.
 
-Once TD-04 and TD-08 land, `strict` starts doing real work and the next tier becomes worth enabling. None of these are on today:
+Once TD-08 lands, the next tier of flags becomes worth enabling. None of these are on today:
 
 | Flag                                    | What it catches                                                                                                                  | Expected cost                                                                                                                                                                           |
 | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

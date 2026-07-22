@@ -47,13 +47,14 @@ pnpm lint               # eslint .              — MUST pass
 pnpm test               # vitest run            — MUST pass
 pnpm test:watch         # vitest
 pnpm test:coverage      # vitest run --coverage
-pnpm test:e2e           # playwright test
+pnpm format:check       # prettier --check .    — MUST pass
+pnpm test:e2e           # playwright test       — NOT YET; arrives with TD-24
 pnpm db:seed            # prisma db seed
 pnpm db:studio          # prisma studio
 docker-compose up       # Postgres on :5432
 ```
 
-> Some of these scripts do not exist yet — they arrive with TD-03 and TD-05. If a command fails because it is missing, say so rather than working around it.
+> `test:e2e` does not exist yet — Playwright is deferred to TD-24 (after TD-01/TD-02). Every other script here is live. If a command fails because it is missing, say so rather than working around it.
 
 ---
 
@@ -70,7 +71,7 @@ docker-compose up       # Postgres on :5432
 
 1. **Every mutation checks auth.** Every Server Action and every route handler that writes must verify a session first. No exceptions. (See TD-01.)
 2. **Every mutation validates input.** Use the Zod `validator` already declared in the field's `PageMeta`. Never pass client data into `prisma.x.create({ data })` unvalidated. (See TD-02.)
-3. **No new `any`.** The codebase has 16 and is removing them. If you genuinely cannot type something, use `unknown` and narrow.
+3. **No new `any`.** The linter counts 28 across 17 files (tracked under TD-08/TD-22); the number only goes down. If you genuinely cannot type something, use `unknown` and narrow. `no-explicit-any` is a warning until TD-08 clears the backlog, then an error — do not add to it.
 4. **`app/ui/forms/` holds only the generic `PageForm.tsx` and `inputs/`.** Domain forms live in `app/ui/<domain>/`. Do not add a domain form to `app/ui/forms/` — that is how the duplicate `PngForm` / `SpellForm` pair got there in the first place.
 5. **Never commit `.env`,** and never print secrets in output.
 6. **Do not run destructive database commands** (`prisma migrate reset`, `db push --force-reset`, `DROP`) without explicit confirmation in the conversation.

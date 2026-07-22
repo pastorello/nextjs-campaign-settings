@@ -166,7 +166,7 @@ Request
 proxy.ts  matcher: everything except /api, /_next/static, /_next/image, favicon.ico, *.png
   │
   ▼
-authConfig.callbacks.authorized  →  isLoggedIn ? true : false
+authConfig.callbacks.authorized  →  !!auth?.user  (true / false)
   │                                  (redirects to /login via pages.signIn)
   ▼
 Route renders
@@ -178,7 +178,7 @@ Login: `app/login/page.tsx` → `login-form.tsx` → `authenticate()` server act
 
 1. **API routes are unauthenticated.** The matcher excludes `/api`, and none of the four DELETE handlers call `auth()`. Any unauthenticated client can delete any spell, NPC, deity or magic item by ID. See TD-01.
 2. **Server Actions are unauthenticated.** Server Actions are POST endpoints with a stable ID; `proxy.ts` does not cover them and no mutation calls `auth()`. See TD-01.
-3. **`authorized` is all-or-nothing.** `isOnDashboard` and `isApiRoute` are computed and then never used — the callback ignores them and gates every matched path identically. Dead logic that signals an unfinished intent.
+3. **`authorized` is all-or-nothing.** The callback returns `!!auth?.user`, gating every matched path identically, with no per-route logic. (It used to compute unused `isOnDashboard` / `isApiRoute` locals; TD-04 removed them, so the branching is now simply absent rather than written-and-ignored.) See TD-01.
 
 There is also no authorisation model at all: every authenticated user can edit everything. Acceptable for a single-DM tool today; must be addressed before multi-campaign support.
 

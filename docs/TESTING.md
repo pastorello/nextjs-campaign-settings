@@ -81,7 +81,7 @@ Fast, no I/O, no database.
 - `data/parseSerializedArray` — malformed JSON, empty string, nested arrays.
 - `data/sortByField` — already tested; extend with nulls, mixed types, stable-sort behaviour.
 - `data/getDataLabel` — missing value, `shortLabel` fallback.
-- `data/getSearchParam`, `setSearchParams`.
+- `data/getSearchParam`. (The old `setSearchParams` helper was deleted in TD-05 — it was dead and broke `rules-of-hooks`.)
 
 **Query construction** (`app/lib/data/getQuery.ts`) — the highest-value unit tests in the project. `getQuery` is a pure function from `(searchParams, enabledMeta)` to a Prisma query object, so it can be tested exhaustively with no database:
 

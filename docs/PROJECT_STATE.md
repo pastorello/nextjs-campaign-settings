@@ -65,7 +65,7 @@ Two lockfiles are present (`package-lock.json` and `pnpm-lock.yaml`) and the REA
 │   └── ui/                  # All presentational components
 ├── prisma/                  # schema.prisma + one migration
 ├── generated/prisma/        # Generated client (gitignored)
-├── __test__/                # Jest tests, mocks, stubs
+├── __test__/                # Vitest tests and Next mocks (getQuery suite lives in app/)
 ├── auth.ts, auth.config.ts, proxy.ts
 └── docker-compose.yaml
 ```
@@ -97,7 +97,7 @@ Observations:
 - No relations between models. Everything that is conceptually a foreign key (`fazione`, `luogo`, `allineamento`, `classe`) is stored as a bare `Int` that indexes into a hardcoded TypeScript array. Renumbering an enum silently corrupts existing rows.
 - No `@@index` anywhere, including on the `nome` columns that every list query filters and sorts by.
 - No ownership: records are not tied to a user or a campaign. Multi-campaign support (which you have in mind for later) requires a schema change.
-- Only one migration exists, named `resetio`.
+- Only one migration exists, named `resetio`, and it has drifted from the schema (missing `spells.nome`, plus three orphan tutorial tables) — see TD-23.
 
 ---
 
@@ -126,7 +126,7 @@ Two problems follow from this, both covered in `TECH_DEBT.md`:
 | E2E tests           | ❌ None — Playwright not installed; scheduled as TD-24, after TD-01/TD-02                        |
 | CI                  | ⚠️ `static` / `test` / `build` green; `e2e` non-blocking (`continue-on-error`) until TD-24 lands |
 | Test coverage       | 14% lines / 9% branches — thresholds set there and ratcheted upward                              |
-| Git history         | 2 commits (`first commit`, `update readme`)                                                      |
+| Git history         | Active — Phase 1 landed across PRs #1–#12 on `main`                                              |
 | `.env`              | ✅ Correctly gitignored                                                                          |
 | `.DS_Store`         | ✅ Present on disk but untracked — `.gitignore` is working                                       |
 

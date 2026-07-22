@@ -21,7 +21,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | ID | Title | Severity | Effort | Phase |
 |---|---|---|---|---|
 | TD-01 | Unauthenticated delete endpoints and Server Actions | 🔴 Critical | M | 1 |
-| TD-02 | No input validation on any create/update path | 🔴 Critical | M | 1 |
+| TD-02 | No input validation at any trust boundary | 🔴 Critical | M | 1–2 |
 | TD-03 | Test suite does not run | 🔴 Critical | M | 1 |
 | TD-04 | 19 TypeScript errors on `tsc --noEmit` | 🔴 Critical | M | 1 |
 | TD-05 | No ESLint config, no Prettier, no CI | 🟠 High | S | 1 |
@@ -35,9 +35,12 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-13 | Errors surfaced as `throw new Error("Failed to fetch X")` | 🟡 Medium | M | 2 |
 | TD-14 | Map POIs persisted only to `localStorage` | 🟡 Medium | M | 3 |
 | TD-15 | No accessibility pass | 🟡 Medium | M | 2 |
-| TD-16 | Inconsistent formatting; `.DS_Store` committed | 🟢 Low | S | 1 |
+| TD-16 | Inconsistent formatting | 🟢 Low | S | 1 |
 | TD-17 | README does not match reality | 🟢 Low | S | 1 |
 | TD-18 | `copy-webpack-plugin` forces webpack over Turbopack | 🟢 Low | S | 3 |
+| TD-19 | Mixed Italian/English identifiers | 🟠 High | L | 2 |
+| TD-20 | TypeScript strictness stops at `strict`; `target` is ES2017 | 🟡 Medium | M | 2 |
+| TD-21 | UI strings hardcoded; app must ship in it + en | 🟠 High | L | 2 |
 
 ---
 
@@ -64,9 +67,9 @@ Compounding this, `authConfig.callbacks.authorized` computes `isOnDashboard` and
 
 ---
 
-### TD-02 🔴 No input validation on any create/update path
+### TD-02 🔴 No input validation at any trust boundary
 
-**Where:** `app/lib/data/*/create*.ts`, `app/lib/data/*/update*.ts`, `app/lib/config/pageMetaFields.ts`
+**Where:** `app/lib/data/*/create*.ts`, `app/lib/data/*/update*.ts`, `app/lib/config/pageMetaFields.ts`, plus the boundaries listed below
 
 Every `PageMeta` entry declares a Zod `validator`. Grep confirms **it is never read**. Mutations destructure the incoming object and hand it to Prisma:
 
@@ -81,14 +84,35 @@ Nothing checks that `livello` is an integer in range, that `nome` is non-empty, 
 
 Also note the stray no-op statement `SpellMetaField;` on its own line in `createSpell.ts`.
 
+#### Every trust boundary, audited
+
+Mutations are the urgent case, but they are not the only place untrusted data enters the system. The full inventory:
+
+| # | Boundary | Where | Today | Priority |
+|---|---|---|---|---|
+| 1 | Create / update payloads | `app/lib/data/*/create*.ts`, `update*.ts` | Nothing. Straight into Prisma. | 🔴 |
+| 2 | Route handler path params | `app/api/*/[id]/route.ts` | `parseInt(params.id)` — `NaN` on garbage input, passed to Prisma unchecked | 🔴 |
+| 3 | Environment variables | `auth.ts`, `app/lib/data.ts`, `app/lib/connections/sql.ts`, `app/seed/prismaSeed.ts` | `process.env.POSTGRES_URL!` — non-null assertion. A missing var fails at an unrelated call site with an opaque error. | 🟠 |
+| 4 | Search params | `app/lib/data/validateParams.ts` | ✅ Zod, but `.parse()` throws rather than returning a result, and the return type is cast | 🟠 |
+| 5 | `localStorage` POIs | `app/modules/maps/hooks/usePOIManager.ts:40` | `JSON.parse(stored) as POI[]` — a cast, not a check. Hand-edited or stale storage crashes the map. | 🟠 |
+| 6 | GeoJSON files | `app/api/countries/**`, `WorldMap.tsx`, `MapMain.tsx` | `JSON.parse(fileContents) as GeoJSONData` | 🟡 |
+| 7 | Prisma results | `fetchFilteredSpells.ts:29`, `fetchFilteredPng.ts:27` | `result as Spell[]` — masks any schema/interface drift | 🟡 |
+
+Items 5 and 7 are the instructive ones: `as` is not validation. It silences the compiler and changes nothing at runtime. Every `as` in the table is a place where the code asserts a shape it has not checked.
+
 **Fix**
 
 1. Build a schema per `PageType` by composing the `validator` fields already declared in `pagesConfig`: `buildSchema(PageType.Spell) → z.object({...})`.
 2. Call `safeParse` at the top of each mutation; return a typed `{ ok: false, errors }` result on failure.
 3. Surface field-level errors in `PageForm` via `useActionState`.
-4. Remove the `SpellMetaField;` no-op.
+4. Validate route params: `z.coerce.number().int().positive().safeParse(params.id)` → 400 on failure, not a `NaN` query.
+5. Add `app/lib/config/env.ts` — one Zod schema for the environment, parsed once at startup. Replaces every `process.env.X!`. A missing variable then fails immediately with a message naming it.
+6. Replace the `as` casts at boundaries 5, 6 and 7 with `safeParse`. For POIs, discard invalid entries and warn rather than throwing — corrupt storage should not break the map.
+7. Remove the `SpellMetaField;` no-op in `createSpell.ts`.
 
-**Done when:** submitting an invalid payload returns structured field errors instead of writing to the database, covered by tests.
+Steps 1–4 belong to Phase 1. Steps 5–6 can follow in Phase 2 without blocking anything.
+
+**Done when:** submitting an invalid payload returns structured field errors instead of writing to the database, a malformed `:id` returns 400, a missing env var fails at startup with a named message, and each is covered by a test.
 
 ---
 
@@ -309,6 +333,104 @@ Never audited. Likely issues given the component inventory: custom `Select` and 
 
 ---
 
+### TD-19 🟠 Mixed Italian/English identifiers
+
+**Where:** ~1,000 occurrences across 54 of 288 TypeScript files, plus `prisma/schema.prisma` and `app/seed/initial-data/`
+**Decision:** [ADR-0005](./adr/0005-english-identifiers.md)
+**Blocked by:** TD-03 (working test suite), TD-08 (typed metadata) — see *Sequencing* below
+
+The codebase mixes languages without a rule. Models are English (`spells`, `magicitems`, `deities`) except one Italian abbreviation (`png`); columns are Italian (`nome`, `descrizione`, `rarita`, `tempodilancio`); functions are English (`fetchFilteredSpells`); enums are Italian (`Allineamento`, `Fazione`, `Circolo`). The pattern is chronological, not semantic.
+
+`png` is the worst offender: it collides with the image format, and the repo simultaneously contains a `/dashboard/png` route, a `.*\.png$` pattern in `proxy.ts`'s matcher, and real `.png` files in `public/`. No bug today — the regex requires a literal dot — but the ambiguity is standing.
+
+**Target:** all identifiers English, all UI copy Italian, `png` → `npc`. Postgres columns keep their Italian names via Prisma `@map`, so there is no migration and no data risk.
+
+**Sequencing — this is the important part.** The metadata layer is **string-keyed**: field names appear as literals (`metaField: "descrizione"`) and as dynamic index keys (`whereClause[item]`, `pageMetaFields[item].fieldType`). TypeScript cannot verify these. A rename that misses one string does not fail to compile — it produces a filter that silently stops filtering. Run this only after TD-03 gives you tests and TD-08 makes the metadata keys typed; at that point the refactor is largely compiler-verified.
+
+**Fix**
+
+1. Add `@map` to every Prisma field, renaming the TS-facing name only. Regenerate the client.
+2. Rename data-layer functions and their arguments.
+3. Rename enums, enum members, interfaces and types.
+4. Rename metadata keys and the `metaField` string literals — the step tests must cover.
+5. Rename `app/seed/initial-data/` in the same commit; it references field names directly.
+6. `png` → `npc` throughout, including the route segment and `PageType`.
+7. Where an Italian D&D term has no clean English equivalent (`circolo`, `grado patrono`), use the English concept as the identifier and keep the Italian term as the metadata `label`.
+
+**Land it as one pure-rename commit** with no behaviour change, then add the SHA to `.git-blame-ignore-revs` so it does not dominate `git blame`.
+
+**Done when:** no Italian identifier remains outside UI copy and `@map` arguments; `pnpm typecheck && pnpm test && pnpm test:e2e` all green.
+
+---
+
+### TD-20 🟡 TypeScript strictness stops at `strict`
+
+**Where:** `tsconfig.json`
+**Blocked by:** TD-04 (the 19 current errors), TD-08 (the 16 `any`s)
+
+`strict: true` **is already enabled.** The problem is not that it is missing — it is that it currently has no effect, because the build has 19 outstanding errors and 16 `any` escape hatches. A strict compiler nobody listens to is decoration.
+
+Once TD-04 and TD-08 land, `strict` starts doing real work and the next tier becomes worth enabling. None of these are on today:
+
+| Flag | What it catches | Expected cost |
+|---|---|---|
+| `noUncheckedIndexedAccess` | `arr[i]` and `record[key]` typed as `T` when they may be `undefined` | **High.** The metadata layer is full of dynamic lookups (`pageMetaFields[item]`) — this is exactly where the bugs are, and exactly why it will be noisy. Enable last, expect real work. |
+| `noUnusedLocals` / `noUnusedParameters` | Dead variables — would have caught the unused `isOnDashboard` / `isApiRoute` in `auth.config.ts` and the `SpellMetaField;` no-op | Low. Mostly deletions. |
+| `noImplicitReturns` | Functions returning `undefined` on some paths | Low. |
+| `noFallthroughCasesInSwitch` | Missing `break` | Low. |
+| `noImplicitOverride` | Accidental method shadowing | Low; few classes here. |
+| `exactOptionalPropertyTypes` | `{ x?: string }` accepting an explicit `undefined` | Medium. Relevant to `PageMeta`'s optional fields. |
+| `verbatimModuleSyntax` | Type-only imports not marked `import type` — would have caught the `auth.config.ts` import bug | Low, mechanical. |
+
+Also: **`target` is `ES2017`**, which is dated for a Next 16 app and forces needless downlevelling of async/await and object spread. `ES2022` is the sensible floor.
+
+**Fix:** enable in two batches, one commit each, so failures are attributable. Batch one is the cheap flags (`noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`, `noFallthroughCasesInSwitch`, `noImplicitOverride`, `verbatimModuleSyntax`) plus the `target` bump. Batch two is `exactOptionalPropertyTypes` then `noUncheckedIndexedAccess`, each on its own.
+
+Do **not** enable everything at once and then fix 200 errors in a single commit — the diff becomes unreviewable and genuine bugs hide among the noise.
+
+**Done when:** each flag is on and `pnpm typecheck` is green, or the flag is explicitly recorded here as rejected with a reason.
+
+---
+
+### TD-21 🟠 UI strings are hardcoded; the app must ship in Italian and English
+
+**Where:** `app/ui/**`, `app/dashboard/**`, `app/lib/config/**` (the `label` / `placeholder` fields and every options array)
+**Decision:** [ADR-0006](./adr/0006-bilingual-ui.md)
+**Blocked by:** TD-08 (`PageMeta` changes shape) · **Do together with:** TD-19 (same 54 files)
+
+Italian copy is written inline in components and in the metadata `label` and `placeholder` fields. The product ships bilingual (it + en), so this is a feature, not groundwork.
+
+**Scope — the boundary is the important part.** Three categories of text, only two of which get translated:
+
+| Category | Example | Translated? |
+|---|---|---|
+| UI chrome | "Salva", "Nessun risultato" | ✅ catalogue |
+| SRD domain labels | `rarita: "Raro"`, `circolo: "Evocazione"` | ✅ catalogue |
+| Campaign content (DB) | Spell descriptions, NPC biographies | ❌ stays as written |
+
+Campaign content is user data, not copy. Making it bilingual would mean translation columns and dual inputs on every form — rejected in ADR-0006 on data-entry cost. No schema change is implied by this item.
+
+The SRD label set is roughly 150 terms (rarities, alignments, schools, casting times, patron ranks) with canonical translations in the official rulebooks. It is the half that decides whether the app *feels* bilingual: an English UI with a dropdown still reading *Caotico Neutrale* has not achieved anything.
+
+**Why it is blocked by TD-08.** `label: "Livello"` becomes `labelKey: "spells.level.label"`, which changes `PageMeta`'s shape and touches every consumer that reads `label` — forms, list headers, filters, `getDataLabel`. Doing this while `PageMeta` is still loosely typed means no compiler help across ~45 field declarations.
+
+**Why it goes with TD-19.** That rename already opens all 54 domain files. Extracting strings in the same pass costs a fraction of a separate one.
+
+**Fix**
+
+1. Install `next-intl`; configure `localePrefix: "as-needed"` (Italian unprefixed, English under `/en`).
+2. Create `messages/it.json` and `messages/en.json`.
+3. Convert `PageMeta.label` / `placeholder` to message keys; update every consumer.
+4. Convert the options arrays in `app/lib/config/**` to key-based labels; update `getDataLabel`.
+5. Extract inline component copy, file by file, as TD-19 touches each one.
+6. Translate: SRD terms from the official rulebooks (do not invent translations for game terms), UI chrome freely.
+7. Add a locale switcher and persist the choice via cookie.
+8. CI check that both catalogues have identical key sets.
+
+**Done when:** no user-facing string literal remains in a component or config file; both catalogues are complete with matching keys; `/en/dashboard/spells` renders fully in English including every dropdown.
+
+---
+
 ## Phase 3 — Deferred
 
 ### TD-14 🟡 Map POIs live only in `localStorage`
@@ -338,12 +460,17 @@ Never audited. Likely issues given the component inventory: custom `Select` and 
 8. TD-17  portfolio README
 --- Phase 1 complete: the project is correct, safe and verified ---
 9.  TD-08  type the metadata layer
-10. TD-11  schema timestamps + indexes
-11. TD-12  single where-clause
-12. TD-13  typed errors
-13. TD-10  real notifications
-14. TD-09  collapse duplicated components  → safest after TD-08
-15. TD-15  accessibility pass
+10. TD-20a strict flags, cheap batch + ES2022 target
+11. TD-19  rename identifiers to English  → needs TD-03's tests and TD-08's typed keys
+12. TD-21  extract UI strings           → same files as TD-19, do them together
+13. TD-11  schema timestamps + indexes
+14. TD-12  single where-clause
+15. TD-02b remaining trust boundaries (env, localStorage, GeoJSON)
+16. TD-13  typed errors
+17. TD-10  real notifications
+18. TD-09  collapse duplicated components  → safest after TD-08 and TD-19
+19. TD-20b noUncheckedIndexedAccess        → last; noisiest, most valuable
+20. TD-15  accessibility pass
 --- Phase 2 complete: the project is well-built ---
 16. TD-14, TD-18, then feature work
 ```

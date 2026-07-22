@@ -40,16 +40,23 @@ Order matters. Deleting dead code first removes roughly half the type errors, so
 | # | Task | Debt | Effort |
 |---|---|---|---|
 | 1 | `PageMeta` as a discriminated union on `fieldType`; eliminate `any` | TD-08 | M |
-| 2 | Schema: `createdAt`/`updatedAt`, `@@index([nome])` | TD-11 | M |
-| 3 | Single shared `where` clause for rows and count | TD-12 | S |
-| 4 | Typed error hierarchy; correct HTTP status codes; preserve `cause` | TD-13 | M |
-| 5 | Real notifications — promote Sonner to root layout | TD-10 | M |
-| 6 | Collapse the four Card/List/Library/Form quartets into generic components | TD-09 | L |
-| 7 | Accessibility pass: `jsx-a11y`, axe in E2E, manual keyboard audit | TD-15 | M |
-| 8 | Loading and empty states audited across every list | — | S |
-| 9 | Screenshots / demo GIF for the README | — | S |
+| 2 | Strict flags, cheap batch, + `target: ES2022` | TD-20a | S |
+| 3 | Rename all identifiers to English; `png` → `npc`; columns kept via `@map` | TD-19 | L |
+| 4 | Bilingual UI: extract strings, `messages/{it,en}.json`, locale switcher | TD-21 | L |
+| 5 | Schema: `createdAt`/`updatedAt`, `@@index` on the name column | TD-11 | M |
+| 6 | Single shared `where` clause for rows and count | TD-12 | S |
+| 7 | Validate the remaining trust boundaries: env, `localStorage`, GeoJSON | TD-02b | M |
+| 8 | Typed error hierarchy; correct HTTP status codes; preserve `cause` | TD-13 | M |
+| 9 | Real notifications — promote Sonner to root layout | TD-10 | M |
+| 10 | Collapse the four Card/List/Library/Form quartets into generic components | TD-09 | L |
+| 11 | `noUncheckedIndexedAccess` | TD-20b | M |
+| 12 | Accessibility pass: `jsx-a11y`, axe in E2E, manual keyboard audit | TD-15 | M |
+| 13 | Loading and empty states audited across every list | — | S |
+| 14 | Screenshots / demo GIF for the README | — | S |
 
-Item 1 comes before item 6 deliberately: refactoring against `any` means the compiler cannot help you.
+Items 3 and 4 are deliberately adjacent: both touch all 54 domain files, and doing them in one pass costs far less than two.
+
+The order is load-bearing. Item 1 types the metadata layer, which turns items 2 and 7 from unverifiable sweeping edits into compiler-checked ones — the metadata keys are strings today, so neither the rename nor the component collapse would fail loudly if done first.
 
 ---
 
@@ -88,7 +95,9 @@ Everything below needs a spec before implementation.
 - **Rich text in descriptions.** `renderRichText` exists as a stub; make it real.
 - **Image uploads** for NPC portraits and item illustrations.
 - **PWA / offline** for table use without reliable wifi.
-- **i18n.** Italian is currently hardcoded in UI copy; extract to a message catalogue.
+- **A third locale.** Italian and English ship in Phase 2 (TD-21). The catalogue structure supports more, but the ~150 SRD game terms would need sourcing from that language's official rulebook, which is the real cost — not the plumbing.
+- **Translating campaign content.** Rejected in [ADR-0006](./adr/0006-bilingual-ui.md): a DM writes their world once, in one language. Dual inputs on every form would guarantee the second language stays empty.
+- **`searchAliases`.** One nullable string array per entity, so an English spell name finds an Italian record without any translation-column machinery. Cheap, useful, unscheduled — the honest answer to "I want to find Fireball".
 
 ---
 

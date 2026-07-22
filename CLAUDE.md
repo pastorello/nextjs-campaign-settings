@@ -16,14 +16,24 @@ Read [`docs/PROJECT_STATE.md`](./docs/PROJECT_STATE.md) and [`docs/ARCHITECTURE.
 
 ## Language conventions
 
+**Target state** — all code in English, all user-facing text in Italian. See [ADR-0005](./docs/adr/0005-english-identifiers.md).
+
 | Context | Language |
 |---|---|
-| Domain vocabulary in code | **Italian** — `incantesimi`, `png`, `patroni`, `fazioni`, `allineamento`, `circolo`, `rarita` |
-| Technical identifiers | **English** — `fetchFilteredSpells`, `usePageManager`, `validateParams` |
-| UI copy | **Italian** — this is the end-user language |
+| All identifiers: variables, functions, types, enums, Prisma fields | **English** — `name`, `description`, `rarity`, `npc`, `fetchFilteredSpells` |
+| UI copy shown to the user | **Italian + English**, from message catalogues — see [ADR-0006](./docs/adr/0006-bilingual-ui.md) |
+| Campaign content in the database | **Whatever the DM wrote.** Never translated, never dual-columned. |
+| Postgres column names | **Italian for now** — decoupled from code via Prisma `@map`; renamed later if ever |
 | Comments, docs, commit messages, PR descriptions | **English** |
 
-Do not "fix" Italian domain names into English. They mirror the D&D 5e Italian rulebook and are deliberate. Do not introduce Italian into technical identifiers or documentation.
+**Transitional state — read this before renaming anything.** The codebase is currently mixed: tables are English (`spells`, `magicitems`, `deities`) while columns and domain fields are Italian (`nome`, `descrizione`, `rarita`, `png`). The full rename is scheduled as **TD-19**, after TD-03 (working test suite) and TD-08 (typed metadata).
+
+Until TD-19 runs:
+
+- **Do not opportunistically rename Italian identifiers** as part of unrelated work. A partial rename is worse than none, because the metadata layer is string-keyed (`metaField: "descrizione"`, `whereClause[item]`) and the compiler will not catch what you miss — a missed key becomes a filter that silently stops filtering.
+- **New code uses English identifiers**, unless it must match an existing Italian field name to work. Do not invent new Italian identifiers.
+- Never put Italian in technical identifiers, comments or documentation.
+- **Do not add new hardcoded UI strings.** The app ships bilingual (TD-21). Until the catalogues exist, keep new user-facing copy in one obvious place per file so extraction stays cheap — do not scatter it through JSX.
 
 ---
 

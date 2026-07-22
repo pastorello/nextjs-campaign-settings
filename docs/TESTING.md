@@ -42,15 +42,15 @@ Everything else is supporting cast.
 
 ### Coverage targets
 
-| Area | Target | Rationale |
-|---|---|---|
-| `app/lib/data/**` | 90% | Query construction and mutations — the risky part |
-| `app/lib/utils/**` | 95% | Pure functions, trivial to cover |
-| `app/lib/config/**` | 80% | Metadata correctness is load-bearing |
-| `app/lib/hooks/**` | 70% | State logic |
-| `app/ui/**` | 60% | Behaviour, not markup |
-| `app/modules/maps/**` | 50% | Leaflet is hard to test headlessly; cover hooks and utils, not rendering |
-| **Overall gate** | **70%** | Enforced in CI, ratcheted upward over time |
+| Area                  | Target  | Rationale                                                                |
+| --------------------- | ------- | ------------------------------------------------------------------------ |
+| `app/lib/data/**`     | 90%     | Query construction and mutations — the risky part                        |
+| `app/lib/utils/**`    | 95%     | Pure functions, trivial to cover                                         |
+| `app/lib/config/**`   | 80%     | Metadata correctness is load-bearing                                     |
+| `app/lib/hooks/**`    | 70%     | State logic                                                              |
+| `app/ui/**`           | 60%     | Behaviour, not markup                                                    |
+| `app/modules/maps/**` | 50%     | Leaflet is hard to test headlessly; cover hooks and utils, not rendering |
+| **Overall gate**      | **70%** | Enforced in CI, ratcheted upward over time                               |
 
 Set the CI threshold to whatever you actually achieve at the end of Phase 1, then never let it drop. A threshold you have to disable to merge is worse than no threshold.
 
@@ -106,16 +106,16 @@ Each test seeds and truncates its own fixtures. No shared mutable state between 
 
 Chromium in CI; add Firefox and WebKit once the suite is stable. Roughly eight specs, no more — E2E is expensive and each one must earn its place.
 
-| Spec | Flow |
-|---|---|
-| `auth.spec.ts` | Log in with valid credentials → dashboard. Invalid credentials → error, no redirect. Unauthenticated `/dashboard/spells` → `/login`. |
-| `spells-crud.spec.ts` | Create a spell → appears in list → edit → delete → gone. |
-| `png-crud.spec.ts` | Same for NPCs (the domain with the most fields). |
-| `filtering.spec.ts` | Apply filter → list narrows → filters survive reload → reset clears them. |
-| `pagination.spec.ts` | Navigate pages, verify the count matches the rows. |
-| `map.spec.ts` | Map loads, a POI can be placed, tile switching works. |
-| `validation.spec.ts` | Submit an empty required field → inline error, nothing written. |
-| `a11y.spec.ts` | `@axe-core/playwright` over each main page (supports TD-15). |
+| Spec                  | Flow                                                                                                                                 |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `auth.spec.ts`        | Log in with valid credentials → dashboard. Invalid credentials → error, no redirect. Unauthenticated `/dashboard/spells` → `/login`. |
+| `spells-crud.spec.ts` | Create a spell → appears in list → edit → delete → gone.                                                                             |
+| `png-crud.spec.ts`    | Same for NPCs (the domain with the most fields).                                                                                     |
+| `filtering.spec.ts`   | Apply filter → list narrows → filters survive reload → reset clears them.                                                            |
+| `pagination.spec.ts`  | Navigate pages, verify the count matches the rows.                                                                                   |
+| `map.spec.ts`         | Map loads, a POI can be placed, tile switching works.                                                                                |
+| `validation.spec.ts`  | Submit an empty required field → inline error, nothing written.                                                                      |
+| `a11y.spec.ts`        | `@axe-core/playwright` over each main page (supports TD-15).                                                                         |
 
 Use `page.getByRole` / `getByLabel`, not CSS selectors — role-based queries double as accessibility assertions.
 

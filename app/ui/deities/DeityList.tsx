@@ -72,7 +72,7 @@ export default async function DeityList(props: {
                       <p>
                         <strong>
                           {pageMetaFields[PatronoMetaField.nome].getDatum(
-                            item.nome,
+                            item.nome
                           )}
                         </strong>
                       </p>
@@ -80,7 +80,7 @@ export default async function DeityList(props: {
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
                     {pageMetaFields[PatronoMetaField.allineamento].getDatum(
-                      item.allineamento,
+                      item.allineamento
                     )}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
@@ -90,17 +90,17 @@ export default async function DeityList(props: {
                   </td>
                   <td className="px-3 py-3">
                     {pageMetaFields[PatronoMetaField.gradoPatrono].getDatum(
-                      item.gradopatrono,
+                      item.gradopatrono
                     )}
                   </td>
                   <td className="px-3 py-3">
                     {pageMetaFields[PatronoMetaField.tipoPatrono].getDatum(
-                      item.tipopatrono,
+                      item.tipopatrono
                     )}
                   </td>
                   <td className="px-3 py-3">
                     {pageMetaFields[PatronoMetaField.tipoPatrono].getDatum(
-                      item.luogo,
+                      item.luogo
                     )}
                   </td>
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">

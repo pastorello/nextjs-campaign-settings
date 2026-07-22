@@ -21,9 +21,7 @@ const getDefaultConfig = (customConfig?: Partial<SortConfig>): SortConfig => ({
   sortedValues: [],
   fieldGetter: (item: Indexable, field: string): PrimitiveValue =>
     (item[field] as PrimitiveValue) || "",
-  ...(isValidDataObject(customConfig)
-    ? (customConfig as Partial<SortConfig>)
-    : {}),
+  ...(isValidDataObject(customConfig) ? customConfig : {}),
 });
 
 const getElement = (
@@ -34,11 +32,11 @@ const getElement = (
     isValidString(config.fieldName) &&
     isValidDataObject(anElement) &&
     isValidFunction(config.fieldGetter)
-      ? config.fieldGetter(anElement as Indexable, config.fieldName as string)
+      ? config.fieldGetter(anElement, config.fieldName)
       : anElement;
 
   if (isValidString(theElement) && config.isCaseSentitive !== true) {
-    theElement = (theElement as string).toLowerCase();
+    theElement = theElement.toLowerCase();
   }
 
   return theElement as string | number;

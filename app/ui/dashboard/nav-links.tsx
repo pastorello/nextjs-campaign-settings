@@ -61,7 +61,7 @@ export default function NavLinks() {
               {
                 "bg-sky-100 text-blue-600":
                   pathname === link.href || pathname === link.admin,
-              },
+              }
             )}
           >
             <div className="flex flex-1">

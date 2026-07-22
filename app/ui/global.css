@@ -1,6 +1,6 @@
-@import 'leaflet/dist/leaflet.css' layer(base);
+@import "leaflet/dist/leaflet.css" layer(base);
 
-@import 'tailwindcss';
+@import "tailwindcss";
 
 input[type="number"] {
   -moz-appearance: textfield;

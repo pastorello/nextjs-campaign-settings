@@ -22,13 +22,13 @@ export function formatCoordinate(
   precision: number = 6
 ): string {
   const [lat, lng] = coord;
-  
-  const latDir = lat >= 0 ? 'N' : 'S';
-  const lngDir = lng >= 0 ? 'E' : 'W';
-  
+
+  const latDir = lat >= 0 ? "N" : "S";
+  const lngDir = lng >= 0 ? "E" : "W";
+
   const latAbs = Math.abs(lat).toFixed(precision);
   const lngAbs = Math.abs(lng).toFixed(precision);
-  
+
   return `${latAbs}°${latDir}, ${lngAbs}°${lngDir}`;
 }
 
@@ -40,19 +40,19 @@ export function formatCoordinate(
 export function parseCoordinate(formatted: string): [number, number] | null {
   const regex = /^([\d.]+)°([NS]),\s*([\d.]+)°([EW])$/;
   const match = formatted.match(regex);
-  
+
   if (!match) return null;
-  
+
   const [, latStr, latDir, lngStr, lngDir] = match;
-  
+
   let lat = parseFloat(latStr);
   let lng = parseFloat(lngStr);
-  
-  if (latDir === 'S') lat = -lat;
-  if (lngDir === 'W') lng = -lng;
-  
+
+  if (latDir === "S") lat = -lat;
+  if (lngDir === "W") lng = -lng;
+
   if (!isValidCoordinate([lat, lng])) return null;
-  
+
   return [lat, lng];
 }
 
@@ -85,7 +85,7 @@ export function decimalToDMS(decimal: number): {
   const minutesDecimal = (absolute - degrees) * 60;
   const minutes = Math.floor(minutesDecimal);
   const seconds = (minutesDecimal - minutes) * 60;
-  
+
   return { degrees, minutes, seconds };
 }
 
@@ -96,13 +96,13 @@ export function decimalToDMS(decimal: number): {
  */
 export function formatDMS(coord: [number, number]): string {
   const [lat, lng] = coord;
-  
+
   const latDMS = decimalToDMS(lat);
   const lngDMS = decimalToDMS(lng);
-  
-  const latDir = lat >= 0 ? 'N' : 'S';
-  const lngDir = lng >= 0 ? 'E' : 'W';
-  
+
+  const latDir = lat >= 0 ? "N" : "S";
+  const lngDir = lng >= 0 ? "E" : "W";
+
   return `${latDMS.degrees}°${latDMS.minutes}'${latDMS.seconds.toFixed(2)}"${latDir}, ${lngDMS.degrees}°${lngDMS.minutes}'${lngDMS.seconds.toFixed(2)}"${lngDir}`;
 }
 
@@ -142,17 +142,17 @@ export function calculateDistance(
 ): number {
   const [lat1, lng1] = coord1;
   const [lat2, lng2] = coord2;
-  
+
   const R = 6371e3; // Earth's radius in meters
   const φ1 = (lat1 * Math.PI) / 180;
   const φ2 = (lat2 * Math.PI) / 180;
   const Δφ = ((lat2 - lat1) * Math.PI) / 180;
   const Δλ = ((lng2 - lng1) * Math.PI) / 180;
-  
+
   const a =
     Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
     Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  
+
   return R * c;
 }

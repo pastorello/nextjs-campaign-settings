@@ -2,7 +2,7 @@
  * Map-related TypeScript type definitions
  */
 
-import type { Map as LeafletMap } from 'leaflet';
+import type { Map as LeafletMap } from "leaflet";
 
 /**
  * Map configuration options
@@ -25,7 +25,7 @@ export interface TileProvider {
   url: string;
   attribution: string;
   maxZoom: number;
-  category: 'standard' | 'satellite' | 'dark' | 'custom';
+  category: "standard" | "satellite" | "dark" | "custom";
 }
 
 /**

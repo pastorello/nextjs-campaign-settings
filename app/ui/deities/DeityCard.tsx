@@ -63,8 +63,8 @@ const DeityCard = (props: { cardItem: Patrono }) => {
                 ${pageMetaFields[PatronoMetaField.allineamento].getDatum(
                   props.cardItem[PatronoMetaField.allineamento]
                 )} (${pageMetaFields[PatronoMetaField.classe].getDatum(
-                props.cardItem[PatronoMetaField.classe]
-              )})`}
+                  props.cardItem[PatronoMetaField.classe]
+                )})`}
             </div>
           </div>
           <div className="w-[40px] group-data-open:rotate-180">

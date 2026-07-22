@@ -18,13 +18,13 @@ Read [`docs/PROJECT_STATE.md`](./docs/PROJECT_STATE.md) and [`docs/ARCHITECTURE.
 
 **Target state** — all code in English, all user-facing text in Italian. See [ADR-0005](./docs/adr/0005-english-identifiers.md).
 
-| Context | Language |
-|---|---|
-| All identifiers: variables, functions, types, enums, Prisma fields | **English** — `name`, `description`, `rarity`, `npc`, `fetchFilteredSpells` |
-| UI copy shown to the user | **Italian + English**, from message catalogues — see [ADR-0006](./docs/adr/0006-bilingual-ui.md) |
-| Campaign content in the database | **Whatever the DM wrote.** Never translated, never dual-columned. |
-| Postgres column names | **Italian for now** — decoupled from code via Prisma `@map`; renamed later if ever |
-| Comments, docs, commit messages, PR descriptions | **English** |
+| Context                                                            | Language                                                                                         |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| All identifiers: variables, functions, types, enums, Prisma fields | **English** — `name`, `description`, `rarity`, `npc`, `fetchFilteredSpells`                      |
+| UI copy shown to the user                                          | **Italian + English**, from message catalogues — see [ADR-0006](./docs/adr/0006-bilingual-ui.md) |
+| Campaign content in the database                                   | **Whatever the DM wrote.** Never translated, never dual-columned.                                |
+| Postgres column names                                              | **Italian for now** — decoupled from code via Prisma `@map`; renamed later if ever               |
+| Comments, docs, commit messages, PR descriptions                   | **English**                                                                                      |
 
 **Transitional state — read this before renaming anything.** The codebase is currently mixed: tables are English (`spells`, `magicitems`, `deities`) while columns and domain fields are Italian (`nome`, `descrizione`, `rarita`, `png`). The full rename is scheduled as **TD-19**, after TD-03 (working test suite) and TD-08 (typed metadata).
 
@@ -143,17 +143,17 @@ For architectural decisions (choosing a library, changing a data model, introduc
 
 Five skills from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) are installed:
 
-| Skill | Used for |
-|---|---|
-| `security-and-hardening` | TD-01, TD-02 — auth guards, boundary validation, OWASP checks |
-| `test-driven-development` | TD-03 and every subsequent change — red-green-refactor |
-| `code-review-and-quality` | Self-review before any commit; change sizing |
-| `debugging-and-error-recovery` | Any failing test or unexpected behaviour |
-| `incremental-implementation` | TD-19, TD-09, TD-21 — the wide refactors |
+| Skill                          | Used for                                                      |
+| ------------------------------ | ------------------------------------------------------------- |
+| `security-and-hardening`       | TD-01, TD-02 — auth guards, boundary validation, OWASP checks |
+| `test-driven-development`      | TD-03 and every subsequent change — red-green-refactor        |
+| `code-review-and-quality`      | Self-review before any commit; change sizing                  |
+| `debugging-and-error-recovery` | Any failing test or unexpected behaviour                      |
+| `incremental-implementation`   | TD-19, TD-09, TD-21 — the wide refactors                      |
 
-**Precedence.** The pack supplies *method* — how to do TDD, how to run a security review, how to slice a refactor. This file and `docs/` supply *constraints* — what is true about this codebase specifically.
+**Precedence.** The pack supplies _method_ — how to do TDD, how to run a security review, how to slice a refactor. This file and `docs/` supply _constraints_ — what is true about this codebase specifically.
 
-**Where they conflict, this file wins.** The pack cannot know that the metadata layer is string-keyed, that a partial rename silently breaks filters, or that `app/ui/forms/` holds dead duplicates. Do not let a generic workflow override a project rule in the *Non-negotiable rules* section above.
+**Where they conflict, this file wins.** The pack cannot know that the metadata layer is string-keyed, that a partial rename silently breaks filters, or that `app/ui/forms/` holds dead duplicates. Do not let a generic workflow override a project rule in the _Non-negotiable rules_ section above.
 
 **Not installed, deliberately:**
 
@@ -207,12 +207,12 @@ docs/**                       state, architecture, debt, testing, roadmap, ADRs,
 
 ## Related documents
 
-| Document | Read it when |
-|---|---|
-| [`docs/PROJECT_STATE.md`](./docs/PROJECT_STATE.md) | Starting a session; you need the inventory |
-| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | Touching the metadata layer, data access or auth |
-| [`docs/TECH_DEBT.md`](./docs/TECH_DEBT.md) | Deciding what to work on; checking sequencing |
-| [`docs/TESTING.md`](./docs/TESTING.md) | Writing any test |
-| [`docs/ROADMAP.md`](./docs/ROADMAP.md) | Planning; recording a feature idea |
-| [`docs/adr/`](./docs/adr/) | Making or revisiting an architectural decision |
-| [`docs/specs/`](./docs/specs/) | Building a feature |
+| Document                                           | Read it when                                     |
+| -------------------------------------------------- | ------------------------------------------------ |
+| [`docs/PROJECT_STATE.md`](./docs/PROJECT_STATE.md) | Starting a session; you need the inventory       |
+| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)   | Touching the metadata layer, data access or auth |
+| [`docs/TECH_DEBT.md`](./docs/TECH_DEBT.md)         | Deciding what to work on; checking sequencing    |
+| [`docs/TESTING.md`](./docs/TESTING.md)             | Writing any test                                 |
+| [`docs/ROADMAP.md`](./docs/ROADMAP.md)             | Planning; recording a feature idea               |
+| [`docs/adr/`](./docs/adr/)                         | Making or revisiting an architectural decision   |
+| [`docs/specs/`](./docs/specs/)                     | Building a feature                               |

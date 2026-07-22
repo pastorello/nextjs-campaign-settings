@@ -58,7 +58,7 @@ export default async function SpellList(props: {
                       <p>
                         <strong>
                           {pageMetaFields[SpellMetaField.nome].getDatum(
-                            item.nome,
+                            item.nome
                           )}
                         </strong>
                       </p>
@@ -66,12 +66,12 @@ export default async function SpellList(props: {
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
                     {pageMetaFields[SpellMetaField.livello].getDatum(
-                      item.livello,
+                      item.livello
                     )}
                   </td>
                   <td className="whitespace-nowrap px-3 py-3">
                     {pageMetaFields[SpellMetaField.classi].getDatum(
-                      item.classi,
+                      item.classi
                     )}
                   </td>
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">

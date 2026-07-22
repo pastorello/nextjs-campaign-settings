@@ -15,17 +15,17 @@ Two rules govern this document:
 **Estimated effort:** 12–16 hours.
 **Exit criteria:** `pnpm typecheck && pnpm lint && pnpm test && pnpm build` all green in CI; no unauthenticated write path exists.
 
-| # | Task | Debt | Effort |
-|---|---|---|---|
-| 1 | Delete dead code and tutorial leftovers | TD-06 | S |
-| 2 | Fix the remaining TypeScript errors | TD-04 | M |
-| 3 | Migrate Jest → Vitest; get a green suite | TD-03 | M |
-| 4 | ESLint flat config + Prettier + CI workflow | TD-05 | S |
-| 5 | Auth guards on every mutation and route handler, with tests | TD-01 | M |
-| 6 | Zod validation wired from `PageMeta.validator`, with tests | TD-02 | M |
-| 7 | Pin `next`/`react`/`react-dom`; settle on pnpm; remove `package-lock.json` | TD-07 | S |
-| 8 | Playwright set up; the eight critical-flow specs | — | M |
-| 9 | Rewrite the README as a portfolio README | TD-17 | S |
+| #   | Task                                                                       | Debt  | Effort |
+| --- | -------------------------------------------------------------------------- | ----- | ------ |
+| 1   | Delete dead code and tutorial leftovers                                    | TD-06 | S      |
+| 2   | Fix the remaining TypeScript errors                                        | TD-04 | M      |
+| 3   | Migrate Jest → Vitest; get a green suite                                   | TD-03 | M      |
+| 4   | ESLint flat config + Prettier + CI workflow                                | TD-05 | S      |
+| 5   | Auth guards on every mutation and route handler, with tests                | TD-01 | M      |
+| 6   | Zod validation wired from `PageMeta.validator`, with tests                 | TD-02 | M      |
+| 7   | Pin `next`/`react`/`react-dom`; settle on pnpm; remove `package-lock.json` | TD-07 | S      |
+| 8   | Playwright set up; the eight critical-flow specs                           | —     | M      |
+| 9   | Rewrite the README as a portfolio README                                   | TD-17 | S      |
 
 Order matters. Deleting dead code first removes roughly half the type errors, so step 2 gets cheaper. Getting the test suite working before the security fixes means those fixes land with proof. See the execution order at the end of [`TECH_DEBT.md`](./TECH_DEBT.md).
 
@@ -37,22 +37,22 @@ Order matters. Deleting dead code first removes roughly half the type errors, so
 **Estimated effort:** 16–24 hours.
 **Exit criteria:** zero `any`; coverage above 70%; the duplicated component quartets are gone; a keyboard-only user can complete every flow.
 
-| # | Task | Debt | Effort |
-|---|---|---|---|
-| 1 | `PageMeta` as a discriminated union on `fieldType`; eliminate `any` | TD-08 | M |
-| 2 | Strict flags, cheap batch, + `target: ES2022` | TD-20a | S |
-| 3 | Rename all identifiers to English; `png` → `npc`; columns kept via `@map` | TD-19 | L |
-| 4 | Bilingual UI: extract strings, `messages/{it,en}.json`, locale switcher | TD-21 | L |
-| 5 | Schema: `createdAt`/`updatedAt`, `@@index` on the name column | TD-11 | M |
-| 6 | Single shared `where` clause for rows and count | TD-12 | S |
-| 7 | Validate the remaining trust boundaries: env, `localStorage`, GeoJSON | TD-02b | M |
-| 8 | Typed error hierarchy; correct HTTP status codes; preserve `cause` | TD-13 | M |
-| 9 | Real notifications — promote Sonner to root layout | TD-10 | M |
-| 10 | Collapse the four Card/List/Library/Form quartets into generic components | TD-09 | L |
-| 11 | `noUncheckedIndexedAccess` | TD-20b | M |
-| 12 | Accessibility pass: `jsx-a11y`, axe in E2E, manual keyboard audit | TD-15 | M |
-| 13 | Loading and empty states audited across every list | — | S |
-| 14 | Screenshots / demo GIF for the README | — | S |
+| #   | Task                                                                      | Debt   | Effort |
+| --- | ------------------------------------------------------------------------- | ------ | ------ |
+| 1   | `PageMeta` as a discriminated union on `fieldType`; eliminate `any`       | TD-08  | M      |
+| 2   | Strict flags, cheap batch, + `target: ES2022`                             | TD-20a | S      |
+| 3   | Rename all identifiers to English; `png` → `npc`; columns kept via `@map` | TD-19  | L      |
+| 4   | Bilingual UI: extract strings, `messages/{it,en}.json`, locale switcher   | TD-21  | L      |
+| 5   | Schema: `createdAt`/`updatedAt`, `@@index` on the name column             | TD-11  | M      |
+| 6   | Single shared `where` clause for rows and count                           | TD-12  | S      |
+| 7   | Validate the remaining trust boundaries: env, `localStorage`, GeoJSON     | TD-02b | M      |
+| 8   | Typed error hierarchy; correct HTTP status codes; preserve `cause`        | TD-13  | M      |
+| 9   | Real notifications — promote Sonner to root layout                        | TD-10  | M      |
+| 10  | Collapse the four Card/List/Library/Form quartets into generic components | TD-09  | L      |
+| 11  | `noUncheckedIndexedAccess`                                                | TD-20b | M      |
+| 12  | Accessibility pass: `jsx-a11y`, axe in E2E, manual keyboard audit         | TD-15  | M      |
+| 13  | Loading and empty states audited across every list                        | —      | S      |
+| 14  | Screenshots / demo GIF for the README                                     | —      | S      |
 
 Items 3 and 4 are deliberately adjacent: both touch all 54 domain files, and doing them in one pass costs far less than two.
 
@@ -66,9 +66,9 @@ The order is load-bearing. Item 1 types the metadata layer, which turns items 2 
 
 Everything below needs a spec before implementation.
 
-- **Real relations.** Replace bare `Int` foreign-key-shaped columns (`fazione`, `luogo`, `allineamento`) with actual Prisma relations. Renumbering a hardcoded TypeScript array currently corrupts existing rows silently — this fixes a real correctness problem, not just a modelling nicety. *(Related: TD-11.)*
+- **Real relations.** Replace bare `Int` foreign-key-shaped columns (`fazione`, `luogo`, `allineamento`) with actual Prisma relations. Renumbering a hardcoded TypeScript array currently corrupts existing rows silently — this fixes a real correctness problem, not just a modelling nicety. _(Related: TD-11.)_
 - **Locations as first-class entities.** A `luogo` becomes a record with a description, a map coordinate and the NPCs based there.
-- **Map POIs in the database.** Move POIs out of `localStorage` into Postgres, with optional relations to `png` and `deities`. Clicking a marker opens the NPC. This is the change that connects the map — currently an island — to the rest of the app, and it is the single most demo-able improvement available. *(TD-14.)*
+- **Map POIs in the database.** Move POIs out of `localStorage` into Postgres, with optional relations to `png` and `deities`. Clicking a marker opens the NPC. This is the change that connects the map — currently an island — to the rest of the app, and it is the single most demo-able improvement available. _(TD-14.)_
 - **Multi-campaign support.** A `Campaign` model with `campaignId` on every entity. Prerequisite for anything shared or multi-user.
 - **Cross-entity search.** One search box across spells, items, NPCs and deities.
 
@@ -76,7 +76,7 @@ Everything below needs a spec before implementation.
 
 ## Phase 4 — Session tooling
 
-**Goal:** move from reference material to something used *during* a session.
+**Goal:** move from reference material to something used _during_ a session.
 
 - **Encounter builder.** Compose an encounter from NPCs with CR-based difficulty calculation.
 - **Initiative tracker.** Turn order, HP tracking, conditions.
@@ -106,9 +106,9 @@ Everything below needs a spec before implementation.
 Recording these prevents rediscussing them:
 
 - **Real-time collaboration.** Websockets, presence, conflict resolution — enormous complexity for a single-DM tool.
-- **A full VTT.** Roll20 and Foundry exist. This is a campaign *bible*, not a virtual tabletop.
+- **A full VTT.** Roll20 and Foundry exist. This is a campaign _bible_, not a virtual tabletop.
 - **Public multi-tenant hosting.** Self-hosted by design; changing that brings GDPR, billing and abuse concerns that dwarf the app.
-- **A mobile app.** Responsive web is sufficient. *(See [ADR-0004](./adr/0004-server-actions-over-rest-api.md) on when an API layer would become justified.)*
+- **A mobile app.** Responsive web is sufficient. _(See [ADR-0004](./adr/0004-server-actions-over-rest-api.md) on when an API layer would become justified.)_
 - **AI-generated content in-app.** Tempting and easy to bolt on; adds a paid dependency and a moderation surface for a feature the target user (one DM, their own world) mostly does not want.
 
 ---

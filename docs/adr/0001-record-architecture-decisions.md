@@ -6,7 +6,7 @@
 
 ## Context
 
-The project has two commits and no written rationale for any of its design choices. Several non-obvious decisions are already embedded in the code — the metadata-driven configuration layer, Server Actions instead of a REST API, Prisma with a driver adapter, Italian domain vocabulary — and none of them is explained anywhere. A reader (including the author in six months, or an AI agent starting a fresh session) can see *what* was built but not *why*.
+The project has two commits and no written rationale for any of its design choices. Several non-obvious decisions are already embedded in the code — the metadata-driven configuration layer, Server Actions instead of a REST API, Prisma with a driver adapter, Italian domain vocabulary — and none of them is explained anywhere. A reader (including the author in six months, or an AI agent starting a fresh session) can see _what_ was built but not _why_.
 
 This matters more than usual for two reasons. First, the project is intended as a portfolio piece: demonstrating deliberate architectural reasoning is a large part of what a reviewer is looking for, and it is invisible unless written down. Second, the development flow is AI-assisted, and an agent with no access to the reasoning will happily "simplify" a deliberate abstraction into something worse.
 
@@ -37,12 +37,12 @@ Rejected: decisions drift out of sync with code when they live outside the repos
 - Rationale survives the author's memory and is available to any agent reading the repo.
 - Reviewing a decision means reviewing a document, not archaeology through a diff.
 - Demonstrates deliberate engineering practice — a portfolio signal in itself.
-- Superseded ADRs preserve the history of *why we changed our mind*, which is often more informative than the current state.
+- Superseded ADRs preserve the history of _why we changed our mind_, which is often more informative than the current state.
 
 **Negative**
 
 - Overhead per significant decision (~20 minutes).
-- Risk of over-application: writing ADRs for trivia devalues the whole set. The `README.md` guidance on when *not* to write one exists to counter this.
+- Risk of over-application: writing ADRs for trivia devalues the whole set. The `README.md` guidance on when _not_ to write one exists to counter this.
 
 **Neutral**
 

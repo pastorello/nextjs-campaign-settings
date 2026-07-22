@@ -5,7 +5,7 @@
 - **Deciders:** Turu
 - **Related:** [TD-01](../TECH_DEBT.md), [TD-02](../TECH_DEBT.md), [ARCHITECTURE.md §1](../ARCHITECTURE.md)
 
-*Retroactive: documents a decision already embodied in the code, including the inconsistency it currently has.*
+_Retroactive: documents a decision already embodied in the code, including the inconsistency it currently has._
 
 ## Context
 
@@ -36,7 +36,7 @@ Every mutation, regardless of path, must call `auth()` and validate its input wi
 
 Every domain gets `GET /api/spells`, `POST /api/spells`, `PATCH /api/spells/[id]`, `DELETE /api/spells/[id]`, with the UI as a pure client.
 
-Rejected. It is roughly four times the code for the same behaviour, gives up RSC's ability to query the database without a network round-trip, requires hand-rolling client-side data fetching and cache invalidation (which `revalidatePath` provides for free), and serves an audience that does not exist — there is no second consumer. It would look more conventional to a reviewer, but "conventional" is not the same as "justified", and being able to explain *why* the conventional layer was omitted is the stronger signal.
+Rejected. It is roughly four times the code for the same behaviour, gives up RSC's ability to query the database without a network round-trip, requires hand-rolling client-side data fetching and cache invalidation (which `revalidatePath` provides for free), and serves an audience that does not exist — there is no second consumer. It would look more conventional to a reviewer, but "conventional" is not the same as "justified", and being able to explain _why_ the conventional layer was omitted is the stronger signal.
 
 ### Keep the current hybrid
 
@@ -48,7 +48,7 @@ Rejected. It is the worst of both: two mutation paths with different auth storie
 
 Superficially appealing — one middleware, one guard, done.
 
-Rejected on a false premise. The `proxy.ts` matcher currently *excludes* `/api`; the uniformity would have to be built, not inherited. More fundamentally, relying on middleware alone for authorisation is fragile: a matcher regex is easy to get subtly wrong (as it already is here), and a route added later silently inherits whatever the pattern happens to do. Explicit `auth()` calls inside each mutation are verifiable per call site and testable in isolation. Middleware becomes defence in depth rather than the only defence.
+Rejected on a false premise. The `proxy.ts` matcher currently _excludes_ `/api`; the uniformity would have to be built, not inherited. More fundamentally, relying on middleware alone for authorisation is fragile: a matcher regex is easy to get subtly wrong (as it already is here), and a route added later silently inherits whatever the pattern happens to do. Explicit `auth()` calls inside each mutation are verifiable per call site and testable in isolation. Middleware becomes defence in depth rather than the only defence.
 
 ## Consequences
 

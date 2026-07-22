@@ -23,7 +23,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-01 | Unauthenticated delete endpoints and Server Actions | 🔴 Critical | M | 1 |
 | TD-02 | No input validation at any trust boundary | 🔴 Critical | M | 1–2 |
 | TD-03 | Test suite does not run | 🔴 Critical | M | 1 |
-| TD-04 | 9 TypeScript errors on `tsc --noEmit` (was 19; TD-06 cleared 10) | 🔴 Critical | S | 1 |
+| TD-04 | ✅ TypeScript errors on `tsc --noEmit` | ~~🔴 Critical~~ done | S | 1 |
 | TD-05 | No ESLint config, no Prettier, no CI | 🟠 High | S | 1 |
 | TD-06 | ✅ Dead code and tutorial leftovers | ~~🟠 High~~ done | S | 1 |
 | TD-07 | `next` and `react` pinned to `latest`; two lockfiles | 🟠 High | S | 1 |
@@ -138,13 +138,20 @@ Steps 1–4 belong to Phase 1. Steps 5–6 can follow in Phase 2 without blockin
 
 ---
 
-### TD-04 🔴 9 TypeScript errors (was 19)
+### TD-04 ✅ TypeScript errors — **DONE (2026-07-22)**
 
-**Where:** see breakdown
+**Outcome:** `pnpm typecheck` exits **0**, down from 19 errors. `strict: true` now does real work.
 
-`tsc --noEmit` currently fails. `strict: true` is set, which is good, but the errors mean type checking provides no safety net today.
+**One trap worth knowing, found while closing this.** Four of the nine errors surfaced only through Next's generated `.next/types/validator.ts`. That directory does not exist in a fresh checkout — so a bare `tsc --noEmit` in CI would have passed *vacuously*, silently skipping every route-handler signature, including the four broken ones this item existed to fix. The `typecheck` script is therefore `next typegen && tsc --noEmit`, not `tsc --noEmit`. Do not "simplify" it.
 
-TD-06 cleared 10 of the original 19 by deleting dead files. What remains:
+How each group was fixed:
+
+- **Route handlers (4).** `context: { params: Promise<{ id: string }> }`, reading `await context.params`. Runtime behaviour unchanged — the code already awaited.
+- **`auth.config.ts` (3).** `import type { NextAuthConfig }` (named, not default) with `satisfies NextAuthConfig`, which also resolved the two implicit-`any` callback params. The never-read `isOnDashboard` / `isApiRoute` locals went with them, and the callback body reduced to `!!auth?.user` — the same value it already returned. **The security hole is untouched:** route-based branching and the missing API guards remain TD-01's.
+- **`admin/spells/page.tsx` (1).** The page awaited `props.searchParams` for itself but passed the unresolved Promise to `<SpellList>`. It now passes the awaited object. No runtime change: every `fetchFilteredX` awaits its argument defensively, which is why the three sibling pages doing the same thing never failed — they type the prop as `Promise<ListItem>`. That inconsistency is real but cosmetic, and belongs to TD-09.
+- **`validateParams.ts` (1).** Left as a single documented `as SearchParams`. The schema shape is assembled from runtime keys, so Zod can only infer `Record<string, unknown>`; proving the real value type needs TD-08's typed metadata keys. The assertion carries an inline comment naming TD-08 as the place to delete it.
+
+The original breakdown, for reference:
 
 | Count | Location | Error |
 |---|---|---|
@@ -154,7 +161,7 @@ TD-06 cleared 10 of the original 19 by deleting dead files. What remains:
 
 Cleared by TD-06: 6 errors from `Header.tsx` / `ItemMeta.tsx` / `NotificationBar.tsx` (imports of modules that do not exist here), 2 from the dead `app/ui/forms/{PngForm,SpellForm}.tsx`, 1 from `app/lib/utils.ts`'s `Revenue` import, and 1 revealed-then-fixed `ItemMeta` prop mismatch.
 
-**Fix:** work top to bottom. Then add `typecheck: "tsc --noEmit"` to `package.json` scripts and wire it into CI so this cannot regress.
+**Fix:** work top to bottom. The `typecheck` script now exists; wiring it into CI is TD-05.
 
 **Note:** `next build` currently fails for an unrelated reason — the `webpack` hook in `next.config.ts` conflicts with Turbopack being default in Next 16. That is TD-18, and it blocks the `build` step of CI.
 

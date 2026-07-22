@@ -64,5 +64,10 @@ export default function validateParams(
   query: Record<string, any>
 ): SearchParams {
   const schema = getParamsSchema(query);
-  return z.object(schema).parse(query);
+  // The shape is assembled at runtime from whichever keys the query carries,
+  // so Zod can only infer `Record<string, unknown>` here. The values really are
+  // `string | number | boolean | null` — every branch of `zodConfig` produces
+  // one — but proving that statically needs the typed metadata keys from TD-08,
+  // which is where this assertion should be deleted.
+  return z.object(schema).parse(query) as SearchParams;
 }

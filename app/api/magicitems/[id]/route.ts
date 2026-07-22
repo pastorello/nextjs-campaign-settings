@@ -3,9 +3,9 @@ import { deleteMagicItemById } from "@/app/lib/data/magicitems/deleteMagicItemBy
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const theParams = await params;
+  const theParams = await context.params;
   const id = parseInt(theParams.id);
   const isDeleted = await deleteMagicItemById(id);
 

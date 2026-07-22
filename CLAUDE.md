@@ -42,7 +42,7 @@ Until TD-19 runs:
 ```bash
 pnpm dev                # dev server (Turbopack)
 pnpm build              # production build
-pnpm typecheck          # tsc --noEmit          — MUST pass
+pnpm typecheck          # next typegen && tsc --noEmit — MUST pass
 pnpm lint               # eslint .              — MUST pass
 pnpm test               # vitest run            — MUST pass
 pnpm test:watch         # vitest

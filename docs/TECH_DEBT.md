@@ -22,7 +22,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | ----- | ----------------------------------------------------------- | -------------------- | ------ | ----- |
 | TD-01 | Unauthenticated delete endpoints and Server Actions         | 🔴 Critical          | M      | 1     |
 | TD-02 | No input validation at any trust boundary                   | 🔴 Critical          | M      | 1–2   |
-| TD-03 | Test suite does not run                                     | 🔴 Critical          | M      | 1     |
+| TD-03 | ✅ Test suite does not run                                  | ~~🔴 Critical~~ done | M      | 1     |
 | TD-04 | ✅ TypeScript errors on `tsc --noEmit`                      | ~~🔴 Critical~~ done | S      | 1     |
 | TD-05 | ✅ No ESLint config, no Prettier, no CI                     | ~~🟠 High~~ done     | S      | 1     |
 | TD-06 | ✅ Dead code and tutorial leftovers                         | ~~🟠 High~~ done     | S      | 1     |
@@ -117,7 +117,27 @@ Steps 1–4 belong to Phase 1. Steps 5–6 can follow in Phase 2 without blockin
 
 ---
 
-### TD-03 🔴 Test suite does not run
+### TD-03 ✅ Test suite does not run — **DONE (2026-07-22)**
+
+**Outcome:** migrated to Vitest. `pnpm test` runs **27 tests in ~1.5s** — comfortably inside the 10s exit criterion — and CI enforces it with a coverage ratchet.
+
+The suite grew from 4 real tests to 27. The 18 new ones cover `getQuery`, which `TESTING.md` §3 calls the highest-value unit tests available here: it is a pure function from `(searchParams, enabledMeta)` to a Prisma query, and the single place where a wrong field type silently produces a filter that stops filtering.
+
+**They were mutation-tested rather than trusted.** All 18 passed on first run, which proves nothing on its own, so `getQuery` was deliberately broken three ways and the suite re-run:
+
+| Mutation                              | Tests failed |
+| ------------------------------------- | ------------ |
+| `hasSome` → equality for array fields | 1            |
+| `skip` off-by-one                     | 5            |
+| `mode: "insensitive"` dropped         | 2            |
+
+`generatePwdHash.test.ts` was rewritten, not ported: the old version asserted a hardcoded bcrypt digest, comparing an unawaited Promise to a string, and could not have passed even awaited, because bcrypt salts randomly. It now asserts the properties the function must hold.
+
+**What this did not do:** no integration tests against Postgres, no Playwright. Both are scoped in `TESTING.md` and neither is started. The integration layer arrives with TD-01 and TD-02 — which is exactly why this item came first. See `TESTING.md` §4 for the four deliberate deviations from the written migration plan.
+
+---
+
+### TD-03 (original description) 🔴 Test suite does not run
 
 **Where:** `jest.config.ts`, `jest.setup.ts`, `__test__/`
 

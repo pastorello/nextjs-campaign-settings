@@ -8,9 +8,20 @@
 
 ## 1. Where we are
 
-The current Jest setup does not run at all (`jest.setup.ts` not resolved, `testEnvironment` set to `node` while the suite renders React). Actual coverage is three trivial utility tests and one dashboard snapshot. Effective coverage of business logic: zero.
+**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 27 tests across 6 files in ~1.5s. Coverage is **14% lines / 9% branches**, enforced in CI as a ratchet — see §2.
 
-This section will be deleted once the migration below is complete.
+What exists today:
+
+| Suite                                          | Tests | Notes                                                                    |
+| ---------------------------------------------- | ----- | ------------------------------------------------------------------------ |
+| `app/lib/data/getQuery.test.ts`                | 18    | Query construction — the highest-value unit tests in the project, per §3 |
+| `__test__/utils/generatePwdHash.test.ts`       | 4     | Rewritten; the old version could never pass                              |
+| `app/lib/utils/data/sortByField/index.test.ts` | 2     | Carried over                                                             |
+| `__test__/utils/parseSerializedArray.test.ts`  | 1     | Carried over                                                             |
+| `__test__/utils/createEmptyArray.test.ts`      | 1     | Carried over — was never collected before, the filename was malformed    |
+| `app/ui/forms/inputs/Select/Select.test.tsx`   | 2     | Carried over                                                             |
+
+**Still missing, and deliberately so:** integration tests against a real Postgres, and the whole Playwright layer. Both are described below and neither is started. The integration tests arrive with TD-01 and TD-02, which is the point of doing this migration first.
 
 ---
 
@@ -53,6 +64,8 @@ Everything else is supporting cast.
 | **Overall gate**      | **70%** | Enforced in CI, ratcheted upward over time                               |
 
 Set the CI threshold to whatever you actually achieve at the end of Phase 1, then never let it drop. A threshold you have to disable to merge is worse than no threshold.
+
+**Current thresholds are 14/9/9/13 (lines/functions/branches/statements)** — what the suite achieves today, not the targets above. They are a ratchet: raise them whenever a change adds real coverage, never lower them. The table stays the destination.
 
 ---
 
@@ -128,9 +141,18 @@ Use `page.getByRole` / `getByLabel`, not CSS selectors — role-based queries do
 
 ---
 
-## 4. Migration from Jest to Vitest
+## 4. Migration from Jest to Vitest — ✅ DONE (2026-07-22)
 
-**Effort: ~2h.** Do this before touching security code (TD-01/TD-02) so those fixes land with tests.
+Kept for the record, and because four steps went differently than written. Deviations, all deliberate:
+
+1. **`vite-tsconfig-paths` was installed and then removed.** Vite resolves tsconfig paths natively now (`resolve: { tsconfigPaths: true }`); Vitest prints a deprecation notice if you use the plugin. One fewer dependency than this plan called for.
+2. **Coverage thresholds are 14/9/9/13, not 70/70/60/70.** Setting them at the target would fail CI on day one — the exact failure mode §2 warns about two paragraphs earlier. They ratchet up instead.
+3. **Playwright was not installed.** TD-03's exit criterion is a green unit suite enforced by CI; the eight specs in §3 are a body of work in their own right, and `pnpm create playwright` is interactive besides. The CI `e2e` job stays documented-as-unrunnable until someone does it properly.
+4. **Tests import from `vitest` explicitly** rather than relying on `globals: true` for typing. Dropping `@types/jest` left `test`/`expect` untyped under `tsc`, and explicit imports fix that without adding a `types` array to tsconfig, which would have overridden the default and pulled the rug on `@types/node`.
+
+Also removed: `__test__/mocks/next/*`, orphaned once Jest's `moduleNameMapper` went away — nothing imported them.
+
+**Original plan below.** Effort was ~2h as estimated.
 
 **1 — Install**
 

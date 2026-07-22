@@ -24,19 +24,19 @@ The domain vocabulary is **intentionally Italian** (`incantesimi`, `patroni`, `f
 
 ## 2. Stack
 
-| Layer         | Technology                                                            | Version                                                                   |
-| ------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Framework     | Next.js (App Router, RSC, Server Actions)                             | `latest` ⚠️ unpinned                                                      |
-| Runtime       | React                                                                 | `latest` ⚠️ unpinned                                                      |
-| Language      | TypeScript (`strict: true`)                                           | 5.9.3                                                                     |
-| Database      | PostgreSQL via Docker Compose                                         | 5432                                                                      |
-| ORM           | Prisma with `@prisma/adapter-pg` driver adapter                       | 7.1.0                                                                     |
-| Auth          | NextAuth v5 (beta) — Credentials provider + bcrypt                    | 5.0.0-beta.30                                                             |
-| Styling       | Tailwind CSS v4 + `@tailwindcss/forms`                                | 4.1.18                                                                    |
-| UI primitives | Radix UI, Headless UI, Heroicons, Lucide, Framer Motion, Vaul, Sonner | —                                                                         |
-| Maps          | Leaflet + custom hook layer                                           | 1.9.4                                                                     |
-| Validation    | Zod                                                                   | 4.2.0                                                                     |
-| Tests         | Jest + Testing Library                                                | **runs, but 1 suite fails and coverage is ~nil — see TECH_DEBT.md TD-03** |
+| Layer         | Technology                                                            | Version                                                  |
+| ------------- | --------------------------------------------------------------------- | -------------------------------------------------------- |
+| Framework     | Next.js (App Router, RSC, Server Actions)                             | `latest` ⚠️ unpinned                                     |
+| Runtime       | React                                                                 | `latest` ⚠️ unpinned                                     |
+| Language      | TypeScript (`strict: true`)                                           | 5.9.3                                                    |
+| Database      | PostgreSQL via Docker Compose                                         | 5432                                                     |
+| ORM           | Prisma with `@prisma/adapter-pg` driver adapter                       | 7.1.0                                                    |
+| Auth          | NextAuth v5 (beta) — Credentials provider + bcrypt                    | 5.0.0-beta.30                                            |
+| Styling       | Tailwind CSS v4 + `@tailwindcss/forms`                                | 4.1.18                                                   |
+| UI primitives | Radix UI, Headless UI, Heroicons, Lucide, Framer Motion, Vaul, Sonner | —                                                        |
+| Maps          | Leaflet + custom hook layer                                           | 1.9.4                                                    |
+| Validation    | Zod                                                                   | 4.2.0                                                    |
+| Tests         | Vitest + Testing Library                                              | 27 tests, ~1.5s, 14% line coverage enforced as a ratchet |
 
 Two lockfiles are present (`package-lock.json` and `pnpm-lock.yaml`) and the README mixes `npm` and `pnpm` commands. Package manager must be settled on one.
 
@@ -116,19 +116,19 @@ Two problems follow from this, both covered in `TECH_DEBT.md`:
 
 ## 6. Current health
 
-| Check            | Result                                                                                                                                                           |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm typecheck` | ✅ **0 errors** (19 before TD-06; `next typegen && tsc --noEmit`)                                                                                                |
-| `next build`     | ❌ **Fails** — `webpack` hook in `next.config.ts` vs. Turbopack-by-default in Next 16 (TD-18)                                                                    |
-| `jest`           | ⚠️ **Runs**; 4 suites pass, 1 fails (`generatePwdHash.test.ts` — an unawaitable assertion against a random-salt bcrypt hash). Coverage is still effectively nil. |
-| Lint             | ⚠️ No ESLint config file exists; `next lint` is deprecated in Next 16                                                                                            |
-| Formatting       | ⚠️ No Prettier config; mixed 2-space and 4-space indentation across files                                                                                        |
-| E2E tests        | ❌ None                                                                                                                                                          |
-| CI               | ❌ None                                                                                                                                                          |
-| Test coverage    | Effectively 0% — 3 trivial util tests plus a dashboard snapshot                                                                                                  |
-| Git history      | 2 commits (`first commit`, `update readme`)                                                                                                                      |
-| `.env`           | ✅ Correctly gitignored                                                                                                                                          |
-| `.DS_Store`      | ✅ Present on disk but untracked — `.gitignore` is working                                                                                                       |
+| Check            | Result                                                                                        |
+| ---------------- | --------------------------------------------------------------------------------------------- |
+| `pnpm typecheck` | ✅ **0 errors** (19 before TD-06; `next typegen && tsc --noEmit`)                             |
+| `next build`     | ❌ **Fails** — `webpack` hook in `next.config.ts` vs. Turbopack-by-default in Next 16 (TD-18) |
+| `pnpm test`      | ✅ **27 passed** in ~1.5s (Vitest)                                                            |
+| Lint             | ⚠️ No ESLint config file exists; `next lint` is deprecated in Next 16                         |
+| Formatting       | ⚠️ No Prettier config; mixed 2-space and 4-space indentation across files                     |
+| E2E tests        | ❌ None — Playwright not installed; scoped in TESTING.md §3                                   |
+| CI               | ❌ None                                                                                       |
+| Test coverage    | 14% lines / 9% branches — thresholds set there and ratcheted upward                           |
+| Git history      | 2 commits (`first commit`, `update readme`)                                                   |
+| `.env`           | ✅ Correctly gitignored                                                                       |
+| `.DS_Store`      | ✅ Present on disk but untracked — `.gitignore` is working                                    |
 
 TD-04 closed the remaining nine on 2026-07-22. Note that `typecheck` must run `next typegen` first: the route-handler signatures live in generated types that a fresh checkout does not have, so a bare `tsc --noEmit` passes vacuously.
 

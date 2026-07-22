@@ -37,11 +37,11 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-15 | No accessibility pass                                       | 🟡 Medium            | M      | 2     |
 | TD-16 | ✅ Inconsistent formatting                                  | ~~🟢 Low~~ done      | S      | 1     |
 | TD-17 | README does not match reality                               | 🟢 Low               | S      | 1     |
-| TD-18 | `copy-webpack-plugin` forces webpack over Turbopack         | 🟢 Low               | S      | 3     |
+| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack      | ~~🟢 Low~~ done      | S      | 3     |
 | TD-19 | Mixed Italian/English identifiers                           | 🟠 High              | L      | 2     |
 | TD-20 | TypeScript strictness stops at `strict`; `target` is ES2017 | 🟡 Medium            | M      | 2     |
 | TD-21 | UI strings hardcoded; app must ship in it + en              | 🟠 High              | L      | 2     |
-| TD-22 | 293 lint warnings surfaced by TD-05                         | 🟠 High              | L      | 2     |
+| TD-22 | 282 lint warnings surfaced by TD-05                         | 🟠 High              | L      | 2     |
 
 ---
 
@@ -474,7 +474,21 @@ The SRD label set is roughly 150 terms (rarities, alignments, schools, casting t
 
 **Fix:** a `poi` Prisma model with optional relations to `png` and `deities`, plus Server Actions for CRUD. This is as much a feature as a debt item; it appears in [`ROADMAP.md`](./ROADMAP.md) Phase 3.
 
-### TD-18 🟢 `copy-webpack-plugin` forces webpack
+### TD-18 ✅ `copy-webpack-plugin` forces webpack — **DONE (2026-07-22)**
+
+**Outcome:** `pnpm build` succeeds for the first time, on Turbopack, and dev and production now use the same bundler.
+
+It was _not_ the free win this item predicted. Removing the `webpack` hook exposed a second, unrelated failure underneath it: the build had never got far enough to reveal it, because the webpack/Turbopack conflict aborted first.
+
+**The second failure — worth knowing, because it will bite someone locally.** Turbopack could not resolve `@prisma/client/runtime/query_compiler_fast_bg.postgresql.mjs`. That file does not exist; the installed runtime ships `query_compiler_bg.postgresql.mjs`, without the `_fast` infix. The cause was a **stale `generated/prisma`** left over from an earlier Prisma version. `pnpm prisma generate` fixed it in one command. CI never hits this — every job regenerates the client — so it is purely a local trap, and the error message points at Turbopack rather than at the real cause.
+
+**Verified:** all nine files in `public/leaflet/images/` are still served by the production server (HTTP 200, byte sizes matching disk). Five are the Leaflet originals the plugin used to copy and are byte-identical to `node_modules/leaflet/dist/images`; the other four (`map-basic`, `map-dark`, `map-satellite`, `poi-bg`) are project assets that were never the plugin's output and share the directory by accident. All nine are tracked in git, which is why deleting the copy step changes nothing.
+
+Removing `next.config.ts`'s `require()` calls also took 11 warnings off TD-22.
+
+---
+
+### TD-18 (original description) 🟢 `copy-webpack-plugin` forces webpack
 
 `next.config.ts` uses a `webpack` hook to copy Leaflet marker images into `public/`. Because `dev` runs with `--turbopack` but `build` does not, dev and production use different bundlers — a real source of "works in dev, breaks in prod" bugs.
 
@@ -488,7 +502,7 @@ The SRD label set is roughly 150 terms (rarities, alignments, schools, casting t
 **Blocked by:** nothing — but most of it dissolves when TD-08 lands
 **Config:** `eslint.config.mjs`, the block headed _Severity policy_
 
-Switching the linter on reported 293 findings. They are warnings so that `pnpm lint` can exit 0 and the CI gate can be meaningful; every rule not violated today is still an error, so new code cannot add to this list.
+Switching the linter on reported 293 findings; TD-18 removed 11 of them with `next.config.ts`, leaving **282**. They are warnings so that `pnpm lint` can exit 0 and the CI gate can be meaningful; every rule not violated today is still an error, so new code cannot add to this list.
 
 | Rule                                               | Count | Files | Owner             |
 | -------------------------------------------------- | ----- | ----- | ----------------- |

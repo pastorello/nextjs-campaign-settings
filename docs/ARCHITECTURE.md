@@ -174,13 +174,17 @@ Route renders
 
 Login: `app/login/page.tsx` → `login-form.tsx` → `authenticate()` server action → `signIn("credentials")` → `auth.ts` `authorize()` → Zod-validate email/password → `getUser()` → `bcrypt.compare`.
 
-### [GAP] Three holes
+### Guards at the boundary (TD-01)
 
-1. **API routes are unauthenticated.** The matcher excludes `/api`, and none of the four DELETE handlers call `auth()`. Any unauthenticated client can delete any spell, NPC, deity or magic item by ID. See TD-01.
-2. **Server Actions are unauthenticated.** Server Actions are POST endpoints with a stable ID; `proxy.ts` does not cover them and no mutation calls `auth()`. See TD-01.
-3. **`authorized` is all-or-nothing.** The callback returns `!!auth?.user`, gating every matched path identically, with no per-route logic. (It used to compute unused `isOnDashboard` / `isApiRoute` locals; TD-04 removed them, so the branching is now simply absent rather than written-and-ignored.) See TD-01.
+The proxy matcher excludes `/api`, so it cannot cover route handlers or Server Actions. Rather than widen the matcher, TD-01 guards each write path where it lives:
 
-There is also no authorisation model at all: every authenticated user can edit everything. Acceptable for a single-DM tool today; must be addressed before multi-campaign support.
+1. **Route handlers** — the four DELETE handlers call `requireApiSession()` (`app/lib/auth/requireApiSession.ts`), which returns a 401 `NextResponse` when there is no session. `app/api/countries/**` stays open: it is read-only GeoJSON.
+2. **Server Actions** — the eight `create*` / `update*` mutations call `requireSession()` (`app/lib/auth/requireSession.ts`), which throws `UnauthorizedError`. The `delete*ById` helpers are internal to the guarded route handlers and are not guarded again.
+3. **`authorized`** stays `!!auth?.user` — it gates the proxy-matched dashboard on login, which is all it needs to do now that the API boundary guards itself. No per-route branching.
+
+### [GAP] Still open: authorisation, not authentication
+
+There is no authorisation model: every authenticated user can edit everything. Acceptable for a single-DM tool today; must be addressed before multi-campaign support.
 
 ---
 

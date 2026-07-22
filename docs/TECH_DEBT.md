@@ -20,7 +20,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 | ID    | Title                                                       | Severity             | Effort | Phase |
 | ----- | ----------------------------------------------------------- | -------------------- | ------ | ----- |
-| TD-01 | Unauthenticated delete endpoints and Server Actions         | 🔴 Critical          | M      | 1     |
+| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions      | ~~🔴 Critical~~ done | M      | 1     |
 | TD-02 | No input validation at any trust boundary                   | 🔴 Critical          | M      | 1–2   |
 | TD-03 | ✅ Test suite does not run                                  | ~~🔴 Critical~~ done | M      | 1     |
 | TD-04 | ✅ TypeScript errors on `tsc --noEmit`                      | ~~🔴 Critical~~ done | S      | 1     |
@@ -49,7 +49,24 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Phase 1 — Correctness and safety
 
-### TD-01 🔴 Unauthenticated delete endpoints and Server Actions
+### TD-01 ✅ Unauthenticated delete endpoints and Server Actions — **DONE (2026-07-22)**
+
+**Outcome:** every write path now verifies a session. Two guards, one per boundary shape:
+
+- `app/lib/auth/requireApiSession.ts` — returns a 401 `NextResponse` (or `null`), used by the four DELETE route handlers: `const unauthorized = await requireApiSession(); if (unauthorized) return unauthorized;`.
+- `app/lib/auth/requireSession.ts` — throws `UnauthorizedError`, called at the top of all eight `create*` / `update*` Server Actions.
+
+The `delete*ById` functions are not guarded directly: they are internal helpers reachable only through the already-guarded route handlers, so the trust boundary is the handler, not the helper. The GeoJSON `GET` endpoints under `app/api/countries/**` are read-only reference data and out of scope.
+
+**Tests (48 total, +21):** `__test__/api/deleteEndpoints.test.ts` asserts 401-and-no-DB-call for each of the four endpoints (and that a session lets the delete through); `__test__/data/mutationGuards.test.ts` asserts each of the eight mutations throws `UnauthorizedError` and never reaches Prisma without a session; `__test__/auth/session-guards.test.ts` covers the two helpers directly. All were written red-first against the unguarded code.
+
+**Not done, deliberately:** fix step 3 (per-route branching in `authorized`). It is unnecessary — the proxy gates the dashboard on login, and the API boundary is now guarded per-handler, so there is no route class left that needs different treatment. Left as `!!auth?.user`.
+
+The original description follows.
+
+---
+
+### TD-01 (original) 🔴 Unauthenticated delete endpoints and Server Actions
 
 **Where:** `app/api/{spells,deities,magicitems,png}/[id]/route.ts`, `proxy.ts`, all `create*.ts` / `update*.ts` in `app/lib/data/`
 
@@ -623,7 +640,7 @@ This item exists because the E2E layer was previously scheduled only in `ROADMAP
 2. ✅ TD-04  fix remaining type errors
 3. ✅ TD-03  migrate to Vitest, get a green suite
 4. ✅ TD-05  ESLint + Prettier + CI      → locks in 1–3 permanently
-5.    TD-01  auth guards (+ tests)       → now testable, because 3 is done
+5. ✅ TD-01  auth guards (+ tests)       → done; requireApiSession + requireSession
 6.    TD-02  Zod validation (+ tests)
 7.    TD-07  pin versions, one lockfile
 8.    TD-24  Playwright + 8 E2E specs    → needs TD-01/TD-02's flows to exist; makes e2e blocking again

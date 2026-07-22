@@ -36,7 +36,7 @@ The domain vocabulary is **intentionally Italian** (`incantesimi`, `patroni`, `f
 | UI primitives | Radix UI, Headless UI, Heroicons, Lucide, Framer Motion, Vaul, Sonner | —                                                        |
 | Maps          | Leaflet + custom hook layer                                           | 1.9.4                                                    |
 | Validation    | Zod                                                                   | 4.2.0                                                    |
-| Tests         | Vitest + Testing Library                                              | 27 tests, ~1.5s, 14% line coverage enforced as a ratchet |
+| Tests         | Vitest + Testing Library                                              | 48 tests, ~1.7s, 15% line coverage enforced as a ratchet |
 
 Two lockfiles are present (`package-lock.json` and `pnpm-lock.yaml`) and the README mixes `npm` and `pnpm` commands. Package manager must be settled on one.
 
@@ -107,10 +107,7 @@ Observations:
 - `proxy.ts` (Next.js 16's renamed middleware) matches everything except `api`, `_next/static`, `_next/image`, `favicon.ico` and `.png` files.
 - The `authorized` callback returns `true` if logged in, `false` otherwise, for **every** matched route.
 
-Two problems follow from this, both covered in `TECH_DEBT.md`:
-
-1. The matcher excludes `/api`, and the API route handlers perform no auth check of their own. The DELETE endpoints are therefore **unauthenticated**.
-2. Server Actions that mutate data (`createSpell`, `updateSpell`, …) never call `auth()`. Server Actions are POST endpoints reachable by any client; the proxy does not protect them.
+The matcher excludes `/api`, so the proxy cannot protect the route handlers or Server Actions. TD-01 closed that gap at the boundary instead: the four DELETE handlers call `requireApiSession()` (401 without a session) and the eight `create*` / `update*` mutations call `requireSession()` (throws `UnauthorizedError`), each with tests. What remains open is **authorisation**, not authentication: every logged-in user can still edit everything, with no per-record or per-campaign ownership. Acceptable for a single-DM tool; a prerequisite for multi-campaign.
 
 ---
 
@@ -125,7 +122,7 @@ Two problems follow from this, both covered in `TECH_DEBT.md`:
 | `pnpm format:check` | ✅ Clean — Prettier applied repo-wide (TD-05/TD-16)                                              |
 | E2E tests           | ❌ None — Playwright not installed; scheduled as TD-24, after TD-01/TD-02                        |
 | CI                  | ⚠️ `static` / `test` / `build` green; `e2e` non-blocking (`continue-on-error`) until TD-24 lands |
-| Test coverage       | 14% lines / 9% branches — thresholds set there and ratcheted upward                              |
+| Test coverage       | 15% lines / 10% branches — thresholds set there and ratcheted upward                             |
 | Git history         | Active — Phase 1 landed across PRs #1–#12 on `main`                                              |
 | `.env`              | ✅ Correctly gitignored                                                                          |
 | `.DS_Store`         | ✅ Present on disk but untracked — `.gitignore` is working                                       |

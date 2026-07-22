@@ -1,11 +1,14 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
+import requireSession from "@/app/lib/auth/requireSession";
 import { revalidatePath } from "next/cache";
 import Patrono from "../../definitions/interfaces/deities/Patrono";
 import PatronoMetaField from "../../definitions/enums/deities/PatronoMetaField";
 
 export default async function createDeity(formData: Patrono) {
+  await requireSession();
+
   const {
     nome,
     titolopatrono,

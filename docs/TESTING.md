@@ -8,13 +8,16 @@
 
 ## 1. Where we are
 
-**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 27 tests across 6 files in ~1.5s. Coverage is **14% lines / 9% branches**, enforced in CI as a ratchet — see §2.
+**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 48 tests across 9 files in ~1.7s. Coverage is **15% lines / 10% branches**, enforced in CI as a ratchet — see §2.
 
 What exists today:
 
 | Suite                                          | Tests | Notes                                                                    |
 | ---------------------------------------------- | ----- | ------------------------------------------------------------------------ |
 | `app/lib/data/getQuery.test.ts`                | 18    | Query construction — the highest-value unit tests in the project, per §3 |
+| `__test__/api/deleteEndpoints.test.ts`         | 8     | TD-01 — 401 and no-DB-call per DELETE endpoint, plus the authed path     |
+| `__test__/data/mutationGuards.test.ts`         | 8     | TD-01 — each mutation throws and never writes without a session          |
+| `__test__/auth/session-guards.test.ts`         | 5     | TD-01 — the `requireSession` / `requireApiSession` helpers directly      |
 | `__test__/utils/generatePwdHash.test.ts`       | 4     | Rewritten; the old version could never pass                              |
 | `app/lib/utils/data/sortByField/index.test.ts` | 2     | Carried over                                                             |
 | `__test__/utils/parseSerializedArray.test.ts`  | 1     | Carried over                                                             |
@@ -110,7 +113,7 @@ Run against a disposable Postgres (Testcontainers, or a `docker-compose.test.yam
 - Each `create*` / `update*` / `delete*` function: happy path, not-found, constraint violation.
 - Each `fetchFiltered*`: filtering, sorting, pagination boundaries, empty result.
 - `getXCount` agrees with `fetchFilteredX` for the same filter (this is TD-12's regression test).
-- **Auth guards**: every mutation and every route handler rejects an absent session. Write these as soon as TD-01 lands.
+- **Auth guards** ✅ done in TD-01: every DELETE handler returns 401 and every `create*`/`update*` mutation throws without a session, each with a test (`__test__/api/`, `__test__/data/mutationGuards.test.ts`, `__test__/auth/`). These run without a database — the guard rejects before any query — so they live in the unit suite, not the integration one.
 - **Validation**: every mutation rejects a malformed payload with structured field errors. Write these as soon as TD-02 lands.
 
 Each test seeds and truncates its own fixtures. No shared mutable state between tests.

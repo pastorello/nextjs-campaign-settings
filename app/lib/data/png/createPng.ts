@@ -1,10 +1,13 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
+import requireSession from "@/app/lib/auth/requireSession";
 import { revalidatePath } from "next/cache";
 import PngItem from "../../definitions/interfaces/png/PngItem";
 
 export default async function createPng(formData: PngItem) {
+  await requireSession();
+
   const {
     nome,
     descrizione,

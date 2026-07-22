@@ -2,11 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "@/app/lib/connections/prisma";
+import requireSession from "@/app/lib/auth/requireSession";
 
 import Patrono from "../../definitions/interfaces/deities/Patrono";
 import PatronoMetaField from "../../definitions/enums/deities/PatronoMetaField";
 
 export default async function updateDeity(formData: Patrono) {
+  await requireSession();
+
   await prisma.deities.update({
     where: {
       id: formData.id,

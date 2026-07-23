@@ -6,7 +6,6 @@ interface Spell {
   [SpellMetaField.livello]: number;
   [SpellMetaField.circolo]: number[];
   [SpellMetaField.classi]: number[];
-  [SpellMetaField.sottoClassi]: number[];
   [SpellMetaField.tempoDiLancio]: string;
   [SpellMetaField.gittata]: string;
   [SpellMetaField.componenti]: string;

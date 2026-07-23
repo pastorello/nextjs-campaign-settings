@@ -12,7 +12,6 @@ export async function fetchFilteredSpells(
     SpellMetaField.livello,
     SpellMetaField.circolo,
     SpellMetaField.classi,
-    SpellMetaField.sottoClassi,
     SpellMetaField.tempoDiLancio,
     SpellMetaField.gittata,
     SpellMetaField.componenti,

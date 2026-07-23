@@ -1,7 +1,7 @@
 import TipoPatrono from "../../definitions/enums/deities/TipoPatrono";
 import SelectOption from "../../definitions/types/SelectOption";
 
-const deityTypes: SelectOption[] = [
+const deityTypes: SelectOption<number>[] = [
   {
     value: TipoPatrono.Arconte,
     label: "Arconte",

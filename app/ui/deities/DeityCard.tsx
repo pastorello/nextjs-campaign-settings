@@ -21,7 +21,7 @@ const DeityCard = (props: { cardItem: Patrono }) => {
           `my-2 w-full rounded-xl bg-slate-800 text-sm text-white outline outline-offset-1`,
           `border-8 ${pageMetaFields[PatronoMetaField.colore].getDatum(
             props.cardItem[PatronoMetaField.colore],
-            "colorClass"
+            true
           )}`
         )}
       >

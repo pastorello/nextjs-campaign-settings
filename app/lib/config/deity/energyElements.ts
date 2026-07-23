@@ -1,7 +1,7 @@
 import Elemento from "../../definitions/enums/deities/Elemento";
 import SelectOption from "../../definitions/types/SelectOption";
 
-const energyElements: SelectOption[] = [
+const energyElements: SelectOption<number>[] = [
   {
     value: Elemento.Acqua,
     label: "Acqua",

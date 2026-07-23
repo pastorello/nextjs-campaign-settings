@@ -27,7 +27,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-05 | ✅ No ESLint config, no Prettier, no CI                     | ~~🟠 High~~ done     | S      | 1     |
 | TD-06 | ✅ Dead code and tutorial leftovers                         | ~~🟠 High~~ done     | S      | 1     |
 | TD-07 | ✅ `next`/`react` pinned; single lockfile                   | ~~🟠 High~~ done     | S      | 1     |
-| TD-08 | `PageMeta` is loosely typed; `any` in the query layer       | 🟠 High              | M      | 2     |
+| TD-08 | ◑ `PageMeta` typed (step 1); query layer still `any`        | 🟠 High              | M      | 2     |
 | TD-09 | Four near-identical Card/List/Library/Form quartets         | 🟠 High              | L      | 2     |
 | TD-10 | Notification system is a `console.log` stub                 | 🟠 High              | M      | 2     |
 | TD-11 | Schema has no timestamps, indexes, or relations             | 🟡 Medium            | M      | 2     |
@@ -355,7 +355,26 @@ The README mixes `npm` and `pnpm`, does not mention the Vitest/Playwright comman
 
 ## Phase 2 — Quality and maintainability
 
-### TD-08 🟠 Loose typing in the metadata and query layer
+### TD-08 ◑ Loose typing in the metadata and query layer — **step 1 DONE (2026-07-22)**
+
+**Done: `PageMeta` is a discriminated union on `fieldType`** (`app/lib/definitions/interfaces/meta/PageMeta.ts`). `defaultValue` and `validator` are now correlated with it, so `fieldType: FieldType.array` with `validator: z.string()` no longer compiles. Both `any`s in the interface are gone.
+
+Turning it on surfaced four genuine defects, none of which any test would have caught:
+
+1. **Eight deity fields declared `fieldType: integer` with `defaultValue: ""`.** With TD-02's validation now live, `z.coerce.number()` turned that empty string into `0`, so every new deity silently stored 0 for its type, rank, tarot card, celestial body, element, class, tradition and residence. They now default to their own first option, the pattern `colore` already used in the same file. **This changes what a new deity form starts with** — the intended behaviour, but a behaviour change.
+2. **Two call sites passed the wrong type to `getDatum`'s second parameter.** Both implementations take a boolean flag; the callers passed `"colorClass"` and `{ useShortLabel: true }`. They worked only because both are truthy — `{ useShortLabel: false }` would have been truthy too and silently done the opposite.
+3. **`pageMetaFields.value` was dead tutorial scaffolding** — `fieldType: string` with a numeric coercion validator and a _"Please enter an amount greater than $0"_ message. Unreferenced; deleted.
+4. **`SelectOption.value` was always `string | number`**, so an integer field could not derive its default from its own options without widening. It is now generic (`SelectOption<number>`), with the old annotation still valid by default.
+
+**Still to do (steps 2–4):** `whereClause: any` and `orderBy: any[]` in `getQuery`, `Record<string, any>` search params in `validateParams`, and flipping `no-explicit-any` to an error.
+
+**Correcting an estimate I gave earlier:** I predicted the union would dissolve roughly 170 of the 282 lint warnings. It removed **8** (282 → 274). The `no-unsafe-*` family does not live in the metadata declarations — it is in `getQuery`, `validateParams`, `getItemsCount` and, most of all, 48 warnings across the four domain forms, which come from the loosely-typed page-manager hooks and are as much **TD-09**'s to fix as this item's. The big reduction is real but it belongs to steps 2–3 plus the hook collapse, not to step 1.
+
+The original description follows.
+
+---
+
+### TD-08 (original) 🟠 Loose typing in the metadata and query layer
 
 **Where:** `app/lib/definitions/interfaces/meta/PageMeta.ts`, `app/lib/data/getQuery.ts`, `validateParams.ts`
 

@@ -1,7 +1,7 @@
 import GradoPatrono from "../../definitions/enums/deities/GradoPatrono";
 import SelectOption from "../../definitions/types/SelectOption";
 
-const deityLevels: SelectOption[] = [
+const deityLevels: SelectOption<number>[] = [
   {
     value: GradoPatrono.DemoneOmbra,
     label: "Demone Ombra",

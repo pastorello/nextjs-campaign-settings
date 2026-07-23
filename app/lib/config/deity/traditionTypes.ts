@@ -1,7 +1,7 @@
 import TipoTradizione from "../../definitions/enums/deities/TipoTradizione";
 import SelectOption from "../../definitions/types/SelectOption";
 
-const traditionTypes: SelectOption[] = [
+const traditionTypes: SelectOption<number>[] = [
   {
     value: TipoTradizione.Arcana,
     label: "Arcana",

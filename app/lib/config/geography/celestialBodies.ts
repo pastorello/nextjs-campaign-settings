@@ -1,7 +1,7 @@
 import Astro from "../../definitions/enums/geography/Astro";
 import SelectOption from "../../definitions/types/SelectOption";
 
-const celestialBodies: SelectOption[] = [
+const celestialBodies: SelectOption<number>[] = [
   { value: Astro.Acquario, label: "Acquario" },
   { value: Astro.Ariete, label: "Ariete" },
   { value: Astro.Bilancia, label: "Bilancia" },

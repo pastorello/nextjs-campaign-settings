@@ -26,7 +26,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-04 | ✅ TypeScript errors on `tsc --noEmit`                      | ~~🔴 Critical~~ done | S      | 1     |
 | TD-05 | ✅ No ESLint config, no Prettier, no CI                     | ~~🟠 High~~ done     | S      | 1     |
 | TD-06 | ✅ Dead code and tutorial leftovers                         | ~~🟠 High~~ done     | S      | 1     |
-| TD-07 | `next` and `react` pinned to `latest`; two lockfiles        | 🟠 High              | S      | 1     |
+| TD-07 | ✅ `next`/`react` pinned; single lockfile                   | ~~🟠 High~~ done     | S      | 1     |
 | TD-08 | `PageMeta` is loosely typed; `any` in the query layer       | 🟠 High              | M      | 2     |
 | TD-09 | Four near-identical Card/List/Library/Form quartets         | 🟠 High              | L      | 2     |
 | TD-10 | Notification system is a `console.log` stub                 | 🟠 High              | M      | 2     |
@@ -292,7 +292,22 @@ The project was scaffolded from the Next.js Learn dashboard tutorial and the sca
 
 ---
 
-### TD-07 🟠 Unpinned framework versions and two lockfiles
+### TD-07 ✅ Unpinned framework versions and two lockfiles — **DONE (2026-07-22)**
+
+**Outcome:** builds are reproducible and there is exactly one package manager.
+
+- `next`, `react` and `react-dom` are pinned to the exact versions that were already resolved — **16.2.11 / 19.2.8 / 19.2.8**. A fresh clone can no longer pull a new major and fail in front of a reviewer.
+- `package-lock.json` is deleted; pnpm is the only manager. `packageManager: "pnpm@10.23.0"` and `engines: { node: ">=22" }` are declared.
+- **CI's pnpm version is no longer hardcoded.** It was pinned to `9` while local development ran `10.23.0` — the two could drift silently. `pnpm/action-setup` now reads the `packageManager` field, so CI and a developer machine install with provably the same tool. (No breakage had occurred: pnpm 10 writes `lockfileVersion: '9.0'`, which pnpm 9 still reads.)
+- The README is pnpm-only and gains a Requirements section. Its `AUTH_SECRET=your-sercret-key` typo is fixed while in those lines; the full portfolio rewrite stays TD-17.
+
+**Verified:** `node_modules` deleted, `pnpm install --frozen-lockfile` from scratch, then typecheck / lint / format / 111 tests / build all green.
+
+The original description follows.
+
+---
+
+### TD-07 (original) 🟠 Unpinned framework versions and two lockfiles
 
 `package.json` has `"next": "latest"`, `"react": "latest"`, `"react-dom": "latest"`. Builds are not reproducible: a fresh `npm install` in six months may pull a major version and break the app. For a portfolio project this is the kind of thing that makes a clone-and-run fail in front of a reviewer.
 
@@ -707,7 +722,7 @@ The gap is that nothing verifies the database is actually **reachable**, at the 
 4. ✅ TD-05  ESLint + Prettier + CI      → locks in 1–3 permanently
 5. ✅ TD-01  auth guards (+ tests)       → done; requireApiSession + requireSession
 6. ✅ TD-02  Zod validation (+ tests)   → buildEntitySchema + parseIdParam
-7.    TD-07  pin versions, one lockfile
+7. ✅ TD-07  pin versions, one lockfile
 8.    TD-24  Playwright + 8 E2E specs    → needs TD-01/TD-02's flows to exist; makes e2e blocking again
 9.    TD-17  portfolio README
 --- Phase 1 complete: the project is correct, safe and verified ---

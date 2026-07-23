@@ -12,7 +12,6 @@ concurrency:
 
 env:
   NODE_VERSION: "22"
-  PNPM_VERSION: "9"
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -29,9 +28,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No version pin here on purpose: action-setup reads package.json's
+      # `packageManager` field, so CI and a developer machine cannot drift.
       - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - uses: actions/setup-node@v4
         with:
@@ -81,9 +80,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No version pin here on purpose: action-setup reads package.json's
+      # `packageManager` field, so CI and a developer machine cannot drift.
       - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - uses: actions/setup-node@v4
         with:
@@ -123,9 +122,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No version pin here on purpose: action-setup reads package.json's
+      # `packageManager` field, so CI and a developer machine cannot drift.
       - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - uses: actions/setup-node@v4
         with:
@@ -183,9 +182,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No version pin here on purpose: action-setup reads package.json's
+      # `packageManager` field, so CI and a developer machine cannot drift.
       - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - uses: actions/setup-node@v4
         with:

@@ -38,7 +38,7 @@ The domain vocabulary is **intentionally Italian** (`incantesimi`, `patroni`, `f
 | Validation    | Zod                                                                   | 4.2.0                                                   |
 | Tests         | Vitest + Testing Library                                              | 111 tests, ~2s, 18% line coverage enforced as a ratchet |
 
-Two lockfiles are present (`package-lock.json` and `pnpm-lock.yaml`) and the README mixes `npm` and `pnpm` commands. Package manager must be settled on one.
+pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageManager` and `engines` are declared, and CI derives its pnpm version from that field rather than pinning its own.
 
 ---
 

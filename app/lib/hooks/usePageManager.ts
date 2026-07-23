@@ -4,7 +4,8 @@ import MetaConfigKey from "../definitions/types/MetaConfigKey";
 import MetaValue from "../definitions/types/MetaValue";
 
 const usePageManager = (
-  fieldsController: Record<MetaConfigKey, ValueController>
+  // Partial: each domain supplies only its own fields, not all of them.
+  fieldsController: Partial<Record<MetaConfigKey, ValueController>>
 ) => {
   const setField = (field: MetaConfigKey, value: MetaValue) => {
     const fieldSetter = fieldsController[field]?.setter;

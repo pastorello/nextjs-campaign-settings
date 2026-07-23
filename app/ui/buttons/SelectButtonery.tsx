@@ -8,7 +8,7 @@ import MetaConfigKey from "@/app/lib/definitions/types/MetaConfigKey";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import ButtonSize from "./BaseButton/ButtonSize";
 import BaseButton from "./BaseButton";
-import pageMetaFields from "@/app/lib/config/pageMetaFields";
+import pageMetaFields, { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import useFilterController from "@/app/lib/hooks/useFilterController";
 import isValidDataArray from "@/app/lib/utils/validators/isValidDataArray";
 
@@ -26,7 +26,7 @@ const getOptionsList = (
   fieldKey: MetaConfigKey,
   filterOptions?: (number | string)[]
 ) => {
-  const optionsList = pageMetaFields[fieldKey].options ?? [];
+  const optionsList = fieldMeta[fieldKey].options ?? [];
 
   return isValidDataArray(filterOptions)
     ? optionsList.filter((option) => {

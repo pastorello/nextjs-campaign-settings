@@ -1,66 +1,90 @@
 import PageType from "@/app/lib/definitions/types/PageType";
-import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
+import MetaConfigKey from "@/app/lib/definitions/types/MetaConfigKey";
 
-import pageMetaFields from "@/app/lib/config/pageMetaFields";
+import SpellMetaField from "@/app/lib/definitions/enums/spells/SpellMetaField";
+import PngMetaField from "@/app/lib/definitions/enums/png/PngMetaField";
+import PatronoMetaField from "@/app/lib/definitions/enums/deities/PatronoMetaField";
+import MagicItemMetaField from "@/app/lib/definitions/enums/magicitem/MagicItemMetaField";
 
-const pagesConfig: Record<PageType, PageMeta[]> = {
+/**
+ * Which fields make up each page, in order.
+ *
+ * These are **keys into `pageMetaFields`**, not `PageMeta` values: a key is
+ * what every other layer needs (it is also the payload key and the DB column),
+ * and `MetaConfigKey` is the union of the real keys, so a wrong one is a
+ * compile error.
+ *
+ * That matters here more than most places. This file previously held values and
+ * reached them by camelCase property access — `pageMetaFields.tempoDiLancio`,
+ * where the key is `tempodilancio` — so nine entries were `undefined` at
+ * runtime and nothing said a word. The enum members below carry the lowercase
+ * values while reading as the camelCase names, which is exactly the mismatch
+ * that made the old form so easy to get wrong.
+ *
+ * `id`, `nome` and `descrizione` are declared directly in `pageMetaFields`
+ * rather than in a domain meta, so they are plain string keys. `allineamento`,
+ * `dominioAllineamento` and `luogo` are declared in `pngMeta` and shared with
+ * deities, which is why the deity list reaches for `PngMetaField`.
+ */
+const pagesConfig: Record<PageType, MetaConfigKey[]> = {
   [PageType.Spell]: [
-    pageMetaFields.id,
-    pageMetaFields.descrizione,
-    pageMetaFields.livello,
-    pageMetaFields.circolo,
-    pageMetaFields.classi,
-    pageMetaFields.sottoClassi,
-    pageMetaFields.tempoDiLancio,
-    pageMetaFields.gittata,
-    pageMetaFields.componenti,
-    pageMetaFields.durata,
-    pageMetaFields.tiroSalvezza,
-    pageMetaFields.rituale,
-    pageMetaFields.intensificato,
-    pageMetaFields.concentrazione,
+    "id",
+    "nome",
+    "descrizione",
+    SpellMetaField.livello,
+    SpellMetaField.circolo,
+    SpellMetaField.classi,
+    SpellMetaField.sottoClassi,
+    SpellMetaField.tempoDiLancio,
+    SpellMetaField.gittata,
+    SpellMetaField.componenti,
+    SpellMetaField.durata,
+    SpellMetaField.tiroSalvezza,
+    SpellMetaField.rituale,
+    SpellMetaField.intensificato,
+    SpellMetaField.concentrazione,
   ],
   [PageType.MagicItem]: [
-    pageMetaFields.id,
-    pageMetaFields.descrizione,
-    pageMetaFields.nome,
-    pageMetaFields.rarita,
-    pageMetaFields.tipo,
-    pageMetaFields.sintonia,
+    "id",
+    "descrizione",
+    "nome",
+    MagicItemMetaField.rarita,
+    MagicItemMetaField.tipo,
+    MagicItemMetaField.sintonia,
   ],
   [PageType.Png]: [
-    pageMetaFields.id,
-    pageMetaFields.descrizione,
-    pageMetaFields.nome,
-    pageMetaFields.titolo,
-    pageMetaFields.allineamento,
-    pageMetaFields.dominioAllineamento,
-    pageMetaFields.mansione,
-    pageMetaFields.luogo,
-    pageMetaFields.fazione,
-    pageMetaFields.aspetto,
-    pageMetaFields.personalita,
-    pageMetaFields.motivazioni,
-    pageMetaFields.segreti,
+    "id",
+    "descrizione",
+    "nome",
+    PngMetaField.titolo,
+    PngMetaField.allineamento,
+    PngMetaField.dominioAllineamento,
+    PngMetaField.mansione,
+    PngMetaField.luogo,
+    PngMetaField.fazione,
+    PngMetaField.aspetto,
+    PngMetaField.personalita,
+    PngMetaField.motivazioni,
+    PngMetaField.segreti,
   ],
   [PageType.Deity]: [
-    pageMetaFields.id,
-    pageMetaFields.nome,
-    pageMetaFields.titoloPatrono,
-    pageMetaFields.tipoPatrono,
-    pageMetaFields.gradoPatrono,
-    pageMetaFields.card,
-    pageMetaFields.astri,
-    pageMetaFields.elemento,
-    pageMetaFields.classe,
-    pageMetaFields.festivita,
-    pageMetaFields.colore,
-    pageMetaFields.tradizione,
-    pageMetaFields.allineamento,
-    pageMetaFields.dominioAllineamento,
-    pageMetaFields.residenza,
-    pageMetaFields.luogo,
-    pageMetaFields.significato,
+    "id",
+    "nome",
+    PatronoMetaField.titoloPatrono,
+    PatronoMetaField.tipoPatrono,
+    PatronoMetaField.gradoPatrono,
+    PatronoMetaField.card,
+    PatronoMetaField.astri,
+    PatronoMetaField.elemento,
+    PatronoMetaField.classe,
+    PatronoMetaField.festivita,
+    PatronoMetaField.colore,
+    PatronoMetaField.tradizione,
+    PngMetaField.allineamento,
+    PngMetaField.dominioAllineamento,
+    PatronoMetaField.residenza,
+    PngMetaField.luogo,
+    PatronoMetaField.significato,
   ],
 };
 

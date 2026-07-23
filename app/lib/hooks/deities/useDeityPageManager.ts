@@ -69,7 +69,7 @@ const useDeityPageManager = ({ pageItem }: PageManagerProps): ListItem => {
     getDefaultValue(PatronoMetaField.significato)
   );
 
-  const itemFields: Record<MetaConfigKey, ValueController> = {
+  const itemFields: Partial<Record<MetaConfigKey, ValueController>> = {
     [PatronoMetaField.nome]: {
       setter: setnome,
       value: nome,
@@ -117,7 +117,7 @@ const useDeityPageManager = ({ pageItem }: PageManagerProps): ListItem => {
 
   const editedFields = Object.keys(itemFields).reduce((acc, key) => {
     const typedKey = key as PatronoMetaField;
-    if (itemFields[typedKey].value !== getDefaultValue(typedKey)) {
+    if (itemFields[typedKey]?.value !== getDefaultValue(typedKey)) {
       acc.push(typedKey);
     }
     return acc;

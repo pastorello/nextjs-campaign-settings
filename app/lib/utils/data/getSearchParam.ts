@@ -1,5 +1,5 @@
 import { useSearchParams } from "next/navigation";
-import pageMetaFields from "../../config/pageMetaFields";
+import pageMetaFields, { fieldMeta } from "../../config/pageMetaFields";
 import parseSerializedArray from "./parseSerializedArray";
 import FieldType from "../../definitions/types/FieldType";
 import isValidString from "../validators/isValidString";
@@ -23,11 +23,11 @@ const parser: Record<
 };
 
 const getSearchParam = (aMeta: string, aField: string | null) => {
-  if (!pageMetaFields[aMeta] || !isValidString(aField)) {
+  if (!fieldMeta[aMeta] || !isValidString(aField)) {
     return null;
   }
 
-  return parser[pageMetaFields[aMeta].fieldType](aField);
+  return parser[fieldMeta[aMeta].fieldType](aField);
 };
 
 export default getSearchParam;

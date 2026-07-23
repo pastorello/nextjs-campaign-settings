@@ -11,7 +11,7 @@ import fazioni from "./fazioni";
 import getDataLabel from "../../utils/data/getDataLabel";
 import renderRichText from "../../utils/data/renderRichText";
 
-const pngMeta: Record<string, PageMeta> = {
+const pngMeta = {
   [PngMetaField.titolo]: {
     label: "Titolo",
     defaultValue: "",
@@ -112,6 +112,6 @@ const pngMeta: Record<string, PageMeta> = {
     validator: z.string().optional(),
     getDatum: (datum: string) => renderRichText(datum),
   },
-};
+} satisfies Record<string, PageMeta>;
 
 export default pngMeta;

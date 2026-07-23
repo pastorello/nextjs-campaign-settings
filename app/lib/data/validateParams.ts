@@ -2,7 +2,7 @@ import { z, ZodRawShape } from "zod";
 import MetaConfigKey from "../definitions/types/MetaConfigKey";
 import FieldType from "../definitions/types/FieldType";
 import isKeyOfItem from "../utils/validators/isKeyOfItem";
-import pageMetaFields from "../config/pageMetaFields";
+import pageMetaFields, { fieldMeta } from "../config/pageMetaFields";
 
 const zodConfig: Record<FieldType, any> = {
   [FieldType.integer]: z.coerce
@@ -53,7 +53,7 @@ const getParamsSchema = (aQuery: Record<string, any>): ZodRawShape => {
 
   Object.keys(aQuery).forEach((item: string) => {
     if (isKeyOfItem(item, pageMetaFields)) {
-      paramsSchema[item] = zodConfig[pageMetaFields[item].fieldType];
+      paramsSchema[item] = zodConfig[fieldMeta[item].fieldType];
     }
   });
 

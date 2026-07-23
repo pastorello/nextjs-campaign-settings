@@ -56,7 +56,7 @@ const useSpellPageManager = ({ pageItem }: PageManagerProps): ListItem => {
     getDefaultValue(SpellMetaField.intensificato)
   );
 
-  const itemFields: Record<MetaConfigKey, ValueController> = {
+  const itemFields: Partial<Record<MetaConfigKey, ValueController>> = {
     [SpellMetaField.sottoClassi]: { setter: setCircolo, value: circolo },
     [SpellMetaField.circolo]: { setter: setCircolo, value: circolo },
     [SpellMetaField.classi]: { setter: setClassi, value: classi },
@@ -88,7 +88,7 @@ const useSpellPageManager = ({ pageItem }: PageManagerProps): ListItem => {
 
   const editedFields = Object.keys(itemFields).reduce((acc, key) => {
     const typedKey = key as SpellMetaField;
-    if (itemFields[typedKey].value !== getDefaultValue(typedKey)) {
+    if (itemFields[typedKey]?.value !== getDefaultValue(typedKey)) {
       acc.push(typedKey);
     }
     return acc;

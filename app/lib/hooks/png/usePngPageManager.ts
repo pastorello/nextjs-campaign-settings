@@ -54,7 +54,7 @@ const usePngPageManager = ({ pageItem }: PageManagerProps): ListItem => {
   const [segreti, setsegreti] = useState(getDefaultValue(PngMetaField.segreti));
   const [titolo, settitolo] = useState(getDefaultValue(PngMetaField.titolo));
 
-  const itemFields: Record<MetaConfigKey, ValueController> = {
+  const itemFields: Partial<Record<MetaConfigKey, ValueController>> = {
     [MagicItemMetaField.nome]: { setter: setNome, value: nome },
     [MagicItemMetaField.descrizione]: {
       setter: setDescrizione,
@@ -86,7 +86,7 @@ const usePngPageManager = ({ pageItem }: PageManagerProps): ListItem => {
 
   const editedFields = Object.keys(itemFields).reduce((acc, key) => {
     const typedKey = key as PngMetaField;
-    if (itemFields[typedKey].value !== getDefaultValue(typedKey)) {
+    if (itemFields[typedKey]?.value !== getDefaultValue(typedKey)) {
       acc.push(typedKey);
     }
     return acc;

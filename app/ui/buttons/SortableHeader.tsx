@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import SortOrder from "@/app/lib/definitions/types/SortOrder";
 import SortButton from "../buttons/SortButton";
 import Select from "../forms/inputs/Select";
-import pageMetaFields from "@/app/lib/config/pageMetaFields";
+import pageMetaFields, { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import isValidDataArray from "@/app/lib/utils/validators/isValidDataArray";
 import getSearchParam from "@/app/lib/utils/data/getSearchParam";
 import SelectValueType from "@/app/lib/definitions/types/SelectValueType";
@@ -81,7 +81,7 @@ const SortableHeader = ({
   };
 
   if (isFiltrable === true) {
-    const filterConfig = pageMetaFields[fieldKey];
+    const filterConfig = fieldMeta[fieldKey];
     const filterOptions =
       filterConfig && isValidDataArray(filterConfig.options)
         ? filterConfig.options

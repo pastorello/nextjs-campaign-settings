@@ -15,7 +15,7 @@ import subclasses from "../spells/subclasses";
 import traditionTypes from "./traditionTypes";
 import celestialPlanes from "../geography/celestialPlanes";
 
-const deitiesMeta: Record<string, PageMeta> = {
+const deitiesMeta = {
   [PatronoMetaField.colore]: {
     metaField: "colore",
     label: "Colore magia",
@@ -145,6 +145,6 @@ const deitiesMeta: Record<string, PageMeta> = {
     validator: z.string(),
     getDatum: (datum: string) => datum,
   },
-};
+} satisfies Record<string, PageMeta>;
 
 export default deitiesMeta;

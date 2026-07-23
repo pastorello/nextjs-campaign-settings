@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import PageType from "@/app/lib/definitions/types/PageType";
-import pageMetaFields from "@/app/lib/config/pageMetaFields";
+import { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import {
   buildCreateSchema,
   buildUpdateSchema,
@@ -21,8 +21,8 @@ const types = [
 // TD-02 is the first time any validator actually runs.
 function defaultPayload(pageType: PageType): Record<string, unknown> {
   const payload: Record<string, unknown> = {};
-  for (const key of entityFieldKeys[pageType]) {
-    payload[key] = pageMetaFields[key].defaultValue;
+  for (const key of entityFieldKeys(pageType)) {
+    payload[key] = fieldMeta[key].defaultValue;
   }
   return payload;
 }
@@ -30,9 +30,9 @@ function defaultPayload(pageType: PageType): Record<string, unknown> {
 describe("entityFieldKeys", () => {
   describe.each(types)("%s", (pageType) => {
     it("every key resolves to a declared validator", () => {
-      for (const key of entityFieldKeys[pageType]) {
-        expect(pageMetaFields[key], `missing meta for "${key}"`).toBeDefined();
-        expect(pageMetaFields[key].validator).toBeDefined();
+      for (const key of entityFieldKeys(pageType)) {
+        expect(fieldMeta[key], `missing meta for "${key}"`).toBeDefined();
+        expect(fieldMeta[key].validator).toBeDefined();
       }
     });
   });

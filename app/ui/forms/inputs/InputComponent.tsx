@@ -1,7 +1,7 @@
 import PrimiviteValue from "@/app/lib/definitions/types/PrimitiveValue";
 import ControlType from "@/app/lib/definitions/types/ControlType";
 import isValidString from "@/app/lib/utils/validators/isValidString";
-import pageMetaFields from "@/app/lib/config/pageMetaFields";
+import pageMetaFields, { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import FormField from "@/app/lib/definitions/interfaces/forms/FormField";
 
 import controlComponents from "./controlComponents";
@@ -39,8 +39,8 @@ const InputComponent = ({
       pageMetaFields[fieldName].controlType === ControlType.Text ||
       pageMetaFields[fieldName].controlType === ControlType.Textarea
     ) {
-      result.placeholder = isValidString(pageMetaFields[fieldName].placeholder)
-        ? pageMetaFields[fieldName].placeholder
+      result.placeholder = isValidString(fieldMeta[fieldName].placeholder)
+        ? fieldMeta[fieldName].placeholder
         : "";
     }
     return result;

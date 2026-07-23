@@ -3,12 +3,22 @@
 import { revalidatePath } from "next/cache";
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
+import PageType from "@/app/lib/definitions/types/PageType";
+import MutationResult from "@/app/lib/definitions/types/MutationResult";
+import { buildUpdateSchema } from "../validation/buildEntitySchema";
 
 import Patrono from "../../definitions/interfaces/deities/Patrono";
 import PatronoMetaField from "../../definitions/enums/deities/PatronoMetaField";
 
-export default async function updateDeity(formData: Patrono) {
+export default async function updateDeity(
+  formData: Patrono
+): Promise<MutationResult> {
   await requireSession();
+
+  const parsed = buildUpdateSchema(PageType.Deity).safeParse(formData);
+  if (!parsed.success) {
+    return { ok: false, errors: parsed.error.flatten().fieldErrors };
+  }
 
   await prisma.deities.update({
     where: {
@@ -23,4 +33,5 @@ export default async function updateDeity(formData: Patrono) {
   });
 
   revalidatePath("/deities");
+  return { ok: true };
 }

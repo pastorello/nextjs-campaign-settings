@@ -63,5 +63,18 @@ describe("DELETE /api/:domain/:id auth guard", () => {
       expect(res.status).toBe(200);
       expect(del).toHaveBeenCalledWith(1);
     });
+
+    // TD-02 boundary 2: parseInt("abc") is NaN, which used to reach Prisma.
+    it.each(["abc", "", "1.5", "-1", "0", "9e99"])(
+      "returns 400 for a malformed id (%j) and never queries",
+      async (id) => {
+        vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+
+        const res = await handler(req, { params: Promise.resolve({ id }) });
+
+        expect(res.status).toBe(400);
+        expect(del).not.toHaveBeenCalled();
+      }
+    );
   });
 });

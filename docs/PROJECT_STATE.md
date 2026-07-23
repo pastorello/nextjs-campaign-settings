@@ -24,19 +24,19 @@ The domain vocabulary is **intentionally Italian** (`incantesimi`, `patroni`, `f
 
 ## 2. Stack
 
-| Layer         | Technology                                                            | Version                                                  |
-| ------------- | --------------------------------------------------------------------- | -------------------------------------------------------- |
-| Framework     | Next.js (App Router, RSC, Server Actions)                             | `latest` ⚠️ unpinned                                     |
-| Runtime       | React                                                                 | `latest` ⚠️ unpinned                                     |
-| Language      | TypeScript (`strict: true`)                                           | 5.9.3                                                    |
-| Database      | PostgreSQL via Docker Compose                                         | 5432                                                     |
-| ORM           | Prisma with `@prisma/adapter-pg` driver adapter                       | 7.1.0                                                    |
-| Auth          | NextAuth v5 (beta) — Credentials provider + bcrypt                    | 5.0.0-beta.30                                            |
-| Styling       | Tailwind CSS v4 + `@tailwindcss/forms`                                | 4.1.18                                                   |
-| UI primitives | Radix UI, Headless UI, Heroicons, Lucide, Framer Motion, Vaul, Sonner | —                                                        |
-| Maps          | Leaflet + custom hook layer                                           | 1.9.4                                                    |
-| Validation    | Zod                                                                   | 4.2.0                                                    |
-| Tests         | Vitest + Testing Library                                              | 48 tests, ~1.7s, 15% line coverage enforced as a ratchet |
+| Layer         | Technology                                                            | Version                                                 |
+| ------------- | --------------------------------------------------------------------- | ------------------------------------------------------- |
+| Framework     | Next.js (App Router, RSC, Server Actions)                             | `latest` ⚠️ unpinned                                    |
+| Runtime       | React                                                                 | `latest` ⚠️ unpinned                                    |
+| Language      | TypeScript (`strict: true`)                                           | 5.9.3                                                   |
+| Database      | PostgreSQL via Docker Compose                                         | 5432                                                    |
+| ORM           | Prisma with `@prisma/adapter-pg` driver adapter                       | 7.1.0                                                   |
+| Auth          | NextAuth v5 (beta) — Credentials provider + bcrypt                    | 5.0.0-beta.30                                           |
+| Styling       | Tailwind CSS v4 + `@tailwindcss/forms`                                | 4.1.18                                                  |
+| UI primitives | Radix UI, Headless UI, Heroicons, Lucide, Framer Motion, Vaul, Sonner | —                                                       |
+| Maps          | Leaflet + custom hook layer                                           | 1.9.4                                                   |
+| Validation    | Zod                                                                   | 4.2.0                                                   |
+| Tests         | Vitest + Testing Library                                              | 111 tests, ~2s, 18% line coverage enforced as a ratchet |
 
 Two lockfiles are present (`package-lock.json` and `pnpm-lock.yaml`) and the README mixes `npm` and `pnpm` commands. Package manager must be settled on one.
 
@@ -117,12 +117,12 @@ The matcher excludes `/api`, so the proxy cannot protect the route handlers or S
 | ------------------- | ------------------------------------------------------------------------------------------------ |
 | `pnpm typecheck`    | ✅ **0 errors** (19 before TD-06; `next typegen && tsc --noEmit`)                                |
 | `pnpm build`        | ✅ **Passes** on Turbopack — same bundler as `dev` (TD-18)                                       |
-| `pnpm test`         | ✅ **27 passed** in ~1.5s (Vitest)                                                               |
+| `pnpm test`         | ✅ **111 passed** in ~2s (Vitest)                                                                |
 | `pnpm lint`         | ✅ **0 errors**, 282 warnings — backlog tracked as TD-22                                         |
 | `pnpm format:check` | ✅ Clean — Prettier applied repo-wide (TD-05/TD-16)                                              |
 | E2E tests           | ❌ None — Playwright not installed; scheduled as TD-24, after TD-01/TD-02                        |
 | CI                  | ⚠️ `static` / `test` / `build` green; `e2e` non-blocking (`continue-on-error`) until TD-24 lands |
-| Test coverage       | 15% lines / 10% branches — thresholds set there and ratcheted upward                             |
+| Test coverage       | 18% lines / 11% branches — thresholds set there and ratcheted upward                             |
 | Git history         | Active — Phase 1 landed across PRs #1–#12 on `main`                                              |
 | `.env`              | ✅ Correctly gitignored                                                                          |
 | `.DS_Store`         | ✅ Present on disk but untracked — `.gitignore` is working                                       |

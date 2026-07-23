@@ -6,9 +6,19 @@ import requireSession from "@/app/lib/auth/requireSession";
 
 import Spell from "../../definitions/interfaces/spells/Spell";
 import SpellMetaField from "../../definitions/enums/spells/SpellMetaField";
+import PageType from "@/app/lib/definitions/types/PageType";
+import MutationResult from "@/app/lib/definitions/types/MutationResult";
+import { buildUpdateSchema } from "../validation/buildEntitySchema";
 
-export default async function updateSpell(formData: Spell) {
+export default async function updateSpell(
+  formData: Spell
+): Promise<MutationResult> {
   await requireSession();
+
+  const parsed = buildUpdateSchema(PageType.Spell).safeParse(formData);
+  if (!parsed.success) {
+    return { ok: false, errors: parsed.error.flatten().fieldErrors };
+  }
 
   await prisma.spells.update({
     where: {
@@ -23,4 +33,5 @@ export default async function updateSpell(formData: Spell) {
   });
 
   revalidatePath("/spells");
+  return { ok: true };
 }

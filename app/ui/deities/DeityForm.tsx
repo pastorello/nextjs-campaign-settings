@@ -1,6 +1,8 @@
 "use client";
 
 import Form from "next/form";
+import { useState } from "react";
+import FormErrorSummary from "@/app/ui/components/FormErrorSummary";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import { Fieldset } from "@headlessui/react";
@@ -38,6 +40,10 @@ export default function DeityForm({
   const { page, setField, getField, editedFields } =
     useDeityPageManager(pageManagerSettings);
 
+  const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
+    {}
+  );
+
   const FormComponent = (aField: PatronoMetaField) => (
     <InputComponent
       fieldName={aField}
@@ -47,8 +53,10 @@ export default function DeityForm({
   );
 
   const onSubmit = async () => {
+    let result;
+
     if (isEditMode) {
-      await updateDeity(
+      result = await updateDeity(
         editedFields.reduce(
           (acc: Patrono, item: PatronoMetaField) => ({
             ...acc,
@@ -58,8 +66,14 @@ export default function DeityForm({
         )
       );
     } else {
-      await createDeity(page);
+      result = await createDeity(page);
     }
+    if (!result.ok) {
+      setErrors(result.errors);
+      return;
+    }
+
+    setErrors({});
     if (isValidFunction(onSaveFinished)) {
       onSaveFinished(page);
     }
@@ -71,6 +85,7 @@ export default function DeityForm({
         {isEditMode ? "Modifica" : "Crea nuova"} Divinità
       </h1>
       <Form action={onSubmit} className="space-y-6">
+        <FormErrorSummary errors={errors} />
         <Fieldset className="flex w-full flex-wrap">
           <div className="flex w-full flex-wrap">
             <div className="box-border w-full p-2 lg:w-[30%]">

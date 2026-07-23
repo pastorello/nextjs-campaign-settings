@@ -79,11 +79,18 @@ app/lib/config/pagesConfig.ts           Record<PageType, PageMeta[]>
 | Filtering              | `app/lib/hooks/useFilterController.ts`                    | `fieldType`, `options`                                           |
 | Query building         | `app/lib/data/getQuery.ts`                                | `fieldType` → `hasSome` for arrays, equality otherwise           |
 
-### [GAP] The `validator` is declared but never executed
+### The `validator` is executed (TD-02)
 
-Every `PageMeta` carries a Zod schema. Nothing calls it. Grep confirms `validator` is never read anywhere in the codebase, and `safeParse`/`parse` appear only in `validateParams.ts` (search params) and in `JSON.parse` calls.
+Every `PageMeta` carries a Zod schema, and since TD-02 those schemas actually run. `app/lib/data/validation/buildEntitySchema.ts` composes them per entity:
 
-The consequence: `createSpell`, `updateSpell`, `createPng`, `createDeity`, `createMagicItem` and their update counterparts pass client-supplied data straight into `prisma.x.create({ data })` with no validation. The infrastructure to fix this already exists — it just needs to be wired up. See TD-02.
+- `buildCreateSchema(pageType)` — the full payload, every declared field required.
+- `buildUpdateSchema(pageType)` — the same fields made optional, plus a required positive `id`, because an update only carries the fields the user edited.
+
+Each `create*` / `update*` mutation `safeParse`s first and returns a `MutationResult` — `{ ok: true }`, or `{ ok: false, errors }` carrying Zod's field-keyed map, which the domain forms render through `FormErrorSummary`. Nothing reaches Prisma on failure. Route `:id` segments go through `parseIdParam`, which returns 400 rather than letting `parseInt("abc")` reach a query as `NaN`.
+
+**Note for anyone extending this:** the schema is keyed by each field's _real_ name — the lowercase key shared by the metadata registry, the payload and the DB column. A `PageMeta.metaField` string is **not** reliable for this (several are camelCase, e.g. `"sottoClassi"` for the field `sottoclassi`), and `pagesConfig` cannot be used either: it is unimported and nine of its entries resolve to `undefined`. Both are TD-08's to fix.
+
+**Still unvalidated (TD-02b):** environment variables, `localStorage` POIs, GeoJSON files and the `as` casts on Prisma results.
 
 ### [GAP] `PageMeta` is loosely typed
 

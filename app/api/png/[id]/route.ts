@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import requireApiSession from "@/app/lib/auth/requireApiSession";
+import parseIdParam from "@/app/lib/data/validation/parseIdParam";
 import { deletePngById } from "@/app/lib/data/png/deletePngById";
 
 export async function DELETE(
@@ -10,7 +11,9 @@ export async function DELETE(
   if (unauthorized) return unauthorized;
 
   const theParams = await context.params;
-  const id = parseInt(theParams.id);
+  const id = parseIdParam(theParams.id);
+  if (id instanceof NextResponse) return id;
+
   const isDeleted = await deletePngById(id);
 
   if (isDeleted) {

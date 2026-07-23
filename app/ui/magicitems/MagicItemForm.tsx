@@ -1,6 +1,8 @@
 "use client";
 
 import Form from "next/form";
+import { useState } from "react";
+import FormErrorSummary from "@/app/ui/components/FormErrorSummary";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import { Fieldset } from "@headlessui/react";
@@ -35,6 +37,10 @@ export default function MagicItemForm({
   const { page, setField, getField, editedFields } =
     useMagicItemPageManager(pageManagerSettings);
 
+  const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
+    {}
+  );
+
   const FormComponent = (aField: MagicItemMetaField) => (
     <InputComponent
       fieldName={aField}
@@ -44,8 +50,10 @@ export default function MagicItemForm({
   );
 
   const onSubmit = async () => {
+    let result;
+
     if (isEditMode) {
-      await updateMagicItem(
+      result = await updateMagicItem(
         editedFields.reduce(
           (acc: MagicItem, item: MagicItemMetaField) => ({
             ...acc,
@@ -55,8 +63,14 @@ export default function MagicItemForm({
         )
       );
     } else {
-      await createMagicItem(page);
+      result = await createMagicItem(page);
     }
+    if (!result.ok) {
+      setErrors(result.errors);
+      return;
+    }
+
+    setErrors({});
     if (isValidFunction(onSaveFinished)) {
       onSaveFinished(page);
     }
@@ -68,6 +82,7 @@ export default function MagicItemForm({
         {isEditMode ? "Modifica" : "Crea nuovo"} oggetto magico
       </h1>
       <Form action={onSubmit} className="space-y-6">
+        <FormErrorSummary errors={errors} />
         <Fieldset className="flex w-full flex-wrap">
           <div className="flex w-full flex-wrap">
             <div className="flex w-[40%] flex-col p-2">

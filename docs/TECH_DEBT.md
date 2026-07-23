@@ -21,7 +21,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | ID    | Title                                                       | Severity             | Effort | Phase |
 | ----- | ----------------------------------------------------------- | -------------------- | ------ | ----- |
 | TD-01 | ✅ Unauthenticated delete endpoints and Server Actions      | ~~🔴 Critical~~ done | M      | 1     |
-| TD-02 | No input validation at any trust boundary                   | 🔴 Critical          | M      | 1–2   |
+| TD-02 | ✅ No input validation (Phase 1); TD-02b remains            | ~~🔴 Critical~~ done | M      | 1–2   |
 | TD-03 | ✅ Test suite does not run                                  | ~~🔴 Critical~~ done | M      | 1     |
 | TD-04 | ✅ TypeScript errors on `tsc --noEmit`                      | ~~🔴 Critical~~ done | S      | 1     |
 | TD-05 | ✅ No ESLint config, no Prettier, no CI                     | ~~🟠 High~~ done     | S      | 1     |
@@ -87,7 +87,27 @@ Compounding this, `authConfig.callbacks.authorized` gates every matched path ide
 
 ---
 
-### TD-02 🔴 No input validation at any trust boundary
+### TD-02 ✅ No input validation at any trust boundary — **Phase 1 steps DONE (2026-07-22)**
+
+**Outcome:** the `validator` every `PageMeta` has always declared is finally executed. Steps 1, 2 and 4 are done; steps 5–6 remain as **TD-02b** (env vars, `localStorage`, GeoJSON, Prisma-result casts), which the item below always scheduled for Phase 2.
+
+- `app/lib/data/validation/buildEntitySchema.ts` composes each entity's declared validators into `buildCreateSchema` (full payload) and `buildUpdateSchema` (partial, `id` required — updates only carry edited fields).
+- All eight `create*` / `update*` mutations `safeParse` first and return `MutationResult` (`app/lib/definitions/types/MutationResult.ts`): `{ ok: true }` or `{ ok: false, errors }` with Zod's field-keyed map. Nothing reaches Prisma on failure.
+- `app/lib/data/validation/parseIdParam.ts` validates route `:id` segments → **400** instead of `parseInt("abc")` becoming `NaN` in a Prisma `where`. `"1.5"`, `"-1"`, `"0"` and `""` are rejected too.
+- The four domain forms show the returned errors via `app/ui/components/FormErrorSummary.tsx` and stay open on failure, instead of closing as though the save succeeded.
+
+**Two findings worth carrying forward:**
+
+- **`pagesConfig` is dead _and_ broken.** TD-02's written fix said to compose the schema from it. It has no importers at all, and its references do not resolve: it accesses `pageMetaFields.tempoDiLancio` / `.tiroSalvezza` / `.titoloPatrono` where the actual keys are lowercase (`tempodilancio`, …), so nine entries are `undefined` at runtime. Worse, a `PageMeta`'s `metaField` string is camelCase (`"sottoClassi"`) while its registry key, the payload key and the DB column are all lowercase (`sottoclassi`) — so keying anything by `metaField` silently mismatches. Validation therefore keys off the real field name and carries its own `entityFieldKeys` list, guarded by a test that every key resolves to a declared validator. **Rebuilding `pagesConfig` belongs to TD-08.**
+- **The validators are now enforced exactly as declared, and some are lax.** `nome` is `z.string()` with no `.min(1)`, so an empty name still passes. Tightening them is a product decision, not a wiring one — left alone deliberately.
+
+**Tests (111 total, +63):** `buildEntitySchema.test.ts` proves a payload of every field's declared `defaultValue` passes each of the four domains — the check that catches a validator that never matched the data it guards; `mutationValidation.test.ts` covers valid-writes / invalid-rejected / field-keyed-errors / partial-update per domain; `deleteEndpoints.test.ts` gained 24 malformed-`:id` cases.
+
+The original description follows.
+
+---
+
+### TD-02 (original) 🔴 No input validation at any trust boundary
 
 **Where:** `app/lib/data/*/create*.ts`, `app/lib/data/*/update*.ts`, `app/lib/config/pageMetaFields.ts`, plus the boundaries listed below
 
@@ -319,6 +339,8 @@ export default function getQuery(searchParams: Record<string, any>, …) {
 ```
 
 `whereClause: any` means a typo in a field name produces a runtime Prisma error rather than a compile error. `PageMeta` is similarly loose: `fieldType`, `validator` and `getDatum` are not correlated, so `fieldType: FieldType.array` with `validator: z.string()` type-checks.
+
+**Also in scope: `pagesConfig` is dead and broken.** Nothing imports it, and nine of its entries are `undefined` at runtime because it accesses camelCase properties (`pageMetaFields.tempoDiLancio`) where the keys are lowercase (`tempodilancio`). Compounding it, each `PageMeta.metaField` is camelCase while the registry key, payload key and DB column are lowercase — so the one string meant to name a field cannot be used to look it up. TD-02 worked around this with its own key list; this item should make `pagesConfig` correct and make `metaField` agree with its key, then delete the workaround.
 
 **Fix**
 
@@ -641,7 +663,7 @@ This item exists because the E2E layer was previously scheduled only in `ROADMAP
 3. ✅ TD-03  migrate to Vitest, get a green suite
 4. ✅ TD-05  ESLint + Prettier + CI      → locks in 1–3 permanently
 5. ✅ TD-01  auth guards (+ tests)       → done; requireApiSession + requireSession
-6.    TD-02  Zod validation (+ tests)
+6. ✅ TD-02  Zod validation (+ tests)   → buildEntitySchema + parseIdParam
 7.    TD-07  pin versions, one lockfile
 8.    TD-24  Playwright + 8 E2E specs    → needs TD-01/TD-02's flows to exist; makes e2e blocking again
 9.    TD-17  portfolio README

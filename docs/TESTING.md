@@ -8,21 +8,23 @@
 
 ## 1. Where we are
 
-**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 48 tests across 9 files in ~1.7s. Coverage is **15% lines / 10% branches**, enforced in CI as a ratchet — see §2.
+**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 111 tests across 11 files in ~2s. Coverage is **18% lines / 11% branches**, enforced in CI as a ratchet — see §2.
 
 What exists today:
 
-| Suite                                          | Tests | Notes                                                                    |
-| ---------------------------------------------- | ----- | ------------------------------------------------------------------------ |
-| `app/lib/data/getQuery.test.ts`                | 18    | Query construction — the highest-value unit tests in the project, per §3 |
-| `__test__/api/deleteEndpoints.test.ts`         | 8     | TD-01 — 401 and no-DB-call per DELETE endpoint, plus the authed path     |
-| `__test__/data/mutationGuards.test.ts`         | 8     | TD-01 — each mutation throws and never writes without a session          |
-| `__test__/auth/session-guards.test.ts`         | 5     | TD-01 — the `requireSession` / `requireApiSession` helpers directly      |
-| `__test__/utils/generatePwdHash.test.ts`       | 4     | Rewritten; the old version could never pass                              |
-| `app/lib/utils/data/sortByField/index.test.ts` | 2     | Carried over                                                             |
-| `__test__/utils/parseSerializedArray.test.ts`  | 1     | Carried over                                                             |
-| `__test__/utils/createEmptyArray.test.ts`      | 1     | Carried over — was never collected before, the filename was malformed    |
-| `app/ui/forms/inputs/Select/Select.test.tsx`   | 2     | Carried over                                                             |
+| Suite                                               | Tests | Notes                                                                      |
+| --------------------------------------------------- | ----- | -------------------------------------------------------------------------- |
+| `app/lib/data/getQuery.test.ts`                     | 18    | Query construction — the highest-value unit tests in the project, per §3   |
+| `__test__/api/deleteEndpoints.test.ts`              | 32    | TD-01/TD-02 — 401, malformed `:id` → 400, and the authed path              |
+| `__test__/data/mutationValidation.test.ts`          | 20    | TD-02 — valid writes, invalid rejected, field-keyed errors, partial update |
+| `app/lib/data/validation/buildEntitySchema.test.ts` | 19    | TD-02 — every declared default passes its domain's schema                  |
+| `__test__/data/mutationGuards.test.ts`              | 8     | TD-01 — each mutation throws and never writes without a session            |
+| `__test__/auth/session-guards.test.ts`              | 5     | TD-01 — the `requireSession` / `requireApiSession` helpers directly        |
+| `__test__/utils/generatePwdHash.test.ts`            | 4     | Rewritten; the old version could never pass                                |
+| `app/lib/utils/data/sortByField/index.test.ts`      | 2     | Carried over                                                               |
+| `__test__/utils/parseSerializedArray.test.ts`       | 1     | Carried over                                                               |
+| `__test__/utils/createEmptyArray.test.ts`           | 1     | Carried over — was never collected before, the filename was malformed      |
+| `app/ui/forms/inputs/Select/Select.test.tsx`        | 2     | Carried over                                                               |
 
 **Still missing, and deliberately so:** integration tests against a real Postgres, and the whole Playwright layer. Both are described below and neither is started. The integration tests arrive with TD-01 and TD-02, which is the point of doing this migration first.
 
@@ -68,7 +70,7 @@ Everything else is supporting cast.
 
 Set the CI threshold to whatever you actually achieve at the end of Phase 1, then never let it drop. A threshold you have to disable to merge is worse than no threshold.
 
-**Current thresholds are 14/9/9/13 (lines/functions/branches/statements)** — what the suite achieves today, not the targets above. They are a ratchet: raise them whenever a change adds real coverage, never lower them. The table stays the destination.
+**Current thresholds are 18/12/11/17 (lines/functions/branches/statements)** — what the suite achieves today, not the targets above. They are a ratchet: raise them whenever a change adds real coverage, never lower them. The table stays the destination.
 
 ---
 
@@ -114,7 +116,7 @@ Run against a disposable Postgres (Testcontainers, or a `docker-compose.test.yam
 - Each `fetchFiltered*`: filtering, sorting, pagination boundaries, empty result.
 - `getXCount` agrees with `fetchFilteredX` for the same filter (this is TD-12's regression test).
 - **Auth guards** ✅ done in TD-01: every DELETE handler returns 401 and every `create*`/`update*` mutation throws without a session, each with a test (`__test__/api/`, `__test__/data/mutationGuards.test.ts`, `__test__/auth/`). These run without a database — the guard rejects before any query — so they live in the unit suite, not the integration one.
-- **Validation**: every mutation rejects a malformed payload with structured field errors. Write these as soon as TD-02 lands.
+- **Validation** ✅ done in TD-02: every mutation rejects a malformed payload with field-keyed errors and writes nothing, and a malformed route `:id` returns 400. Like the auth guards, these need no database and live in the unit suite.
 
 Each test seeds and truncates its own fixtures. No shared mutable state between tests.
 

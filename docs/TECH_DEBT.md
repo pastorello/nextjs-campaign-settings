@@ -339,7 +339,7 @@ Every factual claim was verified against the repo rather than asserted: the 41 m
 
 **Deliberately honest rather than flattering:** it states 18% coverage as low, says the E2E suite is specified but not written, and points at `TECH_DEBT.md` as the list of what is known to be wrong. A portfolio README that hides those is worse than one that owns them.
 
-**Still needed from a human:** the three screenshots. `docs/screenshots/README.md` says exactly what to capture; the table in the README holds their places. Also removed `public/hero-{desktop,mobile}.png` — 600 KB of unreferenced Next.js-tutorial images that TD-06 missed.
+**No screenshots, deliberately.** The UI has not been touched yet — correctness work comes first — so screenshots would advertise a raw interface and date immediately. Rather than leave placeholders that read as an oversight, the README states the sequencing outright: the visual layer is scheduled after the foundations. Add them when the UI work happens (ROADMAP Phase 2, item 14). Also removed `public/hero-{desktop,mobile}.png` — 600 KB of unreferenced Next.js-tutorial images that TD-06 missed.
 
 The original description follows.
 

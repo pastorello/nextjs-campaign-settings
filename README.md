@@ -5,16 +5,8 @@
 Built with the Next.js App Router, Server Components for reads and Server Actions for writes. Its distinguishing idea is a **metadata layer**: each of the 41 domain fields is declared exactly once, and that single declaration drives the form control, the list column, the filter, the Zod validation and the Prisma `where` clause. Adding a field is one object, not five edits across five files.
 
 > **Status:** working prototype, actively being hardened. Phase 1 — auth guards, input validation, a real test suite, CI, reproducible builds — has landed. Coverage is deliberately still low and ratcheting upward. See [Project status](#project-status).
-
----
-
-## Screenshots
-
-<!-- Add the three images described in docs/screenshots/README.md, then delete this comment. -->
-
-| Spell list  | Metadata-driven form | World map   |
-| ----------- | -------------------- | ----------- |
-| _(pending)_ | _(pending)_          | _(pending)_ |
+>
+> **The interface is deliberately unstyled.** Effort is going into correctness first — nothing can be written without a session, no invalid payload reaches the database, and every change lands behind a green pipeline. The visual layer is scheduled after the foundations, not before, which is why there are no screenshots here yet.
 
 ---
 

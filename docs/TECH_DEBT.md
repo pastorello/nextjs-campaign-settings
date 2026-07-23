@@ -44,6 +44,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-22 | 282 lint warnings surfaced by TD-05                         | 🟠 High              | L      | 2     |
 | TD-23 | Migration `resetio` has drifted from the schema             | 🟠 High              | S      | 1     |
 | TD-24 | Playwright E2E harness + 8 critical-flow specs              | 🟠 High              | M      | 1     |
+| TD-25 | An unreachable database surfaces as an opaque UI error      | 🟡 Medium            | S      | 2     |
 
 ---
 
@@ -419,6 +420,17 @@ The original error is discarded, so the stack trace is lost. `deleteSpellById` r
 
 **Fix:** a small typed error hierarchy (`NotFoundError`, `ValidationError`, `DatabaseError`), preserve `{ cause: error }`, map error types to correct HTTP status codes, and route user-facing messages through the notification system from TD-10.
 
+**Confirmed in practice, 2026-07-22.** With Postgres stopped, `/dashboard` failed with nothing but `Error: Failed to fetch card data.` in a console otherwise full of React internals. The actual cause — a refused connection — went to `console.error` on the server and was discarded one line later:
+
+```ts
+} catch (error) {
+  console.error("Database Error:", error);
+  throw new Error("Failed to fetch card data."); // the cause dies here
+}
+```
+
+A single `{ cause: error }` would have turned a manual `docker ps` hunt into reading the message. This is the strongest argument for the item and worth doing before the rest of Phase 2's polish. The proactive half — noticing the database is unreachable _before_ a page tries to render — is **TD-25**.
+
 ---
 
 ### TD-15 🟡 No accessibility pass
@@ -655,6 +667,37 @@ This item exists because the E2E layer was previously scheduled only in `ROADMAP
 
 ---
 
+### TD-25 🟡 An unreachable database surfaces as an opaque UI error
+
+**Where:** `app/lib/connections/prisma.ts`, `app/ui/dashboard/cards.tsx`, every `fetch*` in `app/lib/data/`
+**Related but not the same:** TD-13 (make the message carry its cause) · TD-02b step 5 (validate env vars)
+
+**Observed 2026-07-22.** With Postgres stopped, opening `/dashboard` produced a React error boundary and a console full of `react-dom-client` frames, whose only project-specific line was:
+
+```
+Error: Failed to fetch card data.
+    at fetchCardData (fetchCardData.ts:21:11)
+```
+
+Nothing in the browser said _connection refused_, or _nothing is listening on 5432_, or _start docker-compose_. The real cause reached `console.error` on the server terminal and was then thrown away. Diagnosing it meant checking `docker ps` by hand.
+
+**Why this is not already covered.** TD-13 fixes the _message_ — preserve `{ cause }` so the error says `ECONNREFUSED` instead of a generic string, and that alone would have made this a ten-second diagnosis. But TD-13 is reactive: you still find out mid-render, once a page happens to query. And TD-02b step 5 validates that `DATABASE_URL` is _present and well-formed_ — which it was. A correct connection string pointing at a stopped server passes every check we have planned.
+
+The gap is that nothing verifies the database is actually **reachable**, at the one moment where saying so is cheap and useful: startup.
+
+**Fix**
+
+1. Do TD-13 first — it is the larger share of the value, and this item is thin on top of it.
+2. Add a dev-time connectivity check: on server start (or first Prisma use), attempt `SELECT 1` and, on failure, log one actionable line naming the host, the port and the command that starts it — instead of letting the first page render be the messenger.
+3. Keep it out of the request path in production: a per-request health check is a cost, not a feature. Dev-only, or a one-shot check at boot.
+4. Consider surfacing it in the UI through TD-10's notification channel rather than only an error boundary, so a stopped database reads as "database non raggiungibile", not "Application error".
+
+**Explicitly not in scope:** retries, connection pooling or a readiness endpoint. This is about _saying what is wrong_, not about surviving it.
+
+**Done when:** starting the app with Postgres stopped produces one clear log line naming the unreachable host and how to start it, and the dashboard shows a message that distinguishes "database down" from "query failed".
+
+---
+
 ## Recommended execution order
 
 ```
@@ -675,14 +718,15 @@ This item exists because the E2E layer was previously scheduled only in `ROADMAP
 14. TD-11  schema timestamps + indexes  → regenerate the migration here, fixing TD-23
 15. TD-12  single where-clause
 16. TD-02b remaining trust boundaries (env, localStorage, GeoJSON)
-17. TD-13  typed errors
-18. TD-10  real notifications
-19. TD-09  collapse duplicated components  → safest after TD-08 and TD-19
-20. TD-22  lint backlog to zero            → mostly dissolves once TD-08 lands
-21. TD-20b noUncheckedIndexedAccess        → last; noisiest, most valuable
-22. TD-15  accessibility pass              → axe assertions ride on TD-24's Playwright setup
+17. TD-13  typed errors                    → preserve { cause }; biggest diagnosability win
+18. TD-25  startup DB-reachability check   → thin once TD-13 lands; do them together
+19. TD-10  real notifications
+20. TD-09  collapse duplicated components  → safest after TD-08 and TD-19
+21. TD-22  lint backlog to zero            → mostly dissolves once TD-08 lands
+22. TD-20b noUncheckedIndexedAccess        → last; noisiest, most valuable
+23. TD-15  accessibility pass              → axe assertions ride on TD-24's Playwright setup
 --- Phase 2 complete: the project is well-built ---
-23. ✅ TD-18 done early (unblocked the build); then TD-14, then feature work
+24. ✅ TD-18 done early (unblocked the build); then TD-14, then feature work
 ```
 
 The ordering is not arbitrary: each step makes the next one cheaper or safer. In particular, do not attempt TD-09 before TD-08, do not attempt TD-01/TD-02 before TD-03 (you want a working test suite before you touch security-critical code), and do not attempt TD-24 before TD-01/TD-02 — the E2E specs assert auth and validation flows those two items create.

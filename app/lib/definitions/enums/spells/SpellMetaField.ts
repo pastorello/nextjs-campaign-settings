@@ -3,7 +3,6 @@ enum SpellMetaField {
   livello = "livello",
   circolo = "circolo",
   classi = "classi",
-  sottoClassi = "sottoclassi",
   tempoDiLancio = "tempodilancio",
   gittata = "gittata",
   componenti = "componenti",

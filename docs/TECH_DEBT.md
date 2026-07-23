@@ -18,34 +18,34 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-| ID    | Title                                                         | Severity             | Effort | Phase |
-| ----- | ------------------------------------------------------------- | -------------------- | ------ | ----- |
-| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions        | ~~🔴 Critical~~ done | M      | 1     |
-| TD-02 | ✅ No input validation (Phase 1); TD-02b remains              | ~~🔴 Critical~~ done | M      | 1–2   |
-| TD-03 | ✅ Test suite does not run                                    | ~~🔴 Critical~~ done | M      | 1     |
-| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                        | ~~🔴 Critical~~ done | S      | 1     |
-| TD-05 | ✅ No ESLint config, no Prettier, no CI                       | ~~🟠 High~~ done     | S      | 1     |
-| TD-06 | ✅ Dead code and tutorial leftovers                           | ~~🟠 High~~ done     | S      | 1     |
-| TD-07 | ✅ `next`/`react` pinned; single lockfile                     | ~~🟠 High~~ done     | S      | 1     |
-| TD-08 | ◑ metadata typed (steps 1–2); query layer still `any`         | 🟠 High              | M      | 2     |
-| TD-09 | Four near-identical Card/List/Library/Form quartets           | 🟠 High              | L      | 2     |
-| TD-10 | Notification system is a `console.log` stub                   | 🟠 High              | M      | 2     |
-| TD-11 | Schema has no timestamps, indexes, or relations               | 🟡 Medium            | M      | 2     |
-| TD-12 | Pagination count and rows use separate queries                | 🟡 Medium            | S      | 2     |
-| TD-13 | Errors surfaced as `throw new Error("Failed to fetch X")`     | 🟡 Medium            | M      | 2     |
-| TD-14 | Map POIs persisted only to `localStorage`                     | 🟡 Medium            | M      | 3     |
-| TD-15 | No accessibility pass                                         | 🟡 Medium            | M      | 2     |
-| TD-16 | ✅ Inconsistent formatting                                    | ~~🟢 Low~~ done      | S      | 1     |
-| TD-17 | ✅ README does not match reality                              | ~~🟢 Low~~ done      | S      | 1     |
-| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack        | ~~🟢 Low~~ done      | S      | 3     |
-| TD-19 | Mixed Italian/English identifiers                             | 🟠 High              | L      | 2     |
-| TD-20 | TypeScript strictness stops at `strict`; `target` is ES2017   | 🟡 Medium            | M      | 2     |
-| TD-21 | UI strings hardcoded; app must ship in it + en                | 🟠 High              | L      | 2     |
-| TD-22 | 282 lint warnings surfaced by TD-05                           | 🟠 High              | L      | 2     |
-| TD-23 | Migration `resetio` has drifted from the schema               | 🟠 High              | S      | 1     |
-| TD-24 | Playwright E2E harness + 8 critical-flow specs                | 🟠 High              | M      | 1     |
-| TD-25 | An unreachable database surfaces as an opaque UI error        | 🟡 Medium            | S      | 2     |
-| TD-26 | `sottoclassi` and `circolo` share one state in the spell hook | 🟡 Medium            | S      | 2     |
+| ID    | Title                                                       | Severity             | Effort | Phase |
+| ----- | ----------------------------------------------------------- | -------------------- | ------ | ----- |
+| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions      | ~~🔴 Critical~~ done | M      | 1     |
+| TD-02 | ✅ No input validation (Phase 1); TD-02b remains            | ~~🔴 Critical~~ done | M      | 1–2   |
+| TD-03 | ✅ Test suite does not run                                  | ~~🔴 Critical~~ done | M      | 1     |
+| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                      | ~~🔴 Critical~~ done | S      | 1     |
+| TD-05 | ✅ No ESLint config, no Prettier, no CI                     | ~~🟠 High~~ done     | S      | 1     |
+| TD-06 | ✅ Dead code and tutorial leftovers                         | ~~🟠 High~~ done     | S      | 1     |
+| TD-07 | ✅ `next`/`react` pinned; single lockfile                   | ~~🟠 High~~ done     | S      | 1     |
+| TD-08 | ◑ metadata typed (steps 1–2); query layer still `any`       | 🟠 High              | M      | 2     |
+| TD-09 | Four near-identical Card/List/Library/Form quartets         | 🟠 High              | L      | 2     |
+| TD-10 | Notification system is a `console.log` stub                 | 🟠 High              | M      | 2     |
+| TD-11 | Schema has no timestamps, indexes, or relations             | 🟡 Medium            | M      | 2     |
+| TD-12 | Pagination count and rows use separate queries              | 🟡 Medium            | S      | 2     |
+| TD-13 | Errors surfaced as `throw new Error("Failed to fetch X")`   | 🟡 Medium            | M      | 2     |
+| TD-14 | Map POIs persisted only to `localStorage`                   | 🟡 Medium            | M      | 3     |
+| TD-15 | No accessibility pass                                       | 🟡 Medium            | M      | 2     |
+| TD-16 | ✅ Inconsistent formatting                                  | ~~🟢 Low~~ done      | S      | 1     |
+| TD-17 | ✅ README does not match reality                            | ~~🟢 Low~~ done      | S      | 1     |
+| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack      | ~~🟢 Low~~ done      | S      | 3     |
+| TD-19 | Mixed Italian/English identifiers                           | 🟠 High              | L      | 2     |
+| TD-20 | TypeScript strictness stops at `strict`; `target` is ES2017 | 🟡 Medium            | M      | 2     |
+| TD-21 | UI strings hardcoded; app must ship in it + en              | 🟠 High              | L      | 2     |
+| TD-22 | 282 lint warnings surfaced by TD-05                         | 🟠 High              | L      | 2     |
+| TD-23 | Migration `resetio` has drifted from the schema             | 🟠 High              | S      | 1     |
+| TD-24 | Playwright E2E harness + 8 critical-flow specs              | 🟠 High              | M      | 1     |
+| TD-25 | An unreachable database surfaces as an opaque UI error      | 🟡 Medium            | S      | 2     |
+| TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved           | ~~🟡 Medium~~ done   | S      | 2     |
 
 ---
 
@@ -768,7 +768,21 @@ The gap is that nothing verifies the database is actually **reachable**, at the 
 
 ---
 
-### TD-26 🟡 `sottoclassi` and `circolo` share one state in the spell page manager
+### TD-26 ✅ `sottoclassi` / `circolo` duplication — **DONE (2026-07-22)**
+
+**It was not a copy-paste bug, it was a concept that converged.** Spells were first meant to be grouped into homebrew _circoli_; the design later followed D&D 5e and used subclasses for that job. The `circolo` column kept its name and quietly changed meaning, and `sottoclassi` was left behind as an unused twin — same options, same `getDatum`, its own state never created.
+
+The data settles it: `circolo` is populated on every spell with real multi-value arrays; `sottoclassi` is empty apart from one test row.
+
+**Resolved by:** relabelling the live field to **"Sottoclassi"** (it holds subclass ids, so the UI now says so) and deleting the duplicate from the metadata, `pagesConfig`, the `Spell` interface, the page manager, `createSpell`, the seed data and `SpellMetaField`. The `circolo` column and its data are untouched; renaming the identifier is TD-19's, and dropping the orphaned `sottoclassi` column goes with TD-11's migration work.
+
+**`Circolo.ts` is deliberately kept** although nothing imports it — 23 thematic circles the DM intends to revisit. Annotated in the file and recorded in CLAUDE.md so no cleanup pass removes it.
+
+The original description follows.
+
+---
+
+### TD-26 (original) 🟡 `sottoclassi` and `circolo` share one state in the spell page manager
 
 **Where:** `app/lib/hooks/spells/useSpellPageManager.ts`
 

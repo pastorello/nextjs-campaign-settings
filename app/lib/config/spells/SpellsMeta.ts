@@ -27,7 +27,7 @@ const spellsMeta = {
   },
   [SpellMetaField.circolo]: {
     metaField: "circolo",
-    label: "Circolo",
+    label: "Sottoclassi",
     defaultValue: [],
     fieldType: FieldType.array,
     options: subclasses,
@@ -47,16 +47,6 @@ const spellsMeta = {
     controlType: ControlType.Multiselect,
     validator: z.array(z.number().int()),
     getDatum: (datum: number[]) => getDataLabel(classes, datum),
-  },
-  [SpellMetaField.sottoClassi]: {
-    metaField: "sottoClassi",
-    label: "Sottoclassi",
-    defaultValue: [],
-    fieldType: FieldType.array,
-    options: subclasses,
-    controlType: ControlType.Multiselect,
-    validator: z.array(z.number().int()).optional(),
-    getDatum: (datum: number[]) => getDataLabel(subclasses, datum),
   },
   [SpellMetaField.tempoDiLancio]: {
     metaField: "tempoDiLancio",

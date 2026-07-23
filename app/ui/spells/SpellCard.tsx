@@ -61,7 +61,7 @@ const SpellCard = (props: { cardItem: Spell }) => {
             </div>
             <div className="w-[50%] p-1">
               <ItemMeta
-                label="Circolo"
+                label="Sottoclassi"
                 value={pageMetaFields[SpellMetaField.circolo].getDatum(
                   props.cardItem[SpellMetaField.circolo]
                 )}

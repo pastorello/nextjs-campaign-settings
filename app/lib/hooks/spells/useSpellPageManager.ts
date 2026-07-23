@@ -57,7 +57,6 @@ const useSpellPageManager = ({ pageItem }: PageManagerProps): ListItem => {
   );
 
   const itemFields: Partial<Record<MetaConfigKey, ValueController>> = {
-    [SpellMetaField.sottoClassi]: { setter: setCircolo, value: circolo },
     [SpellMetaField.circolo]: { setter: setCircolo, value: circolo },
     [SpellMetaField.classi]: { setter: setClassi, value: classi },
     [SpellMetaField.componenti]: { setter: setComponenti, value: componenti },

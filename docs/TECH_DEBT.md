@@ -36,7 +36,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-14 | Map POIs persisted only to `localStorage`                   | 🟡 Medium            | M      | 3     |
 | TD-15 | No accessibility pass                                       | 🟡 Medium            | M      | 2     |
 | TD-16 | ✅ Inconsistent formatting                                  | ~~🟢 Low~~ done      | S      | 1     |
-| TD-17 | README does not match reality                               | 🟢 Low               | S      | 1     |
+| TD-17 | ✅ README does not match reality                            | ~~🟢 Low~~ done      | S      | 1     |
 | TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack      | ~~🟢 Low~~ done      | S      | 3     |
 | TD-19 | Mixed Italian/English identifiers                           | 🟠 High              | L      | 2     |
 | TD-20 | TypeScript strictness stops at `strict`; `target` is ES2017 | 🟡 Medium            | M      | 2     |
@@ -331,7 +331,21 @@ Also: the migration folder is named `20251126152855_resetio` — rename future m
 
 ---
 
-### TD-17 🟢 README does not match reality
+### TD-17 ✅ README does not match reality — **DONE (2026-07-22)**
+
+**Outcome:** rewritten as a portfolio README — pitch, feature list, the metadata layer explained with real code, a stack table that gives a _reason_ per choice, a working quickstart, an architecture map linking into `docs/`, a testing section and a status table.
+
+Every factual claim was verified against the repo rather than asserted: the 41 metadata fields, six ADRs, 25 debt items, four DELETE endpoints, and that every command it lists exists in `package.json`. Internal links are checked. The quickstart's `db push` path was run — Prisma reports the schema already in sync — and the seed was confirmed idempotent (its records carry explicit ids, so re-running skips rather than duplicates).
+
+**Deliberately honest rather than flattering:** it states 18% coverage as low, says the E2E suite is specified but not written, and points at `TECH_DEBT.md` as the list of what is known to be wrong. A portfolio README that hides those is worse than one that owns them.
+
+**No screenshots, deliberately.** The UI has not been touched yet — correctness work comes first — so screenshots would advertise a raw interface and date immediately. Rather than leave placeholders that read as an oversight, the README states the sequencing outright: the visual layer is scheduled after the foundations. Add them when the UI work happens (ROADMAP Phase 2, item 14). Also removed `public/hero-{desktop,mobile}.png` — 600 KB of unreferenced Next.js-tutorial images that TD-06 missed.
+
+The original description follows.
+
+---
+
+### TD-17 (original) 🟢 README does not match reality
 
 The README mixes `npm` and `pnpm`, does not mention the Vitest/Playwright commands, has a typo in the env template (`AUTH_SECRET=your-sercret-key`), and — most importantly for a portfolio — contains no screenshots, no feature list, no live demo link, and no explanation of the metadata architecture that makes the project interesting.
 
@@ -724,7 +738,7 @@ The gap is that nothing verifies the database is actually **reachable**, at the 
 6. ✅ TD-02  Zod validation (+ tests)   → buildEntitySchema + parseIdParam
 7. ✅ TD-07  pin versions, one lockfile
 8.    TD-24  Playwright + 8 E2E specs    → needs TD-01/TD-02's flows to exist; makes e2e blocking again
-9.    TD-17  portfolio README
+9. ✅ TD-17  portfolio README
 --- Phase 1 complete: the project is correct, safe and verified ---
 10. TD-08  type the metadata layer
 11. TD-20a strict flags, cheap batch + ES2022 target

@@ -41,7 +41,7 @@ const useMagicItemPageManager = ({ magicItem }: PageManagerProps): ListItem => {
     getDefaultValue(MagicItemMetaField.descrizione)
   );
 
-  const itemFields: Record<MetaConfigKey, ValueController> = {
+  const itemFields: Partial<Record<MetaConfigKey, ValueController>> = {
     [MagicItemMetaField.nome]: { setter: setNome, value: nome },
     [MagicItemMetaField.rarita]: { setter: setRarita, value: rarita },
     [MagicItemMetaField.tipo]: { setter: setTipo, value: tipo },
@@ -63,7 +63,7 @@ const useMagicItemPageManager = ({ magicItem }: PageManagerProps): ListItem => {
 
   const editedFields = Object.keys(itemFields).reduce((acc, key) => {
     const typedKey = key as MagicItemMetaField;
-    if (itemFields[typedKey].value !== getDefaultValue(typedKey)) {
+    if (itemFields[typedKey]?.value !== getDefaultValue(typedKey)) {
       acc.push(typedKey);
     }
     return acc;

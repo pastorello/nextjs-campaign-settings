@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
 import prisma from "@/app/lib/connections/prisma";
-import pageMetaFields from "@/app/lib/config/pageMetaFields";
+import { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import PageType from "@/app/lib/definitions/types/PageType";
 import { entityFieldKeys } from "@/app/lib/data/validation/buildEntitySchema";
 
@@ -32,10 +32,7 @@ vi.mock("@/app/lib/connections/prisma", () => {
 // A payload of each field's declared default — the shape a real form submits.
 function validPayload(pageType: PageType): Record<string, unknown> {
   return Object.fromEntries(
-    entityFieldKeys[pageType].map((key) => [
-      key,
-      pageMetaFields[key].defaultValue,
-    ])
+    entityFieldKeys(pageType).map((key) => [key, fieldMeta[key].defaultValue])
   );
 }
 

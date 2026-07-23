@@ -1,4 +1,4 @@
-import pageMetaFields from "@/app/lib/config/pageMetaFields";
+import pageMetaFields, { fieldMeta } from "@/app/lib/config/pageMetaFields";
 
 // All user-facing copy for this component, in one place so TD-21 can extract it
 // without hunting through JSX.
@@ -33,7 +33,7 @@ export default function FormErrorSummary({ errors }: FormErrorSummaryProps) {
         {entries.map(([field, messages]) => (
           <li key={field}>
             <span className="font-medium">
-              {pageMetaFields[field]?.label ?? field}
+              {fieldMeta[field]?.label ?? field}
             </span>
             {": "}
             {messages?.join(", ")}

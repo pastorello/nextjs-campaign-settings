@@ -8,7 +8,7 @@ import rarity from "./rarity";
 import itemTypes from "./item-types";
 import getDataLabel from "../../utils/data/getDataLabel";
 
-const magicItemsMeta: Record<string, PageMeta> = {
+const magicItemsMeta = {
   [MagicItemMetaField.rarita]: {
     metaField: "rarita",
     label: "Rarità",
@@ -38,6 +38,6 @@ const magicItemsMeta: Record<string, PageMeta> = {
     validator: z.boolean().optional(),
     getDatum: (datum: boolean) => (datum === true ? "Sì" : "No"),
   },
-};
+} satisfies Record<string, PageMeta>;
 
 export default magicItemsMeta;

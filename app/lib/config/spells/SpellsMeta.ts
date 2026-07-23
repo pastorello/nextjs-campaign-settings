@@ -13,7 +13,7 @@ import tiriSalvezza from "./tiriSalvezza";
 import getDataLabel from "../../utils/data/getDataLabel";
 import renderRichText from "../../utils/data/renderRichText";
 
-const spellsMeta: Record<string, PageMeta> = {
+const spellsMeta = {
   [SpellMetaField.livello]: {
     metaField: "livello",
     label: "Livello",
@@ -33,7 +33,7 @@ const spellsMeta: Record<string, PageMeta> = {
     options: subclasses,
     controlType: ControlType.Multiselect,
     validator: z.array(z.number().int()),
-    getDatum: (datum: number) => getDataLabel(subclasses, datum),
+    getDatum: (datum: number[]) => getDataLabel(subclasses, datum),
   },
   [SpellMetaField.classi]: {
     metaField: "classi",
@@ -46,7 +46,7 @@ const spellsMeta: Record<string, PageMeta> = {
     })),
     controlType: ControlType.Multiselect,
     validator: z.array(z.number().int()),
-    getDatum: (datum: number) => getDataLabel(classes, datum),
+    getDatum: (datum: number[]) => getDataLabel(classes, datum),
   },
   [SpellMetaField.sottoClassi]: {
     metaField: "sottoClassi",
@@ -56,7 +56,7 @@ const spellsMeta: Record<string, PageMeta> = {
     options: subclasses,
     controlType: ControlType.Multiselect,
     validator: z.array(z.number().int()).optional(),
-    getDatum: (datum: number) => getDataLabel(subclasses, datum),
+    getDatum: (datum: number[]) => getDataLabel(subclasses, datum),
   },
   [SpellMetaField.tempoDiLancio]: {
     metaField: "tempoDiLancio",
@@ -66,7 +66,7 @@ const spellsMeta: Record<string, PageMeta> = {
     options: tempiDiLancio,
     controlType: ControlType.Select,
     validator: z.string().min(1),
-    getDatum: (datum: number) => getDataLabel(tempiDiLancio, datum),
+    getDatum: (datum: string) => getDataLabel(tempiDiLancio, datum),
   },
   [SpellMetaField.gittata]: {
     metaField: "gittata",
@@ -76,7 +76,7 @@ const spellsMeta: Record<string, PageMeta> = {
     options: gittate,
     controlType: ControlType.Select,
     validator: z.string().min(1),
-    getDatum: (datum: number) => getDataLabel(gittate, datum),
+    getDatum: (datum: string) => getDataLabel(gittate, datum),
   },
   [SpellMetaField.componenti]: {
     metaField: "componenti",
@@ -95,7 +95,7 @@ const spellsMeta: Record<string, PageMeta> = {
     options: durate,
     controlType: ControlType.Select,
     validator: z.string().min(1),
-    getDatum: (datum: number) => getDataLabel(durate, datum),
+    getDatum: (datum: string) => getDataLabel(durate, datum),
   },
   [SpellMetaField.tiroSalvezza]: {
     metaField: "tiroSalvezza",
@@ -105,7 +105,7 @@ const spellsMeta: Record<string, PageMeta> = {
     options: tiriSalvezza,
     controlType: ControlType.Select,
     validator: z.string().optional(),
-    getDatum: (datum: number) => getDataLabel(tiriSalvezza, datum),
+    getDatum: (datum: string) => getDataLabel(tiriSalvezza, datum),
   },
   [SpellMetaField.rituale]: {
     metaField: "rituale",
@@ -135,6 +135,6 @@ const spellsMeta: Record<string, PageMeta> = {
     validator: z.string().optional(),
     getDatum: (datum: string) => renderRichText(datum),
   },
-};
+} satisfies Record<string, PageMeta>;
 
 export default spellsMeta;

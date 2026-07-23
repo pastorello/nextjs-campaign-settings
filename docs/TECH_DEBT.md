@@ -18,33 +18,34 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-| ID    | Title                                                       | Severity             | Effort | Phase |
-| ----- | ----------------------------------------------------------- | -------------------- | ------ | ----- |
-| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions      | ~~🔴 Critical~~ done | M      | 1     |
-| TD-02 | ✅ No input validation (Phase 1); TD-02b remains            | ~~🔴 Critical~~ done | M      | 1–2   |
-| TD-03 | ✅ Test suite does not run                                  | ~~🔴 Critical~~ done | M      | 1     |
-| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                      | ~~🔴 Critical~~ done | S      | 1     |
-| TD-05 | ✅ No ESLint config, no Prettier, no CI                     | ~~🟠 High~~ done     | S      | 1     |
-| TD-06 | ✅ Dead code and tutorial leftovers                         | ~~🟠 High~~ done     | S      | 1     |
-| TD-07 | ✅ `next`/`react` pinned; single lockfile                   | ~~🟠 High~~ done     | S      | 1     |
-| TD-08 | ◑ `PageMeta` typed (step 1); query layer still `any`        | 🟠 High              | M      | 2     |
-| TD-09 | Four near-identical Card/List/Library/Form quartets         | 🟠 High              | L      | 2     |
-| TD-10 | Notification system is a `console.log` stub                 | 🟠 High              | M      | 2     |
-| TD-11 | Schema has no timestamps, indexes, or relations             | 🟡 Medium            | M      | 2     |
-| TD-12 | Pagination count and rows use separate queries              | 🟡 Medium            | S      | 2     |
-| TD-13 | Errors surfaced as `throw new Error("Failed to fetch X")`   | 🟡 Medium            | M      | 2     |
-| TD-14 | Map POIs persisted only to `localStorage`                   | 🟡 Medium            | M      | 3     |
-| TD-15 | No accessibility pass                                       | 🟡 Medium            | M      | 2     |
-| TD-16 | ✅ Inconsistent formatting                                  | ~~🟢 Low~~ done      | S      | 1     |
-| TD-17 | ✅ README does not match reality                            | ~~🟢 Low~~ done      | S      | 1     |
-| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack      | ~~🟢 Low~~ done      | S      | 3     |
-| TD-19 | Mixed Italian/English identifiers                           | 🟠 High              | L      | 2     |
-| TD-20 | TypeScript strictness stops at `strict`; `target` is ES2017 | 🟡 Medium            | M      | 2     |
-| TD-21 | UI strings hardcoded; app must ship in it + en              | 🟠 High              | L      | 2     |
-| TD-22 | 282 lint warnings surfaced by TD-05                         | 🟠 High              | L      | 2     |
-| TD-23 | Migration `resetio` has drifted from the schema             | 🟠 High              | S      | 1     |
-| TD-24 | Playwright E2E harness + 8 critical-flow specs              | 🟠 High              | M      | 1     |
-| TD-25 | An unreachable database surfaces as an opaque UI error      | 🟡 Medium            | S      | 2     |
+| ID    | Title                                                         | Severity             | Effort | Phase |
+| ----- | ------------------------------------------------------------- | -------------------- | ------ | ----- |
+| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions        | ~~🔴 Critical~~ done | M      | 1     |
+| TD-02 | ✅ No input validation (Phase 1); TD-02b remains              | ~~🔴 Critical~~ done | M      | 1–2   |
+| TD-03 | ✅ Test suite does not run                                    | ~~🔴 Critical~~ done | M      | 1     |
+| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                        | ~~🔴 Critical~~ done | S      | 1     |
+| TD-05 | ✅ No ESLint config, no Prettier, no CI                       | ~~🟠 High~~ done     | S      | 1     |
+| TD-06 | ✅ Dead code and tutorial leftovers                           | ~~🟠 High~~ done     | S      | 1     |
+| TD-07 | ✅ `next`/`react` pinned; single lockfile                     | ~~🟠 High~~ done     | S      | 1     |
+| TD-08 | ◑ metadata typed (steps 1–2); query layer still `any`         | 🟠 High              | M      | 2     |
+| TD-09 | Four near-identical Card/List/Library/Form quartets           | 🟠 High              | L      | 2     |
+| TD-10 | Notification system is a `console.log` stub                   | 🟠 High              | M      | 2     |
+| TD-11 | Schema has no timestamps, indexes, or relations               | 🟡 Medium            | M      | 2     |
+| TD-12 | Pagination count and rows use separate queries                | 🟡 Medium            | S      | 2     |
+| TD-13 | Errors surfaced as `throw new Error("Failed to fetch X")`     | 🟡 Medium            | M      | 2     |
+| TD-14 | Map POIs persisted only to `localStorage`                     | 🟡 Medium            | M      | 3     |
+| TD-15 | No accessibility pass                                         | 🟡 Medium            | M      | 2     |
+| TD-16 | ✅ Inconsistent formatting                                    | ~~🟢 Low~~ done      | S      | 1     |
+| TD-17 | ✅ README does not match reality                              | ~~🟢 Low~~ done      | S      | 1     |
+| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack        | ~~🟢 Low~~ done      | S      | 3     |
+| TD-19 | Mixed Italian/English identifiers                             | 🟠 High              | L      | 2     |
+| TD-20 | TypeScript strictness stops at `strict`; `target` is ES2017   | 🟡 Medium            | M      | 2     |
+| TD-21 | UI strings hardcoded; app must ship in it + en                | 🟠 High              | L      | 2     |
+| TD-22 | 282 lint warnings surfaced by TD-05                           | 🟠 High              | L      | 2     |
+| TD-23 | Migration `resetio` has drifted from the schema               | 🟠 High              | S      | 1     |
+| TD-24 | Playwright E2E harness + 8 critical-flow specs                | 🟠 High              | M      | 1     |
+| TD-25 | An unreachable database surfaces as an opaque UI error        | 🟡 Medium            | S      | 2     |
+| TD-26 | `sottoclassi` and `circolo` share one state in the spell hook | 🟡 Medium            | S      | 2     |
 
 ---
 
@@ -369,7 +370,20 @@ Turning it on surfaced four genuine defects, none of which any test would have c
 3. **`pageMetaFields.value` was dead tutorial scaffolding** — `fieldType: string` with a numeric coercion validator and a _"Please enter an amount greater than $0"_ message. Unreferenced; deleted.
 4. **`SelectOption.value` was always `string | number`**, so an integer field could not derive its default from its own options without widening. It is now generic (`SelectOption<number>`), with the old annotation still valid by default.
 
-**Still to do (steps 2–4):** `whereClause: any` and `orderBy: any[]` in `getQuery`, `Record<string, any>` search params in `validateParams`, and flipping `no-explicit-any` to an error.
+**Step 2 done as well (2026-07-22): the metadata keys are typed.** `MetaConfigKey` was `keyof typeof pageMetaFields` over a `Record<string, PageMeta>` — which is just `string`. Every registry annotation is now `satisfies` instead, so the keys survive inference, and `MetaConfigKey` is the union of the real field names.
+
+One subtlety made it work. Domain metas key their entries by enum member (`[SpellMetaField.livello]`), so a bare `keyof` yields _enum member_ types, and string enums are nominal: `PatronoMetaField.allineamento` and `PngMetaField.allineamento` are different types despite both being `"allineamento"`. `MetaConfigKey` therefore collapses them with a template literal, `` `${keyof typeof pageMetaFields}` ``, which accepts either enum member and a plain string alike.
+
+What that bought:
+
+- **`pagesConfig` is fixed and compiler-verified.** It now holds _keys_, not values, so the nine camelCase references that silently resolved to `undefined` are gone — the compiler rejected each one by name.
+- **The TD-02 workaround is deleted.** `buildEntitySchema` no longer carries its own duplicate field list; it reads `pagesConfig`.
+- **More untruthful declarations surfaced.** `tempodilancio`, `gittata`, `durata` and `tirosalvezza` are string fields whose `getDatum` was declared `(datum: number)`; `circolo`, `classi` and `sottoclassi` receive the whole array, not one element. All corrected to what they actually take.
+- **`usePageManager` demanded all 39 fields.** Each domain supplies only its own, so its record is `Partial` now — which in turn surfaced [[TD-26]].
+
+Warnings fell 274 → **256**.
+
+**Still to do (steps 3–4):** `whereClause: any` and `orderBy: any[]` in `getQuery`, `Record<string, any>` search params in `validateParams` and `getItemsCount`, and flipping `no-explicit-any` to an error.
 
 **Also worth folding into step 2, both found here:**
 
@@ -751,6 +765,23 @@ The gap is that nothing verifies the database is actually **reachable**, at the 
 **Explicitly not in scope:** retries, connection pooling or a readiness endpoint. This is about _saying what is wrong_, not about surviving it.
 
 **Done when:** starting the app with Postgres stopped produces one clear log line naming the unreachable host and how to start it, and the dashboard shows a message that distinguishes "database down" from "query failed".
+
+---
+
+### TD-26 🟡 `sottoclassi` and `circolo` share one state in the spell page manager
+
+**Where:** `app/lib/hooks/spells/useSpellPageManager.ts`
+
+```ts
+[SpellMetaField.sottoClassi]: { setter: setCircolo, value: circolo },
+[SpellMetaField.circolo]:     { setter: setCircolo, value: circolo },
+```
+
+There is no `sottoclassi` state at all — both fields read and write `circolo`. Editing one would change the other, and a spell's subclasses would be saved as its school.
+
+**Not currently reachable:** `SpellForm` does not render the `sottoclassi` control, so nothing exercises the broken wiring today. It is a loaded gun rather than a live bug, which is why it is filed rather than hot-fixed.
+
+**Decide before fixing:** whether `sottoclassi` should have its own state and control at all. The field exists in the schema, the interface and the metadata, but no form ever sets it — so the honest options are to wire it properly _or_ to drop the field. That is a product call, not a typing one. Found while typing the metadata keys (TD-08).
 
 ---
 

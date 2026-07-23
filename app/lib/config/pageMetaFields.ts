@@ -10,7 +10,7 @@ import magicItemsMeta from "./magicitem/magicItemMeta";
 import deitiesMeta from "./deity/deityMeta";
 import renderRichText from "../utils/data/renderRichText";
 
-const pageMetaFields: Record<string, PageMeta> = {
+const pageMetaFields = {
   //GENERAL
   descrizione: {
     metaField: "descrizione",
@@ -48,6 +48,17 @@ const pageMetaFields: Record<string, PageMeta> = {
   ...spellsMeta,
   ...magicItemsMeta,
   ...pngMeta,
-};
+} satisfies Record<string, PageMeta>;
+
+/**
+ * The same registry seen through the `PageMeta` interface.
+ *
+ * `pageMetaFields` deliberately keeps its inferred literal type — that is what
+ * lets `MetaConfigKey` be the union of the real field names. The cost is that
+ * indexing it yields one specific declaration, whose optional `options` and
+ * `placeholder` may simply not be there. Read through this view when you need
+ * the declared shape rather than a particular field's.
+ */
+export const fieldMeta: Record<string, PageMeta> = pageMetaFields;
 
 export default pageMetaFields;

@@ -44,18 +44,6 @@ const pageMetaFields: Record<string, PageMeta> = {
     validator: z.string(),
     getDatum: (datum: string) => datum,
   },
-  value: {
-    metaField: "value",
-    label: "value",
-    defaultValue: "",
-    placeholder: "value",
-    fieldType: FieldType.string,
-    controlType: ControlType.Text,
-    validator: z.coerce
-      .number()
-      .gt(0, { message: "Please enter an amount greater than $0." }),
-    getDatum: (datum: number) => datum,
-  },
   ...deitiesMeta,
   ...spellsMeta,
   ...magicItemsMeta,

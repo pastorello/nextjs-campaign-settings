@@ -22,7 +22,7 @@ const SpellCard = (props: { cardItem: Spell }) => {
           <div className="w-[50px] items-center text-3xl">
             {pageMetaFields[SpellMetaField.livello].getDatum(
               props.cardItem[SpellMetaField.livello],
-              { useShortLabel: true }
+              true
             )}
           </div>
           <div className="flex-1">

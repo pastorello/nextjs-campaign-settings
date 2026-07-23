@@ -1,7 +1,7 @@
 import Allineamento from "../../definitions/enums/png/Allineamento";
 import SelectOption from "../../definitions/types/SelectOption";
 
-export interface AllineamentoObject extends SelectOption {
+export interface AllineamentoObject extends SelectOption<number> {
   type: Allineamento;
 }
 

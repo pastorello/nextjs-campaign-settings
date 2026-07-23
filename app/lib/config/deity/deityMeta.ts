@@ -40,7 +40,7 @@ const deitiesMeta: Record<string, PageMeta> = {
   [PatronoMetaField.tipoPatrono]: {
     metaField: "tipoPatrono",
     label: "tipoPatrono",
-    defaultValue: "",
+    defaultValue: deityTypes[0].value,
     placeholder: "tipoPatrono",
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
@@ -51,7 +51,7 @@ const deitiesMeta: Record<string, PageMeta> = {
   [PatronoMetaField.gradoPatrono]: {
     metaField: "gradoPatrono",
     label: "gradoPatrono",
-    defaultValue: "",
+    defaultValue: deityLevels[0].value,
     placeholder: "gradoPatrono",
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
@@ -62,7 +62,7 @@ const deitiesMeta: Record<string, PageMeta> = {
   [PatronoMetaField.card]: {
     metaField: "card",
     label: "card",
-    defaultValue: "",
+    defaultValue: tarocchi[0].value,
     placeholder: "card",
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
@@ -73,7 +73,7 @@ const deitiesMeta: Record<string, PageMeta> = {
   [PatronoMetaField.astri]: {
     metaField: "astri",
     label: "astri",
-    defaultValue: "",
+    defaultValue: celestialBodies[0].value,
     placeholder: "astri",
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
@@ -84,7 +84,7 @@ const deitiesMeta: Record<string, PageMeta> = {
   [PatronoMetaField.elemento]: {
     metaField: "elemento",
     label: "elemento",
-    defaultValue: "",
+    defaultValue: energyElements[0].value,
     placeholder: "elemento",
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
@@ -95,7 +95,7 @@ const deitiesMeta: Record<string, PageMeta> = {
   [PatronoMetaField.classe]: {
     metaField: "classe",
     label: "classe",
-    defaultValue: "",
+    defaultValue: subclasses[0].value,
     placeholder: "classe",
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
@@ -116,7 +116,7 @@ const deitiesMeta: Record<string, PageMeta> = {
   [PatronoMetaField.tradizione]: {
     metaField: "tradizione",
     label: "tradizione",
-    defaultValue: "",
+    defaultValue: traditionTypes[0].value,
     placeholder: "tradizione",
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
@@ -127,7 +127,7 @@ const deitiesMeta: Record<string, PageMeta> = {
   [PatronoMetaField.residenza]: {
     metaField: "residenza",
     label: "residenza",
-    defaultValue: "",
+    defaultValue: celestialPlanes[0].value,
     placeholder: "residenza",
     fieldType: FieldType.integer,
     controlType: ControlType.Select,

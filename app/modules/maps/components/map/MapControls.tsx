@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars -- vendored maps module: useGeolocation outputs are scaffolding for a locate-me control not yet wired. See CLAUDE.md. */
 "use client";
 
 import { memo, useState, useEffect } from "react";

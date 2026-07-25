@@ -25,7 +25,7 @@ const DeleteButton = ({ pageName, pageId, pageType }: DeleteButtonProps) => {
       } else {
         alert("Errore durante la cancellazione");
       }
-    } catch (error) {
+    } catch {
       alert("Errore di rete");
     }
   };

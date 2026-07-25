@@ -29,7 +29,6 @@ vi.mock("@/app/lib/data/png/deletePngById", () => ({
   deletePngById: vi.fn(),
 }));
 
-const context = { params: Promise.resolve({ id: "1" }) };
 const req = new Request("http://localhost/api/x/1", { method: "DELETE" });
 
 const endpoints = [

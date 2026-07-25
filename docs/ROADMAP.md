@@ -79,7 +79,7 @@ Everything below needs a spec before implementation.
 **Goal:** move from reference material to something used _during_ a session.
 
 - **Encounter builder.** Compose an encounter from NPCs with CR-based difficulty calculation.
-- **Initiative tracker.** Turn order, HP tracking, conditions.
+- **Initiative tracker.** Turn order, HP tracking, conditions. Skeleton spec drafted: [`docs/specs/001-combat-tracker.md`](./specs/001-combat-tracker.md), built against [`docs/domain/5e-combat.md`](./domain/5e-combat.md). Both are stubs awaiting a domain research pass.
 - **Session notes.** Timestamped notes linked to the entities they mention.
 - **Quick-reference panel.** Pinned spells and items, one keystroke away.
 - **Dice roller** with roll history.

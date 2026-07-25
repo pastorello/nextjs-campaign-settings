@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import SearchParams from "@/app/lib/definitions/interfaces/pages/SearchParams";
 import BaseButton from "../buttons/BaseButton";
 import { ResetButton } from "../buttons/ResetSearchButton";
 import { lusitana } from "../fonts";

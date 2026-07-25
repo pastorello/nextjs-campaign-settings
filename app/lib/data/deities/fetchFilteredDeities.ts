@@ -1,13 +1,15 @@
 import prisma from "../../connections/prisma";
 import getQuery from "../getQuery";
+import { SearchParamsInput } from "../validateParams";
+import { Prisma } from "@/generated/prisma/client";
 import Patrono from "../../definitions/interfaces/deities/Patrono";
 import PatronoMetaField from "../../definitions/enums/deities/PatronoMetaField";
 
 export async function fetchFilteredDeities(
-  searchParams: Record<string, any>
+  searchParams: SearchParamsInput
 ): Promise<Patrono[]> {
   const theParams = await searchParams;
-  const theQuery = await getQuery(theParams, [
+  const theQuery = getQuery<Prisma.deitiesWhereInput>(theParams, [
     PatronoMetaField.nome,
     PatronoMetaField.titoloPatrono,
     PatronoMetaField.tipoPatrono,

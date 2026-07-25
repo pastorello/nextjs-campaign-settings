@@ -1,4 +1,5 @@
 import pageMetaFields from "@/app/lib/config/pageMetaFields";
+import SearchParams from "@/app/lib/definitions/interfaces/pages/SearchParams";
 import isArrayEmpty from "@/app/lib/utils/validators/isArrayEmpty";
 import SortableHeader from "../buttons/SortableHeader";
 import DeleteButton from "../buttons/DeleteButton";

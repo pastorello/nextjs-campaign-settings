@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import SearchParams from "@/app/lib/definitions/interfaces/pages/SearchParams";
 import { Metadata } from "next";
 
 import { TableSkeleton } from "@/app/ui/skeletons";

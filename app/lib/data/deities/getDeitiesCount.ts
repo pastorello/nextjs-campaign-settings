@@ -1,9 +1,10 @@
 import prisma from "../../connections/prisma";
 import PatronoMetaField from "../../definitions/enums/deities/PatronoMetaField";
 import { getItemsCount, ItemCount } from "../getItemsCount";
+import { SearchParamsInput } from "../validateParams";
 
 export async function getDeitiesCount(
-  searchParams: Record<string, any>
+  searchParams: SearchParamsInput
 ): Promise<ItemCount> {
   const result: ItemCount = await getItemsCount(
     searchParams,

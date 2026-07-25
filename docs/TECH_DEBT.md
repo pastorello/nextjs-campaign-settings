@@ -370,7 +370,7 @@ Turning it on surfaced four genuine defects, none of which any test would have c
 3. **`pageMetaFields.value` was dead tutorial scaffolding** — `fieldType: string` with a numeric coercion validator and a _"Please enter an amount greater than $0"_ message. Unreferenced; deleted.
 4. **`SelectOption.value` was always `string | number`**, so an integer field could not derive its default from its own options without widening. It is now generic (`SelectOption<number>`), with the old annotation still valid by default.
 
-**Step 2 done as well (2026-07-22): the metadata keys are typed.** `MetaConfigKey` was `keyof typeof pageMetaFields` over a `Record<string, PageMeta>` — which is just `string`. Every registry annotation is now `satisfies` instead, so the keys survive inference, and `MetaConfigKey` is the union of the real field names.
+**Steps 2 and 3 done (2026-07-22).** `MetaConfigKey` was `keyof typeof pageMetaFields` over a `Record<string, PageMeta>` — which is just `string`. Every registry annotation is now `satisfies` instead, so the keys survive inference, and `MetaConfigKey` is the union of the real field names.
 
 One subtlety made it work. Domain metas key their entries by enum member (`[SpellMetaField.livello]`), so a bare `keyof` yields _enum member_ types, and string enums are nominal: `PatronoMetaField.allineamento` and `PngMetaField.allineamento` are different types despite both being `"allineamento"`. `MetaConfigKey` therefore collapses them with a template literal, `` `${keyof typeof pageMetaFields}` ``, which accepts either enum member and a plain string alike.
 
@@ -383,7 +383,11 @@ What that bought:
 
 Warnings fell 274 → **256**.
 
-**Still to do (steps 3–4):** `whereClause: any` and `orderBy: any[]` in `getQuery`, `Record<string, any>` search params in `validateParams` and `getItemsCount`, and flipping `no-explicit-any` to an error.
+**Step 3 (query layer typed):** `getQuery` is generic over the Prisma where type (`getQuery<Prisma.spellsWhereInput>(…)`), with `whereClause` / `orderBy` typed via `app/lib/definitions/types/QueryClauses.ts`; `validateParams` takes `RawSearchParams` and its `zodConfig` is `Record<FieldType, ZodTypeAny>`; `getItemsCount` takes a typed `Countable` count delegate instead of `ListItem` (`{[k]: any}`). The `fetchFiltered*` / `getXCount` wrappers pass the Prisma where type through and drop a no-op `await`. Warnings **256 → 211** (−45). Verified the queries still run against a real database (name filter and counts unchanged).
+
+**Two things fixed on the way here.** `SearchParams` (`app/lib/definitions/interfaces/pages/SearchParams.ts`) had no `export`, so it was an ambient global six files used without importing — the finding filed in TD-22. It now exports and is imported explicitly, and gained the index signature it always needed (filter controls add a param per field). And the `sottoclassi` removal's sibling: nothing new, just noted the Promise-vs-object inconsistency in the page layer is real and stays TD-09's — the wrappers now type their input as `RawSearchParams | Promise<RawSearchParams>` and await once, which is honest rather than a fix.
+
+**Still to do (step 4):** flip `no-explicit-any` to an error once the remaining 211 warnings are gone — most are TD-09's four duplicated forms and the maps module's floating promises, not the metadata/query layer.
 
 **Also worth folding into step 2, both found here:**
 

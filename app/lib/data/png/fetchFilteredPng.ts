@@ -1,13 +1,15 @@
 import prisma from "../../connections/prisma";
 import PngItem from "../../definitions/interfaces/png/PngItem";
 import getQuery from "../getQuery";
+import { SearchParamsInput } from "../validateParams";
+import { Prisma } from "@/generated/prisma/client";
 import PngMetaField from "../../definitions/enums/png/PngMetaField";
 
 export async function fetchFilteredPng(
-  searchParams: Record<string, any>
+  searchParams: SearchParamsInput
 ): Promise<PngItem[]> {
   const theParams = await searchParams;
-  const theQuery = await getQuery(theParams, [
+  const theQuery = getQuery<Prisma.pngWhereInput>(theParams, [
     PngMetaField.nome,
     PngMetaField.descrizione,
     PngMetaField.titolo,

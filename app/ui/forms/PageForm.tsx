@@ -47,7 +47,7 @@ const PageForm = ({
         <BaseButton
           onClick={onSaveFinished}
           disabled={!(hasEdits || isDeletingMode)}
-          buttonState={isSaving ? ButtonState.Loading : ButtonState.Flat}
+          buttonState={isSaving ? ButtonState.Loading : ButtonState.Default}
           variant={
             isDeletingMode ? ButtonVariant.danger : ButtonVariant.primary
           }
@@ -57,7 +57,7 @@ const PageForm = ({
         <BaseButton
           onClick={onCancel}
           variant={ButtonVariant.secondary}
-          buttonState={isSaving ? ButtonState.Disabled : ButtonState.Flat}
+          buttonState={isSaving ? ButtonState.Disabled : ButtonState.Default}
         >
           {"Annulla"}
         </BaseButton>

@@ -5,7 +5,7 @@ import ButtonState from "./ButtonState";
 const getCSSClasses = (
   variant: ButtonVariant,
   size: ButtonSize,
-  buttonState: ButtonState = ButtonState.Flat
+  buttonState: ButtonState = ButtonState.Default
 ) => {
   const baseClasses =
     "flex rounded disabled:bg-stone-400 disabled:cursor-not-allowed";
@@ -53,7 +53,7 @@ const getCSSClasses = (
   // (applied by the `disabled` attribute), so ButtonState.Disabled adds no
   // extra classes here — the component sets the attribute instead.
   const stateRules = {
-    [ButtonState.Flat]: "",
+    [ButtonState.Default]: "",
     [ButtonState.Active]: selectedColorScheme.selected,
     [ButtonState.Loading]: "cursor-wait",
     [ButtonState.Disabled]: "",

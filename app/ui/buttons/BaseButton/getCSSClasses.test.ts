@@ -6,7 +6,7 @@ import ButtonSize from "./ButtonSize";
 import ButtonState from "./ButtonState";
 
 describe("getCSSClasses", () => {
-  it("defaults to the flat state (no extra state classes)", () => {
+  it("defaults to the default state (no extra state classes)", () => {
     const { stateClasses } = getCSSClasses(
       ButtonVariant.primary,
       ButtonSize.medium

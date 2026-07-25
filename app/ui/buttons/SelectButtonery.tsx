@@ -56,7 +56,7 @@ const SelectButtonery = ({
               ? buttonClassName
               : "mb-2 w-full text-center"
           }
-          buttonState={!isActive ? ButtonState.Active : ButtonState.Flat}
+          buttonState={!isActive ? ButtonState.Active : ButtonState.Default}
           key={-1}
           onClick={() => onFilter(-1)}
           size={buttonSize}
@@ -81,7 +81,9 @@ const SelectButtonery = ({
               : "mb-2 w-full text-center"
           }
           buttonState={
-            item.value === filterValue ? ButtonState.Active : ButtonState.Flat
+            item.value === filterValue
+              ? ButtonState.Active
+              : ButtonState.Default
           }
           key={item.value}
           onClick={() => onFilter(item.value)}

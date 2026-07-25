@@ -61,7 +61,7 @@ const BaseButton = ({
   icon,
   size = ButtonSize.medium,
   to,
-  buttonState = ButtonState.Flat,
+  buttonState = ButtonState.Default,
 }: BaseButtonProps) => {
   const isLoading = buttonState === ButtonState.Loading;
   // The `disabled` prop and ButtonState.Disabled are two doors to the same

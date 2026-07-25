@@ -1,4 +1,4 @@
-import pageMetaFields, { fieldMeta } from "../../config/pageMetaFields";
+import { fieldMeta } from "../../config/pageMetaFields";
 import parseSerializedArray from "./parseSerializedArray";
 import FieldType from "../../definitions/types/FieldType";
 import isValidString from "../validators/isValidString";

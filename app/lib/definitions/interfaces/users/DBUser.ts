@@ -4,3 +4,5 @@ interface DBUser {
   email: string;
   password: string;
 }
+
+export default DBUser;

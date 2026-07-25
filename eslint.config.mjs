@@ -33,10 +33,14 @@ export default tseslint.config(
 
   {
     rules: {
-      // A leading unused parameter is unavoidable in Next route handlers, whose
-      // signature is (request, context) even when only context is read.
+      // Unused locals, params and imports are an error — the codebase passes
+      // this today. A leading `_` exempts a parameter that a signature forces
+      // (Next route handlers are `(request, context)` even when only one is
+      // read). WorldMap.tsx and the vendored maps module keep unwired
+      // scaffolding on purpose and opt out with a file-level disable comment
+      // (see CLAUDE.md, "unused is not dead").
       "@typescript-eslint/no-unused-vars": [
-        "warn",
+        "error",
         { args: "after-used", argsIgnorePattern: "^_" },
       ],
 

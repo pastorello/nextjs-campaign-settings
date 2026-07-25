@@ -1,7 +1,4 @@
-import validateParams, {
-  RawSearchParams,
-  SearchParams,
-} from "./validateParams";
+import validateParams, { RawSearchParams } from "./validateParams";
 import MetaConfigKey from "../definitions/types/MetaConfigKey";
 import pageMetaFields from "../config/pageMetaFields";
 import FieldType from "../definitions/types/FieldType";

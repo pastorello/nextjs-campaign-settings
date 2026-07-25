@@ -8,7 +8,7 @@ import MetaConfigKey from "@/app/lib/definitions/types/MetaConfigKey";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import ButtonSize from "./BaseButton/ButtonSize";
 import BaseButton from "./BaseButton";
-import pageMetaFields, { fieldMeta } from "@/app/lib/config/pageMetaFields";
+import { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import useFilterController from "@/app/lib/hooks/useFilterController";
 import isValidDataArray from "@/app/lib/utils/validators/isValidDataArray";
 

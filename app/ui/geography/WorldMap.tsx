@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars -- WorldMap is a work-in-progress MVP over the vendored maps module; its unwired handlers and locals are kept on purpose. See CLAUDE.md, "unused is not dead". */
 "use client";
 
 import { useState, useCallback, useMemo, useEffect } from "react";

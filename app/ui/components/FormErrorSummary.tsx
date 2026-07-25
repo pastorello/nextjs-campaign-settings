@@ -1,4 +1,4 @@
-import pageMetaFields, { fieldMeta } from "@/app/lib/config/pageMetaFields";
+import { fieldMeta } from "@/app/lib/config/pageMetaFields";
 
 // All user-facing copy for this component, in one place so TD-21 can extract it
 // without hunting through JSX.

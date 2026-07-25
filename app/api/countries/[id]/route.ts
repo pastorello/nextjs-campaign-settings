@@ -21,7 +21,7 @@ let fullGeoJSONCache: GeoJSONData | null = null;
  * Returns full GeoJSON feature for a specific country
  */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   // Await params in Next.js 15+

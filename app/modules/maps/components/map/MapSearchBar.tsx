@@ -88,6 +88,7 @@ export function MapSearchBar({
     // Fetch immediately when first expanded
     if (searchQuery === "") {
       fetchCountries();
+      return;
     } else {
       // Debounce when searching
       const timer = setTimeout(fetchCountries, 150);

@@ -23,7 +23,6 @@ export const ListPage = ({
   title,
   searchPlaceholder,
   itemCount,
-  searchParams,
   itemNamePlural,
   itemNameSingular,
   newItemRoute,

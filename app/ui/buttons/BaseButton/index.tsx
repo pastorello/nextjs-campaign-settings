@@ -36,7 +36,6 @@ const BaseButton = ({
   icon,
   size = ButtonSize.medium,
   to,
-  buttonState = ButtonState.Default,
 }: BaseButtonProps) => {
   const { sizeClasses, selectedColorScheme } = getCSSClasses(variant, size);
 

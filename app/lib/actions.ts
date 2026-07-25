@@ -5,7 +5,7 @@ import { AuthError } from "next-auth";
 import { sendErrorNotification } from "./actions/notifications/sendNotification";
 
 export async function authenticate(
-  prevState: string | undefined,
+  _prevState: string | undefined,
   formData: FormData
 ) {
   try {
@@ -22,4 +22,6 @@ export async function authenticate(
     }
     throw error;
   }
+
+  return undefined;
 }

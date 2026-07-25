@@ -64,6 +64,8 @@ export function useMapContextMenu(): UseMapContextMenuReturn {
       document.addEventListener("keydown", handleKeyDown);
       return () => document.removeEventListener("keydown", handleKeyDown);
     }
+
+    return undefined;
   }, [isOpen, close]);
 
   /**

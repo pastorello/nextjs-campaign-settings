@@ -18,34 +18,34 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-| ID    | Title                                                       | Severity             | Effort | Phase |
-| ----- | ----------------------------------------------------------- | -------------------- | ------ | ----- |
-| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions      | ~~🔴 Critical~~ done | M      | 1     |
-| TD-02 | ✅ No input validation (Phase 1); TD-02b remains            | ~~🔴 Critical~~ done | M      | 1–2   |
-| TD-03 | ✅ Test suite does not run                                  | ~~🔴 Critical~~ done | M      | 1     |
-| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                      | ~~🔴 Critical~~ done | S      | 1     |
-| TD-05 | ✅ No ESLint config, no Prettier, no CI                     | ~~🟠 High~~ done     | S      | 1     |
-| TD-06 | ✅ Dead code and tutorial leftovers                         | ~~🟠 High~~ done     | S      | 1     |
-| TD-07 | ✅ `next`/`react` pinned; single lockfile                   | ~~🟠 High~~ done     | S      | 1     |
-| TD-08 | ◑ metadata typed (steps 1–2); query layer still `any`       | 🟠 High              | M      | 2     |
-| TD-09 | Four near-identical Card/List/Library/Form quartets         | 🟠 High              | L      | 2     |
-| TD-10 | Notification system is a `console.log` stub                 | 🟠 High              | M      | 2     |
-| TD-11 | Schema has no timestamps, indexes, or relations             | 🟡 Medium            | M      | 2     |
-| TD-12 | Pagination count and rows use separate queries              | 🟡 Medium            | S      | 2     |
-| TD-13 | Errors surfaced as `throw new Error("Failed to fetch X")`   | 🟡 Medium            | M      | 2     |
-| TD-14 | Map POIs persisted only to `localStorage`                   | 🟡 Medium            | M      | 3     |
-| TD-15 | No accessibility pass                                       | 🟡 Medium            | M      | 2     |
-| TD-16 | ✅ Inconsistent formatting                                  | ~~🟢 Low~~ done      | S      | 1     |
-| TD-17 | ✅ README does not match reality                            | ~~🟢 Low~~ done      | S      | 1     |
-| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack      | ~~🟢 Low~~ done      | S      | 3     |
-| TD-19 | Mixed Italian/English identifiers                           | 🟠 High              | L      | 2     |
-| TD-20 | TypeScript strictness stops at `strict`; `target` is ES2017 | 🟡 Medium            | M      | 2     |
-| TD-21 | UI strings hardcoded; app must ship in it + en              | 🟠 High              | L      | 2     |
-| TD-22 | 282 lint warnings surfaced by TD-05                         | 🟠 High              | L      | 2     |
-| TD-23 | Migration `resetio` has drifted from the schema             | 🟠 High              | S      | 1     |
-| TD-24 | Playwright E2E harness + 8 critical-flow specs              | 🟠 High              | M      | 1     |
-| TD-25 | An unreachable database surfaces as an opaque UI error      | 🟡 Medium            | S      | 2     |
-| TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved           | ~~🟡 Medium~~ done   | S      | 2     |
+| ID    | Title                                                                | Severity             | Effort | Phase |
+| ----- | -------------------------------------------------------------------- | -------------------- | ------ | ----- |
+| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions               | ~~🔴 Critical~~ done | M      | 1     |
+| TD-02 | ✅ No input validation (Phase 1); TD-02b remains                     | ~~🔴 Critical~~ done | M      | 1–2   |
+| TD-03 | ✅ Test suite does not run                                           | ~~🔴 Critical~~ done | M      | 1     |
+| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                               | ~~🔴 Critical~~ done | S      | 1     |
+| TD-05 | ✅ No ESLint config, no Prettier, no CI                              | ~~🟠 High~~ done     | S      | 1     |
+| TD-06 | ✅ Dead code and tutorial leftovers                                  | ~~🟠 High~~ done     | S      | 1     |
+| TD-07 | ✅ `next`/`react` pinned; single lockfile                            | ~~🟠 High~~ done     | S      | 1     |
+| TD-08 | ◑ metadata typed (steps 1–2); query layer still `any`                | 🟠 High              | M      | 2     |
+| TD-09 | Four near-identical Card/List/Library/Form quartets                  | 🟠 High              | L      | 2     |
+| TD-10 | Notification system is a `console.log` stub                          | 🟠 High              | M      | 2     |
+| TD-11 | Schema has no timestamps, indexes, or relations                      | 🟡 Medium            | M      | 2     |
+| TD-12 | Pagination count and rows use separate queries                       | 🟡 Medium            | S      | 2     |
+| TD-13 | Errors surfaced as `throw new Error("Failed to fetch X")`            | 🟡 Medium            | M      | 2     |
+| TD-14 | Map POIs persisted only to `localStorage`                            | 🟡 Medium            | M      | 3     |
+| TD-15 | No accessibility pass                                                | 🟡 Medium            | M      | 2     |
+| TD-16 | ✅ Inconsistent formatting                                           | ~~🟢 Low~~ done      | S      | 1     |
+| TD-17 | ✅ README does not match reality                                     | ~~🟢 Low~~ done      | S      | 1     |
+| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack               | ~~🟢 Low~~ done      | S      | 3     |
+| TD-19 | Mixed Italian/English identifiers                                    | 🟠 High              | L      | 2     |
+| TD-20 | ◑ strict flags: batch 1 partly done; noUnusedLocals + verbatim split | 🟡 Medium            | M      | 2     |
+| TD-21 | UI strings hardcoded; app must ship in it + en                       | 🟠 High              | L      | 2     |
+| TD-22 | 282 lint warnings surfaced by TD-05                                  | 🟠 High              | L      | 2     |
+| TD-23 | Migration `resetio` has drifted from the schema                      | 🟠 High              | S      | 1     |
+| TD-24 | Playwright E2E harness + 8 critical-flow specs                       | 🟠 High              | M      | 1     |
+| TD-25 | An unreachable database surfaces as an opaque UI error               | 🟡 Medium            | S      | 2     |
+| TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                    | ~~🟡 Medium~~ done   | S      | 2     |
 
 ---
 
@@ -545,9 +545,19 @@ The codebase mixes languages without a rule. Models are English (`spells`, `magi
 
 ---
 
-### TD-20 🟡 TypeScript strictness stops at `strict`
+### TD-20 ◑ TypeScript strictness stops at `strict` — **batch 1 partly done (2026-07-22)**
 
 **Where:** `tsconfig.json`
+
+**Enabled (TD-20a):** `target: ES2022`, `noImplicitReturns`, `noFallthroughCasesInSwitch`, `noImplicitOverride`, `noUnusedParameters`. `typecheck` stays green. Fixes were small: `_`-prefixed the required-but-unused `request` params in the four DELETE handlers and `prevState` in `authenticate`, two `override` keywords in `MapErrorBoundary`, three explicit returns in effects, and two dead destructured props (`buttonState`, `searchParams`) dropped from `BaseButton` / `ListPage` — both still declared in their interfaces and passed by callers, just no longer read.
+
+**Split out on purpose — measured, not as the doc assumed:**
+
+- **`noUnusedLocals` (41 errors), its own item.** Most are trivial dead imports (`lusitana` ×3, leftover `pageMetaFields`, cross-domain `Spell`/`SpellMetaField` copy-paste), but **13 are in `app/ui/geography/WorldMap.tsx`** — a live 371-line component with unwired handler functions (`handleCountrySelect` fetches country GeoJSON and is never called). Those are not obviously dead code; they read as half-built features, and deleting them is a product call, not a flag flip. Worth a focused pass, not a batch commit.
+- **`verbatimModuleSyntax` — 211 errors, not "low, mechanical" as the row below claims.** Auto-fixable but a 211-line diff across the repo; it deserves its own reviewable commit.
+
+Two dead props remain (`BaseButton.buttonState`, `ListPage.searchParams`): declared in interfaces, never read. Clean them with the `noUnusedLocals` pass.
+
 **Blocked by:** TD-08 (the `any`s). TD-04 is done — the 19 errors are gone and `typecheck` exits 0.
 
 `strict: true` **is already enabled**, and since TD-04 it does real work — `pnpm typecheck` is a genuine gate now, not decoration. What still blunts it are the `any` escape hatches: **28 across 17 files** by the linter's count (the original audit's "16 across 6" undercounted — it only looked at the metadata/query core and missed the per-domain fetch/count functions). TD-08 removes them.

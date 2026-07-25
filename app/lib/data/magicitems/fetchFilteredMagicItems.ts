@@ -9,7 +9,7 @@ export async function fetchFilteredMagicItems(
   searchParams: SearchParamsInput
 ): Promise<MagicItem[]> {
   const theParams = await searchParams;
-  const theQuery = getQuery(theParams, [
+  const theQuery = getQuery<Prisma.magicitemsWhereInput>(theParams, [
     MagicItemMetaField.rarita,
     MagicItemMetaField.tipo,
     MagicItemMetaField.sintonia,

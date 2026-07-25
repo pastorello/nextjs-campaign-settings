@@ -4,7 +4,7 @@ import parseIdParam from "@/app/lib/data/validation/parseIdParam";
 import { deletePngById } from "@/app/lib/data/png/deletePngById";
 
 export async function DELETE(
-  request: Request,
+  _request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   const unauthorized = await requireApiSession();

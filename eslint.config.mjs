@@ -10,6 +10,10 @@ export default tseslint.config(
       "node_modules/**",
       "coverage/**",
       "public/**",
+      // Agent worktrees are whole checkouts of this repo living under
+      // .claude/worktrees/. Without this, `pnpm lint` reports every finding
+      // twice over and exits non-zero on a copy nobody is editing.
+      ".claude/**",
       "next-env.d.ts",
       "*.tsbuildinfo",
     ],

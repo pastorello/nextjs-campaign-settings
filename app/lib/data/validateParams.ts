@@ -1,10 +1,21 @@
-import { z, ZodRawShape } from "zod";
+import { z, ZodRawShape, ZodTypeAny } from "zod";
 import MetaConfigKey from "../definitions/types/MetaConfigKey";
 import FieldType from "../definitions/types/FieldType";
 import isKeyOfItem from "../utils/validators/isKeyOfItem";
 import pageMetaFields, { fieldMeta } from "../config/pageMetaFields";
 
-const zodConfig: Record<FieldType, any> = {
+/** The raw, untrusted query record before validation — every value a string. */
+export type RawSearchParams = Record<string, string | undefined>;
+
+/**
+ * What a data-layer entry point accepts. Next passes `searchParams` as a
+ * Promise, and some call sites await it first while others pass it through, so
+ * both shapes reach here. Awaiting a non-promise is a no-op, so `await`-ing the
+ * argument once inside covers both.
+ */
+export type SearchParamsInput = RawSearchParams | Promise<RawSearchParams>;
+
+const zodConfig: Record<FieldType, ZodTypeAny> = {
   [FieldType.integer]: z.coerce
     .number()
     .transform((val) => (val >= 0 ? val : null))
@@ -27,7 +38,7 @@ const zodConfig: Record<FieldType, any> = {
   ),
 };
 
-type SearchParams = {
+export type SearchParams = {
   query?: string | null;
   sort?: string | null;
   page?: number | null;
@@ -36,8 +47,8 @@ type SearchParams = {
   [K in MetaConfigKey]: boolean | number | string | null;
 };
 
-const getParamsSchema = (aQuery: Record<string, any>): ZodRawShape => {
-  const paramsSchema: Record<string, any> = {
+const getParamsSchema = (aQuery: RawSearchParams): ZodRawShape => {
+  const paramsSchema: Record<string, ZodTypeAny> = {
     sortFields: z
       .string()
       .nullable()
@@ -60,14 +71,12 @@ const getParamsSchema = (aQuery: Record<string, any>): ZodRawShape => {
   return paramsSchema;
 };
 
-export default function validateParams(
-  query: Record<string, any>
-): SearchParams {
+export default function validateParams(query: RawSearchParams): SearchParams {
   const schema = getParamsSchema(query);
-  // The shape is assembled at runtime from whichever keys the query carries,
-  // so Zod can only infer `Record<string, unknown>` here. The values really are
-  // `string | number | boolean | null` — every branch of `zodConfig` produces
-  // one — but proving that statically needs the typed metadata keys from TD-08,
-  // which is where this assertion should be deleted.
+  // The schema is assembled at runtime from whichever keys the query carries, so
+  // Zod infers `Record<string, …>` rather than the exact SearchParams shape. The
+  // values are correct by construction — every zodConfig branch yields
+  // `string | number | boolean | null` — but only a runtime-built schema could
+  // prove it, so this stays a single documented assertion.
   return z.object(schema).parse(query) as SearchParams;
 }

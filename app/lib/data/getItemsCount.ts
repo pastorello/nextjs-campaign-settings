@@ -1,6 +1,7 @@
 import { DEFAULT_ITEMS_PER_PAGE } from "../config/constants";
-import ListItem from "../definitions/interfaces/ListItem";
 import MetaConfigKey from "../definitions/types/MetaConfigKey";
+import { SearchParamsInput } from "./validateParams";
+import type { WhereClause } from "../definitions/types/QueryClauses";
 import getQuery from "./getQuery";
 
 export interface ItemCount {
@@ -10,17 +11,17 @@ export interface ItemCount {
   filteredPages: number;
 }
 
+/** The slice of a Prisma model delegate this needs: a `count` that takes a where. */
+interface Countable {
+  count(args?: { where?: WhereClause }): Promise<number>;
+}
+
 export async function getItemsCount(
-  searchParams: Record<string, any>,
+  searchParams: SearchParamsInput,
   enabledMeta: MetaConfigKey[],
-  crudFunction: ListItem
-): Promise<{
-  total: number;
-  filtered: number;
-  totalPages: number;
-  filteredPages: number;
-}> {
-  const { where } = getQuery(searchParams, enabledMeta);
+  crudFunction: Countable
+): Promise<ItemCount> {
+  const { where } = getQuery(await searchParams, enabledMeta);
 
   const total = await crudFunction.count();
   const filtered = await crudFunction.count({ where });

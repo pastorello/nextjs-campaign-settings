@@ -1,10 +1,12 @@
 import MagicItem from "@/app/lib/definitions/interfaces/magicitem/MagicItem";
 import prisma from "../../connections/prisma";
 import getQuery from "../getQuery";
+import { SearchParamsInput } from "../validateParams";
+import { Prisma } from "@/generated/prisma/client";
 import MagicItemMetaField from "../../definitions/enums/magicitem/MagicItemMetaField";
 
 export async function fetchFilteredMagicItems(
-  searchParams: Record<string, any>
+  searchParams: SearchParamsInput
 ): Promise<MagicItem[]> {
   const theParams = await searchParams;
   const theQuery = getQuery(theParams, [

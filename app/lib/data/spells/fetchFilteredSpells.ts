@@ -1,13 +1,15 @@
 import prisma from "../../connections/prisma";
 import getQuery from "../getQuery";
+import { SearchParamsInput } from "../validateParams";
+import { Prisma } from "@/generated/prisma/client";
 import SpellMetaField from "../../definitions/enums/spells/SpellMetaField";
 import Spell from "../../definitions/interfaces/spells/Spell";
 
 export async function fetchFilteredSpells(
-  searchParams: Record<string, any>
+  searchParams: SearchParamsInput
 ): Promise<Spell[]> {
   const theParams = await searchParams;
-  const theQuery = await getQuery(theParams, [
+  const theQuery = getQuery<Prisma.spellsWhereInput>(theParams, [
     SpellMetaField.nome,
     SpellMetaField.livello,
     SpellMetaField.circolo,

@@ -1,9 +1,10 @@
 import prisma from "../../connections/prisma";
 import MagicItemMetaField from "../../definitions/enums/magicitem/MagicItemMetaField";
 import { getItemsCount, ItemCount } from "../getItemsCount";
+import { SearchParamsInput } from "../validateParams";
 
 export async function getMagicItemsCount(
-  searchParams: Record<string, any>
+  searchParams: SearchParamsInput
 ): Promise<ItemCount> {
   const result: ItemCount = await getItemsCount(
     searchParams,

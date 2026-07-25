@@ -7,7 +7,6 @@ import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildCreateSchema } from "../validation/buildEntitySchema";
 import MagicItem from "@/app/lib/definitions/interfaces/magicitem/MagicItem";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 export default async function createMagicItem(
   formData: MagicItem

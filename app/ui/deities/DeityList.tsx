@@ -5,7 +5,6 @@ import DeleteButton from "../buttons/DeleteButton";
 import ListItem from "@/app/lib/definitions/interfaces/ListItem";
 import PageType from "@/app/lib/definitions/types/PageType";
 import ModalButton from "../buttons/ModalButton";
-import SpellMetaField from "@/app/lib/definitions/enums/spells/SpellMetaField";
 import { fetchFilteredDeities } from "@/app/lib/data/deities/fetchFilteredDeities";
 import PatronoMetaField from "@/app/lib/definitions/enums/deities/PatronoMetaField";
 

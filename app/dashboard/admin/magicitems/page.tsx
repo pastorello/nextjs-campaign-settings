@@ -3,7 +3,6 @@ import { Metadata } from "next";
 
 import Pagination from "@/app/ui/components/pagination";
 import Search from "@/app/ui/search";
-import { lusitana } from "@/app/ui/fonts";
 import { TableSkeleton } from "@/app/ui/skeletons";
 import MagicItemsList from "@/app/ui/magicitems/MagicItemsList";
 import BaseButton from "@/app/ui/buttons/BaseButton";

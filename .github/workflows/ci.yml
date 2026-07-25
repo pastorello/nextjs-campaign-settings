@@ -143,23 +143,27 @@ jobs:
   # ---------------------------------------------------------------------------
   # End-to-end. Slowest job, so it runs only once the cheaper ones are green.
   #
-  # NON-BLOCKING until TD-24. Playwright is not a dependency, there is no
-  # playwright.config.ts and no specs exist, so `pnpm test:e2e` is undefined and
-  # this job cannot pass. `continue-on-error` keeps the overall run green rather
-  # than reporting a red nobody can act on yet — the four gates that do block
-  # (static, test, build) are the real Phase 1 exit criteria.
+  # STILL NON-BLOCKING, but no longer for TD-24's reason. Playwright, the config
+  # and 26 passing specs landed on 2026-07-25 — `pnpm test:e2e` is green locally
+  # in ~15s.
   #
-  # TD-24 installs Playwright and the eight critical-flow specs, and its final
-  # step is to delete the `continue-on-error` line below so this job blocks
-  # again. Scheduled after TD-01 and TD-02 — the auth and validation flows the
-  # specs assert must exist and be stable first. See docs/TECH_DEBT.md TD-24 and
-  # docs/TESTING.md §E2E. Do not delete the job; do not expect it to pass yet.
+  # What this job cannot get past is the "Apply migrations and seed" step above:
+  # `prisma migrate deploy` applies the one committed migration, which has
+  # drifted from the schema, and `pnpm db:seed` then dies on
+  # `column "nome" of relation "spells" does not exist`. That is TD-23, and it
+  # is fixed by regenerating the migration alongside TD-11's schema changes.
+  # Playwright is never reached, so making this blocking now would report a red
+  # that no change to the specs could clear.
+  #
+  # Delete the `continue-on-error` line below as the last step of TD-23/TD-11 —
+  # at that point the Phase 1 exit criteria gain their fifth gate. See
+  # docs/TECH_DEBT.md TD-24 and TD-23.
   # ---------------------------------------------------------------------------
   e2e:
     name: E2E tests
     runs-on: ubuntu-latest
     needs: [static, test]
-    # Remove this line as the last step of TD-24, once the specs exist.
+    # Remove this line once TD-23 lets the seed run. The specs already exist.
     continue-on-error: true
     services:
       postgres:

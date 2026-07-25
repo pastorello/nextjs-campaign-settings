@@ -1,6 +1,6 @@
 # Technical Debt Register
 
-**Last updated:** 2026-07-22
+**Last updated:** 2026-07-25
 **Scope:** everything found in the 2026-07-22 audit. Each item is independently actionable and sized to be completable in one focused session.
 
 ## Legend
@@ -41,11 +41,12 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-19 | Mixed Italian/English identifiers                                    | 🟠 High              | L      | 2     |
 | TD-20 | ◑ strict flags: batch 1 partly done; noUnusedLocals + verbatim split | 🟡 Medium            | M      | 2     |
 | TD-21 | UI strings hardcoded; app must ship in it + en                       | 🟠 High              | L      | 2     |
-| TD-22 | 282 lint warnings surfaced by TD-05                                  | 🟠 High              | L      | 2     |
+| TD-22 | ◑ lint warnings: 282 → 165; `no-unused-vars` back to `error`         | 🟠 High              | M      | 2     |
 | TD-23 | Migration `resetio` has drifted from the schema                      | 🟠 High              | S      | 1     |
-| TD-24 | Playwright E2E harness + 8 critical-flow specs                       | 🟠 High              | M      | 1     |
+| TD-24 | ◑ Playwright + 26 specs green; CI job still blocked by TD-23         | 🟠 High              | M      | 1     |
 | TD-25 | An unreachable database surfaces as an opaque UI error               | 🟡 Medium            | S      | 2     |
 | TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                    | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-27 | Spells list applies a hidden `classi=0` filter on mount              | 🟠 High              | S      | 2     |
 
 ---
 
@@ -657,13 +658,33 @@ Removing `next.config.ts`'s `require()` calls also took 11 warnings off TD-22.
 
 ---
 
-### TD-22 🟠 293 lint warnings surfaced by TD-05
+### TD-22 ◑ Lint warnings surfaced by TD-05 — **293 → 282 → 165**
 
 **Where:** repo-wide; concentrated in the metadata/query layer and `app/modules/maps/`
 **Blocked by:** nothing — but most of it dissolves when TD-08 lands
 **Config:** `eslint.config.mjs`, the block headed _Severity policy_
 
 Switching the linter on reported 293 findings; TD-18 removed 11 of them with `next.config.ts`, leaving **282**. They are warnings so that `pnpm lint` can exit 0 and the CI gate can be meaningful; every rule not violated today is still an error, so new code cannot add to this list.
+
+**Re-measured 2026-07-25: 165 warnings, 0 errors.** TD-08 steps 2–3 (typed metadata keys and query layer) took out most of the `no-unsafe-*` mass, and PR #25/#26 cleared `no-unused-vars` entirely — that rule is an `error` again, the first one returned from the severity block. Current distribution:
+
+| Rule                                         | Count | Owner     |
+| -------------------------------------------- | ----- | --------- |
+| `@typescript-eslint/no-unsafe-assignment`    | 32    | TD-09     |
+| `@typescript-eslint/no-unsafe-member-access` | 25    | TD-09     |
+| `@typescript-eslint/no-unsafe-call`          | 24    | TD-09     |
+| `@typescript-eslint/no-unsafe-argument`      | 21    | TD-09     |
+| `@typescript-eslint/no-floating-promises`    | 14    | **TD-22** |
+| `@typescript-eslint/no-unsafe-function-type` | 10    | TD-09     |
+| `@typescript-eslint/no-unsafe-return`        | 8     | TD-09     |
+| `@typescript-eslint/no-misused-promises`     | 7     | **TD-22** |
+| `@typescript-eslint/no-explicit-any`         | 6     | TD-08     |
+| `react-hooks/immutability`                   | 4     | TD-09     |
+| everything else (9 rules, ≤3 each)           | 14    | **TD-22** |
+
+**Where they now live matters more than the total.** 48 of the 165 — 12 apiece — are in the four domain forms (`DeityForm`, `MagicItemForm`, `PngForm`, `SpellForm`), fed by the loosely-typed page-manager hooks. Another ~30 are in `app/modules/maps/`, almost all floating promises. So the remaining `no-unsafe-*` backlog is **TD-09's to clear, not TD-08's** — the metadata and query layers are typed now. TD-08 step 4 (flip `no-explicit-any` to error) is gated on the component collapse, not on more metadata work.
+
+The original 282-warning distribution, for reference:
 
 | Rule                                               | Count | Files | Owner             |
 | -------------------------------------------------- | ----- | ----- | ----------------- |
@@ -729,7 +750,35 @@ This is the migration-side twin of the naming note already in TD-16 (`2025112615
 
 ---
 
-### TD-24 🟠 Playwright E2E harness and the eight critical-flow specs
+### TD-24 ◑ Playwright E2E harness — **specs landed 2026-07-25; CI job still non-blocking**
+
+**Outcome:** Playwright is installed, `pnpm test:e2e` runs **26 passing specs in ~15s** against a real database, and the eight flows from TESTING.md §E2E exist. Step 5 — deleting `continue-on-error` — is **deliberately not done**: the `e2e` job dies at `pnpm db:seed`, before Playwright is ever invoked, because of **TD-23**. Making the job blocking now would turn `main` red for a cause that has nothing to do with these specs. It becomes blocking as part of TD-23/TD-11.
+
+**Structure.** `auth.setup.ts` logs in once and saves `storageState`; every spec but `auth.spec.ts` starts authenticated. `auth.spec.ts` runs in its own signed-out project. One worker, no parallelism — the specs share one database and the CRUD ones write to it.
+
+**It found a real bug on its first green run — see [[TD-27]].** That is the argument for the whole item: `getQuery` has 18 unit tests and none of them could see it, because the defect is a mount effect in a component, not a query.
+
+**Four things the written plan got wrong, all found by running it:**
+
+1. **`request.newContext()` inherits the project's `storageState`.** `validation.spec.ts` created an "anonymous" context to assert a 401 and got a 200 — it was signed in. Read as a missing auth guard; the guard was fine (`curl -X DELETE` with no cookies returns 401). **That test also deleted the record it aimed at.** A spec that exercises a destructive endpoint must only ever target a record it created itself. The 401 assertion now lives in `auth.spec.ts`, in the signed-out project, against an id that cannot exist.
+2. **`validation.spec.ts` cannot assert "empty required field → error".** Every string validator is a bare `z.string()`, so an empty `nome` is valid and saving it is correct behaviour — see TD-02, which leaves tightening them open as a product decision. The spec covers the boundary that does reject: malformed `:id` → 400.
+3. **`pagination.spec.ts` cannot navigate pages.** Page size is 30, the seed inserts 4–5 rows per domain, so every list is one page. It asserts the half that carries the risk instead — header count equals rendered rows, which is TD-12's regression test at the UI level.
+4. **`a11y.spec.ts` asserts no _new kind_ of violation, not zero.** Measured today: `link-name` ×4 on every page (the icon-only pencil links in the sidebar have no accessible name), plus `color-contrast` on the lists and `aria-toggle-field-name` on the spell form. A zero-violation gate would be red on arrival — the failure mode TD-05's severity policy exists to avoid.
+
+**Two selector traps worth knowing before touching these specs:**
+
+- The element carrying `role="dialog"` is Headless UI's `<Dialog>` root, `position: relative` with `fixed` children — **no bounding box, so Playwright reports it hidden.** Assert on something inside it. Scoping (`dialog.getByLabel(…)`) is fine, that is DOM containment.
+- The dialog title renders **twice**: `Modal` emits a `<DialogTitle>` h2 and each domain form emits its own h1 with the same text. A heading query inside the dialog is a strict-mode violation. Worth cleaning up with TD-09.
+
+**Local runs mutate the development database.** The CRUD specs create, edit and delete real rows; they use timestamped names and clean up after themselves, but a run interrupted mid-test leaves an `E2E …` record behind. A dedicated E2E database (or the `docker-compose.test.yaml` service TESTING.md §Integration already calls for) is the right fix and is not in this item.
+
+**Still to do:** delete `continue-on-error` once TD-23 lets the seed run; add Firefox and WebKit once the suite has proven stable; revisit the `fixme` in `filtering.spec.ts` when TD-27 is fixed.
+
+The original description follows.
+
+---
+
+### TD-24 (original) 🟠 Playwright E2E harness and the eight critical-flow specs
 
 **Where:** the `e2e` job in `.github/workflows/ci.yml`; a new `e2e/` directory; `playwright.config.ts`
 **Decision:** [ADR-0002](./adr/0002-testing-stack.md) · **Plan:** [TESTING.md §E2E](./TESTING.md)
@@ -815,6 +864,33 @@ There is no `sottoclassi` state at all — both fields read and write `circolo`.
 
 ---
 
+### TD-27 🟠 The spells list applies a hidden "Bardo" filter on mount
+
+**Where:** `app/ui/spells/SpellLibrary.tsx:18`
+**Found:** 2026-07-25, by the first green run of TD-24's `filtering.spec.ts`
+
+```ts
+const { onFilter } = useFilterController(SpellMetaField.classi);
+
+useEffect(() => {
+  onFilter(0); // classi = 0 → "Bardo"
+}, []);
+```
+
+The component mounts and immediately filters the list by the **first class in the options array**, rewriting the URL to `?classi=0&page=1`. Nothing asked it to. The user sees the full list render and then collapse to Bardo spells, and every subsequent filter click composes with a class filter they never chose — click "2° Livello" and the page asks for `livello=2 AND classi=0`, which matches nothing in the seeded data and renders an empty list under two highlighted filter buttons.
+
+**Reproduce:** load `/dashboard/spells`, click any level button, watch the URL. Expected `?livello=2`; actual `?livello=2&classi=0` (or `?classi=0` alone if the effect wins the race). Confirmed by hand in the browser, independently of Playwright.
+
+**Why no existing test caught it.** `getQuery` has 18 unit tests and they all pass: the query layer is doing exactly what it is asked. The wrong _request_ is composed in a component effect, which only an end-to-end assertion can see. This is the clearest evidence in the repo for why TD-24 was worth doing.
+
+**Related:** the same file carries the `react-hooks/exhaustive-deps` warning counted in TD-22 (`onFilter` missing from the dependency array) — the lint warning and this bug are the same line.
+
+**Fix:** work out what the effect was for and almost certainly delete it. If some default filter really is wanted, it belongs in the page's initial search params, not in a mount effect that fights the URL. Then delete the `test.fixme` in `e2e/filtering.spec.ts`, which documents this and skips because of it.
+
+**Done when:** loading the spells list leaves the URL alone, a level filter produces `?livello=N` and nothing else, and `filtering.spec.ts` runs without the fixme.
+
+---
+
 ## Recommended execution order
 
 ```
@@ -825,7 +901,7 @@ There is no `sottoclassi` state at all — both fields read and write `circolo`.
 5. ✅ TD-01  auth guards (+ tests)       → done; requireApiSession + requireSession
 6. ✅ TD-02  Zod validation (+ tests)   → buildEntitySchema + parseIdParam
 7. ✅ TD-07  pin versions, one lockfile
-8.    TD-24  Playwright + 8 E2E specs    → needs TD-01/TD-02's flows to exist; makes e2e blocking again
+8. ◑  TD-24  Playwright + 26 E2E specs   → green locally; `continue-on-error` stays until TD-23
 9. ✅ TD-17  portfolio README
 --- Phase 1 complete: the project is correct, safe and verified ---
 10. TD-08  type the metadata layer
@@ -833,6 +909,8 @@ There is no `sottoclassi` state at all — both fields read and write `circolo`.
 12. TD-19  rename identifiers to English  → needs TD-03's tests and TD-08's typed keys
 13. TD-21  extract UI strings           → same files as TD-19, do them together
 14. TD-11  schema timestamps + indexes  → regenerate the migration here, fixing TD-23
+      ↳ then delete `continue-on-error` from the e2e job, finishing TD-24
+14b. TD-27 delete SpellLibrary's mount effect → S, independent; unskips filtering.spec.ts
 15. TD-12  single where-clause
 16. TD-02b remaining trust boundaries (env, localStorage, GeoJSON)
 17. TD-13  typed errors                    → preserve { cause }; biggest diagnosability win

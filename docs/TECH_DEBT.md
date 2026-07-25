@@ -553,7 +553,7 @@ The codebase mixes languages without a rule. Models are English (`spells`, `magi
 
 **Split out on purpose — measured, not as the doc assumed:**
 
-- **`noUnusedLocals` (41 errors), its own item.** Most are trivial dead imports (`lusitana` ×3, leftover `pageMetaFields`, cross-domain `Spell`/`SpellMetaField` copy-paste), but **13 are in `app/ui/geography/WorldMap.tsx`** — a live 371-line component with unwired handler functions (`handleCountrySelect` fetches country GeoJSON and is never called). Those are not obviously dead code; they read as half-built features, and deleting them is a product call, not a flag flip. Worth a focused pass, not a batch commit.
+- **`noUnusedLocals` (41 errors) — likely rejected for this repo, not just split.** Some are genuine dead imports, but **13 are in `app/ui/geography/WorldMap.tsx`**, and the DM has confirmed those are _unwired scaffolding, not dead code_: the maps module (`app/modules/maps/`) is a vendored library and `WorldMap` is a thin MVP that will wire more of it up over time. `noUnusedLocals` would force deleting exactly that optionality. So this flag conflicts with a deliberate practice here (keep unused-but-intended imports/handlers) and should probably **not** be enabled — or only with those files excluded. Decide with the DM before touching it; do not delete the scaffolding to satisfy the flag.
 - **`verbatimModuleSyntax` — 211 errors, not "low, mechanical" as the row below claims.** Auto-fixable but a 211-line diff across the repo; it deserves its own reviewable commit.
 
 Two dead props remain (`BaseButton.buttonState`, `ListPage.searchParams`): declared in interfaces, never read. Clean them with the `noUnusedLocals` pass.

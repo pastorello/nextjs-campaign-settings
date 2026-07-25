@@ -208,12 +208,35 @@ docs/**                       state, architecture, debt, testing, roadmap, ADRs,
 
 ---
 
+## Bringing research into the codebase (Cowork → Claude Code)
+
+Design and research often start in a Cowork/Chat session or a claude.ai Project.
+**A Claude Code session cannot read a Project's knowledge or memory** — the two
+are separate systems (verified 2026-07-22). The only bridge is the filesystem: the
+product of that thinking has to be **committed to the repo as a file** before an
+agent here can build against it.
+
+- **Reference rules** (how the game works) go in `docs/domain/`, restated in our
+  own words. **Game mechanics are not copyrightable; rulebook text is** — restate
+  the systems, never paste manual prose, never commit the PDFs. Prefer the SRD
+  5.1 (Creative Commons). See [`docs/domain/README.md`](./docs/domain/README.md).
+- **Feature intent** (what we build and why) goes in `docs/specs/`, using the
+  existing template. A spec cites the domain files it depends on.
+- Claude Code reads PDFs directly (up to 20 pages at a time), but the durable
+  pattern is to distil first and commit the distilled markdown, not the source.
+
+The loop: research in Cowork → commit distilled notes to `docs/domain/` and a
+spec to `docs/specs/` → Claude Code builds against them → PR.
+
+---
+
 ## Related documents
 
 | Document                                           | Read it when                                     |
 | -------------------------------------------------- | ------------------------------------------------ |
 | [`docs/PROJECT_STATE.md`](./docs/PROJECT_STATE.md) | Starting a session; you need the inventory       |
 | [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)   | Touching the metadata layer, data access or auth |
+| [`docs/domain/`](./docs/domain/)                   | Building a game feature; you need the 5e rules   |
 | [`docs/TECH_DEBT.md`](./docs/TECH_DEBT.md)         | Deciding what to work on; checking sequencing    |
 | [`docs/TESTING.md`](./docs/TESTING.md)             | Writing any test                                 |
 | [`docs/ROADMAP.md`](./docs/ROADMAP.md)             | Planning; recording a feature idea               |

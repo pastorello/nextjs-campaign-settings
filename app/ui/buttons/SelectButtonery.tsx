@@ -1,12 +1,11 @@
 "use client";
 
-import clsx from "clsx";
-
 import ListItem from "@/app/lib/definitions/interfaces/ListItem";
 import MetaConfigKey from "@/app/lib/definitions/types/MetaConfigKey";
 
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import ButtonSize from "./BaseButton/ButtonSize";
+import ButtonState from "./BaseButton/ButtonState";
 import BaseButton from "./BaseButton";
 import { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import useFilterController from "@/app/lib/hooks/useFilterController";
@@ -52,14 +51,12 @@ const SelectButtonery = ({
     <>
       {!omitAllButton && (
         <BaseButton
-          className={clsx(
+          className={
             isValidString(buttonClassName)
               ? buttonClassName
-              : "mb-2 w-full text-center",
-            {
-              "bg-violet-700": !isActive,
-            }
-          )}
+              : "mb-2 w-full text-center"
+          }
+          buttonState={!isActive ? ButtonState.Active : ButtonState.Flat}
           key={-1}
           onClick={() => onFilter(-1)}
           size={buttonSize}
@@ -78,14 +75,14 @@ const SelectButtonery = ({
       )}
       {optionsList.map((item) => (
         <BaseButton
-          className={clsx(
+          className={
             isValidString(buttonClassName)
               ? buttonClassName
-              : "mb-2 w-full text-center",
-            {
-              "bg-violet-700": item.value === filterValue,
-            }
-          )}
+              : "mb-2 w-full text-center"
+          }
+          buttonState={
+            item.value === filterValue ? ButtonState.Active : ButtonState.Flat
+          }
           key={item.value}
           onClick={() => onFilter(item.value)}
           size={buttonSize}

@@ -2,9 +2,9 @@ import { ReactNode } from "react";
 import clsx from "clsx";
 
 import ButtonVariant from "../buttons/BaseButton/ButtonVariant";
+import ButtonState from "../buttons/BaseButton/ButtonState";
 
 import BaseButton from "../buttons/BaseButton";
-import Spinner from "../components/Spinner";
 
 interface PageFormProps {
   lastError?: { message: string };
@@ -46,24 +46,18 @@ const PageForm = ({
       <div className="flex justify-end gap-2">
         <BaseButton
           onClick={onSaveFinished}
-          disabled={!(hasEdits || isDeletingMode) || isSaving}
+          disabled={!(hasEdits || isDeletingMode)}
+          buttonState={isSaving ? ButtonState.Loading : ButtonState.Flat}
           variant={
             isDeletingMode ? ButtonVariant.danger : ButtonVariant.primary
           }
         >
-          {isSaving ? (
-            <>
-              <Spinner />
-              {saveButtonLabels.doingIt}
-            </>
-          ) : (
-            saveButtonLabels.doIt
-          )}
+          {isSaving ? saveButtonLabels.doingIt : saveButtonLabels.doIt}
         </BaseButton>
         <BaseButton
           onClick={onCancel}
           variant={ButtonVariant.secondary}
-          disabled={isSaving}
+          buttonState={isSaving ? ButtonState.Disabled : ButtonState.Flat}
         >
           {"Annulla"}
         </BaseButton>

@@ -3,11 +3,6 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import { LeafletMap } from "@/app/modules/maps/components/map/LeafletMap";
-import { LeafletTileLayer } from "@/app/modules/maps/components/map/LeafletTileLayer";
-import { LeafletGeoJSON } from "@/app/modules/maps/components/map/LeafletGeoJSON";
-import { MapSearchBar } from "@/app/modules/maps/components/map/MapSearchBar";
-import { MapTopBar } from "@/app/modules/maps/components/map/MapTopBar";
-import { MapTileSwitcher } from "@/app/modules/maps/components/map/MapTileSwitcher";
 import { MapControls } from "@/app/modules/maps/components/map/MapControls";
 import { MapDetailsPanel } from "@/app/modules/maps/components/map/MapDetailsPanel";
 import { MapMeasurementPanel } from "@/app/modules/maps/components/map/MapMeasurementPanel";
@@ -19,7 +14,6 @@ import { useMapMarkers } from "@/app/modules/maps/hooks/useMapMarkers";
 import { usePOIManager } from "@/app/modules/maps/hooks/usePOIManager";
 import type { POICategory } from "@/app/modules/maps/types/poi";
 import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
-import { m } from "framer-motion";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import { sendErrorNotification } from "@/app/lib/actions/notifications/sendNotification";
 

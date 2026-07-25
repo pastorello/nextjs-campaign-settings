@@ -1,4 +1,3 @@
-import { useSearchParams } from "next/navigation";
 import pageMetaFields, { fieldMeta } from "../../config/pageMetaFields";
 import parseSerializedArray from "./parseSerializedArray";
 import FieldType from "../../definitions/types/FieldType";

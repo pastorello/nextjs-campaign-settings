@@ -2,8 +2,6 @@
 
 import { memo } from "react";
 import { Utensils, Hotel, Compass, Bus } from "lucide-react";
-import { MapThemeSwitcher } from "./MapThemeSwitcher";
-import { MapUser } from "./MapUser";
 
 const categories = [
   { icon: Utensils, label: "Restaurants", id: "restaurants" },

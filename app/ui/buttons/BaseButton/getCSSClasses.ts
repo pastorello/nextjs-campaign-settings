@@ -1,22 +1,33 @@
 import ButtonSize from "./ButtonSize";
 import ButtonVariant from "./ButtonVariant";
+import ButtonState from "./ButtonState";
 
-const getCSSClasses = (variant: ButtonVariant, size: ButtonSize) => {
+const getCSSClasses = (
+  variant: ButtonVariant,
+  size: ButtonSize,
+  buttonState: ButtonState = ButtonState.Default
+) => {
   const baseClasses =
     "flex rounded disabled:bg-stone-400 disabled:cursor-not-allowed";
 
+  // `selected` is the persistent "active/pressed" look for each variant. It
+  // mirrors the variant's hover colour so the current choice reads as engaged.
   const colorRules = {
     primary: {
       base: "text-white bg-violet-500 hover:bg-violet-700 active:bg-violet-900",
+      selected: "bg-violet-700",
     },
     secondary: {
       base: "text-black bg-white hover:bg-zinc-600 hover:text-white active:bg-black active:text-white",
+      selected: "bg-zinc-600 text-white",
     },
     danger: {
       base: "text-white bg-rose-500 hover:bg-rose-700 active:bg-rose-900",
+      selected: "bg-rose-700",
     },
     neutral: {
       base: "text-black bg-white hover:text-sky-600 active:text-sky-700",
+      selected: "text-sky-600",
     },
   };
 
@@ -38,9 +49,27 @@ const getCSSClasses = (variant: ButtonVariant, size: ButtonSize) => {
     ? colorRules[variant]
     : colorRules.primary;
 
-  selectedColorScheme.base = `${baseClasses} ${selectedSizeClasses.styleClasses} ${selectedColorScheme.base}`;
+  // The disabled look comes from the `disabled:` variants in `baseClasses`
+  // (applied by the `disabled` attribute), so ButtonState.Disabled adds no
+  // extra classes here — the component sets the attribute instead.
+  const stateRules = {
+    [ButtonState.Default]: "",
+    [ButtonState.Active]: selectedColorScheme.selected,
+    [ButtonState.Loading]: "cursor-wait",
+    [ButtonState.Disabled]: "",
+  };
 
-  return { sizeClasses: selectedSizeClasses.sizeClasses, selectedColorScheme };
+  const stateClasses = Object.hasOwn(stateRules, buttonState)
+    ? stateRules[buttonState]
+    : "";
+
+  const base = `${baseClasses} ${selectedSizeClasses.styleClasses} ${selectedColorScheme.base}`;
+
+  return {
+    sizeClasses: selectedSizeClasses.sizeClasses,
+    base,
+    stateClasses,
+  };
 };
 
 export default getCSSClasses;

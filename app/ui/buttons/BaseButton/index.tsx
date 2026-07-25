@@ -27,6 +27,31 @@ interface BaseButtonProps {
   type?: "submit";
 }
 
+// Small inline spinner for the loading state. Kept local and dependency-free
+// (Tailwind's `animate-spin`); the app-level <Spinner> is a full-page loader.
+const ButtonSpinner = () => (
+  <svg
+    className="size-4 animate-spin"
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden="true"
+  >
+    <circle
+      className="opacity-25"
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="currentColor"
+      strokeWidth="4"
+    />
+    <path
+      className="opacity-75"
+      fill="currentColor"
+      d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z"
+    />
+  </svg>
+);
+
 const BaseButton = ({
   children,
   onClick,
@@ -36,11 +61,34 @@ const BaseButton = ({
   icon,
   size = ButtonSize.medium,
   to,
+  buttonState = ButtonState.Default,
 }: BaseButtonProps) => {
-  const { sizeClasses, selectedColorScheme } = getCSSClasses(variant, size);
+  const isLoading = buttonState === ButtonState.Loading;
+  // The `disabled` prop and ButtonState.Disabled are two doors to the same
+  // state; loading is non-interactive too. Reconcile them into one flag.
+  const isDisabled = disabled || buttonState === ButtonState.Disabled;
+  const isNonInteractive = isDisabled || isLoading;
+
+  const { sizeClasses, base, stateClasses } = getCSSClasses(
+    variant,
+    size,
+    buttonState
+  );
+
+  const buttonClasses = clsx(base, stateClasses, className);
 
   const theButton = (
     <>
+      {isLoading && (
+        <div
+          className={clsx(
+            sizeClasses,
+            "flex items-center justify-center px-[5px]"
+          )}
+        >
+          <ButtonSpinner />
+        </div>
+      )}
       {children && (
         <div
           className={clsx(
@@ -51,7 +99,7 @@ const BaseButton = ({
           {children}
         </div>
       )}
-      {isValidString(icon) && (
+      {!isLoading && isValidString(icon) && (
         <div
           className={clsx(sizeClasses, "flex w-[28px] items-center px-[5px]")}
         >
@@ -62,8 +110,17 @@ const BaseButton = ({
   );
 
   if (isValidString(to)) {
+    // Links have no `disabled` attribute; approximate it so a non-interactive
+    // link cannot be followed or focused.
     return (
-      <Link className={clsx(selectedColorScheme.base, className)} href={to}>
+      <Link
+        className={clsx(buttonClasses, {
+          "pointer-events-none opacity-60": isNonInteractive,
+        })}
+        href={to}
+        aria-disabled={isNonInteractive || undefined}
+        tabIndex={isNonInteractive ? -1 : undefined}
+      >
         {theButton}
       </Link>
     );
@@ -79,8 +136,8 @@ const BaseButton = ({
     return (
       <Button
         onClick={submitAction}
-        className={clsx(selectedColorScheme.base, className)}
-        disabled={disabled}
+        className={buttonClasses}
+        disabled={isNonInteractive}
       >
         {theButton}
       </Button>
@@ -89,8 +146,8 @@ const BaseButton = ({
     return (
       <Button
         type="submit"
-        className={clsx(selectedColorScheme.base, className)}
-        disabled={disabled}
+        className={buttonClasses}
+        disabled={isNonInteractive}
       >
         {theButton}
       </Button>

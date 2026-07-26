@@ -17,21 +17,24 @@ import ListItem from "@/app/lib/definitions/interfaces/ListItem";
 import updateMagicItem from "@/app/lib/data/magicitems/updateMagicItem";
 
 interface MagicItemFormProps {
-  magicItem?: MagicItem;
+  // Named `formData` like the other three domain forms. It was `magicItem`,
+  // which meant EntityList would have needed a per-domain prop name for the
+  // same thing — see TD-09.
+  formData?: MagicItem;
   onCancel: () => void;
   onSaveFinished: (page: MagicItem) => void;
 }
 
 export default function MagicItemForm({
-  magicItem,
+  formData,
   onCancel,
   onSaveFinished,
 }: MagicItemFormProps) {
   const pageManagerSettings: ListItem = {};
-  const isEditMode = isValidDataObject(magicItem);
+  const isEditMode = isValidDataObject(formData);
 
   if (isEditMode) {
-    pageManagerSettings.magicItem = magicItem;
+    pageManagerSettings.magicItem = formData;
   }
 
   const { page, setField, getField, editedFields } =

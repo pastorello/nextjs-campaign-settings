@@ -7,7 +7,8 @@ import { TableSkeleton } from "@/app/ui/skeletons";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import { ResetButton } from "@/app/ui/buttons/ResetSearchButton";
 import { getPngCount } from "@/app/lib/data/png/getPngCount";
-import PngList from "@/app/ui/png/PngList";
+import EntityList from "@/app/ui/components/EntityList";
+import PageType from "@/app/lib/definitions/types/PageType";
 import PageTitle from "@/app/ui/typography/PageTitle";
 
 export const metadata: Metadata = {
@@ -37,7 +38,7 @@ export default async function Page(props: {
         <ResetButton />
       </div>
       <Suspense key={query + currentPage} fallback={<TableSkeleton />}>
-        <PngList searchParams={props.searchParams} />
+        <EntityList pageType={PageType.Png} searchParams={props.searchParams} />
       </Suspense>
       <div className="mt-5 flex w-full justify-center">
         <Pagination totalPages={itemCount.filteredPages} />

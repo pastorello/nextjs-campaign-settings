@@ -4,7 +4,8 @@ import { Metadata } from "next";
 import Pagination from "@/app/ui/components/pagination";
 import Search from "@/app/ui/search";
 import { TableSkeleton } from "@/app/ui/skeletons";
-import MagicItemsList from "@/app/ui/magicitems/MagicItemsList";
+import EntityList from "@/app/ui/components/EntityList";
+import PageType from "@/app/lib/definitions/types/PageType";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import { ResetButton } from "@/app/ui/buttons/ResetSearchButton";
 import { getMagicItemsCount } from "@/app/lib/data/magicitems/getMagicItemsCount";
@@ -37,7 +38,10 @@ export default async function Page(props: {
         <ResetButton />
       </div>
       <Suspense key={query + currentPage} fallback={<TableSkeleton />}>
-        <MagicItemsList searchParams={props.searchParams} />
+        <EntityList
+          pageType={PageType.MagicItem}
+          searchParams={props.searchParams}
+        />
       </Suspense>
       <div className="mt-5 flex w-full justify-center">
         <Pagination totalPages={itemCount.filteredPages} />

@@ -10,11 +10,13 @@
 
 **Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 117 tests across 12 files in ~2s. Coverage is **18.7% lines / 12% branches**, enforced in CI as a ratchet — see §2.
 
-**Playwright landed 2026-07-25 (TD-24).** `pnpm test:e2e` runs **26 specs in ~15s** against a real database and a dev server it starts itself. One spec is skipped with a `fixme` naming the bug it found — see TD-27.
+**Playwright landed 2026-07-25 (TD-24).** `pnpm test:e2e` runs **28 specs in ~25s** against a real database and a dev server it starts itself. Nothing is skipped.
 
 > **Two warnings before you run either suite.**
 >
 > **`pnpm test:e2e` writes to whatever database `DATABASE_URL` points at.** The CRUD specs create, edit and delete real records. They use timestamped names and clean up after themselves, but an interrupted run leaves an `E2E …` row behind. Point it at a throwaway database, not at a campaign you care about.
+>
+> **No spec may assume how much data exists.** Every count is read off the page and every assertion is relative to it, because the same suite runs against a 4-row seed and against a 361-spell library. Two rules follow from getting this wrong once: a record a spec creates is _not_ on page 1 of a real list, so look it up with `?query=`; and a click on a filter must wait for hydration, or it lands on server-rendered markup with no handler attached and is silently swallowed.
 >
 > **Anything under `.claude/worktrees/` is a second checkout of this repo.** Both runners walk the filesystem, so a leftover agent worktree makes Vitest collect every suite twice (117 tests read as 228, coverage as 30%) and makes ESLint report thousands of duplicate findings. Both configs now ignore `.claude/**`.
 
@@ -34,7 +36,7 @@ What exists today:
 | `__test__/utils/createEmptyArray.test.ts`           | 1     | Carried over — was never collected before, the filename was malformed      |
 | `app/ui/forms/inputs/Select/Select.test.tsx`        | 2     | Carried over                                                               |
 
-Plus **26 Playwright specs** in `e2e/`, listed in §3.
+Plus **28 Playwright specs** in `e2e/`, listed in §3.
 
 **Still missing, and deliberately so:** integration tests against a real Postgres. Described below, not started. (The Playwright layer that used to be listed here landed with TD-24 on 2026-07-25.)
 

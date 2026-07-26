@@ -1,21 +1,22 @@
 import { test, expect, type Page } from "@playwright/test";
 
+import { DEFAULT_ITEMS_PER_PAGE } from "@/app/lib/config/constants";
+
 /**
- * Pagination — deliberately narrower than docs/TESTING.md §E2E specifies, and
- * the reason is worth stating rather than hiding.
+ * Pagination, asserted as arithmetic rather than against a fixed dataset.
  *
- * That plan says "navigate pages, verify the count matches the rows".
- * Multi-page navigation cannot be exercised against the seeded database:
- * DEFAULT_ITEMS_PER_PAGE is 30 (app/lib/config/constants.ts) and the seed
- * inserts 4–5 records per domain, so every list is exactly one page. Writing a
- * page-2 assertion would mean either creating 30+ records through the UI on
- * every run, or an E2E-only fixture inserting them straight through Prisma —
- * neither of which belongs in TD-24's scope.
+ * Every assertion here derives from the count the page itself reports, so the
+ * suite holds against the four seeded spells and against the DM's real library
+ * of 361 — where the same maths means 13 pages instead of 1. An earlier version
+ * asserted "rendered rows equal the reported count", which is only true while
+ * everything fits on one page and would have broken the moment real data
+ * arrived.
  *
- * What IS asserted is the half carrying the real risk: the count in the header
- * agrees with the rows rendered. That is the UI-level regression test for
- * TD-12, where rows and count come from two separately built queries that can
- * silently drift apart.
+ * The page-size comes from the app's own constant. Hardcoding 30 here would
+ * mean a change to `DEFAULT_ITEMS_PER_PAGE` leaves a green suite behind.
+ *
+ * This is also TD-12's regression test at the UI level: rows and count are
+ * built by two separately constructed queries that can silently drift apart.
  */
 
 /**
@@ -37,7 +38,7 @@ const readCount = async (page: Page) => {
 };
 
 test.describe("pagination", () => {
-  test("the reported count matches the rows actually rendered", async ({
+  test("the first page is full, or holds everything if there is less than a page", async ({
     page,
   }) => {
     await page.goto("/dashboard/admin/spells");
@@ -45,27 +46,44 @@ test.describe("pagination", () => {
     const filtered = await readCount(page);
     expect(filtered).toBeGreaterThan(0);
 
-    await expect(dataRows(page)).toHaveCount(filtered);
+    await expect(dataRows(page)).toHaveCount(
+      Math.min(filtered, DEFAULT_ITEMS_PER_PAGE)
+    );
+  });
+
+  test("the last page holds the remainder", async ({ page }) => {
+    await page.goto("/dashboard/admin/spells");
+    const filtered = await readCount(page);
+
+    const lastPage = Math.ceil(filtered / DEFAULT_ITEMS_PER_PAGE);
+    const expectedOnLastPage =
+      filtered - (lastPage - 1) * DEFAULT_ITEMS_PER_PAGE;
+
+    await page.goto(`/dashboard/admin/spells?page=${lastPage}`);
+
+    await expect(dataRows(page)).toHaveCount(expectedOnLastPage);
+    // The count is a property of the filter, not of the page being viewed.
+    expect(await readCount(page)).toBe(filtered);
+  });
+
+  test("a page beyond the last one renders no rows", async ({ page }) => {
+    await page.goto("/dashboard/admin/spells");
+    const filtered = await readCount(page);
+    const beyond = Math.ceil(filtered / DEFAULT_ITEMS_PER_PAGE) + 1;
+
+    await page.goto(`/dashboard/admin/spells?page=${beyond}`);
+
+    await expect(dataRows(page)).toHaveCount(0);
   });
 
   test("a filtered count also matches its rows", async ({ page }) => {
     await page.goto("/dashboard/admin/spells?query=Dardo");
 
     const filtered = await readCount(page);
-    expect(filtered).toBe(1);
+    expect(filtered).toBeGreaterThan(0);
 
-    await expect(dataRows(page)).toHaveCount(1);
-  });
-
-  test("the pagination control offers no page beyond the data", async ({
-    page,
-  }) => {
-    await page.goto("/dashboard/admin/spells");
-
-    // Seeded data against a page size of 30 — one page, and the control should
-    // say so rather than offering a page 2 that cannot exist.
-    await expect(
-      page.getByRole("link", { name: "2", exact: true })
-    ).toHaveCount(0);
+    await expect(dataRows(page)).toHaveCount(
+      Math.min(filtered, DEFAULT_ITEMS_PER_PAGE)
+    );
   });
 });

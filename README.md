@@ -144,7 +144,10 @@ pnpm lint           # eslint .
 pnpm format:check   # prettier --check .
 pnpm test           # vitest run
 pnpm test:coverage  # vitest run --coverage
-pnpm db:seed        # seed initial data
+pnpm test:e2e       # playwright test
+pnpm test:e2e:ui    # playwright test --ui
+pnpm db:seed        # seed demo data
+pnpm db:import FILE # load a campaign library export (see below)
 pnpm db:studio      # Prisma Studio
 ```
 
@@ -152,15 +155,28 @@ pnpm db:studio      # Prisma Studio
 
 ## Testing
 
-**111 tests across 11 files, ~2s.** The suite concentrates on the parts where a silent failure would be expensive, rather than chasing a coverage number:
+**117 unit tests across 12 files (~2s) and 28 Playwright specs (~25s).** The suite concentrates on the parts where a silent failure would be expensive, rather than chasing a coverage number:
 
 - **Query construction** — `getQuery` is a pure function from search params to a Prisma query, so it is covered exhaustively without a database. Its tests were mutation-checked: breaking `hasSome`, the pagination offset and case-insensitivity each turned the suite red.
 - **Auth guards** — every DELETE endpoint returns 401 and every mutation throws, without a session, with no query reaching the database.
 - **Input validation** — invalid payloads are rejected with field-keyed errors and never written; a payload of every field's declared default is proven to pass its schema.
 
-Line coverage is **18%**, enforced in CI as a ratchet that only moves up. That number is low and honestly reported: it reflects a suite covering the risky core and not yet the UI. End-to-end tests (Playwright) are specified in [`docs/TESTING.md`](./docs/TESTING.md) but **not yet written** — the CI job for them exists and is deliberately non-blocking until it is real.
+- **Critical flows, end to end** — login, the CRUD round trip for two domains, filtering, pagination arithmetic, the map, and an axe accessibility scan. Written to be independent of how much data exists, so the same specs run against the demo seed and against a 361-spell library. They earn their keep: the first green run found a component effect that was silently filtering the spell list.
 
-CI runs lint + typecheck + formatting, the test suite against a real Postgres, and a production build, on every pull request.
+Line coverage is **18%**, enforced in CI as a ratchet that only moves up. That number is low and honestly reported: it reflects a suite covering the risky core and not yet the UI.
+
+CI runs lint + typecheck + formatting, the unit suite against a real Postgres, a production build, and the Playwright suite — five blocking gates on every pull request.
+
+### Loading a campaign library
+
+`pnpm db:seed` installs a handful of demo records. To work with a real library, export it as JSON and load it:
+
+```bash
+pnpm db:import ~/path/to/export.json --dry-run   # validate, write nothing
+pnpm db:import ~/path/to/export.json
+```
+
+Every record is checked against the same Zod validators the app's own mutations use, and records are matched by name, so re-importing updates rather than duplicates. Export files are gitignored by design — campaign content belongs to whoever wrote it.
 
 ---
 

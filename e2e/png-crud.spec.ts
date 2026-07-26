@@ -9,6 +9,11 @@ import { test, expect, type Page } from "@playwright/test";
  */
 const uniqueName = () => `E2E PNG ${Date.now()}`;
 
+/** See spells-crud.spec.ts: a new record is not on page 1 of a real library. */
+const gotoPng = async (page: Page, name: string) => {
+  await page.goto(`/dashboard/admin/png?query=${encodeURIComponent(name)}`);
+};
+
 const rowFor = (page: Page, name: string) =>
   page.getByRole("row").filter({ hasText: name });
 
@@ -28,6 +33,8 @@ test.describe("NPC CRUD", () => {
     await page.getByRole("button", { name: "Crea PNG" }).click();
 
     await page.waitForURL("**/dashboard/admin/png");
+
+    await gotoPng(page, name);
     await expect(rowFor(page, name)).toBeVisible();
 
     await rowFor(page, name).getByRole("button", { name: "Modifica" }).click();
@@ -42,6 +49,8 @@ test.describe("NPC CRUD", () => {
     await editDialog.getByRole("button", { name: "Modifica PNG" }).click();
 
     await expect(editDialog).toHaveCount(0);
+
+    await gotoPng(page, editedName);
     await expect(rowFor(page, editedName)).toBeVisible();
 
     await rowFor(page, editedName)

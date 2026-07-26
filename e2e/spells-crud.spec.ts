@@ -25,6 +25,18 @@ const gotoSpellAdmin = async (page: Page) => {
   ).toBeVisible();
 };
 
+/**
+ * Opens the admin list filtered to one spell.
+ *
+ * Going to the unfiltered list and looking for the row does not work against a
+ * real library: the list is 30 rows per page ordered by name, so a spell called
+ * "E2E Incantesimo 1785…" sits on page 6 of 13 and is simply not on screen.
+ * Searching for it is both robust at any size and what a DM would actually do.
+ */
+const gotoSpell = async (page: Page, name: string) => {
+  await page.goto(`/dashboard/admin/spells?query=${encodeURIComponent(name)}`);
+};
+
 /** The table row whose name cell matches. */
 const rowFor = (page: Page, name: string) =>
   page.getByRole("row").filter({ hasText: name });
@@ -46,6 +58,8 @@ test.describe("spells CRUD", () => {
     await page.getByRole("button", { name: "Crea Incantesimo" }).click();
 
     await page.waitForURL("**/dashboard/admin/spells");
+
+    await gotoSpell(page, name);
     await expect(rowFor(page, name)).toBeVisible();
 
     // --- Update -------------------------------------------------------------
@@ -66,6 +80,8 @@ test.describe("spells CRUD", () => {
       .click();
 
     await expect(editDialog).toHaveCount(0);
+
+    await gotoSpell(page, editedName);
     await expect(rowFor(page, editedName)).toBeVisible();
 
     // --- Delete -------------------------------------------------------------
@@ -92,6 +108,7 @@ test.describe("spells CRUD", () => {
     await page.getByRole("button", { name: "Crea Incantesimo" }).click();
     await page.waitForURL("**/dashboard/admin/spells");
 
+    await gotoSpell(page, name);
     const target = rowFor(page, name);
     await expect(target).toBeVisible();
 

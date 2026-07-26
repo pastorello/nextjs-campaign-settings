@@ -9,11 +9,11 @@ import { Fieldset } from "@headlessui/react";
 import InputComponent from "@/app/ui/forms/inputs/InputComponent";
 import isValidFunction from "@/app/lib/utils/validators/isValidFunction";
 import isValidDataObject from "@/app/lib/utils/validators/isValidDataObject";
-import ListItem from "@/app/lib/definitions/interfaces/ListItem";
 
 import PatronoMetaField from "@/app/lib/definitions/enums/deities/PatronoMetaField";
 import Patrono from "@/app/lib/definitions/interfaces/deities/Patrono";
-import useDeityPageManager from "@/app/lib/hooks/deities/useDeityPageManager";
+import usePageManager from "@/app/lib/hooks/usePageManager";
+import PageType from "@/app/lib/definitions/types/PageType";
 import updateDeity from "@/app/lib/data/deities/updateDeity";
 import createDeity from "@/app/lib/data/deities/createDeity";
 
@@ -28,15 +28,12 @@ export default function DeityForm({
   onCancel,
   onSaveFinished,
 }: DeityFormProps) {
-  const pageManagerSettings: ListItem = {};
   const isEditMode = isValidDataObject(formData);
 
-  if (isEditMode) {
-    pageManagerSettings.pageItem = formData;
-  }
-
-  const { page, setField, getField, editedFields } =
-    useDeityPageManager(pageManagerSettings);
+  const { page, setField, getField, editedFields } = usePageManager(
+    PageType.Deity,
+    formData
+  );
 
   const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
     {}
@@ -55,12 +52,9 @@ export default function DeityForm({
 
     if (isEditMode) {
       result = await updateDeity(
-        editedFields.reduce(
-          (acc: Patrono, item: PatronoMetaField) => ({
-            ...acc,
-            [item]: getField(item),
-          }),
-          { id: page.id }
+        editedFields.reduce<Patrono>(
+          (acc, item) => ({ ...acc, [item]: getField(item) }),
+          { id: page.id } as Patrono
         )
       );
     } else {

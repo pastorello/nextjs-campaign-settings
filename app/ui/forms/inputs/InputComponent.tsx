@@ -1,4 +1,4 @@
-import PrimiviteValue from "@/app/lib/definitions/types/PrimitiveValue";
+import MetaValue from "@/app/lib/definitions/types/MetaValue";
 import ControlType from "@/app/lib/definitions/types/ControlType";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import pageMetaFields, { fieldMeta } from "@/app/lib/config/pageMetaFields";
@@ -10,7 +10,9 @@ import MetaConfigKey from "@/app/lib/definitions/types/MetaConfigKey";
 interface InputComponentProps {
   fieldName: MetaConfigKey;
   setField: Function;
-  value: PrimiviteValue | number[] | string[];
+  // MetaValue is what the metadata layer actually produces; the narrower
+  // union here rejected the mixed arrays it allows.
+  value: MetaValue;
 }
 
 const InputComponent = ({

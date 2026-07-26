@@ -54,24 +54,26 @@ test.describe("spell filtering", () => {
   });
 
   test("a level filter narrows the list to that level", async ({ page }) => {
-    test.fixme(
-      true,
-      "TD-27: SpellLibrary applies a hardcoded classi=0 (Bardo) filter in a " +
-        "mount effect, so a level click lands on livello=N + classi=0 and " +
-        "matches nothing. Remove the effect, then delete this fixme."
-    );
-
     await page.goto("/dashboard/spells");
 
-    // The filter buttons re-render after hydration, and clicking mid-render
-    // lands on whichever button has moved into that spot. Waiting for the list
-    // to settle first is what keeps this from being flaky.
+    // Wait for hydration, not just for the button to exist. These filters are
+    // client components: the markup ships from the server with no handler
+    // attached, so a click that lands too early is swallowed silently — the
+    // URL never changes and the only symptom is a timeout further down. It
+    // surfaced when the library grew from 4 spells to 361 and hydration got
+    // slower, which is the kind of flake that would otherwise be blamed on CI.
+    await page.waitForLoadState("networkidle");
     await expect(page.getByRole("button", { name: "Tutti" })).toBeVisible();
     const { total } = await readCount(page);
 
     await page.getByRole("button", { name: "2° Livello", exact: true }).click();
 
     await page.waitForURL(/livello=2/);
+
+    // Nothing else may come along for the ride. Until TD-27 this asserted the
+    // opposite of what happened: SpellLibrary applied a hardcoded classi=0 in a
+    // mount effect, so the page asked for livello=2 AND classi=0.
+    expect(new URL(page.url()).searchParams.get("classi")).toBeNull();
 
     // The URL changes before the server component streams the filtered rows, so
     // the count reads 0 for a beat. Polling waits that out; reading it once is

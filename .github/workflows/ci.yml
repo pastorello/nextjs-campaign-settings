@@ -143,28 +143,21 @@ jobs:
   # ---------------------------------------------------------------------------
   # End-to-end. Slowest job, so it runs only once the cheaper ones are green.
   #
-  # STILL NON-BLOCKING, but no longer for TD-24's reason. Playwright, the config
-  # and 26 passing specs landed on 2026-07-25 — `pnpm test:e2e` is green locally
-  # in ~15s.
+  # BLOCKING since 2026-07-26. This job spent its whole life as
+  # `continue-on-error`: first because Playwright was not installed (TD-24),
+  # then because the committed migration had drifted from the schema and
+  # `pnpm db:seed` died on `column "nome" of relation "spells" does not exist`
+  # (TD-23). Both are closed, so the job blocks — and the Phase 1 exit criteria
+  # finally have their fifth gate.
   #
-  # What this job cannot get past is the "Apply migrations and seed" step above:
-  # `prisma migrate deploy` applies the one committed migration, which has
-  # drifted from the schema, and `pnpm db:seed` then dies on
-  # `column "nome" of relation "spells" does not exist`. That is TD-23, and it
-  # is fixed by regenerating the migration alongside TD-11's schema changes.
-  # Playwright is never reached, so making this blocking now would report a red
-  # that no change to the specs could clear.
-  #
-  # Delete the `continue-on-error` line below as the last step of TD-23/TD-11 —
-  # at that point the Phase 1 exit criteria gain their fifth gate. See
-  # docs/TECH_DEBT.md TD-24 and TD-23.
+  # If it goes red at "Apply migrations and seed" again, the cause is drift:
+  # `prisma migrate diff --from-config-datasource --to-schema ./prisma/schema.prisma`
+  # against a freshly migrated database must say "No difference detected".
   # ---------------------------------------------------------------------------
   e2e:
     name: E2E tests
     runs-on: ubuntu-latest
     needs: [static, test]
-    # Remove this line once TD-23 lets the seed run. The specs already exist.
-    continue-on-error: true
     services:
       postgres:
         image: postgres:16-alpine

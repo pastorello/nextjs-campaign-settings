@@ -1,6 +1,6 @@
 # Project State — Campaign Settings
 
-**Last updated:** 2026-07-25
+**Last updated:** 2026-07-26
 **Status:** Working prototype, not production-ready
 **Goal of the current phase:** make the project portfolio-grade — no bugs, no dead code, tested, documented, CI-verified. Feature expansion comes after.
 
@@ -63,7 +63,7 @@ pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageM
 │   ├── modules/maps/        # Self-contained Leaflet module (components/hooks/contexts/types)
 │   ├── seed/                # Prisma seed + initial data
 │   └── ui/                  # All presentational components
-├── prisma/                  # schema.prisma + one migration
+├── prisma/                  # schema.prisma + migrations
 ├── generated/prisma/        # Generated client (gitignored)
 ├── __test__/                # Vitest tests and Next mocks (getQuery suite lives in app/)
 ├── auth.ts, auth.config.ts, proxy.ts
@@ -97,7 +97,7 @@ Observations:
 - No relations between models. Everything that is conceptually a foreign key (`fazione`, `luogo`, `allineamento`, `classe`) is stored as a bare `Int` that indexes into a hardcoded TypeScript array. Renumbering an enum silently corrupts existing rows.
 - No `@@index` anywhere, including on the `nome` columns that every list query filters and sorts by.
 - No ownership: records are not tied to a user or a campaign. Multi-campaign support (which you have in mind for later) requires a schema change.
-- Only one migration exists, named `resetio`, and it has drifted from the schema (missing `spells.nome`, plus three orphan tutorial tables) — see TD-23.
+- Two migrations: `resetio`, plus a 2026-07-26 corrective one that patches its drift forward. `prisma migrate diff` against the schema is clean (TD-23). The drift was wider than the name-level comparison suggested — eight `deities` columns were `VARCHAR(255)` where the schema says `Int`.
 
 ---
 
@@ -113,19 +113,19 @@ The matcher excludes `/api`, so the proxy cannot protect the route handlers or S
 
 ## 6. Current health
 
-| Check               | Result                                                                                   |
-| ------------------- | ---------------------------------------------------------------------------------------- |
-| `pnpm typecheck`    | ✅ **0 errors** (19 before TD-06; `next typegen && tsc --noEmit`)                        |
-| `pnpm build`        | ✅ **Passes** on Turbopack — same bundler as `dev` (TD-18)                               |
-| `pnpm test`         | ✅ **117 passed** in ~2s (Vitest)                                                        |
-| `pnpm lint`         | ✅ **0 errors**, 165 warnings (was 282) — backlog tracked as TD-22                       |
-| `pnpm format:check` | ✅ Clean — Prettier applied repo-wide (TD-05/TD-16)                                      |
-| E2E tests           | ✅ **26 Playwright specs** in ~15s (1 skipped — it found TD-27); TD-24                   |
-| CI                  | ⚠️ `static` / `test` / `build` green; `e2e` still `continue-on-error` — blocked by TD-23 |
-| Test coverage       | 18.7% lines / 12% branches — thresholds set there and ratcheted upward                   |
-| Git history         | Active — PRs #1–#27 merged on `main`                                                     |
-| `.env`              | ✅ Correctly gitignored                                                                  |
-| `.DS_Store`         | ✅ Present on disk but untracked — `.gitignore` is working                               |
+| Check               | Result                                                                         |
+| ------------------- | ------------------------------------------------------------------------------ |
+| `pnpm typecheck`    | ✅ **0 errors** (19 before TD-06; `next typegen && tsc --noEmit`)              |
+| `pnpm build`        | ✅ **Passes** on Turbopack — same bundler as `dev` (TD-18)                     |
+| `pnpm test`         | ✅ **117 passed** in ~2s (Vitest)                                              |
+| `pnpm lint`         | ✅ **0 errors**, 165 warnings (was 282) — backlog tracked as TD-22             |
+| `pnpm format:check` | ✅ Clean — Prettier applied repo-wide (TD-05/TD-16)                            |
+| E2E tests           | ✅ **26 Playwright specs** in ~15s (1 skipped — it found TD-27); TD-24         |
+| CI                  | ✅ All five gates blocking: `static` / `test` / `build` / `e2e` (TD-23 closed) |
+| Test coverage       | 18.7% lines / 12% branches — thresholds set there and ratcheted upward         |
+| Git history         | Active — PRs #1–#27 merged on `main`                                           |
+| `.env`              | ✅ Correctly gitignored                                                        |
+| `.DS_Store`         | ✅ Present on disk but untracked — `.gitignore` is working                     |
 
 TD-04 closed the remaining nine on 2026-07-22. Note that `typecheck` must run `next typegen` first: the route-handler signatures live in generated types that a fresh checkout does not have, so a bare `tsc --noEmit` passes vacuously.
 

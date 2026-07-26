@@ -1,6 +1,6 @@
 # Testing Strategy
 
-**Last updated:** 2026-07-25
+**Last updated:** 2026-07-26
 **Stack:** Vitest + Testing Library (unit/integration) · Playwright (E2E) · MSW where network mocking is needed
 **Decision record:** [ADR-0002](./adr/0002-testing-stack.md)
 
@@ -148,7 +148,7 @@ Chromium in CI; add Firefox and WebKit once the suite is stable. Roughly eight s
 **Why three of them differ from this plan** (full detail in TECH_DEBT.md TD-24):
 
 - **`validation.spec.ts`** — every string field's validator is a bare `z.string()`, so an empty `nome` is valid and saving it is correct. There is no required-field error to assert until TD-02's open product decision is made.
-- **`pagination.spec.ts`** — `DEFAULT_ITEMS_PER_PAGE` is 30 and the seed inserts 4–5 rows per domain. Multi-page navigation needs a fixture that does not exist yet.
+- **`pagination.spec.ts`** — `DEFAULT_ITEMS_PER_PAGE` is 30 and the seed inserts 4–5 rows per domain, so every list is one page. This is a limitation of the _seed_, not of the app: the DM holds a real dataset (361 spells, 119 NPCs, 62 magic items) which at 30 per page is 13 pages of spells. Turning that into an E2E fixture — or into the seed itself — is what unlocks the multi-page assertions this spec currently cannot make, and would make every other spec exercise realistic volumes.
 - **`a11y.spec.ts`** — the app has never had an accessibility pass; each page carries the rule ids failing today and fails on anything new. Shrink the lists as TD-15 lands.
 
 **Two selector traps.** The `role="dialog"` element has no bounding box (its children are `fixed`), so Playwright reports it hidden — assert on something inside it. And each dialog renders its title twice, so a heading query inside one is a strict-mode violation.

@@ -42,8 +42,8 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-20 | ◑ strict flags: batch 1 partly done; noUnusedLocals + verbatim split | 🟡 Medium            | M      | 2     |
 | TD-21 | UI strings hardcoded; app must ship in it + en                       | 🟠 High              | L      | 2     |
 | TD-22 | ◑ lint warnings: 282 → 165; `no-unused-vars` back to `error`         | 🟠 High              | M      | 2     |
-| TD-23 | Migration `resetio` has drifted from the schema                      | 🟠 High              | S      | 1     |
-| TD-24 | ◑ Playwright + 26 specs green; CI job still blocked by TD-23         | 🟠 High              | M      | 1     |
+| TD-23 | ✅ Migration drift patched forward; migrations match the schema      | ~~🟠 High~~ done     | S      | 1     |
+| TD-24 | ✅ Playwright + 26 specs; `e2e` job blocking in CI                   | ~~🟠 High~~ done     | M      | 1     |
 | TD-25 | An unreachable database surfaces as an opaque UI error               | 🟡 Medium            | S      | 2     |
 | TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                    | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-27 | Spells list applies a hidden `classi=0` filter on mount              | 🟠 High              | S      | 2     |
@@ -724,7 +724,34 @@ What genuinely belongs to this item, in priority order:
 
 ---
 
-### TD-23 🟠 The single migration has drifted from the schema
+### TD-23 ✅ The single migration has drifted from the schema — **DONE (2026-07-26)**
+
+**Outcome:** `prisma/migrations/20260726093000_add_spells_nome_drop_tutorial_tables/` patches the drift forward. On a clean database `prisma migrate deploy && pnpm db:seed` now runs green, and `prisma migrate diff --from-config-datasource --to-schema ./prisma/schema.prisma` reports **"No difference detected."** — the migration history reproduces the schema, which is what this item asked for.
+
+**A corrective migration, not a regenerated one.** This item said the clean fix was to regenerate from the schema, and deferred it to TD-11 because that means dropping and recreating the database. With the drift measured, a third option was better than either: patch forward. No reset, no data risk, no waiting for TD-11 — which now adds its timestamps and indexes as an ordinary migration on top.
+
+**The drift was twice what this item recorded.** Comparing column _names_ finds two problems; `prisma migrate diff` finds four:
+
+| #   | Drift                                                                     | Recorded before? | Fails the seed?            |
+| --- | ------------------------------------------------------------------------- | ---------------- | -------------------------- |
+| 1   | `spells.nome` missing                                                     | ✅               | ✅ — this is what broke CI |
+| 2   | `customers`, `invoices`, `revenue` — tutorial tables the schema never had | ✅               | ✗                          |
+| 3   | Eight `deities` columns `VARCHAR(255)` where the schema says `Int`        | ✗                | ✗                          |
+| 4   | `png.descrizione` `NOT NULL` where the schema says `String?`              | ✗                | ✗                          |
+
+Rows 3 and 4 are the interesting ones: they never fail anything, so nothing surfaces them until something depends on the migration reproducing the schema. Row 3 is the same set of fields TD-08 step 1 found declared as integers carrying `defaultValue: ""` — they were strings once, the schema moved on, the migration did not. **Lesson worth keeping: `diff <(column names) <(column names)` is not a drift check. `prisma migrate diff` is.**
+
+**Verified** on a throwaway database in the same Postgres container, so the development data was never touched: create → `migrate deploy` → `db:seed` → 4 spells → `migrate diff` clean → drop.
+
+**Consequence:** the `e2e` job's `continue-on-error` is gone. Phase 1 has its fifth gate.
+
+**Note for a machine set up with `db push`** (which is what the README describes, and what every developer here has): `_prisma_migrations` is empty there, so `migrate deploy` would try to re-apply everything onto tables that already exist. If you ever switch a local database to the migration path, baseline it first with `prisma migrate resolve --applied`. Unchanged by this item — it was already true with one migration.
+
+The original description follows.
+
+---
+
+### TD-23 (original) 🟠 The single migration has drifted from the schema
 
 **Where:** `prisma/migrations/20251126152855_resetio/migration.sql` vs `prisma/schema.prisma`
 **Found:** 2026-07-22, when TD-03 turned the `test` job green and CI's pipeline reached the `e2e` job for the first time.
@@ -750,9 +777,9 @@ This is the migration-side twin of the naming note already in TD-16 (`2025112615
 
 ---
 
-### TD-24 ◑ Playwright E2E harness — **specs landed 2026-07-25; CI job still non-blocking**
+### TD-24 ✅ Playwright E2E harness — **DONE (specs 2026-07-25, CI gate 2026-07-26)**
 
-**Outcome:** Playwright is installed, `pnpm test:e2e` runs **26 passing specs in ~15s** against a real database, and the eight flows from TESTING.md §E2E exist. Step 5 — deleting `continue-on-error` — is **deliberately not done**: the `e2e` job dies at `pnpm db:seed`, before Playwright is ever invoked, because of **TD-23**. Making the job blocking now would turn `main` red for a cause that has nothing to do with these specs. It becomes blocking as part of TD-23/TD-11.
+**Outcome:** Playwright is installed, `pnpm test:e2e` runs **26 passing specs in ~15s** against a real database, and the eight flows from TESTING.md §E2E exist. Step 5 is done too: **`continue-on-error` is gone and the `e2e` job blocks**, which took closing TD-23 first — the job used to die at `pnpm db:seed`, before Playwright was ever invoked.
 
 **Structure.** `auth.setup.ts` logs in once and saves `storageState`; every spec but `auth.spec.ts` starts authenticated. `auth.spec.ts` runs in its own signed-out project. One worker, no parallelism — the specs share one database and the CRUD ones write to it.
 
@@ -772,7 +799,7 @@ This is the migration-side twin of the naming note already in TD-16 (`2025112615
 
 **Local runs mutate the development database.** The CRUD specs create, edit and delete real rows; they use timestamped names and clean up after themselves, but a run interrupted mid-test leaves an `E2E …` record behind. A dedicated E2E database (or the `docker-compose.test.yaml` service TESTING.md §Integration already calls for) is the right fix and is not in this item.
 
-**Still to do:** delete `continue-on-error` once TD-23 lets the seed run; add Firefox and WebKit once the suite has proven stable; revisit the `fixme` in `filtering.spec.ts` when TD-27 is fixed.
+**Still to do, none of it blocking:** add Firefox and WebKit once the suite has proven stable; revisit the `fixme` in `filtering.spec.ts` when TD-27 is fixed; give the suite its own database rather than pointing it at development data.
 
 The original description follows.
 
@@ -901,15 +928,14 @@ The component mounts and immediately filters the list by the **first class in th
 5. ✅ TD-01  auth guards (+ tests)       → done; requireApiSession + requireSession
 6. ✅ TD-02  Zod validation (+ tests)   → buildEntitySchema + parseIdParam
 7. ✅ TD-07  pin versions, one lockfile
-8. ◑  TD-24  Playwright + 26 E2E specs   → green locally; `continue-on-error` stays until TD-23
+8. ✅ TD-24  Playwright + 26 E2E specs    → needed TD-23 to make the CI job blocking
 9. ✅ TD-17  portfolio README
 --- Phase 1 complete: the project is correct, safe and verified ---
 10. TD-08  type the metadata layer
 11. TD-20a strict flags, cheap batch + ES2022 target
 12. TD-19  rename identifiers to English  → needs TD-03's tests and TD-08's typed keys
 13. TD-21  extract UI strings           → same files as TD-19, do them together
-14. TD-11  schema timestamps + indexes  → regenerate the migration here, fixing TD-23
-      ↳ then delete `continue-on-error` from the e2e job, finishing TD-24
+14. TD-11  schema timestamps + indexes  → an ordinary migration now; TD-23 is closed
 14b. TD-27 delete SpellLibrary's mount effect → S, independent; unskips filtering.spec.ts
 15. TD-12  single where-clause
 16. TD-02b remaining trust boundaries (env, localStorage, GeoJSON)

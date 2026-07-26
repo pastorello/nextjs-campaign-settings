@@ -1,6 +1,5 @@
 const png = [
   {
-    id: 525,
     nome: "Ariosto",
     descrizione:
       "<p>è una cosa assai rara poter aver un fabbro nano in un villaggio piccolo come Torrerossa, Ariosto e la sua famiglia, unici esponenti nanici del villaggio, si trasferirono 20 anni fa sotto delega del Duca di Norgam, per gestire le  lavorazioni dei minerali.</p>\n",
@@ -20,7 +19,6 @@ const png = [
       "Ariosto è uno dei compagni d'avventura di Tau'Tok, reso immortale fino al giorno dal suo rituale.",
   },
   {
-    id: 560,
     nome: "Balakka, Tikka e Pukka",
     descrizione:
       "<p>La palude è governata da queste megere che formano la Congrega di Rivacupa.</p>\n",

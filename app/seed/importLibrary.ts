@@ -111,32 +111,8 @@ interface Library {
 
 type DomainSpec = (typeof DOMAINS)[number];
 
-/**
- * Points the table's id sequence past the highest id in use.
- *
- * Needed because `app/seed/initial-data/` inserts **explicit** ids (45, 47, 54,
- * 90 for spells) and nothing advances the sequence afterwards, so it still sits
- * at 1. The next `create` therefore asks for an id that already exists and
- * fails with `Unique constraint failed on the fields: (id)` — through this
- * script, and equally through the app's own "Nuovo Incantesimo" form. Filed as
- * TD-28; this call makes the import survive it rather than fixing the seed.
- *
- * `pageType` is a PageType enum member, not user input, so interpolating it as
- * a table name here is not an injection surface.
- */
-async function resyncIdSequence(pageType: PageType) {
-  await prisma.$executeRawUnsafe(
-    `SELECT setval(
-       pg_get_serial_sequence('"${pageType}"', 'id'),
-       GREATEST(COALESCE((SELECT MAX(id) FROM "${pageType}"), 0), 1)
-     )`
-  );
-}
-
 async function importDomain(spec: DomainSpec, rows: Row[], dryRun: boolean) {
   const schema = buildCreateSchema(spec.pageType);
-
-  if (!dryRun) await resyncIdSequence(spec.pageType);
   let created = 0;
   let updated = 0;
   const rejected: string[] = [];

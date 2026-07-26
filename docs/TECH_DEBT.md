@@ -47,7 +47,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-25 | An unreachable database surfaces as an opaque UI error               | 🟡 Medium            | S      | 2     |
 | TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                    | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-27 | ✅ Hidden `classi=0` filter on the spells list removed               | ~~🟠 High~~ done     | S      | 2     |
-| TD-28 | Seed inserts explicit ids without advancing the id sequence          | 🟠 High              | S      | 2     |
+| TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does       | ~~🟠 High~~ done     | S      | 2     |
 
 ---
 
@@ -943,7 +943,26 @@ The component mounts and immediately filters the list by the **first class in th
 
 ---
 
-### TD-28 🟠 The seed inserts explicit ids without advancing the id sequence
+### TD-28 ✅ The seed inserted explicit ids without advancing the id sequence — **DONE (2026-07-26)**
+
+**Fix, and it is the DM's, not the one filed below.** The original entry proposed calling `setval` after seeding. The better question was why the ids were there at all: seed records are records _to be created_, so their id should come from the database exactly as it does for a record created through the UI. The `id` field is gone from all five files in `app/seed/initial-data/`, and nothing calls `setval` anywhere — the sequences are correct because Postgres generated every value itself.
+
+**What that cost, and how it was paid.** The seed's idempotency came from `skipDuplicates` colliding on the primary key, which worked _only_ because the ids were fixed. Without them, `skipDuplicates` has nothing to collide on (`nome` is not unique) and a second run would duplicate every record. `prismaSeed.ts` now checks for an existing record by `nome` before creating — the same matching rule `db:import` uses — and `users` by `email`, which is unique in the schema.
+
+**Verified on a throwaway database:** migrate → seed → 16 records; seed again → 0 created, counts unchanged; every sequence equal to its table's `max(id)`; and an insert that lets the database choose the id succeeds, which is the case that used to fail.
+
+The workaround this bug caused in `app/seed/importLibrary.ts` — a `resyncIdSequence` call before each import — has been deleted along with it. A database seeded by an older checkout still carries the broken sequences and needs a one-off repair per table:
+
+```sql
+SELECT setval(pg_get_serial_sequence('"deities"', 'id'),
+              GREATEST(COALESCE((SELECT MAX(id) FROM "deities"), 0), 1));
+```
+
+The original description follows.
+
+---
+
+### TD-28 (original) 🟠 The seed inserts explicit ids without advancing the id sequence
 
 **Where:** `app/seed/prismaSeed.ts` and every file in `app/seed/initial-data/`
 **Found:** 2026-07-26, while importing the DM's real library
@@ -988,7 +1007,7 @@ Alternatively drop the explicit ids from the seed data and let the database assi
 13. TD-21  extract UI strings           → same files as TD-19, do them together
 14. ✅ TD-11 schema timestamps + indexes (relations remain, Phase 3)
 14b. ✅ TD-27 SpellLibrary's mount effect deleted
-14c. TD-28 resync the id sequences after seeding → S; blocks creating a deity
+14c. ✅ TD-28 seed ids removed; the database assigns them
 15. TD-12  single where-clause
 16. TD-02b remaining trust boundaries (env, localStorage, GeoJSON)
 17. TD-13  typed errors                    → preserve { cause }; biggest diagnosability win

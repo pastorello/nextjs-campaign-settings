@@ -1,6 +1,6 @@
 # Testing Strategy
 
-**Last updated:** 2026-07-22
+**Last updated:** 2026-07-26
 **Stack:** Vitest + Testing Library (unit/integration) · Playwright (E2E) · MSW where network mocking is needed
 **Decision record:** [ADR-0002](./adr/0002-testing-stack.md)
 
@@ -8,7 +8,15 @@
 
 ## 1. Where we are
 
-**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 111 tests across 11 files in ~2s. Coverage is **18% lines / 11% branches**, enforced in CI as a ratchet — see §2.
+**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 117 tests across 12 files in ~2s. Coverage is **18.7% lines / 12% branches**, enforced in CI as a ratchet — see §2.
+
+**Playwright landed 2026-07-25 (TD-24).** `pnpm test:e2e` runs **26 specs in ~15s** against a real database and a dev server it starts itself. One spec is skipped with a `fixme` naming the bug it found — see TD-27.
+
+> **Two warnings before you run either suite.**
+>
+> **`pnpm test:e2e` writes to whatever database `DATABASE_URL` points at.** The CRUD specs create, edit and delete real records. They use timestamped names and clean up after themselves, but an interrupted run leaves an `E2E …` row behind. Point it at a throwaway database, not at a campaign you care about.
+>
+> **Anything under `.claude/worktrees/` is a second checkout of this repo.** Both runners walk the filesystem, so a leftover agent worktree makes Vitest collect every suite twice (117 tests read as 228, coverage as 30%) and makes ESLint report thousands of duplicate findings. Both configs now ignore `.claude/**`.
 
 What exists today:
 
@@ -26,7 +34,9 @@ What exists today:
 | `__test__/utils/createEmptyArray.test.ts`           | 1     | Carried over — was never collected before, the filename was malformed      |
 | `app/ui/forms/inputs/Select/Select.test.tsx`        | 2     | Carried over                                                               |
 
-**Still missing, and deliberately so:** integration tests against a real Postgres, and the whole Playwright layer. Both are described below and neither is started. The integration tests arrive with TD-01 and TD-02, which is the point of doing this migration first.
+Plus **26 Playwright specs** in `e2e/`, listed in §3.
+
+**Still missing, and deliberately so:** integration tests against a real Postgres. Described below, not started. (The Playwright layer that used to be listed here landed with TD-24 on 2026-07-25.)
 
 ---
 
@@ -70,7 +80,7 @@ Everything else is supporting cast.
 
 Set the CI threshold to whatever you actually achieve at the end of Phase 1, then never let it drop. A threshold you have to disable to merge is worse than no threshold.
 
-**Current thresholds are 18/12/11/17 (lines/functions/branches/statements)** — what the suite achieves today, not the targets above. They are a ratchet: raise them whenever a change adds real coverage, never lower them. The table stays the destination.
+**Current thresholds are 18/13/12/18 (lines/functions/branches/statements)** — what the suite achieves today, not the targets above. They are a ratchet: raise them whenever a change adds real coverage, never lower them. The table stays the destination.
 
 ---
 
@@ -124,16 +134,24 @@ Each test seeds and truncates its own fixtures. No shared mutable state between 
 
 Chromium in CI; add Firefox and WebKit once the suite is stable. Roughly eight specs, no more — E2E is expensive and each one must earn its place.
 
-| Spec                  | Flow                                                                                                                                 |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `auth.spec.ts`        | Log in with valid credentials → dashboard. Invalid credentials → error, no redirect. Unauthenticated `/dashboard/spells` → `/login`. |
-| `spells-crud.spec.ts` | Create a spell → appears in list → edit → delete → gone.                                                                             |
-| `png-crud.spec.ts`    | Same for NPCs (the domain with the most fields).                                                                                     |
-| `filtering.spec.ts`   | Apply filter → list narrows → filters survive reload → reset clears them.                                                            |
-| `pagination.spec.ts`  | Navigate pages, verify the count matches the rows.                                                                                   |
-| `map.spec.ts`         | Map loads, a POI can be placed, tile switching works.                                                                                |
-| `validation.spec.ts`  | Submit an empty required field → inline error, nothing written.                                                                      |
-| `a11y.spec.ts`        | `@axe-core/playwright` over each main page (supports TD-15).                                                                         |
+| Spec                  | Flow                                                                                                                                 | Built as                                                             |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| `auth.spec.ts`        | Log in with valid credentials → dashboard. Invalid credentials → error, no redirect. Unauthenticated `/dashboard/spells` → `/login`. | ✅ as planned, plus the 401 on a DELETE route                        |
+| `spells-crud.spec.ts` | Create a spell → appears in list → edit → delete → gone.                                                                             | ✅ as planned, plus a cancel-the-delete case                         |
+| `png-crud.spec.ts`    | Same for NPCs (the domain with the most fields).                                                                                     | ✅ as planned                                                        |
+| `filtering.spec.ts`   | Apply filter → list narrows → filters survive reload → reset clears them.                                                            | ◑ level-filter case skipped — it found TD-27                         |
+| `pagination.spec.ts`  | Navigate pages, verify the count matches the rows.                                                                                   | ◑ count-vs-rows only; 30/page against 4 seeded rows is one page      |
+| `map.spec.ts`         | Map loads, a POI can be placed, tile switching works.                                                                                | ◑ mount + world switching + context menu; POI placement not asserted |
+| `validation.spec.ts`  | Submit an empty required field → inline error, nothing written.                                                                      | ✗ not writable — see below; covers `:id` → 400 instead               |
+| `a11y.spec.ts`        | `@axe-core/playwright` over each main page (supports TD-15).                                                                         | ✅ as a known-violations allowlist, not a zero-violation gate        |
+
+**Why three of them differ from this plan** (full detail in TECH_DEBT.md TD-24):
+
+- **`validation.spec.ts`** — every string field's validator is a bare `z.string()`, so an empty `nome` is valid and saving it is correct. There is no required-field error to assert until TD-02's open product decision is made.
+- **`pagination.spec.ts`** — `DEFAULT_ITEMS_PER_PAGE` is 30 and the seed inserts 4–5 rows per domain, so every list is one page. This is a limitation of the _seed_, not of the app: the DM holds a real dataset (361 spells, 119 NPCs, 62 magic items) which at 30 per page is 13 pages of spells. Turning that into an E2E fixture — or into the seed itself — is what unlocks the multi-page assertions this spec currently cannot make, and would make every other spec exercise realistic volumes.
+- **`a11y.spec.ts`** — the app has never had an accessibility pass; each page carries the rule ids failing today and fails on anything new. Shrink the lists as TD-15 lands.
+
+**Two selector traps.** The `role="dialog"` element has no bounding box (its children are `fixed`), so Playwright reports it hidden — assert on something inside it. And each dialog renders its title twice, so a heading query inside one is a strict-mode violation.
 
 Use `page.getByRole` / `getByLabel`, not CSS selectors — role-based queries double as accessibility assertions.
 

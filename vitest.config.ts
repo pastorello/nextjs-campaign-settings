@@ -12,7 +12,15 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
     include: ["**/*.{test,spec}.{ts,tsx}"],
-    exclude: ["**/node_modules/**", "**/e2e/**", "**/.next/**"],
+    // `.claude/**` holds agent worktrees — full checkouts of this repo. Without
+    // excluding them the suite collects every test twice, which inflates both
+    // the test count and the coverage ratchet against a copy nobody is editing.
+    exclude: [
+      "**/node_modules/**",
+      "**/e2e/**",
+      "**/.next/**",
+      "**/.claude/**",
+    ],
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],
@@ -30,9 +38,9 @@ export default defineConfig({
       // the rest bring real tests with them. The per-area targets stay the goal.
       thresholds: {
         lines: 18,
-        functions: 12,
-        branches: 11,
-        statements: 17,
+        functions: 13,
+        branches: 12,
+        statements: 18,
       },
     },
   },

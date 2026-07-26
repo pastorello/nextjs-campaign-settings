@@ -9,10 +9,10 @@ import { Fieldset } from "@headlessui/react";
 import InputComponent from "@/app/ui/forms/inputs/InputComponent";
 import isValidFunction from "@/app/lib/utils/validators/isValidFunction";
 import isValidDataObject from "@/app/lib/utils/validators/isValidDataObject";
-import ListItem from "@/app/lib/definitions/interfaces/ListItem";
 import PngMetaField from "@/app/lib/definitions/enums/png/PngMetaField";
 import PngItem from "@/app/lib/definitions/interfaces/png/PngItem";
-import usePngPageManager from "@/app/lib/hooks/png/usePngPageManager";
+import usePageManager from "@/app/lib/hooks/usePageManager";
+import PageType from "@/app/lib/definitions/types/PageType";
 import createPng from "@/app/lib/data/png/createPng";
 import updatePng from "@/app/lib/data/png/updatePng";
 
@@ -27,15 +27,12 @@ export default function PngForm({
   onCancel,
   onSaveFinished,
 }: PngFormProps) {
-  const pageManagerSettings: ListItem = {};
   const isEditMode = isValidDataObject(formData);
 
-  if (isEditMode) {
-    pageManagerSettings.pageItem = formData;
-  }
-
-  const { page, setField, getField, editedFields } =
-    usePngPageManager(pageManagerSettings);
+  const { page, setField, getField, editedFields } = usePageManager(
+    PageType.Png,
+    formData
+  );
 
   const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
     {}
@@ -54,12 +51,9 @@ export default function PngForm({
 
     if (isEditMode) {
       result = await updatePng(
-        editedFields.reduce(
-          (acc: PngItem, item: PngMetaField) => ({
-            ...acc,
-            [item]: getField(item),
-          }),
-          { id: page.id }
+        editedFields.reduce<PngItem>(
+          (acc, item) => ({ ...acc, [item]: getField(item) }),
+          { id: page.id } as PngItem
         )
       );
     } else {

@@ -8,12 +8,12 @@ import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import { Fieldset } from "@headlessui/react";
 import MagicItemMetaField from "@/app/lib/definitions/enums/magicitem/MagicItemMetaField";
 import InputComponent from "@/app/ui/forms/inputs/InputComponent";
-import useMagicItemPageManager from "@/app/lib/hooks/magicitems/useMagicItemPageManager";
+import usePageManager from "@/app/lib/hooks/usePageManager";
+import PageType from "@/app/lib/definitions/types/PageType";
 import createMagicItem from "@/app/lib/data/magicitems/createMagicItem";
 import MagicItem from "@/app/lib/definitions/interfaces/magicitem/MagicItem";
 import isValidFunction from "@/app/lib/utils/validators/isValidFunction";
 import isValidDataObject from "@/app/lib/utils/validators/isValidDataObject";
-import ListItem from "@/app/lib/definitions/interfaces/ListItem";
 import updateMagicItem from "@/app/lib/data/magicitems/updateMagicItem";
 
 interface MagicItemFormProps {
@@ -30,15 +30,12 @@ export default function MagicItemForm({
   onCancel,
   onSaveFinished,
 }: MagicItemFormProps) {
-  const pageManagerSettings: ListItem = {};
   const isEditMode = isValidDataObject(formData);
 
-  if (isEditMode) {
-    pageManagerSettings.magicItem = formData;
-  }
-
-  const { page, setField, getField, editedFields } =
-    useMagicItemPageManager(pageManagerSettings);
+  const { page, setField, getField, editedFields } = usePageManager(
+    PageType.MagicItem,
+    formData
+  );
 
   const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
     {}
@@ -57,12 +54,9 @@ export default function MagicItemForm({
 
     if (isEditMode) {
       result = await updateMagicItem(
-        editedFields.reduce(
-          (acc: MagicItem, item: MagicItemMetaField) => ({
-            ...acc,
-            [item]: getField(item),
-          }),
-          { id: page.id }
+        editedFields.reduce<MagicItem>(
+          (acc, item) => ({ ...acc, [item]: getField(item) }),
+          { id: page.id } as MagicItem
         )
       );
     } else {

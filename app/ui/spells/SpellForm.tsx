@@ -9,12 +9,12 @@ import { Fieldset } from "@headlessui/react";
 import InputComponent from "@/app/ui/forms/inputs/InputComponent";
 import isValidFunction from "@/app/lib/utils/validators/isValidFunction";
 import isValidDataObject from "@/app/lib/utils/validators/isValidDataObject";
-import ListItem from "@/app/lib/definitions/interfaces/ListItem";
 import Spell from "@/app/lib/definitions/interfaces/spells/Spell";
 import SpellMetaField from "@/app/lib/definitions/enums/spells/SpellMetaField";
 import updateSpell from "@/app/lib/data/spells/updateSpell";
 import createSpell from "@/app/lib/data/spells/createSpell";
-import useSpellPageManager from "@/app/lib/hooks/spells/useSpellPageManager";
+import usePageManager from "@/app/lib/hooks/usePageManager";
+import PageType from "@/app/lib/definitions/types/PageType";
 
 interface SpellFormProps {
   formData?: Spell;
@@ -27,15 +27,12 @@ export default function SpellForm({
   onCancel,
   onSaveFinished,
 }: SpellFormProps) {
-  const pageManagerSettings: ListItem = {};
   const isEditMode = isValidDataObject(formData);
 
-  if (isEditMode) {
-    pageManagerSettings.pageItem = formData;
-  }
-
-  const { page, setField, getField, editedFields } =
-    useSpellPageManager(pageManagerSettings);
+  const { page, setField, getField, editedFields } = usePageManager(
+    PageType.Spell,
+    formData
+  );
 
   const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
     {}
@@ -54,12 +51,9 @@ export default function SpellForm({
 
     if (isEditMode) {
       result = await updateSpell(
-        editedFields.reduce(
-          (acc: Spell, item: SpellMetaField) => ({
-            ...acc,
-            [item]: getField(item),
-          }),
-          { id: page.id }
+        editedFields.reduce<Spell>(
+          (acc, item) => ({ ...acc, [item]: getField(item) }),
+          { id: page.id } as Spell
         )
       );
     } else {

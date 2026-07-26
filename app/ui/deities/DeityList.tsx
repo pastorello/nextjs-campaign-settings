@@ -8,6 +8,21 @@ import ModalButton from "../buttons/ModalButton";
 import { fetchFilteredDeities } from "@/app/lib/data/deities/fetchFilteredDeities";
 import PatronoMetaField from "@/app/lib/definitions/enums/deities/PatronoMetaField";
 
+// All user-facing copy for this component, in one place so TD-21 can extract it
+// without hunting through JSX.
+const COPY = {
+  empty: "Nessuna divinità trovata",
+  actions: "Azioni",
+  columns: {
+    nome: "Nome",
+    allineamento: "Allineamento",
+    dominio: "Dominio",
+    grado: "Grado",
+    tipo: "Tipo",
+    residenza: "Residenza",
+  },
+};
+
 export default async function DeityList(props: {
   searchParams?: Promise<ListItem>;
 }) {
@@ -17,46 +32,52 @@ export default async function DeityList(props: {
     <div className="mt-6 flow-root">
       <div className="inline-block min-w-full align-middle">
         <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
-          {isArrayEmpty(fetchedItems) && <p>{"Nessun PNG trovato"}</p>}
+          {isArrayEmpty(fetchedItems) && <p>{COPY.empty}</p>}
           <table className="hidden min-w-full text-gray-900 md:table">
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
                 <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
                   <SortableHeader
-                    label={"Nome"}
+                    label={COPY.columns.nome}
                     fieldKey="nome"
                     isFiltrable={false}
                   />
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
                   <SortableHeader
-                    label={"Allineamento"}
+                    label={COPY.columns.allineamento}
                     fieldKey={PatronoMetaField.allineamento}
                   />
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
                   <SortableHeader
-                    label={"Dominio"}
+                    label={COPY.columns.dominio}
                     fieldKey={PatronoMetaField.dominioAllineamento}
                   />
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
                   <SortableHeader
-                    label={"Grado"}
+                    label={COPY.columns.grado}
                     fieldKey={PatronoMetaField.gradoPatrono}
                   />
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
                   <SortableHeader
-                    label={"Tipo"}
+                    label={COPY.columns.tipo}
                     fieldKey={PatronoMetaField.tipoPatrono}
                   />
                 </th>
                 <th scope="col" className="px-3 py-5 font-medium">
                   <SortableHeader
-                    label={"Residenza"}
-                    fieldKey={PatronoMetaField.luogo}
+                    label={COPY.columns.residenza}
+                    fieldKey={PatronoMetaField.residenza}
                   />
+                </th>
+                <th
+                  scope="col"
+                  className="relative py-5 pl-6 pr-3 justify-center flex"
+                >
+                  {COPY.actions}
                 </th>
               </tr>
             </thead>
@@ -98,8 +119,8 @@ export default async function DeityList(props: {
                     )}
                   </td>
                   <td className="px-3 py-3">
-                    {pageMetaFields[PatronoMetaField.tipoPatrono].getDatum(
-                      item.luogo
+                    {pageMetaFields[PatronoMetaField.residenza].getDatum(
+                      item.residenza
                     )}
                   </td>
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">

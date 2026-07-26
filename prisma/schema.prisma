@@ -8,7 +8,7 @@ datasource db {
 }
 
 model deities {
-  id                  Int    @id @default(autoincrement())
+  id                  Int      @id @default(autoincrement())
   nome                String
   titolopatrono       String
   tipopatrono         Int
@@ -17,7 +17,7 @@ model deities {
   astri               Int
   elemento            Int
   classe              Int
-  festivita           String @db.VarChar(255)
+  festivita           String   @db.VarChar(255)
   colore              Int
   tradizione          Int
   allineamento        Int
@@ -25,6 +25,10 @@ model deities {
   residenza           Int
   luogo               Int
   significato         String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([nome])
 }
 
 model magicitems {
@@ -34,22 +38,30 @@ model magicitems {
   rarita      Int
   tipo        Int
   sintonia    Boolean?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([nome])
 }
 
 model png {
-  id                  Int     @id @default(autoincrement())
+  id                  Int      @id @default(autoincrement())
   descrizione         String?
   nome                String
-  titolo              String? @db.VarChar(255)
+  titolo              String?  @db.VarChar(255)
   allineamento        Int
   dominioallineamento Int
-  mansione            String? @db.VarChar(255)
+  mansione            String?  @db.VarChar(255)
   luogo               Int
   fazione             Int
   aspetto             String?
   personalita         String?
   motivazioni         String?
   segreti             String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([nome])
 }
 
 model spells {
@@ -59,7 +71,6 @@ model spells {
   livello        Int
   circolo        Int[]
   classi         Int[]
-  sottoclassi    Int[]
   tempodilancio  String
   gittata        String
   componenti     String
@@ -68,11 +79,17 @@ model spells {
   rituale        Boolean?
   intensificato  String?
   concentrazione Boolean?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([nome])
 }
 
 model users {
-  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name     String @db.VarChar(255)
-  email    String @unique
-  password String
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String   @db.VarChar(255)
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

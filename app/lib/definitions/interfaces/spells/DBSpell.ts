@@ -4,7 +4,6 @@ interface DBSpell {
   livello: number;
   circolo: number[];
   classi: number[];
-  sottoclassi: number[];
   tempodilancio: string;
   gittata: string;
   componenti: string;

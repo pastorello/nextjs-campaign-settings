@@ -1,6 +1,5 @@
 const spells = [
   {
-    id: 90,
     nome: "Aiuto",
     descrizione:
       "<p>Questo incantesimo rafforza il vigore e la determinazione degli alleati. L’incantatore sceglie fino a tre creature entro gittata. 11 massimo dei punti ferita e i punti ferita attuali di ogni bersaglio aumentano di 5 per la durata dell’incantesimo.</p>\n",
@@ -18,7 +17,6 @@ const spells = [
       "Quando l'incantatore lancia questo incantesimo usando uno slot incantesimo di 3° livello o superiore, i punti ferita di un bersaglio aumentano di altri 5 punti per ogni slot di livello superiore al 2°.",
   },
   {
-    id: 45,
     nome: "Bacche Benefiche",
     descrizione:
       "<p>Fino a dieci bacche compaiono in mano all’incantatore e sono pervase di magia per la durata dell’incantesimo. Una creatura può usare la sua azione per mangiare una bacca. Mangiare una bacca ripristina 1 punto ferita e la bacca fornisce nutrimento sufficiente a sfamare una creatura per un giorno. Le bacche perdono il loro potere se non vengono mangiate entro 24 ore dal lancio di questo incantesimo.</p>\n",
@@ -35,7 +33,6 @@ const spells = [
     intensificato: "",
   },
   {
-    id: 47,
     nome: "Caduta Morbida",
     descrizione:
       "<p>L’incantatore sceglie fino a cinque creature in caduta entro gittata. La velocità di discesa di una creatura in caduta rallenta fino a 18 metri per round finché l’incantesimo non termina. Se la creatura atterra prima che l’incantesimo termini, essa non subisce alcun danno da caduta e può atterrare in piedi, e l’incantesimo termina per quella creatura.</p>\n",
@@ -52,7 +49,6 @@ const spells = [
     intensificato: "",
   },
   {
-    id: 54,
     nome: "Dardo Incantato",
     descrizione:
       "<p>L’incantatore crea tre dardi lucenti di forza magica. Ogni dardo colpisce una creatura scelta dall’incantatore, situata entro gittata e che egli sia in grado di vedere. Un dardo infligge 1d4+1 danni da forza al suo bersaglio. Tutti i dardi colpiscono simultaneamente e l’incantatore può dirigerli per colpire una sola creatura o più creature.</p>\n",

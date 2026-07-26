@@ -30,7 +30,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-08 | ◑ metadata typed (steps 1–2); query layer still `any`                | 🟠 High              | M      | 2     |
 | TD-09 | Four near-identical Card/List/Library/Form quartets                  | 🟠 High              | L      | 2     |
 | TD-10 | Notification system is a `console.log` stub                          | 🟠 High              | M      | 2     |
-| TD-11 | Schema has no timestamps, indexes, or relations                      | 🟡 Medium            | M      | 2     |
+| TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred          | ~~🟡 Medium~~ part   | M      | 2     |
 | TD-12 | Pagination count and rows use separate queries                       | 🟡 Medium            | S      | 2     |
 | TD-13 | Errors surfaced as `throw new Error("Failed to fetch X")`            | 🟡 Medium            | M      | 2     |
 | TD-14 | Map POIs persisted only to `localStorage`                            | 🟡 Medium            | M      | 3     |
@@ -46,7 +46,8 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-24 | ✅ Playwright + 26 specs; `e2e` job blocking in CI                   | ~~🟠 High~~ done     | M      | 1     |
 | TD-25 | An unreachable database surfaces as an opaque UI error               | 🟡 Medium            | S      | 2     |
 | TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                    | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-27 | Spells list applies a hidden `classi=0` filter on mount              | 🟠 High              | S      | 2     |
+| TD-27 | ✅ Hidden `classi=0` filter on the spells list removed               | ~~🟠 High~~ done     | S      | 2     |
+| TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does       | ~~🟠 High~~ done     | S      | 2     |
 
 ---
 
@@ -455,7 +456,21 @@ Since the metadata layer already knows every field of every domain, this duplica
 
 ---
 
-### TD-11 🟡 Schema gaps
+### TD-11 ◑ Schema gaps — **timestamps and indexes DONE (2026-07-26)**
+
+**Done:** `prisma/migrations/20260726100000_add_timestamps_and_name_indexes/`.
+
+- `createdAt @default(now())` and `updatedAt @updatedAt` on all five models. `updatedAt` is added with a database default so existing rows backfill, then the default is dropped — `@updatedAt` carries none, and leaving one behind is drift that `prisma migrate diff` reports as `default changed from Some(Now) to None`. Found exactly that way.
+- `@@index([nome])` on `deities`, `magicitems`, `png`, `spells`. `users` is excluded: it is queried by `email`, already unique and therefore already indexed.
+- **`spells.sottoclassi` dropped** — the orphan TD-26 left behind. Verified empty twice before writing the statement: zero populated rows in the development database, and zero in all 361 rows of the DM's real spell library.
+
+**Written by hand, not generated.** `prisma migrate dev` would have detected the `db push`-built development database as drift and offered to reset it. Verified the way TD-23 was: replay all three migrations onto a throwaway database, seed, and confirm `prisma migrate diff` reports no difference. Applying it to the development database needed the same care — `prisma db push` refused (it cannot add a required `updatedAt` to tables with rows and suggested `--force-reset`, which destroys everything), so the migration SQL was applied directly. Data intact, `migrate diff` clean.
+
+**Still open in this item:** relations, ownership/`campaignId`, and promoting lookup arrays to tables. Those are Phase 3 and unchanged by this.
+
+---
+
+### TD-11 (original) 🟡 Schema gaps
 
 - No `createdAt` / `updatedAt` on any model. No audit trail, and "recently added" views are impossible.
 - No `@@index`. Every list query filters and sorts on `nome` with a sequential scan.
@@ -799,7 +814,7 @@ This is the migration-side twin of the naming note already in TD-16 (`2025112615
 
 **Local runs mutate the development database.** The CRUD specs create, edit and delete real rows; they use timestamped names and clean up after themselves, but a run interrupted mid-test leaves an `E2E …` record behind. A dedicated E2E database (or the `docker-compose.test.yaml` service TESTING.md §Integration already calls for) is the right fix and is not in this item.
 
-**Still to do, none of it blocking:** add Firefox and WebKit once the suite has proven stable; revisit the `fixme` in `filtering.spec.ts` when TD-27 is fixed; give the suite its own database rather than pointing it at development data.
+**Still to do, none of it blocking:** add Firefox and WebKit once the suite has proven stable; give the suite its own database rather than pointing it at development data. (The `fixme` is gone — TD-27 is fixed.)
 
 The original description follows.
 
@@ -891,7 +906,17 @@ There is no `sottoclassi` state at all — both fields read and write `circolo`.
 
 ---
 
-### TD-27 🟠 The spells list applies a hidden "Bardo" filter on mount
+### TD-27 ✅ The spells list applies a hidden "Bardo" filter on mount — **DONE (2026-07-26)**
+
+**Fix:** deleted the mount effect in `app/ui/spells/SpellLibrary.tsx`, along with the now-unused `useFilterController` import. Nothing replaced it — the effect had no purpose that survived inspection, and the list is correct without it: loading `/dashboard/spells` leaves the URL alone, and a level filter now produces `?livello=N` and nothing else.
+
+`e2e/filtering.spec.ts` lost its `fixme` and gained the assertion that catches a regression: after clicking a level filter, `classi` must be absent from the URL.
+
+The original description follows.
+
+---
+
+### TD-27 (original) 🟠 The spells list applies a hidden "Bardo" filter on mount
 
 **Where:** `app/ui/spells/SpellLibrary.tsx:18`
 **Found:** 2026-07-25, by the first green run of TD-24's `filtering.spec.ts`
@@ -918,6 +943,51 @@ The component mounts and immediately filters the list by the **first class in th
 
 ---
 
+### TD-28 ✅ The seed inserted explicit ids without advancing the id sequence — **DONE (2026-07-26)**
+
+**Fix, and it is the DM's, not the one filed below.** The original entry proposed calling `setval` after seeding. The better question was why the ids were there at all: seed records are records _to be created_, so their id should come from the database exactly as it does for a record created through the UI. The `id` field is gone from all five files in `app/seed/initial-data/`, and nothing calls `setval` anywhere — the sequences are correct because Postgres generated every value itself.
+
+**What that cost, and how it was paid.** The seed's idempotency came from `skipDuplicates` colliding on the primary key, which worked _only_ because the ids were fixed. Without them, `skipDuplicates` has nothing to collide on (`nome` is not unique) and a second run would duplicate every record. `prismaSeed.ts` now checks for an existing record by `nome` before creating — the same matching rule `db:import` uses — and `users` by `email`, which is unique in the schema.
+
+**Verified on a throwaway database:** migrate → seed → 16 records; seed again → 0 created, counts unchanged; every sequence equal to its table's `max(id)`; and an insert that lets the database choose the id succeeds, which is the case that used to fail.
+
+The workaround this bug caused in `app/seed/importLibrary.ts` — a `resyncIdSequence` call before each import — has been deleted along with it. A database seeded by an older checkout still carries the broken sequences and needs a one-off repair per table:
+
+```sql
+SELECT setval(pg_get_serial_sequence('"deities"', 'id'),
+              GREATEST(COALESCE((SELECT MAX(id) FROM "deities"), 0), 1));
+```
+
+The original description follows.
+
+---
+
+### TD-28 (original) 🟠 The seed inserts explicit ids without advancing the id sequence
+
+**Where:** `app/seed/prismaSeed.ts` and every file in `app/seed/initial-data/`
+**Found:** 2026-07-26, while importing the DM's real library
+
+Every seed record carries an explicit `id` (spells get 45, 47, 54, 90; deities 1, 15, 16, 18, 19, 21). Postgres only advances a `SERIAL` sequence when it generates the value itself, so after seeding the sequence still sits at 1 while ids far above it are already taken. The next insert that lets the database choose asks for id 1, then 2, and fails:
+
+```
+Unique constraint failed on the fields: (`id`)
+```
+
+**This is user-facing, not just a script problem.** It was measured on the development database: `deities` held ids up to 21 with its sequence at 1, so the first "Nuova divinità" submitted from the UI would have failed. `spells` had the same shape until enough inserts walked the sequence past the seeded ids — which is the worst version of the bug, because it fixes itself after a handful of failures and so reads as "it broke once, then it was fine".
+
+**Fix:** after seeding, set each sequence past the highest id — the statement `app/seed/importLibrary.ts` already carries as `resyncIdSequence`:
+
+```sql
+SELECT setval(pg_get_serial_sequence('"spells"', 'id'),
+              GREATEST(COALESCE((SELECT MAX(id) FROM "spells"), 0), 1));
+```
+
+Alternatively drop the explicit ids from the seed data and let the database assign them; that changes what `skipDuplicates` means for re-runs, so it is the larger change of the two.
+
+**Done when:** a freshly seeded database accepts a record created through the UI in every domain, with a test covering it.
+
+---
+
 ## Recommended execution order
 
 ```
@@ -935,8 +1005,9 @@ The component mounts and immediately filters the list by the **first class in th
 11. TD-20a strict flags, cheap batch + ES2022 target
 12. TD-19  rename identifiers to English  → needs TD-03's tests and TD-08's typed keys
 13. TD-21  extract UI strings           → same files as TD-19, do them together
-14. TD-11  schema timestamps + indexes  → an ordinary migration now; TD-23 is closed
-14b. TD-27 delete SpellLibrary's mount effect → S, independent; unskips filtering.spec.ts
+14. ✅ TD-11 schema timestamps + indexes (relations remain, Phase 3)
+14b. ✅ TD-27 SpellLibrary's mount effect deleted
+14c. ✅ TD-28 seed ids removed; the database assigns them
 15. TD-12  single where-clause
 16. TD-02b remaining trust boundaries (env, localStorage, GeoJSON)
 17. TD-13  typed errors                    → preserve { cause }; biggest diagnosability win

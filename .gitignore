@@ -42,3 +42,8 @@ next-env.d.ts
 /blob-report/
 /playwright/.cache/
 /e2e/.auth/
+
+# Campaign library exports — the DM's content, and the spell descriptions are
+# rulebook prose. Load them with `pnpm db:import <file>`; never commit them.
+export-*.json
+*.library.json

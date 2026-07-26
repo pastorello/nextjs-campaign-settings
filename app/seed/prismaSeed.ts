@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from "@/generated/prisma/client";
+import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import magicitems from "./initial-data/magicitems";
 import deities from "./initial-data/deities";
@@ -10,56 +10,102 @@ import DBDeities from "../lib/definitions/interfaces/deities/DBDeities";
 import DBPngItem from "../lib/definitions/interfaces/png/DBPngItem";
 import DBSpell from "../lib/definitions/interfaces/spells/DBSpell";
 import users from "./initial-data/users";
-import DBUser from "@/app/lib/definitions/interfaces/users/DBUser";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
 
-const magicItems: Prisma.magicitemsCreateInput[] = magicitems;
+/**
+ * The seed data carries **no ids** (TD-28). Records to be created should get
+ * their id the same way a record created through the UI does — from the
+ * database. Explicit ids left the `SERIAL` sequences sitting at 1 while ids far
+ * above were already taken, because Postgres only advances a sequence when it
+ * generates the value itself. The next insert that let the database choose then
+ * failed with `Unique constraint failed on the fields: (id)` — not only in
+ * scripts but in the app: "Nuova divinità" was unusable on a freshly seeded
+ * database.
+ *
+ * That change costs the old idempotency, which came from `skipDuplicates` on a
+ * primary-key collision and worked *only* because the ids were fixed. Re-runs
+ * are kept safe by matching on `nome` instead, the same rule `db:import` uses.
+ */
 
-const toDBObject = (collectionItem: ListItem) => {
-  const result = Object.keys(collectionItem).reduce(
-    (acc: ListItem, key: string) => {
-      const parsedKey = key.toLowerCase();
-      acc[parsedKey] = collectionItem[key];
-      return acc;
-    },
-    {} as ListItem
-  );
-  return result;
-};
+const toDBObject = (collectionItem: ListItem) =>
+  Object.keys(collectionItem).reduce((acc: ListItem, key: string) => {
+    acc[key.toLowerCase()] = collectionItem[key];
+    return acc;
+  }, {} as ListItem);
+
+/**
+ * Written out per domain rather than indexed as `prisma[domain]`: that produces
+ * a union of delegates whose signatures are mutually incompatible, and the only
+ * way round it is an `any`, which CLAUDE.md rule 3 forbids.
+ */
+const DOMAINS = [
+  {
+    label: "magicitems",
+    rows: magicitems,
+    exists: (nome: string) => prisma.magicitems.findFirst({ where: { nome } }),
+    create: (data: ListItem) =>
+      prisma.magicitems.create({ data: data as DBMagicItem }),
+  },
+  {
+    label: "deities",
+    rows: deities,
+    exists: (nome: string) => prisma.deities.findFirst({ where: { nome } }),
+    create: (data: ListItem) =>
+      prisma.deities.create({ data: data as DBDeities }),
+  },
+  {
+    label: "png",
+    rows: png,
+    exists: (nome: string) => prisma.png.findFirst({ where: { nome } }),
+    create: (data: ListItem) => prisma.png.create({ data: data as DBPngItem }),
+  },
+  {
+    label: "spells",
+    rows: spells,
+    exists: (nome: string) => prisma.spells.findFirst({ where: { nome } }),
+    create: (data: ListItem) => prisma.spells.create({ data: data as DBSpell }),
+  },
+] as const;
 
 export async function main() {
-  for (const u of magicItems) {
-    await prisma.magicitems.createMany({
-      data: toDBObject(u) as DBMagicItem,
-      skipDuplicates: true,
-    });
+  for (const domain of DOMAINS) {
+    let created = 0;
+
+    for (const row of domain.rows) {
+      const data = toDBObject(row as ListItem);
+      const nome = data.nome as string;
+
+      if (await domain.exists(nome)) continue;
+
+      await domain.create(data);
+      created += 1;
+    }
+
+    console.log(`  ${domain.label}: ${created} created`);
   }
-  for (const u of deities) {
-    await prisma.deities.createMany({
-      data: toDBObject(u) as DBDeities,
-      skipDuplicates: true,
+
+  // `users` is matched on `email`, which is unique in the schema.
+  let createdUsers = 0;
+
+  for (const user of users) {
+    const existing = await prisma.users.findUnique({
+      where: { email: user.email },
     });
+
+    if (existing) continue;
+
+    await prisma.users.create({ data: user });
+    createdUsers += 1;
   }
-  for (const u of png) {
-    await prisma.png.createMany({
-      data: toDBObject(u) as DBPngItem,
-      skipDuplicates: true,
-    });
-  }
-  for (const u of spells) {
-    await prisma.spells.createMany({
-      data: toDBObject(u) as DBSpell,
-      skipDuplicates: true,
-    });
-  }
-  for (const u of users) {
-    await prisma.users.createMany({
-      data: toDBObject(u) as DBUser,
-      skipDuplicates: true,
-    });
-  }
+
+  console.log(`  users: ${createdUsers} created`);
 }
 
-main();
+main()
+  .catch((error: unknown) => {
+    console.error("Seed failed:", error);
+    process.exit(1);
+  })
+  .finally(() => prisma.$disconnect());

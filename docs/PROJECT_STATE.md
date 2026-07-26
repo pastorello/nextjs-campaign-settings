@@ -91,11 +91,13 @@ This is a genuinely good pattern. It is currently under-documented and partially
 
 Five Prisma models: `deities`, `magicitems`, `png`, `spells`, `users`.
 
+Seed data is four to six demo records per domain. A real library — 361 spells, 119 NPCs, 62 magic items — is loaded with `pnpm db:import <export.json>`; those exports are gitignored, because campaign content is the DM's and the spell prose is rulebook text.
+
 Observations:
 
-- No `createdAt` / `updatedAt` on any model.
+- ✅ `createdAt` / `updatedAt` on all five models (TD-11).
 - No relations between models. Everything that is conceptually a foreign key (`fazione`, `luogo`, `allineamento`, `classe`) is stored as a bare `Int` that indexes into a hardcoded TypeScript array. Renumbering an enum silently corrupts existing rows.
-- No `@@index` anywhere, including on the `nome` columns that every list query filters and sorts by.
+- ✅ `@@index([nome])` on `deities`, `magicitems`, `png`, `spells` (TD-11). `users` is indexed by its unique `email`.
 - No ownership: records are not tied to a user or a campaign. Multi-campaign support (which you have in mind for later) requires a schema change.
 - Two migrations: `resetio`, plus a 2026-07-26 corrective one that patches its drift forward. `prisma migrate diff` against the schema is clean (TD-23). The drift was wider than the name-level comparison suggested — eight `deities` columns were `VARCHAR(255)` where the schema says `Int`.
 

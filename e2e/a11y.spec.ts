@@ -19,6 +19,9 @@ import AxeBuilder from "@axe-core/playwright";
  *   unlabelled links in the main navigation. The worst of the three.
  * - `color-contrast` — list page text below the 4.5:1 ratio.
  * - `aria-toggle-field-name` — the "Rituale" checkbox on the spell form.
+ * - `button-name` — the sort buttons in the admin table header are icon-only
+ *   with no accessible name, so a screen reader hears "button" three times
+ *   across the column headings.
  */
 const PAGES: { path: string; name: string; known: string[] }[] = [
   { path: "/dashboard", name: "overview", known: ["link-name"] },
@@ -30,7 +33,7 @@ const PAGES: { path: string; name: string; known: string[] }[] = [
   {
     path: "/dashboard/admin/spells",
     name: "spells admin",
-    known: ["link-name", "color-contrast"],
+    known: ["link-name", "color-contrast", "button-name"],
   },
   {
     path: "/dashboard/admin/spells/new",
@@ -44,6 +47,12 @@ for (const { path, name, known } of PAGES) {
     page,
   }) => {
     await page.goto(path);
+
+    // Scan a settled page. Without this the baseline depends on how much has
+    // streamed in: a local run missed `button-name` on the admin list entirely,
+    // because the sort buttons had not rendered yet, and CI then failed on a
+    // violation that was there all along.
+    await page.waitForLoadState("networkidle");
 
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])

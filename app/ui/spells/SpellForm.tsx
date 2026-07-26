@@ -1,20 +1,21 @@
 "use client";
 
-import Form from "next/form";
-import { useState } from "react";
-import FormErrorSummary from "@/app/ui/components/FormErrorSummary";
-import BaseButton from "@/app/ui/buttons/BaseButton";
-import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import { Fieldset } from "@headlessui/react";
-import InputComponent from "@/app/ui/forms/inputs/InputComponent";
-import isValidFunction from "@/app/lib/utils/validators/isValidFunction";
-import isValidDataObject from "@/app/lib/utils/validators/isValidDataObject";
+
+import EntityForm from "@/app/ui/forms/EntityForm";
+import createSpell from "@/app/lib/data/spells/createSpell";
+import updateSpell from "@/app/lib/data/spells/updateSpell";
+import PageType from "@/app/lib/definitions/types/PageType";
 import Spell from "@/app/lib/definitions/interfaces/spells/Spell";
 import SpellMetaField from "@/app/lib/definitions/enums/spells/SpellMetaField";
-import updateSpell from "@/app/lib/data/spells/updateSpell";
-import createSpell from "@/app/lib/data/spells/createSpell";
-import usePageManager from "@/app/lib/hooks/usePageManager";
-import PageType from "@/app/lib/definitions/types/PageType";
+
+// All user-facing copy for this form, in one place for TD-21.
+const COPY = {
+  createTitle: "Crea nuovo Incantesimo",
+  editTitle: "Modifica Incantesimo",
+  createButton: "Crea Incantesimo",
+  editButton: "Modifica Incantesimo",
+};
 
 interface SpellFormProps {
   formData?: Spell;
@@ -27,108 +28,60 @@ export default function SpellForm({
   onCancel,
   onSaveFinished,
 }: SpellFormProps) {
-  const isEditMode = isValidDataObject(formData);
-
-  const { page, setField, getField, editedFields } = usePageManager(
-    PageType.Spell,
-    formData
-  );
-
-  const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
-    {}
-  );
-
-  const FormComponent = (aField: SpellMetaField) => (
-    <InputComponent
-      fieldName={aField}
-      setField={setField}
-      value={getField(aField)}
-    />
-  );
-
-  const onSubmit = async () => {
-    let result;
-
-    if (isEditMode) {
-      result = await updateSpell(
-        editedFields.reduce<Spell>(
-          (acc, item) => ({ ...acc, [item]: getField(item) }),
-          { id: page.id } as Spell
-        )
-      );
-    } else {
-      result = await createSpell(page);
-    }
-    if (!result.ok) {
-      setErrors(result.errors);
-      return;
-    }
-
-    setErrors({});
-    if (isValidFunction(onSaveFinished)) {
-      onSaveFinished(page);
-    }
-  };
-
   return (
-    <div className="w-[900px] mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">
-        {isEditMode ? "Modifica" : "Crea nuovo"} Incantesimo
-      </h1>
-      <Form action={onSubmit} className="space-y-6">
-        <FormErrorSummary errors={errors} />
+    <EntityForm<Spell>
+      pageType={PageType.Spell}
+      formData={formData}
+      mutations={{ create: createSpell, update: updateSpell }}
+      copy={COPY}
+      onCancel={onCancel}
+      onSaveFinished={onSaveFinished}
+    >
+      {(field) => (
         <Fieldset className="flex w-full flex-wrap">
           <div className="flex w-full flex-wrap">
             <div className="box-border w-full p-2 lg:w-[30%]">
-              {FormComponent(SpellMetaField.nome)}
+              {field(SpellMetaField.nome)}
             </div>
             <div className="box-border w-full p-2 lg:w-[15%]">
-              {FormComponent(SpellMetaField.livello)}
+              {field(SpellMetaField.livello)}
             </div>
             <div className="box-border w-full p-2 lg:w-[15%]">
-              {FormComponent(SpellMetaField.classi)}
+              {field(SpellMetaField.classi)}
             </div>
             <div className="box-border w-full p-2 lg:w-[40%]">
-              {FormComponent(SpellMetaField.circolo)}
+              {field(SpellMetaField.circolo)}
             </div>
           </div>
 
           <div className="flex w-full flex-wrap">
             <div className="box-border w-full p-2 lg:w-[20%]">
-              {FormComponent(SpellMetaField.tempoDiLancio)}
+              {field(SpellMetaField.tempoDiLancio)}
             </div>
             <div className="box-border w-full p-2 lg:w-[20%]">
-              {FormComponent(SpellMetaField.gittata)}
+              {field(SpellMetaField.gittata)}
             </div>
             <div className="box-border w-full p-2 lg:w-[15%]">
-              {FormComponent(SpellMetaField.componenti)}
+              {field(SpellMetaField.componenti)}
             </div>
             <div className="box-border w-full p-2 lg:w-[25%]">
-              {FormComponent(SpellMetaField.durata)}
+              {field(SpellMetaField.durata)}
             </div>
             <div className="box-border w-full p-2 pt-7 lg:w-[20%]">
-              {FormComponent(SpellMetaField.rituale)}
+              {field(SpellMetaField.rituale)}
             </div>
           </div>
 
           <div className="flex w-full flex-wrap">
             <div className="box-border w-full p-2 lg:w-[50%]">
-              {FormComponent(SpellMetaField.descrizione)}
+              {field(SpellMetaField.descrizione)}
             </div>
             <div className="box-border w-full p-2 lg:w-[50%]">
-              {FormComponent(SpellMetaField.intensificato)}
+              {field(SpellMetaField.intensificato)}
             </div>
           </div>
         </Fieldset>
-        <div className="flex justify-end gap-2">
-          <BaseButton disabled={!isValidDataObject(editedFields)}>
-            {isEditMode ? "Modifica" : "Crea"} Incantesimo
-          </BaseButton>
-          <BaseButton onClick={onCancel} variant={ButtonVariant.secondary}>
-            {"Annulla"}
-          </BaseButton>
-        </div>
-      </Form>
-    </div>
+      )}
+    </EntityForm>
   );
 }

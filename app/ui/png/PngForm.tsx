@@ -1,20 +1,21 @@
 "use client";
 
-import Form from "next/form";
-import { useState } from "react";
-import FormErrorSummary from "@/app/ui/components/FormErrorSummary";
-import BaseButton from "@/app/ui/buttons/BaseButton";
-import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import { Fieldset } from "@headlessui/react";
-import InputComponent from "@/app/ui/forms/inputs/InputComponent";
-import isValidFunction from "@/app/lib/utils/validators/isValidFunction";
-import isValidDataObject from "@/app/lib/utils/validators/isValidDataObject";
-import PngMetaField from "@/app/lib/definitions/enums/png/PngMetaField";
-import PngItem from "@/app/lib/definitions/interfaces/png/PngItem";
-import usePageManager from "@/app/lib/hooks/usePageManager";
-import PageType from "@/app/lib/definitions/types/PageType";
+
+import EntityForm from "@/app/ui/forms/EntityForm";
 import createPng from "@/app/lib/data/png/createPng";
 import updatePng from "@/app/lib/data/png/updatePng";
+import PageType from "@/app/lib/definitions/types/PageType";
+import PngItem from "@/app/lib/definitions/interfaces/png/PngItem";
+import PngMetaField from "@/app/lib/definitions/enums/png/PngMetaField";
+
+// All user-facing copy for this form, in one place for TD-21.
+const COPY = {
+  createTitle: "Crea nuovo PNG",
+  editTitle: "Modifica PNG",
+  createButton: "Crea PNG",
+  editButton: "Modifica PNG",
+};
 
 interface PngFormProps {
   formData?: PngItem;
@@ -27,125 +28,75 @@ export default function PngForm({
   onCancel,
   onSaveFinished,
 }: PngFormProps) {
-  const isEditMode = isValidDataObject(formData);
-
-  const { page, setField, getField, editedFields } = usePageManager(
-    PageType.Png,
-    formData
-  );
-
-  const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
-    {}
-  );
-
-  const FormComponent = (aField: PngMetaField) => (
-    <InputComponent
-      fieldName={aField}
-      setField={setField}
-      value={getField(aField)}
-    />
-  );
-
-  const onSubmit = async () => {
-    let result;
-
-    if (isEditMode) {
-      result = await updatePng(
-        editedFields.reduce<PngItem>(
-          (acc, item) => ({ ...acc, [item]: getField(item) }),
-          { id: page.id } as PngItem
-        )
-      );
-    } else {
-      result = await createPng(page);
-    }
-    if (!result.ok) {
-      setErrors(result.errors);
-      return;
-    }
-
-    setErrors({});
-    if (isValidFunction(onSaveFinished)) {
-      onSaveFinished(page);
-    }
-  };
-
   return (
-    <div className="w-[900px] mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">
-        {isEditMode ? "Modifica" : "Crea nuovo"} PNG
-      </h1>
-      <Form action={onSubmit} className="space-y-6">
-        <FormErrorSummary errors={errors} />
+    <EntityForm<PngItem>
+      pageType={PageType.Png}
+      formData={formData}
+      mutations={{ create: createPng, update: updatePng }}
+      copy={COPY}
+      onCancel={onCancel}
+      onSaveFinished={onSaveFinished}
+    >
+      {(field) => (
         <Fieldset className="flex w-full flex-col">
           <div className="flex w-full gap-2">
             <div className="mb-2 w-[30%]">
-              <div className="mb-2 flex w-full">
-                {FormComponent(PngMetaField.nome)}
-              </div>
+              <div className="mb-2 flex w-full">{field(PngMetaField.nome)}</div>
             </div>
             <div className="mb-2 w-[15%]">
               <div className="mb-2 flex w-full">
-                {FormComponent(PngMetaField.allineamento)}
+                {field(PngMetaField.allineamento)}
               </div>
             </div>
             <div className="mb-2 w-[25%]">
               <div className="mb-2 flex w-full">
-                {FormComponent(PngMetaField.fazione)}
+                {field(PngMetaField.fazione)}
               </div>
             </div>
             <div className="mb-2 w-[30%]">
               <div className="mb-2 flex w-full">
-                {FormComponent(PngMetaField.luogo)}
+                {field(PngMetaField.luogo)}
               </div>
             </div>
           </div>
           <div className="flex w-full gap-2">
             <div className="mb-2 w-[30%]">
               <div className="mb-2 flex w-full">
-                {FormComponent(PngMetaField.titolo)}
+                {field(PngMetaField.titolo)}
               </div>
             </div>
             <div className="mb-2 w-[15%]">
               <div className="mb-2 flex w-full">
-                {FormComponent(PngMetaField.dominioAllineamento)}
+                {field(PngMetaField.dominioAllineamento)}
               </div>
             </div>
             <div className="mb-2 w-[55%]">
               <div className="mb-2 flex w-full">
-                {FormComponent(PngMetaField.mansione)}
+                {field(PngMetaField.mansione)}
               </div>
             </div>
           </div>
           <div className="mb-2 flex w-full flex-col p-2">
             <div className="grid grid-cols-4 gap-2">
               <div className="mb-2 flex w-full">
-                {FormComponent(PngMetaField.aspetto)}
+                {field(PngMetaField.aspetto)}
               </div>
               <div className="mb-2 flex w-full">
-                {FormComponent(PngMetaField.motivazioni)}
+                {field(PngMetaField.motivazioni)}
               </div>
               <div className="mb-2 flex w-full">
-                {FormComponent(PngMetaField.personalita)}
+                {field(PngMetaField.personalita)}
               </div>
               <div className="mb-2 flex w-full">
-                {FormComponent(PngMetaField.segreti)}
+                {field(PngMetaField.segreti)}
               </div>
             </div>
             <div className="mb-2 flex w-full">
-              {FormComponent(PngMetaField.descrizione)}
+              {field(PngMetaField.descrizione)}
             </div>
           </div>
         </Fieldset>
-        <div className="flex justify-end gap-2">
-          <BaseButton disabled={!isValidDataObject(editedFields)}>
-            {isEditMode ? "Modifica" : "Crea"} PNG
-          </BaseButton>
-          <BaseButton onClick={onCancel} variant={ButtonVariant.secondary}>
-            {"Annulla"}
-          </BaseButton>
-        </div>
-      </Form>
-    </div>
+      )}
+    </EntityForm>
   );
 }

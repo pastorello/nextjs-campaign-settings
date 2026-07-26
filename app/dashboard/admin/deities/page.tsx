@@ -7,7 +7,8 @@ import Search from "@/app/ui/search";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import { ResetButton } from "@/app/ui/buttons/ResetSearchButton";
 
-import DeityList from "@/app/ui/deities/DeityList";
+import EntityList from "@/app/ui/components/EntityList";
+import PageType from "@/app/lib/definitions/types/PageType";
 import { getDeitiesCount } from "@/app/lib/data/deities/getDeitiesCount";
 import PageTitle from "@/app/ui/typography/PageTitle";
 
@@ -38,7 +39,10 @@ export default async function Page(props: {
         <ResetButton />
       </div>
       <Suspense key={query + currentPage} fallback={<TableSkeleton />}>
-        <DeityList searchParams={props.searchParams} />
+        <EntityList
+          pageType={PageType.Deity}
+          searchParams={props.searchParams}
+        />
       </Suspense>
       <div className="mt-5 flex w-full justify-center">
         <Pagination totalPages={itemCount.filteredPages} />

@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+
+import { notifyError, notifySuccess } from "@/app/lib/notifications/notify";
 import PageType from "@/app/lib/definitions/types/PageType";
 import ButtonVariant from "../buttons/BaseButton/ButtonVariant";
 import ModalButton from "./ModalButton";
@@ -31,17 +33,17 @@ const DeleteButton = ({ pageName, pageId, pageType }: DeleteButtonProps) => {
       };
 
       if (data.success === true) {
+        notifySuccess(`${pageName} eliminato`);
         router.refresh();
         return;
       }
 
-      // The handler now says which of the two it was — a missing record or a
-      // failed query (TD-13). Showing its message beats a fixed string that
-      // could mean either. Still an alert: routing this through a toast is
-      // TD-10's, and it is the notification system that does not exist yet.
-      alert(data.error ?? COPY.deleteFailed);
+      // The handler says which of the two it was — a missing record or a
+      // failed query (TD-13) — and TD-10 finally gives it somewhere to appear
+      // that is not a browser alert().
+      notifyError(data.error ?? COPY.deleteFailed);
     } catch {
-      alert(COPY.networkFailed);
+      notifyError(COPY.networkFailed);
     }
   };
 

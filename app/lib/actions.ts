@@ -2,7 +2,7 @@
 
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
-import { sendErrorNotification } from "./actions/notifications/sendNotification";
+import logServerIssue from "./notifications/logServerIssue";
 
 export async function authenticate(
   _prevState: string | undefined,
@@ -12,7 +12,8 @@ export async function authenticate(
     await signIn("credentials", formData);
   } catch (error) {
     if (error instanceof AuthError) {
-      sendErrorNotification(`ÈRRORE: ${error.type}`);
+      // Server-side: the user already gets the returned message on the form.
+      logServerIssue(`Sign-in failed: ${error.type}`);
       switch (error.type) {
         case "CredentialsSignin":
           return "Invalid credentials.";

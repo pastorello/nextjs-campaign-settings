@@ -1,15 +1,16 @@
 import "@/app/ui/global.css";
 import { inter } from "./ui/fonts";
+import Toaster from "./ui/components/Toaster";
 
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Acme Dashboard",
-    default: "Acme Dashboard",
+    template: "%s | Campaign Settings",
+    default: "Campaign Settings",
   },
-  description: "The official Next.js Learn Dashboard built with App Router.",
-  metadataBase: new URL("https://next-learn-dashboard.vercel.sh"),
+  description:
+    "Compendio di una campagna D&D 5e: incantesimi, oggetti magici, PNG, divinità e mappa del mondo.",
 };
 
 export default function RootLayout({
@@ -19,7 +20,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased`}>{children}</body>
+      <body className={`${inter.className} antialiased`}>
+        {children}
+        {/* Mounted once, at the root: every page can raise a toast (TD-10). */}
+        <Toaster />
+      </body>
     </html>
   );
 }

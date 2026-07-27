@@ -1,5 +1,5 @@
 import prisma from "../../connections/prisma";
-import DatabaseError from "../../errors/DatabaseError";
+import toDatabaseError from "../../errors/toDatabaseError";
 import NotFoundError from "../../errors/NotFoundError";
 
 /**
@@ -16,7 +16,7 @@ export async function deletePngById(id: number): Promise<void> {
   try {
     existingItem = await prisma.png.findUnique({ where: { id } });
   } catch (error) {
-    throw new DatabaseError("looking up png for deletion", error);
+    throw toDatabaseError("looking up png for deletion", error);
   }
 
   if (!existingItem) {
@@ -26,6 +26,6 @@ export async function deletePngById(id: number): Promise<void> {
   try {
     await prisma.png.delete({ where: { id } });
   } catch (error) {
-    throw new DatabaseError("deleting png", error);
+    throw toDatabaseError("deleting png", error);
   }
 }

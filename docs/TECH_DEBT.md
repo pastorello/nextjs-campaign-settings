@@ -44,7 +44,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-22 | ◑ lint warnings: 282 → 165; `no-unused-vars` back to `error`         | 🟠 High              | M      | 2     |
 | TD-23 | ✅ Migration drift patched forward; migrations match the schema      | ~~🟠 High~~ done     | S      | 1     |
 | TD-24 | ✅ Playwright + 26 specs; `e2e` job blocking in CI                   | ~~🟠 High~~ done     | M      | 1     |
-| TD-25 | An unreachable database surfaces as an opaque UI error               | 🟡 Medium            | S      | 2     |
+| TD-25 | ✅ Startup reachability check; 503 distinct from 500                 | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                    | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-27 | ✅ Hidden `classi=0` filter on the spells list removed               | ~~🟠 High~~ done     | S      | 2     |
 | TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does       | ~~🟠 High~~ done     | S      | 2     |
@@ -867,7 +867,35 @@ This item exists because the E2E layer was previously scheduled only in `ROADMAP
 
 ---
 
-### TD-25 🟡 An unreachable database surfaces as an opaque UI error
+### TD-25 ✅ An unreachable database surfaces as an opaque UI error — **DONE (2026-07-27)**
+
+**Outcome:** a stopped Postgres announces itself in the terminal, once, at startup, instead of being discovered mid-render by whichever page queries first.
+
+`instrumentation.ts` — Next's one-shot startup hook — runs `SELECT 1` through the existing client. On a refused connection it prints the host, the port and the command that starts it. It never blocks startup and never runs in the request path: an unreachable database is reported and the server carries on.
+
+**Verified in all three states**, without touching the development database — the connection string was pointed elsewhere rather than the container stopped:
+
+| State                           | Result                              |
+| ------------------------------- | ----------------------------------- |
+| Nothing listening on the port   | the actionable message, and `false` |
+| The real database               | silent, `true`                      |
+| Reachable but wrong credentials | the driver's own message, quoted    |
+
+And end to end: `next dev` with an unreachable URL is _Ready in 309ms_, prints the message after, and still serves `/login` with a 200. The message appears once, not per request.
+
+**Two guards in the hook, both load-bearing:** it returns early on the edge runtime, where the Prisma client and `pg` do not exist, and during `next build` — CI builds with a placeholder `DATABASE_URL` pointing at nothing, and checking there would print a frightening, meaningless warning on every green build. Both confirmed: a build against an unreachable URL prints nothing.
+
+**The kind of failure is now in the type system.** `DatabaseUnreachableError` (503) is distinct from `DatabaseError` (500), chosen by `toDatabaseError` via `isConnectionFailure`. The distinction cuts both ways, and a test asserts it does: a constraint violation stays a 500. TD-13 made the cause visible; this makes the _kind_ visible, which is what lets a message say "start the database" rather than "something went wrong".
+
+**A wording bug this caught in itself.** The first version of the non-connection branch suggested `prisma migrate deploy` for any failure that was not a refused connection. Running it against wrong credentials produced _password authentication failed_ under a suggestion to migrate. It now quotes the driver's message and lists the common causes rather than guessing one.
+
+**The dashboard boundary distinguishes the two — in development.** `app/dashboard/error.tsx` said "Something went wrong!" for everything; it now recognises an unreachable database and names the command. In production Next replaces a server error's message before it reaches a client boundary, leaving only `digest`, so the specific text is a development-only affordance. That is the case that matters for a self-hosted app whose owner runs it, and the startup check covers the terminal in both modes. Recorded rather than papered over.
+
+The original description follows.
+
+---
+
+### TD-25 (original) 🟡 An unreachable database surfaces as an opaque UI error
 
 **Where:** `app/lib/connections/prisma.ts`, `app/ui/dashboard/cards.tsx`, every `fetch*` in `app/lib/data/`
 **Related but not the same:** TD-13 (make the message carry its cause) · TD-02b step 5 (validate env vars)

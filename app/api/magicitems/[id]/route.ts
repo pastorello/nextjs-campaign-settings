@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import requireApiSession from "@/app/lib/auth/requireApiSession";
 import parseIdParam from "@/app/lib/data/validation/parseIdParam";
+import toErrorResponse from "@/app/lib/errors/toErrorResponse";
 import { deleteMagicItemById } from "@/app/lib/data/magicitems/deleteMagicItemById";
 
 export async function DELETE(
@@ -14,17 +15,13 @@ export async function DELETE(
   const id = parseIdParam(theParams.id);
   if (id instanceof NextResponse) return id;
 
-  const isDeleted = await deleteMagicItemById(id);
-
-  if (isDeleted) {
-    return NextResponse.json({ success: true });
-  } else {
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Oggetto non trovato o errore durante la cancellazione",
-      },
-      { status: 500 }
-    );
+  try {
+    await deleteMagicItemById(id);
+  } catch (error) {
+    // A missing record is a 404, a failed query a 500 — each AppError carries
+    // its own status, so the handler no longer decides (TD-13).
+    return toErrorResponse(error);
   }
+
+  return NextResponse.json({ success: true });
 }

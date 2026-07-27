@@ -32,7 +32,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-10 | Notification system is a `console.log` stub                          | 🟠 High              | M      | 2     |
 | TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred          | ~~🟡 Medium~~ part   | M      | 2     |
 | TD-12 | Pagination count and rows use separate queries                       | 🟡 Medium            | S      | 2     |
-| TD-13 | Errors surfaced as `throw new Error("Failed to fetch X")`            | 🟡 Medium            | M      | 2     |
+| TD-13 | ◑ Typed errors with `cause`; 404 vs 500; toasts wait on TD-10        | 🟡 Medium            | M      | 2     |
 | TD-14 | Map POIs persisted only to `localStorage`                            | 🟡 Medium            | M      | 3     |
 | TD-15 | No accessibility pass                                                | 🟡 Medium            | M      | 2     |
 | TD-16 | ✅ Inconsistent formatting                                           | ~~🟢 Low~~ done      | S      | 1     |
@@ -497,7 +497,28 @@ Since the metadata layer already knows every field of every domain, this duplica
 
 ---
 
-### TD-13 🟡 Opaque error handling
+### TD-13 ◑ Opaque error handling — **error layer DONE (2026-07-27); notifications wait on TD-10**
+
+**Outcome:** `app/lib/errors/` holds a three-class hierarchy — `AppError` (abstract, carries its own `httpStatus`), `NotFoundError` (404) and `DatabaseError` (500, always constructed with the original error as `cause`). `toErrorResponse` maps a thrown error to a response, so the status lives with the error rather than being re-decided per handler.
+
+**Two distinct bugs, both closed:**
+
+1. **The cause was discarded.** Five `fetch*` functions did `console.error(error)` and then threw a fresh `Error("Failed to fetch …")`. With Postgres stopped, `/dashboard` said only _Failed to fetch card data._ — diagnosing it meant `docker ps`. They now throw `DatabaseError`, and `ECONNREFUSED` travels with the message. **Zero `console.error` remain in `app/lib/data/`.**
+2. **A missing record was a 500.** The four `delete*ById` functions returned a bare `boolean`, so "no such row" and "the database is unreachable" were the same value and every handler answered 500 to both. They return `void` and throw now; a missing record is a 404.
+
+**Tests (158, +17):** `errors.test.ts` covers the classes, including that `cause` survives and that subclasses report their own `name`; `errorPropagation.test.ts` covers the _call sites_, which is the regression that matters — nobody can quietly restore `console.error(error); throw new Error(…)` without a test going red. The endpoint suite gained 404 and 500 cases per domain, and `validation.spec.ts` now asserts 404 rather than merely "not 400".
+
+**A small vindication while writing those tests:** the first run failed with `spells.count is not a function` — an incomplete Prisma mock of mine, reported precisely because `DatabaseError` had preserved the cause. Under the old code it would have read _Failed to fetch card data._
+
+**Not done, and why:** TD-13's last step routes user-facing messages through the notification system, which is **TD-10** and does not exist. `DeleteButton` now shows the message the handler returned instead of a fixed string, so a 404 reads differently from a 500, but it is still an `alert()`. Swap it for a toast with TD-10.
+
+**Still open elsewhere:** `console.*` calls outside `app/lib/data/` (the maps module mostly), and `sendErrorNotification`, which is TD-10's.
+
+The original description follows.
+
+---
+
+### TD-13 (original) 🟡 Opaque error handling
 
 The prevailing pattern is:
 

@@ -1,3 +1,4 @@
+import DatabaseError from "@/app/lib/errors/DatabaseError";
 import prisma from "@/app/lib/connections/prisma";
 
 export default async function fetchCardData() {
@@ -17,7 +18,6 @@ export default async function fetchCardData() {
       numberOfDeities,
     };
   } catch (error) {
-    console.error("Database Error:", error);
-    throw new Error("Failed to fetch card data.");
+    throw new DatabaseError("fetching dashboard counts", error);
   }
 }

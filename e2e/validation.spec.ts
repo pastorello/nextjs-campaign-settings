@@ -30,16 +30,19 @@ test.describe("input validation at the API boundary", () => {
     });
   }
 
-  test("a well-formed id for a missing record is not a 400", async ({
+  test("a well-formed id for a missing record is a 404, not a 400 or a 500", async ({
     request,
   }) => {
-    // The id is syntactically valid, so it must get past the parser — whatever
-    // the handler then decides about a row that does not exist. This is what
-    // keeps the test above honest: it must be the *shape* being rejected, not
-    // every delete.
+    // The id is syntactically valid, so it gets past the parser — which keeps
+    // the tests above honest: it must be the *shape* being rejected, not every
+    // delete.
+    //
+    // The status is the TD-13 half: `deleteSpellById` returned a boolean, so a
+    // missing row and an unreachable database were the same value and the
+    // handler answered 500 to both.
     const response = await request.delete("/api/spells/999999");
 
-    expect(response.status()).not.toBe(400);
+    expect(response.status()).toBe(404);
   });
 });
 

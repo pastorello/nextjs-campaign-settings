@@ -1,3 +1,4 @@
+import DatabaseError from "@/app/lib/errors/DatabaseError";
 import MagicItem from "@/app/lib/definitions/interfaces/magicitem/MagicItem";
 import prisma from "../../connections/prisma";
 import getQuery from "../getQuery";
@@ -22,7 +23,6 @@ export async function fetchFilteredMagicItems(
       sintonia: item.sintonia === true,
     }));
   } catch (error) {
-    console.error("Database Error:", error);
-    throw new Error("Failed to fetch magic items.");
+    throw new DatabaseError("fetching magic items", error);
   }
 }

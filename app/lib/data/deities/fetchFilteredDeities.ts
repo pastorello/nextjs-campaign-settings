@@ -1,3 +1,4 @@
+import DatabaseError from "@/app/lib/errors/DatabaseError";
 import prisma from "../../connections/prisma";
 import getQuery from "../getQuery";
 import { SearchParamsInput } from "../validateParams";
@@ -32,7 +33,6 @@ export async function fetchFilteredDeities(
     const result = await prisma.deities.findMany(theQuery);
     return result as Patrono[];
   } catch (error) {
-    console.error("Database Error:", error);
-    throw new Error("Failed to fetch deities.");
+    throw new DatabaseError("fetching deities", error);
   }
 }

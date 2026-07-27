@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 // Mock auth() to drive the session, and mock each delete function so no
 // database is touched — the 401 path must reject *before* any DB call anyway.
 import { auth } from "@/auth";
+import DatabaseError from "@/app/lib/errors/DatabaseError";
+import NotFoundError from "@/app/lib/errors/NotFoundError";
 
 import { DELETE as deleteSpell } from "@/app/api/spells/[id]/route";
 import { DELETE as deleteDeity } from "@/app/api/deities/[id]/route";
@@ -55,12 +57,37 @@ describe("DELETE /api/:domain/:id auth guard", () => {
 
     it("proceeds to the delete when a session is present", async () => {
       vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
-      vi.mocked(del).mockResolvedValue(true);
+      vi.mocked(del).mockResolvedValue();
 
       const res = await handler(req, { params: Promise.resolve({ id: "1" }) });
 
       expect(res.status).toBe(200);
       expect(del).toHaveBeenCalledWith(1);
+    });
+
+    // TD-13: the delete functions used to return a boolean, so "no such row"
+    // and "the database is unreachable" were the same value and the handler
+    // returned 500 for both.
+    it("returns 404 when the record does not exist", async () => {
+      vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+      vi.mocked(del).mockRejectedValue(new NotFoundError("Record", 999999));
+
+      const res = await handler(req, {
+        params: Promise.resolve({ id: "999999" }),
+      });
+
+      expect(res.status).toBe(404);
+    });
+
+    it("returns 500 when the query itself fails", async () => {
+      vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+      vi.mocked(del).mockRejectedValue(
+        new DatabaseError("deleting", new Error("ECONNREFUSED"))
+      );
+
+      const res = await handler(req, { params: Promise.resolve({ id: "1" }) });
+
+      expect(res.status).toBe(500);
     });
 
     // TD-02 boundary 2: parseInt("abc") is NaN, which used to reach Prisma.

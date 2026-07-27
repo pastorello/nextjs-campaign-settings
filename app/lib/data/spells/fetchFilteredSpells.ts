@@ -1,3 +1,4 @@
+import DatabaseError from "@/app/lib/errors/DatabaseError";
 import prisma from "../../connections/prisma";
 import getQuery from "../getQuery";
 import { SearchParamsInput } from "../validateParams";
@@ -29,7 +30,6 @@ export async function fetchFilteredSpells(
     const result = await prisma.spells.findMany(theQuery);
     return result as Spell[];
   } catch (error) {
-    console.error("Database Error:", error);
-    throw new Error("Failed to fetch spells.");
+    throw new DatabaseError("fetching spells", error);
   }
 }

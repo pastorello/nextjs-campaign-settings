@@ -64,7 +64,9 @@ const getParamsSchema = (aQuery: RawSearchParams): ZodRawShape => {
 
   Object.keys(aQuery).forEach((item: string) => {
     if (isKeyOfItem(item, pageMetaFields)) {
-      paramsSchema[item] = zodConfig[fieldMeta[item].fieldType];
+      const fieldType = fieldMeta[item]?.fieldType;
+
+      if (fieldType) paramsSchema[item] = zodConfig[fieldType];
     }
   });
 

@@ -1,4 +1,5 @@
 "use client";
+import NonEmptyArray from "@/app/lib/definitions/types/NonEmptyArray";
 import {
   MapErrorBoundary,
   MapLoadingSpinner,
@@ -18,7 +19,7 @@ interface MapOption {
   initialZoom: number;
 }
 
-const availableMaps: MapOption[] = [
+const availableMaps: NonEmptyArray<MapOption> = [
   {
     name: "Piani di Esistenza",
     file: "/maps/piani-esistenza.jpg",
@@ -64,6 +65,12 @@ const availableMaps: MapOption[] = [
 const GeographyPage = () => {
   const [selectedMap, setSelectedMap] = useState<number>(0);
 
+  // `availableMaps[selectedMap]` is an index read, so under
+  // noUncheckedIndexedAccess it is `Map | undefined` — correctly, since
+  // `selectedMap` is state and nothing constrains it to a valid index. Falling
+  // back to the first map is what the page already assumed implicitly.
+  const currentMap = availableMaps[selectedMap] ?? availableMaps[0];
+
   return (
     <div>
       <PageTitle className="mb-4">Geografia</PageTitle>
@@ -84,10 +91,10 @@ const GeographyPage = () => {
         <MapErrorBoundary>
           <MapProvider>
             <WorldMap
-              mapUrl={availableMaps[selectedMap].file}
-              bounds={availableMaps[selectedMap].bounds}
-              initialView={availableMaps[selectedMap].initialView}
-              initialZoom={availableMaps[selectedMap].initialZoom}
+              mapUrl={currentMap.file}
+              bounds={currentMap.bounds}
+              initialView={currentMap.initialView}
+              initialZoom={currentMap.initialZoom}
             />
             <MapLoadingSpinner />
           </MapProvider>

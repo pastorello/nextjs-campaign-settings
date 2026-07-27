@@ -43,7 +43,7 @@ const Select = ({
     const defaultLabel =
       multiple === true || !isValidDataArray(options)
         ? "Seleziona..."
-        : options[0].label;
+        : (options[0]?.label ?? "Seleziona...");
 
     const valueLabel = selectedOption
       ? `${selectedOption.label}${

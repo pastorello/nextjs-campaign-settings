@@ -29,7 +29,7 @@ export interface POICategoryConfig {
 export interface POI {
   id: string;
   title: string;
-  description?: string;
+  description?: string | undefined;
   lat: number;
   lng: number;
   category: POICategory;
@@ -48,7 +48,7 @@ export interface POIGeoJSON {
     properties: {
       id: string;
       title: string;
-      description?: string;
+      description?: string | undefined;
       category: POICategory;
       createdAt: number;
       updatedAt: number;

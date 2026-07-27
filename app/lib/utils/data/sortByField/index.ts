@@ -12,7 +12,7 @@ interface SortConfig {
   isCaseSentitive: boolean;
   sortedValues: PrimitiveValue[];
   fieldGetter: (item: Indexable, field: string) => string | number | boolean;
-  fieldName?: string;
+  fieldName?: string | undefined;
 }
 
 const getDefaultConfig = (customConfig?: Partial<SortConfig>): SortConfig => ({

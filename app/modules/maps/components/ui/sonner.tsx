@@ -15,7 +15,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      // NonNullable: useTheme() already defaults to "system" above, and with
+      // exactOptionalPropertyTypes an explicit undefined is no longer the same
+      // as omitting the prop.
+      theme={theme as NonNullable<ToasterProps["theme"]>}
       className="toaster group"
       position="bottom-left"
       richColors

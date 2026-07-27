@@ -49,10 +49,10 @@ interface MapPOIPanelProps {
   onClearCoordinates?: () => void;
   onModeChange?: (mode: "list" | "add" | "edit") => void;
   isSelectingLocation?: boolean;
-  initialLat?: number;
-  initialLng?: number;
-  cursorLat?: number;
-  cursorLng?: number;
+  initialLat?: number | undefined;
+  initialLng?: number | undefined;
+  cursorLat?: number | undefined;
+  cursorLng?: number | undefined;
   mode?: "list" | "add"; // Control view mode from parent
 }
 

@@ -1,3 +1,4 @@
+import firstOptionValue from "../firstOptionValue";
 import SpellMetaField from "../../definitions/enums/spells/SpellMetaField";
 import PageMeta from "../../definitions/interfaces/meta/PageMeta";
 import ControlType from "../../definitions/types/ControlType";
@@ -51,7 +52,7 @@ const spellsMeta = {
   [SpellMetaField.tempoDiLancio]: {
     metaField: "tempoDiLancio",
     label: "Tempo di lancio",
-    defaultValue: tempiDiLancio[0].value,
+    defaultValue: firstOptionValue(tempiDiLancio),
     fieldType: FieldType.string,
     options: tempiDiLancio,
     controlType: ControlType.Select,
@@ -61,7 +62,7 @@ const spellsMeta = {
   [SpellMetaField.gittata]: {
     metaField: "gittata",
     label: "Gittata",
-    defaultValue: gittate[0].value,
+    defaultValue: firstOptionValue(gittate),
     fieldType: FieldType.string,
     options: gittate,
     controlType: ControlType.Select,
@@ -80,7 +81,7 @@ const spellsMeta = {
   [SpellMetaField.durata]: {
     metaField: "durata",
     label: "Durata",
-    defaultValue: durate[0].value,
+    defaultValue: firstOptionValue(durate),
     fieldType: FieldType.string,
     options: durate,
     controlType: ControlType.Select,
@@ -90,7 +91,7 @@ const spellsMeta = {
   [SpellMetaField.tiroSalvezza]: {
     metaField: "tiroSalvezza",
     label: "Tiro salvezza",
-    defaultValue: tiriSalvezza[0].value,
+    defaultValue: firstOptionValue(tiriSalvezza),
     fieldType: FieldType.string,
     options: tiriSalvezza,
     controlType: ControlType.Select,

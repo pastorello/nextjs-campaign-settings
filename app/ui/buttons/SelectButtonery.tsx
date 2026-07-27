@@ -25,7 +25,7 @@ const getOptionsList = (
   fieldKey: MetaConfigKey,
   filterOptions?: (number | string)[]
 ) => {
-  const optionsList = fieldMeta[fieldKey].options ?? [];
+  const optionsList = fieldMeta[fieldKey]?.options ?? [];
 
   return isValidDataArray(filterOptions)
     ? optionsList.filter((option) => {

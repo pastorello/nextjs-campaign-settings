@@ -41,9 +41,9 @@ const InputComponent = ({
       pageMetaFields[fieldName].controlType === ControlType.Text ||
       pageMetaFields[fieldName].controlType === ControlType.Textarea
     ) {
-      result.placeholder = isValidString(fieldMeta[fieldName].placeholder)
-        ? fieldMeta[fieldName].placeholder
-        : "";
+      const declared = fieldMeta[fieldName]?.placeholder;
+
+      result.placeholder = isValidString(declared) ? declared : "";
     }
     return result;
   };

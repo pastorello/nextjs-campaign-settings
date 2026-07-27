@@ -18,38 +18,38 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-| ID    | Title                                                                | Severity             | Effort | Phase |
-| ----- | -------------------------------------------------------------------- | -------------------- | ------ | ----- |
-| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions               | ~~🔴 Critical~~ done | M      | 1     |
-| TD-02 | ✅ No input validation (Phase 1); TD-02b remains                     | ~~🔴 Critical~~ done | M      | 1–2   |
-| TD-03 | ✅ Test suite does not run                                           | ~~🔴 Critical~~ done | M      | 1     |
-| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                               | ~~🔴 Critical~~ done | S      | 1     |
-| TD-05 | ✅ No ESLint config, no Prettier, no CI                              | ~~🟠 High~~ done     | S      | 1     |
-| TD-06 | ✅ Dead code and tutorial leftovers                                  | ~~🟠 High~~ done     | S      | 1     |
-| TD-07 | ✅ `next`/`react` pinned; single lockfile                            | ~~🟠 High~~ done     | S      | 1     |
-| TD-08 | ✅ Metadata and query layer typed; zero `any`, rule is an error      | ~~🟠 High~~ done     | M      | 2     |
-| TD-09 | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm   | ~~🟠 High~~ done     | L      | 2     |
-| TD-10 | Notification system is a `console.log` stub                          | 🟠 High              | M      | 2     |
-| TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred          | ~~🟡 Medium~~ part   | M      | 2     |
-| TD-12 | Pagination count and rows use separate queries                       | 🟡 Medium            | S      | 2     |
-| TD-13 | ◑ Typed errors with `cause`; 404 vs 500; toasts wait on TD-10        | 🟡 Medium            | M      | 2     |
-| TD-14 | Map POIs persisted only to `localStorage`                            | 🟡 Medium            | M      | 3     |
-| TD-15 | No accessibility pass                                                | 🟡 Medium            | M      | 2     |
-| TD-16 | ✅ Inconsistent formatting                                           | ~~🟢 Low~~ done      | S      | 1     |
-| TD-17 | ✅ README does not match reality                                     | ~~🟢 Low~~ done      | S      | 1     |
-| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack               | ~~🟢 Low~~ done      | S      | 3     |
-| TD-19 | Mixed Italian/English identifiers                                    | 🟠 High              | L      | 2     |
-| TD-20 | ◑ strict flags: batch 1 partly done; noUnusedLocals + verbatim split | 🟡 Medium            | M      | 2     |
-| TD-21 | UI strings hardcoded; app must ship in it + en                       | 🟠 High              | L      | 2     |
-| TD-22 | ◑ lint warnings 282 → 89; `no-unused-vars` and `no-explicit-any` err | 🟠 High              | M      | 2     |
-| TD-23 | ✅ Migration drift patched forward; migrations match the schema      | ~~🟠 High~~ done     | S      | 1     |
-| TD-24 | ✅ Playwright + 26 specs; `e2e` job blocking in CI                   | ~~🟠 High~~ done     | M      | 1     |
-| TD-25 | ✅ Startup reachability check; 503 distinct from 500                 | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                    | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-27 | ✅ Hidden `classi=0` filter on the spells list removed               | ~~🟠 High~~ done     | S      | 2     |
-| TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does       | ~~🟠 High~~ done     | S      | 2     |
-| TD-29 | ✅ Loading skeleton was the tutorial's invoices table                | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-30 | ✅ Public list pages actually stream; skeleton matches the content   | ~~🟡 Medium~~ done   | S      | 2     |
+| ID    | Title                                                                 | Severity             | Effort | Phase |
+| ----- | --------------------------------------------------------------------- | -------------------- | ------ | ----- |
+| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions                | ~~🔴 Critical~~ done | M      | 1     |
+| TD-02 | ✅ No input validation (Phase 1); TD-02b remains                      | ~~🔴 Critical~~ done | M      | 1–2   |
+| TD-03 | ✅ Test suite does not run                                            | ~~🔴 Critical~~ done | M      | 1     |
+| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                                | ~~🔴 Critical~~ done | S      | 1     |
+| TD-05 | ✅ No ESLint config, no Prettier, no CI                               | ~~🟠 High~~ done     | S      | 1     |
+| TD-06 | ✅ Dead code and tutorial leftovers                                   | ~~🟠 High~~ done     | S      | 1     |
+| TD-07 | ✅ `next`/`react` pinned; single lockfile                             | ~~🟠 High~~ done     | S      | 1     |
+| TD-08 | ✅ Metadata and query layer typed; zero `any`, rule is an error       | ~~🟠 High~~ done     | M      | 2     |
+| TD-09 | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm    | ~~🟠 High~~ done     | L      | 2     |
+| TD-10 | Notification system is a `console.log` stub                           | 🟠 High              | M      | 2     |
+| TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred           | ~~🟡 Medium~~ part   | M      | 2     |
+| TD-12 | Pagination count and rows use separate queries                        | 🟡 Medium            | S      | 2     |
+| TD-13 | ◑ Typed errors with `cause`; 404 vs 500; toasts wait on TD-10         | 🟡 Medium            | M      | 2     |
+| TD-14 | Map POIs persisted only to `localStorage`                             | 🟡 Medium            | M      | 3     |
+| TD-15 | No accessibility pass                                                 | 🟡 Medium            | M      | 2     |
+| TD-16 | ✅ Inconsistent formatting                                            | ~~🟢 Low~~ done      | S      | 1     |
+| TD-17 | ✅ README does not match reality                                      | ~~🟢 Low~~ done      | S      | 1     |
+| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                | ~~🟢 Low~~ done      | S      | 3     |
+| TD-19 | Mixed Italian/English identifiers                                     | 🟠 High              | L      | 2     |
+| TD-20 | ◑ `exactOptionalPropertyTypes` on; `noUncheckedIndexedAccess` blocked | 🟡 Medium            | M      | 2     |
+| TD-21 | UI strings hardcoded; app must ship in it + en                        | 🟠 High              | L      | 2     |
+| TD-22 | ◑ lint warnings 282 → 89; `no-unused-vars` and `no-explicit-any` err  | 🟠 High              | M      | 2     |
+| TD-23 | ✅ Migration drift patched forward; migrations match the schema       | ~~🟠 High~~ done     | S      | 1     |
+| TD-24 | ✅ Playwright + 26 specs; `e2e` job blocking in CI                    | ~~🟠 High~~ done     | M      | 1     |
+| TD-25 | ✅ Startup reachability check; 503 distinct from 500                  | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                     | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-27 | ✅ Hidden `classi=0` filter on the spells list removed                | ~~🟠 High~~ done     | S      | 2     |
+| TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does        | ~~🟠 High~~ done     | S      | 2     |
+| TD-29 | ✅ Loading skeleton was the tutorial's invoices table                 | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-30 | ✅ Public list pages actually stream; skeleton matches the content    | ~~🟡 Medium~~ done   | S      | 2     |
 
 ---
 
@@ -627,6 +627,18 @@ The codebase mixes languages without a rule. Models are English (`spells`, `magi
 **Where:** `tsconfig.json`
 
 **Enabled (TD-20a):** `target: ES2022`, `noImplicitReturns`, `noFallthroughCasesInSwitch`, `noImplicitOverride`, `noUnusedParameters`. `typecheck` stays green. Fixes were small: `_`-prefixed the required-but-unused `request` params in the four DELETE handlers and `prevState` in `authenticate`, two `override` keywords in `MapErrorBoundary`, three explicit returns in effects, and two dead destructured props (`buttonState`, `searchParams`) dropped from `BaseButton` / `ListPage` — both still declared in their interfaces and passed by callers, just no longer read.
+
+**Batch two, part one — `exactOptionalPropertyTypes` enabled (2026-07-27).** 28 errors, every one the same shape: an optional property declared `x?: T` receiving `T | undefined`. Under this flag those differ — `?` means "absent or T", not "T or undefined" — which is the distinction it exists to draw. Each declaration was made to say what it accepts (`x?: T | undefined`) rather than anything being silenced. Two vendored shadcn components needed real fixes rather than widening (`sonner`'s theme cast is `NonNullable` now; `dropdown-menu` spreads `checked` conditionally instead of forwarding a destructured optional). No `@ts-expect-error` anywhere.
+
+**Batch two, part two — `noUncheckedIndexedAccess` is NOT enabled, and this is the reason.** It reports 54 errors. All 34 outside `app/modules/maps/` are fixed, so the flag is one directory away; the remaining **20 are all in the vendored maps module**, and they are index reads in geometry code: `points[i]` in `useMeasurement`, bounds destructuring in `maps.ts`, regex capture groups in `coordinates.ts`, `selectedLayer` in the tile switcher.
+
+They are worth fixing — a wrong index there produces `NaN` silently rather than throwing. But a `?? 0` in a distance calculation changes an answer instead of preventing a crash, and the E2E map coverage is mount, world-switch and context-menu; it does not exercise measurement at all. Rewriting twenty sites of vendored geometry that no test covers is how a refactor quietly changes what the map reports.
+
+**Done when** either the maps module gains coverage for measurement and coordinates and then the twenty are fixed, or the module is excluded from the flag through its own tsconfig. Not "when someone adds twenty `?.`".
+
+What the app-side work bought, even with the flag off: `availableMaps[selectedMap]` now falls back instead of assuming the index is valid, `fieldMeta[key]` is read once and guarded in four places, and `defaultValue: list[0].value` goes through `firstOptionValue`.
+
+**A rejected approach, recorded so it is not retried.** The nineteen `defaultValue: list[0].value` declarations were first fixed by annotating every option list as a non-empty tuple. That silently _widened_ several of them — a numeric list declared `SelectOption` rather than `SelectOption<number>` turns `defaultValue` into `string | number` and breaks the `PageMeta` discriminated union TD-08 built. One helper with one documented assertion replaced nineteen annotations.
 
 **Split out on purpose — measured, not as the doc assumed:**
 

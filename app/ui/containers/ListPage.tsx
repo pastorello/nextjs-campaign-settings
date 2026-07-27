@@ -13,8 +13,8 @@ interface ListPageProps {
   itemCount: ItemCount;
   itemNamePlural: string;
   itemNameSingular: string;
-  searchParams?: SearchParams;
-  newItemRoute?: string;
+  searchParams?: SearchParams | undefined;
+  newItemRoute?: string | undefined;
   children: ReactNode;
 }
 

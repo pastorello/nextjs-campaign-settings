@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import DatabaseError from "@/app/lib/errors/DatabaseError";
+import DatabaseUnreachableError from "@/app/lib/errors/DatabaseUnreachableError";
 import NotFoundError from "@/app/lib/errors/NotFoundError";
 
 vi.mock("@/app/lib/connections/prisma", () => ({
@@ -28,17 +29,36 @@ describe("error propagation from the data layer", () => {
     vi.clearAllMocks();
   });
 
-  it("fetchCardData carries the driver's error as the cause", async () => {
+  it("reports a refused connection as unreachable, not as a failed query", async () => {
     const refused = new Error("connect ECONNREFUSED 127.0.0.1:5432");
     vi.mocked(prisma.$transaction).mockRejectedValue(refused);
 
     // With Postgres stopped, the dashboard used to fail with nothing but
     // "Failed to fetch card data." — diagnosing it meant running `docker ps`.
+    // TD-13 preserved the cause; TD-25 makes the *kind* explicit, so the UI can
+    // say "start the database" rather than "something went wrong".
+    const error = await fetchCardData().catch((thrown: unknown) => thrown);
+
+    expect(error).toBeInstanceOf(DatabaseUnreachableError);
+    expect((error as DatabaseUnreachableError).cause).toBe(refused);
+    expect((error as DatabaseUnreachableError).httpStatus).toBe(503);
+    expect((error as DatabaseUnreachableError).message).toContain(
+      "dashboard counts"
+    );
+  });
+
+  it("still reports a query that reached the database as a database error", async () => {
+    // The distinction has to cut both ways, or it is just a rename.
+    const constraint = new Error(
+      "duplicate key value violates unique constraint"
+    );
+    vi.mocked(prisma.$transaction).mockRejectedValue(constraint);
+
     const error = await fetchCardData().catch((thrown: unknown) => thrown);
 
     expect(error).toBeInstanceOf(DatabaseError);
-    expect((error as DatabaseError).cause).toBe(refused);
-    expect((error as DatabaseError).message).toContain("dashboard counts");
+    expect(error).not.toBeInstanceOf(DatabaseUnreachableError);
+    expect((error as DatabaseError).httpStatus).toBe(500);
   });
 
   it("deleteSpellById distinguishes a missing row from a failed query", async () => {

@@ -1,4 +1,4 @@
-import DatabaseError from "@/app/lib/errors/DatabaseError";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import MagicItem from "@/app/lib/definitions/interfaces/magicitem/MagicItem";
 import prisma from "../../connections/prisma";
 import getQuery from "../getQuery";
@@ -23,6 +23,6 @@ export async function fetchFilteredMagicItems(
       sintonia: item.sintonia === true,
     }));
   } catch (error) {
-    throw new DatabaseError("fetching magic items", error);
+    throw toDatabaseError("fetching magic items", error);
   }
 }

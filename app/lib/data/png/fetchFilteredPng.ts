@@ -1,4 +1,4 @@
-import DatabaseError from "@/app/lib/errors/DatabaseError";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import prisma from "../../connections/prisma";
 import PngItem from "../../definitions/interfaces/png/PngItem";
 import getQuery from "../getQuery";
@@ -29,6 +29,6 @@ export async function fetchFilteredPng(
     const result = await prisma.png.findMany(theQuery);
     return result as PngItem[];
   } catch (error) {
-    throw new DatabaseError("fetching NPCs", error);
+    throw toDatabaseError("fetching NPCs", error);
   }
 }

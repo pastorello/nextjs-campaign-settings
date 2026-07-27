@@ -1,5 +1,5 @@
 import prisma from "../../connections/prisma";
-import DatabaseError from "../../errors/DatabaseError";
+import toDatabaseError from "../../errors/toDatabaseError";
 import NotFoundError from "../../errors/NotFoundError";
 
 /**
@@ -16,7 +16,7 @@ export async function deleteDeityById(id: number): Promise<void> {
   try {
     existingItem = await prisma.deities.findUnique({ where: { id } });
   } catch (error) {
-    throw new DatabaseError("looking up deities for deletion", error);
+    throw toDatabaseError("looking up deities for deletion", error);
   }
 
   if (!existingItem) {
@@ -26,6 +26,6 @@ export async function deleteDeityById(id: number): Promise<void> {
   try {
     await prisma.deities.delete({ where: { id } });
   } catch (error) {
-    throw new DatabaseError("deleting deities", error);
+    throw toDatabaseError("deleting deities", error);
   }
 }

@@ -37,7 +37,10 @@ export default async function Page(props: {
         <BaseButton to="png/new">Nuovo PNG</BaseButton>
         <ResetButton />
       </div>
-      <Suspense key={query + currentPage} fallback={<TableSkeleton />}>
+      <Suspense
+        key={query + currentPage}
+        fallback={<TableSkeleton pageType={PageType.Png} />}
+      >
         <EntityList pageType={PageType.Png} searchParams={props.searchParams} />
       </Suspense>
       <div className="mt-5 flex w-full justify-center">

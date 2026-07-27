@@ -37,7 +37,10 @@ export default async function Page(props: {
         <BaseButton to="spells/new">Nuovo Incantesimo</BaseButton>
         <ResetButton />
       </div>
-      <Suspense key={query + currentPage} fallback={<TableSkeleton />}>
+      <Suspense
+        key={query + currentPage}
+        fallback={<TableSkeleton pageType={PageType.Spell} />}
+      >
         <EntityList pageType={PageType.Spell} searchParams={searchParams} />
       </Suspense>
       <div className="mt-5 flex w-full justify-center">

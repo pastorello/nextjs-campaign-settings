@@ -7,6 +7,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import QueryParam from "../definitions/interfaces/pages/QueryParam";
+import MetaValue from "../definitions/types/MetaValue";
 import SelectValueType from "../definitions/types/SelectValueType";
 import SortOrder from "../definitions/types/SortOrder";
 import getSearchParam from "../utils/data/getSearchParam";
@@ -45,7 +46,10 @@ const useFilterController = (fieldKey: MetaConfigKey) => {
     replace(`${pathname}?${params.toString()}`);
   };
 
-  const onFilter = (aValue: SelectValueType) => {
+  // MetaValue rather than SelectValueType: this is handed straight to a
+  // <Select>, and every control takes MetaValue since TD-08 step 4. The value
+  // is stringified for the URL either way.
+  const onFilter = (aValue: MetaValue) => {
     setSearchParams([{ term: fieldKey, value: String(aValue) }], searchParams);
   };
 

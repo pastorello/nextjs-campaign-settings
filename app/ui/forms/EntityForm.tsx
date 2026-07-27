@@ -11,7 +11,6 @@ import isValidDataArray from "@/app/lib/utils/validators/isValidDataArray";
 import isValidDataObject from "@/app/lib/utils/validators/isValidDataObject";
 import isValidFunction from "@/app/lib/utils/validators/isValidFunction";
 import usePageManager from "@/app/lib/hooks/usePageManager";
-import ListItem from "@/app/lib/definitions/interfaces/ListItem";
 import MetaConfigKey from "@/app/lib/definitions/types/MetaConfigKey";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import PageType from "@/app/lib/definitions/types/PageType";
@@ -42,7 +41,7 @@ interface EntityMutations<T> {
   update: (page: T) => Promise<MutationResult>;
 }
 
-interface EntityFormProps<T extends ListItem> {
+interface EntityFormProps<T extends object> {
   pageType: PageType;
   formData?: T;
   mutations: EntityMutations<T>;
@@ -78,7 +77,7 @@ interface EntityFormProps<T extends ListItem> {
  * move CSS into config and make it harder to change, not easier. What is
  * removed here is the boilerplate around it.
  */
-export default function EntityForm<T extends ListItem>({
+export default function EntityForm<T extends object>({
   pageType,
   formData,
   mutations,
@@ -116,7 +115,7 @@ export default function EntityForm<T extends ListItem>({
       ? await mutations.update(
           editedFields.reduce<T>(
             (acc, item) => ({ ...acc, [item]: getField(item) }),
-            { id: page.id } as unknown as T
+            { id: (page as { id?: number }).id } as unknown as T
           )
         )
       : await mutations.create(page);

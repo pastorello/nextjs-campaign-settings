@@ -9,6 +9,7 @@ import Select from "../forms/inputs/Select";
 import { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import isValidDataArray from "@/app/lib/utils/validators/isValidDataArray";
 import getSearchParam from "@/app/lib/utils/data/getSearchParam";
+import MetaValue from "@/app/lib/definitions/types/MetaValue";
 import SelectValueType from "@/app/lib/definitions/types/SelectValueType";
 import QueryParam from "@/app/lib/definitions/interfaces/pages/QueryParam";
 
@@ -58,7 +59,9 @@ const SortableHeader = ({
     300
   );
 
-  const onFilter = (aValue: SelectValueType) => {
+  // MetaValue: this goes to a <Select>, and every control takes MetaValue
+  // since TD-08 step 4. It is stringified for the URL regardless.
+  const onFilter = (aValue: MetaValue) => {
     setSearchParams([{ term: fieldKey, value: String(aValue) }], searchParams);
   };
   const onSort = () => {

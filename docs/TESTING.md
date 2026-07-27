@@ -1,6 +1,6 @@
 # Testing Strategy
 
-**Last updated:** 2026-07-26
+**Last updated:** 2026-07-27
 **Stack:** Vitest + Testing Library (unit/integration) · Playwright (E2E) · MSW where network mocking is needed
 **Decision record:** [ADR-0002](./adr/0002-testing-stack.md)
 
@@ -8,9 +8,9 @@
 
 ## 1. Where we are
 
-**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 117 tests across 12 files in ~2s. Coverage is **18.7% lines / 12% branches**, enforced in CI as a ratchet — see §2.
+**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 171 tests across 18 files in ~2s. Coverage is **22.2% lines / 15% branches**, enforced in CI as a ratchet — see §2.
 
-**Playwright landed 2026-07-25 (TD-24).** `pnpm test:e2e` runs **28 specs in ~25s** against a real database and a dev server it starts itself. Nothing is skipped.
+**Playwright landed 2026-07-25 (TD-24).** `pnpm test:e2e` runs **31 specs in ~30s** against a real database and a dev server it starts itself. Nothing is skipped.
 
 > **Two warnings before you run either suite.**
 >
@@ -20,7 +20,7 @@
 >
 > **Anything under `.claude/worktrees/` is a second checkout of this repo.** Both runners walk the filesystem, so a leftover agent worktree makes Vitest collect every suite twice (117 tests read as 228, coverage as 30%) and makes ESLint report thousands of duplicate findings. Both configs now ignore `.claude/**`.
 
-What exists today:
+What exists today — 171 unit tests across 18 files. The largest suites:
 
 | Suite                                               | Tests | Notes                                                                      |
 | --------------------------------------------------- | ----- | -------------------------------------------------------------------------- |
@@ -36,7 +36,7 @@ What exists today:
 | `__test__/utils/createEmptyArray.test.ts`           | 1     | Carried over — was never collected before, the filename was malformed      |
 | `app/ui/forms/inputs/Select/Select.test.tsx`        | 2     | Carried over                                                               |
 
-Plus **28 Playwright specs** in `e2e/`, listed in §3.
+Plus **31 Playwright specs** in `e2e/`, listed in §3.
 
 **Still missing, and deliberately so:** integration tests against a real Postgres. Described below, not started. (The Playwright layer that used to be listed here landed with TD-24 on 2026-07-25.)
 
@@ -82,7 +82,7 @@ Everything else is supporting cast.
 
 Set the CI threshold to whatever you actually achieve at the end of Phase 1, then never let it drop. A threshold you have to disable to merge is worse than no threshold.
 
-**Current thresholds are 18/13/12/18 (lines/functions/branches/statements)** — what the suite achieves today, not the targets above. They are a ratchet: raise them whenever a change adds real coverage, never lower them. The table stays the destination.
+**Current thresholds are 22/18/15/21 (lines/functions/branches/statements)** — what the suite achieves today, not the targets above. They are a ratchet: raise them whenever a change adds real coverage, never lower them. The table stays the destination.
 
 ---
 

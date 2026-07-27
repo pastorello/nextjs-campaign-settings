@@ -1,6 +1,6 @@
 # Roadmap
 
-**Last updated:** 2026-07-22
+**Last updated:** 2026-07-27
 
 Two rules govern this document:
 
@@ -35,20 +35,20 @@ Order matters. Deleting dead code first removes roughly half the type errors, so
 
 **Goal:** the code demonstrates deliberate engineering, not just working behaviour. This is the phase that turns "a project that works" into "a project worth showing".
 **Estimated effort:** 16–24 hours.
-**Exit criteria:** zero `any`; coverage above 70%; the duplicated component quartets are gone; a keyboard-only user can complete every flow.
+**Exit criteria:** ✅ zero `any` · coverage above 70% (at 22%) · ✅ the duplicated component quartets are gone · a keyboard-only user can complete every flow.
 
 | #   | Task                                                                      | Debt   | Effort |
 | --- | ------------------------------------------------------------------------- | ------ | ------ |
-| 1   | `PageMeta` as a discriminated union on `fieldType`; eliminate `any`       | TD-08  | M      |
-| 2   | Strict flags, cheap batch, + `target: ES2022`                             | TD-20a | S      |
+| 1   | ✅ `PageMeta` a discriminated union; `any` eliminated, rule now an error  | TD-08  | M      |
+| 2   | ◑ Strict flags, cheap batch, + `target: ES2022` (TD-20b now unblocked)    | TD-20a | S      |
 | 3   | Rename all identifiers to English; `png` → `npc`; columns kept via `@map` | TD-19  | L      |
 | 4   | Bilingual UI: extract strings, `messages/{it,en}.json`, locale switcher   | TD-21  | L      |
-| 5   | Schema: `createdAt`/`updatedAt`, `@@index` on the name column             | TD-11  | M      |
+| 5   | ✅ Schema: `createdAt`/`updatedAt`, `@@index` on the name column          | TD-11  | M      |
 | 6   | Single shared `where` clause for rows and count                           | TD-12  | S      |
 | 7   | Validate the remaining trust boundaries: env, `localStorage`, GeoJSON     | TD-02b | M      |
-| 8   | Typed error hierarchy; correct HTTP status codes; preserve `cause`        | TD-13  | M      |
+| 8   | ✅ Typed error hierarchy; correct status codes; `cause` preserved         | TD-13  | M      |
 | 9   | Real notifications — promote Sonner to root layout                        | TD-10  | M      |
-| 10  | Collapse the four Card/List/Library/Form quartets into generic components | TD-09  | L      |
+| 10  | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm        | TD-09  | L      |
 | 11  | `noUncheckedIndexedAccess`                                                | TD-20b | M      |
 | 12  | Accessibility pass: `jsx-a11y`, axe in E2E, manual keyboard audit         | TD-15  | M      |
 | 13  | Loading and empty states audited across every list                        | —      | S      |
@@ -56,7 +56,9 @@ Order matters. Deleting dead code first removes roughly half the type errors, so
 
 Items 3 and 4 are deliberately adjacent: both touch all 54 domain files, and doing them in one pass costs far less than two.
 
-The order is load-bearing. Item 1 types the metadata layer, which turns items 2 and 7 from unverifiable sweeping edits into compiler-checked ones — the metadata keys are strings today, so neither the rename nor the component collapse would fail loudly if done first.
+The order is load-bearing. Item 1 types the metadata layer, which turns the sweeping edits that follow from unverifiable into compiler-checked.
+
+**Item 10 ran early, before items 3 and 4.** The stated constraint was TD-08, which was done, and collapsing four component quartets into one first shrinks the surface the rename has to cover. It also paid for itself immediately: the duplication was hiding six defects, found only by putting the copies side by side.
 
 ---
 

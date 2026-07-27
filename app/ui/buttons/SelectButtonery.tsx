@@ -1,6 +1,6 @@
 "use client";
 
-import ListItem from "@/app/lib/definitions/interfaces/ListItem";
+import FilterOptionStats from "@/app/lib/definitions/interfaces/FilterOptionStats";
 import MetaConfigKey from "@/app/lib/definitions/types/MetaConfigKey";
 
 import isValidString from "@/app/lib/utils/validators/isValidString";
@@ -13,7 +13,7 @@ import isValidDataArray from "@/app/lib/utils/validators/isValidDataArray";
 
 interface SelectButtoneryProps {
   fieldKey: MetaConfigKey;
-  itemStats?: ListItem;
+  itemStats?: FilterOptionStats;
   isFiltered?: boolean;
   omitAllButton?: boolean;
   buttonClassName?: string;

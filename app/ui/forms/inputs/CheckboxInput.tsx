@@ -1,3 +1,4 @@
+import MetaValue from "@/app/lib/definitions/types/MetaValue";
 import { Fragment } from "react";
 import { Checkbox, Field } from "@headlessui/react";
 import clsx from "clsx";
@@ -10,8 +11,10 @@ import isValidString from "@/app/lib/utils/validators/isValidString";
 
 interface CheckboxInputProps {
   label: string;
-  value: boolean;
-  onChange: (checked: boolean) => void;
+  // Already compared with `=== true` below, which is the narrowing this makes
+  // explicit rather than defensive.
+  value: MetaValue;
+  onChange: (checked: MetaValue) => void;
 }
 
 const CheckboxInput = ({ label, value, onChange }: CheckboxInputProps) => {

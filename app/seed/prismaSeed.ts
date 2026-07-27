@@ -46,26 +46,28 @@ const DOMAINS = [
     rows: magicitems,
     exists: (nome: string) => prisma.magicitems.findFirst({ where: { nome } }),
     create: (data: ListItem) =>
-      prisma.magicitems.create({ data: data as DBMagicItem }),
+      prisma.magicitems.create({ data: data as unknown as DBMagicItem }),
   },
   {
     label: "deities",
     rows: deities,
     exists: (nome: string) => prisma.deities.findFirst({ where: { nome } }),
     create: (data: ListItem) =>
-      prisma.deities.create({ data: data as DBDeities }),
+      prisma.deities.create({ data: data as unknown as DBDeities }),
   },
   {
     label: "png",
     rows: png,
     exists: (nome: string) => prisma.png.findFirst({ where: { nome } }),
-    create: (data: ListItem) => prisma.png.create({ data: data as DBPngItem }),
+    create: (data: ListItem) =>
+      prisma.png.create({ data: data as unknown as DBPngItem }),
   },
   {
     label: "spells",
     rows: spells,
     exists: (nome: string) => prisma.spells.findFirst({ where: { nome } }),
-    create: (data: ListItem) => prisma.spells.create({ data: data as DBSpell }),
+    create: (data: ListItem) =>
+      prisma.spells.create({ data: data as unknown as DBSpell }),
   },
 ] as const;
 

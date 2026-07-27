@@ -8,7 +8,6 @@ import isValidDataObject from "../utils/validators/isValidDataObject";
 import MetaConfigKey from "../definitions/types/MetaConfigKey";
 import MetaValue from "../definitions/types/MetaValue";
 import PageType from "../definitions/types/PageType";
-import { sendErrorNotification } from "../actions/notifications/sendNotification";
 
 interface PageManager<T> {
   /** The edited entity, ready to hand to a create or update mutation. */
@@ -82,7 +81,9 @@ const usePageManager = <T extends object>(
 
   const setField = (field: MetaConfigKey, value: MetaValue) => {
     if (!(field in values)) {
-      sendErrorNotification(`No setter found for field: ${field}`);
+      // A field the domain does not declare: a programming error, so it goes
+      // to the console rather than to a toast the user cannot act on.
+      console.error(`usePageManager: no field "${field}" for this page type`);
       return;
     }
 

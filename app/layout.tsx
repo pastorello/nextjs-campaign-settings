@@ -1,5 +1,6 @@
 import "@/app/ui/global.css";
 import { inter } from "./ui/fonts";
+import Toaster from "./ui/components/Toaster";
 
 import { Metadata } from "next";
 
@@ -19,7 +20,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased`}>{children}</body>
+      <body className={`${inter.className} antialiased`}>
+        {children}
+        {/* Mounted once, at the root: every page can raise a toast (TD-10). */}
+        <Toaster />
+      </body>
     </html>
   );
 }

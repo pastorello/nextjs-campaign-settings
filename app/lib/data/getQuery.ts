@@ -4,7 +4,7 @@ import pageMetaFields from "../config/pageMetaFields";
 import FieldType from "../definitions/types/FieldType";
 import isValidString from "../utils/validators/isValidString";
 import { DEFAULT_ITEMS_PER_PAGE } from "../config/constants";
-import { sendErrorNotification } from "../actions/notifications/sendNotification";
+import logServerIssue from "../notifications/logServerIssue";
 import type {
   WhereClause,
   OrderByClause,
@@ -45,8 +45,12 @@ export default function getQuery<TWhere = WhereClause>(
 
   enabledMeta.forEach((item: MetaConfigKey) => {
     if (!pageMetaFields[item]) {
-      sendErrorNotification(
-        `fail item: ${item} validated: ${String(validatedParams[item])}`
+      // A key in `enabledMeta` with no declaration is a programming error, not
+      // something a user can act on — and this runs on the server anyway.
+      logServerIssue(
+        `getQuery: no metadata declared for field "${item}" (value: ${String(
+          validatedParams[item]
+        )})`
       );
     }
 

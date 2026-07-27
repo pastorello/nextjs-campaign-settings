@@ -16,7 +16,7 @@ import { usePOIManager } from "@/app/modules/maps/hooks/usePOIManager";
 import type { POICategory } from "@/app/modules/maps/types/poi";
 import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
 import isValidString from "@/app/lib/utils/validators/isValidString";
-import { sendErrorNotification } from "@/app/lib/actions/notifications/sendNotification";
+import { notifyError } from "@/app/lib/notifications/notify";
 
 // Memoized style object to prevent unnecessary re-renders
 const GEOJSON_STYLE = {
@@ -255,7 +255,7 @@ function WorldMap({
 
   const initializeMap = async () => {
     if (!isValidString(mapUrl)) {
-      sendErrorNotification("Map URL is not configured properly.");
+      notifyError("La mappa non è configurata correttamente.");
       return;
     }
 

@@ -7,7 +7,7 @@ import { authConfig } from "./auth.config";
 import type { User } from "@/app/lib/definitions";
 import bcrypt from "bcrypt";
 import prisma from "@/app/lib/connections/prisma";
-import { sendErrorNotification } from "./app/lib/actions/notifications/sendNotification";
+import logServerIssue from "./app/lib/notifications/logServerIssue";
 
 async function getUser(email: string): Promise<User | undefined> {
   try {
@@ -37,7 +37,10 @@ export const { auth, signIn, signOut } = NextAuth({
           if (passwordsMatch) return user;
         }
 
-        sendErrorNotification("Invalid credentials");
+        // Runs inside the credentials provider, on the server. The user learns
+        // the attempt failed from what authenticate() returns to the form; this
+        // is the trace for whoever is running it.
+        logServerIssue("Sign-in rejected: invalid credentials");
         return null;
       },
     }),

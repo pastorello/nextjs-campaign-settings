@@ -49,7 +49,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-27 | ✅ Hidden `classi=0` filter on the spells list removed               | ~~🟠 High~~ done     | S      | 2     |
 | TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does       | ~~🟠 High~~ done     | S      | 2     |
 | TD-29 | ✅ Loading skeleton was the tutorial's invoices table                | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-30 | Four list pages wrap a `<Suspense>` that can never trigger           | 🟡 Medium            | S      | 2     |
+| TD-30 | ✅ Public list pages actually stream; skeleton matches the content   | ~~🟡 Medium~~ done   | S      | 2     |
 
 ---
 
@@ -1008,7 +1008,31 @@ Alternatively drop the explicit ids from the seed data and let the database assi
 
 ---
 
-### TD-30 🟡 Four list pages wrap a `<Suspense>` that can never trigger
+### TD-30 ✅ Four list pages wrapped a `<Suspense>` that could never trigger — **DONE (2026-07-27)**
+
+**Outcome:** the four public list pages stream. `app/ui/components/EntityLibrary.tsx` is the server half that awaits the query and hands the rows to the domain's client library — the same split `EntityList` already used on the admin side. The pages no longer await the rows at all.
+
+**Measured, not assumed.** Streaming the HTML of `/dashboard/spells` with a session cookie:
+
+| In the response          | Byte        |
+| ------------------------ | ----------- |
+| Page title               | 2.252       |
+| Skeleton (`aria-hidden`) | 17.459      |
+| First card               | **122.261** |
+
+The shell and the placeholder are in the first chunk; the 361 cards arrive 104 KB later. Before, the page awaited everything before returning any JSX, so the fallback could not appear in the output at all.
+
+**The fallback is also the right shape now.** These pages render cards and fell back to `TableSkeleton`; `LibrarySkeleton` renders full-width bars like the cards it replaces. The mismatch had gone unnoticed precisely because the fallback never rendered.
+
+**Also removed:** `itemCount`, a prop all four libraries declared and none read.
+
+**Not changed:** the page still awaits its count before the shell renders, because `ListPage` needs it for both the header text and the pagination control. That is a real remaining serialisation, but a smaller one — one aggregate rather than every row — and moving it would mean restructuring the header.
+
+The original description follows.
+
+---
+
+### TD-30 (original) 🟡 Four list pages wrap a `<Suspense>` that can never trigger
 
 **Where:** `app/dashboard/{spells,png,deities,magicitems}/page.tsx`
 **Found:** 2026-07-27, while fixing TD-29

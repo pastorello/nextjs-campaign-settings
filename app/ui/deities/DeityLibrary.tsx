@@ -1,16 +1,12 @@
 "use client";
 
 import SelectButtonery from "../buttons/SelectButtonery";
-import { ItemCount } from "@/app/lib/data/getItemsCount";
 
 import DeityCard from "./DeityCard";
 import Patrono from "@/app/lib/definitions/interfaces/deities/Patrono";
 import PatronoMetaField from "@/app/lib/definitions/enums/deities/PatronoMetaField";
 
-export default function DeityLibrary(props: {
-  itemCount: ItemCount;
-  items: Patrono[];
-}) {
+export default function DeityLibrary(props: { items: Patrono[] }) {
   return (
     <div className="w-full pt-5">
       <hr className="mb-4" />

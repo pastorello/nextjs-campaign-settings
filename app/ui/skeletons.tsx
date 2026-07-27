@@ -130,3 +130,27 @@ export function TableSkeleton({ pageType }: { pageType?: PageType }) {
     </div>
   );
 }
+
+/**
+ * The placeholder for a card library — the public list pages (TD-30).
+ *
+ * Those pages render full-width cards, not a table, and used to fall back to
+ * `TableSkeleton`. It never showed, because nothing inside their boundary
+ * suspended, so the mismatch went unnoticed.
+ *
+ * `aria-hidden` for the same reason as `TableSkeleton`: a placeholder has
+ * nothing to announce.
+ */
+export function LibrarySkeleton() {
+  return (
+    <div className="w-full pt-5" aria-hidden="true">
+      <div className="mb-4 h-10 w-full rounded bg-gray-100" />
+      {Array.from({ length: 6 }, (_, index) => (
+        <div
+          key={index}
+          className={`${shimmer} relative my-2 h-14 w-full overflow-hidden rounded-xl bg-gray-100`}
+        />
+      ))}
+    </div>
+  );
+}

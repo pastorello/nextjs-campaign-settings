@@ -6,11 +6,11 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Acme Dashboard",
-    default: "Acme Dashboard",
+    template: "%s | Campaign Settings",
+    default: "Campaign Settings",
   },
-  description: "The official Next.js Learn Dashboard built with App Router.",
-  metadataBase: new URL("https://next-learn-dashboard.vercel.sh"),
+  description:
+    "Compendio di una campagna D&D 5e: incantesimi, oggetti magici, PNG, divinità e mappa del mondo.",
 };
 
 export default function RootLayout({

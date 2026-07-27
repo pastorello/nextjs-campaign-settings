@@ -486,7 +486,28 @@ Since the metadata layer already knows every field of every domain, this duplica
 
 ---
 
-### TD-10 🟠 Notification system is a stub
+### TD-10 ✅ Notification system is a stub — **DONE (2026-07-27)**
+
+**The bug was the conflation, not the missing branch.** `sendNotification` took a `channel` of `"console" | "snackbar"`, implemented only `console`, and was called from both server and client code. On the server a "notification" reached a terminal while the user saw nothing — a function named after a UI affordance it never had.
+
+Two audiences, two functions:
+
+- **`notify.ts`** (client) raises a sonner toast. `<Toaster />` is mounted once in the root layout — **sonner has been a dependency all along with nothing rendering it.**
+- **`logServerIssue`** (server) writes to the console and does not pretend otherwise. `auth.ts` and `actions.ts` use it for a rejected sign-in, where the user already learns the outcome from what `authenticate()` returns to the form; `getQuery` uses it for a metadata key that does not resolve, which is a programming error nobody can act on from the UI.
+
+**The vendored Toaster was deliberately not reused.** `app/modules/maps/components/ui/sonner.tsx` styles itself from CSS variables — `--popover`, `--popover-foreground`, `--border`, `--radius` — referenced there and **defined nowhere in this project**. It came with the maps module and expects a shadcn theme that was never installed, so at app level it would render toasts with empty colours. It also calls `useTheme()` with no ThemeProvider mounted. The project-level one is fifteen lines and uses `richColors`.
+
+**This closes TD-13's last step.** `DeleteButton`'s two `alert()` calls are toasts, and a successful delete now says so rather than only refreshing the list. No `alert()` remains in the codebase.
+
+**Verified through the UI**, not just by unit test: a throwaway record deleted from the admin list produced a green toast reading "ZZZ Toast Test eliminato", bottom right, with the list refreshing behind it.
+
+**Also fixed while in the root layout:** the page title was still the tutorial's. Every tab in the app read _"… | Acme Dashboard"_, with a description advertising "The official Next.js Learn Dashboard" and a `metadataBase` pointing at `next-learn-dashboard.vercel.sh`. Separate commit.
+
+The original description follows.
+
+---
+
+### TD-10 (original) 🟠 Notification system is a stub
 
 `app/lib/actions/notifications/sendNotification.ts` accepts a `channel` of `"console" | "snackbar"` but only implements `console` — the `snackbar` branch does not exist. Worse, it is called from server-side code (`auth.ts` on invalid credentials, `getQuery.ts` on a missing meta field) where `console.log` goes to the server terminal and the user sees nothing.
 

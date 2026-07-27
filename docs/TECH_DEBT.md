@@ -1,6 +1,6 @@
 # Technical Debt Register
 
-**Last updated:** 2026-07-25
+**Last updated:** 2026-07-27
 **Scope:** everything found in the 2026-07-22 audit. Each item is independently actionable and sized to be completable in one focused session.
 
 ## Legend
@@ -27,8 +27,8 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-05 | ✅ No ESLint config, no Prettier, no CI                              | ~~🟠 High~~ done     | S      | 1     |
 | TD-06 | ✅ Dead code and tutorial leftovers                                  | ~~🟠 High~~ done     | S      | 1     |
 | TD-07 | ✅ `next`/`react` pinned; single lockfile                            | ~~🟠 High~~ done     | S      | 1     |
-| TD-08 | ◑ metadata typed (steps 1–2); query layer still `any`                | 🟠 High              | M      | 2     |
-| TD-09 | Four near-identical Card/List/Library/Form quartets                  | 🟠 High              | L      | 2     |
+| TD-08 | ✅ Metadata and query layer typed; zero `any`, rule is an error      | ~~🟠 High~~ done     | M      | 2     |
+| TD-09 | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm   | ~~🟠 High~~ done     | L      | 2     |
 | TD-10 | Notification system is a `console.log` stub                          | 🟠 High              | M      | 2     |
 | TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred          | ~~🟡 Medium~~ part   | M      | 2     |
 | TD-12 | Pagination count and rows use separate queries                       | 🟡 Medium            | S      | 2     |
@@ -41,7 +41,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-19 | Mixed Italian/English identifiers                                    | 🟠 High              | L      | 2     |
 | TD-20 | ◑ strict flags: batch 1 partly done; noUnusedLocals + verbatim split | 🟡 Medium            | M      | 2     |
 | TD-21 | UI strings hardcoded; app must ship in it + en                       | 🟠 High              | L      | 2     |
-| TD-22 | ◑ lint warnings: 282 → 165; `no-unused-vars` back to `error`         | 🟠 High              | M      | 2     |
+| TD-22 | ◑ lint warnings 282 → 89; `no-unused-vars` and `no-explicit-any` err | 🟠 High              | M      | 2     |
 | TD-23 | ✅ Migration drift patched forward; migrations match the schema      | ~~🟠 High~~ done     | S      | 1     |
 | TD-24 | ✅ Playwright + 26 specs; `e2e` job blocking in CI                   | ~~🟠 High~~ done     | M      | 1     |
 | TD-25 | ✅ Startup reachability check; 503 distinct from 500                 | ~~🟡 Medium~~ done   | S      | 2     |
@@ -391,7 +391,25 @@ Warnings fell 274 → **256**.
 
 **Two things fixed on the way here.** `SearchParams` (`app/lib/definitions/interfaces/pages/SearchParams.ts`) had no `export`, so it was an ambient global six files used without importing — the finding filed in TD-22. It now exports and is imported explicitly, and gained the index signature it always needed (filter controls add a param per field). And the `sottoclassi` removal's sibling: nothing new, just noted the Promise-vs-object inconsistency in the page layer is real and stays TD-09's — the wrappers now type their input as `RawSearchParams | Promise<RawSearchParams>` and await once, which is honest rather than a fix.
 
-**Still to do (step 4):** flip `no-explicit-any` to an error once the remaining 211 warnings are gone — most are TD-09's four duplicated forms and the maps module's floating promises, not the metadata/query layer.
+**Step 4 done (2026-07-27): `no-explicit-any` is an `error`.** The count reached zero, so CLAUDE.md rule 3 is enforced by the linter now instead of by good intentions.
+
+The last six lived in five foundational files, and none was a local shortcut — each was a type that switched checking off for everything downstream:
+
+| File                | Was                                | Now                           |
+| ------------------- | ---------------------------------- | ----------------------------- |
+| `ListItem`          | `[key: string]: any`               | `unknown`                     |
+| `FormField`         | `value: any`, `onChange: (v: any)` | `MetaValue`                   |
+| `isValidDataArray`  | narrows to `any[]`                 | `unknown[]`                   |
+| `controlComponents` | `ComponentType<any>`               | `ComponentType<ControlProps>` |
+| `sortByField`       | `sortedValues: any[]`              | `PrimitiveValue[]`            |
+
+**`ListItem` was the interesting one.** Switching it to `unknown` produced 17 errors in 8 files, and the root cause is worth knowing: a TypeScript **interface** gets no implicit index signature, so `Spell` does not satisfy `Record<string, unknown>` — while `{[k: string]: any}` accepted anything. The generic constraints became `T extends object`, with one documented narrowing (`readField`) where the hook genuinely reads a field by a runtime key.
+
+**`controlComponents` needed the four controls to agree.** They wanted `string`, `boolean` and `SelectValueType` respectively, which is why the registry was `any`. They all take `MetaValue` and narrow it themselves now — which they were already doing at runtime: `CheckboxInput` compared `value === true` defensively, `Select` already handled being handed an array.
+
+**Warnings fell 119 → 89** as a side effect: typing the control layer also removed `no-unsafe-function-type` and much of the `no-unsafe-*` family around it. The remaining 89 are TD-22's, concentrated in the maps module.
+
+**One piece of unwired scaffolding got a type rather than a deletion.** `SelectButtonery.itemStats` is optional, no caller has ever passed it, and its shape (`partial[value]`, `filtered[value]`) matched nothing. Per "unused is not dead" it stays, now as `FilterOptionStats` — so whoever wires it has the shape the component expects instead of reverse-engineering it from index expressions.
 
 **Also worth folding into step 2, both found here:**
 
@@ -432,7 +450,27 @@ This is the highest-signal item for a technical reviewer: it turns a clever-but-
 
 ---
 
-### TD-09 🟠 Duplicated per-domain components
+### TD-09 ✅ Duplicated per-domain components — **DONE (2026-07-27)**
+
+Delivered in three parts, one PR each, because together they were ~1.300 lines and unreviewable:
+
+| Part          | Removed                                                           | Replaced by                           |
+| ------------- | ----------------------------------------------------------------- | ------------------------------------- |
+| Lists         | `SpellList`, `PngList`, `DeityList`, `MagicItemsList` — 444 lines | `EntityList` + `listConfig`           |
+| Page managers | four hooks, 421 lines                                             | `usePageManager` + `formFields`       |
+| Forms         | four ~60-line shells                                              | `EntityForm`; layouts stay per-domain |
+
+**The layout deliberately stays per-domain.** This item says to keep a per-domain component only where the domain genuinely differs, and the field arrangement is exactly that. Encoding it as configuration would move CSS into data. What was removed is the boilerplate around it: state, submit, error handling, title, buttons.
+
+**The duplication had already cost real defects**, all found while collapsing it: three in the deities list alone (a column reading the wrong field through the wrong metadata, a missing header, an empty message naming the wrong domain), a mount effect silently filtering the spell list ([[TD-27]]), a page manager mutating a value returned by a hook, and two prop names for the same thing.
+
+**Sequencing note:** this ran before TD-19 rather than after, which the execution order suggested. The real constraint was TD-08 (done), and going first shrank the surface TD-19 has to rename.
+
+The original description follows.
+
+---
+
+### TD-09 (original) 🟠 Duplicated per-domain components
 
 `app/ui/{spells,png,deities,magicitems}/` each contain a `XxxCard`, `XxxList`, `XxxLibrary` and `XxxForm` that are roughly 80% identical — same structure, same sorting header, same pagination, differing only in which fields they read. The same duplication exists in `app/lib/hooks/{spells,png,deities,magicitems}/useXxxPageManager.ts`.
 
@@ -599,7 +637,7 @@ One dead prop remains (`ListPage.searchParams`): declared in its interface, neve
 
 **Follow-up left by that change:** `app/ui/components/Spinner.tsx` (the full-page framer-motion loader) is now unreferenced — `PageForm` was its only caller, and the loading state uses a small inline `animate-spin` SVG instead, which suits a 40px button far better than a `min-h-100` page loader did. Per the _unused is not dead_ rule, it was left in place: it reads as an intended full-page loader (e.g. for a future `loading.tsx`), not a tutorial leftover. Wire it into a real page loader or retire it deliberately — do not delete it in a drive-by cleanup.
 
-**Blocked by:** TD-08 (the `any`s). TD-04 is done — the 19 errors are gone and `typecheck` exits 0.
+**No longer blocked.** TD-08 is done: the `any` count is zero and `no-explicit-any` is an error, so the next tier of strict flags can be attempted whenever someone picks this up.
 
 `strict: true` **is already enabled**, and since TD-04 it does real work — `pnpm typecheck` is a genuine gate now, not decoration. What still blunts it are the `any` escape hatches: **28 across 17 files** by the linter's count (the original audit's "16 across 6" undercounted — it only looked at the metadata/query core and missed the per-domain fetch/count functions). TD-08 removes them.
 
@@ -696,13 +734,15 @@ Removing `next.config.ts`'s `require()` calls also took 11 warnings off TD-22.
 
 ---
 
-### TD-22 ◑ Lint warnings surfaced by TD-05 — **293 → 282 → 165**
+### TD-22 ◑ Lint warnings surfaced by TD-05 — **293 → 282 → 165 → 89**
 
 **Where:** repo-wide; concentrated in the metadata/query layer and `app/modules/maps/`
 **Blocked by:** nothing — but most of it dissolves when TD-08 lands
 **Config:** `eslint.config.mjs`, the block headed _Severity policy_
 
 Switching the linter on reported 293 findings; TD-18 removed 11 of them with `next.config.ts`, leaving **282**. They are warnings so that `pnpm lint` can exit 0 and the CI gate can be meaningful; every rule not violated today is still an error, so new code cannot add to this list.
+
+**Re-measured 2026-07-27: 89 warnings, 0 errors.** Two rules are back to `error` — `no-unused-vars` and, since TD-08 step 4, `no-explicit-any`. What remains is concentrated in `app/modules/maps/`: the `no-unsafe-*` family around the vendored Leaflet code and 13 floating promises, which are latent bugs rather than style. The four domain forms, which held 48 of these when this item was written, now hold none.
 
 **Re-measured 2026-07-25: 165 warnings, 0 errors.** TD-08 steps 2–3 (typed metadata keys and query layer) took out most of the `no-unsafe-*` mass, and PR #25/#26 cleared `no-unused-vars` entirely — that rule is an `error` again, the first one returned from the severity block. Current distribution:
 

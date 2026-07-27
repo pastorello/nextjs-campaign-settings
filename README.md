@@ -155,7 +155,7 @@ pnpm db:studio      # Prisma Studio
 
 ## Testing
 
-**117 unit tests across 12 files (~2s) and 28 Playwright specs (~25s).** The suite concentrates on the parts where a silent failure would be expensive, rather than chasing a coverage number:
+**171 unit tests across 18 files (~2s) and 31 Playwright specs (~30s).** The suite concentrates on the parts where a silent failure would be expensive, rather than chasing a coverage number:
 
 - **Query construction** — `getQuery` is a pure function from search params to a Prisma query, so it is covered exhaustively without a database. Its tests were mutation-checked: breaking `hasSome`, the pagination offset and case-insensitivity each turned the suite red.
 - **Auth guards** — every DELETE endpoint returns 401 and every mutation throws, without a session, with no query reaching the database.
@@ -163,7 +163,7 @@ pnpm db:studio      # Prisma Studio
 
 - **Critical flows, end to end** — login, the CRUD round trip for two domains, filtering, pagination arithmetic, the map, and an axe accessibility scan. Written to be independent of how much data exists, so the same specs run against the demo seed and against a 361-spell library. They earn their keep: the first green run found a component effect that was silently filtering the spell list.
 
-Line coverage is **18%**, enforced in CI as a ratchet that only moves up. That number is low and honestly reported: it reflects a suite covering the risky core and not yet the UI.
+Line coverage is **22%**, enforced in CI as a ratchet that only moves up. That number is low and honestly reported: it reflects a suite covering the risky core and not yet the UI.
 
 CI runs lint + typecheck + formatting, the unit suite against a real Postgres, a production build, and the Playwright suite — five blocking gates on every pull request.
 

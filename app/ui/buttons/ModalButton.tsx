@@ -14,7 +14,7 @@ import SpellForm from "../spells/SpellForm";
 import DeityForm from "../deities/DeityForm";
 
 interface ModalButtonProps {
-  onSave?: Function;
+  onSave?: (item: object) => void;
   buttonLabel: string;
   modalTitle: string;
   modalContent: string;
@@ -59,7 +59,7 @@ const ModalButton = ({
             <MagicItemForm
               {...componentProps}
               onCancel={closeModal}
-              onSaveFinished={(item: ListItem) => {
+              onSaveFinished={(item: object) => {
                 closeModal();
                 if (onSave) {
                   onSave(item);
@@ -71,7 +71,7 @@ const ModalButton = ({
             <PngForm
               {...componentProps}
               onCancel={closeModal}
-              onSaveFinished={(item: ListItem) => {
+              onSaveFinished={(item: object) => {
                 closeModal();
                 if (onSave) {
                   onSave(item);
@@ -83,7 +83,7 @@ const ModalButton = ({
             <SpellForm
               {...componentProps}
               onCancel={closeModal}
-              onSaveFinished={(item: ListItem) => {
+              onSaveFinished={(item: object) => {
                 closeModal();
                 if (onSave) {
                   onSave(item);
@@ -95,7 +95,7 @@ const ModalButton = ({
             <DeityForm
               {...componentProps}
               onCancel={closeModal}
-              onSaveFinished={(item: ListItem) => {
+              onSaveFinished={(item: object) => {
                 closeModal();
                 if (onSave) {
                   onSave(item);
@@ -107,7 +107,7 @@ const ModalButton = ({
             <PageForm
               {...componentProps}
               onCancel={closeModal}
-              onSaveFinished={(item: ListItem) => {
+              onSaveFinished={(item: object) => {
                 closeModal();
                 if (onSave) {
                   onSave(item);

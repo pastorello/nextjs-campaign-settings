@@ -59,7 +59,7 @@ export default async function EntityList(props: {
   const items = (await fetchItems(
     props.pageType,
     props.searchParams ?? {}
-  )) as ListItem[];
+  )) as unknown as ListItem[];
 
   return (
     <div className="mt-6 flow-root">

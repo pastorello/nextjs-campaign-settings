@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import usePageManager from "./usePageManager";
 import formFields from "../config/formFields";
 import pageMetaFields from "../config/pageMetaFields";
+import MetaValue from "../definitions/types/MetaValue";
 import PageType from "../definitions/types/PageType";
 import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
 
@@ -19,7 +20,9 @@ describe("usePageManager", () => {
     it.each(PAGE_TYPES)(
       "starts %s with every declared field at its default",
       (pageType) => {
-        const { result } = renderHook(() => usePageManager(pageType));
+        const { result } = renderHook(() =>
+          usePageManager<Record<string, MetaValue>>(pageType)
+        );
 
         // The assertion inside the hook claims `page` carries exactly the
         // domain's fields. This is what makes that true rather than assumed.
@@ -42,7 +45,9 @@ describe("usePageManager", () => {
     });
 
     it("carries no id", () => {
-      const { result } = renderHook(() => usePageManager(PageType.Spell));
+      const { result } = renderHook(() =>
+        usePageManager<Record<string, MetaValue>>(PageType.Spell)
+      );
 
       expect(result.current.page.id).toBeUndefined();
     });
@@ -58,7 +63,7 @@ describe("usePageManager", () => {
 
     it("starts from the record's values, not the field defaults", () => {
       const { result } = renderHook(() =>
-        usePageManager(PageType.Spell, existing)
+        usePageManager<typeof existing>(PageType.Spell, existing)
       );
 
       expect(result.current.page.nome).toBe("Dardo Incantato");
@@ -70,7 +75,7 @@ describe("usePageManager", () => {
       // fact — a direct state mutation, and TD-22's react-hooks/immutability
       // warnings. It is part of the derived object now.
       const { result } = renderHook(() =>
-        usePageManager(PageType.Spell, existing)
+        usePageManager<typeof existing>(PageType.Spell, existing)
       );
 
       expect(result.current.page.id).toBe(42);

@@ -10,7 +10,7 @@ import createEmptyArray from "../createEmptyArray";
 interface SortConfig {
   order: SortOrder;
   isCaseSentitive: boolean;
-  sortedValues: any[];
+  sortedValues: PrimitiveValue[];
   fieldGetter: (item: Indexable, field: string) => string | number | boolean;
   fieldName?: string;
 }

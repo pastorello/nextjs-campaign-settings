@@ -5,7 +5,6 @@ import { useState } from "react";
 import formFields from "../config/formFields";
 import pageMetaFields from "../config/pageMetaFields";
 import isValidDataObject from "../utils/validators/isValidDataObject";
-import ListItem from "../definitions/interfaces/ListItem";
 import MetaConfigKey from "../definitions/types/MetaConfigKey";
 import MetaValue from "../definitions/types/MetaValue";
 import PageType from "../definitions/types/PageType";
@@ -40,7 +39,18 @@ interface PageManager<T> {
  * `react-hooks/immutability` warnings. The id is part of the derived object
  * now.
  */
-const usePageManager = <T extends ListItem>(
+/**
+ * Reads a field off the record being edited.
+ *
+ * The domain interfaces (`Spell`, `Patrono`, …) have no index signature, and
+ * TypeScript does not give interfaces an implicit one — so a dynamic read needs
+ * this single narrowing rather than an `any` on the type itself (TD-08 step 4).
+ * The key comes from `formFields`, which is what makes it sound.
+ */
+const readField = (item: object, field: string): MetaValue =>
+  (item as Record<string, MetaValue>)[field];
+
+const usePageManager = <T extends object>(
   pageType: PageType,
   pageItem?: T
 ): PageManager<T> => {
@@ -59,7 +69,7 @@ const usePageManager = <T extends ListItem>(
         field,
         isCreateMode
           ? pageMetaFields[field].defaultValue
-          : (pageItem[field] as MetaValue),
+          : readField(pageItem, field),
       ])
     );
 
@@ -96,8 +106,8 @@ const usePageManager = <T extends ListItem>(
   // fields. `formFields` is what makes it true, and a test covers each domain.
   const page = {
     ...values,
-    ...(isCreateMode ? {} : { id: pageItem.id }),
-  } as T;
+    ...(isCreateMode ? {} : { id: readField(pageItem, "id") }),
+  } as unknown as T;
 
   return { page, setField, getField, editedFields };
 };

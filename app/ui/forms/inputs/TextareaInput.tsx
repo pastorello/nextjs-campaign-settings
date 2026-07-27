@@ -1,3 +1,4 @@
+import MetaValue from "@/app/lib/definitions/types/MetaValue";
 import { Fragment } from "react";
 import { Field, Textarea } from "@headlessui/react";
 
@@ -6,10 +7,11 @@ import isValidString from "@/app/lib/utils/validators/isValidString";
 import clsx from "clsx";
 
 interface TextareaInputProps {
-  value: string;
+  // See TextInput: every control takes MetaValue and narrows it itself.
+  value: MetaValue;
   label: string;
-  onChange: Function;
-  placeholder: string;
+  onChange: (value: MetaValue) => void;
+  placeholder?: string;
 }
 const TextareaInput = ({
   value,
@@ -25,7 +27,7 @@ const TextareaInput = ({
           {({ focus, hover }) => (
             <textarea
               onChange={(event) => onChange(event.target.value)}
-              value={value}
+              value={String(value ?? "")}
               placeholder={isValidString(placeholder) ? placeholder : ""}
               className={clsx(
                 "flex h-[150px] w-full resize-none! items-center rounded-md border px-[5px] focus:ring-indigo-500",

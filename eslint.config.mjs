@@ -62,8 +62,10 @@ export default tseslint.config(
       // its owning item lands. Do not silence one by deleting the line.
       // ---------------------------------------------------------------------
 
-      // Downstream of the 28 remaining `any`s. Owner: TD-08.
-      "@typescript-eslint/no-explicit-any": "warn",
+      // TD-08 step 4, closed 2026-07-27: the count reached zero, so this is an
+      // error again and cannot creep back. CLAUDE.md rule 3 ("no new `any`")
+      // is enforced by the linter now rather than by good intentions.
+      "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-unsafe-assignment": "warn",
       "@typescript-eslint/no-unsafe-call": "warn",
       "@typescript-eslint/no-unsafe-member-access": "warn",

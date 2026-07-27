@@ -1,3 +1,4 @@
+import MetaValue from "@/app/lib/definitions/types/MetaValue";
 import {
   Listbox,
   ListboxButton,
@@ -9,7 +10,6 @@ import {
 import FormLabel from "../FormLabel";
 import Icon from "../../../components/Icon";
 import IconType from "../../../buttons/BaseButton/IconType";
-import SelectValueType from "@/app/lib/definitions/types/SelectValueType";
 import SelectOption from "@/app/lib/definitions/types/SelectOption";
 import isValidDataArray from "@/app/lib/utils/validators/isValidDataArray";
 import isValidString from "@/app/lib/utils/validators/isValidString";
@@ -18,13 +18,22 @@ import clsx from "clsx";
 
 interface SelectProps {
   label?: string;
-  value: SelectValueType;
-  onChange: (value: SelectValueType) => void;
-  options: SelectOption[];
+  // MetaValue, like the other three controls (TD-08 step 4). The component
+  // already coped with being handed an array — see the isValidDataArray check
+  // below — so this states what was true rather than changing it.
+  value: MetaValue;
+  onChange: (value: MetaValue) => void;
+  options?: SelectOption[];
   multiple?: boolean;
 }
 
-const Select = ({ label, value, onChange, options, multiple }: SelectProps) => {
+const Select = ({
+  label,
+  value,
+  onChange,
+  options = [],
+  multiple,
+}: SelectProps) => {
   const selectedOption = options.find((item) => {
     const currentValue = isValidDataArray(value) ? value[0] : value;
     return String(item.value) === String(currentValue);

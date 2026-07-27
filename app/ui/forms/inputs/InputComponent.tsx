@@ -24,7 +24,7 @@ const InputComponent = ({
     const result: FormField = {
       label: pageMetaFields[fieldName].label ?? "",
       value: value,
-      onChange: (aValue: number) => setField(fieldName, aValue),
+      onChange: (aValue: MetaValue) => setField(fieldName, aValue),
       type: pageMetaFields[fieldName].controlType,
     };
 

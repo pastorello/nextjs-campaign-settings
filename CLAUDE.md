@@ -71,7 +71,7 @@ docker-compose up       # Postgres on :5432
 
 1. **Every mutation checks auth.** Every Server Action and every route handler that writes must verify a session first. No exceptions. (See TD-01.)
 2. **Every mutation validates input.** Use the Zod `validator` already declared in the field's `PageMeta`. Never pass client data into `prisma.x.create({ data })` unvalidated. (See TD-02.)
-3. **No new `any`.** The linter counts 28 across 17 files (tracked under TD-08/TD-22); the number only goes down. If you genuinely cannot type something, use `unknown` and narrow. `no-explicit-any` is a warning until TD-08 clears the backlog, then an error — do not add to it.
+3. **No new `any`.** The count is **zero**, and `no-explicit-any` is an `error` as of TD-08 step 4 (2026-07-27) — the linter enforces this rule now rather than trusting you to. If you genuinely cannot type something, use `unknown` and narrow at the point of use; a single documented assertion beats an `any` that silently disables checking on everything it touches.
 4. **`app/ui/forms/` holds only the generic `PageForm.tsx` and `inputs/`.** Domain forms live in `app/ui/<domain>/`. Do not add a domain form to `app/ui/forms/` — that is how the duplicate `PngForm` / `SpellForm` pair got there in the first place.
 5. **Never commit `.env`,** and never print secrets in output.
 6. **Do not run destructive database commands** (`prisma migrate reset`, `db push --force-reset`, `DROP`) without explicit confirmation in the conversation.

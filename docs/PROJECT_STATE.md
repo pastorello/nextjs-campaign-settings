@@ -1,6 +1,6 @@
 # Project State — Campaign Settings
 
-**Last updated:** 2026-07-26
+**Last updated:** 2026-07-27
 **Status:** Working prototype, not production-ready
 **Goal of the current phase:** make the project portfolio-grade — no bugs, no dead code, tested, documented, CI-verified. Feature expansion comes after.
 
@@ -36,7 +36,7 @@ The domain vocabulary is **intentionally Italian** (`incantesimi`, `patroni`, `f
 | UI primitives | Radix UI, Headless UI, Heroicons, Lucide, Framer Motion, Vaul, Sonner | —                                                       |
 | Maps          | Leaflet + custom hook layer                                           | 1.9.4                                                   |
 | Validation    | Zod                                                                   | 4.2.0                                                   |
-| Tests         | Vitest + Testing Library                                              | 117 tests, ~2s, 18% line coverage enforced as a ratchet |
+| Tests         | Vitest + Testing Library                                              | 171 tests, ~2s, 22% line coverage enforced as a ratchet |
 
 pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageManager` and `engines` are declared, and CI derives its pnpm version from that field rather than pinning its own.
 
@@ -57,7 +57,7 @@ pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageM
 │   │   ├── connections/     # prisma.ts (singleton) — the only DB connection
 │   │   ├── data/            # Data access: create/update/delete/fetch per domain
 │   │   ├── definitions/     # enums / interfaces / types, one per file
-│   │   ├── hooks/           # usePageManager + per-domain page managers
+│   │   ├── hooks/           # usePageManager (one, generic) + useFilterController
 │   │   ├── utils/           # validators, data helpers
 │   │   └── actions.ts       # authenticate() server action
 │   ├── modules/maps/        # Self-contained Leaflet module (components/hooks/contexts/types)
@@ -79,9 +79,9 @@ pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageM
 - filter controls
 - Prisma `where` clause construction (`app/lib/data/getQuery.ts`)
 
-This is a genuinely good pattern. It is currently under-documented and partially typed with `any`, which hides its value. Making it type-safe and documented is the single highest-leverage improvement for portfolio impact.
+This is a genuinely good pattern, and since TD-08 it is type-safe: `PageMeta` is a discriminated union on `fieldType`, the registry keys survive inference, the query layer is generic over the Prisma where type, and the `any` count is zero with `no-explicit-any` enforced as an error.
 
-**Page manager hooks** (`usePageManager` + `useSpellPageManager` etc.) centralise list state: search params, filters, sorting, pagination.
+**One generic component per shape** (TD-09): `EntityList` for the admin tables, `EntityLibrary` for the public card lists, `EntityForm` for the shells, `usePageManager` for form state. Each is driven by a declaration in `app/lib/config/` — `listConfig`, `formFields` — rather than by four hand-written copies. The four per-domain quartets they replaced had silently diverged into real defects.
 
 **The maps module** (`app/modules/maps/`) is cleanly separated with its own components, hooks, contexts, constants and types — including an error boundary and a `useSafeMapOperations` hook. It is the best-structured part of the codebase and should be the template for how other domains get refactored.
 
@@ -120,11 +120,11 @@ The matcher excludes `/api`, so the proxy cannot protect the route handlers or S
 | `pnpm typecheck`    | ✅ **0 errors** (19 before TD-06; `next typegen && tsc --noEmit`)              |
 | `pnpm build`        | ✅ **Passes** on Turbopack — same bundler as `dev` (TD-18)                     |
 | `pnpm test`         | ✅ **117 passed** in ~2s (Vitest)                                              |
-| `pnpm lint`         | ✅ **0 errors**, 165 warnings (was 282) — backlog tracked as TD-22             |
+| `pnpm lint`         | ✅ **0 errors**, 89 warnings (was 282) — backlog tracked as TD-22              |
 | `pnpm format:check` | ✅ Clean — Prettier applied repo-wide (TD-05/TD-16)                            |
 | E2E tests           | ✅ **26 Playwright specs** in ~15s (1 skipped — it found TD-27); TD-24         |
 | CI                  | ✅ All five gates blocking: `static` / `test` / `build` / `e2e` (TD-23 closed) |
-| Test coverage       | 18.7% lines / 12% branches — thresholds set there and ratcheted upward         |
+| Test coverage       | 22.2% lines / 15% branches — thresholds set there and ratcheted upward         |
 | Git history         | Active — PRs #1–#27 merged on `main`                                           |
 | `.env`              | ✅ Correctly gitignored                                                        |
 | `.DS_Store`         | ✅ Present on disk but untracked — `.gitignore` is working                     |

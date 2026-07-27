@@ -1,3 +1,4 @@
+import firstOptionValue from "../firstOptionValue";
 import ControlType from "@/app/lib/definitions/types/ControlType";
 import FieldType from "@/app/lib/definitions/types/FieldType";
 import PatronoMetaField from "@/app/lib/definitions/enums/deities/PatronoMetaField";
@@ -19,7 +20,7 @@ const deitiesMeta = {
   [PatronoMetaField.colore]: {
     metaField: "colore",
     label: "Colore magia",
-    defaultValue: coloriMagia[0].value,
+    defaultValue: firstOptionValue(coloriMagia),
     fieldType: FieldType.integer,
     options: coloriMagia,
     controlType: ControlType.Select,
@@ -40,7 +41,7 @@ const deitiesMeta = {
   [PatronoMetaField.tipoPatrono]: {
     metaField: "tipoPatrono",
     label: "tipoPatrono",
-    defaultValue: deityTypes[0].value,
+    defaultValue: firstOptionValue(deityTypes),
     placeholder: "tipoPatrono",
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
@@ -51,7 +52,7 @@ const deitiesMeta = {
   [PatronoMetaField.gradoPatrono]: {
     metaField: "gradoPatrono",
     label: "gradoPatrono",
-    defaultValue: deityLevels[0].value,
+    defaultValue: firstOptionValue(deityLevels),
     placeholder: "gradoPatrono",
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
@@ -62,7 +63,7 @@ const deitiesMeta = {
   [PatronoMetaField.card]: {
     metaField: "card",
     label: "card",
-    defaultValue: tarocchi[0].value,
+    defaultValue: firstOptionValue(tarocchi),
     placeholder: "card",
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
@@ -73,7 +74,7 @@ const deitiesMeta = {
   [PatronoMetaField.astri]: {
     metaField: "astri",
     label: "astri",
-    defaultValue: celestialBodies[0].value,
+    defaultValue: firstOptionValue(celestialBodies),
     placeholder: "astri",
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
@@ -84,7 +85,7 @@ const deitiesMeta = {
   [PatronoMetaField.elemento]: {
     metaField: "elemento",
     label: "elemento",
-    defaultValue: energyElements[0].value,
+    defaultValue: firstOptionValue(energyElements),
     placeholder: "elemento",
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
@@ -95,7 +96,7 @@ const deitiesMeta = {
   [PatronoMetaField.classe]: {
     metaField: "classe",
     label: "classe",
-    defaultValue: subclasses[0].value,
+    defaultValue: firstOptionValue(subclasses),
     placeholder: "classe",
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
@@ -116,7 +117,7 @@ const deitiesMeta = {
   [PatronoMetaField.tradizione]: {
     metaField: "tradizione",
     label: "tradizione",
-    defaultValue: traditionTypes[0].value,
+    defaultValue: firstOptionValue(traditionTypes),
     placeholder: "tradizione",
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
@@ -127,7 +128,7 @@ const deitiesMeta = {
   [PatronoMetaField.residenza]: {
     metaField: "residenza",
     label: "residenza",
-    defaultValue: celestialPlanes[0].value,
+    defaultValue: firstOptionValue(celestialPlanes),
     placeholder: "residenza",
     fieldType: FieldType.integer,
     controlType: ControlType.Select,

@@ -1,3 +1,4 @@
+import firstOptionValue from "../firstOptionValue";
 import ControlType from "@/app/lib/definitions/types/ControlType";
 import FieldType from "@/app/lib/definitions/types/FieldType";
 import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
@@ -12,7 +13,7 @@ const magicItemsMeta = {
   [MagicItemMetaField.rarita]: {
     metaField: "rarita",
     label: "Rarità",
-    defaultValue: rarity[0].value,
+    defaultValue: firstOptionValue(rarity),
     fieldType: FieldType.integer,
     options: rarity,
     controlType: ControlType.Select,
@@ -22,7 +23,7 @@ const magicItemsMeta = {
   [MagicItemMetaField.tipo]: {
     metaField: "tipo",
     label: "Tipo di oggetto",
-    defaultValue: itemTypes[0].value,
+    defaultValue: firstOptionValue(itemTypes),
     fieldType: FieldType.integer,
     options: itemTypes,
     controlType: ControlType.Select,

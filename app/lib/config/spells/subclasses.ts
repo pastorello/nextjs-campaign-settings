@@ -173,11 +173,16 @@ const subclasses: SottoClasseObject[] = [
   },
 ];
 
+// Read once, before sorting: this is the "Nessuna" entry, which is pinned to
+// the end of the list. Reading it inside the comparator also meant re-reading a
+// list that the sort was busy reordering.
+const lastEntry = subclasses[subclasses.length - 1];
+
 export default subclasses.sort((a, b) => {
-  if (a.value === subclasses[subclasses.length - 1].value) {
+  if (a.value === lastEntry?.value) {
     return 1;
   }
-  if (b.value === subclasses[subclasses.length - 1].value) {
+  if (b.value === lastEntry?.value) {
     return -1;
   }
   return a.label.localeCompare(b.label);

@@ -32,7 +32,7 @@ vi.mock("@/app/lib/connections/prisma", () => {
 // A payload of each field's declared default — the shape a real form submits.
 function validPayload(pageType: PageType): Record<string, unknown> {
   return Object.fromEntries(
-    entityFieldKeys(pageType).map((key) => [key, fieldMeta[key].defaultValue])
+    entityFieldKeys(pageType).map((key) => [key, fieldMeta[key]?.defaultValue])
   );
 }
 

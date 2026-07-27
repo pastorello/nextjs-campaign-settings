@@ -48,7 +48,10 @@ interface PageManager<T> {
  * The key comes from `formFields`, which is what makes it sound.
  */
 const readField = (item: object, field: string): MetaValue =>
-  (item as Record<string, MetaValue>)[field];
+  // `?? ""` because an index read is `MetaValue | undefined` under
+  // noUncheckedIndexedAccess: a record may simply not carry a field the form
+  // declares, and the control needs *some* value to render.
+  (item as Record<string, MetaValue>)[field] ?? "";
 
 const usePageManager = <T extends object>(
   pageType: PageType,

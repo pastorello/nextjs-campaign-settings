@@ -22,7 +22,7 @@ const types = [
 function defaultPayload(pageType: PageType): Record<string, unknown> {
   const payload: Record<string, unknown> = {};
   for (const key of entityFieldKeys(pageType)) {
-    payload[key] = fieldMeta[key].defaultValue;
+    payload[key] = fieldMeta[key]?.defaultValue;
   }
   return payload;
 }
@@ -32,7 +32,7 @@ describe("entityFieldKeys", () => {
     it("every key resolves to a declared validator", () => {
       for (const key of entityFieldKeys(pageType)) {
         expect(fieldMeta[key], `missing meta for "${key}"`).toBeDefined();
-        expect(fieldMeta[key].validator).toBeDefined();
+        expect(fieldMeta[key]?.validator).toBeDefined();
       }
     });
   });

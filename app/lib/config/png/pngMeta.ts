@@ -1,3 +1,4 @@
+import firstOptionValue from "../firstOptionValue";
 import PngMetaField from "@/app/lib/definitions/enums/png/PngMetaField";
 import ControlType from "@/app/lib/definitions/types/ControlType";
 import FieldType from "@/app/lib/definitions/types/FieldType";
@@ -24,7 +25,7 @@ const pngMeta = {
   },
   [PngMetaField.allineamento]: {
     label: "Allineamento",
-    defaultValue: allineamenti[0].value,
+    defaultValue: firstOptionValue(allineamenti),
     metaField: PngMetaField.allineamento,
     fieldType: FieldType.integer,
     options: allineamenti,
@@ -34,7 +35,7 @@ const pngMeta = {
   },
   [PngMetaField.dominioAllineamento]: {
     label: "Dominio",
-    defaultValue: dominiAllineamenti[0].value,
+    defaultValue: firstOptionValue(dominiAllineamenti),
     metaField: PngMetaField.dominioAllineamento,
     fieldType: FieldType.integer,
     options: dominiAllineamenti,
@@ -54,7 +55,7 @@ const pngMeta = {
   },
   [PngMetaField.luogo]: {
     label: "Luogo",
-    defaultValue: locationList[0].value,
+    defaultValue: firstOptionValue(locationList),
     metaField: PngMetaField.luogo,
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
@@ -64,7 +65,7 @@ const pngMeta = {
   },
   [PngMetaField.fazione]: {
     label: "Fazione",
-    defaultValue: fazioni[0].value,
+    defaultValue: firstOptionValue(fazioni),
     metaField: PngMetaField.fazione,
     fieldType: FieldType.integer,
     options: fazioni,

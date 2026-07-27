@@ -5,12 +5,8 @@ import Spell from "@/app/lib/definitions/interfaces/spells/Spell";
 import SelectButtonery from "../buttons/SelectButtonery";
 import ButtonSize from "../buttons/BaseButton/ButtonSize";
 import SpellCard from "./SpellCard";
-import { ItemCount } from "@/app/lib/data/getItemsCount";
 
-export default function SpellLibrary(props: {
-  itemCount: ItemCount;
-  items: Spell[];
-}) {
+export default function SpellLibrary(props: { items: Spell[] }) {
   return (
     <div className="w-full pt-5">
       <div className="grid gap-2 grid-cols-8">

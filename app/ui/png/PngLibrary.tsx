@@ -1,16 +1,12 @@
 "use client";
 
 import SelectButtonery from "../buttons/SelectButtonery";
-import { ItemCount } from "@/app/lib/data/getItemsCount";
 
 import PngCard from "./PngCard";
 import PngItem from "@/app/lib/definitions/interfaces/png/PngItem";
 import PngMetaField from "@/app/lib/definitions/enums/png/PngMetaField";
 
-export default function PngLibrary(props: {
-  itemCount: ItemCount;
-  items: PngItem[];
-}) {
+export default function PngLibrary(props: { items: PngItem[] }) {
   return (
     <div className="w-full pt-5">
       <hr className="mb-4" />

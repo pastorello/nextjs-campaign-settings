@@ -1,14 +1,10 @@
 "use client";
 import SelectButtonery from "../buttons/SelectButtonery";
-import { ItemCount } from "@/app/lib/data/getItemsCount";
 import MagicItemCard from "./MagicItemCard";
 import MagicItem from "@/app/lib/definitions/interfaces/magicitem/MagicItem";
 import MagicItemMetaField from "@/app/lib/definitions/enums/magicitem/MagicItemMetaField";
 
-export default function MagicItemLibrary(props: {
-  itemCount: ItemCount;
-  items: MagicItem[];
-}) {
+export default function MagicItemLibrary(props: { items: MagicItem[] }) {
   return (
     <div className="w-full pt-5">
       <div className="grid gap-2 grid-cols-8">

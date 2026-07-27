@@ -2,11 +2,11 @@ import { Suspense } from "react";
 import SearchParams from "@/app/lib/definitions/interfaces/pages/SearchParams";
 import { Metadata } from "next";
 
-import { TableSkeleton } from "@/app/ui/skeletons";
+import { LibrarySkeleton } from "@/app/ui/skeletons";
 import { getSpellsCount } from "@/app/lib/data/spells/getSpellsCount";
 import { ListPage } from "@/app/ui/containers/ListPage";
-import SpellLibrary from "@/app/ui/spells/SpellLibrary";
-import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
+import EntityLibrary from "@/app/ui/components/EntityLibrary";
+import PageType from "@/app/lib/definitions/types/PageType";
 
 export const metadata: Metadata = {
   title: "Incantesimi",
@@ -17,7 +17,6 @@ export default async function Page(props: {
 }) {
   const searchParams = await props.searchParams;
   const itemCount = await getSpellsCount(searchParams ?? {});
-  const fetchedItems = await fetchFilteredSpells(props.searchParams ?? {});
 
   return (
     <ListPage
@@ -28,8 +27,11 @@ export default async function Page(props: {
       itemNamePlural="incantesimi"
       itemNameSingular="incantesimo"
     >
-      <Suspense fallback={<TableSkeleton />}>
-        <SpellLibrary itemCount={itemCount} items={fetchedItems || []} />
+      <Suspense fallback={<LibrarySkeleton />}>
+        <EntityLibrary
+          pageType={PageType.Spell}
+          searchParams={props.searchParams}
+        />
       </Suspense>
     </ListPage>
   );

@@ -1,3 +1,6 @@
+import listConfig from "@/app/lib/config/listConfig";
+import PageType from "@/app/lib/definitions/types/PageType";
+
 // Loading animation
 const shimmer =
   "before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-linear-to-r before:from-transparent before:via-white/60 before:to-transparent";
@@ -45,33 +48,27 @@ export default function DashboardSkeleton() {
   );
 }
 
-export function TableRowSkeleton() {
+/** How many cells a row of the real table has: name + columns + actions. */
+const columnCount = (pageType?: PageType) =>
+  pageType ? listConfig[pageType].columns.length + 2 : 4;
+
+export function TableRowSkeleton({ pageType }: { pageType?: PageType }) {
+  const cells = columnCount(pageType);
+
   return (
     <tr className="w-full border-b border-gray-100 last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg">
-      {/* Customer Name and Image */}
       <td className="relative overflow-hidden whitespace-nowrap py-3 pl-6 pr-3">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-gray-100"></div>
-          <div className="h-6 w-24 rounded bg-gray-100"></div>
+          <div className="h-6 w-32 rounded bg-gray-100"></div>
         </div>
       </td>
-      {/* Email */}
-      <td className="whitespace-nowrap px-3 py-3">
-        <div className="h-6 w-32 rounded bg-gray-100"></div>
-      </td>
-      {/* Amount */}
-      <td className="whitespace-nowrap px-3 py-3">
-        <div className="h-6 w-16 rounded bg-gray-100"></div>
-      </td>
-      {/* Date */}
-      <td className="whitespace-nowrap px-3 py-3">
-        <div className="h-6 w-16 rounded bg-gray-100"></div>
-      </td>
-      {/* Status */}
-      <td className="whitespace-nowrap px-3 py-3">
-        <div className="h-6 w-16 rounded bg-gray-100"></div>
-      </td>
-      {/* Actions */}
+
+      {Array.from({ length: cells - 2 }, (_, index) => (
+        <td key={index} className="whitespace-nowrap px-3 py-3">
+          <div className="h-6 w-24 rounded bg-gray-100"></div>
+        </td>
+      ))}
+
       <td className="whitespace-nowrap py-3 pl-6 pr-3">
         <div className="flex justify-end gap-3">
           <div className="h-9.5 w-9.5 rounded bg-gray-100"></div>
@@ -82,44 +79,50 @@ export function TableRowSkeleton() {
   );
 }
 
-export function TableSkeleton() {
+/**
+ * The placeholder shown while an `EntityList` streams in.
+ *
+ * **`aria-hidden`, and no text.** This used to be the Next.js Learn tutorial's
+ * invoices table, headed *Customer · Email · Amount · Date · Status · Edit* —
+ * literal strings, in the accessibility tree, announced by a screen reader on a
+ * page of spells. A loading placeholder has nothing to tell assistive
+ * technology: the real table follows and says it properly. It is decorative, so
+ * it is now hidden and its headers are shimmer blocks rather than words.
+ *
+ * Hiding it also stops it interfering with queries: a `getByRole("columnheader")`
+ * during streaming used to find the tutorial's six headers instead of the real
+ * ones, which is exactly how this was noticed.
+ *
+ * **`pageType` makes the shape right.** Without it the placeholder rendered six
+ * columns for every domain — against the spells table's four, the layout jumped
+ * as soon as the data arrived. The count comes from `listConfig`, so it stays
+ * correct as columns change.
+ */
+export function TableSkeleton({ pageType }: { pageType?: PageType }) {
+  const cells = columnCount(pageType);
+
   return (
-    <div className="mt-6 flow-root">
+    <div className="mt-6 flow-root" aria-hidden="true">
       <div className="inline-block min-w-full align-middle">
         <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
           <table className="hidden min-w-full text-gray-900 md:table">
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
-                <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
-                  Customer
-                </th>
-                <th scope="col" className="px-3 py-5 font-medium">
-                  Email
-                </th>
-                <th scope="col" className="px-3 py-5 font-medium">
-                  Amount
-                </th>
-                <th scope="col" className="px-3 py-5 font-medium">
-                  Date
-                </th>
-                <th scope="col" className="px-3 py-5 font-medium">
-                  Status
-                </th>
-                <th
-                  scope="col"
-                  className="relative pb-4 pl-3 pr-6 pt-2 sm:pr-6"
-                >
-                  <span className="sr-only">Edit</span>
-                </th>
+                {Array.from({ length: cells }, (_, index) => (
+                  <th
+                    key={index}
+                    scope="col"
+                    className="px-4 py-5 font-medium sm:pl-6"
+                  >
+                    <div className="h-6 w-20 rounded bg-gray-200"></div>
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="bg-white">
-              <TableRowSkeleton />
-              <TableRowSkeleton />
-              <TableRowSkeleton />
-              <TableRowSkeleton />
-              <TableRowSkeleton />
-              <TableRowSkeleton />
+              {Array.from({ length: 6 }, (_, index) => (
+                <TableRowSkeleton key={index} pageType={pageType} />
+              ))}
             </tbody>
           </table>
         </div>

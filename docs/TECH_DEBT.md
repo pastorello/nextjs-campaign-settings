@@ -48,6 +48,8 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                    | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-27 | ✅ Hidden `classi=0` filter on the spells list removed               | ~~🟠 High~~ done     | S      | 2     |
 | TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does       | ~~🟠 High~~ done     | S      | 2     |
+| TD-29 | ✅ Loading skeleton was the tutorial's invoices table                | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-30 | Four list pages wrap a `<Suspense>` that can never trigger           | 🟡 Medium            | S      | 2     |
 
 ---
 
@@ -985,6 +987,49 @@ SELECT setval(pg_get_serial_sequence('"spells"', 'id'),
 Alternatively drop the explicit ids from the seed data and let the database assign them; that changes what `skipDuplicates` means for re-runs, so it is the larger change of the two.
 
 **Done when:** a freshly seeded database accepts a record created through the UI in every domain, with a test covering it.
+
+---
+
+### TD-29 ✅ The loading skeleton was the tutorial's invoices table — **DONE (2026-07-27)**
+
+**Where:** `app/ui/skeletons.tsx`, and the four admin pages that use it
+
+`TableSkeleton` was still the Next.js Learn placeholder, headed **Customer · Email · Amount · Date · Status · Edit**. Those are literal strings in the markup, so a screen reader announced an invoices table on a page of spells every time one streamed in. TD-06 cleaned the tutorial out of the code and missed this, because visually it is just grey blocks — the words are only in the header row and in the accessibility tree.
+
+**Found by it interfering with a test.** A `getByRole("columnheader")` probe during streaming returned the tutorial's six headers instead of the real ones. A decorative placeholder that outranks real content in a role query is a good sign it should not be in the tree at all.
+
+**Fixed three ways:**
+
+- `aria-hidden="true"` on the wrapper. A loading placeholder has nothing to tell assistive technology — the real table announces itself when it arrives.
+- No text at all: header cells are shimmer blocks now, like the body always was.
+- It takes a `pageType` and reads its column count from `listConfig`, so the placeholder has the same shape as the table replacing it. It used to render six columns for every domain, against the spells table's four, and the layout jumped when the data landed.
+
+7 tests cover it, including one per domain asserting the count matches `listConfig` and one asserting the tutorial words are gone.
+
+---
+
+### TD-30 🟡 Four list pages wrap a `<Suspense>` that can never trigger
+
+**Where:** `app/dashboard/{spells,png,deities,magicitems}/page.tsx`
+**Found:** 2026-07-27, while fixing TD-29
+
+Each of the four public list pages does this:
+
+```tsx
+const fetchedItems = await fetchFilteredSpells(searchParams);
+…
+<Suspense fallback={<TableSkeleton />}>
+  <SpellLibrary itemCount={itemCount} items={fetchedItems || []} />
+</Suspense>
+```
+
+The page awaits the query itself, then passes the result down. Nothing inside the boundary suspends, so **the fallback never renders** — the page simply blocks until the data is ready, and the boundary is decoration. The admin pages get this right: `EntityList` awaits its own fetch, so it genuinely streams.
+
+Compounding it, the fallback is a _table_ skeleton for a page that renders _cards_.
+
+**Fix:** move the fetch into the library component, as `EntityList` does, so the boundary earns its place — or delete the boundary and be honest that the page blocks. The first is better: these pages now query a 361-spell library.
+
+**Done when:** either the fallback is reachable and shaped like the content it replaces, or the `<Suspense>` is gone.
 
 ---
 

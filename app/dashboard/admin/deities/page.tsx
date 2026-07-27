@@ -38,7 +38,10 @@ export default async function Page(props: {
         <BaseButton to="deities/new">Nuova divinità</BaseButton>
         <ResetButton />
       </div>
-      <Suspense key={query + currentPage} fallback={<TableSkeleton />}>
+      <Suspense
+        key={query + currentPage}
+        fallback={<TableSkeleton pageType={PageType.Deity} />}
+      >
         <EntityList
           pageType={PageType.Deity}
           searchParams={props.searchParams}

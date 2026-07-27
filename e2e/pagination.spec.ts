@@ -20,10 +20,13 @@ import { DEFAULT_ITEMS_PER_PAGE } from "@/app/lib/config/constants";
  */
 
 /**
- * Data rows only. Counting every `row` role also catches the header and the
- * loading skeleton's leftover tutorial table (app/ui/skeletons.tsx still ships
- * "Customer / Email / Amount" headers), so rows are identified by the control
- * only a real record has.
+ * Data rows only: counting every `row` role would also catch the header, so
+ * rows are identified by the control only a real record has.
+ *
+ * The loading skeleton used to be caught here too — it shipped the tutorial's
+ * "Customer / Email / Amount" table and appeared in the accessibility tree
+ * while a page streamed. It is `aria-hidden` now, so role queries no longer
+ * see it at all.
  */
 const dataRows = (page: Page) =>
   page

@@ -37,7 +37,10 @@ export default async function Page(props: {
         <BaseButton to="magicitems/new">Nuovo oggetto magico</BaseButton>
         <ResetButton />
       </div>
-      <Suspense key={query + currentPage} fallback={<TableSkeleton />}>
+      <Suspense
+        key={query + currentPage}
+        fallback={<TableSkeleton pageType={PageType.MagicItem} />}
+      >
         <EntityList
           pageType={PageType.MagicItem}
           searchParams={props.searchParams}

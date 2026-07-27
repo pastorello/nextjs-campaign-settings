@@ -52,7 +52,11 @@ export default function DashboardSkeleton() {
 const columnCount = (pageType?: PageType) =>
   pageType ? listConfig[pageType].columns.length + 2 : 4;
 
-export function TableRowSkeleton({ pageType }: { pageType?: PageType }) {
+export function TableRowSkeleton({
+  pageType,
+}: {
+  pageType?: PageType | undefined;
+}) {
   const cells = columnCount(pageType);
 
   return (
@@ -98,7 +102,11 @@ export function TableRowSkeleton({ pageType }: { pageType?: PageType }) {
  * as soon as the data arrived. The count comes from `listConfig`, so it stays
  * correct as columns change.
  */
-export function TableSkeleton({ pageType }: { pageType?: PageType }) {
+export function TableSkeleton({
+  pageType,
+}: {
+  pageType?: PageType | undefined;
+}) {
   const cells = columnCount(pageType);
 
   return (

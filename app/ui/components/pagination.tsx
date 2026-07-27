@@ -67,7 +67,7 @@ function PaginationNumber({
 }: {
   page: number | string;
   href: string;
-  position?: "first" | "last" | "middle" | "single";
+  position?: "first" | "last" | "middle" | "single" | undefined;
   isActive: boolean;
 }) {
   const className = clsx(

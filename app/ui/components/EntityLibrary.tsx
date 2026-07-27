@@ -27,7 +27,7 @@ import SpellLibrary from "../spells/SpellLibrary";
  */
 export default async function EntityLibrary(props: {
   pageType: PageType;
-  searchParams?: SearchParamsInput;
+  searchParams?: SearchParamsInput | undefined;
 }) {
   // The fetch happens inside each branch rather than once above it: the four
   // functions return four different domain types, and a single call site would

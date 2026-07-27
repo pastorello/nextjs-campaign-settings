@@ -53,7 +53,7 @@ const fetchItems = (pageType: PageType, searchParams: SearchParamsInput) => {
 
 export default async function EntityList(props: {
   pageType: PageType;
-  searchParams?: SearchParamsInput;
+  searchParams?: SearchParamsInput | undefined;
 }) {
   const config = listConfig[props.pageType];
   const items = (await fetchItems(

@@ -35,7 +35,7 @@ export interface LeafletTileLayerProps {
  */
 export interface LeafletMarkerProps {
   position: [number, number];
-  icon?: LeafletIcon;
+  icon?: LeafletIcon | undefined;
   popup?: string | ReactNode;
   draggable?: boolean;
   onDragEnd?: (position: [number, number]) => void;

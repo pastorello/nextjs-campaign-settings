@@ -43,7 +43,7 @@ interface EntityMutations<T> {
 
 interface EntityFormProps<T extends object> {
   pageType: PageType;
-  formData?: T;
+  formData?: T | undefined;
   mutations: EntityMutations<T>;
   copy: EntityFormCopy;
   onCancel: () => void;
@@ -59,7 +59,7 @@ interface EntityFormProps<T extends object> {
    * always-enabled submit means an empty magic item can be created in one
    * click.
    */
-  disableUntilEdited?: boolean;
+  disableUntilEdited?: boolean | undefined;
 
   /** The domain's field layout — the one part that genuinely differs. */
   children: (field: FieldRenderer) => ReactNode;

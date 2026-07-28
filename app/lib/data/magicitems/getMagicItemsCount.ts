@@ -1,5 +1,6 @@
+import queryFields from "@/app/lib/config/queryFields";
+import PageType from "@/app/lib/definitions/types/PageType";
 import prisma from "../../connections/prisma";
-import MagicItemMetaField from "../../definitions/enums/magicitem/MagicItemMetaField";
 import { getItemsCount, ItemCount } from "../getItemsCount";
 import { SearchParamsInput } from "../validateParams";
 
@@ -8,11 +9,7 @@ export async function getMagicItemsCount(
 ): Promise<ItemCount> {
   const result: ItemCount = await getItemsCount(
     searchParams,
-    [
-      MagicItemMetaField.rarita,
-      MagicItemMetaField.tipo,
-      MagicItemMetaField.sintonia,
-    ],
+    queryFields[PageType.MagicItem],
     prisma.magicitems
   );
 

@@ -69,6 +69,23 @@ test.describe("pagination", () => {
     expect(await readCount(page)).toBe(filtered);
   });
 
+  test("a field filter narrows the count as well as the rows", async ({
+    page,
+  }) => {
+    // TD-12. `fetchFilteredSpells` and `getSpellsCount` each built a `where`
+    // from their own copy of the field list, and the copies had drifted — the
+    // count's was missing `nome`. So this URL used to render "361 di 361
+    // incantesimi trovati" above an empty table, with pagination offering
+    // thirteen pages of nothing.
+    await page.goto("/dashboard/admin/spells?nome=Dardo");
+
+    const filtered = await readCount(page);
+
+    await expect(dataRows(page)).toHaveCount(
+      Math.min(filtered, DEFAULT_ITEMS_PER_PAGE)
+    );
+  });
+
   test("a page beyond the last one renders no rows", async ({ page }) => {
     await page.goto("/dashboard/admin/spells");
     const filtered = await readCount(page);

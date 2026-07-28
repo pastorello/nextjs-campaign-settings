@@ -1,5 +1,6 @@
+import queryFields from "@/app/lib/config/queryFields";
+import PageType from "@/app/lib/definitions/types/PageType";
 import prisma from "../../connections/prisma";
-import PngMetaField from "../../definitions/enums/png/PngMetaField";
 import { getItemsCount, ItemCount } from "../getItemsCount";
 import { SearchParamsInput } from "../validateParams";
 
@@ -8,12 +9,7 @@ export async function getPngCount(
 ): Promise<ItemCount> {
   const result: ItemCount = await getItemsCount(
     searchParams,
-    [
-      PngMetaField.dominioAllineamento,
-      PngMetaField.allineamento,
-      PngMetaField.fazione,
-      PngMetaField.luogo,
-    ],
+    queryFields[PageType.Png],
     prisma.png
   );
 

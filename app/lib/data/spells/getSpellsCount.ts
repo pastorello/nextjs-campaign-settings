@@ -1,5 +1,6 @@
+import queryFields from "@/app/lib/config/queryFields";
+import PageType from "@/app/lib/definitions/types/PageType";
 import prisma from "../../connections/prisma";
-import SpellMetaField from "../../definitions/enums/spells/SpellMetaField";
 import { getItemsCount, ItemCount } from "../getItemsCount";
 import { SearchParamsInput } from "../validateParams";
 
@@ -8,20 +9,7 @@ export async function getSpellsCount(
 ): Promise<ItemCount> {
   const result: ItemCount = await getItemsCount(
     searchParams,
-    [
-      SpellMetaField.livello,
-      SpellMetaField.circolo,
-      SpellMetaField.classi,
-      SpellMetaField.tempoDiLancio,
-      SpellMetaField.gittata,
-      SpellMetaField.componenti,
-      SpellMetaField.durata,
-      SpellMetaField.tiroSalvezza,
-      SpellMetaField.rituale,
-      SpellMetaField.concentrazione,
-      SpellMetaField.descrizione,
-      SpellMetaField.intensificato,
-    ],
+    queryFields[PageType.Spell],
     prisma.spells
   );
 

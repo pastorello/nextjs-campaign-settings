@@ -1,5 +1,6 @@
+import queryFields from "@/app/lib/config/queryFields";
+import PageType from "@/app/lib/definitions/types/PageType";
 import prisma from "../../connections/prisma";
-import PatronoMetaField from "../../definitions/enums/deities/PatronoMetaField";
 import { getItemsCount, ItemCount } from "../getItemsCount";
 import { SearchParamsInput } from "../validateParams";
 
@@ -8,24 +9,7 @@ export async function getDeitiesCount(
 ): Promise<ItemCount> {
   const result: ItemCount = await getItemsCount(
     searchParams,
-    [
-      PatronoMetaField.nome,
-      PatronoMetaField.titoloPatrono,
-      PatronoMetaField.tipoPatrono,
-      PatronoMetaField.gradoPatrono,
-      PatronoMetaField.card,
-      PatronoMetaField.astri,
-      PatronoMetaField.elemento,
-      PatronoMetaField.classe,
-      PatronoMetaField.festivita,
-      PatronoMetaField.colore,
-      PatronoMetaField.tradizione,
-      PatronoMetaField.allineamento,
-      PatronoMetaField.dominioAllineamento,
-      PatronoMetaField.residenza,
-      PatronoMetaField.luogo,
-      PatronoMetaField.significato,
-    ],
+    queryFields[PageType.Deity],
     prisma.deities
   );
 

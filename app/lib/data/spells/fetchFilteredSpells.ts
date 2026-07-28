@@ -1,30 +1,20 @@
+import queryFields from "@/app/lib/config/queryFields";
+import PageType from "@/app/lib/definitions/types/PageType";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import prisma from "../../connections/prisma";
 import getQuery from "../getQuery";
 import { SearchParamsInput } from "../validateParams";
 import { Prisma } from "@/generated/prisma/client";
-import SpellMetaField from "../../definitions/enums/spells/SpellMetaField";
 import Spell from "../../definitions/interfaces/spells/Spell";
 
 export async function fetchFilteredSpells(
   searchParams: SearchParamsInput
 ): Promise<Spell[]> {
   const theParams = await searchParams;
-  const theQuery = getQuery<Prisma.spellsWhereInput>(theParams, [
-    SpellMetaField.nome,
-    SpellMetaField.livello,
-    SpellMetaField.circolo,
-    SpellMetaField.classi,
-    SpellMetaField.tempoDiLancio,
-    SpellMetaField.gittata,
-    SpellMetaField.componenti,
-    SpellMetaField.durata,
-    SpellMetaField.tiroSalvezza,
-    SpellMetaField.rituale,
-    SpellMetaField.concentrazione,
-    SpellMetaField.descrizione,
-    SpellMetaField.intensificato,
-  ]);
+  const theQuery = getQuery<Prisma.spellsWhereInput>(
+    theParams,
+    queryFields[PageType.Spell]
+  );
 
   try {
     const result = await prisma.spells.findMany(theQuery);

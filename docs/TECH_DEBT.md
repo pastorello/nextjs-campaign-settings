@@ -548,7 +548,30 @@ The original description follows.
 
 ---
 
-### TD-12 🟡 Pagination reads the table twice with divergent queries
+### TD-12 ✅ Pagination reads the table twice with divergent queries — **DONE (2026-07-27)**
+
+**The drift this item predicted had already happened, and it was reachable.** `fetchFilteredX` and `getXCount` each carried their own copy of the filterable-field list, and two of the four had diverged: the spell count was missing `nome`, and the NPC count listed **four** of the twelve fields the NPC fetch used.
+
+Measured in the browser before the fix:
+
+| URL                                       | Header said                    | Table rendered |
+| ----------------------------------------- | ------------------------------ | -------------- |
+| `/dashboard/admin/png?titolo=Arcivescovo` | 119 di 119 PNG trovati         | **0 rows**     |
+| `/dashboard/admin/spells?nome=Dardo`      | 361 di 361 incantesimi trovati | **0 rows**     |
+
+The rows were filtered, the count was not, and the pagination control offered thirteen pages of nothing. Not hypothetical, and not waiting on a future filter control — an edited URL was enough.
+
+**Fixed by declaring the list once**, in `app/lib/config/queryFields.ts`, read by both functions. The alternative the item suggested — `prisma.$transaction([findMany, count])` — does not fit the architecture any more: TD-30 moved the rows behind a `<Suspense>` boundary so they stream, while the count is awaited in the page for the header and the pagination control. One shared declaration keeps both honest without giving that up.
+
+`magicitems` keeps its narrower list (no `nome`, no `descrizione`). Its two functions already agreed with each other, so this preserves their behaviour rather than quietly widening it.
+
+**Regression test** in `pagination.spec.ts`, written first and confirmed red — _expected 30, received 0_. After: `?nome=Dardo Incantato` reports **1 and renders 1**, which is the check that matters; two zeroes would also have "agreed".
+
+The original description follows.
+
+---
+
+### TD-12 (original) 🟡 Pagination reads the table twice with divergent queries
 
 `fetchFilteredX` and `getXCount` each build their own filter from the same search params. If one drifts from the other, the pagination control shows a page count that does not match the rows returned — a classic silent bug.
 

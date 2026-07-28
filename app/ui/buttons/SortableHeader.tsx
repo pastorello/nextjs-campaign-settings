@@ -108,6 +108,7 @@ const SortableHeader = ({
             sortOrder={sortValue}
             onClick={onSort}
             isActive={isActive}
+            label={label}
           />
         </div>
       )}

@@ -8,9 +8,16 @@ interface SortButtonProps {
   sortOrder: string;
   onClick: () => void;
   isActive: boolean;
+  /** The column this sorts, so the control can name itself. */
+  label: string;
 }
 
-const SortButton = ({ sortOrder, onClick, isActive }: SortButtonProps) => {
+const SortButton = ({
+  sortOrder,
+  onClick,
+  isActive,
+  label,
+}: SortButtonProps) => {
   return (
     <BaseButton
       onClick={onClick}
@@ -21,6 +28,9 @@ const SortButton = ({ sortOrder, onClick, isActive }: SortButtonProps) => {
             : IconType.chevronUp
           : IconType.chevronUpDown
       }
+      // Icon-only: without a name a screen reader hears "button" once per
+      // column heading and nothing more (TD-15).
+      ariaLabel={`Ordina per ${label.toLowerCase()}`}
       size={ButtonSize.small}
       variant={ButtonVariant.neutral}
     />

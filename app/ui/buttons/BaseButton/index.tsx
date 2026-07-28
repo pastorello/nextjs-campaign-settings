@@ -25,6 +25,13 @@ interface BaseButtonProps {
   to?: string;
   buttonState?: ButtonState;
   type?: "submit";
+
+  /**
+   * Accessible name, for a button whose content is only an icon. Without it a
+   * screen reader announces "button" and nothing else — which is what the three
+   * sort controls in every table header used to do (TD-15).
+   */
+  ariaLabel?: string | undefined;
 }
 
 // Small inline spinner for the loading state. Kept local and dependency-free
@@ -62,6 +69,7 @@ const BaseButton = ({
   size = ButtonSize.medium,
   to,
   buttonState = ButtonState.Default,
+  ariaLabel,
 }: BaseButtonProps) => {
   const isLoading = buttonState === ButtonState.Loading;
   // The `disabled` prop and ButtonState.Disabled are two doors to the same
@@ -118,6 +126,7 @@ const BaseButton = ({
           "pointer-events-none opacity-60": isNonInteractive,
         })}
         href={to}
+        aria-label={ariaLabel}
         aria-disabled={isNonInteractive || undefined}
         tabIndex={isNonInteractive ? -1 : undefined}
       >
@@ -137,6 +146,7 @@ const BaseButton = ({
       <Button
         onClick={submitAction}
         className={buttonClasses}
+        aria-label={ariaLabel}
         disabled={isNonInteractive}
       >
         {theButton}
@@ -147,6 +157,7 @@ const BaseButton = ({
       <Button
         type="submit"
         className={buttonClasses}
+        aria-label={ariaLabel}
         disabled={isNonInteractive}
       >
         {theButton}

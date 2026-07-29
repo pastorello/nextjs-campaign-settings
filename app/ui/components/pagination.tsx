@@ -59,6 +59,13 @@ export default function Pagination({ totalPages }: { totalPages: number }) {
   );
 }
 
+// All user-facing copy for this component, in one place for TD-21.
+const COPY = {
+  previous: "Pagina precedente",
+  next: "Pagina successiva",
+  page: (n: number | string) => `Pagina ${n}`,
+};
+
 function PaginationNumber({
   page,
   href,
@@ -84,7 +91,7 @@ function PaginationNumber({
   return isActive || position === "middle" ? (
     <div className={className}>{page}</div>
   ) : (
-    <Link href={href} className={className}>
+    <Link href={href} className={className} aria-label={COPY.page(page)}>
       {page}
     </Link>
   );
@@ -111,15 +118,20 @@ function PaginationArrow({
 
   const icon =
     direction === "left" ? (
-      <ArrowLeftIcon className="w-4" />
+      <ArrowLeftIcon className="w-4" aria-hidden="true" />
     ) : (
-      <ArrowRightIcon className="w-4" />
+      <ArrowRightIcon className="w-4" aria-hidden="true" />
     );
 
+  // Icon-only, so the link needs a name of its own (TD-15).
+  const label = direction === "left" ? COPY.previous : COPY.next;
+
   return isDisabled ? (
-    <div className={className}>{icon}</div>
+    <div className={className} aria-hidden="true">
+      {icon}
+    </div>
   ) : (
-    <Link className={className} href={href}>
+    <Link className={className} href={href} aria-label={label}>
       {icon}
     </Link>
   );

@@ -57,7 +57,7 @@ describe("getCSSClasses", () => {
       ButtonVariant.danger,
       ButtonSize.small
     );
-    expect(base).toContain("bg-rose-500");
+    expect(base).toContain("bg-rose-600");
     expect(base).toContain("px-1 py-px text-sm");
     expect(sizeClasses).toBe("h-[32px]");
   });
@@ -67,7 +67,7 @@ describe("getCSSClasses", () => {
       "bogus" as ButtonVariant,
       "bogus" as ButtonSize
     );
-    expect(base).toContain("bg-violet-500");
+    expect(base).toContain("bg-violet-600");
     expect(sizeClasses).toBe("h-[40px]");
   });
 });

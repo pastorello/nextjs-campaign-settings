@@ -46,6 +46,12 @@ const links = [
   },
 ];
 
+// All user-facing copy for this component, in one place for TD-21.
+const COPY = {
+  /** Accessible name for the icon-only edit link beside each section. */
+  manage: (section: string) => `Gestisci ${section.toLowerCase()}`,
+};
+
 export default function NavLinks() {
   const pathname = usePathname();
 
@@ -77,9 +83,13 @@ export default function NavLinks() {
               <div className="flex flex-0 justify-end">
                 <Link
                   href={link.admin}
+                  // Icon-only, so it needs a name of its own: a screen reader
+                  // announced four unlabelled links in the main navigation of
+                  // every page (TD-15).
+                  aria-label={COPY.manage(link.name)}
                   className="flex gap-2 h-12 grow items-center justify-center w-full"
                 >
-                  <PencilSquareIcon className="w-6" />
+                  <PencilSquareIcon className="w-6" aria-hidden="true" />
                 </Link>
               </div>
             )}

@@ -628,7 +628,30 @@ A single `{ cause: error }` would have turned a manual `docker ps` hunt into rea
 
 ---
 
-### TD-15 🟡 No accessibility pass
+### TD-15 ✅ No accessibility pass — **DONE (2026-07-27)**
+
+**Outcome:** `e2e/a11y.spec.ts` asserts **zero** axe violations across eleven pages — every list, every admin list, two forms and the dashboard — instead of the per-page allowlist TD-24 had to ship. Plus a keyboard test axe cannot express.
+
+What the allowlist contained, and where each went:
+
+| Violation                | Nodes        | Fix                                                                                                                                                                                                                                         |
+| ------------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `color-contrast`         | 18–19        | White on `violet-500` measured **4.4:1** against the 4.5:1 that 14px text needs — it missed by a tenth, on every primary button in the app. White on `rose-500` measured 3.75:1. Both variants moved one step darker; violet-600 is ~5.9:1. |
+| `link-name`              | 4–5 per page | The sidebar's icon-only "manage" links, and the pagination arrows. Both carry an `aria-label` now, and their icons are `aria-hidden`.                                                                                                       |
+| `button-name`            | 3            | The icon-only sort controls in every table header. They name the column they order by.                                                                                                                                                      |
+| `aria-toggle-field-name` | 0            | Already gone before this pass started — a stale entry, which is exactly the failure mode an allowlist has.                                                                                                                                  |
+
+**Also fixed:** `app/ui/search.tsx` declared `<label htmlFor="search">` against an id no input carried, so the search field had no accessible name at all. That is why `filtering.spec.ts` had to reach it by placeholder; the workaround comment there is now obsolete but the selector still works.
+
+**The focus ring, and a correction worth recording.** I first measured a focused button as `outline-style: none` and wrote that keyboard users had no indicator at all. That was wrong, and the method was the reason: **a programmatic `.focus()` does not match `:focus-visible`**, so the computed style reports `none` on a perfectly fine button. Tabbing there with a real keypress showed the browser's own `outline: auto 1px`. So this is not a fixed WCAG failure — it is a thin, browser-dependent default replaced with an explicit 2px ring at an offset, which reads on both the white sidebar and the dark content area. The test uses real `Tab` presses for the same reason.
+
+**Not done:** `jsx-a11y` was already satisfied — it ships inside `eslint-config-next`, so TD-05 met that half on arrival. A screen-reader pass with an actual screen reader has not been attempted; axe covers the machine-checkable part only.
+
+The original description follows.
+
+---
+
+### TD-15 (original) 🟡 No accessibility pass
 
 Never audited. Likely issues given the component inventory: custom `Select` and `Modal` implementations (keyboard trap and ARIA correctness unverified), icon-only buttons in `MapControls` and `SortButton` (need accessible names), form inputs (label association unverified), and no visible focus-state audit.
 

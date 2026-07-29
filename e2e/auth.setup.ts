@@ -18,7 +18,9 @@ setup("authenticate", async ({ page }) => {
 
   // Proves the session is real rather than just a redirect: the dashboard nav
   // only renders for an authenticated user.
-  await expect(page.getByRole("link", { name: "Incantesimi" })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Incantesimi", exact: true })
+  ).toBeVisible();
 
   await page.context().storageState({ path: STORAGE_STATE });
 });

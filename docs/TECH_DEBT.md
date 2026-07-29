@@ -34,7 +34,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-12 | Pagination count and rows use separate queries                        | 🟡 Medium            | S      | 2     |
 | TD-13 | ◑ Typed errors with `cause`; 404 vs 500; toasts wait on TD-10         | 🟡 Medium            | M      | 2     |
 | TD-14 | Map POIs persisted only to `localStorage`                             | 🟡 Medium            | M      | 3     |
-| TD-15 | No accessibility pass                                                 | 🟡 Medium            | M      | 2     |
+| TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring      | ~~🟡 Medium~~ done   | M      | 2     |
 | TD-16 | ✅ Inconsistent formatting                                            | ~~🟢 Low~~ done      | S      | 1     |
 | TD-17 | ✅ README does not match reality                                      | ~~🟢 Low~~ done      | S      | 1     |
 | TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                | ~~🟢 Low~~ done      | S      | 3     |

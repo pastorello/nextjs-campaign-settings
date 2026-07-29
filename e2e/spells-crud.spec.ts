@@ -104,6 +104,17 @@ test.describe("spells CRUD", () => {
     // able to remove real data even if the cancel button stops working.
     await gotoSpellAdmin(page);
     await page.getByRole("link", { name: "Nuovo Incantesimo" }).click();
+
+    // This assertion is load-bearing, not decoration. `getByLabel` matches by
+    // case-insensitive substring, and the list page's sort button is now named
+    // "Ordina per nome" (TD-15 gave it an accessible name) — so `getByLabel`
+    // ("Nome") resolves to that button the instant it is evaluated, instead of
+    // finding nothing and waiting for the form to render. Wait for the heading
+    // first, and the ambiguity is gone because the list page is.
+    await expect(
+      page.getByRole("heading", { name: "Crea nuovo Incantesimo" })
+    ).toBeVisible();
+
     await page.getByLabel("Nome").fill(name);
     await page.getByRole("button", { name: "Crea Incantesimo" }).click();
     await page.waitForURL("**/dashboard/admin/spells");

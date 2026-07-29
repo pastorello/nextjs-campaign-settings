@@ -206,13 +206,21 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
+      # Deliberately no `--with-deps`, and no `install-deps` step on a cache hit.
+      # The ubuntu-latest image already ships every system library Chromium
+      # needs: a full `install-deps` run reported libnss3, libgbm1, libatk,
+      # libcups2t64, xvfb and the rest as "already the newest version", then
+      # spent nine minutes installing 80 MB of CJK, Thai and Cyrillic fonts —
+      # which only matter for rendering non-Latin text this app never shows.
+      # That step ran on *every* build, cache hit included, and was the single
+      # largest cost in the job. See TD-32.
+      #
+      # If a future runner image ever drops one of those libraries, Chromium
+      # fails loudly on launch — a clear one-line failure is a better trade than
+      # nine minutes of apt on every run.
       - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Install Playwright system deps
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps chromium
+        run: pnpm exec playwright install chromium
 
       - name: Run E2E tests
         run: pnpm test:e2e

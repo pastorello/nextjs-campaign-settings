@@ -4,7 +4,7 @@ import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import FieldType from "@/app/lib/definitions/types/FieldType";
 import ControlType from "@/app/lib/definitions/types/ControlType";
 
-import pngMeta from "./png/pngMeta";
+import npcMeta from "./npc/npcMeta";
 import spellsMeta from "./spells/SpellsMeta";
 import magicItemsMeta from "./magicitem/magicItemMeta";
 import deitiesMeta from "./deity/deityMeta";
@@ -12,8 +12,8 @@ import renderRichText from "../utils/data/renderRichText";
 
 const pageMetaFields = {
   //GENERAL
-  descrizione: {
-    metaField: "descrizione",
+  description: {
+    metaField: "description",
     label: "Descrizione",
     defaultValue: "",
     fieldType: FieldType.string,
@@ -34,8 +34,8 @@ const pageMetaFields = {
       .gt(-1, { message: "Please enter a positive amount" }),
     getDatum: (datum: number) => datum,
   },
-  nome: {
-    metaField: "nome",
+  name: {
+    metaField: "name",
     label: "Nome",
     defaultValue: "",
     placeholder: "Inserisci nome",
@@ -47,7 +47,7 @@ const pageMetaFields = {
   ...deitiesMeta,
   ...spellsMeta,
   ...magicItemsMeta,
-  ...pngMeta,
+  ...npcMeta,
 } satisfies Record<string, PageMeta>;
 
 /**

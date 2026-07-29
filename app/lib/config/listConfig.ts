@@ -1,7 +1,7 @@
 import ListColumn from "../definitions/interfaces/lists/ListColumn";
 import MagicItemMetaField from "../definitions/enums/magicitem/MagicItemMetaField";
-import PatronoMetaField from "../definitions/enums/deities/PatronoMetaField";
-import PngMetaField from "../definitions/enums/png/PngMetaField";
+import DeityMetaField from "../definitions/enums/deities/DeityMetaField";
+import NpcMetaField from "../definitions/enums/npc/NpcMetaField";
 import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
 import PageType from "../definitions/types/PageType";
 
@@ -39,34 +39,34 @@ interface ListConfig {
 const listConfig: Record<PageType, ListConfig> = {
   [PageType.Spell]: {
     columns: [
-      { fieldKey: SpellMetaField.livello, label: "Livello" },
-      { fieldKey: SpellMetaField.classi, label: "Classi" },
+      { fieldKey: SpellMetaField.level, label: "Livello" },
+      { fieldKey: SpellMetaField.classes, label: "Classi" },
     ],
     emptyMessage: "Nessun Incantesimo trovato",
     editModalTitle: "Modifica Incantesimo",
     modalContent: "spellform",
   },
 
-  [PageType.Png]: {
+  [PageType.Npc]: {
     columns: [
-      { fieldKey: PngMetaField.allineamento, label: "Allineamento" },
-      { fieldKey: PngMetaField.dominioAllineamento, label: "Dominio" },
-      { fieldKey: PngMetaField.fazione, label: "Fazione" },
-      { fieldKey: PngMetaField.luogo, label: "Luogo" },
+      { fieldKey: NpcMetaField.alignment, label: "Allineamento" },
+      { fieldKey: NpcMetaField.alignmentDomain, label: "Dominio" },
+      { fieldKey: NpcMetaField.faction, label: "Fazione" },
+      { fieldKey: NpcMetaField.location, label: "Luogo" },
     ],
     emptyMessage: "Nessun PNG trovato",
     editModalTitle: "Modifica PNG",
-    modalContent: "pngform",
-    subtitleField: PngMetaField.titolo,
+    modalContent: "npcform",
+    subtitleField: NpcMetaField.title,
   },
 
   [PageType.Deity]: {
     columns: [
-      { fieldKey: PatronoMetaField.allineamento, label: "Allineamento" },
-      { fieldKey: PatronoMetaField.dominioAllineamento, label: "Dominio" },
-      { fieldKey: PatronoMetaField.gradoPatrono, label: "Grado" },
-      { fieldKey: PatronoMetaField.tipoPatrono, label: "Tipo" },
-      { fieldKey: PatronoMetaField.residenza, label: "Residenza" },
+      { fieldKey: DeityMetaField.alignment, label: "Allineamento" },
+      { fieldKey: DeityMetaField.alignmentDomain, label: "Dominio" },
+      { fieldKey: DeityMetaField.deityRank, label: "Grado" },
+      { fieldKey: DeityMetaField.deityType, label: "Tipo" },
+      { fieldKey: DeityMetaField.residence, label: "Residenza" },
     ],
     emptyMessage: "Nessuna divinità trovata",
     editModalTitle: "Modifica Divinità",
@@ -75,11 +75,11 @@ const listConfig: Record<PageType, ListConfig> = {
 
   [PageType.MagicItem]: {
     columns: [
-      { fieldKey: MagicItemMetaField.rarita, label: "Rarità" },
-      { fieldKey: MagicItemMetaField.tipo, label: "Tipo di oggetto" },
+      { fieldKey: MagicItemMetaField.rarity, label: "Rarità" },
+      { fieldKey: MagicItemMetaField.type, label: "Tipo di oggetto" },
       // Two values, so ordering by it groups rather than sorts.
       {
-        fieldKey: MagicItemMetaField.sintonia,
+        fieldKey: MagicItemMetaField.attuned,
         label: "Sintonia",
         sortable: false,
       },

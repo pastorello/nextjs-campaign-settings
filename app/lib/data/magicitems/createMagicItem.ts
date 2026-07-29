@@ -18,15 +18,15 @@ export default async function createMagicItem(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  const { nome, descrizione, tipo, rarita, sintonia } = formData;
+  const { name, description, type, rarity, attuned } = formData;
 
   await prisma.magicitems.create({
     data: {
-      nome,
-      descrizione,
-      tipo,
-      rarita,
-      sintonia,
+      name,
+      description,
+      type,
+      rarity,
+      attuned,
     },
   });
 

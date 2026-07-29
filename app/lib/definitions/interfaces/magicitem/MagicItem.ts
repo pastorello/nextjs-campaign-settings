@@ -1,10 +1,10 @@
 interface MagicItem {
   id: number;
-  nome: string;
-  rarita: number;
-  tipo: number;
-  sintonia: boolean;
-  descrizione: string;
+  name: string;
+  rarity: number;
+  type: number;
+  attuned: boolean;
+  description: string;
 }
 
 export default MagicItem;

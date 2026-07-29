@@ -9,19 +9,19 @@ import fetchCardData from "@/app/lib/data/fetchCardData";
 
 const iconMap = {
   magicitems: TrophyIcon,
-  png: UserGroupIcon,
+  npc: UserGroupIcon,
   spells: BookOpenIcon,
   deities: BuildingLibraryIcon,
 };
 
 export default async function CardWrapper() {
-  const { numberOfmagicItems, numberOfPng, numberOfSpells, numberOfDeities } =
+  const { numberOfmagicItems, numberOfNpc, numberOfSpells, numberOfDeities } =
     await fetchCardData();
 
   return (
     <>
       <Card title="Magic Items" value={numberOfmagicItems} type="magicitems" />
-      <Card title="Png" value={numberOfPng} type="png" />
+      <Card title="Png" value={numberOfNpc} type="npc" />
       <Card title="Spells" value={numberOfSpells} type="spells" />
       <Card title="Deities" value={numberOfDeities} type="deities" />
     </>
@@ -35,7 +35,7 @@ export function Card({
 }: {
   title: string;
   value: number | string;
-  type: "magicitems" | "png" | "spells" | "deities";
+  type: "magicitems" | "npc" | "spells" | "deities";
 }) {
   const Icon = iconMap[type];
 

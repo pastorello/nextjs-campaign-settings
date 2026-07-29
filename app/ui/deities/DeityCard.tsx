@@ -8,19 +8,19 @@ import clsx from "clsx";
 import Icon from "../components/Icon";
 import IconType from "../buttons/BaseButton/IconType";
 import ItemMeta from "../components/ItemMeta";
-import Patrono from "@/app/lib/definitions/interfaces/deities/Patrono";
+import Deity from "@/app/lib/definitions/interfaces/deities/Deity";
 import pageMetaFields from "@/app/lib/config/pageMetaFields";
-import PatronoMetaField from "@/app/lib/definitions/enums/deities/PatronoMetaField";
-import GradoPatrono from "@/app/lib/definitions/enums/deities/GradoPatrono";
+import DeityMetaField from "@/app/lib/definitions/enums/deities/DeityMetaField";
+import DeityRank from "@/app/lib/definitions/enums/deities/DeityRank";
 
-const DeityCard = (props: { cardItem: Patrono }) => {
+const DeityCard = (props: { cardItem: Deity }) => {
   return (
     <Disclosure>
       <div
         className={clsx(
           `my-2 w-full rounded-xl bg-slate-800 text-sm text-white outline outline-offset-1`,
-          `border-8 ${pageMetaFields[PatronoMetaField.colore].getDatum(
-            props.cardItem[PatronoMetaField.colore],
+          `border-8 ${pageMetaFields[DeityMetaField.color].getDatum(
+            props.cardItem[DeityMetaField.color],
             true
           )}`
         )}
@@ -31,39 +31,39 @@ const DeityCard = (props: { cardItem: Patrono }) => {
               "w-[50px] items-center flex justify-center rounded-full text-2xl",
               {
                 "bg-white p-2 text-black":
-                  props.cardItem[PatronoMetaField.gradoPatrono] ===
-                  GradoPatrono.Divinità,
+                  props.cardItem[DeityMetaField.deityRank] ===
+                  DeityRank.Divinità,
               }
             )}
           >
-            {props.cardItem[PatronoMetaField.card]}
+            {props.cardItem[DeityMetaField.tarotCard]}
           </div>
           <div className="flex-1">
             <div>
               <div className="text-xl">
-                {pageMetaFields[PatronoMetaField.nome].getDatum(
-                  props.cardItem[PatronoMetaField.nome]
+                {pageMetaFields[DeityMetaField.name].getDatum(
+                  props.cardItem[DeityMetaField.name]
                 )}
                 {", "}
                 <span className="text-sm text-gray-400">
-                  {pageMetaFields[PatronoMetaField.titoloPatrono].getDatum(
-                    props.cardItem[PatronoMetaField.titoloPatrono]
+                  {pageMetaFields[DeityMetaField.deityTitle].getDatum(
+                    props.cardItem[DeityMetaField.deityTitle]
                   )}
                 </span>
               </div>
             </div>
             <div>
-              {`${pageMetaFields[PatronoMetaField.gradoPatrono].getDatum(
-                props.cardItem[PatronoMetaField.gradoPatrono]
-              )} ${pageMetaFields[PatronoMetaField.tipoPatrono].getDatum(
-                props.cardItem[PatronoMetaField.tipoPatrono]
-              )}, ${pageMetaFields[
-                PatronoMetaField.dominioAllineamento
-              ].getDatum(props.cardItem[PatronoMetaField.dominioAllineamento])}/
-                ${pageMetaFields[PatronoMetaField.allineamento].getDatum(
-                  props.cardItem[PatronoMetaField.allineamento]
-                )} (${pageMetaFields[PatronoMetaField.classe].getDatum(
-                  props.cardItem[PatronoMetaField.classe]
+              {`${pageMetaFields[DeityMetaField.deityRank].getDatum(
+                props.cardItem[DeityMetaField.deityRank]
+              )} ${pageMetaFields[DeityMetaField.deityType].getDatum(
+                props.cardItem[DeityMetaField.deityType]
+              )}, ${pageMetaFields[DeityMetaField.alignmentDomain].getDatum(
+                props.cardItem[DeityMetaField.alignmentDomain]
+              )}/
+                ${pageMetaFields[DeityMetaField.alignment].getDatum(
+                  props.cardItem[DeityMetaField.alignment]
+                )} (${pageMetaFields[DeityMetaField.deityClass].getDatum(
+                  props.cardItem[DeityMetaField.deityClass]
                 )})`}
             </div>
           </div>
@@ -77,44 +77,44 @@ const DeityCard = (props: { cardItem: Patrono }) => {
             <div className="w-[50%] p-1">
               <ItemMeta
                 label="Residenza"
-                value={`${pageMetaFields[PatronoMetaField.luogo].getDatum(
-                  props.cardItem[PatronoMetaField.luogo]
-                )}, ${pageMetaFields[PatronoMetaField.residenza].getDatum(
-                  props.cardItem[PatronoMetaField.residenza]
+                value={`${pageMetaFields[DeityMetaField.location].getDatum(
+                  props.cardItem[DeityMetaField.location]
+                )}, ${pageMetaFields[DeityMetaField.residence].getDatum(
+                  props.cardItem[DeityMetaField.residence]
                 )}`}
               />
               <ItemMeta
                 label="Astro associato"
-                value={pageMetaFields[PatronoMetaField.astri].getDatum(
-                  props.cardItem[PatronoMetaField.astri]
+                value={pageMetaFields[DeityMetaField.celestialBody].getDatum(
+                  props.cardItem[DeityMetaField.celestialBody]
                 )}
               />
               <ItemMeta
                 label="Festività"
-                value={pageMetaFields[PatronoMetaField.festivita].getDatum(
-                  props.cardItem[PatronoMetaField.festivita]
+                value={pageMetaFields[DeityMetaField.holidays].getDatum(
+                  props.cardItem[DeityMetaField.holidays]
                 )}
               />
             </div>
             <div className="w-[50%] p-1">
               <ItemMeta
                 label="Tarocco"
-                value={`${pageMetaFields[PatronoMetaField.card].getDatum(
-                  props.cardItem[PatronoMetaField.card]
+                value={`${pageMetaFields[DeityMetaField.tarotCard].getDatum(
+                  props.cardItem[DeityMetaField.tarotCard]
                 )}`}
               />
               <ItemMeta
                 label="Significato"
-                value={pageMetaFields[PatronoMetaField.significato].getDatum(
-                  props.cardItem[PatronoMetaField.significato]
+                value={pageMetaFields[DeityMetaField.meaning].getDatum(
+                  props.cardItem[DeityMetaField.meaning]
                 )}
               />
               <ItemMeta
                 label="Elemento"
-                value={`${pageMetaFields[PatronoMetaField.elemento].getDatum(
-                  props.cardItem[PatronoMetaField.elemento]
-                )} (${pageMetaFields[PatronoMetaField.tradizione].getDatum(
-                  props.cardItem[PatronoMetaField.tradizione]
+                value={`${pageMetaFields[DeityMetaField.element].getDatum(
+                  props.cardItem[DeityMetaField.element]
+                )} (${pageMetaFields[DeityMetaField.tradition].getDatum(
+                  props.cardItem[DeityMetaField.tradition]
                 )})`}
               />
             </div>

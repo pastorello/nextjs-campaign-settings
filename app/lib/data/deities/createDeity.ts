@@ -6,10 +6,10 @@ import PageType from "@/app/lib/definitions/types/PageType";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildCreateSchema } from "../validation/buildEntitySchema";
 import { revalidatePath } from "next/cache";
-import Patrono from "../../definitions/interfaces/deities/Patrono";
+import Deity from "../../definitions/interfaces/deities/Deity";
 
 export default async function createDeity(
-  formData: Patrono
+  formData: Deity
 ): Promise<MutationResult> {
   await requireSession();
 
@@ -19,42 +19,42 @@ export default async function createDeity(
   }
 
   const {
-    nome,
-    titolopatrono,
-    tipopatrono,
-    gradopatrono,
-    card,
-    astri,
-    elemento,
-    classe,
-    festivita,
-    colore,
-    tradizione,
-    allineamento,
-    dominioallineamento,
-    residenza,
-    luogo,
-    significato,
+    name,
+    deityTitle,
+    deityType,
+    deityRank,
+    tarotCard,
+    celestialBody,
+    element,
+    class: deityClass,
+    holidays,
+    color,
+    tradition,
+    alignment,
+    alignmentDomain,
+    residence,
+    location,
+    meaning,
   } = formData;
 
   await prisma.deities.create({
     data: {
-      nome,
-      titolopatrono,
-      tipopatrono,
-      gradopatrono,
-      card,
-      astri,
-      elemento,
-      classe,
-      festivita,
-      colore,
-      tradizione,
-      allineamento,
-      dominioallineamento,
-      residenza,
-      luogo,
-      significato,
+      name,
+      deityTitle,
+      deityType,
+      deityRank,
+      tarotCard,
+      celestialBody,
+      element,
+      class: deityClass,
+      holidays,
+      color,
+      tradition,
+      alignment,
+      alignmentDomain,
+      residence,
+      location,
+      meaning,
     },
   });
 

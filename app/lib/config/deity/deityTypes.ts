@@ -1,29 +1,29 @@
-import TipoPatrono from "../../definitions/enums/deities/TipoPatrono";
+import DeityType from "../../definitions/enums/deities/DeityType";
 import SelectOption from "../../definitions/types/SelectOption";
 
 const deityTypes: SelectOption<number>[] = [
   {
-    value: TipoPatrono.Arconte,
+    value: DeityType.Arconte,
     label: "Arconte",
   },
   {
-    value: TipoPatrono.Demone,
+    value: DeityType.Demone,
     label: "Demone",
   },
   {
-    value: TipoPatrono.DioSupremo,
+    value: DeityType.DioSupremo,
     label: "Padrone dei Tre Mondi",
   },
   {
-    value: TipoPatrono.Divino,
+    value: DeityType.Divino,
     label: "Celestiale",
   },
   {
-    value: TipoPatrono.Elementale,
+    value: DeityType.Elementale,
     label: "Elementale",
   },
   {
-    value: TipoPatrono.Fatato,
+    value: DeityType.Fatato,
     label: "Fatato",
   },
 ];

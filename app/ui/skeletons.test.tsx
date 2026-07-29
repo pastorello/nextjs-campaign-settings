@@ -32,7 +32,7 @@ describe("TableSkeleton", () => {
     expect(container.textContent).toBe("");
   });
 
-  it.each([PageType.Spell, PageType.Png, PageType.Deity, PageType.MagicItem])(
+  it.each([PageType.Spell, PageType.Npc, PageType.Deity, PageType.MagicItem])(
     "matches the real %s table's column count",
     (pageType) => {
       const { container } = render(<TableSkeleton pageType={pageType} />);

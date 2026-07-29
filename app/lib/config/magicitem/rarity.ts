@@ -1,19 +1,19 @@
-import Rarita from "@/app/lib/definitions/enums/magicitem/Rarita";
+import Rarity from "@/app/lib/definitions/enums/magicitem/Rarity";
 
-export interface RaritaObject {
-  type: Rarita;
+export interface RarityObject {
+  type: Rarity;
   value: number;
   label: string;
 }
 
-const rarity: RaritaObject[] = [
-  { value: 0, label: "Comune", type: Rarita.Comune },
-  { value: 1, label: "Non comune", type: Rarita.NonComune },
-  { value: 2, label: "Raro", type: Rarita.Raro },
-  { value: 3, label: "Molto Raro", type: Rarita.MoltoRaro },
-  { value: 4, label: "Leggendario", type: Rarita.Leggendario },
-  { value: 5, label: "Artefatto", type: Rarita.Artefatto },
-  { value: 6, label: "Variabile", type: Rarita.Variabile },
+const rarity: RarityObject[] = [
+  { value: 0, label: "Comune", type: Rarity.Common },
+  { value: 1, label: "Non comune", type: Rarity.Uncommon },
+  { value: 2, label: "Raro", type: Rarity.Rare },
+  { value: 3, label: "Molto Raro", type: Rarity.VeryRare },
+  { value: 4, label: "Leggendario", type: Rarity.Legendary },
+  { value: 5, label: "Artefatto", type: Rarity.Artifact },
+  { value: 6, label: "Variabile", type: Rarity.Variable },
 ];
 
 export default rarity;

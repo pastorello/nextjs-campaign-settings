@@ -9,7 +9,7 @@ vi.mock("@/app/lib/connections/prisma", () => ({
     $transaction: vi.fn(),
     spells: { findUnique: vi.fn(), delete: vi.fn(), count: vi.fn() },
     magicitems: { count: vi.fn() },
-    png: { count: vi.fn() },
+    npc: { count: vi.fn() },
     deities: { count: vi.fn() },
   },
 }));

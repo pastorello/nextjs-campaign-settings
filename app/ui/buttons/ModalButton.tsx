@@ -9,7 +9,7 @@ import ButtonVariant from "./BaseButton/ButtonVariant";
 import ListItem from "@/app/lib/definitions/interfaces/ListItem";
 import MagicItemForm from "../magicitems/MagicItemForm";
 import PageForm from "../forms/PageForm";
-import PngForm from "../png/PngForm";
+import NpcForm from "../npc/NpcForm";
 import SpellForm from "../spells/SpellForm";
 import DeityForm from "../deities/DeityForm";
 
@@ -67,8 +67,8 @@ const ModalButton = ({
               }}
             />
           )}
-          {modalContent === "pngform" && (
-            <PngForm
+          {modalContent === "npcform" && (
+            <NpcForm
               {...componentProps}
               onCancel={closeModal}
               onSaveFinished={(item: object) => {

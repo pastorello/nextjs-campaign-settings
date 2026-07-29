@@ -2,19 +2,19 @@ import SpellMetaField from "../../enums/spells/SpellMetaField";
 
 interface Spell {
   id: number;
-  [SpellMetaField.nome]: string;
-  [SpellMetaField.livello]: number;
-  [SpellMetaField.circolo]: number[];
-  [SpellMetaField.classi]: number[];
-  [SpellMetaField.tempoDiLancio]: string;
-  [SpellMetaField.gittata]: string;
-  [SpellMetaField.componenti]: string;
-  [SpellMetaField.durata]: string;
-  [SpellMetaField.tiroSalvezza]: string;
-  [SpellMetaField.rituale]: boolean;
-  [SpellMetaField.concentrazione]: boolean;
-  [SpellMetaField.descrizione]: string;
-  [SpellMetaField.intensificato]: string;
+  [SpellMetaField.name]: string;
+  [SpellMetaField.level]: number;
+  [SpellMetaField.circle]: number[];
+  [SpellMetaField.classes]: number[];
+  [SpellMetaField.castingTime]: string;
+  [SpellMetaField.range]: string;
+  [SpellMetaField.components]: string;
+  [SpellMetaField.duration]: string;
+  [SpellMetaField.savingThrow]: string;
+  [SpellMetaField.ritual]: boolean;
+  [SpellMetaField.concentration]: boolean;
+  [SpellMetaField.description]: string;
+  [SpellMetaField.upcast]: string;
 }
 
 export default Spell;

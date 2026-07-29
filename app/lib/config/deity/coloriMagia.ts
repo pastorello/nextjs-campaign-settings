@@ -1,59 +1,59 @@
-import ColoreMagia from "@/app/lib//definitions/enums/deities/ColoreMagia";
+import MagicColor from "@/app/lib//definitions/enums/deities/MagicColor";
 
-export interface ColoreMagiaObject {
-  type: ColoreMagia;
+export interface MagicColorObject {
+  type: MagicColor;
   value: number;
   label: string;
   colorClass: string;
 }
 
-const coloriMagia: ColoreMagiaObject[] = [
+const coloriMagia: MagicColorObject[] = [
   {
     value: 0,
-    label: ColoreMagia.Arancione,
-    type: ColoreMagia.Arancione,
+    label: MagicColor.Arancione,
+    type: MagicColor.Arancione,
     colorClass: "border-orange-600",
   },
   {
     value: 1,
-    label: ColoreMagia.Blu,
-    type: ColoreMagia.Blu,
+    label: MagicColor.Blu,
+    type: MagicColor.Blu,
     colorClass: "border-blue-600",
   },
   {
     value: 2,
-    label: ColoreMagia.Giallo,
-    type: ColoreMagia.Giallo,
+    label: MagicColor.Giallo,
+    type: MagicColor.Giallo,
     colorClass: "border-yellow-500",
   },
   {
     value: 3,
-    label: ColoreMagia.Indaco,
-    type: ColoreMagia.Indaco,
+    label: MagicColor.Indaco,
+    type: MagicColor.Indaco,
     colorClass: "border-indigo-500",
   },
   {
     value: 4,
-    label: ColoreMagia.Rosso,
-    type: ColoreMagia.Rosso,
+    label: MagicColor.Rosso,
+    type: MagicColor.Rosso,
     colorClass: "border-red-500",
   },
   {
     value: 5,
-    label: ColoreMagia.Verde,
-    type: ColoreMagia.Verde,
+    label: MagicColor.Verde,
+    type: MagicColor.Verde,
     colorClass: "border-green-500",
   },
   {
     value: 6,
-    label: ColoreMagia.Violetto,
-    type: ColoreMagia.Violetto,
+    label: MagicColor.Violetto,
+    type: MagicColor.Violetto,
     colorClass: "border-violet-500",
   },
   {
     value: 7,
-    label: ColoreMagia.Tutti,
-    type: ColoreMagia.Tutti,
+    label: MagicColor.Tutti,
+    type: MagicColor.Tutti,
     colorClass: "border-slate-800",
   },
 ];

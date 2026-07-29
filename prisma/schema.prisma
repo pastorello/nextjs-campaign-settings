@@ -8,81 +8,81 @@ datasource db {
 }
 
 model deities {
-  id                  Int      @id @default(autoincrement())
-  nome                String
-  titolopatrono       String
-  tipopatrono         Int
-  gradopatrono        Int
-  card                Int
-  astri               Int
-  elemento            Int
-  classe              Int
-  festivita           String   @db.VarChar(255)
-  colore              Int
-  tradizione          Int
-  allineamento        Int
-  dominioallineamento Int
-  residenza           Int
-  luogo               Int
-  significato         String
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id                Int      @id @default(autoincrement())
+  name              String   @map("nome")
+  deityTitle        String   @map("titolopatrono")
+  deityType         Int      @map("tipopatrono")
+  deityRank         Int      @map("gradopatrono")
+  tarotCard         Int      @map("card")
+  celestialBody     Int      @map("astri")
+  element           Int      @map("elemento")
+  class             Int      @map("classe")
+  holidays          String   @db.VarChar(255) @map("festivita")
+  color             Int      @map("colore")
+  tradition         Int      @map("tradizione")
+  alignment         Int      @map("allineamento")
+  alignmentDomain   Int      @map("dominioallineamento")
+  residence         Int      @map("residenza")
+  location          Int      @map("luogo")
+  meaning           String   @map("significato")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  @@index([nome])
+  @@index([name])
 }
 
 model magicitems {
   id          Int      @id @default(autoincrement())
-  descrizione String
-  nome        String
-  rarita      Int
-  tipo        Int
-  sintonia    Boolean?
+  description String   @map("descrizione")
+  name        String   @map("nome")
+  rarity      Int      @map("rarita")
+  type        Int      @map("tipo")
+  attuned     Boolean? @map("sintonia")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@index([nome])
+  @@index([name])
 }
 
-model png {
-  id                  Int      @id @default(autoincrement())
-  descrizione         String?
-  nome                String
-  titolo              String?  @db.VarChar(255)
-  allineamento        Int
-  dominioallineamento Int
-  mansione            String?  @db.VarChar(255)
-  luogo               Int
-  fazione             Int
-  aspetto             String?
-  personalita         String?
-  motivazioni         String?
-  segreti             String?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+model npc {
+  id              Int      @id @default(autoincrement())
+  description     String?  @map("descrizione")
+  name            String   @map("nome")
+  title           String?  @db.VarChar(255) @map("titolo")
+  alignment       Int      @map("allineamento")
+  alignmentDomain Int      @map("dominioallineamento")
+  position        String?  @db.VarChar(255) @map("mansione")
+  location        Int      @map("luogo")
+  faction         Int      @map("fazione")
+  appearance      String?  @map("aspetto")
+  personality     String?  @map("personalita")
+  motivations     String?  @map("motivazioni")
+  secrets         String?  @map("segreti")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  @@index([nome])
+  @@index([name])
 }
 
 model spells {
-  id             Int      @id @default(autoincrement())
-  descrizione    String
-  nome           String
-  livello        Int
-  circolo        Int[]
-  classi         Int[]
-  tempodilancio  String
-  gittata        String
-  componenti     String
-  durata         String
-  tirosalvezza   String?  @db.VarChar(255)
-  rituale        Boolean?
-  intensificato  String?
-  concentrazione Boolean?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id              Int      @id @default(autoincrement())
+  description     String   @map("descrizione")
+  name            String   @map("nome")
+  level           Int      @map("livello")
+  circle          Int[]    @map("circolo")
+  classes         Int[]    @map("classi")
+  castingTime     String   @map("tempodilancio")
+  range           String   @map("gittata")
+  components      String   @map("componenti")
+  duration        String   @map("durata")
+  savingThrow     String?  @db.VarChar(255) @map("tirosalvezza")
+  ritual           Boolean? @map("rituale")
+  upcast          String?  @map("intensificato")
+  concentration   Boolean? @map("concentrazione")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  @@index([nome])
+  @@index([name])
 }
 
 model users {

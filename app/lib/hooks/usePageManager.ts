@@ -41,7 +41,7 @@ interface PageManager<T> {
 /**
  * Reads a field off the record being edited.
  *
- * The domain interfaces (`Spell`, `Patrono`, …) have no index signature, and
+ * The domain interfaces (`Spell`, `Deity`, …) have no index signature, and
  * TypeScript does not give interfaces an implicit one — so a dynamic read needs
  * this single narrowing rather than an `any` on the type itself (TD-08 step 4).
  * The key comes from `formFields`, which is what makes it sound.

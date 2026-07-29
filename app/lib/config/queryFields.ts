@@ -1,8 +1,8 @@
 import MagicItemMetaField from "../definitions/enums/magicitem/MagicItemMetaField";
 import MetaConfigKey from "../definitions/types/MetaConfigKey";
 import PageType from "../definitions/types/PageType";
-import PatronoMetaField from "../definitions/enums/deities/PatronoMetaField";
-import PngMetaField from "../definitions/enums/png/PngMetaField";
+import DeityMetaField from "../definitions/enums/deities/DeityMetaField";
+import NpcMetaField from "../definitions/enums/npc/NpcMetaField";
 import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
 
 /**
@@ -27,62 +27,62 @@ import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
  */
 const queryFields: Record<PageType, MetaConfigKey[]> = {
   [PageType.Spell]: [
-    SpellMetaField.nome,
-    SpellMetaField.livello,
-    SpellMetaField.circolo,
-    SpellMetaField.classi,
-    SpellMetaField.tempoDiLancio,
-    SpellMetaField.gittata,
-    SpellMetaField.componenti,
-    SpellMetaField.durata,
-    SpellMetaField.tiroSalvezza,
-    SpellMetaField.rituale,
-    SpellMetaField.concentrazione,
-    SpellMetaField.descrizione,
-    SpellMetaField.intensificato,
+    SpellMetaField.name,
+    SpellMetaField.level,
+    SpellMetaField.circle,
+    SpellMetaField.classes,
+    SpellMetaField.castingTime,
+    SpellMetaField.range,
+    SpellMetaField.components,
+    SpellMetaField.duration,
+    SpellMetaField.savingThrow,
+    SpellMetaField.ritual,
+    SpellMetaField.concentration,
+    SpellMetaField.description,
+    SpellMetaField.upcast,
   ],
 
-  [PageType.Png]: [
-    PngMetaField.nome,
-    PngMetaField.titolo,
-    PngMetaField.allineamento,
-    PngMetaField.dominioAllineamento,
-    PngMetaField.mansione,
-    PngMetaField.luogo,
-    PngMetaField.fazione,
-    PngMetaField.aspetto,
-    PngMetaField.personalita,
-    PngMetaField.motivazioni,
-    PngMetaField.segreti,
-    PngMetaField.descrizione,
+  [PageType.Npc]: [
+    NpcMetaField.name,
+    NpcMetaField.title,
+    NpcMetaField.alignment,
+    NpcMetaField.alignmentDomain,
+    NpcMetaField.position,
+    NpcMetaField.location,
+    NpcMetaField.faction,
+    NpcMetaField.appearance,
+    NpcMetaField.personality,
+    NpcMetaField.motivations,
+    NpcMetaField.secrets,
+    NpcMetaField.description,
   ],
 
   [PageType.Deity]: [
-    PatronoMetaField.nome,
-    PatronoMetaField.titoloPatrono,
-    PatronoMetaField.tipoPatrono,
-    PatronoMetaField.gradoPatrono,
-    PatronoMetaField.card,
-    PatronoMetaField.astri,
-    PatronoMetaField.elemento,
-    PatronoMetaField.classe,
-    PatronoMetaField.festivita,
-    PatronoMetaField.colore,
-    PatronoMetaField.tradizione,
-    PatronoMetaField.allineamento,
-    PatronoMetaField.dominioAllineamento,
-    PatronoMetaField.residenza,
-    PatronoMetaField.luogo,
-    PatronoMetaField.significato,
+    DeityMetaField.name,
+    DeityMetaField.deityTitle,
+    DeityMetaField.deityType,
+    DeityMetaField.deityRank,
+    DeityMetaField.tarotCard,
+    DeityMetaField.celestialBody,
+    DeityMetaField.element,
+    DeityMetaField.deityClass,
+    DeityMetaField.holidays,
+    DeityMetaField.color,
+    DeityMetaField.tradition,
+    DeityMetaField.alignment,
+    DeityMetaField.alignmentDomain,
+    DeityMetaField.residence,
+    DeityMetaField.location,
+    DeityMetaField.meaning,
   ],
 
   // No `nome` or `descrizione` here, unlike the other three. That is how both
   // magic item queries already were — they agreed with each other, so this
   // preserves their behaviour rather than quietly widening it.
   [PageType.MagicItem]: [
-    MagicItemMetaField.rarita,
-    MagicItemMetaField.tipo,
-    MagicItemMetaField.sintonia,
+    MagicItemMetaField.rarity,
+    MagicItemMetaField.type,
+    MagicItemMetaField.attuned,
   ],
 };
 

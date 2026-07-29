@@ -10,12 +10,12 @@ import NotFoundError from "@/app/lib/errors/NotFoundError";
 import { DELETE as deleteSpell } from "@/app/api/spells/[id]/route";
 import { DELETE as deleteDeity } from "@/app/api/deities/[id]/route";
 import { DELETE as deleteMagicItem } from "@/app/api/magicitems/[id]/route";
-import { DELETE as deletePng } from "@/app/api/png/[id]/route";
+import { DELETE as deleteNpc } from "@/app/api/npc/[id]/route";
 
 import { deleteSpellById } from "@/app/lib/data/spells/deleteSpellById";
 import { deleteDeityById } from "@/app/lib/data/deities/deleteDeityById";
 import { deleteMagicItemById } from "@/app/lib/data/magicitems/deleteMagicItemById";
-import { deletePngById } from "@/app/lib/data/png/deletePngById";
+import { deleteNpcById } from "@/app/lib/data/npc/deleteNpcById";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 vi.mock("@/app/lib/data/spells/deleteSpellById", () => ({
@@ -27,8 +27,8 @@ vi.mock("@/app/lib/data/deities/deleteDeityById", () => ({
 vi.mock("@/app/lib/data/magicitems/deleteMagicItemById", () => ({
   deleteMagicItemById: vi.fn(),
 }));
-vi.mock("@/app/lib/data/png/deletePngById", () => ({
-  deletePngById: vi.fn(),
+vi.mock("@/app/lib/data/npc/deleteNpcById", () => ({
+  deleteNpcById: vi.fn(),
 }));
 
 const req = new Request("http://localhost/api/x/1", { method: "DELETE" });
@@ -37,7 +37,7 @@ const endpoints = [
   { name: "spells", handler: deleteSpell, del: deleteSpellById },
   { name: "deities", handler: deleteDeity, del: deleteDeityById },
   { name: "magicitems", handler: deleteMagicItem, del: deleteMagicItemById },
-  { name: "png", handler: deletePng, del: deletePngById },
+  { name: "npc", handler: deleteNpc, del: deleteNpcById },
 ] as const;
 
 describe("DELETE /api/:domain/:id auth guard", () => {

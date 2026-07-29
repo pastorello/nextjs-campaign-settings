@@ -13,24 +13,24 @@ import isValidString from "@/app/lib/utils/validators/isValidString";
 import pageMetaFields from "@/app/lib/config/pageMetaFields";
 
 const SpellCard = (props: { cardItem: Spell }) => {
-  const markup = { __html: props.cardItem[SpellMetaField.descrizione] };
+  const markup = { __html: props.cardItem[SpellMetaField.description] };
 
   return (
     <Disclosure>
       <div className="my-2 w-full gap-x-4 rounded-xl bg-slate-800 text-sm text-white outline outline-offset-1 outline-white/10">
         <DisclosureButton className="mb-2 flex w-full group">
           <div className="w-[50px] items-center text-3xl">
-            {pageMetaFields[SpellMetaField.livello].getDatum(
-              props.cardItem[SpellMetaField.livello],
+            {pageMetaFields[SpellMetaField.level].getDatum(
+              props.cardItem[SpellMetaField.level],
               true
             )}
           </div>
           <div className="flex-1">
             <div className="text-xl">
-              {pageMetaFields[SpellMetaField.nome].getDatum(
-                props.cardItem[SpellMetaField.nome]
+              {pageMetaFields[SpellMetaField.name].getDatum(
+                props.cardItem[SpellMetaField.name]
               )}{" "}
-              {props.cardItem[SpellMetaField.rituale] == true && "(rituale)"}
+              {props.cardItem[SpellMetaField.ritual] == true && "(rituale)"}
             </div>
           </div>
           <div className="w-[40px] group-data-open:rotate-180">
@@ -42,34 +42,34 @@ const SpellCard = (props: { cardItem: Spell }) => {
             <div className="w-[50%] p-1">
               <ItemMeta
                 label="Tempo di lancio"
-                value={pageMetaFields[SpellMetaField.tempoDiLancio].getDatum(
-                  props.cardItem[SpellMetaField.tempoDiLancio]
+                value={pageMetaFields[SpellMetaField.castingTime].getDatum(
+                  props.cardItem[SpellMetaField.castingTime]
                 )}
               />
               <ItemMeta
                 label="Gittata"
-                value={pageMetaFields[SpellMetaField.gittata].getDatum(
-                  props.cardItem[SpellMetaField.gittata]
+                value={pageMetaFields[SpellMetaField.range].getDatum(
+                  props.cardItem[SpellMetaField.range]
                 )}
               />
               <ItemMeta
                 label="Durata"
-                value={pageMetaFields[SpellMetaField.durata].getDatum(
-                  props.cardItem[SpellMetaField.durata]
+                value={pageMetaFields[SpellMetaField.duration].getDatum(
+                  props.cardItem[SpellMetaField.duration]
                 )}
               />
             </div>
             <div className="w-[50%] p-1">
               <ItemMeta
                 label="Sottoclassi"
-                value={pageMetaFields[SpellMetaField.circolo].getDatum(
-                  props.cardItem[SpellMetaField.circolo]
+                value={pageMetaFields[SpellMetaField.circle].getDatum(
+                  props.cardItem[SpellMetaField.circle]
                 )}
               />
               <ItemMeta
                 label="Componenti"
-                value={pageMetaFields[SpellMetaField.componenti].getDatum(
-                  props.cardItem[SpellMetaField.componenti]
+                value={pageMetaFields[SpellMetaField.components].getDatum(
+                  props.cardItem[SpellMetaField.components]
                 )}
               />
             </div>
@@ -79,13 +79,13 @@ const SpellCard = (props: { cardItem: Spell }) => {
             dangerouslySetInnerHTML={markup}
             className="mb-1 p-3 text-base first-letter:float-left first-letter:mr-2 first-letter:text-5xl first-letter:font-bold"
           />
-          {isValidString(props.cardItem[SpellMetaField.intensificato]) && (
+          {isValidString(props.cardItem[SpellMetaField.upcast]) && (
             <div className="w-full px-3 pb-2 text-base">
               <hr className="my-2" />
               <ItemMeta
                 label="A livelli superiori"
-                value={pageMetaFields[SpellMetaField.intensificato].getDatum(
-                  props.cardItem[SpellMetaField.intensificato]
+                value={pageMetaFields[SpellMetaField.upcast].getDatum(
+                  props.cardItem[SpellMetaField.upcast]
                 )}
               />
             </div>

@@ -5,11 +5,11 @@ import prisma from "../../connections/prisma";
 import getQuery from "../getQuery";
 import { SearchParamsInput } from "../validateParams";
 import { Prisma } from "@/generated/prisma/client";
-import Patrono from "../../definitions/interfaces/deities/Patrono";
+import Deity from "../../definitions/interfaces/deities/Deity";
 
 export async function fetchFilteredDeities(
   searchParams: SearchParamsInput
-): Promise<Patrono[]> {
+): Promise<Deity[]> {
   const theParams = await searchParams;
   const theQuery = getQuery<Prisma.deitiesWhereInput>(
     theParams,
@@ -18,7 +18,7 @@ export async function fetchFilteredDeities(
 
   try {
     const result = await prisma.deities.findMany(theQuery);
-    return result as Patrono[];
+    return result as Deity[];
   } catch (error) {
     throw toDatabaseError("fetching deities", error);
   }

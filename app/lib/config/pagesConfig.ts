@@ -2,8 +2,8 @@ import PageType from "@/app/lib/definitions/types/PageType";
 import MetaConfigKey from "@/app/lib/definitions/types/MetaConfigKey";
 
 import SpellMetaField from "@/app/lib/definitions/enums/spells/SpellMetaField";
-import PngMetaField from "@/app/lib/definitions/enums/png/PngMetaField";
-import PatronoMetaField from "@/app/lib/definitions/enums/deities/PatronoMetaField";
+import NpcMetaField from "@/app/lib/definitions/enums/npc/NpcMetaField";
+import DeityMetaField from "@/app/lib/definitions/enums/deities/DeityMetaField";
 import MagicItemMetaField from "@/app/lib/definitions/enums/magicitem/MagicItemMetaField";
 
 /**
@@ -21,69 +21,69 @@ import MagicItemMetaField from "@/app/lib/definitions/enums/magicitem/MagicItemM
  * values while reading as the camelCase names, which is exactly the mismatch
  * that made the old form so easy to get wrong.
  *
- * `id`, `nome` and `descrizione` are declared directly in `pageMetaFields`
- * rather than in a domain meta, so they are plain string keys. `allineamento`,
- * `dominioAllineamento` and `luogo` are declared in `pngMeta` and shared with
- * deities, which is why the deity list reaches for `PngMetaField`.
+ * `id`, `name` and `description` are declared directly in `pageMetaFields`
+ * rather than in a domain meta, so they are plain string keys. `alignment`,
+ * `alignmentDomain` and `location` are declared in `npcMeta` and shared with
+ * deities, which is why the deity list reaches for `NpcMetaField`.
  */
 const pagesConfig: Record<PageType, MetaConfigKey[]> = {
   [PageType.Spell]: [
     "id",
-    "nome",
-    "descrizione",
-    SpellMetaField.livello,
-    SpellMetaField.circolo,
-    SpellMetaField.classi,
-    SpellMetaField.tempoDiLancio,
-    SpellMetaField.gittata,
-    SpellMetaField.componenti,
-    SpellMetaField.durata,
-    SpellMetaField.tiroSalvezza,
-    SpellMetaField.rituale,
-    SpellMetaField.intensificato,
-    SpellMetaField.concentrazione,
+    "name",
+    "description",
+    SpellMetaField.level,
+    SpellMetaField.circle,
+    SpellMetaField.classes,
+    SpellMetaField.castingTime,
+    SpellMetaField.range,
+    SpellMetaField.components,
+    SpellMetaField.duration,
+    SpellMetaField.savingThrow,
+    SpellMetaField.ritual,
+    SpellMetaField.upcast,
+    SpellMetaField.concentration,
   ],
   [PageType.MagicItem]: [
     "id",
-    "descrizione",
-    "nome",
-    MagicItemMetaField.rarita,
-    MagicItemMetaField.tipo,
-    MagicItemMetaField.sintonia,
+    "description",
+    "name",
+    MagicItemMetaField.rarity,
+    MagicItemMetaField.type,
+    MagicItemMetaField.attuned,
   ],
-  [PageType.Png]: [
+  [PageType.Npc]: [
     "id",
-    "descrizione",
-    "nome",
-    PngMetaField.titolo,
-    PngMetaField.allineamento,
-    PngMetaField.dominioAllineamento,
-    PngMetaField.mansione,
-    PngMetaField.luogo,
-    PngMetaField.fazione,
-    PngMetaField.aspetto,
-    PngMetaField.personalita,
-    PngMetaField.motivazioni,
-    PngMetaField.segreti,
+    "description",
+    "name",
+    NpcMetaField.title,
+    NpcMetaField.alignment,
+    NpcMetaField.alignmentDomain,
+    NpcMetaField.position,
+    NpcMetaField.location,
+    NpcMetaField.faction,
+    NpcMetaField.appearance,
+    NpcMetaField.personality,
+    NpcMetaField.motivations,
+    NpcMetaField.secrets,
   ],
   [PageType.Deity]: [
     "id",
-    "nome",
-    PatronoMetaField.titoloPatrono,
-    PatronoMetaField.tipoPatrono,
-    PatronoMetaField.gradoPatrono,
-    PatronoMetaField.card,
-    PatronoMetaField.astri,
-    PatronoMetaField.elemento,
-    PatronoMetaField.classe,
-    PatronoMetaField.festivita,
-    PatronoMetaField.colore,
-    PatronoMetaField.tradizione,
-    PngMetaField.allineamento,
-    PngMetaField.dominioAllineamento,
-    PatronoMetaField.residenza,
-    PngMetaField.luogo,
-    PatronoMetaField.significato,
+    "name",
+    DeityMetaField.deityTitle,
+    DeityMetaField.deityType,
+    DeityMetaField.deityRank,
+    DeityMetaField.tarotCard,
+    DeityMetaField.celestialBody,
+    DeityMetaField.element,
+    DeityMetaField.deityClass,
+    DeityMetaField.holidays,
+    DeityMetaField.color,
+    DeityMetaField.tradition,
+    NpcMetaField.alignment,
+    NpcMetaField.alignmentDomain,
+    DeityMetaField.residence,
+    NpcMetaField.location,
+    DeityMetaField.meaning,
   ],
 };
 

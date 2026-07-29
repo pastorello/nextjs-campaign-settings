@@ -1,8 +1,8 @@
-import TipoTradizione from "@/app/lib/definitions/enums/deities/TipoTradizione";
+import TraditionType from "@/app/lib/definitions/enums/deities/TraditionType";
 
 interface Classe {
   value: number;
-  scuola: TipoTradizione;
+  scuola: TraditionType;
   label: string;
   subGroups: number[];
 }

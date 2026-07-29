@@ -48,13 +48,16 @@ pnpm test               # vitest run            — MUST pass
 pnpm test:watch         # vitest
 pnpm test:coverage      # vitest run --coverage
 pnpm format:check       # prettier --check .    — MUST pass
-pnpm test:e2e           # playwright test       — NOT YET; arrives with TD-24
+pnpm test:e2e           # playwright test       — MUST pass
+pnpm test:e2e:ui        # playwright test --ui
 pnpm db:seed            # prisma db seed
 pnpm db:studio          # prisma studio
 docker-compose up       # Postgres on :5432
 ```
 
-> `test:e2e` does not exist yet — Playwright is deferred to TD-24 (after TD-01/TD-02). Every other script here is live. If a command fails because it is missing, say so rather than working around it.
+> Every script here is live. If a command fails because it is missing, say so rather than working around it.
+>
+> `test:e2e` starts its own dev server and **writes to whatever `DATABASE_URL` points at** — the CRUD specs create and delete real rows. Point it at a throwaway database. It runs serially on one worker, so prefer a single spec while iterating: `pnpm test:e2e e2e/<name>.spec.ts --project=chromium` (`auth.spec.ts` runs under the `unauthenticated` project instead).
 
 ---
 

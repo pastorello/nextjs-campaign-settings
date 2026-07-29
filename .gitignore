@@ -17,6 +17,9 @@
 .DS_Store
 *.pem
 
+# Personal agent instructions — CLAUDE.md is the committed, shared one.
+CLAUDE.local.md
+
 # debug
 npm-debug.log*
 yarn-debug.log*

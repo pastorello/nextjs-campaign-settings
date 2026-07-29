@@ -16,7 +16,7 @@ import MetaConfigKey from "../definitions/types/MetaConfigKey";
 const useFilterController = (fieldKey: MetaConfigKey) => {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { replace } = useRouter();
+  const router = useRouter();
 
   const sortParam = searchParams.get("sort");
   const queryValue = getSearchParam(
@@ -43,7 +43,7 @@ const useFilterController = (fieldKey: MetaConfigKey) => {
       }
     });
 
-    replace(`${pathname}?${params.toString()}`);
+    router.replace(`${pathname}?${params.toString()}`);
   };
 
   // MetaValue rather than SelectValueType: this is handed straight to a

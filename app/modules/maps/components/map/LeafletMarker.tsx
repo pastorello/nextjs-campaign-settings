@@ -100,17 +100,25 @@ export function LeafletMarker({
         if (popup) {
           if (typeof popup === "string") {
             marker.bindPopup(popup);
-          } else {
-            // For React nodes, we'd need to render to a DOM element
-            // For now, convert to string representation
+          } else if (typeof popup === "number" || typeof popup === "boolean") {
             marker.bindPopup(String(popup));
+          } else {
+            // Rendering a React node into a Leaflet popup needs it mounted to
+            // a DOM element first — not implemented. Silently dropping it
+            // beats binding "[object Object]".
+            console.warn(
+              "LeafletMarker: non-primitive popup content is not supported yet"
+            );
           }
         }
 
         // Handle drag end event
         if (draggable && onDragEnd) {
           marker.on("dragend", (event: DragEndEvent) => {
-            const newPosition = event.target.getLatLng();
+            // Leaflet's own types leave LeafletEvent.target as `any`; on a
+            // "dragend" listener bound to this marker, it is always the
+            // marker itself.
+            const newPosition = (event.target as Marker).getLatLng();
             onDragEnd([newPosition.lat, newPosition.lng]);
           });
         }
@@ -123,7 +131,7 @@ export function LeafletMarker({
       }
     };
 
-    setupMarker();
+    void setupMarker();
 
     // Cleanup function
     return () => {

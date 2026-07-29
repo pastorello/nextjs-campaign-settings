@@ -5,7 +5,7 @@ interface FilterMeta {
   metaField: string;
   value: SelectValueType;
   fieldType: FieldType;
-  setter: Function;
+  setter: (...args: unknown[]) => unknown;
   ignoreFilter?: string[];
   compareStats?: string[];
   defaultValue: number | number[];

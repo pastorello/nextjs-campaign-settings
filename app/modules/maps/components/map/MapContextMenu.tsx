@@ -227,7 +227,7 @@ export const MapContextMenu = memo(function MapContextMenu({
         icon={<Copy className="h-4 w-4" />}
         label="Copy Coordinates"
         sublabel={coordsText}
-        onClick={handleCopyCoordinates}
+        onClick={() => void handleCopyCoordinates()}
         showCopied={copied}
       />
 

@@ -8,7 +8,7 @@ import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 export default function Search({ placeholder }: { placeholder: string }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { replace } = useRouter();
+  const router = useRouter();
 
   const handleSearch = useDebouncedCallback((aTerm: string) => {
     const params = new URLSearchParams(searchParams);
@@ -20,7 +20,7 @@ export default function Search({ placeholder }: { placeholder: string }) {
       params.delete("query");
     }
 
-    replace(`${pathname}?${params.toString()}`);
+    router.replace(`${pathname}?${params.toString()}`);
   }, 300);
 
   return (

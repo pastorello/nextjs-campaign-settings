@@ -102,7 +102,7 @@ export function LeafletGeoJSON({ data, style }: LeafletGeoJSONProps) {
       }
     };
 
-    setupGeoJSON();
+    void setupGeoJSON();
 
     // Cleanup
     return () => {

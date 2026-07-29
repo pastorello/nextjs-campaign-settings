@@ -5,7 +5,7 @@ import ButtonVariant from "./BaseButton/ButtonVariant";
 import SortOrder from "@/app/lib/definitions/types/SortOrder";
 
 interface SortButtonProps {
-  sortOrder: string;
+  sortOrder: SortOrder;
   onClick: () => void;
   isActive: boolean;
   /** The column this sorts, so the control can name itself. */

@@ -1,5 +1,6 @@
 import Festivita from "@/app/lib/definitions/enums/deities/Festivita";
 import SignificatoTarocco from "@/app/lib/definitions/enums/tarocchi/SignificatoTarocco";
+import GradoPatrono from "@/app/lib/definitions/enums/deities/GradoPatrono";
 
 import PatronoMetaField from "../../enums/deities/PatronoMetaField";
 
@@ -8,7 +9,7 @@ interface Patrono {
   [PatronoMetaField.nome]: string;
   [PatronoMetaField.titoloPatrono]: string;
   [PatronoMetaField.tipoPatrono]: number;
-  [PatronoMetaField.gradoPatrono]: number;
+  [PatronoMetaField.gradoPatrono]: GradoPatrono;
   [PatronoMetaField.card]: number;
   [PatronoMetaField.astri]: number;
   [PatronoMetaField.elemento]: number;

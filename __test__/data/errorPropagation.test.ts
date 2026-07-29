@@ -62,7 +62,7 @@ describe("error propagation from the data layer", () => {
   });
 
   it("deleteSpellById distinguishes a missing row from a failed query", async () => {
-    vi.mocked(prisma.spells.findUnique).mockResolvedValue(null as never);
+    vi.mocked(prisma.spells.findUnique).mockResolvedValue(null);
 
     await expect(deleteSpellById(999999)).rejects.toBeInstanceOf(NotFoundError);
     expect(prisma.spells.delete).not.toHaveBeenCalled();

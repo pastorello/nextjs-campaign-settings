@@ -23,11 +23,13 @@ export function useMapControls() {
 
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
+      document.documentElement.requestFullscreen().catch((error: unknown) => {
+        console.error("Failed to enter fullscreen:", error);
+      });
+    } else if (document.exitFullscreen) {
+      document.exitFullscreen().catch((error: unknown) => {
+        console.error("Failed to exit fullscreen:", error);
+      });
     }
   }, []);
 

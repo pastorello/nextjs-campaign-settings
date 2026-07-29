@@ -1,7 +1,12 @@
 "use client";
 
 import { useDebouncedCallback } from "use-debounce";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  ReadonlyURLSearchParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 
 import SortOrder from "@/app/lib/definitions/types/SortOrder";
 import SortButton from "../buttons/SortButton";
@@ -28,7 +33,7 @@ const SortableHeader = ({
 }: SortableHeaderProps) => {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { replace } = useRouter();
+  const router = useRouter();
 
   const sortParam = searchParams.get("sort");
   const queryValue = getSearchParam(
@@ -42,7 +47,7 @@ const SortableHeader = ({
   let LabelComponent = <span>{label}</span>;
 
   const setSearchParams = useDebouncedCallback(
-    (queryTerms: QueryParam[], searchParams) => {
+    (queryTerms: QueryParam[], searchParams: ReadonlyURLSearchParams) => {
       const params = new URLSearchParams(searchParams);
 
       queryTerms.forEach((item: QueryParam) => {
@@ -54,7 +59,7 @@ const SortableHeader = ({
         }
       });
 
-      replace(`${pathname}?${params.toString()}`);
+      router.replace(`${pathname}?${params.toString()}`);
     },
     300
   );

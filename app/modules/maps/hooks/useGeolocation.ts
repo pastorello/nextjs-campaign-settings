@@ -84,7 +84,7 @@ export function useGeolocation() {
     setIsLocating(true);
 
     // Create handlers with stored references
-    const handleLocationFound = async (e: LocationEvent) => {
+    const handleLocationFoundAsync = async (e: LocationEvent) => {
       setIsLocating(false);
       cleanupEventHandlers();
 
@@ -117,6 +117,10 @@ export function useGeolocation() {
       } catch (error) {
         console.error("Failed to add location markers:", error);
       }
+    };
+
+    const handleLocationFound = (e: LocationEvent) => {
+      void handleLocationFoundAsync(e);
     };
 
     const handleLocationError = (e: ErrorEvent) => {

@@ -37,7 +37,7 @@ export function MapMeasurementPanel({
     if (mode === selectedMode) {
       clearMeasurement();
     } else {
-      startMeasurement(selectedMode);
+      void startMeasurement(selectedMode);
     }
   };
 

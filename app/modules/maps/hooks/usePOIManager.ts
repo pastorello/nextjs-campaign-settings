@@ -72,13 +72,14 @@ export function usePOIManager() {
     async (poi: POI) => {
       if (!map) return null;
 
-      const L = await import("leaflet");
-      const color = getCategoryColor(poi.category);
+      try {
+        const L = await import("leaflet");
+        const color = getCategoryColor(poi.category);
 
-      const marker = L.marker([poi.lat, poi.lng], {
-        icon: L.divIcon({
-          className: "custom-poi-marker",
-          html: `
+        const marker = L.marker([poi.lat, poi.lng], {
+          icon: L.divIcon({
+            className: "custom-poi-marker",
+            html: `
           <div style="
             width: 32px;
             height: 32px;
@@ -97,14 +98,14 @@ export function usePOIManager() {
             ">📍</div>
           </div>
         `,
-          iconSize: [32, 32],
-          iconAnchor: [16, 32],
-          popupAnchor: [0, -32],
-        }),
-      }).addTo(map);
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32],
+          }),
+        }).addTo(map);
 
-      // Add popup
-      const popupContent = `
+        // Add popup
+        const popupContent = `
       <div style="min-width: 150px;">
         <div style="font-weight: 600; margin-bottom: 4px;">${poi.title}</div>
         ${
@@ -117,9 +118,13 @@ export function usePOIManager() {
         )}, ${poi.lng.toFixed(6)}</div>
       </div>
     `;
-      marker.bindPopup(popupContent);
+        marker.bindPopup(popupContent);
 
-      return marker;
+        return marker;
+      } catch (error) {
+        console.error("Failed to create POI marker:", error);
+        return null;
+      }
     },
     [map]
   );
@@ -329,7 +334,7 @@ export function usePOIManager() {
   // Render markers when POIs or map changes
   useEffect(() => {
     if (!isLoading) {
-      renderMarkers();
+      void renderMarkers();
     }
   }, [pois, map, isLoading, renderMarkers]);
 

@@ -17,7 +17,7 @@ import { useMapTileProvider } from "@/app/modules/maps/hooks/useMapTileProvider"
 import { useMapContextMenu } from "@/app/modules/maps/hooks/useMapContextMenu";
 import { useMapMarkers } from "@/app/modules/maps/hooks/useMapMarkers";
 import { usePOIManager } from "@/app/modules/maps/hooks/usePOIManager";
-import type { POICategory } from "@/app/modules/maps/types/poi";
+import type { POICategory, POIGeoJSON } from "@/app/modules/maps/types/poi";
 
 // Memoized style object to prevent unnecessary re-renders
 const GEOJSON_STYLE = {
@@ -85,7 +85,7 @@ export function MapMain() {
       const response = await fetch(
         `/api/countries/${encodeURIComponent(countryId)}`
       );
-      const feature = await response.json();
+      const feature = (await response.json()) as GeoJSON.Feature;
       setSelectedCountry(feature);
     } catch (error) {
       console.error("Error loading country GeoJSON:", error);
@@ -107,7 +107,7 @@ export function MapMain() {
   // Context menu handlers
   const handleAddMarker = useCallback(
     (lat: number, lng: number) => {
-      addMarker(lat, lng);
+      void addMarker(lat, lng);
     },
     [addMarker]
   );
@@ -199,7 +199,7 @@ export function MapMain() {
     async (file: File) => {
       try {
         const text = await file.text();
-        const geojson = JSON.parse(text);
+        const geojson = JSON.parse(text) as POIGeoJSON;
         const count = importGeoJSON(geojson);
         toast.success(
           `Successfully imported ${count} place${count !== 1 ? "s" : ""}!`
@@ -260,7 +260,7 @@ export function MapMain() {
 
       {/* Search Bar */}
       <MapSearchBar
-        onCountrySelect={handleCountrySelect}
+        onCountrySelect={(countryId) => void handleCountrySelect(countryId)}
         selectedCountry={selectedCountry}
         onClearSelection={handleClearSelection}
         onMeasurementClick={handleMeasurementOpen}
@@ -314,7 +314,7 @@ export function MapMain() {
         onDeletePOI={deletePOI}
         onClearAll={clearAllPOIs}
         onExport={handlePOIExport}
-        onImport={handlePOIImport}
+        onImport={(file) => void handlePOIImport(file)}
         onFlyTo={flyToPOI}
         onRequestLocation={handleRequestPOILocation}
         onClearCoordinates={handleClearPOICoordinates}

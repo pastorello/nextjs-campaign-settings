@@ -13,7 +13,7 @@ import { useMapTileProvider } from "@/app/modules/maps/hooks/useMapTileProvider"
 import { useMapContextMenu } from "@/app/modules/maps/hooks/useMapContextMenu";
 import { useMapMarkers } from "@/app/modules/maps/hooks/useMapMarkers";
 import { usePOIManager } from "@/app/modules/maps/hooks/usePOIManager";
-import type { POICategory } from "@/app/modules/maps/types/poi";
+import type { POICategory, POIGeoJSON } from "@/app/modules/maps/types/poi";
 import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import { notifyError } from "@/app/lib/notifications/notify";
@@ -97,7 +97,7 @@ function WorldMap({
       const response = await fetch(
         `/api/countries/${encodeURIComponent(countryId)}`
       );
-      const feature = await response.json();
+      const feature = (await response.json()) as GeoJSON.Feature;
       setSelectedCountry(feature);
     } catch (error) {
       console.error("Error loading country GeoJSON:", error);
@@ -119,7 +119,7 @@ function WorldMap({
   // Context menu handlers
   const handleAddMarker = useCallback(
     (lat: number, lng: number) => {
-      addMarker(lat, lng);
+      void addMarker(lat, lng);
     },
     [addMarker]
   );
@@ -211,7 +211,7 @@ function WorldMap({
     async (file: File) => {
       try {
         const text = await file.text();
-        const geojson = JSON.parse(text);
+        const geojson = JSON.parse(text) as POIGeoJSON;
         const count = importGeoJSON(geojson);
         toast.success(
           `Successfully imported ${count} place${count !== 1 ? "s" : ""}!`
@@ -259,30 +259,39 @@ function WorldMap({
       return;
     }
 
-    const L = await import("leaflet");
+    try {
+      const L = await import("leaflet");
 
-    // Remove existing image overlay if present
-    if (currentImage && map) {
-      currentImage.remove();
-      setCurrentImage(null);
-    }
+      // Remove existing image overlay if present
+      if (currentImage && map) {
+        currentImage.remove();
+        setCurrentImage(null);
+      }
 
-    const image = L.imageOverlay(mapUrl, bounds);
+      const image = L.imageOverlay(mapUrl, bounds);
 
-    if (map) {
-      image.addTo(map);
-      map.setMinZoom(0);
-      map.setZoom(0);
-      map.setMaxZoom(10);
-      map.setMaxBounds(bounds);
-      map.fitBounds(bounds);
-      map.setView(initialView, initialZoom);
-      setCurrentImage(image);
+      if (map) {
+        image.addTo(map);
+        map.setMinZoom(0);
+        map.setZoom(0);
+        map.setMaxZoom(10);
+        map.setMaxBounds(bounds);
+        map.fitBounds(bounds);
+        map.setView(initialView, initialZoom);
+        setCurrentImage(image);
+      }
+    } catch (error) {
+      console.error("Failed to initialize map image:", error);
     }
   };
 
   useEffect(() => {
-    initializeMap();
+    void initializeMap();
+    // `initializeMap` reads `currentImage` to remove the previous overlay, and
+    // ends by calling `setCurrentImage`. Adding it (or `currentImage`) to this
+    // effect's dependencies would re-run it every time it sets that state,
+    // reloading the same map image in an infinite loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, mapUrl]);
 
   return (
@@ -347,7 +356,7 @@ function WorldMap({
         onDeletePOI={deletePOI}
         onClearAll={clearAllPOIs}
         onExport={handlePOIExport}
-        onImport={handlePOIImport}
+        onImport={(file) => void handlePOIImport(file)}
         onFlyTo={flyToPOI}
         onRequestLocation={handleRequestPOILocation}
         onClearCoordinates={handleClearPOICoordinates}

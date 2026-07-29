@@ -76,7 +76,7 @@ export async function main() {
     let created = 0;
 
     for (const row of domain.rows) {
-      const data = toDBObject(row as ListItem);
+      const data = toDBObject(row);
       const nome = data.nome as string;
 
       if (await domain.exists(nome)) continue;

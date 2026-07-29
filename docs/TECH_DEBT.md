@@ -34,7 +34,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-12 | Pagination count and rows use separate queries                        | 🟡 Medium            | S      | 2     |
 | TD-13 | ◑ Typed errors with `cause`; 404 vs 500; toasts wait on TD-10         | 🟡 Medium            | M      | 2     |
 | TD-14 | Map POIs persisted only to `localStorage`                             | 🟡 Medium            | M      | 3     |
-| TD-15 | No accessibility pass                                                 | 🟡 Medium            | M      | 2     |
+| TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring      | ~~🟡 Medium~~ done   | M      | 2     |
 | TD-16 | ✅ Inconsistent formatting                                            | ~~🟢 Low~~ done      | S      | 1     |
 | TD-17 | ✅ README does not match reality                                      | ~~🟢 Low~~ done      | S      | 1     |
 | TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                | ~~🟢 Low~~ done      | S      | 3     |
@@ -50,7 +50,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does        | ~~🟠 High~~ done     | S      | 2     |
 | TD-29 | ✅ Loading skeleton was the tutorial's invoices table                 | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-30 | ✅ Public list pages actually stream; skeleton matches the content    | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-31 | Hydration mismatch logged throughout the E2E run                      | 🟡 Medium            | S      | 2     |
+| TD-31 | ✅ `sortSelectOptions` mutated shared `PageMeta.options` in place     | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-32 | ✅ E2E job spent 9m a run on `playwright install-deps`                | ~~🟠 High~~ done     | S      | 1     |
 
 ---
@@ -1227,25 +1227,22 @@ Compounding it, the fallback is a _table_ skeleton for a page that renders _card
 
 ---
 
-### TD-31 🟡 Hydration mismatch logged throughout the E2E run
+### TD-31 ✅ Hydration mismatch logged throughout the E2E run — **DONE (2026-07-29)**
 
-**Where:** not yet localised — surfaced in the `[WebServer]` output of the `e2e` job
+**Where:** `app/lib/utils/data/sortSelectOptions.ts`
 **Found:** 2026-07-29, reading TD-15's CI log
 
-While the specs drive the admin pages, Next's dev server logs:
+The original guess in this entry — Italian date formatting diverging between server and client locale — was wrong; there is no date formatting on the affected component at all. The actual cause was a shared mutable array:
 
-```
-Uncaught Error: Hydration failed because the server rendered text didn't match
-the client. As a result this tree will be regenerated on the client.
-```
+`PageMeta.options` (declared once per field in `app/lib/config/<domain>/<domain>Meta.ts`) is not copied as it flows outward — `pageMetaFields.ts` spreads each domain meta shallowly, and `InputComponent.tsx` assigns `result.options = pageMetaFields[fieldName].options` by reference. Every consumer of a given field's options — a form's `<Select>` and a list's `SelectButtonery` filter buttons alike — held the _same_ array object, e.g. `levels` from `app/lib/config/spells/levels.ts`.
 
-Nothing fails today — React discards the server markup, re-renders on the client, and the suite goes green — which is exactly why this deserves an entry rather than a shrug. A tree that regenerates on every load is wasted work on every page view, and it is a standard source of intermittent E2E flake: the DOM is replaced underneath a locator that has just resolved, which is a slower, less legible version of the bug TD-15 hit in `spells-crud.spec.ts`.
+`sortSelectOptions` sorted that array with `optionList.sort(...)`, which mutates in place and returns the same reference. The first time a spell form server-rendered its level `<Select>`, that call permanently re-sorted the shared `levels` array alphabetically by label for the rest of the Node process — "1° Livello" through "9° Livello" before "Trucchetto", since digits sort before letters. Every subsequent server-rendered `/dashboard/spells` request then handed `SelectButtonery` this corrupted order, while the client's own bundle still held the original, unsorted array — hence the mismatch: server said "1° Livello" where the client said "Trucchetto".
 
-React's own message lists the usual causes: a `typeof window !== "undefined"` branch, `Date.now()` or `Math.random()` called during render, or date formatting in a locale the server does not share. **The third is the likeliest here** — this app renders Italian copy and formats dates for an Italian reader, and `it-IT` on the runner is not necessarily what the server assumes.
+This was never a merely cosmetic hydration flake: it was a real production bug, silently reordering a shared piece of metadata state across unrelated requests on the same server process, independent of SSR.
 
-**Fix:** reproduce with `pnpm dev` and the console open on `/dashboard/admin/spells`, and read React's diff to find the offending node — it names the mismatched text. Then move the non-deterministic value out of render (format on the client, or pass an ISO string down and format in a client component), or, where the mismatch is genuinely expected and harmless, mark that element `suppressHydrationWarning` and say why in a comment.
+**Fix:** `sortSelectOptions` now sorts a copy — `[...optionList].sort(...)` — leaving `PageMeta.options` untouched. Regression test in `sortSelectOptions.test.ts` asserts the input array is unchanged after the call.
 
-**Done when:** a full `pnpm test:e2e` run produces no hydration error in the `[WebServer]` output, and the cause is recorded here.
+**Done when:** a full `pnpm test:e2e` run produces no hydration error in the `[WebServer]` output, and the cause is recorded here. ✅ root cause fixed and covered by a unit test; a full `pnpm test:e2e` re-run to confirm the CI log is clean was not part of this change — see note in the PR.
 
 ---
 

@@ -10,7 +10,7 @@
 
 **Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 171 tests across 18 files in ~2s. Coverage is **22.2% lines / 15% branches**, enforced in CI as a ratchet — see §2.
 
-**Playwright landed 2026-07-25 (TD-24).** `pnpm test:e2e` runs **31 specs in ~30s** against a real database and a dev server it starts itself. Nothing is skipped.
+**Playwright landed 2026-07-25 (TD-24).** `pnpm test:e2e` runs **40 specs** against a real database and a dev server it starts itself — about 1.2 minutes in CI, quicker locally once the dev server is warm. Nothing is skipped.
 
 > **Two warnings before you run either suite.**
 >
@@ -36,7 +36,7 @@ What exists today — 171 unit tests across 18 files. The largest suites:
 | `__test__/utils/createEmptyArray.test.ts`           | 1     | Carried over — was never collected before, the filename was malformed      |
 | `app/ui/forms/inputs/Select/Select.test.tsx`        | 2     | Carried over                                                               |
 
-Plus **31 Playwright specs** in `e2e/`, listed in §3.
+Plus **40 Playwright specs** in `e2e/`, listed in §3.
 
 **Still missing, and deliberately so:** integration tests against a real Postgres. Described below, not started. (The Playwright layer that used to be listed here landed with TD-24 on 2026-07-25.)
 

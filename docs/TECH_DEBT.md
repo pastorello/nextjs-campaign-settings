@@ -29,9 +29,9 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-07 | ✅ `next`/`react` pinned; single lockfile                             | ~~🟠 High~~ done     | S      | 1     |
 | TD-08 | ✅ Metadata and query layer typed; zero `any`, rule is an error       | ~~🟠 High~~ done     | M      | 2     |
 | TD-09 | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm    | ~~🟠 High~~ done     | L      | 2     |
-| TD-10 | Notification system is a `console.log` stub                           | 🟠 High              | M      | 2     |
+| TD-10 | ✅ Toasts (client) vs `logServerIssue` (server) replace the stub      | ~~🟠 High~~ done     | M      | 2     |
 | TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred           | ~~🟡 Medium~~ part   | M      | 2     |
-| TD-12 | Pagination count and rows use separate queries                        | 🟡 Medium            | S      | 2     |
+| TD-12 | ✅ Filter list declared once; count and rows can no longer diverge    | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-13 | ◑ Typed errors with `cause`; 404 vs 500; toasts wait on TD-10         | 🟡 Medium            | M      | 2     |
 | TD-14 | Map POIs persisted only to `localStorage`                             | 🟡 Medium            | M      | 3     |
 | TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring      | ~~🟡 Medium~~ done   | M      | 2     |
@@ -41,7 +41,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-19 | Mixed Italian/English identifiers                                     | 🟠 High              | L      | 2     |
 | TD-20 | ◑ `exactOptionalPropertyTypes` on; `noUncheckedIndexedAccess` blocked | 🟡 Medium            | M      | 2     |
 | TD-21 | UI strings hardcoded; app must ship in it + en                        | 🟠 High              | L      | 2     |
-| TD-22 | ◑ lint warnings 282 → 89; `no-unused-vars` and `no-explicit-any` err  | 🟠 High              | M      | 2     |
+| TD-22 | ✅ Lint warnings 293 → 0; every rule back to `error`                  | ~~🟠 High~~ done     | M      | 2     |
 | TD-23 | ✅ Migration drift patched forward; migrations match the schema       | ~~🟠 High~~ done     | S      | 1     |
 | TD-24 | ✅ Playwright harness + specs; `e2e` job blocking in CI               | ~~🟠 High~~ done     | M      | 1     |
 | TD-25 | ✅ Startup reachability check; 503 distinct from 500                  | ~~🟡 Medium~~ done   | S      | 2     |
@@ -815,15 +815,22 @@ Removing `next.config.ts`'s `require()` calls also took 11 warnings off TD-22.
 
 ---
 
-### TD-22 ◑ Lint warnings surfaced by TD-05 — **293 → 282 → 165 → 89**
+### TD-22 ✅ Lint warnings surfaced by TD-05 — **DONE (2026-07-29): 293 → 0**
 
-**Where:** repo-wide; concentrated in the metadata/query layer and `app/modules/maps/`
-**Blocked by:** nothing — but most of it dissolves when TD-08 lands
-**Config:** `eslint.config.mjs`, the block headed _Severity policy_
+**Outcome:** `pnpm lint` reports **zero warnings and zero errors**, and every rule the _Severity policy_ block downgraded is back to `error` in `eslint.config.mjs` — a regression now fails the gate instead of quietly growing the count. This closes the item TD-05 opened when switching the linter on first turned up 293 findings.
 
-Switching the linter on reported 293 findings; TD-18 removed 11 of them with `next.config.ts`, leaving **282**. They are warnings so that `pnpm lint` can exit 0 and the CI gate can be meaningful; every rule not violated today is still an error, so new code cannot add to this list.
+**Where it lived:** repo-wide, concentrated in the metadata/query layer (closed by TD-08/TD-09) and `app/modules/maps/` (closed here). The last 71 warnings, fixed 2026-07-29, broke down as:
 
-**Re-measured 2026-07-27: 89 warnings, 0 errors.** Two rules are back to `error` — `no-unused-vars` and, since TD-08 step 4, `no-explicit-any`. What remains is concentrated in `app/modules/maps/`: the `no-unsafe-*` family around the vendored Leaflet code and 13 floating promises, which are latent bugs rather than style. The four domain forms, which held 48 of these when this item was written, now hold none.
+- **21 `no-floating-promises` / `no-misused-promises`**, 13 files, mostly `app/modules/maps/`. Two distinct patterns:
+  - **Self-catching fire-and-forget** (16 sites): an async setup function inside a `useEffect` (`setupGeoJSON`, `initializeMap`, `setupMarker`, `setupTileLayer`, `fetchCountryInfo`, `fetchCountries`) or an async handler passed to a prop/ref typed `() => void` (`handleCopyCoordinates`, `onCountrySelect`, `onImport`, `handleDelete`, `handleLocationFound`) already wraps its body in `try/catch` — the promise itself never rejects, so the fix is `void` at the call site (or a sync wrapper around the ref, for `useGeolocation`). No behaviour change.
+  - **Genuine unhandled rejections** (5 sites): `useMapMarkers.addMarker`, `useMeasurement.startMeasurement`, `usePOIManager.createMarker`, and `WorldMap`'s `initializeMap` all did `await import("leaflet")` with **no** surrounding `try/catch` — a failed dynamic import (or, for `useMapControls.toggleFullscreen`, a rejected `requestFullscreen()`/`exitFullscreen()`) would have been genuinely silent: no toast, no console, nothing, exactly as this item predicted. Each now has its own `try/catch` (or `.catch`) with a `console.error`, matching the sibling `Leaflet*` components.
+- **The rest (50 warnings)**: mostly `no-unsafe-*` from `any`-typed `await response.json()` / `JSON.parse()` results and Leaflet's own loosely-typed event objects, plus a scattered `no-unsafe-function-type` (`Function` used as a prop type — retyped to the real call signature, e.g. `BaseButton.onClick: () => void`, `Modal.setIsOpen: Dispatch<SetStateAction<boolean>>`), `unbound-method` (Vitest's `vi.mocked(prisma.spells.findUnique)` tearing a typed-but-mock method off its object — a known false positive, now scoped off in `__test__/**` with a documented reason, plus three real call sites in app code fixed by not destructuring `const { replace } = useRouter()`), `no-unsafe-enum-comparison` (`SortButton.sortOrder` and `Patrono.gradoPatrono` were `string`/`number` compared against an enum member — retyped to the enum they actually hold), and a handful of `no-unnecessary-type-assertion` / `require-await` / `await-thenable` cleanups.
+
+**One deliberate suppression, not a fix.** `WorldMap.tsx`'s `initializeMap` effect keeps a targeted `eslint-disable-next-line react-hooks/exhaustive-deps` with an inline reason: the effect reads `currentImage` and ends by calling `setCurrentImage`, so adding either to the dependency array would re-run it every time it sets that state — an infinite re-render loop, not a lint nit. Fixing it for real needs a ref-based rewrite of that state, which is out of scope for a lint pass on a component CLAUDE.md already flags as a "thin MVP... will wire more of it up over time." `e2e/map.spec.ts`'s "switching world swaps the map image" test covers this path and would have caught a loop.
+
+Verified against a running dev server: the geography map loads, world-switching swaps the artwork, fullscreen toggles, and the admin spell list's search and column sort (`search.tsx` / `SortableHeader.tsx`, touched by the `unbound-method` fix) still filter and reorder correctly — no console errors in any of it. `pnpm lint` / `pnpm typecheck` / `pnpm test` (173 tests) / `pnpm format:check` all green. No regression tests added for the promise-handling fixes specifically — this is error-handling hygiene on existing behaviour, not new behaviour, and "a dynamic `import()` rejects" isn't practically reproducible without mocking the module loader.
+
+**Previously, re-measured 2026-07-27: 89 warnings, 0 errors.** Two rules are back to `error` — `no-unused-vars` and, since TD-08 step 4, `no-explicit-any`. What remained was concentrated in `app/modules/maps/`: the `no-unsafe-*` family around the vendored Leaflet code and 13 floating promises, which are latent bugs rather than style. The four domain forms, which held 48 of these when this item was written, held none.
 
 **Re-measured 2026-07-25: 165 warnings, 0 errors.** TD-08 steps 2–3 (typed metadata keys and query layer) took out most of the `no-unsafe-*` mass, and PR #25/#26 cleared `no-unused-vars` entirely — that rule is an `error` again, the first one returned from the severity block. Current distribution:
 

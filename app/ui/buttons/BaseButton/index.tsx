@@ -16,7 +16,7 @@ import isValidString from "@/app/lib/utils/validators/isValidString";
 
 interface BaseButtonProps {
   children?: ReactNode;
-  onClick?: Function;
+  onClick?: () => void;
   className?: string;
   variant?: ButtonVariant;
   disabled?: boolean;

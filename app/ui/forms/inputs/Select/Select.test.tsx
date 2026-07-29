@@ -4,17 +4,17 @@ import { describe, expect, it, vi } from "vitest";
 import Select from ".";
 
 describe("Select", () => {
-  it("display void options", async () => {
+  it("display void options", () => {
     render(<Select value={0} onChange={vi.fn()} options={[]} />);
 
     const selectElement = screen.getByTestId("form-select");
     expect(selectElement).toBeInTheDocument();
 
-    await fireEvent.click(selectElement);
+    fireEvent.click(selectElement);
     expect(screen.queryByText("asd")).not.toBeInTheDocument();
   });
 
-  it("display 1 option", async () => {
+  it("display 1 option", () => {
     render(
       <Select
         value={0}
@@ -26,7 +26,7 @@ describe("Select", () => {
     const selectElement = screen.getByTestId("form-select");
     expect(selectElement).toBeInTheDocument();
 
-    await fireEvent.click(selectElement);
+    fireEvent.click(selectElement);
 
     const listbox = screen.getByText("asd");
     expect(listbox).toBeInTheDocument();

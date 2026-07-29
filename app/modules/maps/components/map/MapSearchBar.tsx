@@ -11,6 +11,7 @@ import {
   PencilRuler,
 } from "lucide-react";
 import { useGeolocation } from "@/app/modules/maps/hooks/useGeolocation";
+import type { CountryProperties } from "@/app/modules/maps/types/map";
 import { MapUser } from "./MapUser";
 
 interface Country {
@@ -76,7 +77,7 @@ export function MapSearchBar({
           : "/api/countries/search";
 
         const response = await fetch(url);
-        const data = await response.json();
+        const data = (await response.json()) as Country[];
         setCountries(data);
       } catch {
         setCountries([]);
@@ -87,11 +88,11 @@ export function MapSearchBar({
 
     // Fetch immediately when first expanded
     if (searchQuery === "") {
-      fetchCountries();
+      void fetchCountries();
       return;
     } else {
       // Debounce when searching
-      const timer = setTimeout(fetchCountries, 150);
+      const timer = setTimeout(() => void fetchCountries(), 150);
       return () => clearTimeout(timer);
     }
   }, [searchQuery, isExpanded]);
@@ -175,7 +176,9 @@ export function MapSearchBar({
     setIsExpanded(false);
   }, [locateUser]);
 
-  const selectedCountryName = selectedCountry?.properties?.NAME || "";
+  const selectedCountryProperties = selectedCountry?.properties as
+    CountryProperties | null | undefined;
+  const selectedCountryName = selectedCountryProperties?.NAME || "";
   const hasSelection = !!selectedCountry;
   const hasPOIPanel = !!isPOIPanelOpen;
 

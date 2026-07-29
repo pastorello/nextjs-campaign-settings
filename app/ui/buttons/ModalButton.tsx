@@ -107,10 +107,13 @@ const ModalButton = ({
             <PageForm
               {...componentProps}
               onCancel={closeModal}
-              onSaveFinished={(item: object) => {
+              onSaveFinished={() => {
+                // Unlike the domain forms above, PageForm's delete
+                // confirmation has no saved record to report — it calls this
+                // with no arguments.
                 closeModal();
                 if (onSave) {
-                  onSave(item);
+                  onSave({});
                 }
               }}
             />

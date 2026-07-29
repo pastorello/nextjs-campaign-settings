@@ -142,7 +142,14 @@ export function useMeasurement() {
 
       setMode(measurementMode);
 
-      const L = await import("leaflet");
+      let L: typeof import("leaflet");
+      try {
+        L = await import("leaflet");
+      } catch (error) {
+        console.error("Failed to load Leaflet for measurement:", error);
+        setMode(null);
+        return;
+      }
 
       // Create click handler and store reference for proper cleanup
       const handleMapClick = (e: LeafletMouseEvent) => {

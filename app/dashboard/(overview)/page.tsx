@@ -13,7 +13,7 @@ import { CardsSkeleton } from "@/app/ui/skeletons";
 // they read searchParams. This one has to say so.
 export const dynamic = "force-dynamic";
 
-export default async function Page() {
+export default function Page() {
   return (
     <main data-testid="dashboard-page">
       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>

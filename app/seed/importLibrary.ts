@@ -123,7 +123,9 @@ async function importDomain(spec: DomainSpec, rows: Row[], dryRun: boolean) {
 
     if (!result.success) {
       const fields = Object.keys(result.error.flatten().fieldErrors).join(", ");
-      rejected.push(`${String(candidate.nome ?? "<senza nome>")} (${fields})`);
+      const nome =
+        typeof candidate.nome === "string" ? candidate.nome : "<senza nome>";
+      rejected.push(`${nome} (${fields})`);
       continue;
     }
 

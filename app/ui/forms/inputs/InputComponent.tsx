@@ -1,15 +1,15 @@
 import MetaValue from "@/app/lib/definitions/types/MetaValue";
+import MetaConfigKey from "@/app/lib/definitions/types/MetaConfigKey";
 import ControlType from "@/app/lib/definitions/types/ControlType";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import pageMetaFields, { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import FormField from "@/app/lib/definitions/interfaces/forms/FormField";
 
 import controlComponents from "./controlComponents";
-import MetaConfigKey from "@/app/lib/definitions/types/MetaConfigKey";
 
 interface InputComponentProps {
   fieldName: MetaConfigKey;
-  setField: Function;
+  setField: (field: MetaConfigKey, value: MetaValue) => void;
   // MetaValue is what the metadata layer actually produces; the narrower
   // union here rejected the mixed arrays it allows.
   value: MetaValue;

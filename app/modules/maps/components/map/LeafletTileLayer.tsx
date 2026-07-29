@@ -101,7 +101,7 @@ export function LeafletTileLayer({
       }
     };
 
-    setupTileLayer();
+    void setupTileLayer();
 
     // Cleanup function
     return () => {

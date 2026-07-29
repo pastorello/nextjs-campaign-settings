@@ -74,8 +74,7 @@ describe("mutation input validation", () => {
   });
 
   describe.each(domains)("$name", ({ table, type, create, update }) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const model = () => (prisma as any)[table];
+    const model = () => prisma[table];
 
     it("writes a valid create payload", async () => {
       const result = await create(validPayload(type) as never);

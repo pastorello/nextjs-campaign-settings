@@ -56,8 +56,7 @@ describe("mutation auth guards", () => {
         UnauthorizedError
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const spy = (prisma as any)[table][op];
+      const spy = prisma[table][op];
       expect(spy).not.toHaveBeenCalled();
     });
   });

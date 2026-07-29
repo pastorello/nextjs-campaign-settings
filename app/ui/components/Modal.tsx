@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { Dispatch, ReactNode, SetStateAction } from "react";
 import {
   Description,
   Dialog,
@@ -12,7 +12,7 @@ import isValidString from "@/app/lib/utils/validators/isValidString";
 
 interface ModalProps {
   isOpen: boolean;
-  setIsOpen: Function;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
   title: string;
   description?: string;
   children: ReactNode;

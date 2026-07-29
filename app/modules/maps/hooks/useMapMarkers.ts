@@ -42,13 +42,15 @@ export function useMapMarkers() {
       if (!map) return null;
 
       const id = generateId();
-      const L = await import("leaflet");
 
-      // Create Leaflet marker
-      const leafletMarker = L.marker([lat, lng], {
-        icon: L.divIcon({
-          className: "custom-user-marker",
-          html: `
+      try {
+        const L = await import("leaflet");
+
+        // Create Leaflet marker
+        const leafletMarker = L.marker([lat, lng], {
+          icon: L.divIcon({
+            className: "custom-user-marker",
+            html: `
           <div style="
             width: 24px;
             height: 24px;
@@ -70,24 +72,28 @@ export function useMapMarkers() {
             "></div>
           </div>
         `,
-          iconSize: [24, 24],
-          iconAnchor: [12, 24],
-          popupAnchor: [0, -24],
-        }),
-      }).addTo(map);
+            iconSize: [24, 24],
+            iconAnchor: [12, 24],
+            popupAnchor: [0, -24],
+          }),
+        }).addTo(map);
 
-      // Add popup with coordinates if no label provided
-      const popupContent = label || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-      leafletMarker.bindPopup(popupContent);
+        // Add popup with coordinates if no label provided
+        const popupContent = label || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        leafletMarker.bindPopup(popupContent);
 
-      // Store reference
-      leafletMarkersRef.current.set(id, leafletMarker);
+        // Store reference
+        leafletMarkersRef.current.set(id, leafletMarker);
 
-      // Update state
-      const newMarker: MapMarker = { id, lat, lng, label };
-      setMarkers((prev) => [...prev, newMarker]);
+        // Update state
+        const newMarker: MapMarker = { id, lat, lng, label };
+        setMarkers((prev) => [...prev, newMarker]);
 
-      return id;
+        return id;
+      } catch (error) {
+        console.error("Failed to add marker:", error);
+        return null;
+      }
     },
     [map, generateId]
   );

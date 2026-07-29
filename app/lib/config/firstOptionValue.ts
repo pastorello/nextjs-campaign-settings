@@ -21,6 +21,5 @@
 export default function firstOptionValue<T extends { value: unknown }>(
   options: readonly T[]
 ): T["value"] {
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- see above
-  return options[0]!.value;
+  return options[0].value;
 }

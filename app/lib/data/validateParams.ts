@@ -25,7 +25,7 @@ const zodConfig: Record<FieldType, ZodTypeAny> = {
     .string()
     .nullable()
     .catch(null)
-    .transform((val) => (val ? JSON.parse(val) : null)),
+    .transform((val) => (val ? (JSON.parse(val) as unknown) : null)),
   [FieldType.string]: z.string().nullable().catch(null),
   [FieldType.boolean]: z.preprocess(
     (val) =>
@@ -53,7 +53,7 @@ const getParamsSchema = (aQuery: RawSearchParams): ZodRawShape => {
       .string()
       .nullable()
       .catch(null)
-      .transform((val) => (val ? JSON.parse(val) : null)),
+      .transform((val) => (val ? (JSON.parse(val) as unknown) : null)),
     sort: z.string().nullable().catch(null),
     query: z.string().nullable().catch(null),
     page: z.coerce

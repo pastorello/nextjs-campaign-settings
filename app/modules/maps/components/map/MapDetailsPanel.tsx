@@ -4,6 +4,7 @@ import { X, Navigation, Bookmark, MapPin, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Drawer } from "vaul";
+import type { CountryProperties } from "@/app/modules/maps/types/map";
 
 interface CountryInfo {
   name?: {
@@ -36,6 +37,8 @@ export function MapDetailsPanel({ country, onClose }: MapDetailsPanelProps) {
   const [countryInfo, setCountryInfo] = useState<CountryInfo | null>(null);
   const snapPoints = [0.3, 0.6, 1];
   const [snap, setSnap] = useState<number | string | null>(snapPoints[0]);
+  const properties = country?.properties as
+    CountryProperties | null | undefined;
 
   // Detect mobile viewport
   useEffect(() => {
@@ -47,7 +50,7 @@ export function MapDetailsPanel({ country, onClose }: MapDetailsPanelProps) {
 
   // Fetch additional country info from REST Countries API
   useEffect(() => {
-    const isoCode = country?.properties?.ISO_A2;
+    const isoCode = properties?.ISO_A2;
     if (!isoCode) return;
 
     const fetchCountryInfo = async () => {
@@ -55,20 +58,20 @@ export function MapDetailsPanel({ country, onClose }: MapDetailsPanelProps) {
         const response = await fetch(
           `https://restcountries.com/v3.1/alpha/${isoCode}`
         );
-        const data = await response.json();
-        setCountryInfo(data[0]);
+        const data = (await response.json()) as CountryInfo[];
+        setCountryInfo(data[0] ?? null);
       } catch (error) {
         console.error("Error fetching country info:", error);
       }
     };
 
-    fetchCountryInfo();
-  }, [country]);
+    void fetchCountryInfo();
+  }, [properties?.ISO_A2]);
 
   if (!country) return null;
 
-  const countryName = country.properties?.NAME || "Unknown";
-  const countryCode = country.properties?.ISO_A3 || "";
+  const countryName = properties?.NAME || "Unknown";
+  const countryCode = properties?.ISO_A3 || "";
 
   const content = (
     <div className="flex flex-col h-full">

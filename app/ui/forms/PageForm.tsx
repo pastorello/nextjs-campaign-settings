@@ -8,8 +8,8 @@ import BaseButton from "../buttons/BaseButton";
 
 interface PageFormProps {
   lastError?: { message: string };
-  onCancel: Function;
-  onSaveFinished: Function;
+  onCancel: () => void;
+  onSaveFinished: () => void;
   hasEdits?: boolean;
   isSaving?: boolean;
   children?: ReactNode;

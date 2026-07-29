@@ -61,7 +61,7 @@ function loadCountries(): Country[] {
  * GET /api/countries/search?q=query
  * Search countries by name
  */
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get("q") || "";
 

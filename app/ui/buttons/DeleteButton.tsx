@@ -49,7 +49,7 @@ const DeleteButton = ({ pageName, pageId, pageType }: DeleteButtonProps) => {
 
   return (
     <ModalButton
-      onSave={handleDelete}
+      onSave={() => void handleDelete()}
       buttonLabel={"Delete"}
       modalTitle={`Permanently delete page "${pageName}?"`}
       modalDescription={"This operation can't be undone"}

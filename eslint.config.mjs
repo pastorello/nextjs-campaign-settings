@@ -49,52 +49,36 @@ export default tseslint.config(
       ],
 
       // ---------------------------------------------------------------------
-      // Severity policy — read this before changing anything below.
+      // Former severity-policy block (TD-22, closed 2026-07-29).
       //
-      // Every rule in this block is one the codebase VIOLATES TODAY. They are
-      // warnings, not errors, for one reason: `pnpm lint` has to be able to
-      // pass, or the CI gate is red from birth and everyone learns to ignore
-      // it. Every rule NOT listed here stays an error, so new code cannot
-      // introduce a fresh class of problem even while the backlog is open.
-      //
-      // These are not "rules we disagree with" — each is a real finding with a
-      // count and an owner in docs/TECH_DEBT.md TD-22. Flip each to "error" as
-      // its owning item lands. Do not silence one by deleting the line.
+      // Every rule below was a warning rather than an error for one reason:
+      // `pnpm lint` had to be able to pass while the codebase still violated
+      // it, or the CI gate would be red from birth. TD-22 tracked each one to
+      // zero (see docs/TECH_DEBT.md) and they are back to "error" now, so a
+      // regression here is a compile-time failure rather than a silent
+      // re-accumulation. Left listed explicitly, rather than relying on
+      // `recommendedTypeChecked`'s defaults, so the next person doesn't have
+      // to guess which rules this project cares about enforcing.
       // ---------------------------------------------------------------------
-
-      // TD-08 step 4, closed 2026-07-27: the count reached zero, so this is an
-      // error again and cannot creep back. CLAUDE.md rule 3 ("no new `any`")
-      // is enforced by the linter now rather than by good intentions.
       "@typescript-eslint/no-explicit-any": "error",
-      "@typescript-eslint/no-unsafe-assignment": "warn",
-      "@typescript-eslint/no-unsafe-call": "warn",
-      "@typescript-eslint/no-unsafe-member-access": "warn",
-      "@typescript-eslint/no-unsafe-argument": "warn",
-      "@typescript-eslint/no-unsafe-return": "warn",
-      "@typescript-eslint/no-unsafe-function-type": "warn",
-      "@typescript-eslint/no-unsafe-enum-comparison": "warn",
-      "@typescript-eslint/no-base-to-string": "warn",
-      "@typescript-eslint/restrict-template-expressions": "warn",
-
-      // Unhandled async work, concentrated in the maps module. These are
-      // latent bugs, not style: a rejected promise here is silent. Owner: TD-22.
-      "@typescript-eslint/no-floating-promises": "warn",
-      "@typescript-eslint/no-misused-promises": "warn",
-      "@typescript-eslint/await-thenable": "warn",
-      "@typescript-eslint/require-await": "warn",
-
-      // Direct mutation of a value returned by a hook, once per page-manager
-      // hook (`page.id = pageItem.id`). A real React correctness problem.
-      // Owner: TD-22, and TD-09 when the four hooks collapse into one.
-      "react-hooks/immutability": "warn",
-
-      // `require()` in next.config.ts and tailwind.config.ts. next.config.ts
-      // goes away with TD-18. Owner: TD-22.
-      "@typescript-eslint/no-require-imports": "warn",
-
-      "@typescript-eslint/unbound-method": "warn",
-      "@typescript-eslint/no-unused-expressions": "warn",
-      "@typescript-eslint/no-unnecessary-type-assertion": "warn",
+      "@typescript-eslint/no-unsafe-assignment": "error",
+      "@typescript-eslint/no-unsafe-call": "error",
+      "@typescript-eslint/no-unsafe-member-access": "error",
+      "@typescript-eslint/no-unsafe-argument": "error",
+      "@typescript-eslint/no-unsafe-return": "error",
+      "@typescript-eslint/no-unsafe-function-type": "error",
+      "@typescript-eslint/no-unsafe-enum-comparison": "error",
+      "@typescript-eslint/no-base-to-string": "error",
+      "@typescript-eslint/restrict-template-expressions": "error",
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-misused-promises": "error",
+      "@typescript-eslint/await-thenable": "error",
+      "@typescript-eslint/require-await": "error",
+      "react-hooks/immutability": "error",
+      "@typescript-eslint/no-require-imports": "error",
+      "@typescript-eslint/unbound-method": "error",
+      "@typescript-eslint/no-unused-expressions": "error",
+      "@typescript-eslint/no-unnecessary-type-assertion": "error",
     },
   },
 
@@ -104,6 +88,21 @@ export default tseslint.config(
   {
     files: ["**/*.js", "**/*.mjs", "**/*.cjs"],
     extends: [tseslint.configs.disableTypeChecked],
+  },
+
+  // `vi.mocked(prisma.spells.findUnique)` and `expect(prisma.spells.delete)`
+  // tear a method off its object, which is exactly what `unbound-method`
+  // exists to catch — for a *real* class instance, losing that receiver loses
+  // `this`. Here the receiver is a `vi.mock()` stub: at runtime it is a plain
+  // `vi.fn()` with no `this`-dependency, but its type still comes from the
+  // real Prisma/NextAuth client, so the checker can't tell the difference.
+  // Scoped to __test__/ rather than fixed case by case, because every new
+  // mocked-delegate assertion hits the same false positive. TD-22.
+  {
+    files: ["__test__/**"],
+    rules: {
+      "@typescript-eslint/unbound-method": "off",
+    },
   },
 
   // Must stay last: turns off every stylistic rule Prettier owns.

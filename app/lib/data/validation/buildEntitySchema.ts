@@ -14,7 +14,7 @@ function fieldValidators(pageType: PageType): ZodRawShape {
   // Built in one go: ZodRawShape is readonly, so it cannot be filled by index.
   return Object.fromEntries(
     entityFieldKeys(pageType).map((key) => [key, pageMetaFields[key].validator])
-  ) as ZodRawShape;
+  );
 }
 
 /**

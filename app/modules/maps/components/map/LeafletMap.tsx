@@ -131,7 +131,7 @@ export function LeafletMap({
       }
     };
 
-    initializeMap();
+    void initializeMap();
 
     // Cleanup function
     return () => {

@@ -43,13 +43,15 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-21 | UI strings hardcoded; app must ship in it + en                        | 🟠 High              | L      | 2     |
 | TD-22 | ◑ lint warnings 282 → 89; `no-unused-vars` and `no-explicit-any` err  | 🟠 High              | M      | 2     |
 | TD-23 | ✅ Migration drift patched forward; migrations match the schema       | ~~🟠 High~~ done     | S      | 1     |
-| TD-24 | ✅ Playwright + 26 specs; `e2e` job blocking in CI                    | ~~🟠 High~~ done     | M      | 1     |
+| TD-24 | ✅ Playwright harness + specs; `e2e` job blocking in CI               | ~~🟠 High~~ done     | M      | 1     |
 | TD-25 | ✅ Startup reachability check; 503 distinct from 500                  | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                     | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-27 | ✅ Hidden `classi=0` filter on the spells list removed                | ~~🟠 High~~ done     | S      | 2     |
 | TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does        | ~~🟠 High~~ done     | S      | 2     |
 | TD-29 | ✅ Loading skeleton was the tutorial's invoices table                 | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-30 | ✅ Public list pages actually stream; skeleton matches the content    | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-31 | Hydration mismatch logged throughout the E2E run                      | 🟡 Medium            | S      | 2     |
+| TD-32 | ✅ E2E job spent 9m a run on `playwright install-deps`                | ~~🟠 High~~ done     | S      | 1     |
 
 ---
 
@@ -1225,6 +1227,53 @@ Compounding it, the fallback is a _table_ skeleton for a page that renders _card
 
 ---
 
+### TD-31 🟡 Hydration mismatch logged throughout the E2E run
+
+**Where:** not yet localised — surfaced in the `[WebServer]` output of the `e2e` job
+**Found:** 2026-07-29, reading TD-15's CI log
+
+While the specs drive the admin pages, Next's dev server logs:
+
+```
+Uncaught Error: Hydration failed because the server rendered text didn't match
+the client. As a result this tree will be regenerated on the client.
+```
+
+Nothing fails today — React discards the server markup, re-renders on the client, and the suite goes green — which is exactly why this deserves an entry rather than a shrug. A tree that regenerates on every load is wasted work on every page view, and it is a standard source of intermittent E2E flake: the DOM is replaced underneath a locator that has just resolved, which is a slower, less legible version of the bug TD-15 hit in `spells-crud.spec.ts`.
+
+React's own message lists the usual causes: a `typeof window !== "undefined"` branch, `Date.now()` or `Math.random()` called during render, or date formatting in a locale the server does not share. **The third is the likeliest here** — this app renders Italian copy and formats dates for an Italian reader, and `it-IT` on the runner is not necessarily what the server assumes.
+
+**Fix:** reproduce with `pnpm dev` and the console open on `/dashboard/admin/spells`, and read React's diff to find the offending node — it names the mismatched text. Then move the non-deterministic value out of render (format on the client, or pass an ISO string down and format in a client component), or, where the mismatch is genuinely expected and harmless, mark that element `suppressHydrationWarning` and say why in a comment.
+
+**Done when:** a full `pnpm test:e2e` run produces no hydration error in the `[WebServer]` output, and the cause is recorded here.
+
+---
+
+### TD-32 ✅ The E2E job spent nine minutes a run installing fonts — **DONE (2026-07-29)**
+
+**Where:** the `e2e` job in `.github/workflows/ci.yml`
+**Found:** 2026-07-29, reading a run whose `Install Playwright system deps` step took 9m14s
+
+The job cached Playwright's browsers correctly and then gave the saving straight back:
+
+```yaml
+- name: Install Playwright browsers
+  if: cache-hit != 'true'
+  run: pnpm exec playwright install --with-deps chromium
+
+- name: Install Playwright system deps
+  if: cache-hit == 'true' # ← so this ran on every build, cache hit included
+  run: pnpm exec playwright install-deps chromium
+```
+
+`install-deps` was the entire cost, and its own output shows it was pointless. Every library Chromium actually needs — `libnss3`, `libgbm1`, `libatk1.0-0t64`, `libcups2t64`, `xvfb` — reported `is already the newest version`, because the `ubuntu-latest` image ships them. The only new packages were 21 MB of fonts (`fonts-ipafont-gothic`, `fonts-wqy-zenhei`, `fonts-tlwg-loma-otf`, `xfonts-cyrillic` …), unpacking to 80 MB and triggering a fontconfig rebuild — so that Playwright could render Japanese, Chinese, Thai and Cyrillic text that this app never displays.
+
+**Outcome:** both `--with-deps` and the `install-deps` step are gone. A cache hit now does no apt work at all; a cache miss downloads the Chromium binary and nothing else. If a future runner image drops one of those libraries, Chromium fails loudly on launch — a one-line failure is a better trade than nine minutes of apt on every run.
+
+**Left undone, deliberately:** the cache key is `playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}`, so **any** dependency change — and most have nothing to do with Playwright — evicts the browser cache and pays the download again. Keying on the resolved `@playwright/test` version instead would be stabler. Small, real, and separable from this fix.
+
+---
+
 ## Recommended execution order
 
 ```
@@ -1254,6 +1303,7 @@ Compounding it, the fallback is a _table_ skeleton for a page that renders _card
 21. TD-22  lint backlog to zero            → mostly dissolves once TD-08 lands
 22. TD-20b noUncheckedIndexedAccess        → last; noisiest, most valuable
 23. TD-15  accessibility pass              → axe assertions ride on TD-24's Playwright setup
+23b. TD-31 hydration mismatch              → found by TD-15's CI run; cheap once localised
 --- Phase 2 complete: the project is well-built ---
 24. ✅ TD-18 done early (unblocked the build); then TD-14, then feature work
 ```

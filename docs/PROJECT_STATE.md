@@ -122,7 +122,7 @@ The matcher excludes `/api`, so the proxy cannot protect the route handlers or S
 | `pnpm test`         | ✅ **117 passed** in ~2s (Vitest)                                              |
 | `pnpm lint`         | ✅ **0 errors**, 89 warnings (was 282) — backlog tracked as TD-22              |
 | `pnpm format:check` | ✅ Clean — Prettier applied repo-wide (TD-05/TD-16)                            |
-| E2E tests           | ✅ **26 Playwright specs** in ~15s (1 skipped — it found TD-27); TD-24         |
+| E2E tests           | ✅ **40 Playwright specs**, nothing skipped; TD-24 then TD-15                  |
 | CI                  | ✅ All five gates blocking: `static` / `test` / `build` / `e2e` (TD-23 closed) |
 | Test coverage       | 22.2% lines / 15% branches — thresholds set there and ratcheted upward         |
 | Git history         | Active — PRs #1–#27 merged on `main`                                           |

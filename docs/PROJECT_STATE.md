@@ -1,6 +1,6 @@
 # Project State — Campaign Settings
 
-**Last updated:** 2026-07-27
+**Last updated:** 2026-07-30
 **Status:** Working prototype, not production-ready
 **Goal of the current phase:** make the project portfolio-grade — no bugs, no dead code, tested, documented, CI-verified. Feature expansion comes after.
 
@@ -10,33 +10,45 @@
 
 A self-hosted web app for a Dungeon Master to manage a D&D 5e campaign setting: the reference material of a homebrew world. It is a CRUD dashboard over five domains:
 
-| Domain      | Italian name in code            | Description                                                                                    |
-| ----------- | ------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Spells      | `spells` / incantesimi          | Spell compendium with level, school (`circolo`), classes, casting time, range, duration        |
-| Magic items | `magicitems`                    | Items with rarity, type, attunement flag                                                       |
-| NPCs        | `png` (personaggi non giocanti) | Name, title, role, alignment, faction, location, appearance, personality, motivations, secrets |
-| Deities     | `deities` / patroni             | Patrons with rank, tarot card, celestial body, element, tradition, alignment, divine residence |
-| Geography   | `geography`                     | Interactive world map (Leaflet) with POIs, measurement, tile switching                         |
+| Domain      | Name in code | Description                                                                                    |
+| ----------- | ------------ | ---------------------------------------------------------------------------------------------- |
+| Spells      | `spells`     | Spell compendium with level, subclasses (`circle`), classes, casting time, range, duration     |
+| Magic items | `magicitems` | Items with rarity, type, attunement flag                                                       |
+| NPCs        | `npc`        | Name, title, role, alignment, faction, location, appearance, personality, motivations, secrets |
+| Deities     | `deities`    | Patrons with rank, tarot card, celestial body, element, tradition, alignment, divine residence |
+| Geography   | `geography`  | Interactive world map (Leaflet) with POIs, measurement, tile switching                         |
 
-The domain vocabulary is **intentionally Italian** (`incantesimi`, `patroni`, `fazioni`, `allineamento`). Documentation and commits are in English; domain terms stay Italian. This is a deliberate choice, not an inconsistency to fix.
+**Identifiers are English; user-facing copy is Italian.** See [ADR-0005](./adr/0005-english-identifiers.md), implemented as [TD-19](./TECH_DEBT.md) on 2026-07-30. Postgres columns keep their Italian names, decoupled from the code by Prisma `@map` (`name @map("nome")`) — so raw SQL and `psql` still show `nome`, `descrizione`, `livello`.
+
+> **This section used to say the opposite,** and the correction is worth keeping.
+> It read: _"The domain vocabulary is **intentionally Italian**… a deliberate
+> choice, not an inconsistency to fix."_ ADR-0005 explicitly supersedes that
+> sentence — the mixture "was not [deliberate], it was inferred from the code and
+> recorded as intent in error". The stale version survived here for eight days
+> after the ADR was accepted, telling anyone who started a session from this file
+> not to fix the exact thing the ADR mandates fixing.
+>
+> Residual Italian identifiers do still exist — 16 of them, tracked as
+> [TD-33](./TECH_DEBT.md). They are unfinished work under ADR-0005, **not**
+> a surviving deliberate choice.
 
 ---
 
 ## 2. Stack
 
-| Layer         | Technology                                                            | Version                                                 |
-| ------------- | --------------------------------------------------------------------- | ------------------------------------------------------- |
-| Framework     | Next.js (App Router, RSC, Server Actions)                             | 16.2.11 — pinned exactly (TD-07)                        |
-| Runtime       | React                                                                 | 19.2.8 — pinned exactly (TD-07)                         |
-| Language      | TypeScript (`strict: true`)                                           | 5.9.3                                                   |
-| Database      | PostgreSQL via Docker Compose                                         | 5432                                                    |
-| ORM           | Prisma with `@prisma/adapter-pg` driver adapter                       | 7.1.0                                                   |
-| Auth          | NextAuth v5 (beta) — Credentials provider + bcrypt                    | 5.0.0-beta.30                                           |
-| Styling       | Tailwind CSS v4 + `@tailwindcss/forms`                                | 4.1.18                                                  |
-| UI primitives | Radix UI, Headless UI, Heroicons, Lucide, Framer Motion, Vaul, Sonner | —                                                       |
-| Maps          | Leaflet + custom hook layer                                           | 1.9.4                                                   |
-| Validation    | Zod                                                                   | 4.2.0                                                   |
-| Tests         | Vitest + Testing Library                                              | 171 tests, ~2s, 22% line coverage enforced as a ratchet |
+| Layer         | Technology                                                            | Version                                              |
+| ------------- | --------------------------------------------------------------------- | ---------------------------------------------------- |
+| Framework     | Next.js (App Router, RSC, Server Actions)                             | 16.2.11 — pinned exactly (TD-07)                     |
+| Runtime       | React                                                                 | 19.2.8 — pinned exactly (TD-07)                      |
+| Language      | TypeScript (`strict: true`)                                           | 5.9.3                                                |
+| Database      | PostgreSQL via Docker Compose                                         | 5432                                                 |
+| ORM           | Prisma with `@prisma/adapter-pg` driver adapter                       | 7.1.0                                                |
+| Auth          | NextAuth v5 (beta) — Credentials provider + bcrypt                    | 5.0.0-beta.30                                        |
+| Styling       | Tailwind CSS v4 + `@tailwindcss/forms`                                | 4.1.18                                               |
+| UI primitives | Radix UI, Headless UI, Heroicons, Lucide, Framer Motion, Vaul, Sonner | —                                                    |
+| Maps          | Leaflet + custom hook layer                                           | 1.9.4                                                |
+| Validation    | Zod                                                                   | 4.2.0                                                |
+| Tests         | Vitest + Testing Library · Playwright                                 | 173 unit tests ~3.5s · 40 E2E · 22% lines, ratcheted |
 
 pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageManager` and `engines` are declared, and CI derives its pnpm version from that field rather than pinning its own.
 
@@ -51,7 +63,7 @@ pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageM
 │   ├── dashboard/           # Authenticated area
 │   │   ├── (overview)/      # Landing cards
 │   │   ├── admin/           # Create pages for each domain
-│   │   ├── spells|magicitems|png|deities|geography/
+│   │   ├── spells|magicitems|npc|deities|geography/
 │   ├── lib/
 │   │   ├── config/          # Per-domain field metadata (the "meta" system)
 │   │   ├── connections/     # prisma.ts (singleton) — the only DB connection
@@ -89,17 +101,17 @@ This is a genuinely good pattern, and since TD-08 it is type-safe: `PageMeta` is
 
 ## 4. Data model
 
-Five Prisma models: `deities`, `magicitems`, `png`, `spells`, `users`.
+Five Prisma models: `deities`, `magicitems`, `npc`, `spells`, `users`.
 
 Seed data is four to six demo records per domain. A real library — 361 spells, 119 NPCs, 62 magic items — is loaded with `pnpm db:import <export.json>`; those exports are gitignored, because campaign content is the DM's and the spell prose is rulebook text.
 
 Observations:
 
 - ✅ `createdAt` / `updatedAt` on all five models (TD-11).
-- No relations between models. Everything that is conceptually a foreign key (`fazione`, `luogo`, `allineamento`, `classe`) is stored as a bare `Int` that indexes into a hardcoded TypeScript array. Renumbering an enum silently corrupts existing rows.
-- ✅ `@@index([nome])` on `deities`, `magicitems`, `png`, `spells` (TD-11). `users` is indexed by its unique `email`.
+- No relations between models. Everything that is conceptually a foreign key (`faction`, `location`, `alignment`, `class`) is stored as a bare `Int` that indexes into a hardcoded TypeScript array. Renumbering an enum silently corrupts existing rows.
+- ✅ `@@index([name])` on `deities`, `magicitems`, `npc`, `spells` (TD-11). `users` is indexed by its unique `email`.
 - No ownership: records are not tied to a user or a campaign. Multi-campaign support (which you have in mind for later) requires a schema change.
-- Two migrations: `resetio`, plus a 2026-07-26 corrective one that patches its drift forward. `prisma migrate diff` against the schema is clean (TD-23). The drift was wider than the name-level comparison suggested — eight `deities` columns were `VARCHAR(255)` where the schema says `Int`.
+- Four migrations: `resetio`, a 2026-07-26 corrective one patching its drift forward (TD-23), the timestamps-and-indexes one (TD-11), and `20260730020000_rename_png_table_to_npc` (TD-19 — `@map` retargets a field, but renaming a _model_ renames the table, so this one was hand-written to avoid dropping 119 rows). `prisma migrate diff` against the schema is clean. The original drift was wider than a name-level comparison suggested — eight `deities` columns were `VARCHAR(255)` where the schema says `Int`.
 
 ---
 
@@ -115,23 +127,25 @@ The matcher excludes `/api`, so the proxy cannot protect the route handlers or S
 
 ## 6. Current health
 
-| Check               | Result                                                                         |
-| ------------------- | ------------------------------------------------------------------------------ |
-| `pnpm typecheck`    | ✅ **0 errors** (19 before TD-06; `next typegen && tsc --noEmit`)              |
-| `pnpm build`        | ✅ **Passes** on Turbopack — same bundler as `dev` (TD-18)                     |
-| `pnpm test`         | ✅ **117 passed** in ~2s (Vitest)                                              |
-| `pnpm lint`         | ✅ **0 errors**, 89 warnings (was 282) — backlog tracked as TD-22              |
-| `pnpm format:check` | ✅ Clean — Prettier applied repo-wide (TD-05/TD-16)                            |
-| E2E tests           | ✅ **40 Playwright specs**, nothing skipped; TD-24 then TD-15                  |
-| CI                  | ✅ All five gates blocking: `static` / `test` / `build` / `e2e` (TD-23 closed) |
-| Test coverage       | 22.2% lines / 15% branches — thresholds set there and ratcheted upward         |
-| Git history         | Active — PRs #1–#27 merged on `main`                                           |
-| `.env`              | ✅ Correctly gitignored                                                        |
-| `.DS_Store`         | ✅ Present on disk but untracked — `.gitignore` is working                     |
+| Check               | Result                                                                           |
+| ------------------- | -------------------------------------------------------------------------------- |
+| `pnpm typecheck`    | ✅ **0 errors** (19 before TD-06; `next typegen && tsc --noEmit`)                |
+| `pnpm build`        | ✅ **Passes** on Turbopack — same bundler as `dev` (TD-18)                       |
+| `pnpm test`         | ✅ **173 passed** across 19 files in ~3.5s (Vitest)                              |
+| `pnpm lint`         | ✅ **0 errors, 0 warnings** (was 293) — TD-22 closed; every rule back to `error` |
+| `pnpm format:check` | ✅ Clean — Prettier applied repo-wide (TD-05/TD-16)                              |
+| E2E tests           | ✅ **40 Playwright tests** in 10 files, nothing skipped; TD-24 then TD-15        |
+| CI                  | ✅ All five gates blocking: `static` / `test` / `build` / `e2e` (TD-23 closed)   |
+| Test coverage       | 22.1% lines / 15.4% branches / 21.8% statements — thresholds at 22/18/15/21      |
+| Git history         | Active — PRs #1–#47 merged on `main`                                             |
+| `.env`              | ✅ Correctly gitignored                                                          |
+| `.DS_Store`         | ✅ Present on disk but untracked — `.gitignore` is working                       |
 
 TD-04 closed the remaining nine on 2026-07-22. Note that `typecheck` must run `next typegen` first: the route-handler signatures live in generated types that a fresh checkout does not have, so a bare `tsc --noEmit` passes vacuously.
 
-**A local trap, found 2026-07-25.** An agent worktree left behind in `.claude/worktrees/<name>/` is a _complete second checkout of this repo_. It is git-ignored, so `git status` stays clean and nothing hints at it — but ESLint and Vitest walk the filesystem, not the index. The effect is that `pnpm lint` reported 2213 errors from a copy nobody was editing and exited non-zero, while `pnpm test` ran every suite twice (117 tests read as 228) and coverage read 30% instead of 18.7%. Both configs now ignore `.claude/**`; the numbers in the table above are the deduplicated ones. CI never saw any of this — it checks out clean — which is exactly what made the local figures look like progress.
+**A local trap, found 2026-07-25.** An agent worktree left behind in `.claude/worktrees/<name>/` is a _complete second checkout of this repo_. It is git-ignored, so `git status` stays clean and nothing hints at it — but ESLint and Vitest walk the filesystem, not the index. The effect is that `pnpm lint` reported 2213 errors from a copy nobody was editing and exited non-zero, while `pnpm test` ran every suite twice (117 tests read as 228) and coverage read 30% instead of 18.7%. Both configs now ignore `.claude/**`; the numbers in the table above are the deduplicated ones. CI never saw any of this — it checks out clean — which is exactly what made the local figures look like progress. (The figures in this paragraph are the 2026-07-25 measurements, when the suite was 117 tests; the ignores have held since.)
+
+**There is one on disk right now:** `.claude/worktrees/vigilant-engelbart-e0d007/`, a detached-HEAD checkout at `f9620c4` carrying its own older copy of every file in `docs/`. Harmless to the runners, but `grep` across the repo returns each hit twice, and the stale `TECH_DEBT.md` inside it is 849 lines against this one's 1400+. Remove it with `git worktree remove` when the session that made it is finished.
 
 ---
 
@@ -139,11 +153,15 @@ TD-04 closed the remaining nine on 2026-07-22. Note that `typecheck` must run `n
 
 **Cleared by TD-06 on 2026-07-22.** Deleted: `app/ui/components/Header.tsx`, `app/ui/components/NotificationBar.tsx`, `app/ui/forms/PngForm.tsx`, `app/ui/forms/SpellForm.tsx`, `app/lib/connections/sql.ts`, `app/lib/utils.ts` and `app/lib/data.ts`. The two survivors of those last two files moved to their conventional homes (`app/lib/utils/data/generatePagination.ts`, `app/lib/data/fetchCardData.ts`). The `postgres` and `@wordpress/html-entities` packages were uninstalled, and the stray `SpellMetaField;` statement in `createSpell.ts` is gone. `auth.ts` and `fetchCardData` now read through Prisma, so `DATABASE_URL` is the only connection string the app needs.
 
-Still outstanding:
+**Nothing is outstanding here.** Both items this section used to list are closed:
 
-- `copy-webpack-plugin` in `next.config.ts` copies Leaflet images into `public/` at build time. The `webpack` hook now makes `next build` **fail outright** under Next 16, where Turbopack is the default — this blocks CI's build step. The images are already committed, so deleting the hook is close to free. See TD-18.
+- ✅ `copy-webpack-plugin` and the `webpack` hook are gone from `next.config.ts` — which is now four lines, `reactStrictMode` only — and the plugin is not in `package.json`. `pnpm build` passes on Turbopack (TD-18). This section claimed the hook made the build "fail outright" for three days after §6 above recorded the build as passing; the two statements sat in the same document.
+- ✅ `sendNotification.ts` is deleted, along with the whole `app/lib/actions/notifications/` directory. TD-10 split it by audience, which was the actual bug: `app/lib/notifications/notify.ts` raises a sonner toast for the user, `logServerIssue.ts` writes to the server console and does not pretend to be a notification. No `alert()` remains anywhere in `app/`.
 
-`app/lib/actions/notifications/sendNotification.ts` is not dead but is a stub: it only ever `console.log`s, and its `snackbar` channel is unimplemented. It is called from server-side code (`auth.ts`, `getQuery.ts`) where a console log is invisible to the user, so error feedback silently disappears.
+Two things are deliberately kept despite having no importers, and must survive a cleanup pass — see CLAUDE.md, _Decisions and rejected approaches_:
+
+- `app/lib/definitions/enums/deities/Circolo.ts` — 23 thematic magic circles from the setting's original design, which the DM intends to revisit.
+- `app/ui/components/Spinner.tsx` — a full-page framer-motion loader, orphaned when `BaseButton.buttonState` absorbed the inline save spinner. Reads as an intended `loading.tsx` affordance, not a leftover.
 
 ---
 

@@ -16,7 +16,7 @@ Read [`docs/PROJECT_STATE.md`](./docs/PROJECT_STATE.md) and [`docs/ARCHITECTURE.
 
 ## Language conventions
 
-**Target state** — all code in English, all user-facing text in Italian. See [ADR-0005](./docs/adr/0005-english-identifiers.md).
+**Target state** — all code in English; user-facing text Italian today, Italian + English once TD-21 lands. See [ADR-0005](./docs/adr/0005-english-identifiers.md) and [ADR-0006](./docs/adr/0006-bilingual-ui.md).
 
 | Context                                                            | Language                                                                                         |
 | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
@@ -26,14 +26,17 @@ Read [`docs/PROJECT_STATE.md`](./docs/PROJECT_STATE.md) and [`docs/ARCHITECTURE.
 | Postgres column names                                              | **Italian for now** — decoupled from code via Prisma `@map`; renamed later if ever               |
 | Comments, docs, commit messages, PR descriptions                   | **English**                                                                                      |
 
-**Transitional state — read this before renaming anything.** The codebase is currently mixed: tables are English (`spells`, `magicitems`, `deities`) while columns and domain fields are Italian (`nome`, `descrizione`, `rarita`, `png`). The full rename is scheduled as **TD-19**, after TD-03 (working test suite) and TD-08 (typed metadata).
+**The rename happened — TD-19 landed 2026-07-30.** Domain fields and enums are English (`name`, `description`, `level`, `circle`, `npc`); Postgres columns stayed Italian and are decoupled by Prisma `@map` (`name String @map("nome")`). So `psql` and raw SQL still show `nome`, `descrizione`, `livello`, and that is expected, not drift.
 
-Until TD-19 runs:
+**A residual set survived it: 16 Italian identifiers, tracked as TD-33.** Mostly option-list data and geography/tarot enums (`Circolo`, `Luogo`, `Tarocco`, `fazioni`, `allineamenti`, `FazioneItem`). They are unfinished work under ADR-0005, **not** a deliberate exception.
 
-- **Do not opportunistically rename Italian identifiers** as part of unrelated work. A partial rename is worse than none, because the metadata layer is string-keyed (`metaField: "descrizione"`, `whereClause[item]`) and the compiler will not catch what you miss — a missed key becomes a filter that silently stops filtering.
-- **New code uses English identifiers**, unless it must match an existing Italian field name to work. Do not invent new Italian identifiers.
+Rules that still hold:
+
+- **Do not opportunistically rename the TD-33 identifiers** as part of unrelated work. Land them as one pure-rename commit, as TD-19 did. Unlike TD-19's, these renames are fully compiler-verified — nothing here is string-keyed — but a rename mixed into a behaviour change is still unreviewable.
+- **New code uses English identifiers.** Never invent a new Italian one.
 - Never put Italian in technical identifiers, comments or documentation.
-- **Do not add new hardcoded UI strings.** The app ships bilingual (TD-21). Until the catalogues exist, keep new user-facing copy in one obvious place per file so extraction stays cheap — do not scatter it through JSX.
+- **The metadata layer is still string-keyed in places, and the compiler will not catch what you miss.** `getQuery.ts` hardcodes the free-text-search and default-sort field as a literal; that exact line was one of TD-19's two near-misses, caught only by the test suite going red. A missed key becomes a filter that silently stops filtering, which no type error announces.
+- **Do not add new hardcoded UI strings.** The app ships bilingual (TD-21, still open). Until the catalogues exist, keep new user-facing copy in one obvious place per file so extraction stays cheap — do not scatter it through JSX. Several files already carry a single `COPY` object at the top for this reason; follow that.
 
 ---
 
@@ -75,7 +78,7 @@ docker-compose up       # Postgres on :5432
 1. **Every mutation checks auth.** Every Server Action and every route handler that writes must verify a session first. No exceptions. (See TD-01.)
 2. **Every mutation validates input.** Use the Zod `validator` already declared in the field's `PageMeta`. Never pass client data into `prisma.x.create({ data })` unvalidated. (See TD-02.)
 3. **No new `any`.** The count is **zero**, and `no-explicit-any` is an `error` as of TD-08 step 4 (2026-07-27) — the linter enforces this rule now rather than trusting you to. If you genuinely cannot type something, use `unknown` and narrow at the point of use; a single documented assertion beats an `any` that silently disables checking on everything it touches.
-4. **`app/ui/forms/` holds only the generic `PageForm.tsx` and `inputs/`.** Domain forms live in `app/ui/<domain>/`. Do not add a domain form to `app/ui/forms/` — that is how the duplicate `PngForm` / `SpellForm` pair got there in the first place.
+4. **`app/ui/forms/` holds only generic form machinery** — today `PageForm.tsx`, `EntityForm.tsx` and `inputs/`. Domain forms live in `app/ui/<domain>/`. Do not add a domain form to `app/ui/forms/` — that is how the duplicate `PngForm` / `SpellForm` pair got there in the first place. (`EntityForm` is the generic shell TD-09 extracted; the per-domain field _layout_ stays in `app/ui/<domain>/`, deliberately, because encoding a field arrangement as configuration would move CSS into data.)
 5. **Never commit `.env`,** and never print secrets in output.
 6. **Do not run destructive database commands** (`prisma migrate reset`, `db push --force-reset`, `DROP`) without explicit confirmation in the conversation.
 7. **Do not upgrade `next` / `react` / `prisma` major versions** as a side effect of another task.

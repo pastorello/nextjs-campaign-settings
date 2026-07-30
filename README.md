@@ -2,9 +2,9 @@
 
 **A self-hosted campaign bible for a D&D 5e homebrew world** — spells, magic items, NPCs, deities and an interactive map, in one searchable dashboard instead of six drifting Google Docs.
 
-Built with the Next.js App Router, Server Components for reads and Server Actions for writes. Its distinguishing idea is a **metadata layer**: each of the 41 domain fields is declared exactly once, and that single declaration drives the form control, the list column, the filter, the Zod validation and the Prisma `where` clause. Adding a field is one object, not five edits across five files.
+Built with the Next.js App Router, Server Components for reads and Server Actions for writes. Its distinguishing idea is a **metadata layer**: each of the 39 domain fields is declared exactly once, and that single declaration drives the form control, the list column, the filter, the Zod validation and the Prisma `where` clause. Adding a field is one object, not five edits across five files.
 
-> **Status:** working prototype, actively being hardened. Phase 1 — auth guards, input validation, a real test suite, CI, reproducible builds — has landed. Coverage is deliberately still low and ratcheting upward. See [Project status](#project-status).
+> **Status:** working prototype, actively being hardened. Phase 1 — auth guards, input validation, a real test suite, CI, reproducible builds — has landed, and most of Phase 2 with it: the metadata layer is typed, the duplicated per-domain components are collapsed, lint is at zero warnings, and the identifier rename is done. Coverage is deliberately still low and ratcheting upward. See [Project status](#project-status).
 >
 > **The interface is deliberately unstyled.** Effort is going into correctness first — nothing can be written without a session, no invalid payload reaches the database, and every change lands behind a green pipeline. The visual layer is scheduled after the foundations, not before, which is why there are no screenshots here yet.
 
@@ -28,8 +28,8 @@ The part worth reading the source for. One declaration per field:
 
 ```ts
 {
-  metaField: "livello",
-  label: "Livello",
+  metaField: "level",
+  label: "Livello",          // identifiers English, UI copy Italian — ADR-0005
   defaultValue: 0,
   fieldType: FieldType.integer,
   controlType: ControlType.Select,
@@ -62,7 +62,7 @@ Full write-up in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) and [ADR-0003]
 | ---------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Framework  | Next.js 16 (App Router)  | Server Components keep database access on the server with no API layer to maintain ([ADR-0004](./docs/adr/0004-server-actions-over-rest-api.md)) |
 | Language   | TypeScript 5.9, `strict` | The metadata layer is the kind of abstraction that only pays off if the compiler checks it                                                       |
-| Database   | PostgreSQL 16 + Prisma 7 | Array columns (`circolo`, `classi`) map cleanly; the driver adapter keeps the client edge-compatible                                             |
+| Database   | PostgreSQL 16 + Prisma 7 | Array columns (`circle`, `classes`) map cleanly; the driver adapter keeps the client edge-compatible                                             |
 | Auth       | NextAuth v5 + bcrypt     | Credentials only — this is a single-DM tool, not a SaaS                                                                                          |
 | Validation | Zod 4                    | Already declared per field, so validation composes from metadata instead of being written twice                                                  |
 | Styling    | Tailwind CSS v4          | Utility classes keep styling next to markup in a project with no design system                                                                   |
@@ -123,8 +123,8 @@ pnpm db:seed
 
 Two things worth knowing here:
 
-- **`db push`, not `prisma migrate deploy`.** The committed migration has drifted from the schema and is scheduled for regeneration (TD-23 in [`docs/TECH_DEBT.md`](./docs/TECH_DEBT.md)). `db push` syncs the schema directly and is the supported path today.
-- **The seed is safe to re-run.** Its records carry explicit ids, so rows that already exist are skipped rather than duplicated.
+- **`db push` or `prisma migrate deploy` — both work now.** The four committed migrations reproduce the schema exactly (`prisma migrate diff` reports no difference), so either path gives you a correct database. `db push` stays the quickstart default because it is one step and needs no migration history; CI uses `migrate deploy`. If you switch an existing `db push` database over to migrations, baseline it first with `prisma migrate resolve --applied`, or `deploy` will try to re-create tables that already exist.
+- **The seed is safe to re-run.** It matches existing records by name (and users by email) before creating, so a second run creates nothing rather than duplicating. It does _not_ insert explicit ids — the database assigns them, exactly as it does for a record created through the UI.
 
 ### 5. Run it
 
@@ -155,7 +155,7 @@ pnpm db:studio      # Prisma Studio
 
 ## Testing
 
-**171 unit tests across 18 files (~2s) and 31 Playwright specs (~30s).** The suite concentrates on the parts where a silent failure would be expensive, rather than chasing a coverage number:
+**173 unit tests across 19 files (~3.5s) and 40 Playwright tests in 10 files.** The suite concentrates on the parts where a silent failure would be expensive, rather than chasing a coverage number:
 
 - **Query construction** — `getQuery` is a pure function from search params to a Prisma query, so it is covered exhaustively without a database. Its tests were mutation-checked: breaking `hasSome`, the pagination offset and case-insensitivity each turned the suite red.
 - **Auth guards** — every DELETE endpoint returns 401 and every mutation throws, without a session, with no query reaching the database.
@@ -199,7 +199,7 @@ app/
 | --------------------------------------------- | ------------------------------------------ |
 | [`ARCHITECTURE.md`](./docs/ARCHITECTURE.md)   | How the pieces fit, and where they diverge |
 | [`PROJECT_STATE.md`](./docs/PROJECT_STATE.md) | Inventory and current health               |
-| [`TECH_DEBT.md`](./docs/TECH_DEBT.md)         | Prioritised debt register, 25 items        |
+| [`TECH_DEBT.md`](./docs/TECH_DEBT.md)         | Prioritised debt register, 33 items        |
 | [`TESTING.md`](./docs/TESTING.md)             | Test strategy and coverage targets         |
 | [`ROADMAP.md`](./docs/ROADMAP.md)             | Phased plan and feature backlog            |
 | [`adr/`](./docs/adr/)                         | Six decision records                       |
@@ -208,15 +208,25 @@ app/
 
 ## Project status
 
-Phase 1 — correctness and safety — is complete apart from the E2E layer:
+Phase 1 — correctness and safety — is complete. Phase 2 is most of the way there:
 
-|     |                                                                      |
+|     | Phase 1                                                              |
 | --- | -------------------------------------------------------------------- |
 | ✅  | Dead code removed, TypeScript errors cleared, ESLint + Prettier + CI |
 | ✅  | Jest → Vitest, a suite that actually runs                            |
 | ✅  | Auth guards on every write path, with tests                          |
 | ✅  | Zod validation wired from the metadata, with tests                   |
 | ✅  | Pinned versions, one lockfile, Turbopack builds                      |
-| ⏳  | Playwright E2E — specified, not yet written                          |
+| ✅  | Playwright E2E — 40 tests, blocking in CI as the fifth gate          |
 
-Next: typing the metadata layer as a discriminated union, an English identifier rename, and the bilingual UI. The full plan is in [`ROADMAP.md`](./docs/ROADMAP.md); everything known to be wrong is written down in [`TECH_DEBT.md`](./docs/TECH_DEBT.md) rather than left to be discovered.
+|     | Phase 2                                                                     |
+| --- | --------------------------------------------------------------------------- |
+| ✅  | `PageMeta` a discriminated union; zero `any`, the rule enforced as an error |
+| ✅  | Per-domain component quartets collapsed into `Entity*` + config             |
+| ✅  | Typed error hierarchy, correct status codes, toasts instead of `alert()`    |
+| ✅  | Lint 293 warnings → 0; every rule back to `error`                           |
+| ✅  | Accessibility: zero axe violations across eleven pages, keyboard focus ring |
+| ✅  | Identifiers renamed to English; columns kept via `@map`                     |
+| ⏳  | Bilingual UI (it + en) — the last 🟠 item                                   |
+
+Next: the bilingual UI (TD-21), the residual identifier rename TD-19 missed (TD-33), and the remaining trust boundaries (TD-02b). The full plan is in [`ROADMAP.md`](./docs/ROADMAP.md); everything known to be wrong is written down in [`TECH_DEBT.md`](./docs/TECH_DEBT.md) rather than left to be discovered.

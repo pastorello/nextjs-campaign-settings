@@ -4,7 +4,7 @@
 | ---------------------------------------- | --------------------------------------------------------------- | -------------------------------------- |
 | [`PROJECT_STATE.md`](./PROJECT_STATE.md) | Inventory: stack, layout, data model, current health, dead code | Starting a session; onboarding         |
 | [`ARCHITECTURE.md`](./ARCHITECTURE.md)   | How the pieces fit; the metadata layer explained; gaps marked   | Touching metadata, data access or auth |
-| [`TECH_DEBT.md`](./TECH_DEBT.md)         | 18 prioritised debt items with fixes and execution order        | Deciding what to work on               |
+| [`TECH_DEBT.md`](./TECH_DEBT.md)         | 33 prioritised debt items with fixes and execution order        | Deciding what to work on               |
 | [`TESTING.md`](./TESTING.md)             | Test strategy, coverage targets, Jest → Vitest migration        | Writing any test                       |
 | [`ROADMAP.md`](./ROADMAP.md)             | Five phases; feature backlog; explicit non-goals                | Planning; logging an idea              |
 | [`adr/`](./adr/)                         | Architecture decision records — the _why_ behind the code       | Making or revisiting a decision        |
@@ -36,6 +36,22 @@ ROADMAP.md          what to build, in what order
 
 Documentation that drifts is worse than none, because it is believed. Concretely:
 
-- `PROJECT_STATE.md` §6 (health table) is stale the moment CI turns green — update it as Phase 1 items land.
-- Tick items off `TECH_DEBT.md` as they ship; do not leave completed work in the register.
+- `PROJECT_STATE.md` §6 (health table) is stale the moment CI turns green — update it as items land.
+- Tick items off `TECH_DEBT.md` as they ship, **in the summary table _and_ the execution order at the bottom**. Keeping the finished item's write-up is deliberate and good — the register is the only record of what was tried and rejected — but its _status_ must be current in both places.
 - If an implementation deviates from its spec, amend the spec's Outcome section. Do not leave the spec describing something that was not built.
+- **A completion note is a claim, not a fact.** State how a thing was verified, and prefer a claim the reader can re-run (`pnpm test:e2e --list` says 40) to a number typed once and never rechecked.
+
+> **These rules were audited against reality on 2026-07-30, and had been broken.**
+> Every doc above had drifted: `PROJECT_STATE.md` claimed 117 tests and 89 lint
+> warnings against an actual 173 and 0, and simultaneously said the build passed
+> and that a removed webpack plugin made it "fail outright"; `README.md` counted
+> 31 E2E specs sixty lines before calling the E2E suite unwritten; the register's
+> execution order marked 9 items done when 21 were. The single worst case was
+> `PROJECT_STATE.md` §1 still instructing readers that Italian identifiers were
+> deliberate and "not an inconsistency to fix" — a sentence ADR-0005 had
+> explicitly superseded eight days earlier.
+>
+> The lesson is narrow and worth keeping: **counts and statuses rot; prose about
+> _why_ does not.** The reasoning in these documents held up under audit almost
+> everywhere. What failed was every number and every checkbox. Prefer writing the
+> reasoning, and derive the numbers from a command when you need them.

@@ -841,7 +841,21 @@ Steps 3–8 not started. What's in the working tree:
 
 **Where step 3 stalls, and why it wasn't started.** `PageMeta.label`/`.placeholder` and `SelectOption.label` are structurally-typed and used by every domain config file — renaming them to `labelKey`/`placeholderKey` is not containable to spells-as-a-template the way step 5's file-by-file extraction is. TypeScript forces the rename across all ~19 config files (4 `*Meta.ts` + ~15 options arrays) in the same pass, even though only one domain would get real translation keys wired up immediately. That's a mechanical, low-judgment rename once the shape is decided — a good candidate to run on a cheaper model, one domain at a time, verifying `pnpm typecheck` after each.
 
-There's also an open design call this step needs before touching any file: **where does the key→text lookup happen**, since `getDatum`/`getDataLabel` are plain synchronous functions with no translation context of their own, called from ~7 shared components (`InputComponent`, `Select/index.tsx`, `SelectButtonery`, `FormErrorSummary`, `EntityList`, `sortSelectOptions`, `getDataLabel`). Decided so far: **resolve at the render boundary, not by threading a translator through the metadata layer** — `getDatum`/`getDataLabel` keep returning something render-ready (a small resolver component for option-backed fields' `ReactNode` output works without touching those consumers' call sites; `label`/`placeholderKey` used as raw HTML attributes — `InputComponent`'s `placeholder` prop, for instance — do need that one component to call `useTranslations()` itself, since a `ReactNode` can't fill a string attribute). Not yet implemented or verified against a real component.
+**The design call this step needed is now made: [ADR-0007](./adr/0007-message-key-resolution-boundary.md).** Read it before touching any file — it changes the shape of the work described above.
+
+> **Correction (2026-07-30).** An earlier version of this note recommended "a small resolver component" returning `ReactNode` from `getDatum`. **That approach is wrong and is rejected in ADR-0007.** It fails on three counts, all visible in the existing consumers: `sortSelectOptions` sorts by label text _before_ render so a key cannot be ordered; `placeholder` and `<option>` text are string attributes a `ReactNode` cannot fill; and Server Components would each need a client boundary. The note is corrected rather than deleted because the idea looks reasonable until you check what the consumers do with the value.
+
+ADR-0007's shape, in brief: split `SelectOption` (authored, `labelKey`) from `ResolvedOption` (render-ready, `label`), bridged by one pure `resolveOptions(options, t)` that works under both `useTranslations` and `getTranslations`. `sortSelectOptions`/`getDataLabel` keep their logic but accept only `ResolvedOption[]`, so a missed resolution is a type error. `getDataLabel`'s string-keyed `customLabel?: string` becomes a typed `useShort?: boolean` — that parameter is a live instance of the string-keyed hazard `CLAUDE.md` warns about, and the rename silently breaks it.
+
+**Measured before deciding (2026-07-30):** 39 `getDatum` declarations, of which **22 are `(datum) => getDataLabel(sameOptions, datum)`** restating what the field's own `options` already says — ADR-0007 deletes those rather than threading a translator into them. 7 sites read `SelectOption.label`; 4 read `PageMeta.label`.
+
+**Suggested execution order** — mechanical once ADR-0007 is agreed, so a cheaper model suits it (Haiku 4.5, low/medium effort), verifying `pnpm typecheck` after each step:
+
+1. `SelectOption` → `labelKey`/`shortLabelKey`; add `ResolvedOption`; add `resolveOptions`.
+2. `sortSelectOptions` + `getDataLabel` to `ResolvedOption[]`; `customLabel` → `useShort`.
+3. The 7 `SelectOption.label` consumers, then the 4 `PageMeta.label` ones.
+4. Config files, one domain at a time, spells first as the template.
+5. Delete the 22 redundant `getDatum` closures (separate commit — it is a behaviour-preserving deletion and must be reviewable on its own).
 
 ---
 

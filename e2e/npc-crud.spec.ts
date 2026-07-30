@@ -11,7 +11,7 @@ const uniqueName = () => `E2E PNG ${Date.now()}`;
 
 /** See spells-crud.spec.ts: a new record is not on page 1 of a real library. */
 const gotoPng = async (page: Page, name: string) => {
-  await page.goto(`/dashboard/admin/png?query=${encodeURIComponent(name)}`);
+  await page.goto(`/dashboard/admin/npc?query=${encodeURIComponent(name)}`);
 };
 
 const rowFor = (page: Page, name: string) =>
@@ -22,7 +22,7 @@ test.describe("NPC CRUD", () => {
     const name = uniqueName();
     const editedName = `${name} mod`;
 
-    await page.goto("/dashboard/admin/png");
+    await page.goto("/dashboard/admin/npc");
     await page.getByRole("link", { name: "Nuovo PNG" }).click();
 
     await expect(
@@ -32,7 +32,7 @@ test.describe("NPC CRUD", () => {
     await page.getByLabel("Nome").fill(name);
     await page.getByRole("button", { name: "Crea PNG" }).click();
 
-    await page.waitForURL("**/dashboard/admin/png");
+    await page.waitForURL("**/dashboard/admin/npc");
 
     await gotoPng(page, name);
     await expect(rowFor(page, name)).toBeVisible();

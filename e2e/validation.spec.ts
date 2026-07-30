@@ -7,7 +7,7 @@ import { test, expect } from "@playwright/test";
  * "submit an empty required field → inline error, nothing written". It cannot
  * be written today, and the reason is recorded in TECH_DEBT.md TD-02: every
  * string field's declared validator is a bare `z.string()` with no `.min(1)`,
- * so an empty `nome` is *valid* and the form correctly saves it. A spec
+ * so an empty `name` is *valid* and the form correctly saves it. A spec
  * asserting an error would fail; a spec asserting the empty name is accepted
  * would lock in the laxness as intended behaviour. Tightening the validator is
  * a product decision (TD-02 leaves it open deliberately), not a test fix.

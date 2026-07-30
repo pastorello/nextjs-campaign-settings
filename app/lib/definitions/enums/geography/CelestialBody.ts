@@ -1,4 +1,4 @@
-enum Astro {
+enum CelestialBody {
   Acquario = 0,
   Ariete = 1,
   Bilancia = 2,
@@ -24,4 +24,4 @@ enum Astro {
   Plutone = 22,
 }
 
-export default Astro;
+export default CelestialBody;

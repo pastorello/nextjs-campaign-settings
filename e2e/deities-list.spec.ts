@@ -8,7 +8,7 @@ import { test, expect, type Page } from "@playwright/test";
  *
  * They assert against seeded records (`app/seed/initial-data/deities.ts`), which
  * is deterministic in CI and locally: "Gork" is declared with
- * `residenza: PianoEsistenza.Inferi` and `luogo: 4`.
+ * `residenza: PlaneOfExistence.Inferi` and `luogo: 4`.
  */
 
 /** Reads one cell of a row by the text of its column header. */

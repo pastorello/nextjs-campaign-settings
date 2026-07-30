@@ -1,4 +1,4 @@
-enum ResidenzaDivina {
+enum DivineResidence {
   SelvaOscura = "Selva Oscura",
   TerreOniriche = "Terre Oniriche",
   MonteAnKi = "Monte An-ki",
@@ -13,4 +13,4 @@ enum ResidenzaDivina {
   Alba = "Alba dei Tempi",
 }
 
-export default ResidenzaDivina;
+export default DivineResidence;

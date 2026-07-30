@@ -9,3 +9,6 @@
 
 # refactor(td): rename Italian identifiers to English across the codebase (TD-19)
 21a37fd1e24da9c268d591ccdbe07144af4d6c01
+
+# refactor(td): rename the Italian identifiers TD-19 missed (TD-33)
+fd8f3fa14e23d541611111e12c626475173d7c0c

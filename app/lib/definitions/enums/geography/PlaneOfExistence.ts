@@ -1,4 +1,4 @@
-enum PianoEsistenza {
+enum PlaneOfExistence {
   Cieli = 0,
   Tempo = 1,
   TerreOniriche = 2,
@@ -8,4 +8,4 @@ enum PianoEsistenza {
   Terra = 6,
 }
 
-export default PianoEsistenza;
+export default PlaneOfExistence;

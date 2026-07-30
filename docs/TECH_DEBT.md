@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-07-30
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-33 · TD-21 · TD-02b · TD-20b (blocked) · TD-14 (Phase 3). Everything else is done — the summary table below is authoritative.
+**Open items:** TD-21 · TD-02b · TD-20b (blocked) · TD-14 (Phase 3). Everything else is done — the summary table below is authoritative.
 
 ## Legend
 
@@ -19,41 +19,41 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-| ID    | Title                                                                 | Severity             | Effort | Phase |
-| ----- | --------------------------------------------------------------------- | -------------------- | ------ | ----- |
-| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions                | ~~🔴 Critical~~ done | M      | 1     |
-| TD-02 | ✅ No input validation (Phase 1); TD-02b remains                      | ~~🔴 Critical~~ done | M      | 1–2   |
-| TD-03 | ✅ Test suite does not run                                            | ~~🔴 Critical~~ done | M      | 1     |
-| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                                | ~~🔴 Critical~~ done | S      | 1     |
-| TD-05 | ✅ No ESLint config, no Prettier, no CI                               | ~~🟠 High~~ done     | S      | 1     |
-| TD-06 | ✅ Dead code and tutorial leftovers                                   | ~~🟠 High~~ done     | S      | 1     |
-| TD-07 | ✅ `next`/`react` pinned; single lockfile                             | ~~🟠 High~~ done     | S      | 1     |
-| TD-08 | ✅ Metadata and query layer typed; zero `any`, rule is an error       | ~~🟠 High~~ done     | M      | 2     |
-| TD-09 | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm    | ~~🟠 High~~ done     | L      | 2     |
-| TD-10 | ✅ Toasts (client) vs `logServerIssue` (server) replace the stub      | ~~🟠 High~~ done     | M      | 2     |
-| TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred           | ~~🟡 Medium~~ part   | M      | 2     |
-| TD-12 | ✅ Filter list declared once; count and rows can no longer diverge    | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-13 | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10            | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-14 | Map POIs persisted only to `localStorage`                             | 🟡 Medium            | M      | 3     |
-| TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring      | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-16 | ✅ Inconsistent formatting                                            | ~~🟢 Low~~ done      | S      | 1     |
-| TD-17 | ✅ README does not match reality                                      | ~~🟢 Low~~ done      | S      | 1     |
-| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                | ~~🟢 Low~~ done      | S      | 3     |
-| TD-19 | ✅ Mixed Italian/English identifiers (residual set → TD-33)           | ~~🟠 High~~ done     | L      | 2     |
-| TD-20 | ◑ `exactOptionalPropertyTypes` on; `noUncheckedIndexedAccess` blocked | 🟡 Medium            | M      | 2     |
-| TD-21 | UI strings hardcoded; app must ship in it + en                        | 🟠 High              | L      | 2     |
-| TD-22 | ✅ Lint warnings 293 → 0; every rule back to `error`                  | ~~🟠 High~~ done     | M      | 2     |
-| TD-23 | ✅ Migration drift patched forward; migrations match the schema       | ~~🟠 High~~ done     | S      | 1     |
-| TD-24 | ✅ Playwright harness + specs; `e2e` job blocking in CI               | ~~🟠 High~~ done     | M      | 1     |
-| TD-25 | ✅ Startup reachability check; 503 distinct from 500                  | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                     | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-27 | ✅ Hidden `classi=0` filter on the spells list removed                | ~~🟠 High~~ done     | S      | 2     |
-| TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does        | ~~🟠 High~~ done     | S      | 2     |
-| TD-29 | ✅ Loading skeleton was the tutorial's invoices table                 | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-30 | ✅ Public list pages actually stream; skeleton matches the content    | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-31 | ✅ `sortSelectOptions` mutated shared `PageMeta.options` in place     | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-32 | ✅ E2E job spent 9m a run on `playwright install-deps`                | ~~🟠 High~~ done     | S      | 1     |
-| TD-33 | Italian identifiers TD-19 missed — 16 across 14 files + a directory   | 🟡 Medium            | S      | 2     |
+| ID    | Title                                                                  | Severity             | Effort | Phase |
+| ----- | ---------------------------------------------------------------------- | -------------------- | ------ | ----- |
+| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions                 | ~~🔴 Critical~~ done | M      | 1     |
+| TD-02 | ✅ No input validation (Phase 1); TD-02b remains                       | ~~🔴 Critical~~ done | M      | 1–2   |
+| TD-03 | ✅ Test suite does not run                                             | ~~🔴 Critical~~ done | M      | 1     |
+| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                                 | ~~🔴 Critical~~ done | S      | 1     |
+| TD-05 | ✅ No ESLint config, no Prettier, no CI                                | ~~🟠 High~~ done     | S      | 1     |
+| TD-06 | ✅ Dead code and tutorial leftovers                                    | ~~🟠 High~~ done     | S      | 1     |
+| TD-07 | ✅ `next`/`react` pinned; single lockfile                              | ~~🟠 High~~ done     | S      | 1     |
+| TD-08 | ✅ Metadata and query layer typed; zero `any`, rule is an error        | ~~🟠 High~~ done     | M      | 2     |
+| TD-09 | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm     | ~~🟠 High~~ done     | L      | 2     |
+| TD-10 | ✅ Toasts (client) vs `logServerIssue` (server) replace the stub       | ~~🟠 High~~ done     | M      | 2     |
+| TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred            | ~~🟡 Medium~~ part   | M      | 2     |
+| TD-12 | ✅ Filter list declared once; count and rows can no longer diverge     | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-13 | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10             | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-14 | Map POIs persisted only to `localStorage`                              | 🟡 Medium            | M      | 3     |
+| TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring       | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-16 | ✅ Inconsistent formatting                                             | ~~🟢 Low~~ done      | S      | 1     |
+| TD-17 | ✅ README does not match reality                                       | ~~🟢 Low~~ done      | S      | 1     |
+| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                 | ~~🟢 Low~~ done      | S      | 3     |
+| TD-19 | ✅ Mixed Italian/English identifiers (residual set → TD-33)            | ~~🟠 High~~ done     | L      | 2     |
+| TD-20 | ◑ `exactOptionalPropertyTypes` on; `noUncheckedIndexedAccess` blocked  | 🟡 Medium            | M      | 2     |
+| TD-21 | UI strings hardcoded; app must ship in it + en                         | 🟠 High              | L      | 2     |
+| TD-22 | ✅ Lint warnings 293 → 0; every rule back to `error`                   | ~~🟠 High~~ done     | M      | 2     |
+| TD-23 | ✅ Migration drift patched forward; migrations match the schema        | ~~🟠 High~~ done     | S      | 1     |
+| TD-24 | ✅ Playwright harness + specs; `e2e` job blocking in CI                | ~~🟠 High~~ done     | M      | 1     |
+| TD-25 | ✅ Startup reachability check; 503 distinct from 500                   | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                      | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-27 | ✅ Hidden `classi=0` filter on the spells list removed                 | ~~🟠 High~~ done     | S      | 2     |
+| TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does         | ~~🟠 High~~ done     | S      | 2     |
+| TD-29 | ✅ Loading skeleton was the tutorial's invoices table                  | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-30 | ✅ Public list pages actually stream; skeleton matches the content     | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-31 | ✅ `sortSelectOptions` mutated shared `PageMeta.options` in place      | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-32 | ✅ E2E job spent 9m a run on `playwright install-deps`                 | ~~🟠 High~~ done     | S      | 1     |
+| TD-33 | ✅ Italian identifiers TD-19 missed — 16 across 14 files + a directory | ~~🟡 Medium~~ done   | S      | 2     |
 
 ---
 
@@ -1323,7 +1323,19 @@ The job cached Playwright's browsers correctly and then gave the saving straight
 
 ---
 
-### TD-33 🟡 The Italian identifiers TD-19 missed
+### TD-33 ✅ The Italian identifiers TD-19 missed — **DONE (2026-07-30)**
+
+**Outcome:** all sixteen identifiers renamed, one pure-rename commit (`fd8f3fa`), SHA added to `.git-blame-ignore-revs` in a follow-up commit — the same two-commit discipline TD-19 used. `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test` all green (173/173 unit tests), no behaviour change.
+
+**One claim in the original writeup did not hold up:** `app/ui/deities/DeityCard.tsx` does not import any of these sixteen identifiers. It matched the discovery grep only because two of its JSX label strings happen to read `"Astro associato"` and `"Tarocco"` — Italian UI copy, not code referencing the enums. That copy is correctly untouched. The real importers were `Deity.ts`, `app/seed/initial-data/deities.ts`, and the seven config files (`celestialBodies.ts`, `celestialPlanes.ts`, `locationList.ts`, `deityMeta.ts`, `npcMeta.ts`, plus the two renamed config consts' own cross-imports of `FazioneItem`/`FactionItem`).
+
+**Worth knowing for the next mechanical rename:** the naive approach — `sed` with `\b` word-boundary patterns, several `-e` clauses combined in one invocation — silently dropped the identifier substitution in three separate files while its adjacent path-string substitution in the same invocation succeeded, with no error. Plain non-anchored substitution (`s/Astro/CelestialBody/g` etc.), one identifier per invocation, worked every time. The fix that actually caught it was the `Done when` grep below, re-run after the edits — not a visual diff read, which would have shown the still-Italian local binding names as plausible-looking code.
+
+The original description follows, unchanged, per the register's convention of keeping dated records intact.
+
+---
+
+### TD-33 (original) 🟡 The Italian identifiers TD-19 missed
 
 **Where:** `app/lib/definitions/enums/{deities,geography,tarocchi}/`, `app/lib/config/{deity,npc}/`, `app/lib/definitions/interfaces/npc/FazioneItem.ts`
 **Found:** 2026-07-30, by a documentation audit checking TD-19's completion claim against the tree
@@ -1331,7 +1343,7 @@ The job cached Playwright's browsers correctly and then gave the saving straight
 
 [[TD-19]] reports that "every TypeScript/Prisma identifier is English". **Sixteen are not**, across 14 files and one directory. Two of them are named in TD-19's own list of completed enum renames (`Circolo`→`Circle`, `Tarocco`→`TarotCard`) and were never actually renamed.
 
-These are live exported identifiers, not just filenames — imported by `app/ui/deities/DeityCard.tsx`, `app/lib/definitions/interfaces/deities/Deity.ts`, `app/seed/initial-data/deities.ts` and four config files.
+These are live exported identifiers, not just filenames — imported by `app/lib/definitions/interfaces/deities/Deity.ts`, `app/seed/initial-data/deities.ts` and several config files (the original claim that `app/ui/deities/DeityCard.tsx` was an importer was wrong — see Outcome above).
 
 | Current                                           | Suggested                                    | File                                            |
 | ------------------------------------------------- | -------------------------------------------- | ----------------------------------------------- |
@@ -1398,8 +1410,8 @@ Plus the directory `app/lib/definitions/enums/tarocchi/` → `tarot/`.
 23. ✅ TD-15  accessibility pass            → zero axe violations, not an allowlist
 23b. ✅ TD-31 hydration mismatch            → shared mutable PageMeta.options
 23c. ✅ TD-26 / TD-29 / TD-30 / TD-32       → see the summary table
+24.  ✅ TD-33  the Italian identifiers TD-19 missed → compiler-verified, no behaviour change
 --- everything above is done. What is actually left: ---
-A.  TD-33  the Italian identifiers TD-19 missed → S, compiler-verified, do it first
 B.  TD-21  extract UI strings, ship it + en     → L, the last 🟠; no longer paired with TD-19
 C.  TD-02b remaining trust boundaries (env, localStorage, GeoJSON)
 D.  TD-20b noUncheckedIndexedAccess → blocked: 20 sites in the vendored maps module

@@ -6,9 +6,9 @@ import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import locationList from "@/app/lib/config/geography/locationList";
 import z from "zod";
 
-import dominiAllineamenti from "./dominiAllineamenti";
-import allineamenti from "./allineamenti";
-import fazioni from "./fazioni";
+import alignmentDomains from "./alignmentDomains";
+import alignments from "./alignments";
+import factions from "./factions";
 import getDataLabel from "../../utils/data/getDataLabel";
 import renderRichText from "../../utils/data/renderRichText";
 
@@ -25,23 +25,23 @@ const npcMeta = {
   },
   [NpcMetaField.alignment]: {
     label: "Allineamento",
-    defaultValue: firstOptionValue(allineamenti),
+    defaultValue: firstOptionValue(alignments),
     metaField: NpcMetaField.alignment,
     fieldType: FieldType.integer,
-    options: allineamenti,
+    options: alignments,
     controlType: ControlType.Select,
     validator: z.number().int(),
-    getDatum: (datum: number) => getDataLabel(allineamenti, datum),
+    getDatum: (datum: number) => getDataLabel(alignments, datum),
   },
   [NpcMetaField.alignmentDomain]: {
     label: "Dominio",
-    defaultValue: firstOptionValue(dominiAllineamenti),
+    defaultValue: firstOptionValue(alignmentDomains),
     metaField: NpcMetaField.alignmentDomain,
     fieldType: FieldType.integer,
-    options: dominiAllineamenti,
+    options: alignmentDomains,
     controlType: ControlType.Select,
     validator: z.number().int(),
-    getDatum: (datum: number) => getDataLabel(dominiAllineamenti, datum),
+    getDatum: (datum: number) => getDataLabel(alignmentDomains, datum),
   },
   [NpcMetaField.position]: {
     label: "Mansione",
@@ -65,13 +65,13 @@ const npcMeta = {
   },
   [NpcMetaField.faction]: {
     label: "Fazione",
-    defaultValue: firstOptionValue(fazioni),
+    defaultValue: firstOptionValue(factions),
     metaField: NpcMetaField.faction,
     fieldType: FieldType.integer,
-    options: fazioni,
+    options: factions,
     controlType: ControlType.Select,
     validator: z.number().int(),
-    getDatum: (datum: number) => getDataLabel(fazioni, datum),
+    getDatum: (datum: number) => getDataLabel(factions, datum),
   },
   [NpcMetaField.appearance]: {
     label: "Aspetto",

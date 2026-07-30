@@ -10,7 +10,7 @@
  * Do not remove it as dead code. See CLAUDE.md, "Decisions and rejected
  * approaches".
  */
-enum Circolo {
+enum Circle {
   Incubo = "Incubo",
   Illusione = "Illusione",
   NonMorti = "Non Morti",
@@ -36,4 +36,4 @@ enum Circolo {
   Infinito = "Infinito",
 }
 
-export default Circolo;
+export default Circle;

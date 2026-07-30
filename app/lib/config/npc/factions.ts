@@ -1,7 +1,7 @@
 import Faction from "@/app/lib/definitions/enums/npc/Faction";
-import FazioneItem from "@/app/lib/definitions/interfaces/npc/FazioneItem";
+import FactionItem from "@/app/lib/definitions/interfaces/npc/FactionItem";
 
-const fazioni: FazioneItem[] = [
+const factions: FactionItem[] = [
   { value: 0, type: Faction.RegnoBianco, label: "Regno di Kang" },
   { value: 1, type: Faction.RegnoRosso, label: "Orda dei Pelleverde" },
   { value: 2, type: Faction.RegnoGrigio, label: "Sultani di Solenero" },
@@ -33,4 +33,4 @@ const fazioni: FazioneItem[] = [
   { value: 22, type: Faction.ManoNera, label: "Mano Nera" },
 ];
 
-export default fazioni;
+export default factions;

@@ -1,6 +1,6 @@
 # Architecture
 
-**Last updated:** 2026-07-22
+**Last updated:** 2026-07-30
 
 This document describes how Campaign Settings is put together today, and marks the places where the intended design and the current implementation diverge. Divergences are tagged **[GAP]** and tracked in [`TECH_DEBT.md`](./TECH_DEBT.md).
 
@@ -37,7 +37,7 @@ Every field is a `PageMeta` object:
 
 ```ts
 {
-  metaField: "livello",
+  metaField: "level",                 // English identifier, Italian label — ADR-0005
   label: "Livello",
   defaultValue: 0,
   fieldType: FieldType.integer,       // integer | string | boolean | array
@@ -48,25 +48,29 @@ Every field is a `PageMeta` object:
 }
 ```
 
+Since TD-08 this is a **discriminated union on `fieldType`**, so `defaultValue`, `validator`, `options` and `getDatum` are correlated with it: `fieldType: FieldType.array` with `validator: z.string()` no longer compiles.
+
 ### The composition chain
 
 ```
 app/lib/config/spells/SpellsMeta.ts     one file per domain, keyed by SpellMetaField enum
 app/lib/config/deity/deityMeta.ts
-app/lib/config/png/pngMeta.ts
+app/lib/config/npc/npcMeta.ts
 app/lib/config/magicitem/magicItemMeta.ts
                     │
-                    ▼  spread into a flat registry, plus shared fields (id, nome, descrizione)
-app/lib/config/pageMetaFields.ts        Record<string, PageMeta>
-                    │
+                    ▼  spread into a flat registry, plus shared fields (id, name, description)
+app/lib/config/pageMetaFields.ts        `satisfies Record<string, PageMeta>` — the
+                    │                    literal type survives, so MetaConfigKey is
+                    │                    the union of the real field names
                     ▼  ordered per page
-app/lib/config/pagesConfig.ts           Record<PageType, PageMeta[]>
-                    │
+app/lib/config/pagesConfig.ts           Record<PageType, MetaConfigKey[]>
+                    │                    keys, not values — see the note below
     ┌───────────────┼───────────────┬──────────────────┐
     ▼               ▼               ▼                  ▼
   Forms          Lists           Filters            Queries
-  PageForm       XxxList         useFilterController getQuery.ts
-  InputComponent SortableHeader                     → Prisma where/orderBy
+  EntityForm     EntityList      useFilterController getQuery.ts
+  PageForm       EntityLibrary                       → Prisma where/orderBy
+  InputComponent SortableHeader
 ```
 
 ### Consumers
@@ -75,7 +79,7 @@ app/lib/config/pagesConfig.ts           Record<PageType, PageMeta[]>
 | ---------------------- | --------------------------------------------------------- | ---------------------------------------------------------------- |
 | Form rendering         | `app/ui/forms/PageForm.tsx` → `inputs/InputComponent.tsx` | `controlType`, `label`, `placeholder`, `defaultValue`, `options` |
 | Value display          | `app/ui/components/ItemMeta.tsx`, `XxxCard.tsx`           | `getDatum`                                                       |
-| List columns & sorting | `app/ui/*/XxxList.tsx`, `SortableHeader.tsx`              | `label`, `metaField`                                             |
+| List columns & sorting | `app/ui/components/EntityList.tsx`, `SortableHeader.tsx`  | `label`, `metaField`, via `listConfig`                           |
 | Filtering              | `app/lib/hooks/useFilterController.ts`                    | `fieldType`, `options`                                           |
 | Query building         | `app/lib/data/getQuery.ts`                                | `fieldType` → `hasSome` for arrays, equality otherwise           |
 
@@ -88,13 +92,24 @@ Every `PageMeta` carries a Zod schema, and since TD-02 those schemas actually ru
 
 Each `create*` / `update*` mutation `safeParse`s first and returns a `MutationResult` — `{ ok: true }`, or `{ ok: false, errors }` carrying Zod's field-keyed map, which the domain forms render through `FormErrorSummary`. Nothing reaches Prisma on failure. Route `:id` segments go through `parseIdParam`, which returns 400 rather than letting `parseInt("abc")` reach a query as `NaN`.
 
-**Note for anyone extending this:** the schema is keyed by each field's _real_ name — the lowercase key shared by the metadata registry, the payload and the DB column. A `PageMeta.metaField` string is **not** reliable for this (several are camelCase, e.g. `"sottoClassi"` for the field `sottoclassi`), and `pagesConfig` cannot be used either: it is unimported and nine of its entries resolve to `undefined`. Both are TD-08's to fix.
+**Note for anyone extending this:** the schema is keyed by each field's real name, and since TD-08 that key is compiler-verified — `MetaConfigKey` is the union of the actual registry keys, so a wrong one is a compile error rather than a filter that silently stops filtering. `buildEntitySchema` reads `pagesConfig` directly; the duplicate field list TD-02 had to carry as a workaround is gone.
+
+> **What this note used to say, because the failure mode is instructive.** It read
+> that `metaField` was unreliable (camelCase where the key was lowercase) and that
+> `pagesConfig` "is unimported and nine of its entries resolve to `undefined`".
+> Both were true when written and both were fixed by TD-08: `pagesConfig` now
+> holds keys instead of values, has three importers, and every entry is checked.
+> The `sottoclassi` field the old text used as its example no longer exists — it
+> was an unpopulated duplicate of `circle`, removed by TD-26 and dropped from the
+> database by TD-11.
 
 **Still unvalidated (TD-02b):** environment variables, `localStorage` POIs, GeoJSON files and the `as` casts on Prisma results.
 
-### [GAP] `PageMeta` is loosely typed
+### ✅ Closed: `PageMeta` was loosely typed (TD-08)
 
-`getDatum` and `validator` are typed against `any`/broad unions, so a mismatch between `fieldType: FieldType.array` and `validator: z.string()` compiles fine. A discriminated union on `fieldType` would make invalid metadata unrepresentable — this is the change that would most visibly demonstrate TypeScript skill in a portfolio review. See TD-08.
+This was the largest **[GAP]** in this document. `getDatum` and `validator` were typed against `any`/broad unions, so `fieldType: FieldType.array` with `validator: z.string()` compiled fine.
+
+`PageMeta` is a discriminated union on `fieldType` now, the registry keys survive inference, `getQuery` is generic over the Prisma where type, and **the `any` count is zero** with `no-explicit-any` enforced as an error. Turning the union on surfaced four real defects no test would have caught — eight deity fields declared `integer` while defaulting to `""`, two call sites passing the wrong type to `getDatum`, a dead tutorial field, and a `SelectOption.value` that could not express a numeric default.
 
 ---
 
@@ -118,9 +133,11 @@ Shared helpers:
 
 `connections/prisma.ts` (the Prisma singleton) is the **only** database connection. TD-06 removed the parallel raw-`postgres` driver — `connections/sql.ts`, the inline client in `auth.ts`, and `app/lib/data.ts` — so `DATABASE_URL` is now the single connection string.
 
-### [GAP] Pagination reads the table twice with independently built queries
+### ✅ Closed: pagination read the table twice with independently built queries (TD-12)
 
-`fetchFilteredX` and `getXCount` each construct their filter separately. Any divergence between them yields a page count that does not match the rows. They should share one `where` clause.
+`fetchFilteredX` and `getXCount` each carried their own copy of the filterable-field list, and **two of the four had already diverged** — the spell count was missing `name`, and the NPC count listed four of the twelve fields the NPC fetch used. The effect was reachable by editing a URL: `?title=Arcivescovo` reported "119 di 119" above zero rows, with pagination offering thirteen pages of nothing.
+
+The list is declared once in `app/lib/config/queryFields.ts` and read by both. A shared `where` clause was preferred over `prisma.$transaction([findMany, count])` because TD-30 moved the rows behind a `<Suspense>` boundary so they stream, while the count is awaited in the page for the header — one transaction would give that up.
 
 ---
 
@@ -129,17 +146,24 @@ Shared helpers:
 ```
 app/ui/
 ├── containers/ListPage.tsx      generic list page shell
-├── forms/PageForm.tsx           metadata-driven form
+├── forms/
+│   ├── PageForm.tsx             metadata-driven form
+│   ├── EntityForm.tsx           generic form shell (state, submit, errors, buttons)
 │   └── inputs/                  TextInput, TextareaInput, CheckboxInput, Select
-├── components/                  Modal, Spinner, pagination, Icon, ItemMeta
+├── components/                  Modal, Spinner, pagination, Icon, ItemMeta,
+│                                EntityList, EntityLibrary
 ├── buttons/BaseButton/          variant/size/state-driven button
-├── <domain>/                    XxxCard, XxxForm, XxxList, XxxLibrary  (×4 domains)
+├── <domain>/                    XxxCard + the form's field layout  (×4 domains)
 └── dashboard/                   sidenav, nav-links, cards
 ```
 
-The four domains each have a near-identical `XxxCard` / `XxxList` / `XxxLibrary` / `XxxForm` quartet. **[GAP]** These are ~80% duplicated. Since the metadata layer already knows every field, most of this can collapse into generic `<EntityCard meta={...}>` / `<EntityList meta={...}>` components. This is the largest single reduction in code volume available. See TD-09.
+### ✅ Closed: the per-domain quartets were ~80% duplicated (TD-09)
 
-`app/lib/hooks/usePageManager.ts` plus four thin per-domain wrappers (`useSpellPageManager`, …) own list state: query string, filters, sort order, page. The per-domain wrappers differ mainly in which `PageType` they pass.
+Each domain used to carry a near-identical `XxxCard` / `XxxList` / `XxxLibrary` / `XxxForm`. Three generic components replaced them, driven by declarations in `app/lib/config/` (`listConfig`, `formFields`): **`EntityList`** for the admin tables, **`EntityLibrary`** for the public card lists, **`EntityForm`** for the form shells — 444 lines of list code and four page-manager hooks (421 lines) deleted.
+
+**The field layout deliberately stays per-domain.** Encoding a field arrangement as configuration would move CSS into data; what was removed is the boilerplate around it. The duplication had already cost six real defects, all found by putting the copies side by side — including a deities column reading the wrong field through the wrong metadata, and the mount effect that silently filtered the spell list ([[TD-27]]).
+
+`app/lib/hooks/usePageManager.ts` is now the single hook owning form state; the four per-domain wrappers are gone.
 
 ### The maps module
 
@@ -160,7 +184,7 @@ modules/maps/
 
 This is the best-structured area of the codebase — error boundary, defensive hook wrapper, typed constants, clean separation. **Use it as the reference standard when refactoring the other domains.**
 
-POIs are persisted to `localStorage` (`usePOIManager.ts`), not to the database. **[GAP]** Map POIs should live in Postgres and relate to `png` / `deities` records — that is the feature that would tie the map to the rest of the app. Tracked as a Phase 3 item in [`ROADMAP.md`](./ROADMAP.md).
+POIs are persisted to `localStorage` (`usePOIManager.ts`), not to the database. **[GAP]** Map POIs should live in Postgres and relate to `npc` / `deities` records — that is the feature that would tie the map to the rest of the app. Tracked as TD-14 and as a Phase 3 item in [`ROADMAP.md`](./ROADMAP.md).
 
 ---
 

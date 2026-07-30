@@ -1,7 +1,8 @@
 # Technical Debt Register
 
 **Last updated:** 2026-07-30
-**Scope:** everything found in the 2026-07-22 audit. Each item is independently actionable and sized to be completable in one focused session.
+**Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
+**Open items:** TD-33 · TD-21 · TD-02b · TD-20b (blocked) · TD-14 (Phase 3). Everything else is done — the summary table below is authoritative.
 
 ## Legend
 
@@ -32,13 +33,13 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-10 | ✅ Toasts (client) vs `logServerIssue` (server) replace the stub      | ~~🟠 High~~ done     | M      | 2     |
 | TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred           | ~~🟡 Medium~~ part   | M      | 2     |
 | TD-12 | ✅ Filter list declared once; count and rows can no longer diverge    | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-13 | ◑ Typed errors with `cause`; 404 vs 500; toasts wait on TD-10         | 🟡 Medium            | M      | 2     |
+| TD-13 | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10            | ~~🟡 Medium~~ done   | M      | 2     |
 | TD-14 | Map POIs persisted only to `localStorage`                             | 🟡 Medium            | M      | 3     |
 | TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring      | ~~🟡 Medium~~ done   | M      | 2     |
 | TD-16 | ✅ Inconsistent formatting                                            | ~~🟢 Low~~ done      | S      | 1     |
 | TD-17 | ✅ README does not match reality                                      | ~~🟢 Low~~ done      | S      | 1     |
 | TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                | ~~🟢 Low~~ done      | S      | 3     |
-| TD-19 | ✅ Mixed Italian/English identifiers                                  | ~~🟠 High~~ done     | L      | 2     |
+| TD-19 | ✅ Mixed Italian/English identifiers (residual set → TD-33)           | ~~🟠 High~~ done     | L      | 2     |
 | TD-20 | ◑ `exactOptionalPropertyTypes` on; `noUncheckedIndexedAccess` blocked | 🟡 Medium            | M      | 2     |
 | TD-21 | UI strings hardcoded; app must ship in it + en                        | 🟠 High              | L      | 2     |
 | TD-22 | ✅ Lint warnings 293 → 0; every rule back to `error`                  | ~~🟠 High~~ done     | M      | 2     |
@@ -52,6 +53,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-30 | ✅ Public list pages actually stream; skeleton matches the content    | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-31 | ✅ `sortSelectOptions` mutated shared `PageMeta.options` in place     | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-32 | ✅ E2E job spent 9m a run on `playwright install-deps`                | ~~🟠 High~~ done     | S      | 1     |
+| TD-33 | Italian identifiers TD-19 missed — 16 across 14 files + a directory   | 🟡 Medium            | S      | 2     |
 
 ---
 
@@ -581,7 +583,7 @@ The original description follows.
 
 ---
 
-### TD-13 ◑ Opaque error handling — **error layer DONE (2026-07-27); notifications wait on TD-10**
+### TD-13 ✅ Opaque error handling — **DONE (2026-07-27, closed by TD-10)**
 
 **Outcome:** `app/lib/errors/` holds a three-class hierarchy — `AppError` (abstract, carries its own `httpStatus`), `NotFoundError` (404) and `DatabaseError` (500, always constructed with the original error as `cause`). `toErrorResponse` maps a thrown error to a response, so the status lives with the error rather than being re-decided per handler.
 
@@ -594,9 +596,9 @@ The original description follows.
 
 **A small vindication while writing those tests:** the first run failed with `spells.count is not a function` — an incomplete Prisma mock of mine, reported precisely because `DatabaseError` had preserved the cause. Under the old code it would have read _Failed to fetch card data._
 
-**Not done, and why:** TD-13's last step routes user-facing messages through the notification system, which is **TD-10** and does not exist. `DeleteButton` now shows the message the handler returned instead of a fixed string, so a 404 reads differently from a 500, but it is still an `alert()`. Swap it for a toast with TD-10.
+**Closed by TD-10, same day.** `DeleteButton`'s two `alert()` calls became `notifySuccess` / `notifyError` toasts when TD-10 landed, so the 404-vs-500 distinction this item wanted now actually reaches the user instead of stopping at the handler's return value. This entry stayed open in the register past that date — TD-10's own outcome note said as much at the time — nothing but the paperwork was missing.
 
-**Still open elsewhere:** `console.*` calls outside `app/lib/data/` (the maps module mostly), and `sendErrorNotification`, which is TD-10's.
+**Verified 2026-07-30:** no `alert()` remains anywhere in `app/`, and `sendNotification` / `sendErrorNotification` no longer exist as functions — replaced by `app/lib/notifications/notify.ts` (client) and `logServerIssue.ts` (server).
 
 The original description follows.
 
@@ -662,6 +664,17 @@ Never audited. Likely issues given the component inventory: custom `Select` and 
 ---
 
 ### TD-19 ✅ Mixed Italian/English identifiers — **DONE (2026-07-30)**
+
+> **Correction (2026-07-30, docs audit).** The outcome below claims "every
+> TypeScript/Prisma identifier is English". **It is not**, and the claim was never
+> true as written: 16 Italian identifiers across 14 files and one directory
+> survived this item, including two — `Circolo`→`Circle` and `Tarocco`→`TarotCard`
+> — that the enum list further down explicitly names as renamed. Filed as
+> **[[TD-33]]**. This entry is left as written, per the register's convention of
+> keeping dated records intact; read it as "the metadata-layer rename is done",
+> not as "no Italian identifier remains". The verification described below was
+> real but scoped to what the compiler and the test suite could reach — which is
+> exactly why it missed a set of identifiers that nothing type-checks against.
 
 **Outcome:** every TypeScript/Prisma identifier is English. Postgres columns keep their Italian names via `@map` (per ADR-0005) — except the `png` table itself, which had no `@map` fallback available and so was actually renamed to `npc` (see below). No behaviour changed; `pnpm typecheck && pnpm lint && pnpm test && pnpm format:check` are green (173/173 unit tests), and the touched E2E specs (npc-crud, pagination, filtering, spells-crud, deities-list, validation, a11y — 48 tests) were re-run and pass.
 
@@ -768,7 +781,19 @@ Do **not** enable everything at once and then fix 200 errors in a single commit 
 
 **Where:** `app/ui/**`, `app/dashboard/**`, `app/lib/config/**` (the `label` / `placeholder` fields and every options array)
 **Decision:** [ADR-0006](./adr/0006-bilingual-ui.md)
-**Blocked by:** TD-08 (`PageMeta` changes shape) · **Do together with:** TD-19 (same 54 files)
+**Blocked by:** nothing — TD-08 and TD-19 are both done
+
+> **The "do them together" plan is void (noted 2026-07-30).** This item used to
+> read _"Do together with: TD-19 (same 54 files)"_, and ROADMAP.md still framed
+> the two as deliberately adjacent to halve the cost of opening those files once.
+> **TD-19 shipped alone on 2026-07-30**, so that saving is already spent: this
+> item now pays the full cost of reopening the domain files by itself. Nothing
+> blocks it, and the sequencing argument for pairing them no longer applies —
+> do not go looking for a way to combine them.
+>
+> One consolation: TD-19 renamed the field identifiers first, so the string
+> extraction below happens against English keys (`labelKey: "spells.level.label"`,
+> not `"spells.livello.label"`), which is the better order of the two.
 
 Italian copy is written inline in components and in the metadata `label` and `placeholder` fields. The product ships bilingual (it + en), so this is a feature, not groundwork.
 
@@ -1298,6 +1323,53 @@ The job cached Playwright's browsers correctly and then gave the saving straight
 
 ---
 
+### TD-33 🟡 The Italian identifiers TD-19 missed
+
+**Where:** `app/lib/definitions/enums/{deities,geography,tarocchi}/`, `app/lib/config/{deity,npc}/`, `app/lib/definitions/interfaces/npc/FazioneItem.ts`
+**Found:** 2026-07-30, by a documentation audit checking TD-19's completion claim against the tree
+**Decision:** [ADR-0005](./adr/0005-english-identifiers.md) — unchanged; this is unfinished work under it, not a revision of it
+
+[[TD-19]] reports that "every TypeScript/Prisma identifier is English". **Sixteen are not**, across 14 files and one directory. Two of them are named in TD-19's own list of completed enum renames (`Circolo`→`Circle`, `Tarocco`→`TarotCard`) and were never actually renamed.
+
+These are live exported identifiers, not just filenames — imported by `app/ui/deities/DeityCard.tsx`, `app/lib/definitions/interfaces/deities/Deity.ts`, `app/seed/initial-data/deities.ts` and four config files.
+
+| Current                                           | Suggested                                    | File                                            |
+| ------------------------------------------------- | -------------------------------------------- | ----------------------------------------------- |
+| `Circolo`                                         | `Circle`                                     | `enums/deities/Circolo.ts`                      |
+| `Astro`                                           | `CelestialBody`                              | `enums/geography/Astro.ts`                      |
+| `Luogo`                                           | `Location`                                   | `enums/geography/Luogo.ts`                      |
+| `PianoEsistenza`                                  | `PlaneOfExistence`                           | `enums/geography/PianoEsistenza.ts`             |
+| `ResidenzaDivina`                                 | `DivineResidence`                            | `enums/geography/ResidenzaDivina.ts`            |
+| `Zona`                                            | `Zone`                                       | `enums/geography/Zona.ts`                       |
+| `Tarocco`                                         | `TarotCard`                                  | `enums/tarocchi/Tarocco.ts`                     |
+| `SignificatoTarocco`                              | `TarotMeaning`                               | `enums/tarocchi/SignificatoTarocco.ts`          |
+| `tarocchi`                                        | `tarotCards`                                 | `config/deity/tarcocchi.ts` — **also misspelt** |
+| `coloriMagia`                                     | `magicColors`                                | `config/deity/coloriMagia.ts`                   |
+| `allineamenti` · `AllineamentoObject`             | `alignments` · `AlignmentObject`             | `config/npc/allineamenti.ts`                    |
+| `dominiAllineamenti` · `DominiAllineamentiObject` | `alignmentDomains` · `AlignmentDomainObject` | `config/npc/dominiAllineamenti.ts`              |
+| `fazioni`                                         | `factions`                                   | `config/npc/fazioni.ts`                         |
+| `FazioneItem`                                     | `FactionItem`                                | `interfaces/npc/FazioneItem.ts`                 |
+
+Plus the directory `app/lib/definitions/enums/tarocchi/` → `tarot/`.
+
+**Why TD-19 missed them, which is the part worth keeping.** These are option-list and lookup data, reached through `getDataLabel(list, value)` rather than through the metadata key path TD-19 followed field by field. Renaming a type or a const is entirely internal, so nothing failed to compile and no test went red — the two signals that caught TD-19's genuine misses. `Circolo` has no importers at all, so it had no compile pressure whatsoever. **A rename is only as complete as the mechanism verifying it**, and TD-19's verification was the compiler and the suite.
+
+**It is currently partial in the way CLAUDE.md warns is worse than none.** `config/npc/fazioni.ts` declares `const fazioni: FazioneItem[]` while importing the successfully renamed enum `Faction`. `config/deity/` holds English `deityLevels.ts`, `deityTypes.ts`, `energyElements.ts` and `traditionTypes.ts` beside Italian `coloriMagia.ts` and `tarcocchi.ts`. A reader cannot tell which convention the directory follows, which is the cost this item exists to remove.
+
+**Why this is S and 🟡, where TD-19 was L and 🟠.** TD-19's danger was the string-keyed metadata layer: a missed literal silently stopped a filter. Nothing here is string-keyed. Every identifier in the table is a type or a binding, so the compiler verifies each rename completely — `pnpm typecheck` going green _is_ the proof, which it never was for TD-19.
+
+**Enum values stay Italian**, exactly as TD-19 decided: `Luogo.CustodiVerdi = "Circolo druidico di Valleferro"` is campaign content and is not touched. Only the identifier changes.
+
+**Fix**
+
+1. Rename the eight enums and their files; the directory `tarocchi/` → `tarot/`.
+2. Rename the five config consts and the three interfaces; fix the `tarcocchi.ts` → `tarotCards.ts` misspelling in the same move.
+3. Keep it one pure-rename commit with no behaviour change, and add the SHA to `.git-blame-ignore-revs` — the same discipline TD-19 used.
+
+**Done when:** `grep -riE "circolo|luogo|zona|astro|tarocc|allineament|fazion|residenz|piano" app --include="*.ts" --include="*.tsx"` returns only enum _values_, `@map` arguments and UI copy; `pnpm typecheck && pnpm lint && pnpm test` green.
+
+---
+
 ## Recommended execution order
 
 ```
@@ -1308,28 +1380,40 @@ The job cached Playwright's browsers correctly and then gave the saving straight
 5. ✅ TD-01  auth guards (+ tests)       → done; requireApiSession + requireSession
 6. ✅ TD-02  Zod validation (+ tests)   → buildEntitySchema + parseIdParam
 7. ✅ TD-07  pin versions, one lockfile
-8. ✅ TD-24  Playwright + 26 E2E specs    → needed TD-23 to make the CI job blocking
+8. ✅ TD-24  Playwright + 40 E2E specs    → needed TD-23 to make the CI job blocking
 9. ✅ TD-17  portfolio README
 --- Phase 1 complete: the project is correct, safe and verified ---
-10. TD-08  type the metadata layer
-11. TD-20a strict flags, cheap batch + ES2022 target
-12. TD-19  rename identifiers to English  → needs TD-03's tests and TD-08's typed keys
-13. TD-21  extract UI strings           → same files as TD-19, do them together
+10. ✅ TD-08  type the metadata layer
+11. ◑ TD-20a strict flags, cheap batch + ES2022 target (exactOptionalPropertyTypes done)
+12. ✅ TD-19  rename identifiers to English → residual set became TD-33
 14. ✅ TD-11 schema timestamps + indexes (relations remain, Phase 3)
 14b. ✅ TD-27 SpellLibrary's mount effect deleted
 14c. ✅ TD-28 seed ids removed; the database assigns them
-15. TD-12  single where-clause
-16. TD-02b remaining trust boundaries (env, localStorage, GeoJSON)
-17. TD-13  typed errors                    → preserve { cause }; biggest diagnosability win
-18. TD-25  startup DB-reachability check   → thin once TD-13 lands; do them together
-19. TD-10  real notifications
-20. TD-09  collapse duplicated components  → safest after TD-08 and TD-19
-21. TD-22  lint backlog to zero            → mostly dissolves once TD-08 lands
-22. TD-20b noUncheckedIndexedAccess        → last; noisiest, most valuable
-23. TD-15  accessibility pass              → axe assertions ride on TD-24's Playwright setup
-23b. TD-31 hydration mismatch              → found by TD-15's CI run; cheap once localised
---- Phase 2 complete: the project is well-built ---
-24. ✅ TD-18 done early (unblocked the build); then TD-14, then feature work
+15. ✅ TD-12  single where-clause
+17. ✅ TD-13  typed errors                  → preserve { cause }; biggest diagnosability win
+18. ✅ TD-25  startup DB-reachability check → done with TD-13, as advised
+19. ✅ TD-10  real notifications            → also closed TD-13's last step
+20. ✅ TD-09  collapse duplicated components
+21. ✅ TD-22  lint backlog to zero          → 293 → 0; every rule back to error
+23. ✅ TD-15  accessibility pass            → zero axe violations, not an allowlist
+23b. ✅ TD-31 hydration mismatch            → shared mutable PageMeta.options
+23c. ✅ TD-26 / TD-29 / TD-30 / TD-32       → see the summary table
+--- everything above is done. What is actually left: ---
+A.  TD-33  the Italian identifiers TD-19 missed → S, compiler-verified, do it first
+B.  TD-21  extract UI strings, ship it + en     → L, the last 🟠; no longer paired with TD-19
+C.  TD-02b remaining trust boundaries (env, localStorage, GeoJSON)
+D.  TD-20b noUncheckedIndexedAccess → blocked: 20 sites in the vendored maps module
+                                      need coverage first, or the module needs excluding
+E.  TD-14  map POIs into Postgres → Phase 3; as much feature as debt
+--- Phase 2 ends when B and C land ---
+✅ TD-18 was done early (it unblocked the build)
 ```
+
+**Maintenance note (2026-07-30).** This block had drifted badly: it carried ✅ on 9
+items when 21 were done, which made it read as "Phase 2 has barely started" while
+the summary table at the top of this file — which is accurate, and is the one to
+trust — showed the opposite. Two documents disagreeing about what is finished is
+worse than either being merely out of date, because the reader cannot tell which
+to believe. If you close an item, tick it in **both** places or delete this block.
 
 The ordering is not arbitrary: each step makes the next one cheaper or safer. In particular, do not attempt TD-09 before TD-08, do not attempt TD-01/TD-02 before TD-03 (you want a working test suite before you touch security-critical code), and do not attempt TD-24 before TD-01/TD-02 — the E2E specs assert auth and validation flows those two items create.

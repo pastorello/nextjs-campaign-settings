@@ -1,6 +1,6 @@
 # Testing Strategy
 
-**Last updated:** 2026-07-27
+**Last updated:** 2026-07-30
 **Stack:** Vitest + Testing Library (unit/integration) · Playwright (E2E) · MSW where network mocking is needed
 **Decision record:** [ADR-0002](./adr/0002-testing-stack.md)
 
@@ -8,9 +8,9 @@
 
 ## 1. Where we are
 
-**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 171 tests across 18 files in ~2s. Coverage is **22.2% lines / 15% branches**, enforced in CI as a ratchet — see §2.
+**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 173 tests across 19 files in ~3.5s. Coverage is **22.1% lines / 15.4% branches**, enforced in CI as a ratchet — see §2.
 
-**Playwright landed 2026-07-25 (TD-24).** `pnpm test:e2e` runs **40 specs** against a real database and a dev server it starts itself — about 1.2 minutes in CI, quicker locally once the dev server is warm. Nothing is skipped.
+**Playwright landed 2026-07-25 (TD-24).** `pnpm test:e2e` runs **40 tests across 10 files** against a real database and a dev server it starts itself — about 1.2 minutes in CI, quicker locally once the dev server is warm. Nothing is skipped. (`pnpm test:e2e --list` enumerates them without running anything, and without needing a database — the honest way to check this number.)
 
 > **Two warnings before you run either suite.**
 >
@@ -20,7 +20,7 @@
 >
 > **Anything under `.claude/worktrees/` is a second checkout of this repo.** Both runners walk the filesystem, so a leftover agent worktree makes Vitest collect every suite twice (117 tests read as 228, coverage as 30%) and makes ESLint report thousands of duplicate findings. Both configs now ignore `.claude/**`.
 
-What exists today — 171 unit tests across 18 files. The largest suites:
+What exists today — 173 unit tests across 19 files. The largest suites (this table is not exhaustive; the error-handling and skeleton suites added by TD-13/TD-25/TD-29 are not listed):
 
 | Suite                                               | Tests | Notes                                                                      |
 | --------------------------------------------------- | ----- | -------------------------------------------------------------------------- |
@@ -36,7 +36,7 @@ What exists today — 171 unit tests across 18 files. The largest suites:
 | `__test__/utils/createEmptyArray.test.ts`           | 1     | Carried over — was never collected before, the filename was malformed      |
 | `app/ui/forms/inputs/Select/Select.test.tsx`        | 2     | Carried over                                                               |
 
-Plus **40 Playwright specs** in `e2e/`, listed in §3.
+Plus **40 Playwright tests** in `e2e/`, listed in §3.
 
 **Still missing, and deliberately so:** integration tests against a real Postgres. Described below, not started. (The Playwright layer that used to be listed here landed with TD-24 on 2026-07-25.)
 
@@ -105,14 +105,14 @@ Fast, no I/O, no database.
 ```ts
 describe("getQuery", () => {
   it("builds a case-insensitive contains filter from `query`", () => {
-    expect(getQuery({ query: "fire" }, [SpellMetaField.nome]).where)
-      .toEqual({ nome: { contains: "fire", mode: "insensitive" } });
+    expect(getQuery({ query: "fire" }, [SpellMetaField.name]).where)
+      .toEqual({ name: { contains: "fire", mode: "insensitive" } });
   });
 
   it("uses hasSome for array fields", () => { … });
   it("ignores params that fail their field-type validator", () => { … });
   it("computes skip from page and itemsPerPage", () => { … });
-  it("falls back to ascending nome ordering", () => { … });
+  it("falls back to ascending name ordering", () => { … });
 });
 ```
 
@@ -140,18 +140,18 @@ Chromium in CI; add Firefox and WebKit once the suite is stable. Roughly eight s
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
 | `auth.spec.ts`        | Log in with valid credentials → dashboard. Invalid credentials → error, no redirect. Unauthenticated `/dashboard/spells` → `/login`. | ✅ as planned, plus the 401 on a DELETE route                        |
 | `spells-crud.spec.ts` | Create a spell → appears in list → edit → delete → gone.                                                                             | ✅ as planned, plus a cancel-the-delete case                         |
-| `png-crud.spec.ts`    | Same for NPCs (the domain with the most fields).                                                                                     | ✅ as planned                                                        |
-| `filtering.spec.ts`   | Apply filter → list narrows → filters survive reload → reset clears them.                                                            | ◑ level-filter case skipped — it found TD-27                         |
+| `npc-crud.spec.ts`    | Same for NPCs (the domain with the most fields).                                                                                     | ✅ as planned (was `png-crud.spec.ts` until TD-19)                   |
+| `filtering.spec.ts`   | Apply filter → list narrows → filters survive reload → reset clears them.                                                            | ✅ its skipped case found TD-27; fixed, `fixme` gone                 |
 | `pagination.spec.ts`  | Navigate pages, verify the count matches the rows.                                                                                   | ◑ count-vs-rows only; 30/page against 4 seeded rows is one page      |
 | `map.spec.ts`         | Map loads, a POI can be placed, tile switching works.                                                                                | ◑ mount + world switching + context menu; POI placement not asserted |
 | `validation.spec.ts`  | Submit an empty required field → inline error, nothing written.                                                                      | ✗ not writable — see below; covers `:id` → 400 instead               |
-| `a11y.spec.ts`        | `@axe-core/playwright` over each main page (supports TD-15).                                                                         | ✅ as a known-violations allowlist, not a zero-violation gate        |
+| `a11y.spec.ts`        | `@axe-core/playwright` over each main page (supports TD-15).                                                                         | ✅ **zero**-violation gate, eleven pages, plus a keyboard focus test |
 
-**Why three of them differ from this plan** (full detail in TECH_DEBT.md TD-24):
+**Where they differ from this plan, and why** (full detail in TECH_DEBT.md TD-24):
 
 - **`validation.spec.ts`** — every string field's validator is a bare `z.string()`, so an empty `nome` is valid and saving it is correct. There is no required-field error to assert until TD-02's open product decision is made.
 - **`pagination.spec.ts`** — `DEFAULT_ITEMS_PER_PAGE` is 30 and the seed inserts 4–5 rows per domain, so every list is one page. This is a limitation of the _seed_, not of the app: the DM holds a real dataset (361 spells, 119 NPCs, 62 magic items) which at 30 per page is 13 pages of spells. Turning that into an E2E fixture — or into the seed itself — is what unlocks the multi-page assertions this spec currently cannot make, and would make every other spec exercise realistic volumes.
-- **`a11y.spec.ts`** — the app has never had an accessibility pass; each page carries the rule ids failing today and fails on anything new. Shrink the lists as TD-15 lands.
+- **`a11y.spec.ts`** — no longer differs. It shipped under TD-24 as a known-violations allowlist because a zero gate would have been red on arrival; **TD-15 then closed the violations and made it a zero gate** (`expect(summary).toEqual([])`). What the allowlist contained: `color-contrast` on every primary button — white on `violet-500` measured 4.4:1 against the 4.5:1 that 14px text needs, missing by a tenth — plus `link-name` on the icon-only sidebar and pagination links, and `button-name` on the sort controls. One entry, `aria-toggle-field-name`, had already been fixed before the pass began, which is exactly the failure mode an allowlist has.
 
 **Two selector traps.** The `role="dialog"` element has no bounding box (its children are `fixed`), so Playwright reports it hidden — assert on something inside it. And each dialog renders its title twice, so a heading query inside one is a strict-mode violation.
 
@@ -171,8 +171,8 @@ Use `page.getByRole` / `getByLabel`, not CSS selectors — role-based queries do
 Kept for the record, and because four steps went differently than written. Deviations, all deliberate:
 
 1. **`vite-tsconfig-paths` was installed and then removed.** Vite resolves tsconfig paths natively now (`resolve: { tsconfigPaths: true }`); Vitest prints a deprecation notice if you use the plugin. One fewer dependency than this plan called for.
-2. **Coverage thresholds are 14/9/9/13, not 70/70/60/70.** Setting them at the target would fail CI on day one — the exact failure mode §2 warns about two paragraphs earlier. They ratchet up instead.
-3. **Playwright was not installed.** TD-03's exit criterion is a green unit suite enforced by CI; the eight specs in §3 are a body of work in their own right, and `pnpm create playwright` is interactive besides. The CI `e2e` job stays documented-as-unrunnable until someone does it properly.
+2. **Coverage thresholds were set at 14/9/9/13, not 70/70/60/70.** Setting them at the target would have failed CI on day one — the exact failure mode §2 warns about. They ratchet up instead, and are **22/18/15/21 today**; §2 is the current figure, this line is what the migration shipped with.
+3. **Playwright was not installed.** TD-03's exit criterion is a green unit suite enforced by CI; the eight specs in §3 are a body of work in their own right, and `pnpm create playwright` is interactive besides. The CI `e2e` job was left documented-as-unrunnable rather than half-done — **TD-24 installed it properly on 2026-07-25**, and the job has been blocking since 2026-07-26.
 4. **Tests import from `vitest` explicitly** rather than relying on `globals: true` for typing. Dropping `@types/jest` left `test`/`expect` untyped under `tsc`, and explicit imports fix that without adding a `types` array to tsconfig, which would have overridden the default and pulled the rug on `@types/node`.
 
 Also removed: `__test__/mocks/next/*`, orphaned once Jest's `moduleNameMapper` went away — nothing imported them.
@@ -235,6 +235,11 @@ Config: `testDir: "./e2e"`, `webServer` pointing at `pnpm dev`, `baseURL: "http:
 
 **7 — Scripts**
 
+> ⚠️ The `typecheck` script below is the **original plan and is wrong** — do not
+> copy it. A bare `tsc --noEmit` passes vacuously in a fresh checkout, because the
+> route-handler signatures live in types Next generates. The live script is
+> `next typegen && tsc --noEmit`; see TD-04.
+
 ```json
 {
   "typecheck": "tsc --noEmit",
@@ -266,7 +271,7 @@ Config: `testDir: "./e2e"`, `webServer` pointing at `pnpm dev`, `baseURL: "http:
 
 ```ts
 export const makeSpell = (overrides: Partial<Spell> = {}): Spell => ({
-  nome: "Palla di Fuoco", livello: 3, circolo: [Circolo.Evocazione], …overrides,
+  name: "Palla di Fuoco", level: 3, circle: [Subclass.BardoSapienza], …overrides,
 });
 ```
 

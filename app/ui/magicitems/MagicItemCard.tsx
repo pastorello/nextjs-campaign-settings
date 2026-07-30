@@ -11,7 +11,7 @@ import MagicItemMetaField from "@/app/lib/definitions/enums/magicitem/MagicItemM
 import MagicItem from "@/app/lib/definitions/interfaces/magicitem/MagicItem";
 
 const MagicItemCard = (props: { cardItem: MagicItem }) => {
-  const markup = { __html: props.cardItem.descrizione };
+  const markup = { __html: props.cardItem.description };
 
   return (
     <Disclosure>
@@ -19,24 +19,24 @@ const MagicItemCard = (props: { cardItem: MagicItem }) => {
         <DisclosureButton className="mb-2 flex w-full group">
           <div className="flex-1 text-left">
             <h3 className="text-xl">
-              {pageMetaFields[MagicItemMetaField.nome].getDatum(
-                props.cardItem[MagicItemMetaField.nome]
+              {pageMetaFields[MagicItemMetaField.name].getDatum(
+                props.cardItem[MagicItemMetaField.name]
               )}
             </h3>
             <p>
-              {props.cardItem[MagicItemMetaField.sintonia] === true &&
+              {props.cardItem[MagicItemMetaField.attuned] === true &&
                 "Richiede sintonia"}
             </p>
           </div>
           <div className="w-[250px] px-2">
             <div className="text-xl">
-              {pageMetaFields[MagicItemMetaField.tipo].getDatum(
-                props.cardItem[MagicItemMetaField.tipo]
+              {pageMetaFields[MagicItemMetaField.type].getDatum(
+                props.cardItem[MagicItemMetaField.type]
               )}
             </div>
             <div className="text-gray-400">
-              {pageMetaFields[MagicItemMetaField.rarita].getDatum(
-                props.cardItem[MagicItemMetaField.rarita]
+              {pageMetaFields[MagicItemMetaField.rarity].getDatum(
+                props.cardItem[MagicItemMetaField.rarity]
               )}
             </div>
           </div>

@@ -1,7 +1,7 @@
 import firstOptionValue from "../firstOptionValue";
 import ControlType from "@/app/lib/definitions/types/ControlType";
 import FieldType from "@/app/lib/definitions/types/FieldType";
-import PatronoMetaField from "@/app/lib/definitions/enums/deities/PatronoMetaField";
+import DeityMetaField from "@/app/lib/definitions/enums/deities/DeityMetaField";
 import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 
 import coloriMagia from "./coloriMagia";
@@ -17,8 +17,8 @@ import traditionTypes from "./traditionTypes";
 import celestialPlanes from "../geography/celestialPlanes";
 
 const deitiesMeta = {
-  [PatronoMetaField.colore]: {
-    metaField: "colore",
+  [DeityMetaField.color]: {
+    metaField: "color",
     label: "Colore magia",
     defaultValue: firstOptionValue(coloriMagia),
     fieldType: FieldType.integer,
@@ -28,8 +28,8 @@ const deitiesMeta = {
     getDatum: (datum: number, useColorCode?: boolean) =>
       getDataLabel(coloriMagia, datum, useColorCode ? "colorClass" : "label"),
   },
-  [PatronoMetaField.titoloPatrono]: {
-    metaField: "titoloPatrono",
+  [DeityMetaField.deityTitle]: {
+    metaField: "deityTitle",
     label: "titoloPatrono",
     defaultValue: "",
     placeholder: "titoloPatrono",
@@ -38,8 +38,8 @@ const deitiesMeta = {
     validator: z.string(),
     getDatum: (datum: string) => datum,
   },
-  [PatronoMetaField.tipoPatrono]: {
-    metaField: "tipoPatrono",
+  [DeityMetaField.deityType]: {
+    metaField: "deityType",
     label: "tipoPatrono",
     defaultValue: firstOptionValue(deityTypes),
     placeholder: "tipoPatrono",
@@ -49,8 +49,8 @@ const deitiesMeta = {
     options: deityTypes,
     getDatum: (datum: number) => getDataLabel(deityTypes, datum),
   },
-  [PatronoMetaField.gradoPatrono]: {
-    metaField: "gradoPatrono",
+  [DeityMetaField.deityRank]: {
+    metaField: "deityRank",
     label: "gradoPatrono",
     defaultValue: firstOptionValue(deityLevels),
     placeholder: "gradoPatrono",
@@ -60,8 +60,8 @@ const deitiesMeta = {
     options: deityLevels,
     getDatum: (datum: number) => getDataLabel(deityLevels, datum),
   },
-  [PatronoMetaField.card]: {
-    metaField: "card",
+  [DeityMetaField.tarotCard]: {
+    metaField: "tarotCard",
     label: "card",
     defaultValue: firstOptionValue(tarocchi),
     placeholder: "card",
@@ -71,8 +71,8 @@ const deitiesMeta = {
     options: tarocchi,
     getDatum: (datum: number) => getDataLabel(tarocchi, datum),
   },
-  [PatronoMetaField.astri]: {
-    metaField: "astri",
+  [DeityMetaField.celestialBody]: {
+    metaField: "celestialBody",
     label: "astri",
     defaultValue: firstOptionValue(celestialBodies),
     placeholder: "astri",
@@ -82,8 +82,8 @@ const deitiesMeta = {
     options: celestialBodies,
     getDatum: (datum: number) => getDataLabel(celestialBodies, datum),
   },
-  [PatronoMetaField.elemento]: {
-    metaField: "elemento",
+  [DeityMetaField.element]: {
+    metaField: "element",
     label: "elemento",
     defaultValue: firstOptionValue(energyElements),
     placeholder: "elemento",
@@ -93,8 +93,8 @@ const deitiesMeta = {
     options: energyElements,
     getDatum: (datum: number) => getDataLabel(energyElements, datum),
   },
-  [PatronoMetaField.classe]: {
-    metaField: "classe",
+  [DeityMetaField.deityClass]: {
+    metaField: "deityClass",
     label: "classe",
     defaultValue: firstOptionValue(subclasses),
     placeholder: "classe",
@@ -104,8 +104,8 @@ const deitiesMeta = {
     options: subclasses,
     getDatum: (datum: number) => getDataLabel(subclasses, datum),
   },
-  [PatronoMetaField.festivita]: {
-    metaField: "festivita",
+  [DeityMetaField.holidays]: {
+    metaField: "holidays",
     label: "festivita",
     defaultValue: "",
     placeholder: "festivita",
@@ -114,8 +114,8 @@ const deitiesMeta = {
     validator: z.string(),
     getDatum: (datum: string) => datum,
   },
-  [PatronoMetaField.tradizione]: {
-    metaField: "tradizione",
+  [DeityMetaField.tradition]: {
+    metaField: "tradition",
     label: "tradizione",
     defaultValue: firstOptionValue(traditionTypes),
     placeholder: "tradizione",
@@ -125,8 +125,8 @@ const deitiesMeta = {
     options: traditionTypes,
     getDatum: (datum: number) => getDataLabel(traditionTypes, datum),
   },
-  [PatronoMetaField.residenza]: {
-    metaField: "residenza",
+  [DeityMetaField.residence]: {
+    metaField: "residence",
     label: "residenza",
     defaultValue: firstOptionValue(celestialPlanes),
     placeholder: "residenza",
@@ -136,8 +136,8 @@ const deitiesMeta = {
     options: celestialPlanes,
     getDatum: (datum: number) => getDataLabel(celestialPlanes, datum),
   },
-  [PatronoMetaField.significato]: {
-    metaField: "significato",
+  [DeityMetaField.meaning]: {
+    metaField: "meaning",
     label: "significato",
     defaultValue: "",
     placeholder: "significato",

@@ -8,11 +8,11 @@ export default function MagicItemLibrary(props: { items: MagicItem[] }) {
   return (
     <div className="w-full pt-5">
       <div className="grid gap-2 grid-cols-8">
-        <SelectButtonery fieldKey={MagicItemMetaField.rarita} />
+        <SelectButtonery fieldKey={MagicItemMetaField.rarity} />
       </div>
       <hr className="mb-4" />
       <div className={"grid gap-2 grid-cols-5"}>
-        <SelectButtonery fieldKey={MagicItemMetaField.tipo} />
+        <SelectButtonery fieldKey={MagicItemMetaField.type} />
       </div>
       {props.items.map((item) => (
         <MagicItemCard cardItem={item} key={item.id} />

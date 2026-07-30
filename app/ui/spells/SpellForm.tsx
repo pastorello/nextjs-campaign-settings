@@ -41,43 +41,43 @@ export default function SpellForm({
         <Fieldset className="flex w-full flex-wrap">
           <div className="flex w-full flex-wrap">
             <div className="box-border w-full p-2 lg:w-[30%]">
-              {field(SpellMetaField.nome)}
+              {field(SpellMetaField.name)}
             </div>
             <div className="box-border w-full p-2 lg:w-[15%]">
-              {field(SpellMetaField.livello)}
+              {field(SpellMetaField.level)}
             </div>
             <div className="box-border w-full p-2 lg:w-[15%]">
-              {field(SpellMetaField.classi)}
+              {field(SpellMetaField.classes)}
             </div>
             <div className="box-border w-full p-2 lg:w-[40%]">
-              {field(SpellMetaField.circolo)}
+              {field(SpellMetaField.circle)}
             </div>
           </div>
 
           <div className="flex w-full flex-wrap">
             <div className="box-border w-full p-2 lg:w-[20%]">
-              {field(SpellMetaField.tempoDiLancio)}
+              {field(SpellMetaField.castingTime)}
             </div>
             <div className="box-border w-full p-2 lg:w-[20%]">
-              {field(SpellMetaField.gittata)}
+              {field(SpellMetaField.range)}
             </div>
             <div className="box-border w-full p-2 lg:w-[15%]">
-              {field(SpellMetaField.componenti)}
+              {field(SpellMetaField.components)}
             </div>
             <div className="box-border w-full p-2 lg:w-[25%]">
-              {field(SpellMetaField.durata)}
+              {field(SpellMetaField.duration)}
             </div>
             <div className="box-border w-full p-2 pt-7 lg:w-[20%]">
-              {field(SpellMetaField.rituale)}
+              {field(SpellMetaField.ritual)}
             </div>
           </div>
 
           <div className="flex w-full flex-wrap">
             <div className="box-border w-full p-2 lg:w-[50%]">
-              {field(SpellMetaField.descrizione)}
+              {field(SpellMetaField.description)}
             </div>
             <div className="box-border w-full p-2 lg:w-[50%]">
-              {field(SpellMetaField.intensificato)}
+              {field(SpellMetaField.upcast)}
             </div>
           </div>
         </Fieldset>

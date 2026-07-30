@@ -28,15 +28,15 @@ import AxeBuilder from "@axe-core/playwright";
 const PAGES = [
   "/dashboard",
   "/dashboard/spells",
-  "/dashboard/png",
+  "/dashboard/npc",
   "/dashboard/deities",
   "/dashboard/magicitems",
   "/dashboard/admin/spells",
-  "/dashboard/admin/png",
+  "/dashboard/admin/npc",
   "/dashboard/admin/deities",
   "/dashboard/admin/magicitems",
   "/dashboard/admin/spells/new",
-  "/dashboard/admin/png/new",
+  "/dashboard/admin/npc/new",
 ];
 
 for (const path of PAGES) {

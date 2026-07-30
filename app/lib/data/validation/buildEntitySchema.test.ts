@@ -11,7 +11,7 @@ import {
 const types = [
   PageType.Spell,
   PageType.MagicItem,
-  PageType.Png,
+  PageType.Npc,
   PageType.Deity,
 ] as const;
 

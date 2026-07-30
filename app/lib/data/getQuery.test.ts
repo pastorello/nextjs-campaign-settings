@@ -10,11 +10,11 @@ import { DEFAULT_ITEMS_PER_PAGE } from "../config/constants";
 // worth covering exhaustively — and it needs no database to do so.
 describe("getQuery", () => {
   describe("free-text search", () => {
-    it("builds a case-insensitive contains filter on nome", () => {
+    it("builds a case-insensitive contains filter on name", () => {
       const { where } = getQuery({ query: "fuoco" }, []);
 
       expect(where).toEqual({
-        nome: { contains: "fuoco", mode: "insensitive" },
+        name: { contains: "fuoco", mode: "insensitive" },
       });
     });
 
@@ -27,55 +27,55 @@ describe("getQuery", () => {
     it("omits the filter when query is an empty string", () => {
       const { where } = getQuery({ query: "" }, []);
 
-      expect(where).not.toHaveProperty("nome");
+      expect(where).not.toHaveProperty("name");
     });
   });
 
   describe("metadata-driven filters", () => {
     it("uses equality for an integer field", () => {
-      const { where } = getQuery({ livello: "3" }, [SpellMetaField.livello]);
+      const { where } = getQuery({ level: "3" }, [SpellMetaField.level]);
 
-      expect(where).toEqual({ livello: 3 });
+      expect(where).toEqual({ level: 3 });
     });
 
     it("uses hasSome for an array field", () => {
-      const { where } = getQuery({ circolo: "2" }, [SpellMetaField.circolo]);
+      const { where } = getQuery({ circle: "2" }, [SpellMetaField.circle]);
 
-      expect(where).toEqual({ circolo: { hasSome: [2] } });
+      expect(where).toEqual({ circle: { hasSome: [2] } });
     });
 
     it("ignores a field that is not in enabledMeta", () => {
-      const { where } = getQuery({ livello: "3" }, []);
+      const { where } = getQuery({ level: "3" }, []);
 
       expect(where).toEqual({});
     });
 
     it("drops a value that fails its field-type validator", () => {
       // paramValidator for integers requires Number(value) >= 0.
-      const { where } = getQuery({ livello: "-1" }, [SpellMetaField.livello]);
+      const { where } = getQuery({ level: "-1" }, [SpellMetaField.level]);
 
-      expect(where).not.toHaveProperty("livello");
+      expect(where).not.toHaveProperty("level");
     });
 
     it("keeps a boolean field only when it is truthy", () => {
-      const enabled = [SpellMetaField.rituale];
+      const enabled = [SpellMetaField.ritual];
 
-      expect(getQuery({ rituale: "true" }, enabled).where).toEqual({
-        rituale: true,
+      expect(getQuery({ ritual: "true" }, enabled).where).toEqual({
+        ritual: true,
       });
-      expect(getQuery({ rituale: "false" }, enabled).where).not.toHaveProperty(
-        "rituale"
+      expect(getQuery({ ritual: "false" }, enabled).where).not.toHaveProperty(
+        "ritual"
       );
     });
 
     it("combines free-text search with a field filter", () => {
-      const { where } = getQuery({ query: "palla", livello: "3" }, [
-        SpellMetaField.livello,
+      const { where } = getQuery({ query: "palla", level: "3" }, [
+        SpellMetaField.level,
       ]);
 
       expect(where).toEqual({
-        nome: { contains: "palla", mode: "insensitive" },
-        livello: 3,
+        name: { contains: "palla", mode: "insensitive" },
+        level: 3,
       });
     });
   });
@@ -110,29 +110,29 @@ describe("getQuery", () => {
   });
 
   describe("ordering", () => {
-    it("falls back to ascending nome", () => {
-      expect(getQuery({}, []).orderBy).toEqual([{ nome: "asc" }]);
+    it("falls back to ascending name", () => {
+      expect(getQuery({}, []).orderBy).toEqual([{ name: "asc" }]);
     });
 
-    it("orders nome descending when sort is desc", () => {
+    it("orders name descending when sort is desc", () => {
       expect(getQuery({ sort: "desc" }, []).orderBy).toEqual([
-        { nome: "desc" },
+        { name: "desc" },
       ]);
     });
 
     it("ignores an unrecognised sort direction", () => {
       expect(getQuery({ sort: "sideways" }, []).orderBy).toEqual([
-        { nome: "asc" },
+        { name: "asc" },
       ]);
     });
 
-    it("puts explicit sortFields before the nome fallback", () => {
+    it("puts explicit sortFields before the name fallback", () => {
       const { orderBy } = getQuery(
-        { sortFields: JSON.stringify({ livello: "desc" }) },
+        { sortFields: JSON.stringify({ level: "desc" }) },
         []
       );
 
-      expect(orderBy).toEqual([{ livello: "desc" }, { nome: "asc" }]);
+      expect(orderBy).toEqual([{ level: "desc" }, { name: "asc" }]);
     });
   });
 });

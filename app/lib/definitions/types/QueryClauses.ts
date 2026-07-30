@@ -16,7 +16,7 @@ export type WhereCondition =
 /** A where clause keyed by field name. */
 export type WhereClause = Record<string, WhereCondition>;
 
-/** A single order-by term, e.g. `{ nome: "asc" }`. */
+/** A single order-by term, e.g. `{ name: "asc" }`. */
 export type OrderByClause = Record<string, "asc" | "desc">;
 
 /** The full query object handed to Prisma's `findMany`. */

@@ -1,25 +1,25 @@
-import TipoTradizione from "../../definitions/enums/deities/TipoTradizione";
+import TraditionType from "../../definitions/enums/deities/TraditionType";
 import SelectOption from "../../definitions/types/SelectOption";
 
 const traditionTypes: SelectOption<number>[] = [
   {
-    value: TipoTradizione.Arcana,
+    value: TraditionType.Arcana,
     label: "Arcana",
   },
   {
-    value: TipoTradizione.Divina,
+    value: TraditionType.Divina,
     label: "Divina",
   },
   {
-    value: TipoTradizione.Occulta,
+    value: TraditionType.Occulta,
     label: "Occulta",
   },
   {
-    value: TipoTradizione.Primeva,
+    value: TraditionType.Primeva,
     label: "Primeva",
   },
   {
-    value: TipoTradizione.Ultraterrena,
+    value: TraditionType.Ultraterrena,
     label: "Ultraterrena",
   },
 ];

@@ -2,12 +2,12 @@ import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import magicitems from "./initial-data/magicitems";
 import deities from "./initial-data/deities";
-import png from "./initial-data/png";
+import npc from "./initial-data/npc";
 import spells from "./initial-data/spells";
 import ListItem from "../lib/definitions/interfaces/ListItem";
 import DBMagicItem from "../lib/definitions/interfaces/magicitem/DBMagicItem";
 import DBDeities from "../lib/definitions/interfaces/deities/DBDeities";
-import DBPngItem from "../lib/definitions/interfaces/png/DBPngItem";
+import DBNpcItem from "../lib/definitions/interfaces/npc/DBNpcItem";
 import DBSpell from "../lib/definitions/interfaces/spells/DBSpell";
 import users from "./initial-data/users";
 
@@ -26,12 +26,12 @@ const prisma = new PrismaClient({ adapter });
  *
  * That change costs the old idempotency, which came from `skipDuplicates` on a
  * primary-key collision and worked *only* because the ids were fixed. Re-runs
- * are kept safe by matching on `nome` instead, the same rule `db:import` uses.
+ * are kept safe by matching on `name` instead, the same rule `db:import` uses.
  */
 
 const toDBObject = (collectionItem: ListItem) =>
   Object.keys(collectionItem).reduce((acc: ListItem, key: string) => {
-    acc[key.toLowerCase()] = collectionItem[key];
+    acc[key] = collectionItem[key];
     return acc;
   }, {} as ListItem);
 
@@ -44,28 +44,28 @@ const DOMAINS = [
   {
     label: "magicitems",
     rows: magicitems,
-    exists: (nome: string) => prisma.magicitems.findFirst({ where: { nome } }),
+    exists: (name: string) => prisma.magicitems.findFirst({ where: { name } }),
     create: (data: ListItem) =>
       prisma.magicitems.create({ data: data as unknown as DBMagicItem }),
   },
   {
     label: "deities",
     rows: deities,
-    exists: (nome: string) => prisma.deities.findFirst({ where: { nome } }),
+    exists: (name: string) => prisma.deities.findFirst({ where: { name } }),
     create: (data: ListItem) =>
       prisma.deities.create({ data: data as unknown as DBDeities }),
   },
   {
-    label: "png",
-    rows: png,
-    exists: (nome: string) => prisma.png.findFirst({ where: { nome } }),
+    label: "npc",
+    rows: npc,
+    exists: (name: string) => prisma.npc.findFirst({ where: { name } }),
     create: (data: ListItem) =>
-      prisma.png.create({ data: data as unknown as DBPngItem }),
+      prisma.npc.create({ data: data as unknown as DBNpcItem }),
   },
   {
     label: "spells",
     rows: spells,
-    exists: (nome: string) => prisma.spells.findFirst({ where: { nome } }),
+    exists: (name: string) => prisma.spells.findFirst({ where: { name } }),
     create: (data: ListItem) =>
       prisma.spells.create({ data: data as unknown as DBSpell }),
   },
@@ -77,9 +77,9 @@ export async function main() {
 
     for (const row of domain.rows) {
       const data = toDBObject(row);
-      const nome = data.nome as string;
+      const name = data.name as string;
 
-      if (await domain.exists(nome)) continue;
+      if (await domain.exists(name)) continue;
 
       await domain.create(data);
       created += 1;

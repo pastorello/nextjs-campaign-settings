@@ -6,3 +6,6 @@
 
 # style: apply Prettier across the repo (TD-05, TD-16)
 14a4c02474db3c4cc5bd701e35f46542b1413525
+
+# refactor(td): rename Italian identifiers to English across the codebase (TD-19)
+21a37fd1e24da9c268d591ccdbe07144af4d6c01

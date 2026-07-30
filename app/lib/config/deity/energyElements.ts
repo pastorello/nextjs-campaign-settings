@@ -1,29 +1,29 @@
-import Elemento from "../../definitions/enums/deities/Elemento";
+import Element from "../../definitions/enums/deities/Element";
 import SelectOption from "../../definitions/types/SelectOption";
 
 const energyElements: SelectOption<number>[] = [
   {
-    value: Elemento.Acqua,
+    value: Element.Acqua,
     label: "Acqua",
   },
   {
-    value: Elemento.Aria,
+    value: Element.Aria,
     label: "Aria",
   },
   {
-    value: Elemento.Fuoco,
+    value: Element.Fuoco,
     label: "Fuoco",
   },
   {
-    value: Elemento.Spirito,
+    value: Element.Spirito,
     label: "Spirito",
   },
   {
-    value: Elemento.Terra,
+    value: Element.Terra,
     label: "Terra",
   },
   {
-    value: Elemento.Vuoto,
+    value: Element.Vuoto,
     label: "Vuoto",
   },
 ];

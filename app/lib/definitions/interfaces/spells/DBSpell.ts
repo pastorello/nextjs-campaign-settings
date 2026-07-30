@@ -1,18 +1,18 @@
 interface DBSpell {
-  nome: string;
+  name: string;
   id: number;
-  livello: number;
-  circolo: number[];
-  classi: number[];
-  tempodilancio: string;
-  gittata: string;
-  componenti: string;
-  durata: string;
-  tirosalvezza: string;
-  rituale: boolean;
-  concentrazione: boolean;
-  descrizione: string;
-  intensificato: string;
+  level: number;
+  circle: number[];
+  classes: number[];
+  castingTime: string;
+  range: string;
+  components: string;
+  duration: string;
+  savingThrow: string;
+  ritual: boolean;
+  concentration: boolean;
+  description: string;
+  upcast: string;
 }
 
 export default DBSpell;

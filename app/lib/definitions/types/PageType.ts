@@ -1,7 +1,7 @@
 enum PageType {
   MagicItem = "magicitems",
   Spell = "spells",
-  Png = "png",
+  Npc = "npc",
   Deity = "deities",
 }
 

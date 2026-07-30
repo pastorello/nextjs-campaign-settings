@@ -46,22 +46,22 @@ export default function MagicItemForm({
           <div className="flex w-full flex-wrap">
             <div className="flex w-[40%] flex-col p-2">
               <div className="mb-2 flex w-full">
-                {field(MagicItemMetaField.nome)}
+                {field(MagicItemMetaField.name)}
               </div>
               <div className="mb-2 flex w-full gap-4">
                 <div className="mb-2 flex w-[50%]">
-                  {field(MagicItemMetaField.tipo)}
+                  {field(MagicItemMetaField.type)}
                 </div>
                 <div className="mb-2 flex w-[50%]">
-                  {field(MagicItemMetaField.rarita)}
+                  {field(MagicItemMetaField.rarity)}
                 </div>
               </div>
               <div className="mb-2 flex w-full">
-                {field(MagicItemMetaField.sintonia)}
+                {field(MagicItemMetaField.attuned)}
               </div>
             </div>
             <div className="mb-2 flex w-[60%] p-2">
-              {field(MagicItemMetaField.descrizione)}
+              {field(MagicItemMetaField.description)}
             </div>
           </div>
         </Fieldset>

@@ -1,9 +1,9 @@
 enum MagicItemMetaField {
-  nome = "nome",
-  tipo = "tipo",
-  rarita = "rarita",
-  descrizione = "descrizione",
-  sintonia = "sintonia",
+  name = "name",
+  type = "type",
+  rarity = "rarity",
+  description = "description",
+  attuned = "attuned",
 }
 
 export default MagicItemMetaField;

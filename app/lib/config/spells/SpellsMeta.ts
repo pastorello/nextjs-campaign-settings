@@ -15,8 +15,8 @@ import getDataLabel from "../../utils/data/getDataLabel";
 import renderRichText from "../../utils/data/renderRichText";
 
 const spellsMeta = {
-  [SpellMetaField.livello]: {
-    metaField: "livello",
+  [SpellMetaField.level]: {
+    metaField: "level",
     label: "Livello",
     defaultValue: 0,
     fieldType: FieldType.integer,
@@ -26,8 +26,8 @@ const spellsMeta = {
     getDatum: (datum: number, useShortLabel?: boolean) =>
       getDataLabel(levels, datum, useShortLabel ? "shortLabel" : "label"),
   },
-  [SpellMetaField.circolo]: {
-    metaField: "circolo",
+  [SpellMetaField.circle]: {
+    metaField: "circle",
     label: "Sottoclassi",
     defaultValue: [],
     fieldType: FieldType.array,
@@ -36,8 +36,8 @@ const spellsMeta = {
     validator: z.array(z.number().int()),
     getDatum: (datum: number[]) => getDataLabel(subclasses, datum),
   },
-  [SpellMetaField.classi]: {
-    metaField: "classi",
+  [SpellMetaField.classes]: {
+    metaField: "classes",
     label: "Classi",
     defaultValue: [],
     fieldType: FieldType.array,
@@ -49,8 +49,8 @@ const spellsMeta = {
     validator: z.array(z.number().int()),
     getDatum: (datum: number[]) => getDataLabel(classes, datum),
   },
-  [SpellMetaField.tempoDiLancio]: {
-    metaField: "tempoDiLancio",
+  [SpellMetaField.castingTime]: {
+    metaField: "castingTime",
     label: "Tempo di lancio",
     defaultValue: firstOptionValue(tempiDiLancio),
     fieldType: FieldType.string,
@@ -59,8 +59,8 @@ const spellsMeta = {
     validator: z.string().min(1),
     getDatum: (datum: string) => getDataLabel(tempiDiLancio, datum),
   },
-  [SpellMetaField.gittata]: {
-    metaField: "gittata",
+  [SpellMetaField.range]: {
+    metaField: "range",
     label: "Gittata",
     defaultValue: firstOptionValue(gittate),
     fieldType: FieldType.string,
@@ -69,8 +69,8 @@ const spellsMeta = {
     validator: z.string().min(1),
     getDatum: (datum: string) => getDataLabel(gittate, datum),
   },
-  [SpellMetaField.componenti]: {
-    metaField: "componenti",
+  [SpellMetaField.components]: {
+    metaField: "components",
     label: "Componenti",
     defaultValue: "V,S,M",
     fieldType: FieldType.string,
@@ -78,8 +78,8 @@ const spellsMeta = {
     validator: z.string().min(1),
     getDatum: (datum: string) => datum,
   },
-  [SpellMetaField.durata]: {
-    metaField: "durata",
+  [SpellMetaField.duration]: {
+    metaField: "duration",
     label: "Durata",
     defaultValue: firstOptionValue(durate),
     fieldType: FieldType.string,
@@ -88,8 +88,8 @@ const spellsMeta = {
     validator: z.string().min(1),
     getDatum: (datum: string) => getDataLabel(durate, datum),
   },
-  [SpellMetaField.tiroSalvezza]: {
-    metaField: "tiroSalvezza",
+  [SpellMetaField.savingThrow]: {
+    metaField: "savingThrow",
     label: "Tiro salvezza",
     defaultValue: firstOptionValue(tiriSalvezza),
     fieldType: FieldType.string,
@@ -98,8 +98,8 @@ const spellsMeta = {
     validator: z.string().optional(),
     getDatum: (datum: string) => getDataLabel(tiriSalvezza, datum),
   },
-  [SpellMetaField.rituale]: {
-    metaField: "rituale",
+  [SpellMetaField.ritual]: {
+    metaField: "ritual",
     label: "Rituale",
     defaultValue: false,
     fieldType: FieldType.boolean,
@@ -107,8 +107,8 @@ const spellsMeta = {
     validator: z.boolean().optional(),
     getDatum: (datum: boolean) => (datum === true ? "Rituale" : ""),
   },
-  [SpellMetaField.concentrazione]: {
-    metaField: "concentrazione",
+  [SpellMetaField.concentration]: {
+    metaField: "concentration",
     label: "Richiede concentrazione",
     defaultValue: false,
     fieldType: FieldType.boolean,
@@ -116,8 +116,8 @@ const spellsMeta = {
     validator: z.boolean().optional(),
     getDatum: (datum: boolean) => (datum === true ? "Sì" : "No"),
   },
-  [SpellMetaField.intensificato]: {
-    metaField: "intensificato",
+  [SpellMetaField.upcast]: {
+    metaField: "upcast",
     label: "Ai livelli superiori",
     defaultValue: "",
     fieldType: FieldType.string,

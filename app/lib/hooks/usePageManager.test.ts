@@ -11,7 +11,7 @@ import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
 const PAGE_TYPES = [
   PageType.Spell,
   PageType.MagicItem,
-  PageType.Png,
+  PageType.Npc,
   PageType.Deity,
 ];
 
@@ -56,9 +56,9 @@ describe("usePageManager", () => {
   describe("edit mode", () => {
     const existing = {
       id: 42,
-      nome: "Dardo Incantato",
-      livello: 1,
-      descrizione: "<p>Tre dardi.</p>",
+      name: "Dardo Incantato",
+      level: 1,
+      description: "<p>Tre dardi.</p>",
     };
 
     it("starts from the record's values, not the field defaults", () => {
@@ -66,8 +66,8 @@ describe("usePageManager", () => {
         usePageManager<typeof existing>(PageType.Spell, existing)
       );
 
-      expect(result.current.page.nome).toBe("Dardo Incantato");
-      expect(result.current.page.livello).toBe(1);
+      expect(result.current.page.name).toBe("Dardo Incantato");
+      expect(result.current.page.level).toBe(1);
     });
 
     it("carries the id without mutating the returned object", () => {
@@ -89,26 +89,26 @@ describe("usePageManager", () => {
       const { result } = renderHook(() => usePageManager(PageType.Spell));
 
       act(() => {
-        result.current.setField(SpellMetaField.nome, "Palla di Fuoco");
+        result.current.setField(SpellMetaField.name, "Palla di Fuoco");
       });
 
-      expect(result.current.editedFields).toEqual([SpellMetaField.nome]);
-      expect(result.current.getField(SpellMetaField.nome)).toBe(
+      expect(result.current.editedFields).toEqual([SpellMetaField.name]);
+      expect(result.current.getField(SpellMetaField.name)).toBe(
         "Palla di Fuoco"
       );
     });
 
     it("stops reporting a field as edited once it is set back", () => {
       const { result } = renderHook(() => usePageManager(PageType.Spell));
-      const original = result.current.getField(SpellMetaField.livello);
+      const original = result.current.getField(SpellMetaField.level);
 
       act(() => {
-        result.current.setField(SpellMetaField.livello, 7);
+        result.current.setField(SpellMetaField.level, 7);
       });
-      expect(result.current.editedFields).toEqual([SpellMetaField.livello]);
+      expect(result.current.editedFields).toEqual([SpellMetaField.level]);
 
       act(() => {
-        result.current.setField(SpellMetaField.livello, original);
+        result.current.setField(SpellMetaField.level, original);
       });
       expect(result.current.editedFields).toEqual([]);
     });
@@ -116,8 +116,8 @@ describe("usePageManager", () => {
     it("throws when asked for a field the domain does not declare", () => {
       const { result } = renderHook(() => usePageManager(PageType.MagicItem));
 
-      // `livello` belongs to spells; a magic item has no state for it.
-      expect(() => result.current.getField(SpellMetaField.livello)).toThrow(
+      // `level` belongs to spells; a magic item has no state for it.
+      expect(() => result.current.getField(SpellMetaField.level)).toThrow(
         /No value found/
       );
     });

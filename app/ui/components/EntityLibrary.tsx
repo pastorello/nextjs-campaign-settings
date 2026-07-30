@@ -3,12 +3,12 @@ import { SearchParamsInput } from "@/app/lib/data/validateParams";
 
 import { fetchFilteredDeities } from "@/app/lib/data/deities/fetchFilteredDeities";
 import { fetchFilteredMagicItems } from "@/app/lib/data/magicitems/fetchFilteredMagicItems";
-import { fetchFilteredPng } from "@/app/lib/data/png/fetchFilteredPng";
+import { fetchFilteredNpc } from "@/app/lib/data/npc/fetchFilteredNpc";
 import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
 
 import DeityLibrary from "../deities/DeityLibrary";
 import MagicItemLibrary from "../magicitems/MagicItemLibrary";
-import PngLibrary from "../png/PngLibrary";
+import NpcLibrary from "../npc/NpcLibrary";
 import SpellLibrary from "../spells/SpellLibrary";
 
 /**
@@ -38,8 +38,8 @@ export default async function EntityLibrary(props: {
   switch (props.pageType) {
     case PageType.Spell:
       return <SpellLibrary items={await fetchFilteredSpells(searchParams)} />;
-    case PageType.Png:
-      return <PngLibrary items={await fetchFilteredPng(searchParams)} />;
+    case PageType.Npc:
+      return <NpcLibrary items={await fetchFilteredNpc(searchParams)} />;
     case PageType.Deity:
       return <DeityLibrary items={await fetchFilteredDeities(searchParams)} />;
     case PageType.MagicItem:

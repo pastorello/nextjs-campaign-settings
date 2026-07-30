@@ -10,8 +10,8 @@ import createDeity from "@/app/lib/data/deities/createDeity";
 import updateDeity from "@/app/lib/data/deities/updateDeity";
 import createMagicItem from "@/app/lib/data/magicitems/createMagicItem";
 import updateMagicItem from "@/app/lib/data/magicitems/updateMagicItem";
-import createPng from "@/app/lib/data/png/createPng";
-import updatePng from "@/app/lib/data/png/updatePng";
+import createNpc from "@/app/lib/data/npc/createNpc";
+import updateNpc from "@/app/lib/data/npc/updateNpc";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 
@@ -25,7 +25,7 @@ vi.mock("@/app/lib/connections/prisma", () => {
       spells: model(),
       deities: model(),
       magicitems: model(),
-      png: model(),
+      npc: model(),
     },
   };
 });
@@ -39,8 +39,8 @@ const mutations = [
   { name: "updateDeity", fn: updateDeity, table: "deities", op: "update" },
   { name: "createMagicItem", fn: createMagicItem, table: "magicitems", op: "create" }, // prettier-ignore
   { name: "updateMagicItem", fn: updateMagicItem, table: "magicitems", op: "update" }, // prettier-ignore
-  { name: "createPng", fn: createPng, table: "png", op: "create" },
-  { name: "updatePng", fn: updatePng, table: "png", op: "update" },
+  { name: "createNpc", fn: createNpc, table: "npc", op: "create" },
+  { name: "updateNpc", fn: updateNpc, table: "npc", op: "update" },
 ] as const;
 
 describe("mutation auth guards", () => {

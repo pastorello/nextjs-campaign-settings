@@ -37,7 +37,7 @@ export default function getQuery<TWhere = WhereClause>(
   const whereClause: WhereClause = {};
 
   if (validatedParams.query) {
-    whereClause.nome = {
+    whereClause.name = {
       contains: validatedParams.query,
       mode: "insensitive",
     };
@@ -80,7 +80,7 @@ export default function getQuery<TWhere = WhereClause>(
     }
   }
 
-  orderBy.push({ nome: validatedParams.sort === "desc" ? "desc" : "asc" });
+  orderBy.push({ name: validatedParams.sort === "desc" ? "desc" : "asc" });
 
   return {
     where: whereClause as TWhere,

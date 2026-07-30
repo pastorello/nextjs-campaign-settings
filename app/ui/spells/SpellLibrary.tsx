@@ -11,14 +11,14 @@ export default function SpellLibrary(props: { items: Spell[] }) {
     <div className="w-full pt-5">
       <div className="grid gap-2 grid-cols-8">
         <SelectButtonery
-          fieldKey={SpellMetaField.classi}
+          fieldKey={SpellMetaField.classes}
           omitAllButton={true}
         />
       </div>
       <hr className="mb-4" />
       <div className="mb-4 flex w-full">
         <SelectButtonery
-          fieldKey={SpellMetaField.livello}
+          fieldKey={SpellMetaField.level}
           buttonClassName="mx-1 flex w-[10%] p-1"
           buttonSize={ButtonSize.squaredSmall}
         />

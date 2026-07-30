@@ -20,7 +20,7 @@ export async function fetchFilteredMagicItems(
     const magicItems = await prisma.magicitems.findMany(theQuery);
     return magicItems.map((item) => ({
       ...item,
-      sintonia: item.sintonia === true,
+      attuned: item.attuned === true,
     }));
   } catch (error) {
     throw toDatabaseError("fetching magic items", error);

@@ -7,11 +7,11 @@ import PageType from "@/app/lib/definitions/types/PageType";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildUpdateSchema } from "../validation/buildEntitySchema";
 
-import Patrono from "../../definitions/interfaces/deities/Patrono";
-import PatronoMetaField from "../../definitions/enums/deities/PatronoMetaField";
+import Deity from "../../definitions/interfaces/deities/Deity";
+import DeityMetaField from "../../definitions/enums/deities/DeityMetaField";
 
 export default async function updateDeity(
-  formData: Patrono
+  formData: Deity
 ): Promise<MutationResult> {
   await requireSession();
 
@@ -27,9 +27,9 @@ export default async function updateDeity(
     data: Object.keys(formData)
       .filter((key) => key !== "id")
       .reduce((acc, key) => {
-        const typedKey = key as PatronoMetaField;
+        const typedKey = key as DeityMetaField;
         return { ...acc, [typedKey]: formData[typedKey] };
-      }, {} as Patrono),
+      }, {} as Deity),
   });
 
   revalidatePath("/deities");

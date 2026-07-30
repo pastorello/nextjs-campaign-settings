@@ -1,21 +1,21 @@
-import GradoPatrono from "../../definitions/enums/deities/GradoPatrono";
+import DeityRank from "../../definitions/enums/deities/DeityRank";
 import SelectOption from "../../definitions/types/SelectOption";
 
 const deityLevels: SelectOption<number>[] = [
   {
-    value: GradoPatrono.DemoneOmbra,
+    value: DeityRank.DemoneOmbra,
     label: "Demone Ombra",
   },
   {
-    value: GradoPatrono.DioMinore,
+    value: DeityRank.DioMinore,
     label: "Dio Minore",
   },
   {
-    value: GradoPatrono.DioSupremo,
+    value: DeityRank.DioSupremo,
     label: "Dio Supremo",
   },
   {
-    value: GradoPatrono.Divinità,
+    value: DeityRank.Divinità,
     label: "Divinità",
   },
 ];

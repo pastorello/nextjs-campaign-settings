@@ -40,8 +40,8 @@ const links = [
   },
   {
     name: "Personaggi conosciuti",
-    href: "/dashboard/png",
-    admin: "/dashboard/admin/png",
+    href: "/dashboard/npc",
+    admin: "/dashboard/admin/npc",
     icon: UserGroupIcon,
   },
 ];

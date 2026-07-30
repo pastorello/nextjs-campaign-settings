@@ -10,8 +10,8 @@ import itemTypes from "./item-types";
 import getDataLabel from "../../utils/data/getDataLabel";
 
 const magicItemsMeta = {
-  [MagicItemMetaField.rarita]: {
-    metaField: "rarita",
+  [MagicItemMetaField.rarity]: {
+    metaField: "rarity",
     label: "Rarità",
     defaultValue: firstOptionValue(rarity),
     fieldType: FieldType.integer,
@@ -20,8 +20,8 @@ const magicItemsMeta = {
     validator: z.number().int(),
     getDatum: (datum: number) => getDataLabel(rarity, datum),
   },
-  [MagicItemMetaField.tipo]: {
-    metaField: "tipo",
+  [MagicItemMetaField.type]: {
+    metaField: "type",
     label: "Tipo di oggetto",
     defaultValue: firstOptionValue(itemTypes),
     fieldType: FieldType.integer,
@@ -30,8 +30,8 @@ const magicItemsMeta = {
     validator: z.number().int(),
     getDatum: (datum: number) => getDataLabel(itemTypes, datum),
   },
-  [MagicItemMetaField.sintonia]: {
-    metaField: "sintonia",
+  [MagicItemMetaField.attuned]: {
+    metaField: "attuned",
     label: "Richiede sintonia",
     defaultValue: false,
     fieldType: FieldType.boolean,

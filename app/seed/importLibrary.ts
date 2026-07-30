@@ -15,12 +15,15 @@
  * building the schema from the metadata means this file has no field list of
  * its own to drift out of date.
  *
- * The export keys fields in camelCase (`tempoDiLancio`) while the database
- * columns are lowercase (`tempodilancio`) — the same split TD-02 found between
- * a `PageMeta.metaField` and its registry key. RENAMES is that mapping, and it
- * is the only translation performed here.
+ * The export keys fields in the app's original Italian camelCase
+ * (`tempoDiLancio`, `nome`) — a fixed external contract, since export files
+ * already on a DM's disk predate TD-19's identifier rename. The database is
+ * now reached through English Prisma field names (`castingTime`, `name`,
+ * mapped via Prisma `@map` to the unchanged Italian columns). RENAMES bridges
+ * the export's Italian keys to the current internal field names, and is the
+ * only translation performed here.
  *
- * Records are matched on `nome`, not on the export's `id`: those ids come from
+ * Records are matched on `name`, not on the export's `id`: those ids come from
  * whichever database produced the file, and reusing them would collide with
  * whatever the target already holds. Same name means update, otherwise create.
  *
@@ -40,12 +43,34 @@ import prisma from "@/app/lib/connections/prisma";
 import PageType from "@/app/lib/definitions/types/PageType";
 import { buildCreateSchema } from "@/app/lib/data/validation/buildEntitySchema";
 
-/** Export key → database column. Everything else passes through unchanged. */
+/** Export key (Italian, pre-TD-19) → current internal field name (English). */
 const RENAMES: Record<string, string> = {
-  sottoClassi: "sottoclassi",
-  tempoDiLancio: "tempodilancio",
-  tiroSalvezza: "tirosalvezza",
-  dominioAllineamento: "dominioallineamento",
+  nome: "name",
+  descrizione: "description",
+  livello: "level",
+  circolo: "circle",
+  classi: "classes",
+  tempoDiLancio: "castingTime",
+  gittata: "range",
+  componenti: "components",
+  durata: "duration",
+  tiroSalvezza: "savingThrow",
+  rituale: "ritual",
+  concentrazione: "concentration",
+  intensificato: "upcast",
+  rarita: "rarity",
+  tipo: "type",
+  sintonia: "attuned",
+  titolo: "title",
+  allineamento: "alignment",
+  dominioAllineamento: "alignmentDomain",
+  mansione: "position",
+  luogo: "location",
+  fazione: "faction",
+  aspetto: "appearance",
+  personalita: "personality",
+  motivazioni: "motivations",
+  segreti: "secrets",
 };
 
 /**
@@ -76,8 +101,8 @@ const DOMAINS = [
   {
     pageType: PageType.Spell,
     rows: (lib: Library) => lib.spells,
-    findByName: (nome: string) =>
-      prisma.spells.findFirst({ where: { nome }, select: { id: true } }),
+    findByName: (name: string) =>
+      prisma.spells.findFirst({ where: { name }, select: { id: true } }),
     update: (id: number, data: Prisma.spellsUpdateInput) =>
       prisma.spells.update({ where: { id }, data }),
     create: (data: Prisma.spellsCreateInput) => prisma.spells.create({ data }),
@@ -85,28 +110,28 @@ const DOMAINS = [
   {
     pageType: PageType.MagicItem,
     rows: (lib: Library) => lib.magicitems,
-    findByName: (nome: string) =>
-      prisma.magicitems.findFirst({ where: { nome }, select: { id: true } }),
+    findByName: (name: string) =>
+      prisma.magicitems.findFirst({ where: { name }, select: { id: true } }),
     update: (id: number, data: Prisma.magicitemsUpdateInput) =>
       prisma.magicitems.update({ where: { id }, data }),
     create: (data: Prisma.magicitemsCreateInput) =>
       prisma.magicitems.create({ data }),
   },
   {
-    pageType: PageType.Png,
-    rows: (lib: Library) => lib.png,
-    findByName: (nome: string) =>
-      prisma.png.findFirst({ where: { nome }, select: { id: true } }),
-    update: (id: number, data: Prisma.pngUpdateInput) =>
-      prisma.png.update({ where: { id }, data }),
-    create: (data: Prisma.pngCreateInput) => prisma.png.create({ data }),
+    pageType: PageType.Npc,
+    rows: (lib: Library) => lib.npc,
+    findByName: (name: string) =>
+      prisma.npc.findFirst({ where: { name }, select: { id: true } }),
+    update: (id: number, data: Prisma.npcUpdateInput) =>
+      prisma.npc.update({ where: { id }, data }),
+    create: (data: Prisma.npcCreateInput) => prisma.npc.create({ data }),
   },
 ] as const;
 
 interface Library {
   spells?: Row[];
   magicitems?: Row[];
-  png?: Row[];
+  npc?: Row[];
 }
 
 type DomainSpec = (typeof DOMAINS)[number];
@@ -123,9 +148,9 @@ async function importDomain(spec: DomainSpec, rows: Row[], dryRun: boolean) {
 
     if (!result.success) {
       const fields = Object.keys(result.error.flatten().fieldErrors).join(", ");
-      const nome =
-        typeof candidate.nome === "string" ? candidate.nome : "<senza nome>";
-      rejected.push(`${nome} (${fields})`);
+      const name =
+        typeof candidate.name === "string" ? candidate.name : "<senza nome>";
+      rejected.push(`${name} (${fields})`);
       continue;
     }
 
@@ -136,16 +161,16 @@ async function importDomain(spec: DomainSpec, rows: Row[], dryRun: boolean) {
     // the compiler's view of it is lossy.
     const data = result.data as Prisma.spellsCreateInput &
       Prisma.magicitemsCreateInput &
-      Prisma.pngCreateInput;
-    const nome = data.nome;
+      Prisma.npcCreateInput;
+    const name = data.name;
 
     if (dryRun) {
       created += 1;
       continue;
     }
 
-    // `nome` is not unique in the schema, so this cannot be a Prisma upsert.
-    const existing = await spec.findByName(nome);
+    // `name` is not unique in the schema, so this cannot be a Prisma upsert.
+    const existing = await spec.findByName(name);
 
     if (existing) {
       await spec.update(existing.id, data);

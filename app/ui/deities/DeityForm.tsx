@@ -6,8 +6,8 @@ import EntityForm from "@/app/ui/forms/EntityForm";
 import createDeity from "@/app/lib/data/deities/createDeity";
 import updateDeity from "@/app/lib/data/deities/updateDeity";
 import PageType from "@/app/lib/definitions/types/PageType";
-import Patrono from "@/app/lib/definitions/interfaces/deities/Patrono";
-import PatronoMetaField from "@/app/lib/definitions/enums/deities/PatronoMetaField";
+import Deity from "@/app/lib/definitions/interfaces/deities/Deity";
+import DeityMetaField from "@/app/lib/definitions/enums/deities/DeityMetaField";
 
 // All user-facing copy for this form, in one place for TD-21.
 const COPY = {
@@ -18,9 +18,9 @@ const COPY = {
 };
 
 interface DeityFormProps {
-  formData?: Patrono;
+  formData?: Deity;
   onCancel: () => void;
-  onSaveFinished: (page: Patrono) => void;
+  onSaveFinished: (page: Deity) => void;
 }
 
 export default function DeityForm({
@@ -29,7 +29,7 @@ export default function DeityForm({
   onSaveFinished,
 }: DeityFormProps) {
   return (
-    <EntityForm<Patrono>
+    <EntityForm<Deity>
       pageType={PageType.Deity}
       formData={formData}
       mutations={{ create: createDeity, update: updateDeity }}
@@ -41,28 +41,28 @@ export default function DeityForm({
         <Fieldset className="flex w-full flex-wrap">
           <div className="flex w-full flex-wrap">
             <div className="box-border w-full p-2 lg:w-[30%]">
-              {field(PatronoMetaField.nome)}
-              {field(PatronoMetaField.titoloPatrono)}
-              {field(PatronoMetaField.gradoPatrono)}
-              {field(PatronoMetaField.tipoPatrono)}
+              {field(DeityMetaField.name)}
+              {field(DeityMetaField.deityTitle)}
+              {field(DeityMetaField.deityRank)}
+              {field(DeityMetaField.deityType)}
             </div>
             <div className="box-border w-full p-2 lg:w-[15%]">
-              {field(PatronoMetaField.allineamento)}
-              {field(PatronoMetaField.dominioAllineamento)}
-              {field(PatronoMetaField.residenza)}
-              {field(PatronoMetaField.luogo)}
+              {field(DeityMetaField.alignment)}
+              {field(DeityMetaField.alignmentDomain)}
+              {field(DeityMetaField.residence)}
+              {field(DeityMetaField.location)}
             </div>
             <div className="box-border w-full p-2 lg:w-[15%]">
-              {field(PatronoMetaField.astri)}
-              {field(PatronoMetaField.card)}
-              {field(PatronoMetaField.significato)}
-              {field(PatronoMetaField.festivita)}
+              {field(DeityMetaField.celestialBody)}
+              {field(DeityMetaField.tarotCard)}
+              {field(DeityMetaField.meaning)}
+              {field(DeityMetaField.holidays)}
             </div>
             <div className="box-border w-full p-2 lg:w-[40%]">
-              {field(PatronoMetaField.colore)}
-              {field(PatronoMetaField.elemento)}
-              {field(PatronoMetaField.tradizione)}
-              {field(PatronoMetaField.classe)}
+              {field(DeityMetaField.color)}
+              {field(DeityMetaField.element)}
+              {field(DeityMetaField.tradition)}
+              {field(DeityMetaField.deityClass)}
             </div>
           </div>
         </Fieldset>

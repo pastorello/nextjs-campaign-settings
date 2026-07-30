@@ -7,14 +7,14 @@ import { SearchParamsInput } from "@/app/lib/data/validateParams";
 
 import { fetchFilteredDeities } from "@/app/lib/data/deities/fetchFilteredDeities";
 import { fetchFilteredMagicItems } from "@/app/lib/data/magicitems/fetchFilteredMagicItems";
-import { fetchFilteredPng } from "@/app/lib/data/png/fetchFilteredPng";
+import { fetchFilteredNpc } from "@/app/lib/data/npc/fetchFilteredNpc";
 import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
 
 import SortableHeader from "../buttons/SortableHeader";
 import DeleteButton from "../buttons/DeleteButton";
 import ModalButton from "../buttons/ModalButton";
 
-const NAME_FIELD = "nome";
+const NAME_FIELD = "name";
 const ACTIONS_LABEL = "Azioni";
 const EDIT_LABEL = "Modifica";
 
@@ -42,8 +42,8 @@ const fetchItems = (pageType: PageType, searchParams: SearchParamsInput) => {
   switch (pageType) {
     case PageType.Spell:
       return fetchFilteredSpells(searchParams);
-    case PageType.Png:
-      return fetchFilteredPng(searchParams);
+    case PageType.Npc:
+      return fetchFilteredNpc(searchParams);
     case PageType.Deity:
       return fetchFilteredDeities(searchParams);
     case PageType.MagicItem:
@@ -110,7 +110,7 @@ export default async function EntityList(props: {
                     <div className="flex items-center gap-3">
                       <p>
                         <strong>
-                          {renderFieldValue(NAME_FIELD, item.nome)}
+                          {renderFieldValue(NAME_FIELD, item.name)}
                         </strong>
                         {config.subtitleField && (
                           <>
@@ -138,7 +138,7 @@ export default async function EntityList(props: {
                         componentProps={{ formData: item }}
                       />
                       <DeleteButton
-                        pageName={item.nome as string}
+                        pageName={item.name as string}
                         pageId={item.id as number}
                         pageType={props.pageType}
                       />

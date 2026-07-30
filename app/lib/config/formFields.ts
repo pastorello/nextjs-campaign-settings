@@ -1,7 +1,7 @@
 import MagicItemMetaField from "../definitions/enums/magicitem/MagicItemMetaField";
 import MetaConfigKey from "../definitions/types/MetaConfigKey";
-import PatronoMetaField from "../definitions/enums/deities/PatronoMetaField";
-import PngMetaField from "../definitions/enums/png/PngMetaField";
+import DeityMetaField from "../definitions/enums/deities/DeityMetaField";
+import NpcMetaField from "../definitions/enums/npc/NpcMetaField";
 import PageType from "../definitions/types/PageType";
 import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
 
@@ -22,61 +22,61 @@ import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
  */
 const formFields: Record<PageType, MetaConfigKey[]> = {
   [PageType.Spell]: [
-    SpellMetaField.nome,
-    SpellMetaField.descrizione,
-    SpellMetaField.livello,
-    SpellMetaField.circolo,
-    SpellMetaField.classi,
-    SpellMetaField.tempoDiLancio,
-    SpellMetaField.gittata,
-    SpellMetaField.componenti,
-    SpellMetaField.durata,
-    SpellMetaField.rituale,
-    SpellMetaField.intensificato,
+    SpellMetaField.name,
+    SpellMetaField.description,
+    SpellMetaField.level,
+    SpellMetaField.circle,
+    SpellMetaField.classes,
+    SpellMetaField.castingTime,
+    SpellMetaField.range,
+    SpellMetaField.components,
+    SpellMetaField.duration,
+    SpellMetaField.ritual,
+    SpellMetaField.upcast,
   ],
 
   [PageType.MagicItem]: [
-    MagicItemMetaField.nome,
-    MagicItemMetaField.descrizione,
-    MagicItemMetaField.rarita,
-    MagicItemMetaField.tipo,
-    MagicItemMetaField.sintonia,
+    MagicItemMetaField.name,
+    MagicItemMetaField.description,
+    MagicItemMetaField.rarity,
+    MagicItemMetaField.type,
+    MagicItemMetaField.attuned,
   ],
 
-  [PageType.Png]: [
-    PngMetaField.nome,
-    PngMetaField.descrizione,
-    PngMetaField.titolo,
-    PngMetaField.allineamento,
-    PngMetaField.dominioAllineamento,
-    PngMetaField.mansione,
-    PngMetaField.luogo,
-    PngMetaField.fazione,
-    PngMetaField.aspetto,
-    PngMetaField.personalita,
-    PngMetaField.motivazioni,
-    PngMetaField.segreti,
+  [PageType.Npc]: [
+    NpcMetaField.name,
+    NpcMetaField.description,
+    NpcMetaField.title,
+    NpcMetaField.alignment,
+    NpcMetaField.alignmentDomain,
+    NpcMetaField.position,
+    NpcMetaField.location,
+    NpcMetaField.faction,
+    NpcMetaField.appearance,
+    NpcMetaField.personality,
+    NpcMetaField.motivations,
+    NpcMetaField.secrets,
   ],
 
   // No `descrizione`: deities carry `significato` instead, and the schema has
   // no descrizione column for them.
   [PageType.Deity]: [
-    PatronoMetaField.nome,
-    PatronoMetaField.titoloPatrono,
-    PatronoMetaField.tipoPatrono,
-    PatronoMetaField.gradoPatrono,
-    PatronoMetaField.card,
-    PatronoMetaField.astri,
-    PatronoMetaField.elemento,
-    PatronoMetaField.classe,
-    PatronoMetaField.festivita,
-    PatronoMetaField.colore,
-    PatronoMetaField.tradizione,
-    PatronoMetaField.allineamento,
-    PatronoMetaField.dominioAllineamento,
-    PatronoMetaField.residenza,
-    PatronoMetaField.luogo,
-    PatronoMetaField.significato,
+    DeityMetaField.name,
+    DeityMetaField.deityTitle,
+    DeityMetaField.deityType,
+    DeityMetaField.deityRank,
+    DeityMetaField.tarotCard,
+    DeityMetaField.celestialBody,
+    DeityMetaField.element,
+    DeityMetaField.deityClass,
+    DeityMetaField.holidays,
+    DeityMetaField.color,
+    DeityMetaField.tradition,
+    DeityMetaField.alignment,
+    DeityMetaField.alignmentDomain,
+    DeityMetaField.residence,
+    DeityMetaField.location,
+    DeityMetaField.meaning,
   ],
 };
 

@@ -68,12 +68,12 @@ test.describe("spell filtering", () => {
 
     await page.getByRole("button", { name: "2° Livello", exact: true }).click();
 
-    await page.waitForURL(/livello=2/);
+    await page.waitForURL(/level=2/);
 
     // Nothing else may come along for the ride. Until TD-27 this asserted the
     // opposite of what happened: SpellLibrary applied a hardcoded classi=0 in a
-    // mount effect, so the page asked for livello=2 AND classi=0.
-    expect(new URL(page.url()).searchParams.get("classi")).toBeNull();
+    // mount effect, so the page asked for level=2 AND classes=0.
+    expect(new URL(page.url()).searchParams.get("classes")).toBeNull();
 
     // The URL changes before the server component streams the filtered rows, so
     // the count reads 0 for a beat. Polling waits that out; reading it once is

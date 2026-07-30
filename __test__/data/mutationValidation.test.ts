@@ -12,8 +12,8 @@ import createDeity from "@/app/lib/data/deities/createDeity";
 import updateDeity from "@/app/lib/data/deities/updateDeity";
 import createMagicItem from "@/app/lib/data/magicitems/createMagicItem";
 import updateMagicItem from "@/app/lib/data/magicitems/updateMagicItem";
-import createPng from "@/app/lib/data/png/createPng";
-import updatePng from "@/app/lib/data/png/updatePng";
+import createNpc from "@/app/lib/data/npc/createNpc";
+import updateNpc from "@/app/lib/data/npc/updateNpc";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
@@ -24,7 +24,7 @@ vi.mock("@/app/lib/connections/prisma", () => {
       spells: model(),
       deities: model(),
       magicitems: model(),
-      png: model(),
+      npc: model(),
     },
   };
 });
@@ -59,11 +59,11 @@ const domains = [
     update: updateMagicItem,
   },
   {
-    name: "png",
-    table: "png",
-    type: PageType.Png,
-    create: createPng,
-    update: updatePng,
+    name: "npc",
+    table: "npc",
+    type: PageType.Npc,
+    create: createNpc,
+    update: updateNpc,
   },
 ] as const;
 
@@ -91,26 +91,26 @@ describe("mutation input validation", () => {
     });
 
     it("returns field-keyed errors naming the offending field", async () => {
-      const payload = { ...validPayload(type), nome: 42 };
+      const payload = { ...validPayload(type), name: 42 };
 
       const result = await create(payload as never);
 
       expect(result.ok).toBe(false);
       if (!result.ok) {
-        expect(Object.keys(result.errors)).toContain("nome");
+        expect(Object.keys(result.errors)).toContain("name");
       }
       expect(model().create).not.toHaveBeenCalled();
     });
 
     it("rejects an update with no id without writing", async () => {
-      const result = await update({ nome: "valido" } as never);
+      const result = await update({ name: "valido" } as never);
 
       expect(result.ok).toBe(false);
       expect(model().update).not.toHaveBeenCalled();
     });
 
     it("accepts a partial update carrying only an edited field", async () => {
-      const result = await update({ id: 7, nome: "Nuovo nome" } as never);
+      const result = await update({ id: 7, name: "Nuovo nome" } as never);
 
       expect(result).toEqual({ ok: true });
       expect(model().update).toHaveBeenCalledTimes(1);

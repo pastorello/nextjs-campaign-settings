@@ -4,10 +4,10 @@ import FieldType from "@/app/lib/definitions/types/FieldType";
 import DeityMetaField from "@/app/lib/definitions/enums/deities/DeityMetaField";
 import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 
-import coloriMagia from "./coloriMagia";
+import magicColors from "./magicColors";
 import z from "zod";
 import getDataLabel from "../../utils/data/getDataLabel";
-import tarocchi from "./tarcocchi";
+import tarotCards from "./tarotCards";
 import deityTypes from "./deityTypes";
 import deityLevels from "./deityLevels";
 import celestialBodies from "../geography/celestialBodies";
@@ -20,13 +20,13 @@ const deitiesMeta = {
   [DeityMetaField.color]: {
     metaField: "color",
     label: "Colore magia",
-    defaultValue: firstOptionValue(coloriMagia),
+    defaultValue: firstOptionValue(magicColors),
     fieldType: FieldType.integer,
-    options: coloriMagia,
+    options: magicColors,
     controlType: ControlType.Select,
     validator: z.coerce.number(),
     getDatum: (datum: number, useColorCode?: boolean) =>
-      getDataLabel(coloriMagia, datum, useColorCode ? "colorClass" : "label"),
+      getDataLabel(magicColors, datum, useColorCode ? "colorClass" : "label"),
   },
   [DeityMetaField.deityTitle]: {
     metaField: "deityTitle",
@@ -63,13 +63,13 @@ const deitiesMeta = {
   [DeityMetaField.tarotCard]: {
     metaField: "tarotCard",
     label: "card",
-    defaultValue: firstOptionValue(tarocchi),
+    defaultValue: firstOptionValue(tarotCards),
     placeholder: "card",
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
     validator: z.coerce.number(),
-    options: tarocchi,
-    getDatum: (datum: number) => getDataLabel(tarocchi, datum),
+    options: tarotCards,
+    getDatum: (datum: number) => getDataLabel(tarotCards, datum),
   },
   [DeityMetaField.celestialBody]: {
     metaField: "celestialBody",

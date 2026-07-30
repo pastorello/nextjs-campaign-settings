@@ -2,8 +2,8 @@ import Element from "@/app/lib/definitions/enums/deities/Element";
 import DeityRank from "@/app/lib/definitions/enums/deities/DeityRank";
 import DeityType from "@/app/lib/definitions/enums/deities/DeityType";
 import TraditionType from "@/app/lib/definitions/enums/deities/TraditionType";
-import Astro from "@/app/lib/definitions/enums/geography/Astro";
-import PianoEsistenza from "@/app/lib/definitions/enums/geography/PianoEsistenza";
+import CelestialBody from "@/app/lib/definitions/enums/geography/CelestialBody";
+import PlaneOfExistence from "@/app/lib/definitions/enums/geography/PlaneOfExistence";
 import Subclass from "@/app/lib/definitions/enums/spells/Subclass";
 
 const deities = [
@@ -14,14 +14,14 @@ const deities = [
     deityType: DeityType.Demone,
     tarotCard: 15,
     element: Element.Acqua,
-    celestialBody: Astro.Acquario,
+    celestialBody: CelestialBody.Acquario,
     class: Subclass.ChiericoOscuro,
     holidays: "Nessuna",
     color: 6,
     tradition: TraditionType.Occulta,
     alignment: 2,
     alignmentDomain: 0,
-    residence: PianoEsistenza.SelvaOscura,
+    residence: PlaneOfExistence.SelvaOscura,
     location: 2,
     meaning: "Lussuria (Seduzione)",
   },
@@ -31,7 +31,7 @@ const deities = [
     deityRank: DeityRank.Divinità,
     deityType: DeityType.Elementale,
     tarotCard: 16,
-    celestialBody: Astro.Marte,
+    celestialBody: CelestialBody.Marte,
     element: Element.Fuoco,
     class: Subclass.ElementaristaFuoco,
     holidays: "Festa dei Fuochi",
@@ -39,7 +39,7 @@ const deities = [
     tradition: TraditionType.Primeva,
     alignment: 2,
     alignmentDomain: 2,
-    residence: PianoEsistenza.Inferi,
+    residence: PlaneOfExistence.Inferi,
     location: 4,
     meaning: "Superbia (Castigo)",
   },
@@ -49,7 +49,7 @@ const deities = [
     deityRank: DeityRank.Divinità,
     deityType: DeityType.Elementale,
     tarotCard: 18,
-    celestialBody: Astro.Leone,
+    celestialBody: CelestialBody.Leone,
     element: Element.Acqua,
     class: Subclass.DruidoLuna,
     holidays: "Festa della Luna Crescente",
@@ -57,7 +57,7 @@ const deities = [
     tradition: TraditionType.Primeva,
     alignment: 0,
     alignmentDomain: 2,
-    residence: PianoEsistenza.Cieli,
+    residence: PlaneOfExistence.Cieli,
     location: 1,
     meaning: "Sonno (Sogno)",
   },
@@ -67,7 +67,7 @@ const deities = [
     deityRank: DeityRank.Divinità,
     deityType: DeityType.Divino,
     tarotCard: 19,
-    celestialBody: Astro.Sole,
+    celestialBody: CelestialBody.Sole,
     element: Element.Fuoco,
     class: Subclass.ChiericoVita,
     holidays: "Festa delle Forge",
@@ -75,7 +75,7 @@ const deities = [
     tradition: TraditionType.Divina,
     alignment: 0,
     alignmentDomain: 0,
-    residence: PianoEsistenza.Cieli,
+    residence: PlaneOfExistence.Cieli,
     location: 0,
     meaning: "Chiarezza (Luce)",
   },
@@ -85,7 +85,7 @@ const deities = [
     deityRank: DeityRank.Divinità,
     deityType: DeityType.Elementale,
     tarotCard: 21,
-    celestialBody: Astro.Terra,
+    celestialBody: CelestialBody.Terra,
     element: Element.Terra,
     class: Subclass.DruidoTerra,
     holidays: "Festa della Fertilità",
@@ -93,7 +93,7 @@ const deities = [
     tradition: TraditionType.Primeva,
     alignment: 1,
     alignmentDomain: 1,
-    residence: PianoEsistenza.SelvaFatata,
+    residence: PlaneOfExistence.SelvaFatata,
     location: 9,
     meaning: "Squilibrio (Armonia)",
   },

@@ -1,4 +1,4 @@
-enum SignificatoTarocco {
+enum TarotMeaning {
   Follia = "Follia (Nuovo Percorso)", //0 il matto
   Inganno = "Inganno (Abilità)", //1 il mago
   Segreto = "Segreto (Conoscenza)", //2 la papessa
@@ -24,4 +24,4 @@ enum SignificatoTarocco {
   Rivoluzione = "Rivoluzione (Trascendenza)", //il consultante
 }
 
-export default SignificatoTarocco;
+export default TarotMeaning;

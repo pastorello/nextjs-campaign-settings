@@ -1,5 +1,5 @@
 import Holidays from "@/app/lib/definitions/enums/deities/Holidays";
-import SignificatoTarocco from "@/app/lib/definitions/enums/tarocchi/SignificatoTarocco";
+import TarotMeaning from "@/app/lib/definitions/enums/tarot/TarotMeaning";
 import DeityRank from "@/app/lib/definitions/enums/deities/DeityRank";
 
 import DeityMetaField from "../../enums/deities/DeityMetaField";
@@ -21,7 +21,7 @@ interface Deity {
   [DeityMetaField.alignmentDomain]: number;
   [DeityMetaField.residence]: number;
   [DeityMetaField.location]: number;
-  [DeityMetaField.meaning]: SignificatoTarocco;
+  [DeityMetaField.meaning]: TarotMeaning;
 }
 
 export default Deity;

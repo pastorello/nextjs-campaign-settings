@@ -1,12 +1,12 @@
 import AlignmentDomain from "@/app/lib/definitions/enums/npc/AlignmentDomain";
 
-export interface DominiAllineamentiObject {
+export interface AlignmentDomainObject {
   type: AlignmentDomain;
   value: number;
   label: string;
 }
 
-const dominiAllineamenti: DominiAllineamentiObject[] = [
+const alignmentDomains: AlignmentDomainObject[] = [
   {
     value: 0,
     label: AlignmentDomain.Legge,
@@ -24,4 +24,4 @@ const dominiAllineamenti: DominiAllineamentiObject[] = [
   },
 ];
 
-export default dominiAllineamenti;
+export default alignmentDomains;

@@ -1,4 +1,4 @@
-enum Luogo {
+enum Location {
   //Luoghi Divini
   Paradiso = "Paradiso (Sole)",
   Luna = "Elysium (Luna)",
@@ -41,4 +41,4 @@ enum Luogo {
   AvampostoOrchescho = "Avamposto clandestino degli orchi",
 }
 
-export default Luogo;
+export default Location;

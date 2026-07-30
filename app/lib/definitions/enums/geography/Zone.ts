@@ -1,4 +1,4 @@
-enum Zona {
+enum Zone {
   //Regioni Cieli
   Sole = "Sole",
   Luna = "Luna",
@@ -19,4 +19,4 @@ enum Zona {
   Rivacupa = "Paludi di Rivacupa",
 }
 
-export default Zona;
+export default Zone;

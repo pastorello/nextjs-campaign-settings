@@ -1,32 +1,32 @@
-import PianoEsistenza from "../../definitions/enums/geography/PianoEsistenza";
+import PlaneOfExistence from "../../definitions/enums/geography/PlaneOfExistence";
 
 const celestialPlanes = [
   {
-    value: PianoEsistenza.Cieli,
+    value: PlaneOfExistence.Cieli,
     label: "Cieli",
   },
   {
-    value: PianoEsistenza.Tempo,
+    value: PlaneOfExistence.Tempo,
     label: "Tempo",
   },
   {
-    value: PianoEsistenza.TerreOniriche,
+    value: PlaneOfExistence.TerreOniriche,
     label: "Terre Oniriche",
   },
   {
-    value: PianoEsistenza.SelvaFatata,
+    value: PlaneOfExistence.SelvaFatata,
     label: "Selva Fatata",
   },
   {
-    value: PianoEsistenza.SelvaOscura,
+    value: PlaneOfExistence.SelvaOscura,
     label: "Selva Oscura",
   },
   {
-    value: PianoEsistenza.Inferi,
+    value: PlaneOfExistence.Inferi,
     label: "Inferi",
   },
   {
-    value: PianoEsistenza.Terra,
+    value: PlaneOfExistence.Terra,
     label: "Terra",
   },
 ];

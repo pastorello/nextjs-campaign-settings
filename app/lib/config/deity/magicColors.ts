@@ -7,7 +7,7 @@ export interface MagicColorObject {
   colorClass: string;
 }
 
-const coloriMagia: MagicColorObject[] = [
+const magicColors: MagicColorObject[] = [
   {
     value: 0,
     label: MagicColor.Arancione,
@@ -58,4 +58,4 @@ const coloriMagia: MagicColorObject[] = [
   },
 ];
 
-export default coloriMagia;
+export default magicColors;

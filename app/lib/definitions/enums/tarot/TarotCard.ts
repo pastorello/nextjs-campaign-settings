@@ -1,4 +1,4 @@
-enum Tarocco {
+enum TarotCard {
   IlMatto = "Il Matto",
   IlBagatto = "il Bagatto",
   LaPapessa = "La Papessa",
@@ -24,4 +24,4 @@ enum Tarocco {
   IlConsultante = "Il Consultante",
 }
 
-export default Tarocco;
+export default TarotCard;

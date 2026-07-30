@@ -1,14 +1,15 @@
 "use client";
 
 import NpcForm from "@/app/ui/npc/NpcForm";
-import { redirect } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 
 export default function Page() {
+  const router = useRouter();
   const onCancel = () => {
-    redirect("/dashboard/admin/npc");
+    router.push("/dashboard/admin/npc");
   };
   const onSaveFinished = () => {
-    redirect("/dashboard/admin/npc");
+    router.push("/dashboard/admin/npc");
   };
 
   return <NpcForm onCancel={onCancel} onSaveFinished={onSaveFinished} />;

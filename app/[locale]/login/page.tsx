@@ -1,7 +1,7 @@
 import LoginForm from "@/app/ui/login-form";
 import { Suspense } from "react";
 import { Metadata } from "next";
-import CampaignSettingsLogo from "../ui/icons/CampaignSettingsLogo";
+import CampaignSettingsLogo from "../../ui/icons/CampaignSettingsLogo";
 
 export const metadata: Metadata = {
   title: "Login",

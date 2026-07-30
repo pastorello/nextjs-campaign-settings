@@ -1,12 +1,10 @@
-import SelectOption from "../../definitions/types/SelectOption";
-import isKeyOfItem from "../validators/isKeyOfItem";
+import { ResolvedOption } from "../../definitions/types/SelectOption";
 import isValidDataArray from "../validators/isValidDataArray";
-import isValidString from "../validators/isValidString";
 
 const getDataLabel = (
-  optionsList: SelectOption[],
+  optionsList: ResolvedOption[],
   value: string | number | number[],
-  customLabel?: string
+  useShort?: boolean
 ) => {
   const result = optionsList.filter((item) =>
     isValidDataArray(value)
@@ -19,8 +17,8 @@ const getDataLabel = (
       result.reduce(
         (acc, item, index) =>
           `${acc}${index !== 0 ? ", " : ""}${
-            isValidString(customLabel) && isKeyOfItem(customLabel, item)
-              ? item[customLabel]
+            useShort && item.shortLabel !== undefined
+              ? item.shortLabel
               : item.label
           }`,
         ""

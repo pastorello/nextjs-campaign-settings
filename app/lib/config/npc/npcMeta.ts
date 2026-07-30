@@ -9,7 +9,6 @@ import z from "zod";
 import alignmentDomains from "./alignmentDomains";
 import alignments from "./alignments";
 import factions from "./factions";
-import getDataLabel from "../../utils/data/getDataLabel";
 import renderRichText from "../../utils/data/renderRichText";
 
 const npcMeta = {
@@ -31,7 +30,6 @@ const npcMeta = {
     options: alignments,
     controlType: ControlType.Select,
     validator: z.number().int(),
-    getDatum: (datum: number) => getDataLabel(alignments, datum),
   },
   [NpcMetaField.alignmentDomain]: {
     label: "Dominio",
@@ -41,7 +39,6 @@ const npcMeta = {
     options: alignmentDomains,
     controlType: ControlType.Select,
     validator: z.number().int(),
-    getDatum: (datum: number) => getDataLabel(alignmentDomains, datum),
   },
   [NpcMetaField.position]: {
     label: "Mansione",
@@ -61,7 +58,6 @@ const npcMeta = {
     controlType: ControlType.Select,
     options: locationList,
     validator: z.number().int(),
-    getDatum: (datum: number) => getDataLabel(locationList, datum),
   },
   [NpcMetaField.faction]: {
     label: "Fazione",
@@ -71,7 +67,6 @@ const npcMeta = {
     options: factions,
     controlType: ControlType.Select,
     validator: z.number().int(),
-    getDatum: (datum: number) => getDataLabel(factions, datum),
   },
   [NpcMetaField.appearance]: {
     label: "Aspetto",

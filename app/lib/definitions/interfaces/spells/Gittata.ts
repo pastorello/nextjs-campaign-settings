@@ -1,6 +1,6 @@
 interface Gittata {
   value: string;
-  label: string;
+  labelKey: string;
 }
 
 export default Gittata;

@@ -4,27 +4,27 @@ import SelectOption from "../../definitions/types/SelectOption";
 const deityTypes: SelectOption<number>[] = [
   {
     value: DeityType.Arconte,
-    label: "Arconte",
+    labelKey: "deities.types.arconte",
   },
   {
     value: DeityType.Demone,
-    label: "Demone",
+    labelKey: "deities.types.demone",
   },
   {
     value: DeityType.DioSupremo,
-    label: "Padrone dei Tre Mondi",
+    labelKey: "deities.types.dioSupremo",
   },
   {
     value: DeityType.Divino,
-    label: "Celestiale",
+    labelKey: "deities.types.divino",
   },
   {
     value: DeityType.Elementale,
-    label: "Elementale",
+    labelKey: "deities.types.elementale",
   },
   {
     value: DeityType.Fatato,
-    label: "Fatato",
+    labelKey: "deities.types.fatato",
   },
 ];
 

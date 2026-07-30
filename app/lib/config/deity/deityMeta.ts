@@ -6,7 +6,6 @@ import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 
 import magicColors from "./magicColors";
 import z from "zod";
-import getDataLabel from "../../utils/data/getDataLabel";
 import tarotCards from "./tarotCards";
 import deityTypes from "./deityTypes";
 import deityLevels from "./deityLevels";
@@ -25,8 +24,6 @@ const deitiesMeta = {
     options: magicColors,
     controlType: ControlType.Select,
     validator: z.coerce.number(),
-    getDatum: (datum: number, useColorCode?: boolean) =>
-      getDataLabel(magicColors, datum, useColorCode ? "colorClass" : "label"),
   },
   [DeityMetaField.deityTitle]: {
     metaField: "deityTitle",
@@ -47,7 +44,6 @@ const deitiesMeta = {
     controlType: ControlType.Select,
     validator: z.coerce.number(),
     options: deityTypes,
-    getDatum: (datum: number) => getDataLabel(deityTypes, datum),
   },
   [DeityMetaField.deityRank]: {
     metaField: "deityRank",
@@ -58,7 +54,6 @@ const deitiesMeta = {
     controlType: ControlType.Select,
     validator: z.coerce.number(),
     options: deityLevels,
-    getDatum: (datum: number) => getDataLabel(deityLevels, datum),
   },
   [DeityMetaField.tarotCard]: {
     metaField: "tarotCard",
@@ -69,7 +64,6 @@ const deitiesMeta = {
     controlType: ControlType.Select,
     validator: z.coerce.number(),
     options: tarotCards,
-    getDatum: (datum: number) => getDataLabel(tarotCards, datum),
   },
   [DeityMetaField.celestialBody]: {
     metaField: "celestialBody",
@@ -80,7 +74,6 @@ const deitiesMeta = {
     controlType: ControlType.Select,
     validator: z.coerce.number(),
     options: celestialBodies,
-    getDatum: (datum: number) => getDataLabel(celestialBodies, datum),
   },
   [DeityMetaField.element]: {
     metaField: "element",
@@ -91,7 +84,6 @@ const deitiesMeta = {
     controlType: ControlType.Select,
     validator: z.coerce.number(),
     options: energyElements,
-    getDatum: (datum: number) => getDataLabel(energyElements, datum),
   },
   [DeityMetaField.deityClass]: {
     metaField: "deityClass",
@@ -102,7 +94,6 @@ const deitiesMeta = {
     controlType: ControlType.Select,
     validator: z.coerce.number(),
     options: subclasses,
-    getDatum: (datum: number) => getDataLabel(subclasses, datum),
   },
   [DeityMetaField.holidays]: {
     metaField: "holidays",
@@ -123,7 +114,6 @@ const deitiesMeta = {
     controlType: ControlType.Select,
     validator: z.coerce.number(),
     options: traditionTypes,
-    getDatum: (datum: number) => getDataLabel(traditionTypes, datum),
   },
   [DeityMetaField.residence]: {
     metaField: "residence",
@@ -134,7 +124,6 @@ const deitiesMeta = {
     controlType: ControlType.Select,
     validator: z.coerce.number(),
     options: celestialPlanes,
-    getDatum: (datum: number) => getDataLabel(celestialPlanes, datum),
   },
   [DeityMetaField.meaning]: {
     metaField: "meaning",

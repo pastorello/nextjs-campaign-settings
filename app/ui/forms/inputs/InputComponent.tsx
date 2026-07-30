@@ -1,9 +1,14 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+
 import MetaValue from "@/app/lib/definitions/types/MetaValue";
 import MetaConfigKey from "@/app/lib/definitions/types/MetaConfigKey";
 import ControlType from "@/app/lib/definitions/types/ControlType";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import pageMetaFields, { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import FormField from "@/app/lib/definitions/interfaces/forms/FormField";
+import resolveOptions from "@/app/lib/utils/data/resolveOptions";
 
 import controlComponents from "./controlComponents";
 
@@ -20,6 +25,8 @@ const InputComponent = ({
   setField,
   value,
 }: InputComponentProps) => {
+  const t = useTranslations();
+
   const getFieldConfig = (): FormField => {
     const result: FormField = {
       label: pageMetaFields[fieldName].label ?? "",
@@ -32,7 +39,13 @@ const InputComponent = ({
       pageMetaFields[fieldName].controlType === ControlType.Multiselect ||
       pageMetaFields[fieldName].controlType === ControlType.Select
     ) {
-      result.options = pageMetaFields[fieldName].options;
+      const declaredOptions = pageMetaFields[fieldName].options;
+      if (declaredOptions !== undefined) {
+        // The full union of every domain's options array is too wide for
+        // TValue to infer (mixes string- and number-valued option lists);
+        // FormField.options only ever needs the string | number default.
+        result.options = resolveOptions<string | number>(declaredOptions, t);
+      }
       if (pageMetaFields[fieldName].controlType === ControlType.Multiselect) {
         result.multiple = true;
       }

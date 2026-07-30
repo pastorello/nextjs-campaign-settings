@@ -1,6 +1,7 @@
 "use client";
 
 import { useDebouncedCallback } from "use-debounce";
+import { useTranslations } from "next-intl";
 import {
   ReadonlyURLSearchParams,
   usePathname,
@@ -14,6 +15,7 @@ import Select from "../forms/inputs/Select";
 import { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import isValidDataArray from "@/app/lib/utils/validators/isValidDataArray";
 import getSearchParam from "@/app/lib/utils/data/getSearchParam";
+import resolveOptions from "@/app/lib/utils/data/resolveOptions";
 import MetaValue from "@/app/lib/definitions/types/MetaValue";
 import SelectValueType from "@/app/lib/definitions/types/SelectValueType";
 import QueryParam from "@/app/lib/definitions/interfaces/pages/QueryParam";
@@ -31,6 +33,7 @@ const SortableHeader = ({
   isSortable = true,
   isFiltrable = true,
 }: SortableHeaderProps) => {
+  const t = useTranslations();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -92,7 +95,7 @@ const SortableHeader = ({
     const filterConfig = fieldMeta[fieldKey];
     const filterOptions =
       filterConfig && isValidDataArray(filterConfig.options)
-        ? filterConfig.options
+        ? resolveOptions(filterConfig.options, t)
         : [];
 
     const filterProps = {

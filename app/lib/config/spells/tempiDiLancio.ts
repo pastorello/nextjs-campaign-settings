@@ -1,15 +1,15 @@
 import TempoDiLancio from "@/app/lib//definitions/interfaces/spells/TempoDiLancio";
 
 const tempiDiLancio: TempoDiLancio[] = [
-  { value: "1Azione", label: "1 Azione Standard" },
-  { value: "1AzioneBonus", label: "1 Azione Bonus" },
-  { value: "1Reazione", label: "1 Reazione" },
-  { value: "1Minuto", label: "1 Minuto" },
-  { value: "10Minuti", label: "10 Minuti" },
-  { value: "1Ora", label: "1 Ora" },
-  { value: "8Ore", label: "8 Ore" },
-  { value: "12Ore", label: "12 Ore" },
-  { value: "24Ore", label: "1 Giorno" },
+  { value: "1Azione", labelKey: "spells.castingTimes.1Azione" },
+  { value: "1AzioneBonus", labelKey: "spells.castingTimes.1AzioneBonus" },
+  { value: "1Reazione", labelKey: "spells.castingTimes.1Reazione" },
+  { value: "1Minuto", labelKey: "spells.castingTimes.1Minuto" },
+  { value: "10Minuti", labelKey: "spells.castingTimes.10Minuti" },
+  { value: "1Ora", labelKey: "spells.castingTimes.1Ora" },
+  { value: "8Ore", labelKey: "spells.castingTimes.8Ore" },
+  { value: "12Ore", labelKey: "spells.castingTimes.12Ore" },
+  { value: "24Ore", labelKey: "spells.castingTimes.24Ore" },
 ];
 
 export default tempiDiLancio;

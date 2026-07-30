@@ -1,7 +1,7 @@
 interface Livello {
   value: number;
-  label: string;
-  shortLabel: string;
+  labelKey: string;
+  shortLabelKey: string;
 }
 
 export default Livello;

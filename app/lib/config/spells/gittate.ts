@@ -1,22 +1,22 @@
 import Gittata from "@/app/lib/definitions/interfaces/spells/Gittata";
 
 const gittate: Gittata[] = [
-  { value: "personal", label: "Incantatore" },
-  { value: "touch", label: "Contatto" },
-  { value: "5", label: "1,5 Metri" },
-  { value: "10", label: "3 Metri" },
-  { value: "30", label: "9 Metri" },
-  { value: "60", label: "18 Metri" },
-  { value: "90", label: "27 Metri" },
-  { value: "100", label: "30 Metri" },
-  { value: "120", label: "36 Metri" },
-  { value: "150", label: "45 Metri" },
-  { value: "300", label: "90 Metri" },
-  { value: "500", label: "150 Metri" },
-  { value: "5000", label: "1,5 Chilometri" },
-  { value: "500000", label: "750 Chilometri" },
-  { value: "sight", label: "Linea di vista" },
-  { value: "unlimited", label: "Illimitata" },
+  { value: "personal", labelKey: "spells.ranges.personal" },
+  { value: "touch", labelKey: "spells.ranges.touch" },
+  { value: "5", labelKey: "spells.ranges.m5" },
+  { value: "10", labelKey: "spells.ranges.m10" },
+  { value: "30", labelKey: "spells.ranges.m30" },
+  { value: "60", labelKey: "spells.ranges.m60" },
+  { value: "90", labelKey: "spells.ranges.m90" },
+  { value: "100", labelKey: "spells.ranges.m100" },
+  { value: "120", labelKey: "spells.ranges.m120" },
+  { value: "150", labelKey: "spells.ranges.m150" },
+  { value: "300", labelKey: "spells.ranges.m300" },
+  { value: "500", labelKey: "spells.ranges.m500" },
+  { value: "5000", labelKey: "spells.ranges.m5000" },
+  { value: "500000", labelKey: "spells.ranges.m500000" },
+  { value: "sight", labelKey: "spells.ranges.sight" },
+  { value: "unlimited", labelKey: "spells.ranges.unlimited" },
 ];
 
 export default gittate;

@@ -3,17 +3,33 @@ import Rarity from "@/app/lib/definitions/enums/magicitem/Rarity";
 export interface RarityObject {
   type: Rarity;
   value: number;
-  label: string;
+  labelKey: string;
 }
 
 const rarity: RarityObject[] = [
-  { value: 0, label: "Comune", type: Rarity.Common },
-  { value: 1, label: "Non comune", type: Rarity.Uncommon },
-  { value: 2, label: "Raro", type: Rarity.Rare },
-  { value: 3, label: "Molto Raro", type: Rarity.VeryRare },
-  { value: 4, label: "Leggendario", type: Rarity.Legendary },
-  { value: 5, label: "Artefatto", type: Rarity.Artifact },
-  { value: 6, label: "Variabile", type: Rarity.Variable },
+  { value: 0, labelKey: "magicItems.rarity.common", type: Rarity.Common },
+  { value: 1, labelKey: "magicItems.rarity.uncommon", type: Rarity.Uncommon },
+  { value: 2, labelKey: "magicItems.rarity.rare", type: Rarity.Rare },
+  {
+    value: 3,
+    labelKey: "magicItems.rarity.veryRare",
+    type: Rarity.VeryRare,
+  },
+  {
+    value: 4,
+    labelKey: "magicItems.rarity.legendary",
+    type: Rarity.Legendary,
+  },
+  {
+    value: 5,
+    labelKey: "magicItems.rarity.artifact",
+    type: Rarity.Artifact,
+  },
+  {
+    value: 6,
+    labelKey: "magicItems.rarity.variable",
+    type: Rarity.Variable,
+  },
 ];
 
 export default rarity;

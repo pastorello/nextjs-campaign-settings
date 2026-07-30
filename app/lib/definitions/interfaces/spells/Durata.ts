@@ -1,6 +1,6 @@
 interface Durata {
   value: string;
-  label: string;
+  labelKey: string;
 }
 
 export default Durata;

@@ -4,7 +4,7 @@ import Subclass from "@/app/lib/definitions/enums/spells/Subclass";
 interface SottoClasseObject {
   type: Subclass;
   value: number;
-  label: string;
+  labelKey: string;
   titolo: string;
   tradizione: TraditionType;
 }
@@ -13,161 +13,161 @@ const subclasses: SottoClasseObject[] = [
   {
     type: Subclass.BardoSapienza,
     value: Subclass.BardoSapienza,
-    label: "Bardo - Collegio della Sapienza",
+    labelKey: "spells.subclasses.bardoSapienza",
     titolo: "Occultista",
     tradizione: TraditionType.Occulta,
   },
   {
     type: Subclass.BardoValore,
     value: Subclass.BardoValore,
-    label: "Bardo - Collegio del Valore",
+    labelKey: "spells.subclasses.bardoValore",
     titolo: "Cantore",
     tradizione: TraditionType.Occulta,
   },
   {
     type: Subclass.CavaliereNero,
     value: Subclass.CavaliereNero,
-    label: "Paladino - Cavaliere Nero",
+    labelKey: "spells.subclasses.cavaliereNero",
     titolo: "Cavaliere Nero",
     tradizione: TraditionType.Divina,
   },
   {
     type: Subclass.CavaliereBianco,
     value: Subclass.CavaliereBianco,
-    label: "Paladino - Cavaliere Bianco",
+    labelKey: "spells.subclasses.cavaliereBianco",
     titolo: "Cavaliere Bianco",
     tradizione: TraditionType.Divina,
   },
   {
     type: Subclass.CavaliereVerde,
     value: Subclass.CavaliereVerde,
-    label: "Paladino - Cavaliere Verde",
+    labelKey: "spells.subclasses.cavaliereVerde",
     titolo: "Cavaliere Verde",
     tradizione: TraditionType.Divina,
   },
   {
     type: Subclass.ElementaristaFuoco,
     value: Subclass.ElementaristaFuoco,
-    label: "Stregone - Magia del Vulcano",
+    labelKey: "spells.subclasses.elementaristaFuoco",
     titolo: "Stregone del Fuoco",
     tradizione: TraditionType.Arcana,
   },
   {
     type: Subclass.ElementaristaAcqua,
     value: Subclass.ElementaristaAcqua,
-    label: "Stregone - Magia delle Tempeste",
+    labelKey: "spells.subclasses.elementaristaAcqua",
     titolo: "Stregone delle Tempeste",
     tradizione: TraditionType.Arcana,
   },
   {
     type: Subclass.Fattucchiere,
     value: Subclass.Fattucchiere,
-    label: "Stregone - Magia Selvaggia",
+    labelKey: "spells.subclasses.fattucchiere",
     titolo: "Fattucchiere",
     tradizione: TraditionType.Arcana,
   },
   {
     type: Subclass.DruidoTerra,
     value: Subclass.DruidoTerra,
-    label: "Druido - Circle della Terra",
+    labelKey: "spells.subclasses.druidoTerra",
     titolo: "Druido dei Boschi",
     tradizione: TraditionType.Primeva,
   },
   {
     type: Subclass.DruidoLuna,
     value: Subclass.DruidoLuna,
-    label: "Druido - Circle della Luna",
+    labelKey: "spells.subclasses.druidoLuna",
     titolo: "Druido Lunare",
     tradizione: TraditionType.Primeva,
   },
   {
     type: Subclass.WarlockFatato,
     value: Subclass.WarlockFatato,
-    label: "Warlock - Patrono Fatato",
+    labelKey: "spells.subclasses.warlockFatato",
     titolo: "Warlock Fatato",
     tradizione: TraditionType.Occulta,
   },
   {
     type: Subclass.WarlockAntico,
     value: Subclass.WarlockAntico,
-    label: "Warlock - Patrono Grande Antico",
+    labelKey: "spells.subclasses.warlockAntico",
     titolo: "Warlock delle Ombre",
     tradizione: TraditionType.Occulta,
   },
   {
     type: Subclass.WarlockImmondo,
     value: Subclass.WarlockImmondo,
-    label: "Warlock - Patrono Immondo",
+    labelKey: "spells.subclasses.warlockImmondo",
     titolo: "Warlock Infernale",
     tradizione: TraditionType.Occulta,
   },
   {
     type: Subclass.Strega,
     value: Subclass.Strega,
-    label: "Mago - Ammaliatore",
+    labelKey: "spells.subclasses.strega",
     titolo: "Mago Nero",
     tradizione: TraditionType.Arcana,
   },
   {
     type: Subclass.MaestroRune,
     value: Subclass.MaestroRune,
-    label: "Mago - Abiuratore",
+    labelKey: "spells.subclasses.maestroRune",
     titolo: "Maestro delle Rune",
     tradizione: TraditionType.Arcana,
   },
   {
     type: Subclass.Oracolo,
     value: Subclass.Oracolo,
-    label: "Mago - Divinatore",
+    labelKey: "spells.subclasses.oracolo",
     titolo: "Oracolo",
     tradizione: TraditionType.Arcana,
   },
   {
     type: Subclass.MagoBianco,
     value: Subclass.MagoBianco,
-    label: "Mago - Trasmutatore",
+    labelKey: "spells.subclasses.magoBianco",
     titolo: "Mago Bianco",
     tradizione: TraditionType.Arcana,
   },
   {
     type: Subclass.Necromante,
     value: Subclass.Necromante,
-    label: "Mago - Necromante",
+    labelKey: "spells.subclasses.necromante",
     titolo: "Necromante",
     tradizione: TraditionType.Arcana,
   },
   {
     type: Subclass.ChiericoMorte,
     value: Subclass.ChiericoMorte,
-    label: "Chierico - Dominio della Sapienza",
+    labelKey: "spells.subclasses.chiericoMorte",
     titolo: "Custode delle Tombe",
     tradizione: TraditionType.Divina,
   },
   {
     type: Subclass.ChiericoOscuro,
     value: Subclass.ChiericoOscuro,
-    label: "Chierico - Dominio dell'Inaganno",
+    labelKey: "spells.subclasses.chiericoOscuro",
     titolo: "Chierico Oscuro",
     tradizione: TraditionType.Divina,
   },
   {
     type: Subclass.ChiericoVita,
     value: Subclass.ChiericoVita,
-    label: "Chierico - Dominio della Luce",
+    labelKey: "spells.subclasses.chiericoVita",
     titolo: "Custode della Fiamma",
     tradizione: TraditionType.Divina,
   },
   {
     type: Subclass.Ranger,
     value: Subclass.Ranger,
-    label: "Ranger",
+    labelKey: "spells.subclasses.ranger",
     titolo: "Custode dei Boschi",
     tradizione: TraditionType.Primeva,
   },
   {
     type: Subclass.Nessuna,
     value: Subclass.Nessuna,
-    label: "Nessuna",
+    labelKey: "spells.subclasses.nessuna",
     titolo: "Nessun titolo",
     tradizione: TraditionType.Ultraterrena,
   },
@@ -178,6 +178,13 @@ const subclasses: SottoClasseObject[] = [
 // list that the sort was busy reordering.
 const lastEntry = subclasses[subclasses.length - 1];
 
+// Sorted by `value`, not by display text (ADR-0007): resolution to a display
+// label happens at render time, after the locale is known, so this module has
+// no text to sort by. `value` happens to already group entries by class in a
+// sensible order (the enum was declared that way) — the render-time sort
+// (`sortSelectOptions`, via `resolveOptions`) re-sorts by the resolved label
+// for the consumers that need alphabetical order; this only guarantees
+// "Nessuna" lands last for the ones that don't (e.g. `SelectButtonery`).
 export default subclasses.sort((a, b) => {
   if (a.value === lastEntry?.value) {
     return 1;
@@ -185,5 +192,5 @@ export default subclasses.sort((a, b) => {
   if (b.value === lastEntry?.value) {
     return -1;
   }
-  return a.label.localeCompare(b.label);
+  return a.value - b.value;
 });

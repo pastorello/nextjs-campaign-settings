@@ -3,23 +3,23 @@ import AlignmentDomain from "@/app/lib/definitions/enums/npc/AlignmentDomain";
 export interface AlignmentDomainObject {
   type: AlignmentDomain;
   value: number;
-  label: string;
+  labelKey: string;
 }
 
 const alignmentDomains: AlignmentDomainObject[] = [
   {
     value: 0,
-    label: AlignmentDomain.Legge,
+    labelKey: "npc.alignmentDomains.law",
     type: AlignmentDomain.Legge,
   },
   {
     value: 1,
-    label: AlignmentDomain.Neutrale,
+    labelKey: "npc.alignmentDomains.neutrality",
     type: AlignmentDomain.Neutrale,
   },
   {
     value: 2,
-    label: AlignmentDomain.Caos,
+    labelKey: "npc.alignmentDomains.chaos",
     type: AlignmentDomain.Caos,
   },
 ];

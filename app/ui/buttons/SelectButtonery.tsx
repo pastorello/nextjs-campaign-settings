@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import FilterOptionStats from "@/app/lib/definitions/interfaces/FilterOptionStats";
 import MetaConfigKey from "@/app/lib/definitions/types/MetaConfigKey";
 
@@ -10,6 +12,7 @@ import BaseButton from "./BaseButton";
 import { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import useFilterController from "@/app/lib/hooks/useFilterController";
 import isValidDataArray from "@/app/lib/utils/validators/isValidDataArray";
+import resolveOptions from "@/app/lib/utils/data/resolveOptions";
 
 interface SelectButtoneryProps {
   fieldKey: MetaConfigKey;
@@ -44,7 +47,11 @@ const SelectButtonery = ({
   buttonSize = ButtonSize.medium,
   filterOptions,
 }: SelectButtoneryProps) => {
-  const optionsList = getOptionsList(fieldKey, filterOptions);
+  const t = useTranslations();
+  const optionsList = resolveOptions(
+    getOptionsList(fieldKey, filterOptions),
+    t
+  );
   const { onFilter, isActive, filterValue } = useFilterController(fieldKey);
 
   return (

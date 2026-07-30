@@ -1,3 +1,5 @@
+import { getTranslations } from "next-intl/server";
+
 import renderFieldValue from "@/app/lib/utils/data/renderFieldValue";
 import listConfig from "@/app/lib/config/listConfig";
 import isArrayEmpty from "@/app/lib/utils/validators/isArrayEmpty";
@@ -55,6 +57,7 @@ export default async function EntityList(props: {
   pageType: PageType;
   searchParams?: SearchParamsInput | undefined;
 }) {
+  const t = await getTranslations();
   const config = listConfig[props.pageType];
   const items = (await fetchItems(
     props.pageType,
@@ -110,14 +113,15 @@ export default async function EntityList(props: {
                     <div className="flex items-center gap-3">
                       <p>
                         <strong>
-                          {renderFieldValue(NAME_FIELD, item.name)}
+                          {renderFieldValue(NAME_FIELD, item.name, t)}
                         </strong>
                         {config.subtitleField && (
                           <>
                             <br />
                             {renderFieldValue(
                               config.subtitleField,
-                              item[config.subtitleField]
+                              item[config.subtitleField],
+                              t
                             )}
                           </>
                         )}
@@ -126,7 +130,11 @@ export default async function EntityList(props: {
                   </td>
                   {config.columns.map((column) => (
                     <td key={column.fieldKey} className="px-3 py-3">
-                      {renderFieldValue(column.fieldKey, item[column.fieldKey])}
+                      {renderFieldValue(
+                        column.fieldKey,
+                        item[column.fieldKey],
+                        t
+                      )}
                     </td>
                   ))}
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">

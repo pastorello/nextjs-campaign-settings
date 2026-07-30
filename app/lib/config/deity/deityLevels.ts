@@ -4,19 +4,19 @@ import SelectOption from "../../definitions/types/SelectOption";
 const deityLevels: SelectOption<number>[] = [
   {
     value: DeityRank.DemoneOmbra,
-    label: "Demone Ombra",
+    labelKey: "deities.ranks.demoneOmbra",
   },
   {
     value: DeityRank.DioMinore,
-    label: "Dio Minore",
+    labelKey: "deities.ranks.dioMinore",
   },
   {
     value: DeityRank.DioSupremo,
-    label: "Dio Supremo",
+    labelKey: "deities.ranks.dioSupremo",
   },
   {
     value: DeityRank.Divinità,
-    label: "Divinità",
+    labelKey: "deities.ranks.divinita",
   },
 ];
 

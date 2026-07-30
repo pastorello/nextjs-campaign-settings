@@ -4,23 +4,23 @@ import SelectOption from "../../definitions/types/SelectOption";
 const traditionTypes: SelectOption<number>[] = [
   {
     value: TraditionType.Arcana,
-    label: "Arcana",
+    labelKey: "deities.traditions.arcana",
   },
   {
     value: TraditionType.Divina,
-    label: "Divina",
+    labelKey: "deities.traditions.divina",
   },
   {
     value: TraditionType.Occulta,
-    label: "Occulta",
+    labelKey: "deities.traditions.occulta",
   },
   {
     value: TraditionType.Primeva,
-    label: "Primeva",
+    labelKey: "deities.traditions.primeva",
   },
   {
     value: TraditionType.Ultraterrena,
-    label: "Ultraterrena",
+    labelKey: "deities.traditions.ultraterrena",
   },
 ];
 

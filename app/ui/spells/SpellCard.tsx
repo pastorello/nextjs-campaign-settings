@@ -3,6 +3,7 @@ import {
   DisclosureButton,
   DisclosurePanel,
 } from "@headlessui/react";
+import { useTranslations } from "next-intl";
 
 import Spell from "@/app/lib/definitions/interfaces/spells/Spell";
 import Icon from "../components/Icon";
@@ -11,8 +12,10 @@ import ItemMeta from "../components/ItemMeta";
 import SpellMetaField from "@/app/lib/definitions/enums/spells/SpellMetaField";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import pageMetaFields from "@/app/lib/config/pageMetaFields";
+import resolveFieldValue from "@/app/lib/utils/data/resolveFieldValue";
 
 const SpellCard = (props: { cardItem: Spell }) => {
+  const t = useTranslations();
   const markup = { __html: props.cardItem[SpellMetaField.description] };
 
   return (
@@ -20,14 +23,16 @@ const SpellCard = (props: { cardItem: Spell }) => {
       <div className="my-2 w-full gap-x-4 rounded-xl bg-slate-800 text-sm text-white outline outline-offset-1 outline-white/10">
         <DisclosureButton className="mb-2 flex w-full group">
           <div className="w-[50px] items-center text-3xl">
-            {pageMetaFields[SpellMetaField.level].getDatum(
+            {resolveFieldValue(
+              pageMetaFields[SpellMetaField.level],
               props.cardItem[SpellMetaField.level],
+              t,
               true
             )}
           </div>
           <div className="flex-1">
             <div className="text-xl">
-              {pageMetaFields[SpellMetaField.name].getDatum(
+              {pageMetaFields[SpellMetaField.name].getDatum?.(
                 props.cardItem[SpellMetaField.name]
               )}{" "}
               {props.cardItem[SpellMetaField.ritual] == true && "(rituale)"}
@@ -42,33 +47,41 @@ const SpellCard = (props: { cardItem: Spell }) => {
             <div className="w-[50%] p-1">
               <ItemMeta
                 label="Tempo di lancio"
-                value={pageMetaFields[SpellMetaField.castingTime].getDatum(
-                  props.cardItem[SpellMetaField.castingTime]
+                value={resolveFieldValue(
+                  pageMetaFields[SpellMetaField.castingTime],
+                  props.cardItem[SpellMetaField.castingTime],
+                  t
                 )}
               />
               <ItemMeta
                 label="Gittata"
-                value={pageMetaFields[SpellMetaField.range].getDatum(
-                  props.cardItem[SpellMetaField.range]
+                value={resolveFieldValue(
+                  pageMetaFields[SpellMetaField.range],
+                  props.cardItem[SpellMetaField.range],
+                  t
                 )}
               />
               <ItemMeta
                 label="Durata"
-                value={pageMetaFields[SpellMetaField.duration].getDatum(
-                  props.cardItem[SpellMetaField.duration]
+                value={resolveFieldValue(
+                  pageMetaFields[SpellMetaField.duration],
+                  props.cardItem[SpellMetaField.duration],
+                  t
                 )}
               />
             </div>
             <div className="w-[50%] p-1">
               <ItemMeta
                 label="Sottoclassi"
-                value={pageMetaFields[SpellMetaField.circle].getDatum(
-                  props.cardItem[SpellMetaField.circle]
+                value={resolveFieldValue(
+                  pageMetaFields[SpellMetaField.circle],
+                  props.cardItem[SpellMetaField.circle],
+                  t
                 )}
               />
               <ItemMeta
                 label="Componenti"
-                value={pageMetaFields[SpellMetaField.components].getDatum(
+                value={pageMetaFields[SpellMetaField.components].getDatum?.(
                   props.cardItem[SpellMetaField.components]
                 )}
               />
@@ -84,7 +97,7 @@ const SpellCard = (props: { cardItem: Spell }) => {
               <hr className="my-2" />
               <ItemMeta
                 label="A livelli superiori"
-                value={pageMetaFields[SpellMetaField.upcast].getDatum(
+                value={pageMetaFields[SpellMetaField.upcast].getDatum?.(
                   props.cardItem[SpellMetaField.upcast]
                 )}
               />

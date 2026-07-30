@@ -7,7 +7,6 @@ import z from "zod";
 
 import rarity from "./rarity";
 import itemTypes from "./item-types";
-import getDataLabel from "../../utils/data/getDataLabel";
 
 const magicItemsMeta = {
   [MagicItemMetaField.rarity]: {
@@ -18,7 +17,6 @@ const magicItemsMeta = {
     options: rarity,
     controlType: ControlType.Select,
     validator: z.number().int(),
-    getDatum: (datum: number) => getDataLabel(rarity, datum),
   },
   [MagicItemMetaField.type]: {
     metaField: "type",
@@ -28,7 +26,6 @@ const magicItemsMeta = {
     options: itemTypes,
     controlType: ControlType.Select,
     validator: z.number().int(),
-    getDatum: (datum: number) => getDataLabel(itemTypes, datum),
   },
   [MagicItemMetaField.attuned]: {
     metaField: "attuned",

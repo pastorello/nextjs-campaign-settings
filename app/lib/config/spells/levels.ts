@@ -1,16 +1,56 @@
 import Livello from "../../definitions/interfaces/spells/Livello";
 
 const levels: Livello[] = [
-  { value: 0, label: "Trucchetto", shortLabel: "0°" },
-  { value: 1, label: "1° Livello", shortLabel: "1°" },
-  { value: 2, label: "2° Livello", shortLabel: "2°" },
-  { value: 3, label: "3° Livello", shortLabel: "3°" },
-  { value: 4, label: "4° Livello", shortLabel: "4°" },
-  { value: 5, label: "5° Livello", shortLabel: "5°" },
-  { value: 6, label: "6° Livello", shortLabel: "6°" },
-  { value: 7, label: "7° Livello", shortLabel: "7°" },
-  { value: 8, label: "8° Livello", shortLabel: "8°" },
-  { value: 9, label: "9° Livello", shortLabel: "9°" },
+  {
+    value: 0,
+    labelKey: "spells.levels.cantrip.label",
+    shortLabelKey: "spells.levels.cantrip.short",
+  },
+  {
+    value: 1,
+    labelKey: "spells.levels.level1.label",
+    shortLabelKey: "spells.levels.level1.short",
+  },
+  {
+    value: 2,
+    labelKey: "spells.levels.level2.label",
+    shortLabelKey: "spells.levels.level2.short",
+  },
+  {
+    value: 3,
+    labelKey: "spells.levels.level3.label",
+    shortLabelKey: "spells.levels.level3.short",
+  },
+  {
+    value: 4,
+    labelKey: "spells.levels.level4.label",
+    shortLabelKey: "spells.levels.level4.short",
+  },
+  {
+    value: 5,
+    labelKey: "spells.levels.level5.label",
+    shortLabelKey: "spells.levels.level5.short",
+  },
+  {
+    value: 6,
+    labelKey: "spells.levels.level6.label",
+    shortLabelKey: "spells.levels.level6.short",
+  },
+  {
+    value: 7,
+    labelKey: "spells.levels.level7.label",
+    shortLabelKey: "spells.levels.level7.short",
+  },
+  {
+    value: 8,
+    labelKey: "spells.levels.level8.label",
+    shortLabelKey: "spells.levels.level8.short",
+  },
+  {
+    value: 9,
+    labelKey: "spells.levels.level9.label",
+    shortLabelKey: "spells.levels.level9.short",
+  },
 ];
 
 export default levels;

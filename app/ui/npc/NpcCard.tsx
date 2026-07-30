@@ -3,14 +3,17 @@ import {
   DisclosureButton,
   DisclosurePanel,
 } from "@headlessui/react";
+import { useTranslations } from "next-intl";
 
 import Icon from "../components/Icon";
 import IconType from "../buttons/BaseButton/IconType";
 import pageMetaFields from "@/app/lib/config/pageMetaFields";
 import NpcItem from "@/app/lib/definitions/interfaces/npc/NpcItem";
 import NpcMetaField from "@/app/lib/definitions/enums/npc/NpcMetaField";
+import resolveFieldValue from "@/app/lib/utils/data/resolveFieldValue";
 
 const NpcCard = (props: { cardItem: NpcItem }) => {
+  const t = useTranslations();
   const markup = { __html: props.cardItem.description };
 
   return (
@@ -40,8 +43,10 @@ const NpcCard = (props: { cardItem: NpcItem }) => {
             )}
           </div>
           <div className="w-[200px] text-xl">
-            {pageMetaFields[NpcMetaField.location].getDatum(
-              props.cardItem[NpcMetaField.location]
+            {resolveFieldValue(
+              pageMetaFields[NpcMetaField.location],
+              props.cardItem[NpcMetaField.location],
+              t
             )}
           </div>
           <div className="w-[40px] group-data-open:rotate-180">

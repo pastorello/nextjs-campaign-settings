@@ -1,6 +1,6 @@
 # Technical Debt Register
 
-**Last updated:** 2026-07-27
+**Last updated:** 2026-07-30
 **Scope:** everything found in the 2026-07-22 audit. Each item is independently actionable and sized to be completable in one focused session.
 
 ## Legend
@@ -38,7 +38,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-16 | ✅ Inconsistent formatting                                            | ~~🟢 Low~~ done      | S      | 1     |
 | TD-17 | ✅ README does not match reality                                      | ~~🟢 Low~~ done      | S      | 1     |
 | TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                | ~~🟢 Low~~ done      | S      | 3     |
-| TD-19 | Mixed Italian/English identifiers                                     | 🟠 High              | L      | 2     |
+| TD-19 | ✅ Mixed Italian/English identifiers                                  | ~~🟠 High~~ done     | L      | 2     |
 | TD-20 | ◑ `exactOptionalPropertyTypes` on; `noUncheckedIndexedAccess` blocked | 🟡 Medium            | M      | 2     |
 | TD-21 | UI strings hardcoded; app must ship in it + en                        | 🟠 High              | L      | 2     |
 | TD-22 | ✅ Lint warnings 293 → 0; every rule back to `error`                  | ~~🟠 High~~ done     | M      | 2     |
@@ -661,7 +661,27 @@ Never audited. Likely issues given the component inventory: custom `Select` and 
 
 ---
 
-### TD-19 🟠 Mixed Italian/English identifiers
+### TD-19 ✅ Mixed Italian/English identifiers — **DONE (2026-07-30)**
+
+**Outcome:** every TypeScript/Prisma identifier is English. Postgres columns keep their Italian names via `@map` (per ADR-0005) — except the `png` table itself, which had no `@map` fallback available and so was actually renamed to `npc` (see below). No behaviour changed; `pnpm typecheck && pnpm lint && pnpm test && pnpm format:check` are green (173/173 unit tests), and the touched E2E specs (npc-crud, pagination, filtering, spells-crud, deities-list, validation, a11y — 48 tests) were re-run and pass.
+
+**The database surprise this item's own sequencing note didn't anticipate.** Step 6 says "`png` → `npc` throughout, including the route segment and `PageType`" as if it were purely a TS-side rename like the others. Renaming the Prisma **model** `png` to `npc` renames the table too — `@map` only retargets a _field_, and there is no `@@map` equivalent left pointing at the old table name unless you add one deliberately. `prisma db push` reported it would drop the `png` table (119 rows) to recreate it as `npc`. Fixed with a hand-written migration, `ALTER TABLE "png" RENAME TO "npc"` — zero rows lost, verified by row count before and after — applied directly against the `db push`-managed development database and resolved via `prisma migrate resolve --applied`, the same pattern TD-11 established. Anyone repeating this move (a future model rename) should expect the same and budget for a real migration, not just `@map`.
+
+**The `metaField` string literals were exactly the trap ADR-0005 predicted, and it caught two real misses.** `getQuery.ts` hardcodes the free-text-search and default-sort field as a literal (`whereClause.nome`, `orderBy.push({ nome: ... })`) — invisible to any enum-based search, and not covered by the "rename the enums" steps at all; found via the test suite going red, exactly the safety net the sequencing note was written to require. `NpcMetaField.alignmentDomain`'s value was first written as `"alignmentdomain"` (lowercase, matching the _old_ raw db column) instead of `"alignmentDomain"` (the new Prisma-facing field name) — caught by `pnpm typecheck`, not by inspection. Both are the "misses one string, doesn't fail to compile, silently stops filtering" failure this item's blocking note describes; the second one very nearly did exactly that.
+
+**The reserved word.** `deities.classe` had no clean English single-word identifier once `class` was taken by the language — `class` is valid as a Prisma field name (property position) but not as a bare enum member. Resolved as `DeityMetaField.deityClass = "class"`: the member name is unambiguous TypeScript, its value is the exact Prisma field name `filterByMeta.ts` looks up at runtime.
+
+**E2E specs needed the same fix as production code, for the same reason.** `pagination.spec.ts` had `?nome=Dardo` and `filtering.spec.ts` waited on `/livello=2/` — both are query-string literals `validateParams.ts` matches against `pageMetaFields` keys, so post-rename they would have matched nothing, silently returned the unfiltered set, and the test would have passed anyway (self-consistent count-vs-rows assertions don't care that the filter never actually applied). Not a hypothetical: caught by actually running the specs, not by reading them. This is the transitional-state warning in CLAUDE.md generalized to test code — a `.spec.ts` file is exactly as string-keyed as `getQuery.ts` is.
+
+**What stayed Italian, deliberately:** game-data enum _values_ (`Subclass.BardoSapienza`, `Rarity.Comune`), campaign content, UI `label`/`placeholder` copy, and the `PNG` abbreviation in on-screen text (legitimate D&D-Italian shorthand for _Personaggio Non Giocante_ — not the collision with the image format the item's own description was worried about, which was a code-identifier problem, not a copy one). Nine other renamed enum files (`Rarita`→`Rarity`, `Allineamento`→`Alignment`, `DominioAllineamento`→`AlignmentDomain`, `Fazione`→`Faction`, `Circolo`→`Circle`, `SottoClasse`→`Subclass`, `ColoreMagia`→`MagicColor`, `Elemento`→`Element`, `Festivita`→`Holidays`, `GradoPatrono`→`DeityRank`, `NomePatrono`→`DeityName`, `TipoPatrono`→`DeityType`, `TitoloPatrono`→`DeityTitle`, `TipoTradizione`→`TraditionType`, `Tarocco`→`TarotCard`) kept their enum member names as the D&D terms where translating them would have produced worse identifiers than the Italian originals (`Subclass.WarlockFatato`, not `Subclass.FeyPatronWarlock`).
+
+**Verified against the running app, not just the type checker.** All four domain admin lists, their sort/filter controls, and edit-form pre-population (including the `class` field) were exercised in a browser against the real 119-NPC / 361-spell / 62-item / 6-deity dev database — same counts before and after, no console errors, edit forms correctly pre-filled from existing records.
+
+The original description follows.
+
+---
+
+### TD-19 (original) 🟠 Mixed Italian/English identifiers
 
 **Where:** ~1,000 occurrences across 54 of 288 TypeScript files, plus `prisma/schema.prisma` and `app/seed/initial-data/`
 **Decision:** [ADR-0005](./adr/0005-english-identifiers.md)

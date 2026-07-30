@@ -1,6 +1,6 @@
 # ADR-0007: Resolve message keys at the render boundary, not inside the metadata layer
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-07-30
 - **Deciders:** Turu
 - **Related:** [ADR-0006](./0006-bilingual-ui.md), [ADR-0003](./0003-metadata-driven-domain-configuration.md), [TD-21](../TECH_DEBT.md), [TD-08](../TECH_DEBT.md), [TD-31](../TECH_DEBT.md)
@@ -47,7 +47,7 @@ Consequences of that split, all of them mechanical once the types exist:
 - `sortSelectOptions` and `getDataLabel` keep their present logic unchanged, but accept **only** `ResolvedOption[]`. Every site that forgot to resolve becomes a type error rather than an `undefined` at runtime.
 - `getDataLabel`'s string-keyed `customLabel?: string` becomes a typed `useShort?: boolean`, closing the hazard above.
 - **The 22 redundant `getDatum` closures are deleted.** They restate an invariant the metadata already carries: a field with `options` displays by looking its value up in those options. One generic function applies that rule; `getDatum` survives only where a field genuinely formats (rich text, booleans).
-- **Every option list keeps a single `labelKey`,** including the ones holding the setting's own proper nouns (`tarotCards`, `factions`, `locationList`, `celestialBodies`). Those get catalogue entries that are identical in `it.json` and `en.json`.
+- **Every option list keeps a single `labelKey`,** with no exceptions and no second shape. The setting's own lists — `tarotCards`, `factions`, `locationList` — **are translated** like any other option list (decided 2026-07-30): their names are descriptive rather than invented proper nouns, so they have real English renderings and are not a category-3 exception under [ADR-0006](./0006-bilingual-ui.md). Confirm `celestialBodies` the same way when extraction reaches it; it was not covered by that decision.
 
 ## Alternatives considered
 
@@ -75,7 +75,7 @@ Rejected on the strength of [TD-31](../TECH_DEBT.md), which was this bug: `sortS
 
 Model the "do not translate the DM's world" boundary in the type system, so a faction name is structurally distinct from an SRD rarity.
 
-Genuinely tempting, and more principled on its face. Rejected on flexibility: with a union, deciding later that a faction _should_ be translated is a code change in a config file plus a shape change; with a uniform `labelKey`, it is a one-line catalogue edit and no code moves at all. Setting proper nouns therefore get real keys whose two catalogue values happen to be identical. The duplication is accepted deliberately and is visible in the catalogues rather than hidden in the type.
+Genuinely tempting when it looked as though the setting's own lists would stay untranslated. Rejected twice over. First on flexibility: with a union, deciding later that a faction _should_ be translated is a code change in a config file plus a shape change, where a uniform `labelKey` makes it a catalogue edit with no code movement. Then on fact — the setting lists turned out to be translatable (see Decision), so the boundary this union exists to model does not run through the option lists at all. It would have encoded a distinction that is not there.
 
 ## Consequences
 
@@ -85,20 +85,21 @@ Genuinely tempting, and more principled on its face. Rejected on flexibility: wi
 - Forgetting to resolve is a compile error. This matters more than usual here: `CLAUDE.md` records that the metadata layer's string-keyed corners are exactly where TD-19's near-misses lived, and this change converts one of them (`customLabel`) into a typed parameter.
 - Net **less** code. 22 of 39 `getDatum` declarations disappear; nothing is added to replace them.
 - Locale-correct sorting becomes possible for the first time — `localeCompare` can take the active locale, which the current key-free code could not have done.
-- Setting proper nouns become translatable later without touching code.
+- One shape for every option list. No per-list exception to remember, and no second code path.
 
 **Negative**
 
 - Two shapes to keep straight when reading the code, and a resolution step that authors must remember exists. Mitigated by the compiler: the wrong one does not type-check.
-- Catalogue entries duplicated across `it.json`/`en.json` for setting proper nouns. Accepted above.
+- The setting's own lists now need real English renderings written for them, which is authoring work `ADR-0006` did not anticipate. It is bounded — three lists — and unlike SRD terms there is no rulebook to check against, so the DM's judgement is the only source.
 - `resolveOptions` runs per render for each option-backed field. Not measured, and not worth measuring before there is a complaint — the largest option list in the app is ~20 entries.
 
 **Neutral / follow-up work**
 
-- Which option lists are setting content and which are SRD terms is a **content** decision, made per file during TD-21's extraction step, not an architectural one. This ADR only guarantees the mechanism supports both.
 - The `shortLabelKey` field exists solely for spell levels (`0°`, `1°`…). If a second field ever needs it, revisit whether it belongs on the option or on the field.
-- TD-21's handoff note in `TECH_DEBT.md` must be corrected — it currently recommends the rejected resolver-component approach.
+- Campaign content in Postgres is untouched by all of this — ADR-0006's category-3 boundary is unchanged. What moved is only where the _config_ lists fall, and they fall on the translated side.
 
 ## Revisit when
 
-A third locale is added and the catalogues grow large enough that duplicating setting proper nouns across all of them becomes real maintenance, rather than a handful of repeated lines. At that point the union alternative above becomes the better trade.
+`resolveOptions` shows up in a profile. It runs per render per option-backed field, which is fine at the current scale (largest list ~20 entries) and would be the first thing to memoise if a list ever grew by an order of magnitude.
+
+Or if a future option list genuinely cannot be translated — an invented proper noun with no English rendering, unlike the three settled above. One such list is a catalogue entry repeated across locales; several would reopen the union alternative.

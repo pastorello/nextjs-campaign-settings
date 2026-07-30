@@ -849,13 +849,17 @@ ADR-0007's shape, in brief: split `SelectOption` (authored, `labelKey`) from `Re
 
 **Measured before deciding (2026-07-30):** 39 `getDatum` declarations, of which **22 are `(datum) => getDataLabel(sameOptions, datum)`** restating what the field's own `options` already says — ADR-0007 deletes those rather than threading a translator into them. 7 sites read `SelectOption.label`; 4 read `PageMeta.label`.
 
-**Suggested execution order** — mechanical once ADR-0007 is agreed, so a cheaper model suits it (Haiku 4.5, low/medium effort), verifying `pnpm typecheck` after each step:
+**The content question is settled (2026-07-30): `tarotCards`, `factions` and `locationList` ARE translated**, like every other option list — their names are descriptive, not invented proper nouns, so they are not a category-3 exception under ADR-0006. There is no second shape and no untranslated list. `celestialBodies` was not covered by that decision; confirm it the same way when extraction reaches it. Do not reopen this as "should the DM's world be translated" — campaign content in Postgres is untouched and stays untouched; only the _config_ lists were ever in question.
+
+**Suggested execution order** — mechanical now that ADR-0007 is accepted, so a cheaper model suits it (Haiku 4.5, low/medium effort), verifying `pnpm typecheck` after each step:
 
 1. `SelectOption` → `labelKey`/`shortLabelKey`; add `ResolvedOption`; add `resolveOptions`.
 2. `sortSelectOptions` + `getDataLabel` to `ResolvedOption[]`; `customLabel` → `useShort`.
 3. The 7 `SelectOption.label` consumers, then the 4 `PageMeta.label` ones.
-4. Config files, one domain at a time, spells first as the template.
+4. Config files **one domain at a time, spells first as the template** — each domain means: keys into the config file, and the matching entries into _both_ `messages/it.json` and `messages/en.json` in the same commit. Never leave a key without both catalogue entries. SRD terms take their published translations; do not invent English for a game term.
 5. Delete the 22 redundant `getDatum` closures (separate commit — it is a behaviour-preserving deletion and must be reviewable on its own).
+
+Steps 6–8 of the original fix list above (inline component copy, the locale switcher, the CI key-set check) come after all of this and are untouched by ADR-0007.
 
 ---
 

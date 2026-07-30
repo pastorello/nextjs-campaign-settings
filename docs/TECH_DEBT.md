@@ -826,6 +826,23 @@ The SRD label set is roughly 150 terms (rarities, alignments, schools, casting t
 
 **Done when:** no user-facing string literal remains in a component or config file; both catalogues are complete with matching keys; `/en/dashboard/spells` renders fully in English including every dropdown.
 
+**Progress (2026-07-30) — step 1 done, uncommitted on `td-33-italian-identifiers`, not yet its own branch.**
+Steps 3–8 not started. What's in the working tree:
+
+- `next-intl` installed; `i18n/routing.ts` (`localePrefix: "as-needed"`, `it`/`en`), `i18n/navigation.ts`, `i18n/request.ts`.
+- Routes moved: `app/dashboard`, `app/login`, `app/page.tsx` → `app/[locale]/`. Root `app/layout.tsx` deleted; `app/[locale]/layout.tsx` now holds `<html>`/`<body>` plus `NextIntlClientProvider` and `generateStaticParams`.
+- `proxy.ts` rewritten to compose next-intl's middleware with the TD-01 auth gate. **Do not simplify this back to `NextAuth(authConfig).auth((req) => intlMiddleware(req))`** — two real bugs were found and fixed there:
+  - Passing a callback into `auth()` makes NextAuth **skip its own redirect-to-login branch entirely** (confirmed by reading `next-auth/lib/index.js`: the `authorized`/redirect branch is only reached when `auth()` is called with no wrapped handler). That composition silently disabled TD-01's gate — caught by `e2e/auth.spec.ts`'s "unauthenticated visit redirects to login" test going green→red.
+  - NextAuth's internal signIn-page check is a literal `pathname !== authConfig.pages.signIn` (`"/login"`, unprefixed) — it never matches a locale-prefixed path like `/en/login`, which loops the auth redirect against next-intl's own locale redirect forever for any non-Italian `Accept-Language`. Fixed by replicating the gate manually in `proxy.ts` with `getToken` (session read, no redirect side effect) and a locale-stripping compare instead of relying on NextAuth's built-in redirect.
+  - Verify any future change to `proxy.ts` against `pnpm test:e2e e2e/auth.spec.ts --project=unauthenticated` (all 4 cases) — that spec is what caught both bugs.
+- `admin/*/new/page.tsx`'s `redirect()` calls and the root `page.tsx` switched from `next/navigation` to `i18n/navigation.ts`'s locale-aware equivalents.
+- `messages/it.json` / `messages/en.json` created empty (`{}`) — no keys yet.
+- Verified: `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm test` (173/173), `pnpm test:e2e e2e/auth.spec.ts --project=unauthenticated` (4/4), `pnpm test:e2e e2e/filtering.spec.ts --project=chromium` (4/4, exercises the authenticated flow through the restructured routes).
+
+**Where step 3 stalls, and why it wasn't started.** `PageMeta.label`/`.placeholder` and `SelectOption.label` are structurally-typed and used by every domain config file — renaming them to `labelKey`/`placeholderKey` is not containable to spells-as-a-template the way step 5's file-by-file extraction is. TypeScript forces the rename across all ~19 config files (4 `*Meta.ts` + ~15 options arrays) in the same pass, even though only one domain would get real translation keys wired up immediately. That's a mechanical, low-judgment rename once the shape is decided — a good candidate to run on a cheaper model, one domain at a time, verifying `pnpm typecheck` after each.
+
+There's also an open design call this step needs before touching any file: **where does the key→text lookup happen**, since `getDatum`/`getDataLabel` are plain synchronous functions with no translation context of their own, called from ~7 shared components (`InputComponent`, `Select/index.tsx`, `SelectButtonery`, `FormErrorSummary`, `EntityList`, `sortSelectOptions`, `getDataLabel`). Decided so far: **resolve at the render boundary, not by threading a translator through the metadata layer** — `getDatum`/`getDataLabel` keep returning something render-ready (a small resolver component for option-backed fields' `ReactNode` output works without touching those consumers' call sites; `label`/`placeholderKey` used as raw HTML attributes — `InputComponent`'s `placeholder` prop, for instance — do need that one component to call `useTranslations()` itself, since a `ReactNode` can't fill a string attribute). Not yet implemented or verified against a real component.
+
 ---
 
 ## Phase 3 — Deferred

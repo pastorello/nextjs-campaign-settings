@@ -1,14 +1,15 @@
 "use client";
 
 import SpellForm from "@/app/ui/spells/SpellForm";
-import { redirect } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 
 export default function Page() {
+  const router = useRouter();
   const onCancel = () => {
-    redirect("/dashboard/admin/spells");
+    router.push("/dashboard/admin/spells");
   };
   const onSaveFinished = () => {
-    redirect("/dashboard/admin/spells");
+    router.push("/dashboard/admin/spells");
   };
 
   return <SpellForm onCancel={onCancel} onSaveFinished={onSaveFinished} />;

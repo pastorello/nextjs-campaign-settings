@@ -1,14 +1,15 @@
 "use client";
 
 import MagicItemForm from "@/app/ui/magicitems/MagicItemForm";
-import { redirect } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 
 export default function Page() {
+  const router = useRouter();
   const onCancel = () => {
-    redirect("/dashboard/admin/magicitems");
+    router.push("/dashboard/admin/magicitems");
   };
   const onSaveFinished = () => {
-    redirect("/dashboard/admin/magicitems");
+    router.push("/dashboard/admin/magicitems");
   };
 
   return <MagicItemForm onCancel={onCancel} onSaveFinished={onSaveFinished} />;

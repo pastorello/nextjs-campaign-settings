@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 
+import messages from "@/messages/it.json";
+
 import { TEST_USER } from "./fixtures/testUser";
 
 /**
@@ -14,9 +16,13 @@ test.describe("authentication", () => {
   test("valid credentials reach the dashboard", async ({ page }) => {
     await page.goto("/login");
 
-    await page.getByLabel("Email").fill(TEST_USER.email);
-    await page.getByLabel("Password").fill(TEST_USER.password);
-    await page.getByRole("button", { name: "Accedi" }).click();
+    await page.getByLabel(messages.common.auth.email).fill(TEST_USER.email);
+    await page
+      .getByLabel(messages.common.auth.password)
+      .fill(TEST_USER.password);
+    await page
+      .getByRole("button", { name: messages.common.auth.submit })
+      .click();
 
     await expect(page).toHaveURL(/\/dashboard$/);
   });
@@ -26,14 +32,18 @@ test.describe("authentication", () => {
   }) => {
     await page.goto("/login");
 
-    await page.getByLabel("Email").fill(TEST_USER.email);
-    await page.getByLabel("Password").fill("wrong-password");
-    await page.getByRole("button", { name: "Accedi" }).click();
+    await page.getByLabel(messages.common.auth.email).fill(TEST_USER.email);
+    await page.getByLabel(messages.common.auth.password).fill("wrong-password");
+    await page
+      .getByRole("button", { name: messages.common.auth.submit })
+      .click();
 
     // The failure must be visible to the user, not only logged server-side —
-    // this is the assertion TD-10 exists to keep honest.
+    // this is the assertion TD-10 exists to keep honest. Wrong password against
+    // a real email is a CredentialsSignin AuthError, which the server maps to
+    // this exact catalogue key (app/lib/actions.ts).
     await expect(
-      page.getByText(/credenziali|invalid|errore/i).first()
+      page.getByText(messages.common.auth.invalidCredentials).first()
     ).toBeVisible();
     await expect(page).toHaveURL(/\/login/);
   });

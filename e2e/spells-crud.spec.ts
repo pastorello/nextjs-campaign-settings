@@ -1,5 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 
+import messages from "@/messages/it.json";
+
 /**
  * The full create → read → update → delete round trip for spells, driven
  * through the UI exactly as a DM would.
@@ -21,7 +23,7 @@ const uniqueName = () => `E2E Incantesimo ${Date.now()}`;
 const gotoSpellAdmin = async (page: Page) => {
   await page.goto("/dashboard/admin/spells");
   await expect(
-    page.getByRole("heading", { name: "Incantesimi" })
+    page.getByRole("heading", { name: messages.spells.page.title })
   ).toBeVisible();
 };
 
@@ -48,14 +50,18 @@ test.describe("spells CRUD", () => {
 
     // --- Create -------------------------------------------------------------
     await gotoSpellAdmin(page);
-    await page.getByRole("link", { name: "Nuovo Incantesimo" }).click();
+    await page
+      .getByRole("link", { name: messages.spells.page.newItemButton })
+      .click();
 
     await expect(
-      page.getByRole("heading", { name: "Crea nuovo Incantesimo" })
+      page.getByRole("heading", { name: messages.spells.form.createTitle })
     ).toBeVisible();
 
-    await page.getByLabel("Nome").fill(name);
-    await page.getByRole("button", { name: "Crea Incantesimo" }).click();
+    await page.getByLabel(messages.common.fields.name.label).fill(name);
+    await page
+      .getByRole("button", { name: messages.spells.form.createButton })
+      .click();
 
     await page.waitForURL("**/dashboard/admin/spells");
 
@@ -63,7 +69,9 @@ test.describe("spells CRUD", () => {
     await expect(rowFor(page, name)).toBeVisible();
 
     // --- Update -------------------------------------------------------------
-    await rowFor(page, name).getByRole("button", { name: "Modifica" }).click();
+    await rowFor(page, name)
+      .getByRole("button", { name: messages.common.table.edit })
+      .click();
 
     const editDialog = page.getByRole("dialog");
 
@@ -72,11 +80,15 @@ test.describe("spells CRUD", () => {
     // SpellForm renders its own h1 with the same text — so a heading query is
     // a strict-mode violation. Duplicated, out of order (h1 inside h2's
     // dialog) and worth cleaning up, but not this change's business.
-    await expect(editDialog.getByLabel("Nome")).toBeVisible();
+    await expect(
+      editDialog.getByLabel(messages.common.fields.name.label)
+    ).toBeVisible();
 
-    await editDialog.getByLabel("Nome").fill(editedName);
     await editDialog
-      .getByRole("button", { name: "Modifica Incantesimo" })
+      .getByLabel(messages.common.fields.name.label)
+      .fill(editedName);
+    await editDialog
+      .getByRole("button", { name: messages.spells.form.editButton })
       .click();
 
     await expect(editDialog).toHaveCount(0);
@@ -86,15 +98,17 @@ test.describe("spells CRUD", () => {
 
     // --- Delete -------------------------------------------------------------
     await rowFor(page, editedName)
-      .getByRole("button", { name: "Elimina" })
+      .getByRole("button", { name: messages.common.form.delete })
       .click();
 
     const confirmDialog = page.getByRole("dialog");
     await expect(
-      confirmDialog.getByText(/non può essere annullata/i)
+      confirmDialog.getByText(messages.common.deleteButton.confirmDescription)
     ).toBeVisible();
 
-    await confirmDialog.getByRole("button", { name: "Elimina" }).click();
+    await confirmDialog
+      .getByRole("button", { name: messages.common.form.delete })
+      .click();
 
     await expect(rowFor(page, editedName)).toHaveCount(0);
   });
@@ -105,7 +119,9 @@ test.describe("spells CRUD", () => {
     // Created here rather than borrowing a seeded spell: this test must not be
     // able to remove real data even if the cancel button stops working.
     await gotoSpellAdmin(page);
-    await page.getByRole("link", { name: "Nuovo Incantesimo" }).click();
+    await page
+      .getByRole("link", { name: messages.spells.page.newItemButton })
+      .click();
 
     // This assertion is load-bearing, not decoration. `getByLabel` matches by
     // case-insensitive substring, and the list page's sort button is now named
@@ -114,31 +130,37 @@ test.describe("spells CRUD", () => {
     // finding nothing and waiting for the form to render. Wait for the heading
     // first, and the ambiguity is gone because the list page is.
     await expect(
-      page.getByRole("heading", { name: "Crea nuovo Incantesimo" })
+      page.getByRole("heading", { name: messages.spells.form.createTitle })
     ).toBeVisible();
 
-    await page.getByLabel("Nome").fill(name);
-    await page.getByRole("button", { name: "Crea Incantesimo" }).click();
+    await page.getByLabel(messages.common.fields.name.label).fill(name);
+    await page
+      .getByRole("button", { name: messages.spells.form.createButton })
+      .click();
     await page.waitForURL("**/dashboard/admin/spells");
 
     await gotoSpell(page, name);
     const target = rowFor(page, name);
     await expect(target).toBeVisible();
 
-    await target.getByRole("button", { name: "Elimina" }).click();
+    await target
+      .getByRole("button", { name: messages.common.form.delete })
+      .click();
     await page
       .getByRole("dialog")
-      .getByRole("button", { name: "Annulla" })
+      .getByRole("button", { name: messages.common.form.cancel })
       .click();
 
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(target).toBeVisible();
 
     // Clean up after itself.
-    await target.getByRole("button", { name: "Elimina" }).click();
+    await target
+      .getByRole("button", { name: messages.common.form.delete })
+      .click();
     await page
       .getByRole("dialog")
-      .getByRole("button", { name: "Elimina" })
+      .getByRole("button", { name: messages.common.form.delete })
       .click();
     await expect(target).toHaveCount(0);
   });

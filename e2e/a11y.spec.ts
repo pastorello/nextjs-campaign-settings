@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
+import messages from "@/messages/it.json";
+
 /**
  * Automated accessibility scan (TD-15).
  *
@@ -61,6 +63,17 @@ for (const path of PAGES) {
   });
 }
 
+// The three row/toolbar buttons this test tabs through to find, read from the
+// catalogue rather than hardcoded — "Delete" here used to be a dead branch
+// that never matched the actual Italian button text ("Elimina").
+const FOCUSABLE_BUTTON_TEXT = new RegExp(
+  [
+    messages.common.table.edit,
+    messages.common.form.delete,
+    messages.common.filters.reset,
+  ].join("|")
+);
+
 test("a keyboard user can see where the focus is", async ({ page }) => {
   // WCAG 2.4.7, which axe cannot check. It also cannot be checked by calling
   // `.focus()`: programmatic focus does not match `:focus-visible`, and the
@@ -72,11 +85,11 @@ test("a keyboard user can see where the focus is", async ({ page }) => {
   for (let step = 0; step < 80; step += 1) {
     await page.keyboard.press("Tab");
 
-    const focused = await page.evaluate(() => {
+    const focused = await page.evaluate((pattern) => {
       const element = document.activeElement;
 
       if (!(element instanceof HTMLButtonElement)) return null;
-      if (!/Modifica|Delete|Reset/.test(element.innerText)) return null;
+      if (!new RegExp(pattern).test(element.innerText)) return null;
 
       const style = getComputedStyle(element);
 
@@ -85,7 +98,7 @@ test("a keyboard user can see where the focus is", async ({ page }) => {
         outlineStyle: style.outlineStyle,
         outlineWidth: style.outlineWidth,
       };
-    });
+    }, FOCUSABLE_BUTTON_TEXT.source);
 
     if (focused) {
       expect(focused.outlineStyle).not.toBe("none");

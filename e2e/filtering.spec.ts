@@ -1,5 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 
+import messages from "@/messages/it.json";
+
 /**
  * Search and filters on the spells list — the user-facing half of the metadata
  * query layer (`getQuery`). The unit suite proves the right Prisma query is
@@ -16,12 +18,21 @@ import { test, expect, type Page } from "@playwright/test";
  * That is a genuine accessibility defect, filed for TD-15 — the selector here
  * works around it rather than hiding it.
  */
-const SEARCH_PLACEHOLDER = "Cerca incantesimo...";
+const SEARCH_PLACEHOLDER = messages.spells.page.searchPlaceholder;
+
+// Built from common.list.count ("{filtered} di {total} {item} trovati") so a
+// re-translation of the template can't silently desync this from the copy.
+const COUNT_PATTERN = new RegExp(
+  messages.common.list.count
+    .replace("{filtered}", "(\\d+)")
+    .replace("{total}", "(\\d+)")
+    .replace("{item}", "\\S+")
+);
 
 /** "4 di 4 incantesimi trovati" → { filtered: 4, total: 4 } */
 const readCount = async (page: Page) => {
-  const text = await page.getByText(/\d+ di \d+ incantesim/).innerText();
-  const [, filtered, total] = /(\d+) di (\d+)/.exec(text) ?? [];
+  const text = await page.getByText(COUNT_PATTERN).innerText();
+  const [, filtered, total] = COUNT_PATTERN.exec(text) ?? [];
 
   return { filtered: Number(filtered), total: Number(total) };
 };
@@ -63,10 +74,17 @@ test.describe("spell filtering", () => {
     // surfaced when the library grew from 4 spells to 361 and hydration got
     // slower, which is the kind of flake that would otherwise be blamed on CI.
     await page.waitForLoadState("networkidle");
-    await expect(page.getByRole("button", { name: "Tutti" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: messages.common.filters.all })
+    ).toBeVisible();
     const { total } = await readCount(page);
 
-    await page.getByRole("button", { name: "2° Livello", exact: true }).click();
+    await page
+      .getByRole("button", {
+        name: messages.spells.levels.level2.label,
+        exact: true,
+      })
+      .click();
 
     await page.waitForURL(/level=2/);
 
@@ -94,7 +112,9 @@ test.describe("spell filtering", () => {
     await page.goto("/dashboard/spells?query=Dardo");
     expect((await readCount(page)).filtered).toBeLessThan(total);
 
-    await page.getByRole("button", { name: "Reset Filtri" }).click();
+    await page
+      .getByRole("button", { name: messages.common.filters.reset })
+      .click();
 
     await expect.poll(async () => (await readCount(page)).filtered).toBe(total);
     await expect(page.getByPlaceholder(SEARCH_PLACEHOLDER)).toHaveValue("");

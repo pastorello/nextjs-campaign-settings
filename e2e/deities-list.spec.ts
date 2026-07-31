@@ -1,5 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 
+import messages from "@/messages/it.json";
+
 /**
  * Regression tests for three defects in the deities admin list, all of them
  * divergences from its three sibling lists rather than mistakes in isolation —
@@ -36,7 +38,13 @@ test.describe("deities admin list", () => {
     // Gork's luogo of 4 came out as "Elementale" — a deity type, in a column
     // headed Residenza. The field the schema and deityMeta actually declare for
     // this is `residenza`, whose options are celestialPlanes.
-    expect(await cellUnderHeader(page, "Gork", "Residenza")).toBe("Inferi");
+    expect(
+      await cellUnderHeader(
+        page,
+        "Gork",
+        messages.deities.fields.residence.label
+      )
+    ).toBe(messages.geography.planes.inferi);
   });
 
   test("every column in the body has a header", async ({ page }) => {
@@ -57,7 +65,9 @@ test.describe("deities admin list", () => {
     // The empty state read "Nessun PNG trovato", copy-pasted from PngList.
     await page.goto("/dashboard/admin/deities?query=zzz-nessun-risultato");
 
-    await expect(page.getByText(/nessun/i)).toBeVisible();
-    await expect(page.getByText(/nessun png trovato/i)).toHaveCount(0);
+    await expect(
+      page.getByText(messages.deities.page.emptyMessage)
+    ).toBeVisible();
+    await expect(page.getByText(messages.npc.page.emptyMessage)).toHaveCount(0);
   });
 });

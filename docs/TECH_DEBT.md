@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-07-30
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-02b · TD-20b (blocked) · TD-14 (Phase 3) · TD-35. Everything else is done — the summary table below is authoritative.
+**Open items:** TD-02b · TD-20b (blocked) · TD-14 (Phase 3). Everything else is done — the summary table below is authoritative.
 
 ## Legend
 
@@ -55,7 +55,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-32 | ✅ E2E job spent 9m a run on `playwright install-deps`                   | ~~🟠 High~~ done     | S      | 1     |
 | TD-33 | ✅ Italian identifiers TD-19 missed — 16 across 14 files + a directory   | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-34 | ✅ CI actions pinned to a deprecated Node 20 runtime; Node 22 → 24       | ~~🟢 Low~~ done      | S      | 2     |
-| TD-35 | E2E specs assert hardcoded Italian copy instead of reading the catalogue | 🟡 Medium            | M      | 2     |
+| TD-35 | ✅ E2E specs assert hardcoded Italian copy instead of reading the catalogue | ~~🟡 Medium~~ done   | M      | 2     |
 
 ---
 
@@ -1489,7 +1489,11 @@ The pins had drifted badly in the meantime — `@v4` against `v7.0.1` current fo
 
 ---
 
-### TD-35 🟡 E2E specs assert hardcoded copy instead of reading the message catalogue
+### TD-35 ✅ E2E specs assert hardcoded copy instead of reading the message catalogue — **DONE (2026-07-31)**
+
+**Outcome:** every `e2e/*.spec.ts` file now imports `messages/it.json` and resolves catalogue-sourced `getByRole`/`getByLabel`/`getByText` assertions from it (`messages.common.auth.submit`, `messages.spells.form.createTitle`, etc.) instead of a hand-copied literal. `common.list.count`'s template (`"{filtered} di {total} {item} trovati"`) is used to build the two count-parsing regexes in `filtering.spec.ts` and `pagination.spec.ts`, so a re-translation of that template can't silently desync the parser. `a11y.spec.ts`'s keyboard-focus test also had its `/Modifica|Delete|Reset/` regex rebuilt from the catalogue — `"Delete"` was a dead branch that never matched the real Italian button text (`"Elimina"`); it's replaced with the real value. Left as literals, deliberately: seeded/DM-authored content the specs control (`"Gork"`, `"Dardo"`), Next.js's own built-in 404 strings in `not-found.spec.ts`, and the vendored maps module's hardcoded English (`"Add Marker"`, `"Copy Coordinates"`, `"Map context menu"` in `MapContextMenu.tsx`) — none of those come from `messages/it.json`.
+
+**Verified:** all ten touched specs pass individually (`auth`, `auth.setup`, `deities-list`, `filtering`, `pagination`, `npc-crud`, `spells-crud`, `map`, `a11y`); full unit suite (177 tests) green; `pnpm typecheck` and `pnpm lint` clean.
 
 **Where:** `e2e/*.spec.ts` — every `getByRole(..., { name: "..." })`, `getByLabel("...")` and `getByText(/.../)` that targets translated UI copy.
 **Found:** 2026-07-31, fixing two CI failures on the [[TD-21]] branch. TD-21 correctly wired the login button and the delete-confirmation dialog to `next-intl` — they had been hardcoded English (`"Log in"`, `"Delete"`, `"This operation can't be undone"`) even under the old all-Italian UI. Once translated, they render `"Accedi"` / `"Elimina"` / `"Questa operazione non può essere annullata"` under the Italian default locale, and the specs — which predate the catalogue — still asserted the old strings. Two separate CI rounds were needed to find both: the second (a regex, `/can't be undone/i`) survived a first grep pass that only matched quoted string literals.

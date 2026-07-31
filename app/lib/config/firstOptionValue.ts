@@ -21,5 +21,5 @@
 export default function firstOptionValue<T extends { value: unknown }>(
   options: readonly T[]
 ): T["value"] {
-  return options[0].value;
+  return options[0]!.value;
 }

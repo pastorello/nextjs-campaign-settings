@@ -59,7 +59,8 @@ export function useMeasurement() {
     (pts: MeasurementPoint[]): number => {
       let total = 0;
       for (let i = 0; i < pts.length - 1; i++) {
-        total += calculatePointDistance(pts[i].latlng, pts[i + 1].latlng);
+        // TD-20b: loop bound (i < pts.length - 1) keeps both indices in range.
+        total += calculatePointDistance(pts[i]!.latlng, pts[i + 1]!.latlng);
       }
       return total;
     },
@@ -77,10 +78,11 @@ export function useMeasurement() {
 
     for (let i = 0; i < pts.length; i++) {
       const j = (i + 1) % pts.length;
-      const xi = (pts[i].latlng.lng * Math.PI) / 180;
-      const yi = (pts[i].latlng.lat * Math.PI) / 180;
-      const xj = (pts[j].latlng.lng * Math.PI) / 180;
-      const yj = (pts[j].latlng.lat * Math.PI) / 180;
+      // TD-20b: i is bounded by the loop, j by modulo — both always in range.
+      const xi = (pts[i]!.latlng.lng * Math.PI) / 180;
+      const yi = (pts[i]!.latlng.lat * Math.PI) / 180;
+      const xj = (pts[j]!.latlng.lng * Math.PI) / 180;
+      const yj = (pts[j]!.latlng.lat * Math.PI) / 180;
 
       area += xi * Math.sin(yj) - xj * Math.sin(yi);
     }

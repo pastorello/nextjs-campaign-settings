@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-07-31
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-20b (blocked) · TD-14 (Phase 3). Everything else is done — the summary table below is authoritative. **Phase 2 is complete** as of TD-02b.
+**Open items:** TD-14 (Phase 3). Everything else is done — the summary table below is authoritative. **Phase 2 is complete** as of TD-02b.
 
 ## Legend
 
@@ -19,43 +19,43 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-| ID    | Title                                                                       | Severity             | Effort | Phase |
-| ----- | --------------------------------------------------------------------------- | -------------------- | ------ | ----- |
-| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions                      | ~~🔴 Critical~~ done | M      | 1     |
-| TD-02 | ✅ No input validation, incl. TD-02b's remaining boundaries                 | ~~🔴 Critical~~ done | M      | 1–2   |
-| TD-03 | ✅ Test suite does not run                                                  | ~~🔴 Critical~~ done | M      | 1     |
-| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                                      | ~~🔴 Critical~~ done | S      | 1     |
-| TD-05 | ✅ No ESLint config, no Prettier, no CI                                     | ~~🟠 High~~ done     | S      | 1     |
-| TD-06 | ✅ Dead code and tutorial leftovers                                         | ~~🟠 High~~ done     | S      | 1     |
-| TD-07 | ✅ `next`/`react` pinned; single lockfile                                   | ~~🟠 High~~ done     | S      | 1     |
-| TD-08 | ✅ Metadata and query layer typed; zero `any`, rule is an error             | ~~🟠 High~~ done     | M      | 2     |
-| TD-09 | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm          | ~~🟠 High~~ done     | L      | 2     |
-| TD-10 | ✅ Toasts (client) vs `logServerIssue` (server) replace the stub            | ~~🟠 High~~ done     | M      | 2     |
-| TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred                 | ~~🟡 Medium~~ part   | M      | 2     |
-| TD-12 | ✅ Filter list declared once; count and rows can no longer diverge          | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-13 | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10                  | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-14 | Map POIs persisted only to `localStorage`                                   | 🟡 Medium            | M      | 3     |
-| TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring            | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-16 | ✅ Inconsistent formatting                                                  | ~~🟢 Low~~ done      | S      | 1     |
-| TD-17 | ✅ README does not match reality                                            | ~~🟢 Low~~ done      | S      | 1     |
-| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                      | ~~🟢 Low~~ done      | S      | 3     |
-| TD-19 | ✅ Mixed Italian/English identifiers (residual set → TD-33)                 | ~~🟠 High~~ done     | L      | 2     |
-| TD-20 | ◑ `exactOptionalPropertyTypes` on; `noUncheckedIndexedAccess` blocked       | 🟡 Medium            | M      | 2     |
-| TD-21 | ✅ UI strings hardcoded; app must ship in it + en                           | ~~🟠 High~~ done     | L      | 2     |
-| TD-22 | ✅ Lint warnings 293 → 0; every rule back to `error`                        | ~~🟠 High~~ done     | M      | 2     |
-| TD-23 | ✅ Migration drift patched forward; migrations match the schema             | ~~🟠 High~~ done     | S      | 1     |
-| TD-24 | ✅ Playwright harness + specs; `e2e` job blocking in CI                     | ~~🟠 High~~ done     | M      | 1     |
-| TD-25 | ✅ Startup reachability check; 503 distinct from 500                        | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                           | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-27 | ✅ Hidden `classi=0` filter on the spells list removed                      | ~~🟠 High~~ done     | S      | 2     |
-| TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does              | ~~🟠 High~~ done     | S      | 2     |
-| TD-29 | ✅ Loading skeleton was the tutorial's invoices table                       | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-30 | ✅ Public list pages actually stream; skeleton matches the content          | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-31 | ✅ `sortSelectOptions` mutated shared `PageMeta.options` in place           | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-32 | ✅ E2E job spent 9m a run on `playwright install-deps`                      | ~~🟠 High~~ done     | S      | 1     |
-| TD-33 | ✅ Italian identifiers TD-19 missed — 16 across 14 files + a directory      | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-34 | ✅ CI actions pinned to a deprecated Node 20 runtime; Node 22 → 24          | ~~🟢 Low~~ done      | S      | 2     |
-| TD-35 | ✅ E2E specs assert hardcoded Italian copy instead of reading the catalogue | ~~🟡 Medium~~ done   | M      | 2     |
+| ID    | Title                                                                          | Severity             | Effort | Phase |
+| ----- | ------------------------------------------------------------------------------ | -------------------- | ------ | ----- |
+| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions                         | ~~🔴 Critical~~ done | M      | 1     |
+| TD-02 | ✅ No input validation, incl. TD-02b's remaining boundaries                    | ~~🔴 Critical~~ done | M      | 1–2   |
+| TD-03 | ✅ Test suite does not run                                                     | ~~🔴 Critical~~ done | M      | 1     |
+| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                                         | ~~🔴 Critical~~ done | S      | 1     |
+| TD-05 | ✅ No ESLint config, no Prettier, no CI                                        | ~~🟠 High~~ done     | S      | 1     |
+| TD-06 | ✅ Dead code and tutorial leftovers                                            | ~~🟠 High~~ done     | S      | 1     |
+| TD-07 | ✅ `next`/`react` pinned; single lockfile                                      | ~~🟠 High~~ done     | S      | 1     |
+| TD-08 | ✅ Metadata and query layer typed; zero `any`, rule is an error                | ~~🟠 High~~ done     | M      | 2     |
+| TD-09 | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm             | ~~🟠 High~~ done     | L      | 2     |
+| TD-10 | ✅ Toasts (client) vs `logServerIssue` (server) replace the stub               | ~~🟠 High~~ done     | M      | 2     |
+| TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred                    | ~~🟡 Medium~~ part   | M      | 2     |
+| TD-12 | ✅ Filter list declared once; count and rows can no longer diverge             | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-13 | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10                     | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-14 | Map POIs persisted only to `localStorage`                                      | 🟡 Medium            | M      | 3     |
+| TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring               | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-16 | ✅ Inconsistent formatting                                                     | ~~🟢 Low~~ done      | S      | 1     |
+| TD-17 | ✅ README does not match reality                                               | ~~🟢 Low~~ done      | S      | 1     |
+| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                         | ~~🟢 Low~~ done      | S      | 3     |
+| TD-19 | ✅ Mixed Italian/English identifiers (residual set → TD-33)                    | ~~🟠 High~~ done     | L      | 2     |
+| TD-20 | ✅ Every flag on, incl. `noUncheckedIndexedAccess` (`noUnusedLocals` rejected) | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-21 | ✅ UI strings hardcoded; app must ship in it + en                              | ~~🟠 High~~ done     | L      | 2     |
+| TD-22 | ✅ Lint warnings 293 → 0; every rule back to `error`                           | ~~🟠 High~~ done     | M      | 2     |
+| TD-23 | ✅ Migration drift patched forward; migrations match the schema                | ~~🟠 High~~ done     | S      | 1     |
+| TD-24 | ✅ Playwright harness + specs; `e2e` job blocking in CI                        | ~~🟠 High~~ done     | M      | 1     |
+| TD-25 | ✅ Startup reachability check; 503 distinct from 500                           | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                              | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-27 | ✅ Hidden `classi=0` filter on the spells list removed                         | ~~🟠 High~~ done     | S      | 2     |
+| TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does                 | ~~🟠 High~~ done     | S      | 2     |
+| TD-29 | ✅ Loading skeleton was the tutorial's invoices table                          | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-30 | ✅ Public list pages actually stream; skeleton matches the content             | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-31 | ✅ `sortSelectOptions` mutated shared `PageMeta.options` in place              | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-32 | ✅ E2E job spent 9m a run on `playwright install-deps`                         | ~~🟠 High~~ done     | S      | 1     |
+| TD-33 | ✅ Italian identifiers TD-19 missed — 16 across 14 files + a directory         | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-34 | ✅ CI actions pinned to a deprecated Node 20 runtime; Node 22 → 24             | ~~🟢 Low~~ done      | S      | 2     |
+| TD-35 | ✅ E2E specs assert hardcoded Italian copy instead of reading the catalogue    | ~~🟡 Medium~~ done   | M      | 2     |
 
 ---
 
@@ -739,7 +739,17 @@ The codebase mixes languages without a rule. Models are English (`spells`, `magi
 
 ---
 
-### TD-20 ◑ TypeScript strictness stops at `strict` — **batch 1 partly done (2026-07-22)**
+### TD-20 ✅ TypeScript strictness stops at `strict` — **DONE (2026-07-31)**
+
+**TD-20b outcome (2026-07-31).** `noUncheckedIndexedAccess` is now on. The "exclude the maps module via its own tsconfig" option this item left open turned out not to exist as stated: TypeScript compiler options apply per-Program, not per-directory — a file reachable by import (as every file in `app/modules/maps/` is, via `WorldMap.tsx`) is checked under the root program's options regardless of `exclude`. The only real mechanism for a different option set on a subtree is Project References (`composite: true`, declaration emission, separate `tsc --build` step), which was judged too large and too risky against `next typegen`'s pipeline for what this item needs. Went with the other documented option instead: a non-null assertion at each of the 20 sites, one line each, with a comment naming why the index is safe there (loop bound, prior length check, a fixed-length literal array, or a regex with a known capture-group count) — the same pattern this item's own `firstOptionValue.ts` helper already established for the identical problem. No behaviour change; nothing here was a guess, each assertion states the invariant that makes it true.
+
+Six more errors than the 20 this item recorded showed up on enabling the flag — none in the maps module. `firstOptionValue.ts` itself needed one (its own doc comment already argued for exactly this fix but the assertion was never added), and TD-02b's test additions (`fetchFilteredSpells.test.ts`, `buildEntitySchema.test.ts`) had three untyped array-index reads each apparently safe by test construction. Fixed the same way. `pnpm typecheck && pnpm lint && pnpm test && pnpm format:check` all green (213/213 unit tests).
+
+**`noUnusedLocals` stays rejected**, per the reasoning already recorded below — the 13 "unused" imports in `WorldMap.tsx` are deliberate unwired scaffolding, not dead code, and forcing their deletion would fight that practice rather than serve it. Nothing else in this item remains open.
+
+The original TD-20b framing follows for context.
+
+### TD-20 (original framing) ◑ TypeScript strictness stops at `strict` — **batch 1 partly done (2026-07-22)**
 
 **Where:** `tsconfig.json`
 
@@ -1553,9 +1563,8 @@ The pins had drifted badly in the meantime — `@v4` against `v7.0.1` current fo
 25.  ✅ TD-21  extract UI strings, ship it + en    → L; message-key resolution + locale switcher + CI key-set check
 26.  ✅ TD-35  e2e specs resolve copy from the catalogue, not literals
 27.  ✅ TD-02b remaining trust boundaries (env, localStorage, GeoJSON, Prisma results) → Phase 2 complete
+28.  ✅ TD-20b noUncheckedIndexedAccess → 20 sites in the vendored maps module fixed with documented assertions
 --- everything above is done. What is actually left: ---
-D.  TD-20b noUncheckedIndexedAccess → blocked: 20 sites in the vendored maps module
-                                      need coverage first, or the module needs excluding
 E.  TD-14  map POIs into Postgres → Phase 3; as much feature as debt
 ✅ TD-18 was done early (it unblocked the build)
 ```

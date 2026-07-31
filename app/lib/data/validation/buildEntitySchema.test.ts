@@ -85,7 +85,7 @@ describe("buildResultSchema", () => {
 
     it("falls back to the field's default for a column the DB allows null (TD-02b)", () => {
       const payload = defaultPayload(pageType);
-      const nullableKey = entityFieldKeys(pageType)[0];
+      const nullableKey = entityFieldKeys(pageType)[0]!;
       const result = buildResultSchema(pageType).safeParse({
         ...payload,
         [nullableKey]: null,
@@ -107,7 +107,7 @@ describe("buildResultSchema", () => {
     });
 
     it("rejects a row where a field's type has drifted", () => {
-      const wrongTypeKey = entityFieldKeys(pageType)[0];
+      const wrongTypeKey = entityFieldKeys(pageType)[0]!;
       const result = buildResultSchema(pageType).safeParse({
         ...defaultPayload(pageType),
         [wrongTypeKey]: Symbol("drifted"),

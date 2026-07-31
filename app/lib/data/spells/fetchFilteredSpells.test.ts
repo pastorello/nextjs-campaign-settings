@@ -32,7 +32,7 @@ describe("fetchFilteredSpells (TD-02b)", () => {
     const result = await fetchFilteredSpells(Promise.resolve({}));
 
     expect(result).toHaveLength(1);
-    expect(result[0].concentration).toBe(false);
+    expect(result[0]?.concentration).toBe(false);
   });
 
   it("throws a DatabaseError instead of returning a malformed row", async () => {

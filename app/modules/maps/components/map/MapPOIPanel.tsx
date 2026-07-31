@@ -178,7 +178,8 @@ export const MapPOIPanel = memo(function MapPOIPanel({
   const [editingPOI, setEditingPOI] = useState<POI | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const snapPoints = [0.4, 0.7, 1];
-  const [snap, setSnap] = useState<number | string | null>(snapPoints[1]);
+  // TD-20b: snapPoints is a fixed literal array declared above, with three elements.
+  const [snap, setSnap] = useState<number | string | null>(snapPoints[1]!);
 
   // Detect mobile viewport
   useEffect(() => {

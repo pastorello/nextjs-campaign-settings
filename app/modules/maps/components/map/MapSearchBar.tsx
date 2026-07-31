@@ -127,7 +127,8 @@ export function MapSearchBar({
         case "Enter":
           e.preventDefault();
           if (selectedIndex >= 0 && selectedIndex < countries.length) {
-            handleCountrySelect(countries[selectedIndex].id);
+            // TD-20b: bounds already checked on the line above.
+            handleCountrySelect(countries[selectedIndex]!.id);
           }
           break;
         case "Escape":

@@ -42,7 +42,8 @@ export function MapTileSwitcher({
 
   const selectedLayer =
     layerOptions.find((layer) => layer.id === selectedProviderId) ||
-    layerOptions[0];
+    // TD-20b: layerOptions is the fixed literal array declared above, never empty.
+    layerOptions[0]!;
 
   return (
     <div

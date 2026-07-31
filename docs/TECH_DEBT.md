@@ -1,8 +1,8 @@
 # Technical Debt Register
 
-**Last updated:** 2026-07-30
+**Last updated:** 2026-07-31
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-02b · TD-20b (blocked) · TD-14 (Phase 3). Everything else is done — the summary table below is authoritative.
+**Open items:** TD-20b (blocked) · TD-14 (Phase 3). Everything else is done — the summary table below is authoritative. **Phase 2 is complete** as of TD-02b.
 
 ## Legend
 
@@ -22,7 +22,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | ID    | Title                                                                       | Severity             | Effort | Phase |
 | ----- | --------------------------------------------------------------------------- | -------------------- | ------ | ----- |
 | TD-01 | ✅ Unauthenticated delete endpoints and Server Actions                      | ~~🔴 Critical~~ done | M      | 1     |
-| TD-02 | ✅ No input validation (Phase 1); TD-02b remains                            | ~~🔴 Critical~~ done | M      | 1–2   |
+| TD-02 | ✅ No input validation, incl. TD-02b's remaining boundaries                 | ~~🔴 Critical~~ done | M      | 1–2   |
 | TD-03 | ✅ Test suite does not run                                                  | ~~🔴 Critical~~ done | M      | 1     |
 | TD-04 | ✅ TypeScript errors on `tsc --noEmit`                                      | ~~🔴 Critical~~ done | S      | 1     |
 | TD-05 | ✅ No ESLint config, no Prettier, no CI                                     | ~~🟠 High~~ done     | S      | 1     |
@@ -114,6 +114,19 @@ Compounding this, `authConfig.callbacks.authorized` gates every matched path ide
 - **The validators are now enforced exactly as declared, and some are lax.** `nome` is `z.string()` with no `.min(1)`, so an empty name still passes. Tightening them is a product decision, not a wiring one — left alone deliberately.
 
 **Tests (111 total, +63):** `buildEntitySchema.test.ts` proves a payload of every field's declared `defaultValue` passes each of the four domains — the check that catches a validator that never matched the data it guards; `mutationValidation.test.ts` covers valid-writes / invalid-rejected / field-keyed-errors / partial-update per domain; `deleteEndpoints.test.ts` gained 24 malformed-`:id` cases.
+
+### TD-02b ✅ Remaining trust boundaries — **DONE (2026-07-31)**
+
+**Outcome:** the four boundaries steps 5–6 deferred to Phase 2 are now validated, closing Phase 2.
+
+- **Env vars.** `app/lib/config/env.ts` — one Zod schema (`DATABASE_URL: z.string().url()`), parsed once at import time. Replaces `process.env.DATABASE_URL!` in `prisma.ts` and `prismaSeed.ts`; a missing or malformed value now throws immediately, naming the variable, instead of failing three files away in `PrismaPg`'s constructor.
+- **`localStorage` POIs.** `app/modules/maps/types/poiSchema.ts` (`poiSchema`) replaces `JSON.parse(stored) as POI[]` in `usePOIManager.loadPOIs`. Entries are validated one at a time; invalid ones are discarded with a `console.warn` and the rest still load — hand-edited or stale storage no longer crashes the map. The category enum is derived from `POI_CATEGORIES` rather than repeating the `POICategory` union, so the two cannot drift apart.
+- **GeoJSON.** `app/api/countries/worldGeoJson.ts` (`worldGeoJSONSchema`) replaces the `as GeoJSONData` casts in both `app/api/countries/search/route.ts` and `app/api/countries/[id]/route.ts` — a corrupt `world.geojson` now logs and degrades (empty list / 500) instead of an unchecked cast failing later at whichever field happened to be read. Separately, `MapMain.tsx`'s POI _import_ dialog — genuinely untrusted, user-supplied input, unlike the app's own bundled `world.geojson` — gained `poiGeoJSONSchema`, replacing `JSON.parse(text) as POIGeoJSON`.
+- **Prisma result casts.** `buildEntitySchema.ts` gained `buildResultSchema`, reused by all four `fetchFiltered*.ts` in place of `result as Spell[]` (and `magicitems`' hand-rolled `attuned === true` coercion). It validates the same field shape as a create payload plus `id`, but nullable DB columns (`spells.concentration` is `NULL` on 357 of 361 live rows, despite the interface declaring it required) fall back to the field's declared `defaultValue` instead of failing — verified against the real database, not just seed data. A genuine type mismatch still throws a `DatabaseError` naming the operation, with the Zod error as `cause`.
+
+**Tests (+13):** `env.test.ts`, `poiSchema.test.ts`, `usePOIManager.test.ts` (discards an invalid category, tolerates non-array storage), `worldGeoJson.test.ts`, `search/route.test.ts` and `[id]/route.test.ts` (malformed file → empty list / 500, not a crash), and `buildResultSchema` cases added to `buildEntitySchema.test.ts` (null → default, drifted type rejected, missing id rejected) plus a `fetchFilteredSpells.test.ts` proving the wiring end to end.
+
+**Not done:** the response.json() cast in `MapMain.tsx`'s `handleCountrySelect` (`as GeoJSON.Feature`) — that response comes from `/api/countries/[id]`, which this item already validates server-side, so a second client-side check would be redundant. Left as-is.
 
 The original description follows.
 
@@ -1538,12 +1551,12 @@ The pins had drifted badly in the meantime — `@v4` against `v7.0.1` current fo
 23c. ✅ TD-26 / TD-29 / TD-30 / TD-32       → see the summary table
 24.  ✅ TD-33  the Italian identifiers TD-19 missed → compiler-verified, no behaviour change
 25.  ✅ TD-21  extract UI strings, ship it + en    → L; message-key resolution + locale switcher + CI key-set check
+26.  ✅ TD-35  e2e specs resolve copy from the catalogue, not literals
+27.  ✅ TD-02b remaining trust boundaries (env, localStorage, GeoJSON, Prisma results) → Phase 2 complete
 --- everything above is done. What is actually left: ---
-C.  TD-02b remaining trust boundaries (env, localStorage, GeoJSON)
 D.  TD-20b noUncheckedIndexedAccess → blocked: 20 sites in the vendored maps module
                                       need coverage first, or the module needs excluding
 E.  TD-14  map POIs into Postgres → Phase 3; as much feature as debt
---- Phase 2 ends when C lands ---
 ✅ TD-18 was done early (it unblocked the build)
 ```
 

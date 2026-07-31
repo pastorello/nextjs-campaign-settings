@@ -18,6 +18,7 @@ import { useMapContextMenu } from "@/app/modules/maps/hooks/useMapContextMenu";
 import { useMapMarkers } from "@/app/modules/maps/hooks/useMapMarkers";
 import { usePOIManager } from "@/app/modules/maps/hooks/usePOIManager";
 import type { POICategory, POIGeoJSON } from "@/app/modules/maps/types/poi";
+import { poiGeoJSONSchema } from "@/app/modules/maps/types/poiSchema";
 
 // Memoized style object to prevent unnecessary re-renders
 const GEOJSON_STYLE = {
@@ -199,8 +200,16 @@ export function MapMain() {
     async (file: File) => {
       try {
         const text = await file.text();
-        const geojson = JSON.parse(text) as POIGeoJSON;
-        const count = importGeoJSON(geojson);
+        const parsed = poiGeoJSONSchema.safeParse(JSON.parse(text));
+
+        if (!parsed.success) {
+          throw new Error(`Invalid GeoJSON: ${parsed.error.message}`);
+        }
+
+        // `id` / `createdAt` / `updatedAt` are optional in the schema —
+        // importGeoJSON already fills them in when absent — but POIGeoJSON
+        // declares them required, matching the app's own export.
+        const count = importGeoJSON(parsed.data as POIGeoJSON);
         toast.success(
           `Successfully imported ${count} place${count !== 1 ? "s" : ""}!`
         );

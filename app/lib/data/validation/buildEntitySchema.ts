@@ -36,4 +36,35 @@ export function buildUpdateSchema(pageType: PageType) {
     .extend({ id: z.coerce.number().int().positive() });
 }
 
+function resultFieldValidators(pageType: PageType): ZodRawShape {
+  // Several DB columns are nullable (e.g. `spells.concentration`) though the
+  // domain interfaces declare them required — a pre-existing gap between the
+  // schema and the type, not one this closes. Falling back to the field's own
+  // `defaultValue` keeps a read honouring what the interface promises without
+  // rejecting rows that have always been valid.
+  return Object.fromEntries(
+    entityFieldKeys(pageType).map((key) => {
+      const field = pageMetaFields[key];
+      return [
+        key,
+        field.validator
+          .nullable()
+          .transform((value) => value ?? field.defaultValue),
+      ];
+    })
+  );
+}
+
+/**
+ * Schema for a row read back from Prisma (TD-02b) — the same field shape as a
+ * create payload, plus `id`. Replaces a blind `as Spell[]` with a real check:
+ * a schema/interface drift (a renamed column, a type that no longer matches)
+ * now fails loudly instead of silently reaching the UI.
+ */
+export function buildResultSchema(pageType: PageType) {
+  return z.object(resultFieldValidators(pageType)).extend({
+    id: z.number().int().positive(),
+  });
+}
+
 export { entityFieldKeys };

@@ -1,22 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { worldGeoJSONSchema } from "../worldGeoJson";
 
 interface Country {
   id: string;
   name: string;
   nameLong: string;
-}
-
-interface GeoJSONFeature {
-  properties: {
-    NAME?: string;
-    NAME_LONG?: string;
-  };
-}
-
-interface GeoJSONData {
-  features: GeoJSONFeature[];
 }
 
 // Cache for the GeoJSON data (in-memory)
@@ -39,10 +29,15 @@ function loadCountries(): Country[] {
       "world.geojson"
     );
     const fileContents = fs.readFileSync(filePath, "utf8");
-    const geoJSON = JSON.parse(fileContents) as GeoJSONData;
+    const parsed = worldGeoJSONSchema.safeParse(JSON.parse(fileContents));
+
+    if (!parsed.success) {
+      console.error("world.geojson failed validation:", parsed.error.message);
+      return [];
+    }
 
     // Extract only essential data for search
-    countriesCache = geoJSON.features
+    countriesCache = parsed.data.features
       .map((feature, index: number) => ({
         id: feature.properties.NAME || `country-${index}`,
         name: feature.properties.NAME || "Unknown",

@@ -105,7 +105,7 @@ const DeityCard = (props: { cardItem: Deity }) => {
           <div className="flex w-full p-2">
             <div className="w-[50%] p-1">
               <ItemMeta
-                label="Residenza"
+                label={t("deities.card.residence")}
                 value={`${
                   resolveFieldValue(
                     pageMetaFields[DeityMetaField.location],
@@ -121,7 +121,7 @@ const DeityCard = (props: { cardItem: Deity }) => {
                 }`}
               />
               <ItemMeta
-                label="Astro associato"
+                label={t("deities.card.celestialBody")}
                 value={resolveFieldValue(
                   pageMetaFields[DeityMetaField.celestialBody],
                   props.cardItem[DeityMetaField.celestialBody],
@@ -129,7 +129,7 @@ const DeityCard = (props: { cardItem: Deity }) => {
                 )}
               />
               <ItemMeta
-                label="Festività"
+                label={t("deities.card.holidays")}
                 value={pageMetaFields[DeityMetaField.holidays].getDatum?.(
                   props.cardItem[DeityMetaField.holidays]
                 )}
@@ -137,7 +137,7 @@ const DeityCard = (props: { cardItem: Deity }) => {
             </div>
             <div className="w-[50%] p-1">
               <ItemMeta
-                label="Tarocco"
+                label={t("deities.card.tarotCard")}
                 value={
                   resolveFieldValue(
                     pageMetaFields[DeityMetaField.tarotCard],
@@ -147,13 +147,13 @@ const DeityCard = (props: { cardItem: Deity }) => {
                 }
               />
               <ItemMeta
-                label="Significato"
+                label={t("deities.card.meaning")}
                 value={pageMetaFields[DeityMetaField.meaning].getDatum?.(
                   props.cardItem[DeityMetaField.meaning]
                 )}
               />
               <ItemMeta
-                label="Elemento"
+                label={t("deities.card.element")}
                 value={`${
                   resolveFieldValue(
                     pageMetaFields[DeityMetaField.element],

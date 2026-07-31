@@ -28,7 +28,7 @@ const MagicItemCard = (props: { cardItem: MagicItem }) => {
             </h3>
             <p>
               {props.cardItem[MagicItemMetaField.attuned] === true &&
-                "Richiede sintonia"}
+                t("magicItems.card.attunementRequired")}
             </p>
           </div>
           <div className="w-[250px] px-2">

@@ -16,7 +16,7 @@ test.describe("authentication", () => {
 
     await page.getByLabel("Email").fill(TEST_USER.email);
     await page.getByLabel("Password").fill(TEST_USER.password);
-    await page.getByRole("button", { name: "Log in" }).click();
+    await page.getByRole("button", { name: "Accedi" }).click();
 
     await expect(page).toHaveURL(/\/dashboard$/);
   });
@@ -28,7 +28,7 @@ test.describe("authentication", () => {
 
     await page.getByLabel("Email").fill(TEST_USER.email);
     await page.getByLabel("Password").fill("wrong-password");
-    await page.getByRole("button", { name: "Log in" }).click();
+    await page.getByRole("button", { name: "Accedi" }).click();
 
     // The failure must be visible to the user, not only logged server-side —
     // this is the assertion TD-10 exists to keep honest.

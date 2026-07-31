@@ -66,7 +66,7 @@ export default async function EntityList(props: {
     <div className="mt-6 flow-root">
       <div className="inline-block min-w-full align-middle">
         <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
-          {isArrayEmpty(items) && <p>{config.emptyMessage}</p>}
+          {isArrayEmpty(items) && <p>{t(config.emptyMessageKey)}</p>}
           <table className="hidden min-w-full text-gray-900 md:table">
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
@@ -84,10 +84,10 @@ export default async function EntityList(props: {
                     className="px-3 py-5 font-medium"
                   >
                     {column.sortable === false ? (
-                      column.label
+                      t(column.labelKey)
                     ) : (
                       <SortableHeader
-                        label={column.label}
+                        label={t(column.labelKey)}
                         fieldKey={column.fieldKey}
                       />
                     )}
@@ -139,7 +139,7 @@ export default async function EntityList(props: {
                     <div className="flex justify-end gap-3">
                       <ModalButton
                         buttonLabel={t("common.table.edit")}
-                        modalTitle={config.editModalTitle}
+                        modalTitle={t(config.editModalTitleKey)}
                         modalContent={config.modalContent}
                         componentProps={{ formData: item }}
                       />

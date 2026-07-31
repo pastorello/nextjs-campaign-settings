@@ -96,7 +96,6 @@ const spellsMeta = {
     fieldType: FieldType.boolean,
     controlType: ControlType.Bool,
     validator: z.boolean().optional(),
-    getDatum: (datum: boolean) => (datum === true ? "Rituale" : ""),
   },
   [SpellMetaField.concentration]: {
     metaField: "concentration",
@@ -105,7 +104,6 @@ const spellsMeta = {
     fieldType: FieldType.boolean,
     controlType: ControlType.Bool,
     validator: z.boolean().optional(),
-    getDatum: (datum: boolean) => (datum === true ? "Sì" : "No"),
   },
   [SpellMetaField.upcast]: {
     metaField: "upcast",

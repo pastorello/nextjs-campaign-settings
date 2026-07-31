@@ -34,7 +34,6 @@ const magicItemsMeta = {
     fieldType: FieldType.boolean,
     controlType: ControlType.Bool,
     validator: z.boolean().optional(),
-    getDatum: (datum: boolean) => (datum === true ? "Sì" : "No"),
   },
 } satisfies Record<string, PageMeta>;
 

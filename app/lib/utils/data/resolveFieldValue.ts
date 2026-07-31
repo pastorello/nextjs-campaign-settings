@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 import PageMeta, {
   MetaDisplayValue,
 } from "@/app/lib/definitions/interfaces/meta/PageMeta";
+import FieldType from "@/app/lib/definitions/types/FieldType";
 import getDataLabel from "./getDataLabel";
 import resolveOptions from "./resolveOptions";
 
@@ -12,8 +13,10 @@ type Translator = (key: string) => string;
 
 /**
  * Renders a field's value for display: resolves through its declared
- * `options` when present, otherwise falls back to the field's own `getDatum`
- * for fields that genuinely format (rich text, booleans, identity).
+ * `options` when present, then a plain boolean's generic "Yes"/"No" when
+ * neither `options` nor `getDatum` apply, otherwise falls back to the
+ * field's own `getDatum` for fields that genuinely format (rich text,
+ * identity, or a boolean whose display isn't a plain yes/no).
  *
  * `meta` is typed as the `PageMeta` interface, not the literal registry
  * entry a caller indexed it from — that widening is what lets `getDatum` be
@@ -35,7 +38,13 @@ const resolveFieldValue = (
       useShort
     );
   }
-  return meta.getDatum ? meta.getDatum(value, useShort) : String(value);
+  if (meta.getDatum) {
+    return meta.getDatum(value, useShort);
+  }
+  if (meta.fieldType === FieldType.boolean) {
+    return t(value === true ? "common.boolean.yes" : "common.boolean.no");
+  }
+  return String(value);
 };
 
 export default resolveFieldValue;

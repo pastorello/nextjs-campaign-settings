@@ -92,6 +92,10 @@
       "unreachableBody": "The server isn't responding. If you're running the app locally, start the database with docker-compose up -d.",
       "retry": "Retry"
     },
+    "boolean": {
+      "yes": "Yes",
+      "no": "No"
+    },
     "fields": {
       "description": {
         "label": "Description",
@@ -221,7 +225,8 @@
       "searchPlaceholder": "Search spell...",
       "itemSingular": "spell",
       "itemPlural": "spells",
-      "newItemButton": "New Spell"
+      "newItemButton": "New Spell",
+      "emptyMessage": "No spells found"
     },
     "form": {
       "createTitle": "Create New Spell",
@@ -325,7 +330,8 @@
       "searchPlaceholder": "Search deity...",
       "itemSingular": "deity",
       "itemPlural": "deities",
-      "newItemButton": "New Deity"
+      "newItemButton": "New Deity",
+      "emptyMessage": "No deities found"
     },
     "form": {
       "createTitle": "Create New Deity",
@@ -489,7 +495,8 @@
       "searchPlaceholder": "Search NPC...",
       "itemSingular": "NPC",
       "itemPlural": "NPCs",
-      "newItemButton": "New NPC"
+      "newItemButton": "New NPC",
+      "emptyMessage": "No NPCs found"
     },
     "form": {
       "createTitle": "Create New NPC",
@@ -545,7 +552,8 @@
       "searchPlaceholder": "Search magic items...",
       "itemSingular": "magic item",
       "itemPlural": "magic items",
-      "newItemButton": "New Magic Item"
+      "newItemButton": "New Magic Item",
+      "emptyMessage": "No magic items found"
     },
     "form": {
       "createTitle": "Create New Magic Item",
@@ -559,7 +567,10 @@
     "fields": {
       "rarity": { "label": "Rarity" },
       "type": { "label": "Item Type" },
-      "attuned": { "label": "Attunement Required" }
+      "attuned": {
+        "label": "Attunement Required",
+        "shortLabel": "Attunement"
+      }
     }
   }
 }

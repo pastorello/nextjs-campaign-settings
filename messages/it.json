@@ -92,6 +92,10 @@
       "unreachableBody": "Il server non risponde. Se stai eseguendo l'app in locale, avvia il database con docker-compose up -d.",
       "retry": "Riprova"
     },
+    "boolean": {
+      "yes": "Sì",
+      "no": "No"
+    },
     "fields": {
       "description": {
         "label": "Descrizione",
@@ -221,7 +225,8 @@
       "searchPlaceholder": "Cerca incantesimo...",
       "itemSingular": "incantesimo",
       "itemPlural": "incantesimi",
-      "newItemButton": "Nuovo Incantesimo"
+      "newItemButton": "Nuovo Incantesimo",
+      "emptyMessage": "Nessun Incantesimo trovato"
     },
     "form": {
       "createTitle": "Crea nuovo Incantesimo",
@@ -325,7 +330,8 @@
       "searchPlaceholder": "Cerca divinità...",
       "itemSingular": "divinità",
       "itemPlural": "divinità",
-      "newItemButton": "Nuova divinità"
+      "newItemButton": "Nuova divinità",
+      "emptyMessage": "Nessuna divinità trovata"
     },
     "form": {
       "createTitle": "Crea nuova Divinità",
@@ -489,7 +495,8 @@
       "searchPlaceholder": "Cerca png...",
       "itemSingular": "PNG",
       "itemPlural": "PNG",
-      "newItemButton": "Nuovo PNG"
+      "newItemButton": "Nuovo PNG",
+      "emptyMessage": "Nessun PNG trovato"
     },
     "form": {
       "createTitle": "Crea nuovo PNG",
@@ -545,7 +552,8 @@
       "searchPlaceholder": "Cerca oggetti magici...",
       "itemSingular": "oggetto magico",
       "itemPlural": "oggetti magici",
-      "newItemButton": "Nuovo oggetto magico"
+      "newItemButton": "Nuovo oggetto magico",
+      "emptyMessage": "Nessun oggetto magico trovato"
     },
     "form": {
       "createTitle": "Crea nuovo oggetto magico",
@@ -559,7 +567,10 @@
     "fields": {
       "rarity": { "label": "Rarità" },
       "type": { "label": "Tipo di oggetto" },
-      "attuned": { "label": "Richiede sintonia" }
+      "attuned": {
+        "label": "Richiede sintonia",
+        "shortLabel": "Sintonia"
+      }
     }
   }
 }

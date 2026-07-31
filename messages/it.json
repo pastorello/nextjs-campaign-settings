@@ -11,7 +11,8 @@
       "magicItems": "Oggetti magici",
       "npc": "Personaggi conosciuti",
       "manage": "Gestisci {section}",
-      "signOut": "Esci"
+      "signOut": "Esci",
+      "language": "Lingua"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -68,6 +69,11 @@
     "list": {
       "count": "{filtered} di {total} {item} trovati",
       "newItem": "Nuovo {item}"
+    },
+    "pagination": {
+      "previous": "Pagina precedente",
+      "next": "Pagina successiva",
+      "page": "Pagina {number}"
     }
   },
   "spells": {

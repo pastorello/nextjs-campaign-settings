@@ -11,7 +11,8 @@
       "magicItems": "Magic Items",
       "npc": "NPCs",
       "manage": "Manage {section}",
-      "signOut": "Sign Out"
+      "signOut": "Sign Out",
+      "language": "Language"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -68,6 +69,11 @@
     "list": {
       "count": "{filtered} of {total} {item} found",
       "newItem": "New {item}"
+    },
+    "pagination": {
+      "previous": "Previous page",
+      "next": "Next page",
+      "page": "Page {number}"
     }
   },
   "spells": {

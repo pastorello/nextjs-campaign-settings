@@ -86,13 +86,15 @@ test.describe("spells CRUD", () => {
 
     // --- Delete -------------------------------------------------------------
     await rowFor(page, editedName)
-      .getByRole("button", { name: "Delete" })
+      .getByRole("button", { name: "Elimina" })
       .click();
 
     const confirmDialog = page.getByRole("dialog");
-    await expect(confirmDialog.getByText(/can't be undone/i)).toBeVisible();
+    await expect(
+      confirmDialog.getByText(/non può essere annullata/i)
+    ).toBeVisible();
 
-    await confirmDialog.getByRole("button", { name: "Delete" }).click();
+    await confirmDialog.getByRole("button", { name: "Elimina" }).click();
 
     await expect(rowFor(page, editedName)).toHaveCount(0);
   });
@@ -123,7 +125,7 @@ test.describe("spells CRUD", () => {
     const target = rowFor(page, name);
     await expect(target).toBeVisible();
 
-    await target.getByRole("button", { name: "Delete" }).click();
+    await target.getByRole("button", { name: "Elimina" }).click();
     await page
       .getByRole("dialog")
       .getByRole("button", { name: "Annulla" })
@@ -133,10 +135,10 @@ test.describe("spells CRUD", () => {
     await expect(target).toBeVisible();
 
     // Clean up after itself.
-    await target.getByRole("button", { name: "Delete" }).click();
+    await target.getByRole("button", { name: "Elimina" }).click();
     await page
       .getByRole("dialog")
-      .getByRole("button", { name: "Delete" })
+      .getByRole("button", { name: "Elimina" })
       .click();
     await expect(target).toHaveCount(0);
   });

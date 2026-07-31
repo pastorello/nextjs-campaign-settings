@@ -1,1 +1,576 @@
-{}
+{
+  "common": {
+    "brand": {
+      "name": "Campaign Settings"
+    },
+    "nav": {
+      "home": "Home",
+      "deities": "Religion",
+      "geography": "Geography",
+      "spells": "Spells",
+      "magicItems": "Magic Items",
+      "npc": "NPCs",
+      "manage": "Manage {section}",
+      "signOut": "Sign Out",
+      "language": "Language"
+    },
+    "dashboard": {
+      "title": "Dashboard"
+    },
+    "cards": {
+      "magicItems": "Magic Items",
+      "npc": "NPCs",
+      "spells": "Spells",
+      "deities": "Deities"
+    },
+    "auth": {
+      "loginPrompt": "Please log in to continue.",
+      "email": "Email",
+      "emailPlaceholder": "Enter your email address",
+      "password": "Password",
+      "passwordPlaceholder": "Enter password",
+      "submit": "Log in",
+      "invalidCredentials": "Invalid credentials.",
+      "somethingWrong": "Something went wrong."
+    },
+    "search": {
+      "label": "Search"
+    },
+    "loading": "Loading...",
+    "notFound": {
+      "title": "404 Not Found",
+      "description": "Could not find the requested page.",
+      "goBack": "Go Back"
+    },
+    "table": {
+      "name": "Name",
+      "actions": "Actions",
+      "edit": "Edit"
+    },
+    "form": {
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving",
+      "delete": "Delete",
+      "deleting": "Deleting",
+      "errorPrefix": "Error: {message}"
+    },
+    "filters": {
+      "all": "All",
+      "allCount": "All ({count})",
+      "reset": "Reset Filters"
+    },
+    "sort": {
+      "ariaLabel": "Sort by {field}"
+    },
+    "select": {
+      "placeholder": "Select..."
+    },
+    "list": {
+      "count": "{filtered} of {total} {item} found",
+      "newItem": "New {item}"
+    },
+    "pagination": {
+      "previous": "Previous page",
+      "next": "Next page",
+      "page": "Page {number}"
+    },
+    "deleteButton": {
+      "confirmTitle": "Permanently delete \"{name}\"?",
+      "confirmDescription": "This operation can't be undone",
+      "deleted": "{name} deleted",
+      "deleteFailed": "Delete failed",
+      "networkFailed": "Network error"
+    },
+    "formErrors": {
+      "title": "Check the flagged fields:"
+    },
+    "errorPage": {
+      "genericTitle": "Something went wrong",
+      "genericBody": "The page failed to load its data.",
+      "unreachableTitle": "Database unreachable",
+      "unreachableBody": "The server isn't responding. If you're running the app locally, start the database with docker-compose up -d.",
+      "retry": "Retry"
+    },
+    "boolean": {
+      "yes": "Yes",
+      "no": "No"
+    },
+    "fields": {
+      "description": {
+        "label": "Description",
+        "placeholder": "Enter the description here"
+      },
+      "id": {
+        "label": "ID",
+        "placeholder": "Enter the ID"
+      },
+      "name": {
+        "label": "Name",
+        "placeholder": "Enter name"
+      }
+    }
+  },
+  "spells": {
+    "levels": {
+      "cantrip": { "label": "Cantrip", "short": "0" },
+      "level1": { "label": "Level 1", "short": "1" },
+      "level2": { "label": "Level 2", "short": "2" },
+      "level3": { "label": "Level 3", "short": "3" },
+      "level4": { "label": "Level 4", "short": "4" },
+      "level5": { "label": "Level 5", "short": "5" },
+      "level6": { "label": "Level 6", "short": "6" },
+      "level7": { "label": "Level 7", "short": "7" },
+      "level8": { "label": "Level 8", "short": "8" },
+      "level9": { "label": "Level 9", "short": "9" }
+    },
+    "classes": {
+      "bard": "Bard",
+      "cleric": "Cleric",
+      "druid": "Druid",
+      "wizard": "Wizard",
+      "paladin": "Paladin",
+      "ranger": "Ranger",
+      "sorcerer": "Sorcerer",
+      "warlock": "Warlock"
+    },
+    "subclasses": {
+      "bardoSapienza": "Bard - College of Lore",
+      "bardoValore": "Bard - College of Valor",
+      "cavaliereNero": "Paladin - Black Knight",
+      "cavaliereBianco": "Paladin - White Knight",
+      "cavaliereVerde": "Paladin - Green Knight",
+      "elementaristaFuoco": "Sorcerer - Volcanic Magic",
+      "elementaristaAcqua": "Sorcerer - Tempest Magic",
+      "fattucchiere": "Sorcerer - Wild Magic",
+      "druidoTerra": "Druid - Circle of the Land",
+      "druidoLuna": "Druid - Circle of the Moon",
+      "warlockFatato": "Warlock - The Archfey",
+      "warlockAntico": "Warlock - The Great Old One",
+      "warlockImmondo": "Warlock - The Fiend",
+      "strega": "Wizard - School of Enchantment",
+      "maestroRune": "Wizard - School of Abjuration",
+      "oracolo": "Wizard - School of Divination",
+      "magoBianco": "Wizard - School of Transmutation",
+      "necromante": "Wizard - School of Necromancy",
+      "chiericoMorte": "Cleric - Knowledge Domain",
+      "chiericoOscuro": "Cleric - Trickery Domain",
+      "chiericoVita": "Cleric - Light Domain",
+      "ranger": "Ranger",
+      "nessuna": "None"
+    },
+    "castingTimes": {
+      "1Azione": "1 Action",
+      "1AzioneBonus": "1 Bonus Action",
+      "1Reazione": "1 Reaction",
+      "1Minuto": "1 Minute",
+      "10Minuti": "10 Minutes",
+      "1Ora": "1 Hour",
+      "8Ore": "8 Hours",
+      "12Ore": "12 Hours",
+      "24Ore": "1 Day"
+    },
+    "ranges": {
+      "personal": "Self",
+      "touch": "Touch",
+      "m5": "1.5 Meters",
+      "m10": "3 Meters",
+      "m30": "9 Meters",
+      "m60": "18 Meters",
+      "m90": "27 Meters",
+      "m100": "30 Meters",
+      "m120": "36 Meters",
+      "m150": "45 Meters",
+      "m300": "90 Meters",
+      "m500": "150 Meters",
+      "m5000": "1.5 Kilometers",
+      "m500000": "750 Kilometers",
+      "sight": "Line of Sight",
+      "unlimited": "Unlimited"
+    },
+    "durations": {
+      "instantaneous": "Instantaneous",
+      "concentration1Round": "Concentration, up to 1 round",
+      "concentration6Rounds": "Concentration, up to 6 rounds",
+      "concentration1Minute": "Concentration, up to 1 minute",
+      "concentration10Minutes": "Concentration, up to 10 minutes",
+      "concentration1Hour": "Concentration, up to 1 hour",
+      "concentration2Hours": "Concentration, up to 2 hours",
+      "concentration8Hours": "Concentration, up to 8 hours",
+      "concentration24Hours": "Concentration, up to 24 hours",
+      "round1": "1 round",
+      "minute1": "1 minute",
+      "minutes10": "10 minutes",
+      "hour1": "1 hour",
+      "hours8": "8 hours",
+      "hours24": "24 hours",
+      "days7": "7 days",
+      "days10": "10 days",
+      "days30": "30 days",
+      "untilDispelled": "Until dispelled",
+      "untilDispelledOrTriggered": "Until dispelled or triggered",
+      "special": "Special"
+    },
+    "savingThrows": {
+      "none": "None",
+      "strength": "Strength",
+      "dexterity": "Dexterity",
+      "constitution": "Constitution",
+      "intelligence": "Intelligence",
+      "wisdom": "Wisdom",
+      "charisma": "Charisma"
+    },
+    "page": {
+      "title": "Spells",
+      "searchPlaceholder": "Search spell...",
+      "itemSingular": "spell",
+      "itemPlural": "spells",
+      "newItemButton": "New Spell",
+      "emptyMessage": "No spells found"
+    },
+    "form": {
+      "createTitle": "Create New Spell",
+      "editTitle": "Edit Spell",
+      "createButton": "Create Spell",
+      "editButton": "Edit Spell"
+    },
+    "card": {
+      "castingTime": "Casting Time",
+      "range": "Range",
+      "duration": "Duration",
+      "subclasses": "Subclasses",
+      "components": "Components",
+      "upcast": "At Higher Levels",
+      "ritual": "(ritual)"
+    },
+    "fields": {
+      "level": { "label": "Level" },
+      "circle": { "label": "Subclasses" },
+      "classes": { "label": "Classes" },
+      "castingTime": { "label": "Casting Time" },
+      "range": { "label": "Range" },
+      "components": { "label": "Components" },
+      "duration": { "label": "Duration" },
+      "savingThrow": { "label": "Saving Throw" },
+      "ritual": { "label": "Ritual" },
+      "concentration": { "label": "Requires Concentration" },
+      "upcast": {
+        "label": "At Higher Levels",
+        "placeholder": "Enter text..."
+      }
+    }
+  },
+  "deities": {
+    "colors": {
+      "arancione": "Orange",
+      "blu": "Blue",
+      "giallo": "Yellow",
+      "indaco": "Indigo",
+      "rosso": "Red",
+      "verde": "Green",
+      "violetto": "Violet",
+      "tutti": "All"
+    },
+    "types": {
+      "arconte": "Archon",
+      "demone": "Demon",
+      "dioSupremo": "Master of the Three Worlds",
+      "divino": "Celestial",
+      "elementale": "Elemental",
+      "fatato": "Fae"
+    },
+    "ranks": {
+      "demoneOmbra": "Shadow Demon",
+      "dioMinore": "Minor God",
+      "dioSupremo": "Supreme God",
+      "divinita": "Divinity"
+    },
+    "elements": {
+      "acqua": "Water",
+      "aria": "Air",
+      "fuoco": "Fire",
+      "spirito": "Spirit",
+      "terra": "Earth",
+      "vuoto": "Void"
+    },
+    "traditions": {
+      "arcana": "Arcane",
+      "divina": "Divine",
+      "occulta": "Occult",
+      "primeva": "Primal",
+      "ultraterrena": "Otherworldly"
+    },
+    "tarotCards": {
+      "ilMatto": "The Fool",
+      "ilBagatto": "The Magician",
+      "laPapessa": "The High Priestess",
+      "lImperatrice": "The Empress",
+      "lImperatore": "The Emperor",
+      "ilPapa": "The Hierophant",
+      "gliAmanti": "The Lovers",
+      "ilCarro": "The Chariot",
+      "laGiustizia": "Justice",
+      "lEremita": "The Hermit",
+      "laFortuna": "Wheel of Fortune",
+      "laForza": "Strength",
+      "lAppeso": "The Hanged Man",
+      "laMorte": "Death",
+      "laTemperanza": "Temperance",
+      "ilDiavolo": "The Devil",
+      "laTorre": "The Tower",
+      "leStelle": "The Star",
+      "laLuna": "The Moon",
+      "ilSole": "The Sun",
+      "lAngelo": "Judgement",
+      "ilMondo": "The World",
+      "ilConsultante": "The Querent"
+    },
+    "page": {
+      "title": "Deities",
+      "searchPlaceholder": "Search deity...",
+      "itemSingular": "deity",
+      "itemPlural": "deities",
+      "newItemButton": "New Deity",
+      "emptyMessage": "No deities found"
+    },
+    "form": {
+      "createTitle": "Create New Deity",
+      "editTitle": "Edit Deity",
+      "createButton": "Create Deity",
+      "editButton": "Edit Deity"
+    },
+    "card": {
+      "residence": "Residence",
+      "celestialBody": "Celestial Body",
+      "holidays": "Holidays",
+      "tarotCard": "Tarot Card",
+      "meaning": "Meaning",
+      "element": "Element"
+    },
+    "fields": {
+      "color": { "label": "Magic Color" },
+      "deityTitle": {
+        "label": "Title",
+        "placeholder": "Enter the title"
+      },
+      "deityType": { "label": "Type" },
+      "deityRank": { "label": "Rank" },
+      "tarotCard": { "label": "Tarot Card" },
+      "celestialBody": { "label": "Celestial Body" },
+      "element": { "label": "Element" },
+      "deityClass": { "label": "Class" },
+      "holidays": {
+        "label": "Holidays",
+        "placeholder": "Enter the holidays"
+      },
+      "tradition": { "label": "Tradition" },
+      "residence": { "label": "Residence" },
+      "meaning": {
+        "label": "Meaning",
+        "placeholder": "Enter the meaning"
+      }
+    }
+  },
+  "geography": {
+    "celestialBodies": {
+      "acquario": "Aquarius",
+      "ariete": "Aries",
+      "bilancia": "Libra",
+      "cancro": "Cancer",
+      "capricorno": "Capricorn",
+      "gemelli": "Gemini",
+      "giove": "Jupiter",
+      "leone": "Leo",
+      "luna": "Moon",
+      "marte": "Mars",
+      "mercurio": "Mercury",
+      "nettuno": "Neptune",
+      "pesci": "Pisces",
+      "sagittario": "Sagittarius",
+      "saturno": "Saturn",
+      "scorpione": "Scorpio",
+      "sole": "Sun",
+      "terra": "Earth",
+      "toro": "Taurus",
+      "urano": "Uranus",
+      "venere": "Venus",
+      "vergine": "Virgo"
+    },
+    "planes": {
+      "cieli": "Heavens",
+      "tempo": "Time",
+      "terreOniriche": "Dreamlands",
+      "selvaFatata": "Faerie Wood",
+      "selvaOscura": "Dark Wood",
+      "inferi": "Underworld",
+      "terra": "Earth"
+    },
+    "page": {
+      "title": "Geography"
+    },
+    "errors": {
+      "mapNotConfigured": "The map is not configured correctly.",
+      "importSuccess": "{count, plural, one {Successfully imported # place!} other {Successfully imported # places!}}",
+      "importFailed": "Failed to import file. Please check the format."
+    },
+    "maps": {
+      "planesOfExistence": "Planes of Existence",
+      "materialWorld": "Material World",
+      "kingdomOfKang": "Kingdom of Kang",
+      "citySkreebars": "City of Skreebars"
+    }
+  },
+  "npc": {
+    "alignments": {
+      "good": "Good",
+      "neutral": "Neutral",
+      "evil": "Evil"
+    },
+    "alignmentDomains": {
+      "law": "Law",
+      "neutrality": "Neutrality",
+      "chaos": "Chaos"
+    },
+    "locations": {
+      "paradiso": "Paradise (Sun)",
+      "luna": "Elysium (Moon)",
+      "abisso": "The Abyss",
+      "fiumeAnime": "River of Souls",
+      "inferno": "Inferno",
+      "folletti": "Realm of the Sprites",
+      "fate": "Realm of the Fae",
+      "alba": "Dawn of Time",
+      "terreOniriche": "Dreamlands",
+      "druidi": "Isle of the Druids",
+      "monteAnKi": "Mount An-ki",
+      "raminghi": "Solenero Desert",
+      "custodiBianchi": "Monastery of Saint Basil",
+      "annunaki": "Last Home of the Annunaki",
+      "maghiGrigi": "School of the Invisible",
+      "torrerossa": "Village of Torrerossa",
+      "vampiri": "Miravia",
+      "norgam": "Norgam",
+      "butwhag": "Butwhag",
+      "barakTor": "Barak Thor",
+      "custodiVerdi": "Druidic Circle of Valleferro",
+      "maghiNeri": "Coven of the Hags",
+      "demoniRossi": "Temple of the Red Demons",
+      "cinquePicchi": "Mountain of the Five Peaks",
+      "avampostoOrchescho": "Clandestine Orc Outpost",
+      "valleferro": "Valleferro",
+      "skreebars": "Skreebars",
+      "tanaGoblin": "Goblin Den",
+      "torreEnoch": "Tower of Enoch",
+      "ankheet": "Ankheet",
+      "labirinto": "Citadel of the Sprites",
+      "quelThalas": "Quel'Thalas",
+      "isolaCork": "Isle of Captain Cork"
+    },
+    "factions": {
+      "regnoBianco": "Kingdom of Kang",
+      "regnoRosso": "Horde of the Greenskins",
+      "regnoGrigio": "Sultans of Solenero",
+      "regnoVerde": "Moon Elves",
+      "regnoGiallo": "Dwarves of Butwhag",
+      "regnoAzzurro": "Barbarian Hordes",
+      "regnoNero": "Kingdom of Blackthorne",
+      "valleferro": "County of Valleferro",
+      "skreebars": "Duchy of Skreebars",
+      "raminghi": "Wanderers",
+      "custodiBianchi": "Keepers of the Flame",
+      "custodiVerdi": "Keepers of the Sacred Tree",
+      "custodiNeri": "Keepers of the Runes",
+      "maghiBianchi": "Academy of the Illuminated",
+      "maghiGrigi": "School of the Invisible",
+      "maghiNeri": "Coven of the Hags",
+      "paladiniBianchi": "Knights of the Order of the Rose",
+      "demoniRossi": "Red Demons",
+      "annunaki": "Annunaki",
+      "folletti": "Sprites",
+      "manoNera": "Black Hand"
+    },
+    "page": {
+      "title": "Known Characters",
+      "adminTitle": "NPCs",
+      "searchPlaceholder": "Search NPC...",
+      "itemSingular": "NPC",
+      "itemPlural": "NPCs",
+      "newItemButton": "New NPC",
+      "emptyMessage": "No NPCs found"
+    },
+    "form": {
+      "createTitle": "Create New NPC",
+      "editTitle": "Edit NPC",
+      "createButton": "Create NPC",
+      "editButton": "Edit NPC"
+    },
+    "fields": {
+      "title": { "label": "Title", "placeholder": "Enter title" },
+      "alignment": { "label": "Alignment" },
+      "alignmentDomain": { "label": "Domain" },
+      "position": { "label": "Position", "placeholder": "Enter position" },
+      "location": { "label": "Location" },
+      "faction": { "label": "Faction" },
+      "appearance": {
+        "label": "Appearance",
+        "placeholder": "Enter appearance"
+      },
+      "personality": {
+        "label": "Personality",
+        "placeholder": "Enter personality"
+      },
+      "motivations": {
+        "label": "Motivations",
+        "placeholder": "Enter motivations"
+      },
+      "secrets": { "label": "Secrets", "placeholder": "Enter secrets" }
+    }
+  },
+  "magicItems": {
+    "rarity": {
+      "common": "Common",
+      "uncommon": "Uncommon",
+      "rare": "Rare",
+      "veryRare": "Very Rare",
+      "legendary": "Legendary",
+      "artifact": "Artifact",
+      "variable": "Variable"
+    },
+    "types": {
+      "ring": "Ring",
+      "weapon": "Weapon",
+      "armor": "Armor",
+      "wand": "Wand",
+      "staff": "Staff",
+      "wondrousItem": "Wondrous Item",
+      "scroll": "Scroll",
+      "potion": "Potion",
+      "rod": "Rod"
+    },
+    "page": {
+      "title": "Magic Items",
+      "searchPlaceholder": "Search magic items...",
+      "itemSingular": "magic item",
+      "itemPlural": "magic items",
+      "newItemButton": "New Magic Item",
+      "emptyMessage": "No magic items found"
+    },
+    "form": {
+      "createTitle": "Create New Magic Item",
+      "editTitle": "Edit Magic Item",
+      "createButton": "Create Magic Item",
+      "editButton": "Edit Magic Item"
+    },
+    "card": {
+      "attunementRequired": "Attunement required"
+    },
+    "fields": {
+      "rarity": { "label": "Rarity" },
+      "type": { "label": "Item Type" },
+      "attuned": {
+        "label": "Attunement Required",
+        "shortLabel": "Attunement"
+      }
+    }
+  }
+}

@@ -1,18 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 import DatabaseUnreachableError from "@/app/lib/errors/DatabaseUnreachableError";
-
-// All user-facing copy for this component, in one place for TD-21.
-const COPY = {
-  genericTitle: "Qualcosa è andato storto",
-  genericBody: "La pagina non è riuscita a caricare i dati.",
-  unreachableTitle: "Database non raggiungibile",
-  unreachableBody:
-    "Il server non risponde. Se stai eseguendo l'app in locale, avvia il database con docker-compose up -d.",
-  retry: "Riprova",
-};
 
 /**
  * Tells "the database is down" apart from "a query failed" (TD-25).
@@ -31,6 +22,8 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("common.errorPage");
+
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -40,16 +33,16 @@ export default function Error({
   return (
     <main className="flex h-full flex-col items-center justify-center gap-2">
       <h2 className="text-center text-lg font-medium">
-        {isUnreachable ? COPY.unreachableTitle : COPY.genericTitle}
+        {isUnreachable ? t("unreachableTitle") : t("genericTitle")}
       </h2>
       <p className="max-w-md text-center text-sm text-gray-500">
-        {isUnreachable ? COPY.unreachableBody : COPY.genericBody}
+        {isUnreachable ? t("unreachableBody") : t("genericBody")}
       </p>
       <button
         className="mt-4 rounded-md bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-400"
         onClick={() => reset()}
       >
-        {COPY.retry}
+        {t("retry")}
       </button>
     </main>
   );

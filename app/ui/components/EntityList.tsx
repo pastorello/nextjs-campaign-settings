@@ -1,3 +1,5 @@
+import { getTranslations } from "next-intl/server";
+
 import renderFieldValue from "@/app/lib/utils/data/renderFieldValue";
 import listConfig from "@/app/lib/config/listConfig";
 import isArrayEmpty from "@/app/lib/utils/validators/isArrayEmpty";
@@ -15,8 +17,6 @@ import DeleteButton from "../buttons/DeleteButton";
 import ModalButton from "../buttons/ModalButton";
 
 const NAME_FIELD = "name";
-const ACTIONS_LABEL = "Azioni";
-const EDIT_LABEL = "Modifica";
 
 /**
  * The admin list for any domain, driven by `listConfig` (TD-09).
@@ -55,6 +55,7 @@ export default async function EntityList(props: {
   pageType: PageType;
   searchParams?: SearchParamsInput | undefined;
 }) {
+  const t = await getTranslations();
   const config = listConfig[props.pageType];
   const items = (await fetchItems(
     props.pageType,
@@ -65,13 +66,13 @@ export default async function EntityList(props: {
     <div className="mt-6 flow-root">
       <div className="inline-block min-w-full align-middle">
         <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
-          {isArrayEmpty(items) && <p>{config.emptyMessage}</p>}
+          {isArrayEmpty(items) && <p>{t(config.emptyMessageKey)}</p>}
           <table className="hidden min-w-full text-gray-900 md:table">
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
                 <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
                   <SortableHeader
-                    label={"Nome"}
+                    label={t("common.table.name")}
                     fieldKey={NAME_FIELD}
                     isFiltrable={false}
                   />
@@ -83,10 +84,10 @@ export default async function EntityList(props: {
                     className="px-3 py-5 font-medium"
                   >
                     {column.sortable === false ? (
-                      column.label
+                      t(column.labelKey)
                     ) : (
                       <SortableHeader
-                        label={column.label}
+                        label={t(column.labelKey)}
                         fieldKey={column.fieldKey}
                       />
                     )}
@@ -96,7 +97,7 @@ export default async function EntityList(props: {
                   scope="col"
                   className="relative py-5 pl-6 pr-3 justify-center flex"
                 >
-                  {ACTIONS_LABEL}
+                  {t("common.table.actions")}
                 </th>
               </tr>
             </thead>
@@ -110,14 +111,15 @@ export default async function EntityList(props: {
                     <div className="flex items-center gap-3">
                       <p>
                         <strong>
-                          {renderFieldValue(NAME_FIELD, item.name)}
+                          {renderFieldValue(NAME_FIELD, item.name, t)}
                         </strong>
                         {config.subtitleField && (
                           <>
                             <br />
                             {renderFieldValue(
                               config.subtitleField,
-                              item[config.subtitleField]
+                              item[config.subtitleField],
+                              t
                             )}
                           </>
                         )}
@@ -126,14 +128,18 @@ export default async function EntityList(props: {
                   </td>
                   {config.columns.map((column) => (
                     <td key={column.fieldKey} className="px-3 py-3">
-                      {renderFieldValue(column.fieldKey, item[column.fieldKey])}
+                      {renderFieldValue(
+                        column.fieldKey,
+                        item[column.fieldKey],
+                        t
+                      )}
                     </td>
                   ))}
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex justify-end gap-3">
                       <ModalButton
-                        buttonLabel={EDIT_LABEL}
-                        modalTitle={config.editModalTitle}
+                        buttonLabel={t("common.table.edit")}
+                        modalTitle={t(config.editModalTitleKey)}
                         modalContent={config.modalContent}
                         componentProps={{ formData: item }}
                       />

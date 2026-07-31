@@ -1,5 +1,5 @@
 import MetaValue from "../../types/MetaValue";
-import SelectOption from "../../types/SelectOption";
+import { ResolvedOption } from "../../types/SelectOption";
 import ControlType from "../../types/ControlType";
 
 interface FormField {
@@ -7,7 +7,7 @@ interface FormField {
   value: MetaValue;
   onChange: (newVal: MetaValue) => void;
   type: ControlType;
-  options?: SelectOption[];
+  options?: ResolvedOption[];
   multiple?: boolean;
   placeholder?: string;
 }

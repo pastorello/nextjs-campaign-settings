@@ -4,27 +4,27 @@ import SelectOption from "../../definitions/types/SelectOption";
 const energyElements: SelectOption<number>[] = [
   {
     value: Element.Acqua,
-    label: "Acqua",
+    labelKey: "deities.elements.acqua",
   },
   {
     value: Element.Aria,
-    label: "Aria",
+    labelKey: "deities.elements.aria",
   },
   {
     value: Element.Fuoco,
-    label: "Fuoco",
+    labelKey: "deities.elements.fuoco",
   },
   {
     value: Element.Spirito,
-    label: "Spirito",
+    labelKey: "deities.elements.spirito",
   },
   {
     value: Element.Terra,
-    label: "Terra",
+    labelKey: "deities.elements.terra",
   },
   {
     value: Element.Vuoto,
-    label: "Vuoto",
+    labelKey: "deities.elements.vuoto",
   },
 ];
 

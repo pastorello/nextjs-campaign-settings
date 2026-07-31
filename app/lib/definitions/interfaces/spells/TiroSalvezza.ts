@@ -1,6 +1,6 @@
 interface TiroSalvezza {
   value: string;
-  label: string;
+  labelKey: string;
 }
 
 export default TiroSalvezza;

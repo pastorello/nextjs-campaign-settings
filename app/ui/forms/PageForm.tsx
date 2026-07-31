@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import clsx from "clsx";
+import { useTranslations } from "next-intl";
 
 import ButtonVariant from "../buttons/BaseButton/ButtonVariant";
 import ButtonState from "../buttons/BaseButton/ButtonState";
@@ -22,11 +23,12 @@ const PageForm = ({
   isSaving,
   children,
 }: PageFormProps) => {
+  const t = useTranslations("common.form");
   const isDeletingMode = !children;
 
   const saveButtonLabels = isDeletingMode
-    ? { doIt: "Delete", doingIt: "Deleting" }
-    : { doIt: "Save", doingIt: "Saving" };
+    ? { doIt: t("delete"), doingIt: t("deleting") }
+    : { doIt: t("save"), doingIt: t("saving") };
 
   return (
     <div
@@ -38,7 +40,7 @@ const PageForm = ({
       {!isDeletingMode && children}
       {lastError ? (
         <div className="text-red-600" style={{ marginBottom: "20px" }}>
-          Error: {lastError.message}
+          {t("errorPrefix", { message: lastError.message })}
         </div>
       ) : (
         false
@@ -59,7 +61,7 @@ const PageForm = ({
           variant={ButtonVariant.secondary}
           buttonState={isSaving ? ButtonState.Disabled : ButtonState.Default}
         >
-          {"Annulla"}
+          {t("cancel")}
         </BaseButton>
       </div>
     </div>

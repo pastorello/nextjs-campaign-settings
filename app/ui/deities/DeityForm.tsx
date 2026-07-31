@@ -1,6 +1,7 @@
 "use client";
 
 import { Fieldset } from "@headlessui/react";
+import { useTranslations } from "next-intl";
 
 import EntityForm from "@/app/ui/forms/EntityForm";
 import createDeity from "@/app/lib/data/deities/createDeity";
@@ -8,14 +9,6 @@ import updateDeity from "@/app/lib/data/deities/updateDeity";
 import PageType from "@/app/lib/definitions/types/PageType";
 import Deity from "@/app/lib/definitions/interfaces/deities/Deity";
 import DeityMetaField from "@/app/lib/definitions/enums/deities/DeityMetaField";
-
-// All user-facing copy for this form, in one place for TD-21.
-const COPY = {
-  createTitle: "Crea nuova Divinità",
-  editTitle: "Modifica Divinità",
-  createButton: "Crea Divinità",
-  editButton: "Modifica Divinità",
-};
 
 interface DeityFormProps {
   formData?: Deity;
@@ -28,12 +21,19 @@ export default function DeityForm({
   onCancel,
   onSaveFinished,
 }: DeityFormProps) {
+  const t = useTranslations("deities.form");
+
   return (
     <EntityForm<Deity>
       pageType={PageType.Deity}
       formData={formData}
       mutations={{ create: createDeity, update: updateDeity }}
-      copy={COPY}
+      copy={{
+        createTitle: t("createTitle"),
+        editTitle: t("editTitle"),
+        createButton: t("createButton"),
+        editButton: t("editButton"),
+      }}
       onCancel={onCancel}
       onSaveFinished={onSaveFinished}
     >

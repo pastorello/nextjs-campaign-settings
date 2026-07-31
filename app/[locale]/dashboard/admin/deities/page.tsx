@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
 import { TableSkeleton } from "@/app/ui/skeletons";
 import Pagination from "@/app/ui/components/pagination";
@@ -12,9 +13,10 @@ import PageType from "@/app/lib/definitions/types/PageType";
 import { getDeitiesCount } from "@/app/lib/data/deities/getDeitiesCount";
 import PageTitle from "@/app/ui/typography/PageTitle";
 
-export const metadata: Metadata = {
-  title: "Divinità",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("deities.page");
+  return { title: t("title") };
+}
 
 export default async function Page(props: {
   searchParams?: Promise<{
@@ -22,6 +24,8 @@ export default async function Page(props: {
     page?: string;
   }>;
 }) {
+  const t = await getTranslations("deities.page");
+  const tCommon = await getTranslations("common.list");
   const searchParams = await props.searchParams;
   const itemCount = await getDeitiesCount(searchParams ?? {});
   const query = searchParams?.query || "";
@@ -29,13 +33,18 @@ export default async function Page(props: {
 
   return (
     <div className="w-full">
-      <PageTitle>Divinità</PageTitle>
+      <PageTitle>{t("title")}</PageTitle>
       <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
-        <Search placeholder="Cerca divinità..." />
+        <Search placeholder={t("searchPlaceholder")} />
         <div className="flex shrink-0">
-          {itemCount.filtered} di {itemCount.total} divinità trovate
+          {tCommon("count", {
+            filtered: itemCount.filtered,
+            total: itemCount.total,
+            item:
+              itemCount.filtered === 1 ? t("itemSingular") : t("itemPlural"),
+          })}
         </div>
-        <BaseButton to="deities/new">Nuova divinità</BaseButton>
+        <BaseButton to="deities/new">{t("newItemButton")}</BaseButton>
         <ResetButton />
       </div>
       <Suspense

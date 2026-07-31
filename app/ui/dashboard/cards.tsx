@@ -4,6 +4,7 @@ import {
   BookOpenIcon,
   TrophyIcon,
 } from "@heroicons/react/24/outline";
+import { getTranslations } from "next-intl/server";
 import { lusitana } from "@/app/ui/fonts";
 import fetchCardData from "@/app/lib/data/fetchCardData";
 
@@ -15,15 +16,20 @@ const iconMap = {
 };
 
 export default async function CardWrapper() {
+  const t = await getTranslations("common.cards");
   const { numberOfmagicItems, numberOfNpc, numberOfSpells, numberOfDeities } =
     await fetchCardData();
 
   return (
     <>
-      <Card title="Magic Items" value={numberOfmagicItems} type="magicitems" />
-      <Card title="Png" value={numberOfNpc} type="npc" />
-      <Card title="Spells" value={numberOfSpells} type="spells" />
-      <Card title="Deities" value={numberOfDeities} type="deities" />
+      <Card
+        title={t("magicItems")}
+        value={numberOfmagicItems}
+        type="magicitems"
+      />
+      <Card title={t("npc")} value={numberOfNpc} type="npc" />
+      <Card title={t("spells")} value={numberOfSpells} type="spells" />
+      <Card title={t("deities")} value={numberOfDeities} type="deities" />
     </>
   );
 }

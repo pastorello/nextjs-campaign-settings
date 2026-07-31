@@ -18,6 +18,12 @@ vi.mock("next-auth/react", async (importOriginal) => {
   };
 });
 
+vi.mock("next-intl", () => ({
+  // Components under test render outside `NextIntlClientProvider`; returning
+  // the key lets assertions target stable message keys instead of copy text.
+  useTranslations: () => (key: string) => key,
+}));
+
 vi.mock("next/font/google", () => ({
   Inter: () => ({ className: "inter", style: { fontFamily: "Inter" } }),
   Lusitana: () => ({

@@ -3,31 +3,31 @@ import PlaneOfExistence from "../../definitions/enums/geography/PlaneOfExistence
 const celestialPlanes = [
   {
     value: PlaneOfExistence.Cieli,
-    label: "Cieli",
+    labelKey: "geography.planes.cieli",
   },
   {
     value: PlaneOfExistence.Tempo,
-    label: "Tempo",
+    labelKey: "geography.planes.tempo",
   },
   {
     value: PlaneOfExistence.TerreOniriche,
-    label: "Terre Oniriche",
+    labelKey: "geography.planes.terreOniriche",
   },
   {
     value: PlaneOfExistence.SelvaFatata,
-    label: "Selva Fatata",
+    labelKey: "geography.planes.selvaFatata",
   },
   {
     value: PlaneOfExistence.SelvaOscura,
-    label: "Selva Oscura",
+    labelKey: "geography.planes.selvaOscura",
   },
   {
     value: PlaneOfExistence.Inferi,
-    label: "Inferi",
+    labelKey: "geography.planes.inferi",
   },
   {
     value: PlaneOfExistence.Terra,
-    label: "Terra",
+    labelKey: "geography.planes.terra",
   },
 ];
 

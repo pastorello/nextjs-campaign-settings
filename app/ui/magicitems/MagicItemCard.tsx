@@ -3,14 +3,17 @@ import {
   DisclosureButton,
   DisclosurePanel,
 } from "@headlessui/react";
+import { useTranslations } from "next-intl";
 
 import Icon from "../components/Icon";
 import IconType from "../buttons/BaseButton/IconType";
 import pageMetaFields from "@/app/lib/config/pageMetaFields";
 import MagicItemMetaField from "@/app/lib/definitions/enums/magicitem/MagicItemMetaField";
 import MagicItem from "@/app/lib/definitions/interfaces/magicitem/MagicItem";
+import resolveFieldValue from "@/app/lib/utils/data/resolveFieldValue";
 
 const MagicItemCard = (props: { cardItem: MagicItem }) => {
+  const t = useTranslations();
   const markup = { __html: props.cardItem.description };
 
   return (
@@ -25,18 +28,22 @@ const MagicItemCard = (props: { cardItem: MagicItem }) => {
             </h3>
             <p>
               {props.cardItem[MagicItemMetaField.attuned] === true &&
-                "Richiede sintonia"}
+                t("magicItems.card.attunementRequired")}
             </p>
           </div>
           <div className="w-[250px] px-2">
             <div className="text-xl">
-              {pageMetaFields[MagicItemMetaField.type].getDatum(
-                props.cardItem[MagicItemMetaField.type]
+              {resolveFieldValue(
+                pageMetaFields[MagicItemMetaField.type],
+                props.cardItem[MagicItemMetaField.type],
+                t
               )}
             </div>
             <div className="text-gray-400">
-              {pageMetaFields[MagicItemMetaField.rarity].getDatum(
-                props.cardItem[MagicItemMetaField.rarity]
+              {resolveFieldValue(
+                pageMetaFields[MagicItemMetaField.rarity],
+                props.cardItem[MagicItemMetaField.rarity],
+                t
               )}
             </div>
           </div>

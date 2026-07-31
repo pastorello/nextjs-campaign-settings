@@ -1,4 +1,4 @@
-import SelectOption from "../../definitions/types/SelectOption";
+import { ResolvedOption } from "../../definitions/types/SelectOption";
 
 // `[...optionList]` matters here, not just style: `optionList` is the same
 // array reference as the field's `PageMeta.options` (pageMetaFields.ts holds
@@ -8,7 +8,7 @@ import SelectOption from "../../definitions/types/SelectOption";
 // SelectButtonery's filter buttons) for the rest of the server process, and
 // producing a hydration mismatch versus the client's still-original order
 // (TD-31: the "1° Livello vs Trucchetto" mismatch was this, not a locale bug).
-const sortSelectOptions = (optionList: SelectOption[]) =>
+const sortSelectOptions = (optionList: ResolvedOption[]) =>
   [...optionList].sort((a, b) => {
     if (a.value === -1) {
       return -1;

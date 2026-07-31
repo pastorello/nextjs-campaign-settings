@@ -6,9 +6,9 @@ export interface AlignmentObject extends SelectOption<number> {
 }
 
 const alignments: AlignmentObject[] = [
-  { value: 0, label: Alignment.Bene, type: Alignment.Bene },
-  { value: 1, label: Alignment.Neutrale, type: Alignment.Neutrale },
-  { value: 2, label: Alignment.Male, type: Alignment.Male },
+  { value: 0, labelKey: "npc.alignments.good", type: Alignment.Bene },
+  { value: 1, labelKey: "npc.alignments.neutral", type: Alignment.Neutrale },
+  { value: 2, labelKey: "npc.alignments.evil", type: Alignment.Male },
 ];
 
 export default alignments;

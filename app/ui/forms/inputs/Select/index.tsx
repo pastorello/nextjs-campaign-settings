@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import MetaValue from "@/app/lib/definitions/types/MetaValue";
 import {
   Listbox,
@@ -10,7 +11,7 @@ import {
 import FormLabel from "../FormLabel";
 import Icon from "../../../components/Icon";
 import IconType from "../../../buttons/BaseButton/IconType";
-import SelectOption from "@/app/lib/definitions/types/SelectOption";
+import { ResolvedOption } from "@/app/lib/definitions/types/SelectOption";
 import isValidDataArray from "@/app/lib/utils/validators/isValidDataArray";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import sortSelectOptions from "@/app/lib/utils/data/sortSelectOptions";
@@ -23,7 +24,7 @@ interface SelectProps {
   // below — so this states what was true rather than changing it.
   value: MetaValue;
   onChange: (value: MetaValue) => void;
-  options?: SelectOption[];
+  options?: ResolvedOption[];
   multiple?: boolean;
 }
 
@@ -34,6 +35,7 @@ const Select = ({
   options = [],
   multiple,
 }: SelectProps) => {
+  const t = useTranslations("common.select");
   const selectedOption = options.find((item) => {
     const currentValue = isValidDataArray(value) ? value[0] : value;
     return String(item.value) === String(currentValue);
@@ -42,8 +44,8 @@ const Select = ({
   const getDefaultLabel = (): string => {
     const defaultLabel =
       multiple === true || !isValidDataArray(options)
-        ? "Seleziona..."
-        : (options[0]?.label ?? "Seleziona...");
+        ? t("placeholder")
+        : (options[0]?.label ?? t("placeholder"));
 
     const valueLabel = selectedOption
       ? `${selectedOption.label}${

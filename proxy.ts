@@ -32,11 +32,13 @@ function splitLocale(pathname: string) {
 
 export default async function proxy(req: NextRequest) {
   const intlResponse = handleI18nRouting(req);
-  // Let next-intl's own locale redirect (e.g. Accept-Language negotiating
-  // "en" for an unprefixed URL) resolve first. The auth gate below runs
-  // again on the follow-up, already-prefixed request — running it here too
-  // would compare a locale-prefixed pathname against the unprefixed
-  // authConfig.pages.signIn and loop the two redirects against each other.
+  // Let next-intl's own locale redirect (e.g. a stored locale cookie
+  // pointing at "en" for an unprefixed URL) resolve first — Accept-Language
+  // no longer drives this since routing.localeDetection is false. The auth
+  // gate below runs again on the follow-up, already-prefixed request —
+  // running it here too would compare a locale-prefixed pathname against
+  // the unprefixed authConfig.pages.signIn and loop the two redirects
+  // against each other.
   if (isRedirect(intlResponse)) {
     return intlResponse;
   }

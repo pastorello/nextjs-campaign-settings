@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import NonEmptyArray from "@/app/lib/definitions/types/NonEmptyArray";
 import {
   MapErrorBoundary,
@@ -12,7 +13,7 @@ import clsx from "clsx";
 import { useState } from "react";
 
 interface MapOption {
-  name: string;
+  nameKey: string;
   file: string;
   bounds: L.LatLngBoundsExpression;
   initialView: L.LatLngExpression;
@@ -21,7 +22,7 @@ interface MapOption {
 
 const availableMaps: NonEmptyArray<MapOption> = [
   {
-    name: "Piani di Esistenza",
+    nameKey: "planesOfExistence",
     file: "/maps/piani-esistenza.jpg",
     bounds: [
       [0, 0],
@@ -31,7 +32,7 @@ const availableMaps: NonEmptyArray<MapOption> = [
     initialZoom: -2,
   },
   {
-    name: "Mondo Materiale",
+    nameKey: "materialWorld",
     file: "/maps/mondo-materiale.jpg",
     bounds: [
       [0, 0],
@@ -41,7 +42,7 @@ const availableMaps: NonEmptyArray<MapOption> = [
     initialZoom: 1,
   },
   {
-    name: "Regno di Kang",
+    nameKey: "kingdomOfKang",
     file: "/maps/regno-di-kang.jpg",
     bounds: [
       [0, 0],
@@ -51,7 +52,7 @@ const availableMaps: NonEmptyArray<MapOption> = [
     initialZoom: 2,
   },
   {
-    name: "Città di Skreebars",
+    nameKey: "citySkreebars",
     file: "/maps/skreebars.jpg",
     bounds: [
       [0, 0],
@@ -63,6 +64,7 @@ const availableMaps: NonEmptyArray<MapOption> = [
 ];
 
 const GeographyPage = () => {
+  const t = useTranslations("geography");
   const [selectedMap, setSelectedMap] = useState<number>(0);
 
   // `availableMaps[selectedMap]` is an index read, so under
@@ -73,17 +75,17 @@ const GeographyPage = () => {
 
   return (
     <div>
-      <PageTitle className="mb-4">Geografia</PageTitle>
+      <PageTitle className="mb-4">{t("page.title")}</PageTitle>
       <div className="grid gap-2 grid-cols-4 mb-4">
         {availableMaps.map((map, index) => (
           <BaseButton
             className={clsx({
               "bg-violet-700": selectedMap === index,
             })}
-            key={map.name}
+            key={map.nameKey}
             onClick={() => setSelectedMap(index)}
           >
-            {map.name}
+            {t(`maps.${map.nameKey}`)}
           </BaseButton>
         ))}
       </div>

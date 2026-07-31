@@ -13,11 +13,13 @@ interface ListColumn {
   fieldKey: MetaConfigKey;
 
   /**
-   * Header text. Not taken from `PageMeta.label`, which is unreliable for
-   * display — several are raw field names (`label: "tipoPatrono"`). TD-21
-   * replaces these with catalogue keys.
+   * Header text, as a message key — usually the same key as the field's own
+   * `PageMeta.labelKey`, since a column header and a form label are normally
+   * the same word. Declared separately rather than read off `PageMeta`
+   * because the two do occasionally diverge (magic items' `attuned` column
+   * reads "Sintonia", the form field "Richiede sintonia").
    */
-  label: string;
+  labelKey: string;
 
   /**
    * Whether the header is a sort control. Defaults to true; `false` renders

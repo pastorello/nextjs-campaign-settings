@@ -3,6 +3,7 @@
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import generatePagination from "@/app/lib/utils/data/generatePagination";
 import { usePathname, useSearchParams } from "next/navigation";
 
@@ -59,13 +60,6 @@ export default function Pagination({ totalPages }: { totalPages: number }) {
   );
 }
 
-// All user-facing copy for this component, in one place for TD-21.
-const COPY = {
-  previous: "Pagina precedente",
-  next: "Pagina successiva",
-  page: (n: number | string) => `Pagina ${n}`,
-};
-
 function PaginationNumber({
   page,
   href,
@@ -77,6 +71,7 @@ function PaginationNumber({
   position?: "first" | "last" | "middle" | "single" | undefined;
   isActive: boolean;
 }) {
+  const t = useTranslations("common.pagination");
   const className = clsx(
     "flex h-10 w-10 items-center justify-center text-sm border",
     {
@@ -91,7 +86,11 @@ function PaginationNumber({
   return isActive || position === "middle" ? (
     <div className={className}>{page}</div>
   ) : (
-    <Link href={href} className={className} aria-label={COPY.page(page)}>
+    <Link
+      href={href}
+      className={className}
+      aria-label={t("page", { number: page })}
+    >
       {page}
     </Link>
   );
@@ -106,6 +105,7 @@ function PaginationArrow({
   direction: "left" | "right";
   isDisabled?: boolean;
 }) {
+  const t = useTranslations("common.pagination");
   const className = clsx(
     "flex h-10 w-10 items-center justify-center rounded-md border",
     {
@@ -124,7 +124,7 @@ function PaginationArrow({
     );
 
   // Icon-only, so the link needs a name of its own (TD-15).
-  const label = direction === "left" ? COPY.previous : COPY.next;
+  const label = direction === "left" ? t("previous") : t("next");
 
   return isDisabled ? (
     <div className={className} aria-hidden="true">

@@ -23,11 +23,11 @@ interface ListConfig {
   /** Columns after `nome`, in display order. */
   columns: ListColumn[];
 
-  /** Shown when a filter matches nothing. */
-  emptyMessage: string;
+  /** Shown when a filter matches nothing, as a message key. */
+  emptyMessageKey: string;
 
-  /** Title of the edit dialog opened from a row. */
-  editModalTitle: string;
+  /** Title of the edit dialog opened from a row, as a message key. */
+  editModalTitleKey: string;
 
   /** Which form `ModalButton` renders — see its `modalContent` switch. */
   modalContent: string;
@@ -39,53 +39,86 @@ interface ListConfig {
 const listConfig: Record<PageType, ListConfig> = {
   [PageType.Spell]: {
     columns: [
-      { fieldKey: SpellMetaField.level, label: "Livello" },
-      { fieldKey: SpellMetaField.classes, label: "Classi" },
+      { fieldKey: SpellMetaField.level, labelKey: "spells.fields.level.label" },
+      {
+        fieldKey: SpellMetaField.classes,
+        labelKey: "spells.fields.classes.label",
+      },
     ],
-    emptyMessage: "Nessun Incantesimo trovato",
-    editModalTitle: "Modifica Incantesimo",
+    emptyMessageKey: "spells.page.emptyMessage",
+    editModalTitleKey: "spells.form.editTitle",
     modalContent: "spellform",
   },
 
   [PageType.Npc]: {
     columns: [
-      { fieldKey: NpcMetaField.alignment, label: "Allineamento" },
-      { fieldKey: NpcMetaField.alignmentDomain, label: "Dominio" },
-      { fieldKey: NpcMetaField.faction, label: "Fazione" },
-      { fieldKey: NpcMetaField.location, label: "Luogo" },
+      {
+        fieldKey: NpcMetaField.alignment,
+        labelKey: "npc.fields.alignment.label",
+      },
+      {
+        fieldKey: NpcMetaField.alignmentDomain,
+        labelKey: "npc.fields.alignmentDomain.label",
+      },
+      { fieldKey: NpcMetaField.faction, labelKey: "npc.fields.faction.label" },
+      {
+        fieldKey: NpcMetaField.location,
+        labelKey: "npc.fields.location.label",
+      },
     ],
-    emptyMessage: "Nessun PNG trovato",
-    editModalTitle: "Modifica PNG",
+    emptyMessageKey: "npc.page.emptyMessage",
+    editModalTitleKey: "npc.form.editTitle",
     modalContent: "npcform",
     subtitleField: NpcMetaField.title,
   },
 
   [PageType.Deity]: {
     columns: [
-      { fieldKey: DeityMetaField.alignment, label: "Allineamento" },
-      { fieldKey: DeityMetaField.alignmentDomain, label: "Dominio" },
-      { fieldKey: DeityMetaField.deityRank, label: "Grado" },
-      { fieldKey: DeityMetaField.deityType, label: "Tipo" },
-      { fieldKey: DeityMetaField.residence, label: "Residenza" },
+      {
+        fieldKey: DeityMetaField.alignment,
+        labelKey: "npc.fields.alignment.label",
+      },
+      {
+        fieldKey: DeityMetaField.alignmentDomain,
+        labelKey: "npc.fields.alignmentDomain.label",
+      },
+      {
+        fieldKey: DeityMetaField.deityRank,
+        labelKey: "deities.fields.deityRank.label",
+      },
+      {
+        fieldKey: DeityMetaField.deityType,
+        labelKey: "deities.fields.deityType.label",
+      },
+      {
+        fieldKey: DeityMetaField.residence,
+        labelKey: "deities.fields.residence.label",
+      },
     ],
-    emptyMessage: "Nessuna divinità trovata",
-    editModalTitle: "Modifica Divinità",
+    emptyMessageKey: "deities.page.emptyMessage",
+    editModalTitleKey: "deities.form.editTitle",
     modalContent: "deityform",
   },
 
   [PageType.MagicItem]: {
     columns: [
-      { fieldKey: MagicItemMetaField.rarity, label: "Rarità" },
-      { fieldKey: MagicItemMetaField.type, label: "Tipo di oggetto" },
+      {
+        fieldKey: MagicItemMetaField.rarity,
+        labelKey: "magicItems.fields.rarity.label",
+      },
+      {
+        fieldKey: MagicItemMetaField.type,
+        labelKey: "magicItems.fields.type.label",
+      },
       // Two values, so ordering by it groups rather than sorts.
       {
         fieldKey: MagicItemMetaField.attuned,
-        label: "Sintonia",
+        labelKey: "magicItems.fields.attuned.shortLabel",
         sortable: false,
       },
     ],
-    emptyMessage: "Nessun oggetto magico trovato",
-    editModalTitle: "Modifica oggetto magico",
+    emptyMessageKey: "magicItems.page.emptyMessage",
+    editModalTitleKey: "magicItems.form.editTitle",
     modalContent: "magicitemform",
   },
 };

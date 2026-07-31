@@ -17,12 +17,19 @@ interface PageMetaBase {
   /** The field's key: lowercase, and identical to the payload key and DB column. */
   metaField: string;
   controlType: ControlType;
-  label?: string;
-  placeholder?: string;
+  /** Message key resolved with `t()` at the render boundary — see ADR-0007. */
+  labelKey?: string;
+  /** Message key, read only for `ControlType.Text` / `ControlType.Textarea`. */
+  placeholderKey?: string;
   options?: SelectOption[];
 
   /**
-   * Value → display label.
+   * Value → display label, for fields that genuinely format (rich text,
+   * booleans, identity). Optional: an option-backed field (`options` set)
+   * displays by resolving through those options — see
+   * `app/lib/utils/data/resolveFieldValue.ts` — and does not declare its own
+   * `getDatum` (ADR-0007 deletes the closures that used to restate that
+   * lookup by hand).
    *
    * Declared with method syntax on purpose. Method parameters are bivariant, so
    * a declaration may narrow to exactly what it handles (`(datum: number)`)
@@ -32,7 +39,7 @@ interface PageMetaBase {
    * which buys nothing: the metadata is authored in one place and the narrow
    * signature is the useful documentation.
    */
-  getDatum(rawValue: MetaDisplayValue, useShortLabel?: boolean): ReactNode;
+  getDatum?(rawValue: MetaDisplayValue, useShortLabel?: boolean): ReactNode;
 }
 
 /** A whole-number field. `options` present when rendered as a select. */

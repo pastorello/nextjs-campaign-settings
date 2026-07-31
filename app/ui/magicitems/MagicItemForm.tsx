@@ -1,6 +1,7 @@
 "use client";
 
 import { Fieldset } from "@headlessui/react";
+import { useTranslations } from "next-intl";
 
 import EntityForm from "@/app/ui/forms/EntityForm";
 import createMagicItem from "@/app/lib/data/magicitems/createMagicItem";
@@ -8,14 +9,6 @@ import updateMagicItem from "@/app/lib/data/magicitems/updateMagicItem";
 import MagicItem from "@/app/lib/definitions/interfaces/magicitem/MagicItem";
 import MagicItemMetaField from "@/app/lib/definitions/enums/magicitem/MagicItemMetaField";
 import PageType from "@/app/lib/definitions/types/PageType";
-
-// All user-facing copy for this form, in one place for TD-21.
-const COPY = {
-  createTitle: "Crea nuovo oggetto magico",
-  editTitle: "Modifica oggetto magico",
-  createButton: "Crea oggetto magico",
-  editButton: "Modifica oggetto magico",
-};
 
 interface MagicItemFormProps {
   formData?: MagicItem;
@@ -28,12 +21,19 @@ export default function MagicItemForm({
   onCancel,
   onSaveFinished,
 }: MagicItemFormProps) {
+  const t = useTranslations("magicItems.form");
+
   return (
     <EntityForm<MagicItem>
       pageType={PageType.MagicItem}
       formData={formData}
       mutations={{ create: createMagicItem, update: updateMagicItem }}
-      copy={COPY}
+      copy={{
+        createTitle: t("createTitle"),
+        editTitle: t("editTitle"),
+        createButton: t("createButton"),
+        editButton: t("editButton"),
+      }}
       onCancel={onCancel}
       onSaveFinished={onSaveFinished}
       // Alone among the four forms, this one has always allowed submitting an

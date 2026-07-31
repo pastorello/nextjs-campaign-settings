@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { getTranslations } from "next-intl/server";
 import SearchParams from "@/app/lib/definitions/interfaces/pages/SearchParams";
 import BaseButton from "../buttons/BaseButton";
 import { ResetButton } from "../buttons/ResetSearchButton";
@@ -18,7 +19,7 @@ interface ListPageProps {
   children: ReactNode;
 }
 
-export const ListPage = ({
+export const ListPage = async ({
   title,
   searchPlaceholder,
   itemCount,
@@ -27,18 +28,23 @@ export const ListPage = ({
   newItemRoute,
   children,
 }: ListPageProps) => {
+  const t = await getTranslations("common.list");
+
   return (
     <div className="w-full">
       <PageTitle>{title}</PageTitle>
       <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
         <Search placeholder={searchPlaceholder} />
         <div className="flex shrink-0">
-          {itemCount.filtered} di {itemCount.total}{" "}
-          {itemCount.filtered === 1 ? itemNameSingular : itemNamePlural} trovati
+          {t("count", {
+            filtered: itemCount.filtered,
+            total: itemCount.total,
+            item: itemCount.filtered === 1 ? itemNameSingular : itemNamePlural,
+          })}
         </div>
         {newItemRoute && (
           <BaseButton to={`${newItemRoute}/new`}>
-            Nuovo {itemNameSingular}
+            {t("newItem", { item: itemNameSingular })}
           </BaseButton>
         )}
         <ResetButton />

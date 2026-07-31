@@ -12,7 +12,7 @@ setup("authenticate", async ({ page }) => {
 
   await page.getByLabel("Email").fill(TEST_USER.email);
   await page.getByLabel("Password").fill(TEST_USER.password);
-  await page.getByRole("button", { name: "Log in" }).click();
+  await page.getByRole("button", { name: "Accedi" }).click();
 
   await page.waitForURL("**/dashboard");
 

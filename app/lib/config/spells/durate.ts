@@ -1,27 +1,54 @@
 import Durata from "@/app/lib/definitions/interfaces/spells/Durata";
 
 const durate: Durata[] = [
-  { value: "Istantanea", label: "Istantanea" },
-  { value: "Concentrazione01", label: "Concentrazione, fino a 1 round" },
-  { value: "Concentrazione06", label: "Concentrazione, fino a 6 round" },
-  { value: "Concentrazione1", label: "Concentrazione, fino a 1 minuto" },
-  { value: "Concentrazione10", label: "Concentrazione, fino a 10 minuti" },
-  { value: "Concentrazione60", label: "Concentrazione, fino a 1 ora" },
-  { value: "Concentrazione120", label: "Concentrazione, fino a 2 ore" },
-  { value: "Concentrazione480", label: "Concentrazione, fino a 8 ore" },
-  { value: "Concentrazione1g", label: "Concentrazione, fino a 24 ore" },
-  { value: "1 round", label: "1 round" },
-  { value: "1 minuto", label: "1 minuto" },
-  { value: "10 minuti", label: "10 minuti" },
-  { value: "1 ora", label: "1 ora" },
-  { value: "8 ore", label: "8 ore" },
-  { value: "24 ore", label: "24 ore" },
-  { value: "7 giorni", label: "7 giorni" },
-  { value: "10 giorni", label: "10 giorni" },
-  { value: "30 giorni", label: "30 giorni" },
-  { value: "Permanente", label: "Finchè non viene dissolto" },
-  { value: "Innesco", label: "Finchè non viene dissolto o innescato" },
-  { value: "Speciale", label: "Speciale" },
+  { value: "Istantanea", labelKey: "spells.durations.instantaneous" },
+  {
+    value: "Concentrazione01",
+    labelKey: "spells.durations.concentration1Round",
+  },
+  {
+    value: "Concentrazione06",
+    labelKey: "spells.durations.concentration6Rounds",
+  },
+  {
+    value: "Concentrazione1",
+    labelKey: "spells.durations.concentration1Minute",
+  },
+  {
+    value: "Concentrazione10",
+    labelKey: "spells.durations.concentration10Minutes",
+  },
+  {
+    value: "Concentrazione60",
+    labelKey: "spells.durations.concentration1Hour",
+  },
+  {
+    value: "Concentrazione120",
+    labelKey: "spells.durations.concentration2Hours",
+  },
+  {
+    value: "Concentrazione480",
+    labelKey: "spells.durations.concentration8Hours",
+  },
+  {
+    value: "Concentrazione1g",
+    labelKey: "spells.durations.concentration24Hours",
+  },
+  { value: "1 round", labelKey: "spells.durations.round1" },
+  { value: "1 minuto", labelKey: "spells.durations.minute1" },
+  { value: "10 minuti", labelKey: "spells.durations.minutes10" },
+  { value: "1 ora", labelKey: "spells.durations.hour1" },
+  { value: "8 ore", labelKey: "spells.durations.hours8" },
+  { value: "24 ore", labelKey: "spells.durations.hours24" },
+  { value: "7 giorni", labelKey: "spells.durations.days7" },
+  { value: "10 giorni", labelKey: "spells.durations.days10" },
+  { value: "30 giorni", labelKey: "spells.durations.days30" },
+  { value: "Permanente", labelKey: "spells.durations.untilDispelled" },
+  {
+    value: "Innesco",
+    labelKey: "spells.durations.untilDispelledOrTriggered",
+  },
+  { value: "Speciale", labelKey: "spells.durations.special" },
 ];
 
 export default durate;

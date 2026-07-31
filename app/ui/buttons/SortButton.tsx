@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import BaseButton from "./BaseButton";
 import IconType from "./BaseButton/IconType";
 import ButtonSize from "./BaseButton/ButtonSize";
@@ -18,6 +19,8 @@ const SortButton = ({
   isActive,
   label,
 }: SortButtonProps) => {
+  const t = useTranslations("common.sort");
+
   return (
     <BaseButton
       onClick={onClick}
@@ -30,7 +33,7 @@ const SortButton = ({
       }
       // Icon-only: without a name a screen reader hears "button" once per
       // column heading and nothing more (TD-15).
-      ariaLabel={`Ordina per ${label.toLowerCase()}`}
+      ariaLabel={t("ariaLabel", { field: label.toLowerCase() })}
       size={ButtonSize.small}
       variant={ButtonVariant.neutral}
     />

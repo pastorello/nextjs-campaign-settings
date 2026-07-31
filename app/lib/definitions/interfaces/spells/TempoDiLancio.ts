@@ -1,6 +1,6 @@
 interface TempoDiLancio {
   value: string;
-  label: string;
+  labelKey: string;
 }
 
 export default TempoDiLancio;

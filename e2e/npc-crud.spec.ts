@@ -54,11 +54,11 @@ test.describe("NPC CRUD", () => {
     await expect(rowFor(page, editedName)).toBeVisible();
 
     await rowFor(page, editedName)
-      .getByRole("button", { name: "Delete" })
+      .getByRole("button", { name: "Elimina" })
       .click();
     await page
       .getByRole("dialog")
-      .getByRole("button", { name: "Delete" })
+      .getByRole("button", { name: "Elimina" })
       .click();
 
     await expect(rowFor(page, editedName)).toHaveCount(0);

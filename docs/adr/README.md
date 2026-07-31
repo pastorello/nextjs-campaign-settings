@@ -30,3 +30,4 @@ Do **not** write one for routine implementation choices, naming, or anything a c
 | [0004](./0004-server-actions-over-rest-api.md)         | Server Actions over a REST API layer            | Accepted | 2026-07-22 |
 | [0005](./0005-english-identifiers.md)                  | English identifiers in code, Italian in the UI  | Accepted | 2026-07-22 |
 | [0006](./0006-bilingual-ui.md)                         | Bilingual UI (it + en), single-language content | Accepted | 2026-07-22 |
+| [0007](./0007-message-key-resolution-boundary.md)      | Resolve message keys at the render boundary     | Accepted | 2026-07-30 |

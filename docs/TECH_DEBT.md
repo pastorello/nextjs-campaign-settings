@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-07-30
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-02b · TD-20b (blocked) · TD-14 (Phase 3). Everything else is done — the summary table below is authoritative.
+**Open items:** TD-02b · TD-20b (blocked) · TD-14 (Phase 3) · TD-35. Everything else is done — the summary table below is authoritative.
 
 ## Legend
 
@@ -19,42 +19,43 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-| ID    | Title                                                                  | Severity             | Effort | Phase |
-| ----- | ---------------------------------------------------------------------- | -------------------- | ------ | ----- |
-| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions                 | ~~🔴 Critical~~ done | M      | 1     |
-| TD-02 | ✅ No input validation (Phase 1); TD-02b remains                       | ~~🔴 Critical~~ done | M      | 1–2   |
-| TD-03 | ✅ Test suite does not run                                             | ~~🔴 Critical~~ done | M      | 1     |
-| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                                 | ~~🔴 Critical~~ done | S      | 1     |
-| TD-05 | ✅ No ESLint config, no Prettier, no CI                                | ~~🟠 High~~ done     | S      | 1     |
-| TD-06 | ✅ Dead code and tutorial leftovers                                    | ~~🟠 High~~ done     | S      | 1     |
-| TD-07 | ✅ `next`/`react` pinned; single lockfile                              | ~~🟠 High~~ done     | S      | 1     |
-| TD-08 | ✅ Metadata and query layer typed; zero `any`, rule is an error        | ~~🟠 High~~ done     | M      | 2     |
-| TD-09 | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm     | ~~🟠 High~~ done     | L      | 2     |
-| TD-10 | ✅ Toasts (client) vs `logServerIssue` (server) replace the stub       | ~~🟠 High~~ done     | M      | 2     |
-| TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred            | ~~🟡 Medium~~ part   | M      | 2     |
-| TD-12 | ✅ Filter list declared once; count and rows can no longer diverge     | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-13 | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10             | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-14 | Map POIs persisted only to `localStorage`                              | 🟡 Medium            | M      | 3     |
-| TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring       | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-16 | ✅ Inconsistent formatting                                             | ~~🟢 Low~~ done      | S      | 1     |
-| TD-17 | ✅ README does not match reality                                       | ~~🟢 Low~~ done      | S      | 1     |
-| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                 | ~~🟢 Low~~ done      | S      | 3     |
-| TD-19 | ✅ Mixed Italian/English identifiers (residual set → TD-33)            | ~~🟠 High~~ done     | L      | 2     |
-| TD-20 | ◑ `exactOptionalPropertyTypes` on; `noUncheckedIndexedAccess` blocked  | 🟡 Medium            | M      | 2     |
-| TD-21 | ✅ UI strings hardcoded; app must ship in it + en                      | ~~🟠 High~~ done     | L      | 2     |
-| TD-22 | ✅ Lint warnings 293 → 0; every rule back to `error`                   | ~~🟠 High~~ done     | M      | 2     |
-| TD-23 | ✅ Migration drift patched forward; migrations match the schema        | ~~🟠 High~~ done     | S      | 1     |
-| TD-24 | ✅ Playwright harness + specs; `e2e` job blocking in CI                | ~~🟠 High~~ done     | M      | 1     |
-| TD-25 | ✅ Startup reachability check; 503 distinct from 500                   | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                      | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-27 | ✅ Hidden `classi=0` filter on the spells list removed                 | ~~🟠 High~~ done     | S      | 2     |
-| TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does         | ~~🟠 High~~ done     | S      | 2     |
-| TD-29 | ✅ Loading skeleton was the tutorial's invoices table                  | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-30 | ✅ Public list pages actually stream; skeleton matches the content     | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-31 | ✅ `sortSelectOptions` mutated shared `PageMeta.options` in place      | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-32 | ✅ E2E job spent 9m a run on `playwright install-deps`                 | ~~🟠 High~~ done     | S      | 1     |
-| TD-33 | ✅ Italian identifiers TD-19 missed — 16 across 14 files + a directory | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-34 | ✅ CI actions pinned to a deprecated Node 20 runtime; Node 22 → 24     | ~~🟢 Low~~ done      | S      | 2     |
+| ID    | Title                                                                    | Severity             | Effort | Phase |
+| ----- | ------------------------------------------------------------------------ | -------------------- | ------ | ----- |
+| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions                   | ~~🔴 Critical~~ done | M      | 1     |
+| TD-02 | ✅ No input validation (Phase 1); TD-02b remains                         | ~~🔴 Critical~~ done | M      | 1–2   |
+| TD-03 | ✅ Test suite does not run                                               | ~~🔴 Critical~~ done | M      | 1     |
+| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                                   | ~~🔴 Critical~~ done | S      | 1     |
+| TD-05 | ✅ No ESLint config, no Prettier, no CI                                  | ~~🟠 High~~ done     | S      | 1     |
+| TD-06 | ✅ Dead code and tutorial leftovers                                      | ~~🟠 High~~ done     | S      | 1     |
+| TD-07 | ✅ `next`/`react` pinned; single lockfile                                | ~~🟠 High~~ done     | S      | 1     |
+| TD-08 | ✅ Metadata and query layer typed; zero `any`, rule is an error          | ~~🟠 High~~ done     | M      | 2     |
+| TD-09 | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm       | ~~🟠 High~~ done     | L      | 2     |
+| TD-10 | ✅ Toasts (client) vs `logServerIssue` (server) replace the stub         | ~~🟠 High~~ done     | M      | 2     |
+| TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred              | ~~🟡 Medium~~ part   | M      | 2     |
+| TD-12 | ✅ Filter list declared once; count and rows can no longer diverge       | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-13 | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10               | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-14 | Map POIs persisted only to `localStorage`                                | 🟡 Medium            | M      | 3     |
+| TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring         | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-16 | ✅ Inconsistent formatting                                               | ~~🟢 Low~~ done      | S      | 1     |
+| TD-17 | ✅ README does not match reality                                         | ~~🟢 Low~~ done      | S      | 1     |
+| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                   | ~~🟢 Low~~ done      | S      | 3     |
+| TD-19 | ✅ Mixed Italian/English identifiers (residual set → TD-33)              | ~~🟠 High~~ done     | L      | 2     |
+| TD-20 | ◑ `exactOptionalPropertyTypes` on; `noUncheckedIndexedAccess` blocked    | 🟡 Medium            | M      | 2     |
+| TD-21 | ✅ UI strings hardcoded; app must ship in it + en                        | ~~🟠 High~~ done     | L      | 2     |
+| TD-22 | ✅ Lint warnings 293 → 0; every rule back to `error`                     | ~~🟠 High~~ done     | M      | 2     |
+| TD-23 | ✅ Migration drift patched forward; migrations match the schema          | ~~🟠 High~~ done     | S      | 1     |
+| TD-24 | ✅ Playwright harness + specs; `e2e` job blocking in CI                  | ~~🟠 High~~ done     | M      | 1     |
+| TD-25 | ✅ Startup reachability check; 503 distinct from 500                     | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                        | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-27 | ✅ Hidden `classi=0` filter on the spells list removed                   | ~~🟠 High~~ done     | S      | 2     |
+| TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does           | ~~🟠 High~~ done     | S      | 2     |
+| TD-29 | ✅ Loading skeleton was the tutorial's invoices table                    | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-30 | ✅ Public list pages actually stream; skeleton matches the content       | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-31 | ✅ `sortSelectOptions` mutated shared `PageMeta.options` in place        | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-32 | ✅ E2E job spent 9m a run on `playwright install-deps`                   | ~~🟠 High~~ done     | S      | 1     |
+| TD-33 | ✅ Italian identifiers TD-19 missed — 16 across 14 files + a directory   | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-34 | ✅ CI actions pinned to a deprecated Node 20 runtime; Node 22 → 24       | ~~🟢 Low~~ done      | S      | 2     |
+| TD-35 | E2E specs assert hardcoded Italian copy instead of reading the catalogue | 🟡 Medium            | M      | 2     |
 
 ---
 
@@ -1485,6 +1486,21 @@ The pins had drifted badly in the meantime — `@v4` against `v7.0.1` current fo
 **Consequence for a developer on Node 22:** `pnpm install` prints `WARN Unsupported engine: wanted {"node":">=24"}` and **proceeds** — no `.npmrc`, so `engine-strict` is unset and defaults to off. Verified, not assumed. Upgrading local Node to 24 clears it.
 
 **Left undone, deliberately:** no `.nvmrc`. It would pin local Node the way `packageManager` pins pnpm, and is a genuine gap now that `engines` and the runner agree on 24 — but it is a separate decision about developer setup, not part of unbreaking CI.
+
+---
+
+### TD-35 🟡 E2E specs assert hardcoded copy instead of reading the message catalogue
+
+**Where:** `e2e/*.spec.ts` — every `getByRole(..., { name: "..." })`, `getByLabel("...")` and `getByText(/.../)` that targets translated UI copy.
+**Found:** 2026-07-31, fixing two CI failures on the [[TD-21]] branch. TD-21 correctly wired the login button and the delete-confirmation dialog to `next-intl` — they had been hardcoded English (`"Log in"`, `"Delete"`, `"This operation can't be undone"`) even under the old all-Italian UI. Once translated, they render `"Accedi"` / `"Elimina"` / `"Questa operazione non può essere annullata"` under the Italian default locale, and the specs — which predate the catalogue — still asserted the old strings. Two separate CI rounds were needed to find both: the second (a regex, `/can't be undone/i`) survived a first grep pass that only matched quoted string literals.
+
+**Why this is real debt, not a one-off typo.** Every e2e spec locates elements by their rendered Italian text — 20+ string literals across the suite, cross-checked in this session against `messages/it.json`. None of them import the catalogue; they duplicate its values by hand. `messages/it.json` can now change a value — a copy edit, a future re-translation — and nothing catches the mismatch except an E2E run turning red with a timeout that gives no hint the cause is copy, not behaviour. That is exactly what happened here twice in one afternoon.
+
+**Fix, roughly:** import `it.json` (or the specific keys under test) in the specs that assert translated copy, and resolve `getByRole(..., { name: messages.common.form.delete })` instead of a literal. Structural copy (role names, headings, button labels) benefits most; content the DM authored (spell/NPC names created by the test itself) stays a literal, since that is data the spec controls, not catalogue copy.
+
+**Worth weighing before starting:** `next-intl`'s message objects are typed, so a renamed key becomes a compile error in the specs too — the same protection `messages/messages.test.ts` (TD-21) already gives production code. The trade-off is that e2e specs currently read as self-contained user journeys with visible Italian text; resolving copy through key lookups makes them slightly more abstract to read, in exchange for surviving a copy change.
+
+**Done when:** every `getByRole` / `getByLabel` / `getByText` assertion that targets catalogue-sourced UI copy reads it from `messages/it.json` (or a small typed helper over it) rather than a literal; `pnpm test:e2e` still green.
 
 ---
 

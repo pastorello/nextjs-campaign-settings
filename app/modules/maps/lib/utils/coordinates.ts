@@ -45,8 +45,9 @@ export function parseCoordinate(formatted: string): [number, number] | null {
 
   const [, latStr, latDir, lngStr, lngDir] = match;
 
-  let lat = parseFloat(latStr);
-  let lng = parseFloat(lngStr);
+  // TD-20b: regex has four capture groups; a successful match populates all of them.
+  let lat = parseFloat(latStr!);
+  let lng = parseFloat(lngStr!);
 
   if (latDir === "S") lat = -lat;
   if (lngDir === "W") lng = -lng;

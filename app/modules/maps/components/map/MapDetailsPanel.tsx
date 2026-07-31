@@ -36,7 +36,8 @@ export function MapDetailsPanel({ country, onClose }: MapDetailsPanelProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [countryInfo, setCountryInfo] = useState<CountryInfo | null>(null);
   const snapPoints = [0.3, 0.6, 1];
-  const [snap, setSnap] = useState<number | string | null>(snapPoints[0]);
+  // TD-20b: snapPoints is a fixed literal array declared above, never empty.
+  const [snap, setSnap] = useState<number | string | null>(snapPoints[0]!);
   const properties = country?.properties as
     CountryProperties | null | undefined;
 

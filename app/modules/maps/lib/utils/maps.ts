@@ -30,7 +30,8 @@ export function calculateRawBounds(
   }
 
   if (coordinates.length === 1) {
-    const [lat, lng] = coordinates[0];
+    // TD-20b: length is checked to be exactly 1 on the line above.
+    const [lat, lng] = coordinates[0]!;
     const offset = 0.001;
     return {
       minLat: lat - offset,
@@ -40,10 +41,11 @@ export function calculateRawBounds(
     };
   }
 
-  let minLat = coordinates[0][0];
-  let maxLat = coordinates[0][0];
-  let minLng = coordinates[0][1];
-  let maxLng = coordinates[0][1];
+  // TD-20b: length >= 2 here — the 0 and 1 cases returned above.
+  let minLat = coordinates[0]![0];
+  let maxLat = coordinates[0]![0];
+  let minLng = coordinates[0]![1];
+  let maxLng = coordinates[0]![1];
 
   for (const [lat, lng] of coordinates) {
     if (lat < minLat) minLat = lat;

@@ -56,6 +56,6 @@ export function getDefaultTileProvider(): TileProvider {
   return (
     TILE_PROVIDERS.find(
       (provider) => provider.id === DEFAULT_TILE_PROVIDER_ID
-    ) || TILE_PROVIDERS[0]
+    ) || TILE_PROVIDERS[0]! // TD-20b: TILE_PROVIDERS is the fixed literal array declared above, never empty.
   );
 }

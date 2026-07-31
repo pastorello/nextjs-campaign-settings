@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: "22"
+  NODE_VERSION: "24"
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -26,13 +26,13 @@ jobs:
       # connection. It only has to be present and well-formed, not reachable.
       DATABASE_URL: postgresql://admin:postgres@localhost:5432/placeholder
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # No version pin here on purpose: action-setup reads package.json's
       # `packageManager` field, so CI and a developer machine cannot drift.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -78,13 +78,13 @@ jobs:
       DATABASE_URL: postgresql://admin:postgres@localhost:5432/campaign_settings_test
       AUTH_SECRET: ci-only-secret-not-used-in-production
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # No version pin here on purpose: action-setup reads package.json's
       # `packageManager` field, so CI and a developer machine cannot drift.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -103,7 +103,7 @@ jobs:
 
       - name: Upload coverage
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: coverage/
@@ -120,13 +120,13 @@ jobs:
       DATABASE_URL: postgresql://admin:postgres@localhost:5432/placeholder
       AUTH_SECRET: ci-only-secret-not-used-in-production
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # No version pin here on purpose: action-setup reads package.json's
       # `packageManager` field, so CI and a developer machine cannot drift.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -177,13 +177,13 @@ jobs:
       DATABASE_URL: postgresql://admin:postgres@localhost:5432/campaign_settings_e2e
       AUTH_SECRET: ci-only-secret-not-used-in-production
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # No version pin here on purpose: action-setup reads package.json's
       # `packageManager` field, so CI and a developer machine cannot drift.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -200,7 +200,7 @@ jobs:
           pnpm db:seed
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
@@ -227,7 +227,7 @@ jobs:
 
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: playwright-report/

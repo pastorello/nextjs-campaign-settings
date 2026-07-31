@@ -10,8 +10,9 @@ import DBDeities from "../lib/definitions/interfaces/deities/DBDeities";
 import DBNpcItem from "../lib/definitions/interfaces/npc/DBNpcItem";
 import DBSpell from "../lib/definitions/interfaces/spells/DBSpell";
 import users from "./initial-data/users";
+import env from "../lib/config/env";
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const adapter = new PrismaPg({ connectionString: env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 /**

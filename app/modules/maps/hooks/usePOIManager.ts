@@ -7,6 +7,7 @@ import type {
   POIGeoJSON,
   POICategory,
 } from "@/app/modules/maps/types/poi";
+import { poiSchema } from "@/app/modules/maps/types/poiSchema";
 import { getCategoryColor } from "@/app/modules/maps/constants/poi-categories";
 import type { Marker } from "leaflet";
 
@@ -37,8 +38,23 @@ export function usePOIManager() {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored) as POI[];
-        setPOIs(parsed);
+        const rawList: unknown = JSON.parse(stored);
+        const candidates = Array.isArray(rawList) ? rawList : [];
+
+        const valid: POI[] = [];
+        for (const candidate of candidates) {
+          const parsed = poiSchema.safeParse(candidate);
+          if (parsed.success) {
+            valid.push(parsed.data);
+          } else {
+            console.warn(
+              "Discarding invalid POI from localStorage:",
+              parsed.error.flatten()
+            );
+          }
+        }
+
+        setPOIs(valid);
       }
     } catch (error) {
       console.error("Failed to load POIs from localStorage:", error);

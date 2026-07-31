@@ -1,20 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-
-interface GeoJSONFeature {
-  type: string;
-  properties: Record<string, unknown>;
-  geometry: Record<string, unknown>;
-}
-
-interface GeoJSONData {
-  type: string;
-  features: GeoJSONFeature[];
-}
+import { worldGeoJSONSchema, WorldGeoJSON } from "../worldGeoJson";
 
 // Cache for full GeoJSON data
-let fullGeoJSONCache: GeoJSONData | null = null;
+let fullGeoJSONCache: WorldGeoJSON | null = null;
 
 /**
  * GET /api/countries/[id]
@@ -39,7 +29,17 @@ export async function GET(
         "world.geojson"
       );
       const fileContents = fs.readFileSync(filePath, "utf8");
-      fullGeoJSONCache = JSON.parse(fileContents) as GeoJSONData;
+      const parsed = worldGeoJSONSchema.safeParse(JSON.parse(fileContents));
+
+      if (!parsed.success) {
+        console.error("world.geojson failed validation:", parsed.error.message);
+        return NextResponse.json(
+          { error: "Failed to load country data" },
+          { status: 500 }
+        );
+      }
+
+      fullGeoJSONCache = parsed.data;
     }
 
     // Find country by ID (matches NAME or NAME_LONG)

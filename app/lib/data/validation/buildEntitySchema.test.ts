@@ -4,6 +4,7 @@ import PageType from "@/app/lib/definitions/types/PageType";
 import { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import {
   buildCreateSchema,
+  buildResultSchema,
   buildUpdateSchema,
   entityFieldKeys,
 } from "./buildEntitySchema";
@@ -65,6 +66,55 @@ describe("buildCreateSchema", () => {
       if (result.success) {
         expect(result.data).not.toHaveProperty("id");
       }
+    });
+  });
+});
+
+describe("buildResultSchema", () => {
+  describe.each(types)("%s", (pageType) => {
+    it("accepts a row with the declared default values plus an id", () => {
+      const result = buildResultSchema(pageType).safeParse({
+        ...defaultPayload(pageType),
+        id: 1,
+      });
+
+      expect(result.success ? null : result.error.flatten().fieldErrors).toBe(
+        null
+      );
+    });
+
+    it("falls back to the field's default for a column the DB allows null (TD-02b)", () => {
+      const payload = defaultPayload(pageType);
+      const nullableKey = entityFieldKeys(pageType)[0];
+      const result = buildResultSchema(pageType).safeParse({
+        ...payload,
+        [nullableKey]: null,
+        id: 1,
+      });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data[nullableKey]).toEqual(
+          fieldMeta[nullableKey]?.defaultValue
+        );
+      }
+    });
+
+    it("rejects a row missing its id", () => {
+      expect(
+        buildResultSchema(pageType).safeParse(defaultPayload(pageType)).success
+      ).toBe(false);
+    });
+
+    it("rejects a row where a field's type has drifted", () => {
+      const wrongTypeKey = entityFieldKeys(pageType)[0];
+      const result = buildResultSchema(pageType).safeParse({
+        ...defaultPayload(pageType),
+        [wrongTypeKey]: Symbol("drifted"),
+        id: 1,
+      });
+
+      expect(result.success).toBe(false);
     });
   });
 });

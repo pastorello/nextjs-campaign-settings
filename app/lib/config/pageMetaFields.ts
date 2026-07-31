@@ -14,21 +14,21 @@ const pageMetaFields = {
   //GENERAL
   description: {
     metaField: "description",
-    label: "Descrizione",
+    labelKey: "common.fields.description.label",
     defaultValue: "",
     fieldType: FieldType.string,
     controlType: ControlType.Textarea,
-    placeholder: "Inserisci qui la descrizione",
+    placeholderKey: "common.fields.description.placeholder",
     validator: z.string(),
     getDatum: (datum: string) => renderRichText(datum),
   },
   id: {
     metaField: "id",
-    label: "ID",
+    labelKey: "common.fields.id.label",
     defaultValue: 0,
     fieldType: FieldType.integer,
     controlType: ControlType.Text,
-    placeholder: "Inserisci L'ID",
+    placeholderKey: "common.fields.id.placeholder",
     validator: z.coerce
       .number()
       .gt(-1, { message: "Please enter a positive amount" }),
@@ -36,9 +36,9 @@ const pageMetaFields = {
   },
   name: {
     metaField: "name",
-    label: "Nome",
+    labelKey: "common.fields.name.label",
     defaultValue: "",
-    placeholder: "Inserisci nome",
+    placeholderKey: "common.fields.name.placeholder",
     fieldType: FieldType.string,
     controlType: ControlType.Text,
     validator: z.string(),

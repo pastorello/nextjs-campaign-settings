@@ -91,6 +91,20 @@
       "unreachableTitle": "Database non raggiungibile",
       "unreachableBody": "Il server non risponde. Se stai eseguendo l'app in locale, avvia il database con docker-compose up -d.",
       "retry": "Riprova"
+    },
+    "fields": {
+      "description": {
+        "label": "Descrizione",
+        "placeholder": "Inserisci qui la descrizione"
+      },
+      "id": {
+        "label": "ID",
+        "placeholder": "Inserisci l'ID"
+      },
+      "name": {
+        "label": "Nome",
+        "placeholder": "Inserisci nome"
+      }
     }
   },
   "spells": {
@@ -223,6 +237,22 @@
       "components": "Componenti",
       "upcast": "A livelli superiori",
       "ritual": "(rituale)"
+    },
+    "fields": {
+      "level": { "label": "Livello" },
+      "circle": { "label": "Sottoclassi" },
+      "classes": { "label": "Classi" },
+      "castingTime": { "label": "Tempo di lancio" },
+      "range": { "label": "Gittata" },
+      "components": { "label": "Componenti" },
+      "duration": { "label": "Durata" },
+      "savingThrow": { "label": "Tiro salvezza" },
+      "ritual": { "label": "Rituale" },
+      "concentration": { "label": "Richiede concentrazione" },
+      "upcast": {
+        "label": "Ai livelli superiori",
+        "placeholder": "Inserisci testo..."
+      }
     }
   },
   "deities": {
@@ -310,6 +340,29 @@
       "tarotCard": "Tarocco",
       "meaning": "Significato",
       "element": "Elemento"
+    },
+    "fields": {
+      "color": { "label": "Colore magia" },
+      "deityTitle": {
+        "label": "Titolo",
+        "placeholder": "Inserisci il titolo"
+      },
+      "deityType": { "label": "Tipo" },
+      "deityRank": { "label": "Grado" },
+      "tarotCard": { "label": "Tarocco" },
+      "celestialBody": { "label": "Astro associato" },
+      "element": { "label": "Elemento" },
+      "deityClass": { "label": "Classe" },
+      "holidays": {
+        "label": "Festività",
+        "placeholder": "Inserisci le festività"
+      },
+      "tradition": { "label": "Tradizione" },
+      "residence": { "label": "Residenza" },
+      "meaning": {
+        "label": "Significato",
+        "placeholder": "Inserisci il significato"
+      }
     }
   },
   "geography": {
@@ -443,6 +496,27 @@
       "editTitle": "Modifica PNG",
       "createButton": "Crea PNG",
       "editButton": "Modifica PNG"
+    },
+    "fields": {
+      "title": { "label": "Titolo", "placeholder": "Inserisci titolo" },
+      "alignment": { "label": "Allineamento" },
+      "alignmentDomain": { "label": "Dominio" },
+      "position": { "label": "Mansione", "placeholder": "Inserisci mansione" },
+      "location": { "label": "Luogo" },
+      "faction": { "label": "Fazione" },
+      "appearance": {
+        "label": "Aspetto",
+        "placeholder": "Inserisci aspetto"
+      },
+      "personality": {
+        "label": "Personalità",
+        "placeholder": "Inserisci personalità"
+      },
+      "motivations": {
+        "label": "Motivazioni",
+        "placeholder": "Inserisci motivazioni"
+      },
+      "secrets": { "label": "Segreti", "placeholder": "Inserisci segreti" }
     }
   },
   "magicItems": {
@@ -481,6 +555,11 @@
     },
     "card": {
       "attunementRequired": "Richiede sintonia"
+    },
+    "fields": {
+      "rarity": { "label": "Rarità" },
+      "type": { "label": "Tipo di oggetto" },
+      "attuned": { "label": "Richiede sintonia" }
     }
   }
 }

@@ -17,8 +17,10 @@ interface PageMetaBase {
   /** The field's key: lowercase, and identical to the payload key and DB column. */
   metaField: string;
   controlType: ControlType;
-  label?: string;
-  placeholder?: string;
+  /** Message key resolved with `t()` at the render boundary — see ADR-0007. */
+  labelKey?: string;
+  /** Message key, read only for `ControlType.Text` / `ControlType.Textarea`. */
+  placeholderKey?: string;
   options?: SelectOption[];
 
   /**

@@ -91,6 +91,20 @@
       "unreachableTitle": "Database unreachable",
       "unreachableBody": "The server isn't responding. If you're running the app locally, start the database with docker-compose up -d.",
       "retry": "Retry"
+    },
+    "fields": {
+      "description": {
+        "label": "Description",
+        "placeholder": "Enter the description here"
+      },
+      "id": {
+        "label": "ID",
+        "placeholder": "Enter the ID"
+      },
+      "name": {
+        "label": "Name",
+        "placeholder": "Enter name"
+      }
     }
   },
   "spells": {
@@ -223,6 +237,22 @@
       "components": "Components",
       "upcast": "At Higher Levels",
       "ritual": "(ritual)"
+    },
+    "fields": {
+      "level": { "label": "Level" },
+      "circle": { "label": "Subclasses" },
+      "classes": { "label": "Classes" },
+      "castingTime": { "label": "Casting Time" },
+      "range": { "label": "Range" },
+      "components": { "label": "Components" },
+      "duration": { "label": "Duration" },
+      "savingThrow": { "label": "Saving Throw" },
+      "ritual": { "label": "Ritual" },
+      "concentration": { "label": "Requires Concentration" },
+      "upcast": {
+        "label": "At Higher Levels",
+        "placeholder": "Enter text..."
+      }
     }
   },
   "deities": {
@@ -310,6 +340,29 @@
       "tarotCard": "Tarot Card",
       "meaning": "Meaning",
       "element": "Element"
+    },
+    "fields": {
+      "color": { "label": "Magic Color" },
+      "deityTitle": {
+        "label": "Title",
+        "placeholder": "Enter the title"
+      },
+      "deityType": { "label": "Type" },
+      "deityRank": { "label": "Rank" },
+      "tarotCard": { "label": "Tarot Card" },
+      "celestialBody": { "label": "Celestial Body" },
+      "element": { "label": "Element" },
+      "deityClass": { "label": "Class" },
+      "holidays": {
+        "label": "Holidays",
+        "placeholder": "Enter the holidays"
+      },
+      "tradition": { "label": "Tradition" },
+      "residence": { "label": "Residence" },
+      "meaning": {
+        "label": "Meaning",
+        "placeholder": "Enter the meaning"
+      }
     }
   },
   "geography": {
@@ -443,6 +496,27 @@
       "editTitle": "Edit NPC",
       "createButton": "Create NPC",
       "editButton": "Edit NPC"
+    },
+    "fields": {
+      "title": { "label": "Title", "placeholder": "Enter title" },
+      "alignment": { "label": "Alignment" },
+      "alignmentDomain": { "label": "Domain" },
+      "position": { "label": "Position", "placeholder": "Enter position" },
+      "location": { "label": "Location" },
+      "faction": { "label": "Faction" },
+      "appearance": {
+        "label": "Appearance",
+        "placeholder": "Enter appearance"
+      },
+      "personality": {
+        "label": "Personality",
+        "placeholder": "Enter personality"
+      },
+      "motivations": {
+        "label": "Motivations",
+        "placeholder": "Enter motivations"
+      },
+      "secrets": { "label": "Secrets", "placeholder": "Enter secrets" }
     }
   },
   "magicItems": {
@@ -481,6 +555,11 @@
     },
     "card": {
       "attunementRequired": "Attunement required"
+    },
+    "fields": {
+      "rarity": { "label": "Rarity" },
+      "type": { "label": "Item Type" },
+      "attuned": { "label": "Attunement Required" }
     }
   }
 }

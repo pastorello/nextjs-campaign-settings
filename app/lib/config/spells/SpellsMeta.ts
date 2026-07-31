@@ -16,7 +16,7 @@ import renderRichText from "../../utils/data/renderRichText";
 const spellsMeta = {
   [SpellMetaField.level]: {
     metaField: "level",
-    label: "Livello",
+    labelKey: "spells.fields.level.label",
     defaultValue: 0,
     fieldType: FieldType.integer,
     options: levels,
@@ -25,7 +25,7 @@ const spellsMeta = {
   },
   [SpellMetaField.circle]: {
     metaField: "circle",
-    label: "Sottoclassi",
+    labelKey: "spells.fields.circle.label",
     defaultValue: [],
     fieldType: FieldType.array,
     options: subclasses,
@@ -34,7 +34,7 @@ const spellsMeta = {
   },
   [SpellMetaField.classes]: {
     metaField: "classes",
-    label: "Classi",
+    labelKey: "spells.fields.classes.label",
     defaultValue: [],
     fieldType: FieldType.array,
     options: classes.map((item) => ({
@@ -46,7 +46,7 @@ const spellsMeta = {
   },
   [SpellMetaField.castingTime]: {
     metaField: "castingTime",
-    label: "Tempo di lancio",
+    labelKey: "spells.fields.castingTime.label",
     defaultValue: firstOptionValue(tempiDiLancio),
     fieldType: FieldType.string,
     options: tempiDiLancio,
@@ -55,7 +55,7 @@ const spellsMeta = {
   },
   [SpellMetaField.range]: {
     metaField: "range",
-    label: "Gittata",
+    labelKey: "spells.fields.range.label",
     defaultValue: firstOptionValue(gittate),
     fieldType: FieldType.string,
     options: gittate,
@@ -64,7 +64,7 @@ const spellsMeta = {
   },
   [SpellMetaField.components]: {
     metaField: "components",
-    label: "Componenti",
+    labelKey: "spells.fields.components.label",
     defaultValue: "V,S,M",
     fieldType: FieldType.string,
     controlType: ControlType.Text,
@@ -73,7 +73,7 @@ const spellsMeta = {
   },
   [SpellMetaField.duration]: {
     metaField: "duration",
-    label: "Durata",
+    labelKey: "spells.fields.duration.label",
     defaultValue: firstOptionValue(durate),
     fieldType: FieldType.string,
     options: durate,
@@ -82,7 +82,7 @@ const spellsMeta = {
   },
   [SpellMetaField.savingThrow]: {
     metaField: "savingThrow",
-    label: "Tiro salvezza",
+    labelKey: "spells.fields.savingThrow.label",
     defaultValue: firstOptionValue(tiriSalvezza),
     fieldType: FieldType.string,
     options: tiriSalvezza,
@@ -91,7 +91,7 @@ const spellsMeta = {
   },
   [SpellMetaField.ritual]: {
     metaField: "ritual",
-    label: "Rituale",
+    labelKey: "spells.fields.ritual.label",
     defaultValue: false,
     fieldType: FieldType.boolean,
     controlType: ControlType.Bool,
@@ -100,7 +100,7 @@ const spellsMeta = {
   },
   [SpellMetaField.concentration]: {
     metaField: "concentration",
-    label: "Richiede concentrazione",
+    labelKey: "spells.fields.concentration.label",
     defaultValue: false,
     fieldType: FieldType.boolean,
     controlType: ControlType.Bool,
@@ -109,11 +109,11 @@ const spellsMeta = {
   },
   [SpellMetaField.upcast]: {
     metaField: "upcast",
-    label: "Ai livelli superiori",
+    labelKey: "spells.fields.upcast.label",
     defaultValue: "",
     fieldType: FieldType.string,
     controlType: ControlType.Textarea,
-    placeholder: "Inserisci testo...",
+    placeholderKey: "spells.fields.upcast.placeholder",
     validator: z.string().optional(),
     getDatum: (datum: string) => renderRichText(datum),
   },

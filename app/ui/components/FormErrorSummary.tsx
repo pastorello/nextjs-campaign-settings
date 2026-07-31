@@ -14,6 +14,7 @@ interface FormErrorSummaryProps {
  */
 export default function FormErrorSummary({ errors }: FormErrorSummaryProps) {
   const t = useTranslations("common.formErrors");
+  const tFields = useTranslations();
   const entries = Object.entries(errors).filter(
     ([, messages]) => messages && messages.length > 0
   );
@@ -30,7 +31,9 @@ export default function FormErrorSummary({ errors }: FormErrorSummaryProps) {
         {entries.map(([field, messages]) => (
           <li key={field}>
             <span className="font-medium">
-              {fieldMeta[field]?.label ?? field}
+              {fieldMeta[field]?.labelKey
+                ? tFields(fieldMeta[field].labelKey)
+                : field}
             </span>
             {": "}
             {messages?.join(", ")}

@@ -28,8 +28,9 @@ const InputComponent = ({
   const t = useTranslations();
 
   const getFieldConfig = (): FormField => {
+    const labelKey = pageMetaFields[fieldName].labelKey;
     const result: FormField = {
-      label: pageMetaFields[fieldName].label ?? "",
+      label: labelKey ? t(labelKey) : "",
       value: value,
       onChange: (aValue: MetaValue) => setField(fieldName, aValue),
       type: pageMetaFields[fieldName].controlType,
@@ -54,9 +55,11 @@ const InputComponent = ({
       pageMetaFields[fieldName].controlType === ControlType.Text ||
       pageMetaFields[fieldName].controlType === ControlType.Textarea
     ) {
-      const declared = fieldMeta[fieldName]?.placeholder;
+      const placeholderKey = fieldMeta[fieldName]?.placeholderKey;
 
-      result.placeholder = isValidString(declared) ? declared : "";
+      result.placeholder = isValidString(placeholderKey)
+        ? t(placeholderKey)
+        : "";
     }
     return result;
   };

@@ -11,7 +11,7 @@ import itemTypes from "./item-types";
 const magicItemsMeta = {
   [MagicItemMetaField.rarity]: {
     metaField: "rarity",
-    label: "Rarità",
+    labelKey: "magicItems.fields.rarity.label",
     defaultValue: firstOptionValue(rarity),
     fieldType: FieldType.integer,
     options: rarity,
@@ -20,7 +20,7 @@ const magicItemsMeta = {
   },
   [MagicItemMetaField.type]: {
     metaField: "type",
-    label: "Tipo di oggetto",
+    labelKey: "magicItems.fields.type.label",
     defaultValue: firstOptionValue(itemTypes),
     fieldType: FieldType.integer,
     options: itemTypes,
@@ -29,7 +29,7 @@ const magicItemsMeta = {
   },
   [MagicItemMetaField.attuned]: {
     metaField: "attuned",
-    label: "Richiede sintonia",
+    labelKey: "magicItems.fields.attuned.label",
     defaultValue: false,
     fieldType: FieldType.boolean,
     controlType: ControlType.Bool,

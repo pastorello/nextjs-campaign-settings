@@ -74,6 +74,23 @@
       "previous": "Pagina precedente",
       "next": "Pagina successiva",
       "page": "Pagina {number}"
+    },
+    "deleteButton": {
+      "confirmTitle": "Elimina definitivamente \"{name}\"?",
+      "confirmDescription": "Questa operazione non può essere annullata",
+      "deleted": "{name} eliminato",
+      "deleteFailed": "Errore durante la cancellazione",
+      "networkFailed": "Errore di rete"
+    },
+    "formErrors": {
+      "title": "Controlla i campi segnalati:"
+    },
+    "errorPage": {
+      "genericTitle": "Qualcosa è andato storto",
+      "genericBody": "La pagina non è riuscita a caricare i dati.",
+      "unreachableTitle": "Database non raggiungibile",
+      "unreachableBody": "Il server non risponde. Se stai eseguendo l'app in locale, avvia il database con docker-compose up -d.",
+      "retry": "Riprova"
     }
   },
   "spells": {
@@ -192,6 +209,12 @@
       "itemPlural": "incantesimi",
       "newItemButton": "Nuovo Incantesimo"
     },
+    "form": {
+      "createTitle": "Crea nuovo Incantesimo",
+      "editTitle": "Modifica Incantesimo",
+      "createButton": "Crea Incantesimo",
+      "editButton": "Modifica Incantesimo"
+    },
     "card": {
       "castingTime": "Tempo di lancio",
       "range": "Gittata",
@@ -273,6 +296,12 @@
       "itemSingular": "divinità",
       "itemPlural": "divinità",
       "newItemButton": "Nuova divinità"
+    },
+    "form": {
+      "createTitle": "Crea nuova Divinità",
+      "editTitle": "Modifica Divinità",
+      "createButton": "Crea Divinità",
+      "editButton": "Modifica Divinità"
     },
     "card": {
       "residence": "Residenza",
@@ -408,6 +437,12 @@
       "itemSingular": "PNG",
       "itemPlural": "PNG",
       "newItemButton": "Nuovo PNG"
+    },
+    "form": {
+      "createTitle": "Crea nuovo PNG",
+      "editTitle": "Modifica PNG",
+      "createButton": "Crea PNG",
+      "editButton": "Modifica PNG"
     }
   },
   "magicItems": {
@@ -437,6 +472,12 @@
       "itemSingular": "oggetto magico",
       "itemPlural": "oggetti magici",
       "newItemButton": "Nuovo oggetto magico"
+    },
+    "form": {
+      "createTitle": "Crea nuovo oggetto magico",
+      "editTitle": "Modifica oggetto magico",
+      "createButton": "Crea oggetto magico",
+      "editButton": "Modifica oggetto magico"
     },
     "card": {
       "attunementRequired": "Richiede sintonia"

@@ -1,6 +1,7 @@
 "use client";
 
 import { Fieldset } from "@headlessui/react";
+import { useTranslations } from "next-intl";
 
 import EntityForm from "@/app/ui/forms/EntityForm";
 import createSpell from "@/app/lib/data/spells/createSpell";
@@ -8,14 +9,6 @@ import updateSpell from "@/app/lib/data/spells/updateSpell";
 import PageType from "@/app/lib/definitions/types/PageType";
 import Spell from "@/app/lib/definitions/interfaces/spells/Spell";
 import SpellMetaField from "@/app/lib/definitions/enums/spells/SpellMetaField";
-
-// All user-facing copy for this form, in one place for TD-21.
-const COPY = {
-  createTitle: "Crea nuovo Incantesimo",
-  editTitle: "Modifica Incantesimo",
-  createButton: "Crea Incantesimo",
-  editButton: "Modifica Incantesimo",
-};
 
 interface SpellFormProps {
   formData?: Spell;
@@ -28,12 +21,19 @@ export default function SpellForm({
   onCancel,
   onSaveFinished,
 }: SpellFormProps) {
+  const t = useTranslations("spells.form");
+
   return (
     <EntityForm<Spell>
       pageType={PageType.Spell}
       formData={formData}
       mutations={{ create: createSpell, update: updateSpell }}
-      copy={COPY}
+      copy={{
+        createTitle: t("createTitle"),
+        editTitle: t("editTitle"),
+        createButton: t("createButton"),
+        editButton: t("editButton"),
+      }}
       onCancel={onCancel}
       onSaveFinished={onSaveFinished}
     >

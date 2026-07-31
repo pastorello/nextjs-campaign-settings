@@ -1,6 +1,7 @@
 "use client";
 
 import { Fieldset } from "@headlessui/react";
+import { useTranslations } from "next-intl";
 
 import EntityForm from "@/app/ui/forms/EntityForm";
 import createNpc from "@/app/lib/data/npc/createNpc";
@@ -8,14 +9,6 @@ import updateNpc from "@/app/lib/data/npc/updateNpc";
 import PageType from "@/app/lib/definitions/types/PageType";
 import NpcItem from "@/app/lib/definitions/interfaces/npc/NpcItem";
 import NpcMetaField from "@/app/lib/definitions/enums/npc/NpcMetaField";
-
-// All user-facing copy for this form, in one place for TD-21.
-const COPY = {
-  createTitle: "Crea nuovo PNG",
-  editTitle: "Modifica PNG",
-  createButton: "Crea PNG",
-  editButton: "Modifica PNG",
-};
 
 interface NpcFormProps {
   formData?: NpcItem;
@@ -28,12 +21,19 @@ export default function NpcForm({
   onCancel,
   onSaveFinished,
 }: NpcFormProps) {
+  const t = useTranslations("npc.form");
+
   return (
     <EntityForm<NpcItem>
       pageType={PageType.Npc}
       formData={formData}
       mutations={{ create: createNpc, update: updateNpc }}
-      copy={COPY}
+      copy={{
+        createTitle: t("createTitle"),
+        editTitle: t("editTitle"),
+        createButton: t("createButton"),
+        editButton: t("editButton"),
+      }}
       onCancel={onCancel}
       onSaveFinished={onSaveFinished}
     >

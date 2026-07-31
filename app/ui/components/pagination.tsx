@@ -71,7 +71,7 @@ function PaginationNumber({
   position?: "first" | "last" | "middle" | "single" | undefined;
   isActive: boolean;
 }) {
-  const t = useTranslations("common.list.pagination");
+  const t = useTranslations("common.pagination");
   const className = clsx(
     "flex h-10 w-10 items-center justify-center text-sm border",
     {
@@ -105,7 +105,7 @@ function PaginationArrow({
   direction: "left" | "right";
   isDisabled?: boolean;
 }) {
-  const t = useTranslations("common.list.pagination");
+  const t = useTranslations("common.pagination");
   const className = clsx(
     "flex h-10 w-10 items-center justify-center rounded-md border",
     {

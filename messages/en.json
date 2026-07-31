@@ -74,6 +74,23 @@
       "previous": "Previous page",
       "next": "Next page",
       "page": "Page {number}"
+    },
+    "deleteButton": {
+      "confirmTitle": "Permanently delete \"{name}\"?",
+      "confirmDescription": "This operation can't be undone",
+      "deleted": "{name} deleted",
+      "deleteFailed": "Delete failed",
+      "networkFailed": "Network error"
+    },
+    "formErrors": {
+      "title": "Check the flagged fields:"
+    },
+    "errorPage": {
+      "genericTitle": "Something went wrong",
+      "genericBody": "The page failed to load its data.",
+      "unreachableTitle": "Database unreachable",
+      "unreachableBody": "The server isn't responding. If you're running the app locally, start the database with docker-compose up -d.",
+      "retry": "Retry"
     }
   },
   "spells": {
@@ -192,6 +209,12 @@
       "itemPlural": "spells",
       "newItemButton": "New Spell"
     },
+    "form": {
+      "createTitle": "Create New Spell",
+      "editTitle": "Edit Spell",
+      "createButton": "Create Spell",
+      "editButton": "Edit Spell"
+    },
     "card": {
       "castingTime": "Casting Time",
       "range": "Range",
@@ -273,6 +296,12 @@
       "itemSingular": "deity",
       "itemPlural": "deities",
       "newItemButton": "New Deity"
+    },
+    "form": {
+      "createTitle": "Create New Deity",
+      "editTitle": "Edit Deity",
+      "createButton": "Create Deity",
+      "editButton": "Edit Deity"
     },
     "card": {
       "residence": "Residence",
@@ -408,6 +437,12 @@
       "itemSingular": "NPC",
       "itemPlural": "NPCs",
       "newItemButton": "New NPC"
+    },
+    "form": {
+      "createTitle": "Create New NPC",
+      "editTitle": "Edit NPC",
+      "createButton": "Create NPC",
+      "editButton": "Edit NPC"
     }
   },
   "magicItems": {
@@ -437,6 +472,12 @@
       "itemSingular": "magic item",
       "itemPlural": "magic items",
       "newItemButton": "New Magic Item"
+    },
+    "form": {
+      "createTitle": "Create New Magic Item",
+      "editTitle": "Edit Magic Item",
+      "createButton": "Create Magic Item",
+      "editButton": "Edit Magic Item"
     },
     "card": {
       "attunementRequired": "Attunement required"

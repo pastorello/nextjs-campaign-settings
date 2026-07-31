@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-07-30
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-21 · TD-02b · TD-20b (blocked) · TD-14 (Phase 3). Everything else is done — the summary table below is authoritative.
+**Open items:** TD-02b · TD-20b (blocked) · TD-14 (Phase 3). Everything else is done — the summary table below is authoritative.
 
 ## Legend
 
@@ -41,7 +41,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                 | ~~🟢 Low~~ done      | S      | 3     |
 | TD-19 | ✅ Mixed Italian/English identifiers (residual set → TD-33)            | ~~🟠 High~~ done     | L      | 2     |
 | TD-20 | ◑ `exactOptionalPropertyTypes` on; `noUncheckedIndexedAccess` blocked  | 🟡 Medium            | M      | 2     |
-| TD-21 | UI strings hardcoded; app must ship in it + en                         | 🟠 High              | L      | 2     |
+| TD-21 | ✅ UI strings hardcoded; app must ship in it + en                      | ~~🟠 High~~ done     | L      | 2     |
 | TD-22 | ✅ Lint warnings 293 → 0; every rule back to `error`                   | ~~🟠 High~~ done     | M      | 2     |
 | TD-23 | ✅ Migration drift patched forward; migrations match the schema        | ~~🟠 High~~ done     | S      | 1     |
 | TD-24 | ✅ Playwright harness + specs; `e2e` job blocking in CI                | ~~🟠 High~~ done     | M      | 1     |
@@ -777,7 +777,7 @@ Do **not** enable everything at once and then fix 200 errors in a single commit 
 
 ---
 
-### TD-21 🟠 UI strings are hardcoded; the app must ship in Italian and English
+### TD-21 ✅ UI strings are hardcoded; the app must ship in Italian and English
 
 **Where:** `app/ui/**`, `app/dashboard/**`, `app/lib/config/**` (the `label` / `placeholder` fields and every options array)
 **Decision:** [ADR-0006](./adr/0006-bilingual-ui.md)
@@ -895,10 +895,10 @@ Steps 6–8 of the original fix list above (inline component copy, the locale sw
 - **Step 3 done (2026-07-31) — `PageMeta.label`/`.placeholder` migrated, the last item in TD-21's original fix list.** `PageMetaBase.label`/`.placeholder` renamed to `labelKey`/`placeholderKey`, mirroring `SelectOption` → `labelKey` from ADR-0007. Only three consumers ever read them directly — `InputComponent.tsx` (form field label + placeholder) and `FormErrorSummary.tsx` (validation-error field name) — all three already had a `t` in scope from earlier TD-21 commits. Migrated all ~45 field declarations: the three shared across every domain (`name`/`id`/`description` in `pageMetaFields.ts`) plus each domain's own (`<domain>.fields.<field>.{label,placeholder}`). `placeholderKey` is only declared where `InputComponent` actually reads it (`Text`/`Textarea` fields) — the property was already dead on `Select`-typed fields, so it's dropped rather than migrated.
   - **A real bug found and fixed while migrating, not just extracted:** 9 of `deityMeta.ts`'s 12 fields had `label` (and `placeholder`) set to the raw camelCase field name — `"titoloPatrono"`, `"astri"`, `"classe"` — not real copy. Every deity form field showed its own internal identifier as a label. Given proper labels in both languages, cross-checked against `DeityCard.tsx`'s equivalent labels (migrated in an earlier TD-21 commit) so the same field reads the same way in both places.
   - **Verified in the browser, both locales, all four domains' create forms:** field labels and placeholders render correctly; deity's fields no longer show their own camelCase names.
-  - **Two more hardcoded-string surfaces surfaced while migrating, both outside step 3's own scope and not fixed here:**
-    - `app/lib/config/listConfig.ts` — a **separate** set of hardcoded Italian strings (`ListColumn.label` for table headers, `emptyMessage`, `editModalTitle`), never sourced from `PageMeta.label`. Its own doc comment already says _"Not taken from `PageMeta.label`... TD-21 replaces these with catalogue keys"_ — so this is understood as in-scope for TD-21 by the code itself, just not by the numbered fix list, and untouched by this session.
-    - Three `getDatum` closures render a hardcoded string depending on a boolean value rather than through any label/placeholder: `spells.ritual` → `"Rituale"`/`""`, `spells.concentration` → `"Sì"`/`"No"`, `magicitem.attuned` → `"Sì"`/`"No"`. These render campaign data (a spell's/item's own boolean flag), not chrome, but they're still hardcoded Italian shown under `/en/...`.
-  - **TD-21's "done when" criterion** ("no user-facing string literal remains in a component or config file") **is not literally met** because of the two items above — the numbered fix list is complete, but that's a narrower bar than the criterion. Decide explicitly whether to reopen a scoped follow-up for `listConfig.ts` + the three `getDatum` closures, or accept the numbered list as the operative definition of done.
+  - **Two more hardcoded-string surfaces surfaced while migrating step 3, both fixed in a follow-up commit the same session:**
+    - `app/lib/config/listConfig.ts` — a **separate** set of hardcoded Italian strings (`ListColumn.label` for table headers, `emptyMessage`, `editModalTitle`), never sourced from `PageMeta.label`. `ListColumn.label` → `labelKey`, mostly reusing the same key as the field's own `PageMeta.labelKey` (a column header and a form label are normally the same word); the one genuine divergence (magic items' "Sintonia" column vs. "Richiede sintonia" form label) got its own `magicItems.fields.attuned.shortLabel`. `emptyMessage`/`editModalTitle` → `emptyMessageKey`/`editModalTitleKey`; `editModalTitleKey` reuses each domain's existing `<domain>.form.editTitle` rather than duplicating it, since the two were always the same string.
+    - Three `getDatum` closures rendered a hardcoded string depending on a boolean value: `spells.ritual` → `"Rituale"`/`""`, `spells.concentration` → `"Sì"`/`"No"`, `magicitem.attuned` → `"Sì"`/`"No"`. `resolveFieldValue.ts` now falls back to a generic `common.boolean.yes`/`.no` for a boolean field with neither `options` nor `getDatum`, ahead of the plain `String(value)` fallback. `ritual`'s and `concentration`'s closures turned out to be dead code — never invoked anywhere (`SpellCard` reads the raw boolean directly, the form uses a checkbox) — so they're deleted outright rather than replaced; `attuned`'s is the one call site the generic fallback actually replaces (the magicitem admin list's Sintonia column).
+  - **TD-21's "done when" criterion is now met**: no user-facing string literal remains in a component or config file. Verified in the browser, both locales: all four domains' admin list column headers, and the magic items list's Sintonia/Attunement column showing Sì/No and Yes/No correctly.
 
 ---
 
@@ -1485,13 +1485,13 @@ Plus the directory `app/lib/definitions/enums/tarocchi/` → `tarot/`.
 23b. ✅ TD-31 hydration mismatch            → shared mutable PageMeta.options
 23c. ✅ TD-26 / TD-29 / TD-30 / TD-32       → see the summary table
 24.  ✅ TD-33  the Italian identifiers TD-19 missed → compiler-verified, no behaviour change
+25.  ✅ TD-21  extract UI strings, ship it + en    → L; message-key resolution + locale switcher + CI key-set check
 --- everything above is done. What is actually left: ---
-B.  TD-21  extract UI strings, ship it + en     → L, the last 🟠; no longer paired with TD-19
 C.  TD-02b remaining trust boundaries (env, localStorage, GeoJSON)
 D.  TD-20b noUncheckedIndexedAccess → blocked: 20 sites in the vendored maps module
                                       need coverage first, or the module needs excluding
 E.  TD-14  map POIs into Postgres → Phase 3; as much feature as debt
---- Phase 2 ends when B and C land ---
+--- Phase 2 ends when C lands ---
 ✅ TD-18 was done early (it unblocked the build)
 ```
 

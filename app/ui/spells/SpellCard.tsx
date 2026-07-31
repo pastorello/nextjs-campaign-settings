@@ -35,7 +35,8 @@ const SpellCard = (props: { cardItem: Spell }) => {
               {pageMetaFields[SpellMetaField.name].getDatum?.(
                 props.cardItem[SpellMetaField.name]
               )}{" "}
-              {props.cardItem[SpellMetaField.ritual] == true && "(rituale)"}
+              {props.cardItem[SpellMetaField.ritual] == true &&
+                t("spells.card.ritual")}
             </div>
           </div>
           <div className="w-[40px] group-data-open:rotate-180">
@@ -46,7 +47,7 @@ const SpellCard = (props: { cardItem: Spell }) => {
           <div className="flex w-full p-2">
             <div className="w-[50%] p-1">
               <ItemMeta
-                label="Tempo di lancio"
+                label={t("spells.card.castingTime")}
                 value={resolveFieldValue(
                   pageMetaFields[SpellMetaField.castingTime],
                   props.cardItem[SpellMetaField.castingTime],
@@ -54,7 +55,7 @@ const SpellCard = (props: { cardItem: Spell }) => {
                 )}
               />
               <ItemMeta
-                label="Gittata"
+                label={t("spells.card.range")}
                 value={resolveFieldValue(
                   pageMetaFields[SpellMetaField.range],
                   props.cardItem[SpellMetaField.range],
@@ -62,7 +63,7 @@ const SpellCard = (props: { cardItem: Spell }) => {
                 )}
               />
               <ItemMeta
-                label="Durata"
+                label={t("spells.card.duration")}
                 value={resolveFieldValue(
                   pageMetaFields[SpellMetaField.duration],
                   props.cardItem[SpellMetaField.duration],
@@ -72,7 +73,7 @@ const SpellCard = (props: { cardItem: Spell }) => {
             </div>
             <div className="w-[50%] p-1">
               <ItemMeta
-                label="Sottoclassi"
+                label={t("spells.card.subclasses")}
                 value={resolveFieldValue(
                   pageMetaFields[SpellMetaField.circle],
                   props.cardItem[SpellMetaField.circle],
@@ -80,7 +81,7 @@ const SpellCard = (props: { cardItem: Spell }) => {
                 )}
               />
               <ItemMeta
-                label="Componenti"
+                label={t("spells.card.components")}
                 value={pageMetaFields[SpellMetaField.components].getDatum?.(
                   props.cardItem[SpellMetaField.components]
                 )}
@@ -96,7 +97,7 @@ const SpellCard = (props: { cardItem: Spell }) => {
             <div className="w-full px-3 pb-2 text-base">
               <hr className="my-2" />
               <ItemMeta
-                label="A livelli superiori"
+                label={t("spells.card.upcast")}
                 value={pageMetaFields[SpellMetaField.upcast].getDatum?.(
                   props.cardItem[SpellMetaField.upcast]
                 )}

@@ -178,6 +178,22 @@
       "intelligence": "Intelligenza",
       "wisdom": "Saggezza",
       "charisma": "Carisma"
+    },
+    "page": {
+      "title": "Incantesimi",
+      "searchPlaceholder": "Cerca incantesimo...",
+      "itemSingular": "incantesimo",
+      "itemPlural": "incantesimi",
+      "newItemButton": "Nuovo Incantesimo"
+    },
+    "card": {
+      "castingTime": "Tempo di lancio",
+      "range": "Gittata",
+      "duration": "Durata",
+      "subclasses": "Sottoclassi",
+      "components": "Componenti",
+      "upcast": "A livelli superiori",
+      "ritual": "(rituale)"
     }
   },
   "deities": {
@@ -244,6 +260,21 @@
       "lAngelo": "L'Angelo",
       "ilMondo": "Il Mondo",
       "ilConsultante": "Il Consultante"
+    },
+    "page": {
+      "title": "Divinità",
+      "searchPlaceholder": "Cerca divinità...",
+      "itemSingular": "divinità",
+      "itemPlural": "divinità",
+      "newItemButton": "Nuova divinità"
+    },
+    "card": {
+      "residence": "Residenza",
+      "celestialBody": "Astro associato",
+      "holidays": "Festività",
+      "tarotCard": "Tarocco",
+      "meaning": "Significato",
+      "element": "Elemento"
     }
   },
   "geography": {
@@ -279,6 +310,15 @@
       "selvaOscura": "Selva Oscura",
       "inferi": "Inferi",
       "terra": "Terra"
+    },
+    "page": {
+      "title": "Geografia"
+    },
+    "maps": {
+      "planesOfExistence": "Piani di Esistenza",
+      "materialWorld": "Mondo Materiale",
+      "kingdomOfKang": "Regno di Kang",
+      "citySkreebars": "Città di Skreebars"
     }
   },
   "npc": {
@@ -349,6 +389,14 @@
       "annunaki": "Annunaki",
       "folletti": "Folletti",
       "manoNera": "Mano Nera"
+    },
+    "page": {
+      "title": "Personaggi conosciuti",
+      "adminTitle": "PNG",
+      "searchPlaceholder": "Cerca png...",
+      "itemSingular": "PNG",
+      "itemPlural": "PNG",
+      "newItemButton": "Nuovo PNG"
     }
   },
   "magicItems": {
@@ -371,6 +419,16 @@
       "scroll": "Pergamena",
       "potion": "Pozione",
       "rod": "Verga"
+    },
+    "page": {
+      "title": "Oggetti magici",
+      "searchPlaceholder": "Cerca oggetti magici...",
+      "itemSingular": "oggetto magico",
+      "itemPlural": "oggetti magici",
+      "newItemButton": "Nuovo oggetto magico"
+    },
+    "card": {
+      "attunementRequired": "Richiede sintonia"
     }
   }
 }

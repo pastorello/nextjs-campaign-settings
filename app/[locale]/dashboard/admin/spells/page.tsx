@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
 import Pagination from "@/app/ui/components/pagination";
 import Search from "@/app/ui/search";
@@ -11,9 +12,10 @@ import EntityList from "@/app/ui/components/EntityList";
 import PageType from "@/app/lib/definitions/types/PageType";
 import PageTitle from "@/app/ui/typography/PageTitle";
 
-export const metadata: Metadata = {
-  title: "Incantesimi",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("spells.page");
+  return { title: t("title") };
+}
 
 export default async function Page(props: {
   searchParams?: Promise<{
@@ -21,6 +23,8 @@ export default async function Page(props: {
     page?: string;
   }>;
 }) {
+  const t = await getTranslations("spells.page");
+  const tCommon = await getTranslations("common.list");
   const searchParams = await props.searchParams;
   const itemCount = await getSpellsCount(searchParams ?? {});
   const query = searchParams?.query || "";
@@ -28,13 +32,18 @@ export default async function Page(props: {
 
   return (
     <div className="w-full">
-      <PageTitle>Incantesimi</PageTitle>
+      <PageTitle>{t("title")}</PageTitle>
       <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
-        <Search placeholder="Cerca incantesimo..." />
+        <Search placeholder={t("searchPlaceholder")} />
         <div className="flex shrink-0">
-          {itemCount.filtered} di {itemCount.total} incantesimi trovati
+          {tCommon("count", {
+            filtered: itemCount.filtered,
+            total: itemCount.total,
+            item:
+              itemCount.filtered === 1 ? t("itemSingular") : t("itemPlural"),
+          })}
         </div>
-        <BaseButton to="spells/new">Nuovo Incantesimo</BaseButton>
+        <BaseButton to="spells/new">{t("newItemButton")}</BaseButton>
         <ResetButton />
       </div>
       <Suspense

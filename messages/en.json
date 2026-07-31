@@ -178,6 +178,22 @@
       "intelligence": "Intelligence",
       "wisdom": "Wisdom",
       "charisma": "Charisma"
+    },
+    "page": {
+      "title": "Spells",
+      "searchPlaceholder": "Search spell...",
+      "itemSingular": "spell",
+      "itemPlural": "spells",
+      "newItemButton": "New Spell"
+    },
+    "card": {
+      "castingTime": "Casting Time",
+      "range": "Range",
+      "duration": "Duration",
+      "subclasses": "Subclasses",
+      "components": "Components",
+      "upcast": "At Higher Levels",
+      "ritual": "(ritual)"
     }
   },
   "deities": {
@@ -244,6 +260,21 @@
       "lAngelo": "Judgement",
       "ilMondo": "The World",
       "ilConsultante": "The Querent"
+    },
+    "page": {
+      "title": "Deities",
+      "searchPlaceholder": "Search deity...",
+      "itemSingular": "deity",
+      "itemPlural": "deities",
+      "newItemButton": "New Deity"
+    },
+    "card": {
+      "residence": "Residence",
+      "celestialBody": "Celestial Body",
+      "holidays": "Holidays",
+      "tarotCard": "Tarot Card",
+      "meaning": "Meaning",
+      "element": "Element"
     }
   },
   "geography": {
@@ -279,6 +310,15 @@
       "selvaOscura": "Dark Wood",
       "inferi": "Underworld",
       "terra": "Earth"
+    },
+    "page": {
+      "title": "Geography"
+    },
+    "maps": {
+      "planesOfExistence": "Planes of Existence",
+      "materialWorld": "Material World",
+      "kingdomOfKang": "Kingdom of Kang",
+      "citySkreebars": "City of Skreebars"
     }
   },
   "npc": {
@@ -349,6 +389,14 @@
       "annunaki": "Annunaki",
       "folletti": "Sprites",
       "manoNera": "Black Hand"
+    },
+    "page": {
+      "title": "Known Characters",
+      "adminTitle": "NPCs",
+      "searchPlaceholder": "Search NPC...",
+      "itemSingular": "NPC",
+      "itemPlural": "NPCs",
+      "newItemButton": "New NPC"
     }
   },
   "magicItems": {
@@ -371,6 +419,16 @@
       "scroll": "Scroll",
       "potion": "Potion",
       "rod": "Rod"
+    },
+    "page": {
+      "title": "Magic Items",
+      "searchPlaceholder": "Search magic items...",
+      "itemSingular": "magic item",
+      "itemPlural": "magic items",
+      "newItemButton": "New Magic Item"
+    },
+    "card": {
+      "attunementRequired": "Attunement required"
     }
   }
 }

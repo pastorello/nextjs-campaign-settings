@@ -17,8 +17,6 @@ import DeleteButton from "../buttons/DeleteButton";
 import ModalButton from "../buttons/ModalButton";
 
 const NAME_FIELD = "name";
-const ACTIONS_LABEL = "Azioni";
-const EDIT_LABEL = "Modifica";
 
 /**
  * The admin list for any domain, driven by `listConfig` (TD-09).
@@ -74,7 +72,7 @@ export default async function EntityList(props: {
               <tr>
                 <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
                   <SortableHeader
-                    label={"Nome"}
+                    label={t("common.table.name")}
                     fieldKey={NAME_FIELD}
                     isFiltrable={false}
                   />
@@ -99,7 +97,7 @@ export default async function EntityList(props: {
                   scope="col"
                   className="relative py-5 pl-6 pr-3 justify-center flex"
                 >
-                  {ACTIONS_LABEL}
+                  {t("common.table.actions")}
                 </th>
               </tr>
             </thead>
@@ -140,7 +138,7 @@ export default async function EntityList(props: {
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex justify-end gap-3">
                       <ModalButton
-                        buttonLabel={EDIT_LABEL}
+                        buttonLabel={t("common.table.edit")}
                         modalTitle={config.editModalTitle}
                         modalContent={config.modalContent}
                         componentProps={{ formData: item }}

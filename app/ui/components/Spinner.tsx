@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 const Spinner = ({ size = 100, color = "bg-green-500" }) => {
+  const t = useTranslations("common");
+
   return (
     <div className="flex items-center justify-center h-full w-full min-h-100">
       <div className="relative" style={{ width: size, height: size }}>
@@ -40,7 +43,7 @@ const Spinner = ({ size = 100, color = "bg-green-500" }) => {
             />
           ))}
         </motion.div>
-        <div className="py-25 text-center">Loading...</div>
+        <div className="py-25 text-center">{t("loading")}</div>
       </div>
     </div>
   );

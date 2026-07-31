@@ -2,6 +2,7 @@
 
 import { useDebouncedCallback } from "use-debounce";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
@@ -9,6 +10,7 @@ export default function Search({ placeholder }: { placeholder: string }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
+  const t = useTranslations("common.search");
 
   const handleSearch = useDebouncedCallback((aTerm: string) => {
     const params = new URLSearchParams(searchParams);
@@ -26,7 +28,7 @@ export default function Search({ placeholder }: { placeholder: string }) {
   return (
     <div className="relative flex flex-1 shrink-0">
       <label htmlFor="search" className="sr-only">
-        Search
+        {t("label")}
       </label>
       <input
         // The sr-only <label> above declares htmlFor="search"; without this id

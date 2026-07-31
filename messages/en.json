@@ -1,4 +1,75 @@
 {
+  "common": {
+    "brand": {
+      "name": "Campaign Settings"
+    },
+    "nav": {
+      "home": "Home",
+      "deities": "Religion",
+      "geography": "Geography",
+      "spells": "Spells",
+      "magicItems": "Magic Items",
+      "npc": "NPCs",
+      "manage": "Manage {section}",
+      "signOut": "Sign Out"
+    },
+    "dashboard": {
+      "title": "Dashboard"
+    },
+    "cards": {
+      "magicItems": "Magic Items",
+      "npc": "NPCs",
+      "spells": "Spells",
+      "deities": "Deities"
+    },
+    "auth": {
+      "loginPrompt": "Please log in to continue.",
+      "email": "Email",
+      "emailPlaceholder": "Enter your email address",
+      "password": "Password",
+      "passwordPlaceholder": "Enter password",
+      "submit": "Log in",
+      "invalidCredentials": "Invalid credentials.",
+      "somethingWrong": "Something went wrong."
+    },
+    "search": {
+      "label": "Search"
+    },
+    "loading": "Loading...",
+    "notFound": {
+      "title": "404 Not Found",
+      "description": "Could not find the requested page.",
+      "goBack": "Go Back"
+    },
+    "table": {
+      "name": "Name",
+      "actions": "Actions",
+      "edit": "Edit"
+    },
+    "form": {
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving",
+      "delete": "Delete",
+      "deleting": "Deleting",
+      "errorPrefix": "Error: {message}"
+    },
+    "filters": {
+      "all": "All",
+      "allCount": "All ({count})",
+      "reset": "Reset Filters"
+    },
+    "sort": {
+      "ariaLabel": "Sort by {field}"
+    },
+    "select": {
+      "placeholder": "Select..."
+    },
+    "list": {
+      "count": "{filtered} of {total} {item} found",
+      "newItem": "New {item}"
+    }
+  },
   "spells": {
     "levels": {
       "cantrip": { "label": "Cantrip", "short": "0" },

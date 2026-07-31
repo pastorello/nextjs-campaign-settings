@@ -1,10 +1,13 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import NavLinks from "@/app/ui/dashboard/nav-links";
 import { PowerIcon } from "@heroicons/react/24/outline";
 import { signOut } from "@/auth";
 import CampaignSettingsLogo from "../icons/CampaignSettingsLogo";
 
-export default function SideNav() {
+export default async function SideNav() {
+  const t = await getTranslations("common.nav");
+
   return (
     <div className="flex h-full flex-col py-4 px-2">
       <Link
@@ -26,7 +29,7 @@ export default function SideNav() {
         >
           <button className="flex h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3">
             <PowerIcon className="w-6" />
-            <div className="hidden md:block">Sign Out</div>
+            <div className="hidden md:block">{t("signOut")}</div>
           </button>
         </form>
       </div>

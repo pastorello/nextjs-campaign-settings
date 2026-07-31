@@ -1,10 +1,12 @@
+import { getTranslations } from "next-intl/server";
 import { lusitana } from "@/app/ui/fonts";
 import clsx from "clsx";
 
-export default function CampaignSettingsLogo(props: {
+export default async function CampaignSettingsLogo(props: {
   size?: "sm" | "md" | "lg";
 }) {
   const { size = "md" } = props;
+  const t = await getTranslations("common.brand");
 
   return (
     <div
@@ -39,7 +41,7 @@ export default function CampaignSettingsLogo(props: {
             "text-[36px]": size === "lg",
           })}
         >
-          Campaign Settings
+          {t("name")}
         </p>
       </div>
     </div>

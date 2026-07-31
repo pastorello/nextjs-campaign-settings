@@ -2,6 +2,7 @@
 
 import { ReactNode, useState } from "react";
 import Form from "next/form";
+import { useTranslations } from "next-intl";
 
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
@@ -14,8 +15,6 @@ import usePageManager from "@/app/lib/hooks/usePageManager";
 import MetaConfigKey from "@/app/lib/definitions/types/MetaConfigKey";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import PageType from "@/app/lib/definitions/types/PageType";
-
-const CANCEL_LABEL = "Annulla";
 
 /** The four strings a domain form shows. Kept together so TD-21 can lift them. */
 interface EntityFormCopy {
@@ -87,6 +86,7 @@ export default function EntityForm<T extends object>({
   disableUntilEdited = true,
   children,
 }: EntityFormProps<T>) {
+  const t = useTranslations("common.form");
   const isEditMode = isValidDataObject(formData);
   const { page, setField, getField, editedFields } = usePageManager<T>(
     pageType,
@@ -147,7 +147,7 @@ export default function EntityForm<T extends object>({
             {isEditMode ? copy.editButton : copy.createButton}
           </BaseButton>
           <BaseButton onClick={onCancel} variant={ButtonVariant.secondary}>
-            {CANCEL_LABEL}
+            {t("cancel")}
           </BaseButton>
         </div>
       </Form>

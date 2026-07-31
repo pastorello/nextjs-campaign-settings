@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import MetaValue from "@/app/lib/definitions/types/MetaValue";
 import {
   Listbox,
@@ -34,6 +35,7 @@ const Select = ({
   options = [],
   multiple,
 }: SelectProps) => {
+  const t = useTranslations("common.select");
   const selectedOption = options.find((item) => {
     const currentValue = isValidDataArray(value) ? value[0] : value;
     return String(item.value) === String(currentValue);
@@ -42,8 +44,8 @@ const Select = ({
   const getDefaultLabel = (): string => {
     const defaultLabel =
       multiple === true || !isValidDataArray(options)
-        ? "Seleziona..."
-        : (options[0]?.label ?? "Seleziona...");
+        ? t("placeholder")
+        : (options[0]?.label ?? t("placeholder"));
 
     const valueLabel = selectedOption
       ? `${selectedOption.label}${

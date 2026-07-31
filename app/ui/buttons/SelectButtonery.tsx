@@ -70,13 +70,13 @@ const SelectButtonery = ({
         >
           {buttonSize === ButtonSize.squaredSmall ? (
             <>
-              <div>Tutti</div>
+              <div>{t("common.filters.all")}</div>
               <div>{itemStats && `(${itemStats.total})`}</div>
             </>
           ) : itemStats ? (
-            `Tutti (${itemStats.total})`
+            t("common.filters.allCount", { count: itemStats.total })
           ) : (
-            "Tutti"
+            t("common.filters.all")
           )}
         </BaseButton>
       )}

@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 
+import messages from "@/messages/it.json";
+
 /**
  * The Leaflet map. Per docs/TESTING.md §"Explicitly out of scope" this does not
  * test Leaflet's own rendering — it tests that our module mounts it, that the
@@ -17,7 +19,7 @@ test.describe("world map", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/dashboard/geography");
     await expect(
-      page.getByRole("heading", { name: "Geografia" })
+      page.getByRole("heading", { name: messages.geography.page.title })
     ).toBeVisible();
   });
 
@@ -36,7 +38,9 @@ test.describe("world map", () => {
 
     const before = await overlay.getAttribute("src");
 
-    await page.getByRole("button", { name: "Regno di Kang" }).click();
+    await page
+      .getByRole("button", { name: messages.geography.maps.kingdomOfKang })
+      .click();
 
     await expect
       .poll(() => overlay.getAttribute("src"), {

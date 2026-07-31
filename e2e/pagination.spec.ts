@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 
 import { DEFAULT_ITEMS_PER_PAGE } from "@/app/lib/config/constants";
+import messages from "@/messages/it.json";
 
 /**
  * Pagination, asserted as arithmetic rather than against a fixed dataset.
@@ -29,13 +30,22 @@ import { DEFAULT_ITEMS_PER_PAGE } from "@/app/lib/config/constants";
  * see it at all.
  */
 const dataRows = (page: Page) =>
-  page
-    .getByRole("row")
-    .filter({ has: page.getByRole("button", { name: "Modifica" }) });
+  page.getByRole("row").filter({
+    has: page.getByRole("button", { name: messages.common.table.edit }),
+  });
+
+// Built from common.list.count ("{filtered} di {total} {item} trovati") so a
+// re-translation of the template can't silently desync this from the copy.
+const COUNT_PATTERN = new RegExp(
+  messages.common.list.count
+    .replace("{filtered}", "(\\d+)")
+    .replace("{total}", "\\d+")
+    .replace("{item}", "\\S+")
+);
 
 const readCount = async (page: Page) => {
-  const text = await page.getByText(/\d+ di \d+ incantesim/).innerText();
-  const [, filtered] = /(\d+) di/.exec(text) ?? [];
+  const text = await page.getByText(COUNT_PATTERN).innerText();
+  const [, filtered] = COUNT_PATTERN.exec(text) ?? [];
 
   return Number(filtered);
 };

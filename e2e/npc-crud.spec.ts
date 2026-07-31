@@ -1,5 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 
+import messages from "@/messages/it.json";
+
 /**
  * The same round trip for NPCs — the domain with the most fields, so it is the
  * one most likely to break when the metadata layer changes (TD-08, TD-19).
@@ -23,30 +25,42 @@ test.describe("NPC CRUD", () => {
     const editedName = `${name} mod`;
 
     await page.goto("/dashboard/admin/npc");
-    await page.getByRole("link", { name: "Nuovo PNG" }).click();
+    await page
+      .getByRole("link", { name: messages.npc.page.newItemButton })
+      .click();
 
     await expect(
-      page.getByRole("heading", { name: "Crea nuovo PNG" })
+      page.getByRole("heading", { name: messages.npc.form.createTitle })
     ).toBeVisible();
 
-    await page.getByLabel("Nome").fill(name);
-    await page.getByRole("button", { name: "Crea PNG" }).click();
+    await page.getByLabel(messages.common.fields.name.label).fill(name);
+    await page
+      .getByRole("button", { name: messages.npc.form.createButton })
+      .click();
 
     await page.waitForURL("**/dashboard/admin/npc");
 
     await gotoPng(page, name);
     await expect(rowFor(page, name)).toBeVisible();
 
-    await rowFor(page, name).getByRole("button", { name: "Modifica" }).click();
+    await rowFor(page, name)
+      .getByRole("button", { name: messages.common.table.edit })
+      .click();
 
     const editDialog = page.getByRole("dialog");
 
     // See spells-crud.spec.ts: the dialog title is rendered twice, so a heading
     // query here is a strict-mode violation.
-    await expect(editDialog.getByLabel("Nome")).toBeVisible();
+    await expect(
+      editDialog.getByLabel(messages.common.fields.name.label)
+    ).toBeVisible();
 
-    await editDialog.getByLabel("Nome").fill(editedName);
-    await editDialog.getByRole("button", { name: "Modifica PNG" }).click();
+    await editDialog
+      .getByLabel(messages.common.fields.name.label)
+      .fill(editedName);
+    await editDialog
+      .getByRole("button", { name: messages.npc.form.editButton })
+      .click();
 
     await expect(editDialog).toHaveCount(0);
 
@@ -54,11 +68,11 @@ test.describe("NPC CRUD", () => {
     await expect(rowFor(page, editedName)).toBeVisible();
 
     await rowFor(page, editedName)
-      .getByRole("button", { name: "Elimina" })
+      .getByRole("button", { name: messages.common.form.delete })
       .click();
     await page
       .getByRole("dialog")
-      .getByRole("button", { name: "Elimina" })
+      .getByRole("button", { name: messages.common.form.delete })
       .click();
 
     await expect(rowFor(page, editedName)).toHaveCount(0);

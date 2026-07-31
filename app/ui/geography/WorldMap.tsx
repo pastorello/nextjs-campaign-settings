@@ -3,6 +3,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { LeafletMap } from "@/app/modules/maps/components/map/LeafletMap";
 import { MapControls } from "@/app/modules/maps/components/map/MapControls";
 import { MapDetailsPanel } from "@/app/modules/maps/components/map/MapDetailsPanel";
@@ -45,6 +46,7 @@ function WorldMap({
   initialView: L.LatLngExpression;
   initialZoom: number;
 }) {
+  const t = useTranslations("geography.errors");
   const [selectedCountry, setSelectedCountry] =
     useState<GeoJSON.Feature | null>(null);
   const [isMeasurementOpen, setIsMeasurementOpen] = useState(false);
@@ -213,15 +215,13 @@ function WorldMap({
         const text = await file.text();
         const geojson = JSON.parse(text) as POIGeoJSON;
         const count = importGeoJSON(geojson);
-        toast.success(
-          `Successfully imported ${count} place${count !== 1 ? "s" : ""}!`
-        );
+        toast.success(t("importSuccess", { count }));
       } catch (error) {
         console.error("Failed to import POIs:", error);
-        toast.error("Failed to import file. Please check the format.");
+        toast.error(t("importFailed"));
       }
     },
-    [importGeoJSON]
+    [importGeoJSON, t]
   );
 
   // Category click handler for MapTopBar
@@ -255,7 +255,7 @@ function WorldMap({
 
   const initializeMap = async () => {
     if (!isValidString(mapUrl)) {
-      notifyError("La mappa non è configurata correttamente.");
+      notifyError(t("mapNotConfigured"));
       return;
     }
 

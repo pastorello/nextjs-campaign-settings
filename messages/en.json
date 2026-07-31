@@ -314,6 +314,11 @@
     "page": {
       "title": "Geography"
     },
+    "errors": {
+      "mapNotConfigured": "The map is not configured correctly.",
+      "importSuccess": "{count, plural, one {Successfully imported # place!} other {Successfully imported # places!}}",
+      "importFailed": "Failed to import file. Please check the format."
+    },
     "maps": {
       "planesOfExistence": "Planes of Existence",
       "materialWorld": "Material World",

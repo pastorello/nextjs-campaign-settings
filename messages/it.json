@@ -314,6 +314,11 @@
     "page": {
       "title": "Geografia"
     },
+    "errors": {
+      "mapNotConfigured": "La mappa non è configurata correttamente.",
+      "importSuccess": "{count, plural, one {Importato con successo # luogo!} other {Importati con successo # luoghi!}}",
+      "importFailed": "Importazione del file non riuscita. Controlla il formato."
+    },
     "maps": {
       "planesOfExistence": "Piani di Esistenza",
       "materialWorld": "Mondo Materiale",

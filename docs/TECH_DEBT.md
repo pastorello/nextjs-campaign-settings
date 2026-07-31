@@ -54,6 +54,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-31 | ✅ `sortSelectOptions` mutated shared `PageMeta.options` in place      | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-32 | ✅ E2E job spent 9m a run on `playwright install-deps`                 | ~~🟠 High~~ done     | S      | 1     |
 | TD-33 | ✅ Italian identifiers TD-19 missed — 16 across 14 files + a directory | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-34 | ✅ CI actions pinned to a deprecated Node 20 runtime; Node 22 → 24     | ~~🟢 Low~~ done      | S      | 2     |
 
 ---
 
@@ -306,7 +307,7 @@ The project was scaffolded from the Next.js Learn dashboard tutorial and the sca
 **Outcome:** builds are reproducible and there is exactly one package manager.
 
 - `next`, `react` and `react-dom` are pinned to the exact versions that were already resolved — **16.2.11 / 19.2.8 / 19.2.8**. A fresh clone can no longer pull a new major and fail in front of a reviewer.
-- `package-lock.json` is deleted; pnpm is the only manager. `packageManager: "pnpm@10.23.0"` and `engines: { node: ">=22" }` are declared.
+- `package-lock.json` is deleted; pnpm is the only manager. `packageManager: "pnpm@10.23.0"` and `engines: { node: ">=22" }` are declared. (Raised to `>=24` by [[TD-34]] on 2026-07-31 — this line records what TD-07 set, not the current value.)
 - **CI's pnpm version is no longer hardcoded.** It was pinned to `9` while local development ran `10.23.0` — the two could drift silently. `pnpm/action-setup` now reads the `packageManager` field, so CI and a developer machine install with provably the same tool. (No breakage had occurred: pnpm 10 writes `lockfileVersion: '9.0'`, which pnpm 9 still reads.)
 - The README is pnpm-only and gains a Requirements section. Its `AUTH_SECRET=your-sercret-key` typo is fixed while in those lines; the full portfolio rewrite stays TD-17.
 
@@ -1396,6 +1397,37 @@ Plus the directory `app/lib/definitions/enums/tarocchi/` → `tarot/`.
 3. Keep it one pure-rename commit with no behaviour change, and add the SHA to `.git-blame-ignore-revs` — the same discipline TD-19 used.
 
 **Done when:** `grep -riE "circolo|luogo|zona|astro|tarocc|allineament|fazion|residenz|piano" app --include="*.ts" --include="*.tsx"` returns only enum _values_, `@map` arguments and UI copy; `pnpm typecheck && pnpm lint && pnpm test` green.
+
+---
+
+### TD-34 ✅ Every CI action pinned to a deprecated Node 20 runtime — **DONE (2026-07-31)**
+
+**Where:** `.github/workflows/ci.yml`, `package.json` `engines`
+**Found:** 2026-07-31, from a GitHub Actions warning on the `Upload Playwright report` step
+
+> Node 20 is being deprecated. This workflow is running with Node 24 by default.
+
+**The warning is not about `NODE_VERSION`, and that is the part worth recording.** The workflow has two unrelated Node versions and only one of them was visible in the file:
+
+| Runs                                   | Declared in                                        | Was |
+| -------------------------------------- | -------------------------------------------------- | --- |
+| `pnpm install`, `build`, `test`, `e2e` | `env.NODE_VERSION` in this workflow                | 22  |
+| the JavaScript of each action itself   | `runs.using` inside that action's own `action.yml` | 20  |
+
+The second is not configurable from here — it ships with the tag you pin. All five actions sat at `@v4`, and every `v4` declares `using: node20`. GitHub was already overriding it to node24, so nothing was broken; the warning announced that the override would not last.
+
+The pins had drifted badly in the meantime — `@v4` against `v7.0.1` current for `checkout` and `upload-artifact`, `v7.0.0` for `setup-node`, `v6.1.0` for `cache`, `v6.0.9` for `pnpm/action-setup`.
+
+**Outcome:** `checkout@v7`, `setup-node@v7`, `upload-artifact@v7`, `cache@v6`, `pnpm/action-setup@v6`, all on `node24`; `NODE_VERSION` 22 → 24; `engines.node` `>=22` → `>=24`.
+
+**Two things checked rather than assumed:**
+
+- `setup-node@v5` made package-manager caching automatic when `package.json` has a `packageManager` field — which this one does. The explicit `cache: pnpm` was **kept anyway**: it is still a supported input in v7, and relying on implicit detection for something that silently degrades to "no cache" is not worth the two saved lines.
+- `cache@v5+` and `upload-artifact@v5+` require Actions Runner ≥ `2.327.1`. Irrelevant here — `ubuntu-latest` is hosted and well past it. It would matter on a self-hosted runner.
+
+**Consequence for a developer on Node 22:** `pnpm install` prints `WARN Unsupported engine: wanted {"node":">=24"}` and **proceeds** — no `.npmrc`, so `engine-strict` is unset and defaults to off. Verified, not assumed. Upgrading local Node to 24 clears it.
+
+**Left undone, deliberately:** no `.nvmrc`. It would pin local Node the way `packageManager` pins pnpm, and is a genuine gap now that `engines` and the runner agree on 24 — but it is a separate decision about developer setup, not part of unbreaking CI.
 
 ---
 

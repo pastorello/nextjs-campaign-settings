@@ -10,7 +10,7 @@ import EntityLibrary from "@/app/ui/components/EntityLibrary";
 import PageType from "@/app/lib/definitions/types/PageType";
 
 export const metadata: Metadata = {
-  title: "Oggetti magici",
+  title: "Divinità",
 };
 
 export default async function Page(props: {

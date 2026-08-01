@@ -1,8 +1,8 @@
 # Project State — Campaign Settings
 
-**Last updated:** 2026-07-30
+**Last updated:** 2026-08-01
 **Status:** Working prototype, not production-ready
-**Goal of the current phase:** make the project portfolio-grade — no bugs, no dead code, tested, documented, CI-verified. Feature expansion comes after.
+**Goal of the current phase:** make the project sustainable to keep working on — no bugs, no dead code, tested, documented, CI-verified, and organized so a future session (human or agent) can pick it up cheaply. Feature expansion comes after.
 
 ---
 
@@ -48,7 +48,7 @@ A self-hosted web app for a Dungeon Master to manage a D&D 5e campaign setting: 
 | UI primitives | Radix UI, Headless UI, Heroicons, Lucide, Framer Motion, Vaul, Sonner | —                                                    |
 | Maps          | Leaflet + custom hook layer                                           | 1.9.4                                                |
 | Validation    | Zod                                                                   | 4.2.0                                                |
-| Tests         | Vitest + Testing Library · Playwright                                 | 173 unit tests ~3.5s · 40 E2E · 22% lines, ratcheted |
+| Tests         | Vitest + Testing Library · Playwright                                 | 267 unit tests ~5.6s · 40 E2E · 27.6% lines, ratcheted |
 
 pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageManager` and `engines` are declared, and CI derives its pnpm version from that field rather than pinning its own.
 
@@ -111,7 +111,7 @@ Observations:
 - No relations between models. Everything that is conceptually a foreign key (`faction`, `location`, `alignment`, `class`) is stored as a bare `Int` that indexes into a hardcoded TypeScript array. Renumbering an enum silently corrupts existing rows.
 - ✅ `@@index([name])` on `deities`, `magicitems`, `npc`, `spells` (TD-11). `users` is indexed by its unique `email`.
 - No ownership: records are not tied to a user or a campaign. Multi-campaign support (which you have in mind for later) requires a schema change.
-- Four migrations: `resetio`, a 2026-07-26 corrective one patching its drift forward (TD-23), the timestamps-and-indexes one (TD-11), and `20260730020000_rename_png_table_to_npc` (TD-19 — `@map` retargets a field, but renaming a _model_ renames the table, so this one was hand-written to avoid dropping 119 rows). `prisma migrate diff` against the schema is clean. The original drift was wider than a name-level comparison suggested — eight `deities` columns were `VARCHAR(255)` where the schema says `Int`.
+- Five migrations: `resetio`, a 2026-07-26 corrective one patching its drift forward (TD-23), the timestamps-and-indexes one (TD-11), `20260730020000_rename_png_table_to_npc` (TD-19 — `@map` retargets a field, but renaming a _model_ renames the table, so this one was hand-written to avoid dropping 119 rows), and `20260731120000_add_poi_table` (TD-14 — map POIs, Postgres-backed instead of `localStorage`). `prisma migrate diff` against the schema is clean. The original drift was wider than a name-level comparison suggested — eight `deities` columns were `VARCHAR(255)` where the schema says `Int`.
 
 ---
 
@@ -131,21 +131,21 @@ The matcher excludes `/api`, so the proxy cannot protect the route handlers or S
 | ------------------- | -------------------------------------------------------------------------------- |
 | `pnpm typecheck`    | ✅ **0 errors** (19 before TD-06; `next typegen && tsc --noEmit`)                |
 | `pnpm build`        | ✅ **Passes** on Turbopack — same bundler as `dev` (TD-18)                       |
-| `pnpm test`         | ✅ **173 passed** across 19 files in ~3.5s (Vitest)                              |
+| `pnpm test`         | ✅ **267 passed** across 35 files in ~5.6s (Vitest)                              |
 | `pnpm lint`         | ✅ **0 errors, 0 warnings** (was 293) — TD-22 closed; every rule back to `error` |
 | `pnpm format:check` | ✅ Clean — Prettier applied repo-wide (TD-05/TD-16)                              |
 | E2E tests           | ✅ **40 Playwright tests** in 10 files, nothing skipped; TD-24 then TD-15        |
 | CI                  | ✅ All five gates blocking: `static` / `test` / `build` / `e2e` (TD-23 closed)   |
-| Test coverage       | 22.1% lines / 15.4% branches / 21.8% statements — thresholds at 22/18/15/21      |
-| Git history         | Active — PRs #1–#47 merged on `main`                                             |
+| Test coverage       | 27.6% lines / 19.7% branches / 27.4% statements — thresholds at 27/25/19/27; closing to 70% is [TD-37–TD-43](./TECH_DEBT.md) |
+| Git history         | Active — PRs #1–#61 merged on `main`                                             |
 | `.env`              | ✅ Correctly gitignored                                                          |
 | `.DS_Store`         | ✅ Present on disk but untracked — `.gitignore` is working                       |
 
 TD-04 closed the remaining nine on 2026-07-22. Note that `typecheck` must run `next typegen` first: the route-handler signatures live in generated types that a fresh checkout does not have, so a bare `tsc --noEmit` passes vacuously.
 
-**A local trap, found 2026-07-25.** An agent worktree left behind in `.claude/worktrees/<name>/` is a _complete second checkout of this repo_. It is git-ignored, so `git status` stays clean and nothing hints at it — but ESLint and Vitest walk the filesystem, not the index. The effect is that `pnpm lint` reported 2213 errors from a copy nobody was editing and exited non-zero, while `pnpm test` ran every suite twice (117 tests read as 228) and coverage read 30% instead of 18.7%. Both configs now ignore `.claude/**`; the numbers in the table above are the deduplicated ones. CI never saw any of this — it checks out clean — which is exactly what made the local figures look like progress. (The figures in this paragraph are the 2026-07-25 measurements, when the suite was 117 tests; the ignores have held since.)
+**A local trap, found 2026-07-25.** An agent worktree left behind in `.claude/worktrees/<name>/` is a _complete second checkout of this repo_ — git-ignored, so `git status` stays clean and nothing hints at it, but ESLint and Vitest walk the filesystem, not the index, so a leftover one gets collected too: double-counted tests, inflated coverage, thousands of duplicate lint findings, none of it visible in CI since CI checks out clean. Both configs now ignore `.claude/**`, which fixes the count but not the underlying trap — a fresh worktree still needs removing by hand.
 
-**There is one on disk right now:** `.claude/worktrees/vigilant-engelbart-e0d007/`, a detached-HEAD checkout at `f9620c4` carrying its own older copy of every file in `docs/`. Harmless to the runners, but `grep` across the repo returns each hit twice, and the stale `TECH_DEBT.md` inside it is 849 lines against this one's 1400+. Remove it with `git worktree remove` when the session that made it is finished.
+**There is one on disk right now:** `.claude/worktrees/vigilant-engelbart-e0d007/`, carrying its own older copy of every file in `docs/` — harmless to the runners with the ignore in place, but doubles every `grep` hit across the repo. Remove it with `git worktree remove` when the session that made it is finished.
 
 ---
 

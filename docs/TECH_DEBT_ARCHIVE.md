@@ -2,7 +2,7 @@
 
 **What this is:** the full write-up for every closed item, TD-01 through TD-36 — what was found, why, the fix, and what it replaced. Moved out of [`TECH_DEBT.md`](./TECH_DEBT.md) on 2026-08-01 so that file stays a working register (summary table + what's actually open) rather than a 1,700-line document nobody opening it for "what should I work on" needs to scroll past.
 
-**Nothing here is stale by design** — this is exactly [`docs/README.md`](./README.md)'s stated policy: *"Keeping the finished item's write-up is deliberate and good — the register is the only record of what was tried and rejected."* That policy didn't change; only where the record lives did. If you're deciding what to work on next, you want [`TECH_DEBT.md`](./TECH_DEBT.md), not this file. If you want to know why a past decision was made a certain way, or whether something was already tried and rejected, this is where that lives.
+**Nothing here is stale by design** — this is exactly [`docs/README.md`](./README.md)'s stated policy: _"Keeping the finished item's write-up is deliberate and good — the register is the only record of what was tried and rejected."_ That policy didn't change; only where the record lives did. If you're deciding what to work on next, you want [`TECH_DEBT.md`](./TECH_DEBT.md), not this file. If you want to know why a past decision was made a certain way, or whether something was already tried and rejected, this is where that lives.
 
 Sections below are grouped exactly as they were in the original register — Phase 1, Phase 2, Phase 3 — with each item's own "(original)" problem framing kept alongside its resolution, unedited.
 
@@ -1512,4 +1512,3 @@ Any `.jpg` (the four map tiles) went through the gate instead of straight to the
 **Why this sat unnoticed:** nothing exercised `proxy.ts` before — no test imported it, and the E2E map spec (`e2e/map.spec.ts`) presumably asserts on POIs and controls rather than the tile images actually painting, so a grey background didn't fail CI. `pnpm typecheck && pnpm lint && pnpm test` all green throughout; the bug was only visible by looking at the rendered map.
 
 ---
-

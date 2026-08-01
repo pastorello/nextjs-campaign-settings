@@ -36,18 +36,18 @@ A self-hosted web app for a Dungeon Master to manage a D&D 5e campaign setting: 
 
 ## 2. Stack
 
-| Layer         | Technology                                                            | Version                                              |
-| ------------- | --------------------------------------------------------------------- | ---------------------------------------------------- |
-| Framework     | Next.js (App Router, RSC, Server Actions)                             | 16.2.11 — pinned exactly (TD-07)                     |
-| Runtime       | React                                                                 | 19.2.8 — pinned exactly (TD-07)                      |
-| Language      | TypeScript (`strict: true`)                                           | 5.9.3                                                |
-| Database      | PostgreSQL via Docker Compose                                         | 5432                                                 |
-| ORM           | Prisma with `@prisma/adapter-pg` driver adapter                       | 7.1.0                                                |
-| Auth          | NextAuth v5 (beta) — Credentials provider + bcrypt                    | 5.0.0-beta.30                                        |
-| Styling       | Tailwind CSS v4 + `@tailwindcss/forms`                                | 4.1.18                                               |
-| UI primitives | Radix UI, Headless UI, Heroicons, Lucide, Framer Motion, Vaul, Sonner | —                                                    |
-| Maps          | Leaflet + custom hook layer                                           | 1.9.4                                                |
-| Validation    | Zod                                                                   | 4.2.0                                                |
+| Layer         | Technology                                                            | Version                                                |
+| ------------- | --------------------------------------------------------------------- | ------------------------------------------------------ |
+| Framework     | Next.js (App Router, RSC, Server Actions)                             | 16.2.11 — pinned exactly (TD-07)                       |
+| Runtime       | React                                                                 | 19.2.8 — pinned exactly (TD-07)                        |
+| Language      | TypeScript (`strict: true`)                                           | 5.9.3                                                  |
+| Database      | PostgreSQL via Docker Compose                                         | 5432                                                   |
+| ORM           | Prisma with `@prisma/adapter-pg` driver adapter                       | 7.1.0                                                  |
+| Auth          | NextAuth v5 (beta) — Credentials provider + bcrypt                    | 5.0.0-beta.30                                          |
+| Styling       | Tailwind CSS v4 + `@tailwindcss/forms`                                | 4.1.18                                                 |
+| UI primitives | Radix UI, Headless UI, Heroicons, Lucide, Framer Motion, Vaul, Sonner | —                                                      |
+| Maps          | Leaflet + custom hook layer                                           | 1.9.4                                                  |
+| Validation    | Zod                                                                   | 4.2.0                                                  |
 | Tests         | Vitest + Testing Library · Playwright                                 | 267 unit tests ~5.6s · 40 E2E · 27.6% lines, ratcheted |
 
 pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageManager` and `engines` are declared, and CI derives its pnpm version from that field rather than pinning its own.
@@ -127,19 +127,19 @@ The matcher excludes `/api`, so the proxy cannot protect the route handlers or S
 
 ## 6. Current health
 
-| Check               | Result                                                                           |
-| ------------------- | -------------------------------------------------------------------------------- |
-| `pnpm typecheck`    | ✅ **0 errors** (19 before TD-06; `next typegen && tsc --noEmit`)                |
-| `pnpm build`        | ✅ **Passes** on Turbopack — same bundler as `dev` (TD-18)                       |
-| `pnpm test`         | ✅ **267 passed** across 35 files in ~5.6s (Vitest)                              |
-| `pnpm lint`         | ✅ **0 errors, 0 warnings** (was 293) — TD-22 closed; every rule back to `error` |
-| `pnpm format:check` | ✅ Clean — Prettier applied repo-wide (TD-05/TD-16)                              |
-| E2E tests           | ✅ **40 Playwright tests** in 10 files, nothing skipped; TD-24 then TD-15        |
-| CI                  | ✅ All five gates blocking: `static` / `test` / `build` / `e2e` (TD-23 closed)   |
+| Check               | Result                                                                                                                       |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm typecheck`    | ✅ **0 errors** (19 before TD-06; `next typegen && tsc --noEmit`)                                                            |
+| `pnpm build`        | ✅ **Passes** on Turbopack — same bundler as `dev` (TD-18)                                                                   |
+| `pnpm test`         | ✅ **267 passed** across 35 files in ~5.6s (Vitest)                                                                          |
+| `pnpm lint`         | ✅ **0 errors, 0 warnings** (was 293) — TD-22 closed; every rule back to `error`                                             |
+| `pnpm format:check` | ✅ Clean — Prettier applied repo-wide (TD-05/TD-16)                                                                          |
+| E2E tests           | ✅ **40 Playwright tests** in 10 files, nothing skipped; TD-24 then TD-15                                                    |
+| CI                  | ✅ All five gates blocking: `static` / `test` / `build` / `e2e` (TD-23 closed)                                               |
 | Test coverage       | 27.6% lines / 19.7% branches / 27.4% statements — thresholds at 27/25/19/27; closing to 70% is [TD-37–TD-43](./TECH_DEBT.md) |
-| Git history         | Active — PRs #1–#61 merged on `main`                                             |
-| `.env`              | ✅ Correctly gitignored                                                          |
-| `.DS_Store`         | ✅ Present on disk but untracked — `.gitignore` is working                       |
+| Git history         | Active — PRs #1–#61 merged on `main`                                                                                         |
+| `.env`              | ✅ Correctly gitignored                                                                                                      |
+| `.DS_Store`         | ✅ Present on disk but untracked — `.gitignore` is working                                                                   |
 
 TD-04 closed the remaining nine on 2026-07-22. Note that `typecheck` must run `next typegen` first: the route-handler signatures live in generated types that a fresh checkout does not have, so a bare `tsc --noEmit` passes vacuously.
 

@@ -8,16 +8,16 @@ Its core idea is a **metadata layer**: each domain field is declared once (type,
 
 ## Tech stack
 
-| Layer      | Choice                   | Why                                                                                                                                              |
-| ---------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Framework  | Next.js 16 (App Router)  | Server Components keep database access on the server with no API layer to maintain ([ADR-0004](./docs/adr/0004-server-actions-over-rest-api.md)) |
-| Language   | TypeScript 5.9, `strict` | The metadata layer is the kind of abstraction that only pays off if the compiler checks it                                                       |
-| Database   | PostgreSQL 16 + Prisma 7 | Array columns (`circle`, `classes`) map cleanly; the driver adapter keeps the client edge-compatible                                             |
-| Auth       | NextAuth v5 + bcrypt     | Credentials only — this is a single-DM tool, not a SaaS                                                                                          |
-| Validation | Zod 4                    | Declared per field, so validation composes from metadata instead of being written twice                                                          |
-| Styling    | Tailwind CSS v4          | Utility classes keep styling next to markup in a project with no design system                                                                   |
-| Maps       | Leaflet                  | Self-hosted tiles, no API key, no vendor account                                                                                                 |
-| Tests      | Vitest + Testing Library, Playwright | Native ESM/TS unit suite + E2E — see [`docs/TESTING.md`](./docs/TESTING.md)                                                          |
+| Layer      | Choice                               | Why                                                                                                                                              |
+| ---------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Framework  | Next.js 16 (App Router)              | Server Components keep database access on the server with no API layer to maintain ([ADR-0004](./docs/adr/0004-server-actions-over-rest-api.md)) |
+| Language   | TypeScript 5.9, `strict`             | The metadata layer is the kind of abstraction that only pays off if the compiler checks it                                                       |
+| Database   | PostgreSQL 16 + Prisma 7             | Array columns (`circle`, `classes`) map cleanly; the driver adapter keeps the client edge-compatible                                             |
+| Auth       | NextAuth v5 + bcrypt                 | Credentials only — this is a single-DM tool, not a SaaS                                                                                          |
+| Validation | Zod 4                                | Declared per field, so validation composes from metadata instead of being written twice                                                          |
+| Styling    | Tailwind CSS v4                      | Utility classes keep styling next to markup in a project with no design system                                                                   |
+| Maps       | Leaflet                              | Self-hosted tiles, no API key, no vendor account                                                                                                 |
+| Tests      | Vitest + Testing Library, Playwright | Native ESM/TS unit suite + E2E — see [`docs/TESTING.md`](./docs/TESTING.md)                                                                      |
 
 Framework versions are pinned exactly and pnpm is the only package manager — a clone in six months resolves the same tree.
 
@@ -131,14 +131,14 @@ app/
 
 ## Documentation
 
-| Document                                      | What it covers                             |
-| ---------------------------------------------- | ------------------------------------------ |
-| [`CLAUDE.md`](./CLAUDE.md)                     | Conventions and rules for AI-assisted work |
-| [`docs/PROJECT_STATE.md`](./docs/PROJECT_STATE.md) | Inventory and current health           |
+| Document                                           | What it covers                             |
+| -------------------------------------------------- | ------------------------------------------ |
+| [`CLAUDE.md`](./CLAUDE.md)                         | Conventions and rules for AI-assisted work |
+| [`docs/PROJECT_STATE.md`](./docs/PROJECT_STATE.md) | Inventory and current health               |
 | [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)   | How the pieces fit, and where they diverge |
-| [`docs/TECH_DEBT.md`](./docs/TECH_DEBT.md)         | Debt register — summary + open items   |
-| [`docs/TESTING.md`](./docs/TESTING.md)             | Test strategy and coverage targets     |
-| [`docs/ROADMAP.md`](./docs/ROADMAP.md)             | Phased plan and feature backlog        |
-| [`docs/adr/`](./docs/adr/)                         | Architecture decision records          |
+| [`docs/TECH_DEBT.md`](./docs/TECH_DEBT.md)         | Debt register — summary + open items       |
+| [`docs/TESTING.md`](./docs/TESTING.md)             | Test strategy and coverage targets         |
+| [`docs/ROADMAP.md`](./docs/ROADMAP.md)             | Phased plan and feature backlog            |
+| [`docs/adr/`](./docs/adr/)                         | Architecture decision records              |
 
 `docs/README.md` explains how these fit together and links the rest (specs, domain notes).

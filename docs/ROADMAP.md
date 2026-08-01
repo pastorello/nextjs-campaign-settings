@@ -39,31 +39,31 @@ Order matters. Deleting dead code first removes roughly half the type errors, so
 **Estimated effort:** 16–24 hours.
 **Exit criteria:** ✅ zero `any` · coverage above 70% (**at 27.6% lines today** — still the one criterion open; tracked as TD-37–TD-43) · ✅ the duplicated component quartets are gone · ✅ a keyboard-only user can complete every flow.
 
-| #   | Task                                                                       | Debt   | Effort |
-| --- | -------------------------------------------------------------------------- | ------ | ------ |
-| 1   | ✅ `PageMeta` a discriminated union; `any` eliminated, rule now an error   | TD-08  | M      |
-| 2   | ◑ Strict flags, cheap batch + `target: ES2022`; `exactOptional…` on too    | TD-20a | S      |
-| 3   | ✅ Rename identifiers to English; `png` → `npc`; columns kept via `@map`   | TD-19  | L      |
-| 3b  | ✅ Finish it — the 16 Italian identifiers TD-19 missed                     | TD-33  | S      |
-| 4   | ✅ Bilingual UI: extract strings, `messages/{it,en}.json`, locale switcher | TD-21  | L      |
-| 5   | ✅ Schema: `createdAt`/`updatedAt`, `@@index` on the name column           | TD-11  | M      |
-| 6   | ✅ Single shared `where` clause for rows and count                         | TD-12  | S      |
-| 7   | ✅ Validate the remaining trust boundaries: env, `localStorage`, GeoJSON   | TD-02b | M      |
-| 8   | ✅ Typed error hierarchy; correct status codes; `cause` preserved          | TD-13  | M      |
-| 9   | ✅ Real notifications — Sonner promoted to the root layout                 | TD-10  | M      |
-| 10  | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm         | TD-09  | L      |
+| #   | Task                                                                             | Debt   | Effort |
+| --- | -------------------------------------------------------------------------------- | ------ | ------ |
+| 1   | ✅ `PageMeta` a discriminated union; `any` eliminated, rule now an error         | TD-08  | M      |
+| 2   | ◑ Strict flags, cheap batch + `target: ES2022`; `exactOptional…` on too          | TD-20a | S      |
+| 3   | ✅ Rename identifiers to English; `png` → `npc`; columns kept via `@map`         | TD-19  | L      |
+| 3b  | ✅ Finish it — the 16 Italian identifiers TD-19 missed                           | TD-33  | S      |
+| 4   | ✅ Bilingual UI: extract strings, `messages/{it,en}.json`, locale switcher       | TD-21  | L      |
+| 5   | ✅ Schema: `createdAt`/`updatedAt`, `@@index` on the name column                 | TD-11  | M      |
+| 6   | ✅ Single shared `where` clause for rows and count                               | TD-12  | S      |
+| 7   | ✅ Validate the remaining trust boundaries: env, `localStorage`, GeoJSON         | TD-02b | M      |
+| 8   | ✅ Typed error hierarchy; correct status codes; `cause` preserved                | TD-13  | M      |
+| 9   | ✅ Real notifications — Sonner promoted to the root layout                       | TD-10  | M      |
+| 10  | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm               | TD-09  | L      |
 | 11  | ✅ `noUncheckedIndexedAccess` — resolved via documented assertions, not coverage | TD-20b | M      |
-| 12  | ✅ Accessibility pass: axe at zero violations + a keyboard audit           | TD-15  | M      |
-| 13  | ✅ Loading and empty states audited (TD-29 skeletons, TD-30 streaming)     | —      | S      |
-| 14  | ✅ Screenshots for the README (spell list + map)                           | —      | S      |
-| 15  | ✅ Lint warnings 293 → 0; every rule back to `error`                       | TD-22  | M      |
-| 16  | Auth entry point + DB connection bootstrap untested (0%)                   | TD-37  | S      |
-| 17  | Data-layer `fetch*`/`get*Count` untested for 3 of 4 domains                | TD-38  | S      |
-| 18  | `app/lib/utils/**` pure functions at 51%, target 95%                       | TD-39  | S      |
-| 19  | Domain metadata declarations untested — `npcMeta`/`deityMeta` under 25%    | TD-40  | S      |
-| 20  | `useFilterController` untested; `app/lib/hooks/**` at 52%, target 70%      | TD-41  | S      |
-| 21  | `app/ui/**` behaviour tests — `EntityForm`/`List`/`Library` first          | TD-42  | L      |
-| 22  | `app/modules/maps/**` geometry + hooks (not rendering) → target 50%        | TD-43  | M      |
+| 12  | ✅ Accessibility pass: axe at zero violations + a keyboard audit                 | TD-15  | M      |
+| 13  | ✅ Loading and empty states audited (TD-29 skeletons, TD-30 streaming)           | —      | S      |
+| 14  | ✅ Screenshots for the README (spell list + map)                                 | —      | S      |
+| 15  | ✅ Lint warnings 293 → 0; every rule back to `error`                             | TD-22  | M      |
+| 16  | Auth entry point + DB connection bootstrap untested (0%)                         | TD-37  | S      |
+| 17  | Data-layer `fetch*`/`get*Count` untested for 3 of 4 domains                      | TD-38  | S      |
+| 18  | `app/lib/utils/**` pure functions at 51%, target 95%                             | TD-39  | S      |
+| 19  | Domain metadata declarations untested — `npcMeta`/`deityMeta` under 25%          | TD-40  | S      |
+| 20  | `useFilterController` untested; `app/lib/hooks/**` at 52%, target 70%            | TD-41  | S      |
+| 21  | `app/ui/**` behaviour tests — `EntityForm`/`List`/`Library` first                | TD-42  | L      |
+| 22  | `app/modules/maps/**` geometry + hooks (not rendering) → target 50%              | TD-43  | M      |
 
 **Also landed here, found while doing the work** rather than planned: TD-25 (startup DB-reachability check), TD-26 (`sottoclassi`/`circolo` duplication), TD-27 (a hidden `classi=0` filter on the spell list), TD-28 (seed ids), TD-31 (shared mutable `PageMeta.options`), TD-32 (nine minutes a run of CI apt), TD-36 (`.jpg` map tiles blocked by the auth/i18n matcher). That is seven defects surfaced by hardening work — the argument for the phase.
 

@@ -13,6 +13,7 @@ import {
   getCategoryColor,
   isPOICategory,
 } from "@/app/modules/maps/constants/poi-categories";
+import { getLinkableEntityTypeById } from "@/app/modules/maps/constants/linkable-entities";
 import { notifyError } from "@/app/lib/notifications/notify";
 import fetchPois from "@/app/lib/data/maps/fetchPois";
 import createPoi from "@/app/lib/data/maps/createPoi";
@@ -221,6 +222,10 @@ export function usePOIManager() {
         }).addTo(map);
 
         // Add popup
+        const linkedEntityType =
+          poi.linkedType != null
+            ? getLinkableEntityTypeById(poi.linkedType)
+            : undefined;
         const popupContent = `
       <div style="min-width: 150px;">
         <div style="font-weight: 600; margin-bottom: 4px;">${poi.title}</div>
@@ -232,6 +237,11 @@ export function usePOIManager() {
         <div style="font-size: 11px; color: #999;">${poi.lat.toFixed(
           6
         )}, ${poi.lng.toFixed(6)}</div>
+        ${
+          linkedEntityType && poi.linkedId != null
+            ? `<a href="${linkedEntityType.path}?id=${poi.linkedId}" style="font-size: 12px; color: #2563eb; text-decoration: underline; display: inline-block; margin-top: 4px;">View ${linkedEntityType.label}</a>`
+            : ""
+        }
       </div>
     `;
         marker.bindPopup(popupContent);

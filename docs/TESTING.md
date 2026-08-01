@@ -8,7 +8,7 @@
 
 ## 1. Where we are
 
-**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 173 tests across 19 files in ~3.5s. Coverage is **27.6% lines / 19.7% branches** (2026-08-01 figure), enforced in CI as a ratchet — see §2. Closing the gap to the 70% exit criterion is tracked as [TD-37–TD-43](./TECH_DEBT.md), one risk tier at a time.
+**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 267 tests across 35 files in ~5.6s. Coverage is **27.6% lines / 19.7% branches** (2026-08-01 figure), enforced in CI as a ratchet — see §2. Closing the gap to the 70% exit criterion is tracked as [TD-37–TD-43](./TECH_DEBT.md), one risk tier at a time.
 
 **Playwright landed 2026-07-25 (TD-24).** `pnpm test:e2e` runs **40 tests across 10 files** against a real database and a dev server it starts itself — about 1.2 minutes in CI, quicker locally once the dev server is warm. Nothing is skipped. (`pnpm test:e2e --list` enumerates them without running anything, and without needing a database — the honest way to check this number.)
 

@@ -44,23 +44,23 @@ Order matters. Deleting dead code first removes roughly half the type errors, so
 | 1   | ✅ `PageMeta` a discriminated union; `any` eliminated, rule now an error   | TD-08  | M      |
 | 2   | ◑ Strict flags, cheap batch + `target: ES2022`; `exactOptional…` on too    | TD-20a | S      |
 | 3   | ✅ Rename identifiers to English; `png` → `npc`; columns kept via `@map`   | TD-19  | L      |
-| 3b  | Finish it — the 16 Italian identifiers TD-19 missed                        | TD-33  | S      |
+| 3b  | ✅ Finish it — the 16 Italian identifiers TD-19 missed                     | TD-33  | S      |
 | 4   | ✅ Bilingual UI: extract strings, `messages/{it,en}.json`, locale switcher | TD-21  | L      |
 | 5   | ✅ Schema: `createdAt`/`updatedAt`, `@@index` on the name column           | TD-11  | M      |
 | 6   | ✅ Single shared `where` clause for rows and count                         | TD-12  | S      |
-| 7   | Validate the remaining trust boundaries: env, `localStorage`, GeoJSON      | TD-02b | M      |
+| 7   | ✅ Validate the remaining trust boundaries: env, `localStorage`, GeoJSON   | TD-02b | M      |
 | 8   | ✅ Typed error hierarchy; correct status codes; `cause` preserved          | TD-13  | M      |
 | 9   | ✅ Real notifications — Sonner promoted to the root layout                 | TD-10  | M      |
 | 10  | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm         | TD-09  | L      |
 | 11  | `noUncheckedIndexedAccess` — blocked on maps-module coverage               | TD-20b | M      |
 | 12  | ✅ Accessibility pass: axe at zero violations + a keyboard audit           | TD-15  | M      |
 | 13  | ✅ Loading and empty states audited (TD-29 skeletons, TD-30 streaming)     | —      | S      |
-| 14  | Screenshots / demo GIF for the README                                      | —      | S      |
+| 14  | ✅ Screenshots for the README (spell list + map)                           | —      | S      |
 | 15  | ✅ Lint warnings 293 → 0; every rule back to `error`                       | TD-22  | M      |
 
 **Also landed here, found while doing the work** rather than planned: TD-25 (startup DB-reachability check), TD-26 (`sottoclassi`/`circolo` duplication), TD-27 (a hidden `classi=0` filter on the spell list), TD-28 (seed ids), TD-31 (shared mutable `PageMeta.options`), TD-32 (nine minutes a run of CI apt). That is six defects surfaced by hardening work — the argument for the phase.
 
-**What is actually left:** TD-33 (S), TD-02b (M), TD-20b (blocked), and item 14, which waits on the UI work deliberately scheduled after the foundations.
+**What is actually left:** TD-20b (blocked on maps-module coverage). Item 14 is done — see TD-36 for a bug found while taking the map screenshot.
 
 > **Items 3 and 4 were meant to run together, and did not.** This line used to read
 > _"Items 3 and 4 are deliberately adjacent: both touch all 54 domain files, and

@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-08-01
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** none — TD-14 (Phase 3) closed 2026-08-01 (T1–T7 done, PR #57 + T6 + T7). Everything else is done — the summary table below is authoritative. **Phase 2 is complete** as of TD-02b.
+**Open items:** none — TD-14 (Phase 3) closed 2026-08-01 (T1–T7 done, PR #57 + T6 + T7). Everything else is done — the summary table below is authoritative. **Phase 2 is complete** as of TD-02b. TD-36 (map tiles blocked by the auth/i18n matcher) was found and fixed the same day, taking the README screenshots.
 
 ## Legend
 
@@ -19,43 +19,44 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-| ID    | Title                                                                          | Severity             | Effort | Phase |
-| ----- | ------------------------------------------------------------------------------ | -------------------- | ------ | ----- |
-| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions                         | ~~🔴 Critical~~ done | M      | 1     |
-| TD-02 | ✅ No input validation, incl. TD-02b's remaining boundaries                    | ~~🔴 Critical~~ done | M      | 1–2   |
-| TD-03 | ✅ Test suite does not run                                                     | ~~🔴 Critical~~ done | M      | 1     |
-| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                                         | ~~🔴 Critical~~ done | S      | 1     |
-| TD-05 | ✅ No ESLint config, no Prettier, no CI                                        | ~~🟠 High~~ done     | S      | 1     |
-| TD-06 | ✅ Dead code and tutorial leftovers                                            | ~~🟠 High~~ done     | S      | 1     |
-| TD-07 | ✅ `next`/`react` pinned; single lockfile                                      | ~~🟠 High~~ done     | S      | 1     |
-| TD-08 | ✅ Metadata and query layer typed; zero `any`, rule is an error                | ~~🟠 High~~ done     | M      | 2     |
-| TD-09 | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm             | ~~🟠 High~~ done     | L      | 2     |
-| TD-10 | ✅ Toasts (client) vs `logServerIssue` (server) replace the stub               | ~~🟠 High~~ done     | M      | 2     |
-| TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred                    | ~~🟡 Medium~~ part   | M      | 2     |
-| TD-12 | ✅ Filter list declared once; count and rows can no longer diverge             | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-13 | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10                     | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-14 | ✅ Map POIs persisted only to `localStorage`                                   | ~~🟡 Medium~~ done   | M      | 3     |
-| TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring               | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-16 | ✅ Inconsistent formatting                                                     | ~~🟢 Low~~ done      | S      | 1     |
-| TD-17 | ✅ README does not match reality                                               | ~~🟢 Low~~ done      | S      | 1     |
-| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                         | ~~🟢 Low~~ done      | S      | 3     |
-| TD-19 | ✅ Mixed Italian/English identifiers (residual set → TD-33)                    | ~~🟠 High~~ done     | L      | 2     |
-| TD-20 | ✅ Every flag on, incl. `noUncheckedIndexedAccess` (`noUnusedLocals` rejected) | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-21 | ✅ UI strings hardcoded; app must ship in it + en                              | ~~🟠 High~~ done     | L      | 2     |
-| TD-22 | ✅ Lint warnings 293 → 0; every rule back to `error`                           | ~~🟠 High~~ done     | M      | 2     |
-| TD-23 | ✅ Migration drift patched forward; migrations match the schema                | ~~🟠 High~~ done     | S      | 1     |
-| TD-24 | ✅ Playwright harness + specs; `e2e` job blocking in CI                        | ~~🟠 High~~ done     | M      | 1     |
-| TD-25 | ✅ Startup reachability check; 503 distinct from 500                           | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                              | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-27 | ✅ Hidden `classi=0` filter on the spells list removed                         | ~~🟠 High~~ done     | S      | 2     |
-| TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does                 | ~~🟠 High~~ done     | S      | 2     |
-| TD-29 | ✅ Loading skeleton was the tutorial's invoices table                          | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-30 | ✅ Public list pages actually stream; skeleton matches the content             | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-31 | ✅ `sortSelectOptions` mutated shared `PageMeta.options` in place              | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-32 | ✅ E2E job spent 9m a run on `playwright install-deps`                         | ~~🟠 High~~ done     | S      | 1     |
-| TD-33 | ✅ Italian identifiers TD-19 missed — 16 across 14 files + a directory         | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-34 | ✅ CI actions pinned to a deprecated Node 20 runtime; Node 22 → 24             | ~~🟢 Low~~ done      | S      | 2     |
-| TD-35 | ✅ E2E specs assert hardcoded Italian copy instead of reading the catalogue    | ~~🟡 Medium~~ done   | M      | 2     |
+| ID    | Title                                                                           | Severity             | Effort | Phase |
+| ----- | ------------------------------------------------------------------------------- | -------------------- | ------ | ----- |
+| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions                          | ~~🔴 Critical~~ done | M      | 1     |
+| TD-02 | ✅ No input validation, incl. TD-02b's remaining boundaries                     | ~~🔴 Critical~~ done | M      | 1–2   |
+| TD-03 | ✅ Test suite does not run                                                      | ~~🔴 Critical~~ done | M      | 1     |
+| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                                          | ~~🔴 Critical~~ done | S      | 1     |
+| TD-05 | ✅ No ESLint config, no Prettier, no CI                                         | ~~🟠 High~~ done     | S      | 1     |
+| TD-06 | ✅ Dead code and tutorial leftovers                                             | ~~🟠 High~~ done     | S      | 1     |
+| TD-07 | ✅ `next`/`react` pinned; single lockfile                                       | ~~🟠 High~~ done     | S      | 1     |
+| TD-08 | ✅ Metadata and query layer typed; zero `any`, rule is an error                 | ~~🟠 High~~ done     | M      | 2     |
+| TD-09 | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm              | ~~🟠 High~~ done     | L      | 2     |
+| TD-10 | ✅ Toasts (client) vs `logServerIssue` (server) replace the stub                | ~~🟠 High~~ done     | M      | 2     |
+| TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred                     | ~~🟡 Medium~~ part   | M      | 2     |
+| TD-12 | ✅ Filter list declared once; count and rows can no longer diverge              | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-13 | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10                      | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-14 | ✅ Map POIs persisted only to `localStorage`                                    | ~~🟡 Medium~~ done   | M      | 3     |
+| TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring                | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-16 | ✅ Inconsistent formatting                                                      | ~~🟢 Low~~ done      | S      | 1     |
+| TD-17 | ✅ README does not match reality                                                | ~~🟢 Low~~ done      | S      | 1     |
+| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                          | ~~🟢 Low~~ done      | S      | 3     |
+| TD-19 | ✅ Mixed Italian/English identifiers (residual set → TD-33)                     | ~~🟠 High~~ done     | L      | 2     |
+| TD-20 | ✅ Every flag on, incl. `noUncheckedIndexedAccess` (`noUnusedLocals` rejected)  | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-21 | ✅ UI strings hardcoded; app must ship in it + en                               | ~~🟠 High~~ done     | L      | 2     |
+| TD-22 | ✅ Lint warnings 293 → 0; every rule back to `error`                            | ~~🟠 High~~ done     | M      | 2     |
+| TD-23 | ✅ Migration drift patched forward; migrations match the schema                 | ~~🟠 High~~ done     | S      | 1     |
+| TD-24 | ✅ Playwright harness + specs; `e2e` job blocking in CI                         | ~~🟠 High~~ done     | M      | 1     |
+| TD-25 | ✅ Startup reachability check; 503 distinct from 500                            | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                               | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-27 | ✅ Hidden `classi=0` filter on the spells list removed                          | ~~🟠 High~~ done     | S      | 2     |
+| TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does                  | ~~🟠 High~~ done     | S      | 2     |
+| TD-29 | ✅ Loading skeleton was the tutorial's invoices table                           | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-30 | ✅ Public list pages actually stream; skeleton matches the content              | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-31 | ✅ `sortSelectOptions` mutated shared `PageMeta.options` in place               | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-32 | ✅ E2E job spent 9m a run on `playwright install-deps`                          | ~~🟠 High~~ done     | S      | 1     |
+| TD-33 | ✅ Italian identifiers TD-19 missed — 16 across 14 files + a directory          | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-34 | ✅ CI actions pinned to a deprecated Node 20 runtime; Node 22 → 24              | ~~🟢 Low~~ done      | S      | 2     |
+| TD-35 | ✅ E2E specs assert hardcoded Italian copy instead of reading the catalogue     | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-36 | ✅ `proxy.ts` matcher let `.jpg` through the auth/i18n gate, breaking map tiles | ~~🟠 High~~ done     | S      | 2     |
 
 ---
 
@@ -363,7 +364,9 @@ Every factual claim was verified against the repo rather than asserted: the 41 m
 
 **Deliberately honest rather than flattering:** it states 18% coverage as low, says the E2E suite is specified but not written, and points at `TECH_DEBT.md` as the list of what is known to be wrong. A portfolio README that hides those is worse than one that owns them.
 
-**No screenshots, deliberately.** The UI has not been touched yet — correctness work comes first — so screenshots would advertise a raw interface and date immediately. Rather than leave placeholders that read as an oversight, the README states the sequencing outright: the visual layer is scheduled after the foundations. Add them when the UI work happens (ROADMAP Phase 2, item 14). Also removed `public/hero-{desktop,mobile}.png` — 600 KB of unreferenced Next.js-tutorial images that TD-06 missed.
+**No screenshots, deliberately, at the time.** The UI had not been touched yet — correctness work came first — so screenshots would have advertised a raw interface and dated immediately. Rather than leave placeholders that read as an oversight, the README stated the sequencing outright. Also removed `public/hero-{desktop,mobile}.png` — 600 KB of unreferenced Next.js-tutorial images that TD-06 missed.
+
+**Screenshots added 2026-08-01** (ROADMAP Phase 2, item 14), once the bilingual UI (TD-21) and accessibility pass (TD-15) had actually landed: a filtered spell list and the interactive map, captured with Playwright against the seeded dataset. Taking the map screenshot surfaced a real bug — see TD-34.
 
 The original description follows.
 
@@ -1541,6 +1544,24 @@ The pins had drifted badly in the meantime — `@v4` against `v7.0.1` current fo
 **Worth weighing before starting:** `next-intl`'s message objects are typed, so a renamed key becomes a compile error in the specs too — the same protection `messages/messages.test.ts` (TD-21) already gives production code. The trade-off is that e2e specs currently read as self-contained user journeys with visible Italian text; resolving copy through key lookups makes them slightly more abstract to read, in exchange for surviving a copy change.
 
 **Done when:** every `getByRole` / `getByLabel` / `getByText` assertion that targets catalogue-sourced UI copy reads it from `messages/it.json` (or a small typed helper over it) rather than a literal; `pnpm test:e2e` still green.
+
+---
+
+### TD-36 ✅ `proxy.ts` matcher let `.jpg` through the auth/i18n gate, breaking every map tile — **DONE (2026-08-01)**
+
+**Found:** while taking the map screenshot for ROADMAP Phase 2, item 14 (see TD-17). The four custom tile images under `public/maps/*.jpg` rendered as blank grey tiles in the browser — `/maps/mondo-materiale.jpg` came back 404. `curl -L` on the same URL showed why: it 307-redirected to `/login?callbackUrl=...`. Every request through `proxy.ts` runs the i18n rewrite and the auth check; the matcher was meant to skip static assets, but its exclusion list only covered `.png`:
+
+```
+"/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$).*)"
+```
+
+Any `.jpg` (the four map tiles) went through the gate instead of straight to the file. Once through, next-intl's rewrite doesn't correspond to a real file, and the request 404s — invisible in a normal click-through, since a broken `<img>` inside a Leaflet tile layer just shows as empty grey.
+
+**Fix:** the matcher's negative-lookahead now excludes `.jpg` and `.jpeg` alongside `.png`: `.*\\.(?:png|jpg|jpeg)$`.
+
+**Regression test:** `proxy.test.ts` (new, at repo root next to `proxy.ts`) compiles `config.matcher[0]` into the same regex Next.js would and asserts a `.jpg` path is excluded, a `.png` path is excluded, and a real page route (`/dashboard/geography`) still isn't — i.e. it fails without the fix and passes with it. `next-intl/middleware` and `next-auth/jwt` are mocked in the test so importing `proxy.ts` doesn't pull in their ESM builds, which don't resolve under Vitest's module graph.
+
+**Why this sat unnoticed:** nothing exercised `proxy.ts` before — no test imported it, and the E2E map spec (`e2e/map.spec.ts`) presumably asserts on POIs and controls rather than the tile images actually painting, so a grey background didn't fail CI. `pnpm typecheck && pnpm lint && pnpm test` all green throughout; the bug was only visible by looking at the rendered map.
 
 ---
 

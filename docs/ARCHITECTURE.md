@@ -1,6 +1,6 @@
 # Architecture
 
-**Last updated:** 2026-07-30
+**Last updated:** 2026-08-01
 
 This document describes how Campaign Settings is put together today, and marks the places where the intended design and the current implementation diverge. Divergences are tagged **[GAP]** and tracked in [`TECH_DEBT.md`](./TECH_DEBT.md).
 
@@ -103,7 +103,7 @@ Each `create*` / `update*` mutation `safeParse`s first and returns a `MutationRe
 > was an unpopulated duplicate of `circle`, removed by TD-26 and dropped from the
 > database by TD-11.
 
-**Still unvalidated (TD-02b):** environment variables, `localStorage` POIs, GeoJSON files and the `as` casts on Prisma results.
+**Still unvalidated (TD-02b):** environment variables, GeoJSON files and the `as` casts on Prisma results. (POIs moved to Postgres and are now Zod-validated at the Server Action boundary, same as every other mutation — TD-14.)
 
 ### ✅ Closed: `PageMeta` was loosely typed (TD-08)
 
@@ -178,13 +178,13 @@ modules/maps/
 ├── contexts/             MapContext, ThemeContext
 ├── hooks/                useLeafletMap, useMapMarkers, useMapControls, useMeasurement,
 │                         usePOIManager, useGeolocation, useSafeMapOperations, useTheme
-├── constants/            map-config, poi-categories, tile-providers
+├── constants/            map-config, poi-categories, tile-providers, linkable-entities
 └── types/                map, poi, theme, components
 ```
 
 This is the best-structured area of the codebase — error boundary, defensive hook wrapper, typed constants, clean separation. **Use it as the reference standard when refactoring the other domains.**
 
-POIs are persisted to `localStorage` (`usePOIManager.ts`), not to the database. **[GAP]** Map POIs should live in Postgres and relate to `npc` / `deities` records — that is the feature that would tie the map to the rest of the app. Tracked as TD-14 and as a Phase 3 item in [`ROADMAP.md`](./ROADMAP.md).
+POIs are persisted in Postgres (the `poi` model), not `localStorage` — `usePOIManager.ts` writes through `createPoi` / `updatePoi` / `deletePoi` / `fetchPois` (`app/lib/data/maps/`) with optimistic client state, and can optionally link to exactly one `npc` or `deities` row via a polymorphic `linkedType`/`linkedId` pair (`LINKABLE_ENTITY_TYPES` in `constants/linkable-entities.ts`). Done as TD-14; see [SPEC-002](./specs/002-map-poi-persistence.md) for the design.
 
 ---
 

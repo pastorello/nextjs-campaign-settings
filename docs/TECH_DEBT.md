@@ -1,8 +1,8 @@
 # Technical Debt Register
 
-**Last updated:** 2026-07-31
+**Last updated:** 2026-08-01
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-14 (Phase 3) — T1–T6 done (PR #57 + T6), T7 (docs closeout) remains. Everything else is done — the summary table below is authoritative. **Phase 2 is complete** as of TD-02b.
+**Open items:** none — TD-14 (Phase 3) closed 2026-08-01 (T1–T7 done, PR #57 + T6 + T7). Everything else is done — the summary table below is authoritative. **Phase 2 is complete** as of TD-02b.
 
 ## Legend
 
@@ -34,7 +34,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred                    | ~~🟡 Medium~~ part   | M      | 2     |
 | TD-12 | ✅ Filter list declared once; count and rows can no longer diverge             | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-13 | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10                     | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-14 | ◑ Map POIs persisted only to `localStorage` — T1–T6 done, T7 remains           | 🟡 Medium            | M      | 3     |
+| TD-14 | ✅ Map POIs persisted only to `localStorage`                                   | ~~🟡 Medium~~ done   | M      | 3     |
 | TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring               | ~~🟡 Medium~~ done   | M      | 2     |
 | TD-16 | ✅ Inconsistent formatting                                                     | ~~🟢 Low~~ done      | S      | 1     |
 | TD-17 | ✅ README does not match reality                                               | ~~🟢 Low~~ done      | S      | 1     |
@@ -929,11 +929,11 @@ Steps 6–8 of the original fix list above (inline component copy, the locale sw
 
 ## Phase 3 — Deferred
 
-### TD-14 ◑ Map POIs live only in `localStorage` — **T1–T6 DONE (2026-08-01, PR #57 + T6)**
+### TD-14 ✅ Map POIs live only in `localStorage` — **DONE (2026-08-01, PR #57 + T6 + T7)**
 
-`app/modules/maps/hooks/usePOIManager.ts` reads and writes POIs to `localStorage`. They are lost on browser change, cannot be shared, and — most importantly — cannot reference the NPCs and deities stored in Postgres. The map is currently an island.
+`app/modules/maps/hooks/usePOIManager.ts` used to read and write POIs to `localStorage`. They were lost on browser change, could not be shared, and — most importantly — could not reference the NPCs and deities stored in Postgres. The map was an island.
 
-**Fix:** a `poi` Prisma model plus Server Actions for CRUD. This is as much a feature as a debt item; it appears in [`ROADMAP.md`](./ROADMAP.md) Phase 3.
+**Outcome:** a `poi` Prisma model (polymorphic `linkedType`/`linkedId`, no per-type FK — see [SPEC-002](./specs/002-map-poi-persistence.md) §6) plus `createPoi` / `updatePoi` / `deletePoi` / `fetchPois` Server Actions, all auth-guarded and Zod-validated. `usePOIManager` now writes through them with optimistic state instead of `localStorage`; the POI edit form gained a type-selector + entity-selector pair to link a POI to exactly one NPC or deity; the marker popup gains a "View NPC"/"View deity" link when a link is present. Full task breakdown, edge cases and the resolved design questions (global scope, manual optimistic state over `useOptimistic`) are in [SPEC-002](./specs/002-map-poi-persistence.md).
 
 **Specified 2026-07-31 in [SPEC-002](./specs/002-map-poi-persistence.md) — Agreed.** Two decisions there depart from the one-line fix above and are worth reading before touching this further:
 

@@ -1,6 +1,6 @@
 # Roadmap
 
-**Last updated:** 2026-07-30
+**Last updated:** 2026-08-01
 
 Two rules govern this document:
 
@@ -84,7 +84,7 @@ Everything below needs a spec before implementation.
 
 - **Real relations.** Replace bare `Int` foreign-key-shaped columns (`faction`, `location`, `alignment`) with actual Prisma relations. Renumbering a hardcoded TypeScript array currently corrupts existing rows silently — this fixes a real correctness problem, not just a modelling nicety. _(Related: TD-11.)_
 - **Locations as first-class entities.** A location becomes a record with a description, a map coordinate and the NPCs based there.
-- **Map POIs in the database.** Move POIs out of `localStorage` into Postgres, each optionally linked to exactly one entity — `npc` or `deities` today, extensible to locations, dungeons and treasure without a migration per type. Clicking a marker opens the linked entity. This is the change that connects the map — currently an island — to the rest of the app, and it is the single most demo-able improvement available. _(TD-14; specified in [SPEC-002](./specs/002-map-poi-persistence.md).)_
+- **✅ Map POIs in the database.** POIs moved out of `localStorage` into Postgres, each optionally linked to exactly one entity — `npc` or `deities` today, extensible to locations, dungeons and treasure without a migration per type. Clicking a marker opens the linked entity. Done 2026-08-01. _(TD-14; specified in [SPEC-002](./specs/002-map-poi-persistence.md).)_
 - **Multi-campaign support.** A `Campaign` model with `campaignId` on every entity. Prerequisite for anything shared or multi-user. Today's model is one DM authoring one shared world, so no entity is user-scoped — including POIs, which are deliberately global ([SPEC-002](./specs/002-map-poi-persistence.md) §2). Scoping arrives here, for everything at once; nothing should grow its own private ownership column beforehand.
 - **Cross-entity search.** One search box across spells, items, NPCs and deities.
 

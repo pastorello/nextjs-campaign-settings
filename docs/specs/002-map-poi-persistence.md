@@ -1,6 +1,6 @@
 # SPEC-002: Map POI persistence in Postgres
 
-- **Status:** Agreed
+- **Status:** Done (2026-08-01)
 - **Date:** 2026-07-31
 - **Phase:** 3
 - **Related:** TD-14, ROADMAP.md Phase 3 items "Map POIs in the database" and "Multi-campaign support"
@@ -173,12 +173,13 @@ _Fill in after the sections above are agreed._
   - **`fetchPois` is a Server Action and therefore needs `requireSession()`.** The page is client-only, so the read has to be callable from the browser — which makes it a POST endpoint the proxy does not cover, exactly TD-01's hole. The other `fetchFiltered*` readers do not need this because only Server Components call them.
 - [x] **T5** — Add the type-selector + entity-selector pair to `MapPOIPanel`'s add/edit form _(test: component test or e2e — selecting NPC then switching to Deity clears the NPC choice; saving and reopening shows the link persisted)_ — **done**. One file this needed that the implementation plan above didn't list: `app/lib/data/maps/fetchLinkableEntities.ts`, a `requireSession()`-guarded Server Action returning `{id, name}[]` for a type, since the entity selector has to populate from real NPC/deity rows and the geography page is client-only (same reasoning as `fetchPois`). Verified against the live database: selecting "NPC" populates the second select with all 119 real rows, alphabetised; a create with `linkedType: "npc"` followed by an update setting both fields to `null` round-trips correctly (link set, then explicitly cleared) — the exact payload shape `MapPOIPanel.handleSave` now sends.
 - [x] **T6** — Marker popup gains the "View NPC"/"View deity" link when present _(test: e2e — clicking it navigates to the right entity page)_ — **done**. There is no per-entity detail route for NPCs or deities (confirmed: only flat list pages exist). The link instead uses the metadata layer's existing exact-match `id` filter — `?id=<id>` — already supported by every `PageType` through `getQuery.ts`'s `whereClause[item] = value` handling, just never previously linked to from anywhere. `LinkableEntityTypeConfig` gained a `path` field (`LINKABLE_ENTITY_TYPES` in `linkable-entities.ts`) holding each type's list-page base path, so `usePOIManager.createMarker` builds `${path}?id=${linkedId}`. One thing the e2e spec had to work around: `WorldMap.tsx` (the component actually mounted at `/dashboard/geography`, not the unused `MapMain.tsx`) has `MapSearchBar` commented out, so `MapPOIPanel` is only reachable via the right-click "Add to My Places" flow — there's no way to reopen the panel after navigating away, which is why `e2e/map-poi-link.spec.ts` cleans up the NPC it creates but not the POI.
-- [ ] **T7** — Docs: close TD-14 in `TECH_DEBT.md`, update `ROADMAP.md` and `ARCHITECTURE.md`'s data model section
+- [x] **T7** — Docs: close TD-14 in `TECH_DEBT.md`, update `ROADMAP.md` and `ARCHITECTURE.md`'s data model section — **done**
 
 ## 11. Outcome
 
-_Fill in at close._
-
-- Shipped: —
-- Deviations from spec and why: —
-- Follow-up debt created: —
+- **Shipped:** all of T1–T7. `poi` Prisma model with polymorphic `linkedType`/`linkedId`; `createPoi`/`updatePoi`/`deletePoi`/`fetchPois`/`fetchLinkableEntities` Server Actions (auth + Zod at every boundary); `usePOIManager` rewritten onto them with manual optimistic state; `MapPOIPanel`'s type-selector + entity-selector pair; marker popup "View NPC"/"View deity" link via the metadata layer's `?id=` filter. Closed 2026-08-01.
+- **Deviations from spec and why:**
+  - Optimistic UI implemented with hand-rolled state, not `useOptimistic` — the geography page has no Server Component in its tree for `useOptimistic` to revert into (see §9, "Resolved questions").
+  - `fetchPois` and `fetchLinkableEntities` are Server Actions guarded by `requireSession()`, not the plain `fetchFiltered*` read pattern used elsewhere — the geography page is client-only, so both reads must be callable from the browser, which is exactly TD-01's unauthenticated-write shape applied to a read.
+  - Marker-to-entity navigation reuses the existing exact-match `?id=` filter on each domain's list page rather than adding per-entity detail routes, since none exist yet.
+- **Follow-up debt created:** none. `POI.id` staying a stable client key (never reassigned on server round-trip) and the per-POI operation-chaining/generation-guard fixes in T4 are implementation details, not open items.

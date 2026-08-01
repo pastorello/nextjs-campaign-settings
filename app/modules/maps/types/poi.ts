@@ -36,6 +36,10 @@ export type LinkableEntityType = "npc" | "deity";
 export interface LinkableEntityTypeConfig {
   id: LinkableEntityType;
   label: string;
+  // Base list-page path; the entity is reached via that page's existing
+  // `?id=` exact-match filter (`getQuery.ts`), not a dedicated detail route
+  // — there isn't one for NPCs or deities today.
+  path: string;
 }
 
 export interface POI {

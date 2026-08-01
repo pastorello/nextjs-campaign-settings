@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-07-31
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-14 (Phase 3) — T1–T5 done (PR #57), T6 (marker popup link) and T7 (docs closeout) remain. Everything else is done — the summary table below is authoritative. **Phase 2 is complete** as of TD-02b.
+**Open items:** TD-14 (Phase 3) — T1–T6 done (PR #57 + T6), T7 (docs closeout) remains. Everything else is done — the summary table below is authoritative. **Phase 2 is complete** as of TD-02b.
 
 ## Legend
 
@@ -34,7 +34,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred                    | ~~🟡 Medium~~ part   | M      | 2     |
 | TD-12 | ✅ Filter list declared once; count and rows can no longer diverge             | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-13 | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10                     | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-14 | ◑ Map POIs persisted only to `localStorage` — T1–T5 done, T6/T7 remain         | 🟡 Medium            | M      | 3     |
+| TD-14 | ◑ Map POIs persisted only to `localStorage` — T1–T6 done, T7 remains           | 🟡 Medium            | M      | 3     |
 | TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring               | ~~🟡 Medium~~ done   | M      | 2     |
 | TD-16 | ✅ Inconsistent formatting                                                     | ~~🟢 Low~~ done      | S      | 1     |
 | TD-17 | ✅ README does not match reality                                               | ~~🟢 Low~~ done      | S      | 1     |
@@ -929,7 +929,7 @@ Steps 6–8 of the original fix list above (inline component copy, the locale sw
 
 ## Phase 3 — Deferred
 
-### TD-14 ◑ Map POIs live only in `localStorage` — **T1–T5 DONE (2026-08-01, PR #57)**
+### TD-14 ◑ Map POIs live only in `localStorage` — **T1–T6 DONE (2026-08-01, PR #57 + T6)**
 
 `app/modules/maps/hooks/usePOIManager.ts` reads and writes POIs to `localStorage`. They are lost on browser change, cannot be shared, and — most importantly — cannot reference the NPCs and deities stored in Postgres. The map is currently an island.
 
@@ -942,10 +942,11 @@ Steps 6–8 of the original fix list above (inline component copy, the locale sw
 
 **Shipped in PR #57 (T1–T5):** the `poi` table and migration; `buildPoiCreateSchema`/`buildPoiUpdateSchema`; `createPoi`/`updatePoi`/`deletePoi`/`fetchPois`/`fetchLinkableEntities` Server Actions; `usePOIManager` rewritten for optimistic writes against Postgres; `MapPOIPanel`'s type/entity selector pair. See SPEC-002 §10 for what each task settled — the polymorphic-link resolution degrading a stale reference to unlinked, the image-space (not geographic) coordinate bounds, the client-id-stability and per-POI operation-serialisation fixes in the hook.
 
-**Still open — T6 and T7, both small:**
+**T6 done:** the Leaflet popup (`usePOIManager.createMarker`) now shows a "View NPC" / "View deity" link when a POI has a resolved `linkedType`/`linkedId`. There is no per-entity detail route for NPCs or deities — both are flat list pages — so the link uses the metadata layer's existing exact-match `?id=` filter (`getQuery.ts`), the same mechanism every `PageType` already supports; `LinkableEntityTypeConfig` gained a `path` field (`linkable-entities.ts`) to hold each type's list-page base. e2e coverage: `e2e/map-poi-link.spec.ts`. One thing that test surfaced: `WorldMap.tsx` — the component actually mounted at `/dashboard/geography`, not the unused `MapMain.tsx` — has `MapSearchBar` commented out, so `MapPOIPanel` is reachable only via the right-click "Add to My Places" flow; there's no way to browse or delete an existing POI once you've navigated away from it. Pre-existing MVP gap, not introduced here.
 
-- **T6 — marker popup link.** When a POI has a `linkedType`/`linkedId`, its Leaflet popup (built in `usePOIManager.createMarker`) should gain a "View NPC" / "View deity" link to that entity's page (`/dashboard/npc`, `/dashboard/deities` — check the actual per-entity route, this hasn't been verified yet). Non-goal in SPEC-002 §3 explicitly deferred richer marker content; this is just the link, not the entity's data rendered in the popup.
-- **T7 — docs closeout.** This entry, plus a final read-through of `ARCHITECTURE.md`'s data model section and `ROADMAP.md`'s Phase 3 item, to confirm they still match what actually shipped (they were updated alongside T1–T5, but a T6 marker-link change might touch them again).
+**Still open — T7:**
+
+- **T7 — docs closeout.** This entry, plus a final read-through of `ARCHITECTURE.md`'s data model section and `ROADMAP.md`'s Phase 3 item, to confirm they still match what actually shipped.
 
 ### TD-18 ✅ `copy-webpack-plugin` forces webpack — **DONE (2026-07-22)**
 

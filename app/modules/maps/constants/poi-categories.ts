@@ -2,7 +2,10 @@
  * POI category configurations
  */
 
-import type { POICategoryConfig } from "@/app/modules/maps/types/poi";
+import type {
+  POICategory,
+  POICategoryConfig,
+} from "@/app/modules/maps/types/poi";
 
 export const POI_CATEGORIES: POICategoryConfig[] = [
   {
@@ -110,6 +113,16 @@ export const POI_CATEGORIES: POICategoryConfig[] = [
  */
 export function getCategoryById(id: string): POICategoryConfig | undefined {
   return POI_CATEGORIES.find((cat) => cat.id === id);
+}
+
+/**
+ * Narrows a raw string to `POICategory`. `poi.category` is a plain `TEXT`
+ * column with no database-level enum (SPEC-002 §6), so a row read back is
+ * only a `string` as far as the type system knows — this is where it gets
+ * checked against the list the app actually recognises.
+ */
+export function isPOICategory(value: string): value is POICategory {
+  return POI_CATEGORIES.some((cat) => cat.id === value);
 }
 
 /**

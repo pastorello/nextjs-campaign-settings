@@ -16,13 +16,21 @@ import {
 } from "lucide-react";
 import { Drawer } from "vaul";
 import { toast } from "sonner";
-import type { POI, POICategory } from "@/app/modules/maps/types/poi";
+import type {
+  POI,
+  POICategory,
+  LinkableEntityType,
+} from "@/app/modules/maps/types/poi";
 import {
   POI_CATEGORIES,
   getCategoryColor,
   getCategoryBgColor,
 } from "@/app/modules/maps/constants/poi-categories";
+import { LINKABLE_ENTITY_TYPES } from "@/app/modules/maps/constants/linkable-entities";
 import { formatDecimalDegrees } from "@/app/modules/maps/lib/utils/coordinates";
+import fetchLinkableEntities, {
+  type LinkableEntityOption,
+} from "@/app/lib/data/maps/fetchLinkableEntities";
 
 interface MapPOIPanelProps {
   isOpen: boolean;
@@ -34,7 +42,9 @@ interface MapPOIPanelProps {
     lat: number,
     lng: number,
     category: POICategory,
-    description?: string
+    description?: string,
+    linkedType?: LinkableEntityType | null,
+    linkedId?: number | null
   ) => void;
   onUpdatePOI: (
     id: string,
@@ -64,6 +74,8 @@ interface POIFormData {
   lat: string;
   lng: string;
   category: POICategory;
+  linkedType: LinkableEntityType | null;
+  linkedId: number | null;
 }
 
 /**
@@ -210,24 +222,97 @@ export const MapPOIPanel = memo(function MapPOIPanel({
   );
 
   // Initialize form data - derive from props when available
-  const initialFormData = useMemo(
+  const initialFormData = useMemo<POIFormData>(
     () => ({
       title: "",
       description: "",
       lat: initialLatStr,
       lng: initialLngStr,
       category: filterCategory || "food-drink",
+      linkedType: null,
+      linkedId: null,
     }),
     [initialLatStr, initialLngStr, filterCategory]
   );
 
   const [formData, setFormData] = useState<POIFormData>(initialFormData);
 
+  // Options for the entity selector, cached per type for the life of the
+  // panel — small lists (NPCs, deities), cheap to keep rather than refetch
+  // every time the DM flips the type selector back and forth.
+  const linkOptionsCacheRef = useRef<
+    Partial<Record<LinkableEntityType, LinkableEntityOption[]>>
+  >({});
+  const [linkOptions, setLinkOptions] = useState<LinkableEntityOption[]>([]);
+  const [isLoadingLinkOptions, setIsLoadingLinkOptions] = useState(false);
+
+  // Fetch the entity list whenever a link type is chosen. Guarded by a
+  // generation counter for the same reason `usePOIManager.renderMarkers` is:
+  // switching the type twice in quick succession must not let the first,
+  // slower fetch overwrite the second's result. The `setState` calls live
+  // inside `loadOptions`, an async function invoked from the effect rather
+  // than run directly in its body — the same shape `MapSearchBar` already
+  // uses — because a synchronous `setState` at the top of an effect body
+  // triggers `react-hooks/set-state-in-effect`.
+  const linkFetchGenerationRef = useRef(0);
+  useEffect(() => {
+    const type = formData.linkedType;
+
+    const loadOptions = async () => {
+      if (type === null) {
+        setLinkOptions([]);
+        return;
+      }
+
+      const cached = linkOptionsCacheRef.current[type];
+      if (cached) {
+        setLinkOptions(cached);
+        return;
+      }
+
+      linkFetchGenerationRef.current += 1;
+      const generation = linkFetchGenerationRef.current;
+      setIsLoadingLinkOptions(true);
+
+      try {
+        const options = await fetchLinkableEntities(type);
+        if (generation !== linkFetchGenerationRef.current) return;
+        linkOptionsCacheRef.current[type] = options;
+        setLinkOptions(options);
+      } catch (error) {
+        console.error("Failed to load linkable entities:", error);
+        if (generation !== linkFetchGenerationRef.current) return;
+        toast.error("Could not load the list to link to");
+      } finally {
+        if (generation === linkFetchGenerationRef.current) {
+          setIsLoadingLinkOptions(false);
+        }
+      }
+    };
+
+    void loadOptions();
+  }, [formData.linkedType]);
+
+  /**
+   * Handle link type change — resets the chosen entity, since a previously
+   * selected NPC id means nothing once the type switches to deity.
+   */
+  const handleLinkedTypeChange = useCallback((value: string) => {
+    const type = value === "" ? null : (value as LinkableEntityType);
+    setFormData((prev) => ({ ...prev, linkedType: type, linkedId: null }));
+  }, []);
+
+  const handleLinkedIdChange = useCallback((value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      linkedId: value === "" ? null : Number(value),
+    }));
+  }, []);
+
   // Update form coordinates when they change from parent
   // This is a legitimate use of setState in effect for prop synchronization
   useEffect(() => {
     if (initialLatStr && initialLngStr) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData((prev) => ({
         ...prev,
         lat: initialLatStr,
@@ -257,6 +342,8 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       lat: initialLatStr,
       lng: initialLngStr,
       category: filterCategory || "food-drink",
+      linkedType: null,
+      linkedId: null,
     });
   }, [setViewMode, initialLatStr, initialLngStr, filterCategory]);
 
@@ -273,6 +360,8 @@ export const MapPOIPanel = memo(function MapPOIPanel({
         lat: poi.lat.toFixed(6),
         lng: poi.lng.toFixed(6),
         category: poi.category,
+        linkedType: poi.linkedType ?? null,
+        linkedId: poi.linkedId ?? null,
       });
     },
     [setViewMode]
@@ -295,6 +384,11 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       return;
     }
 
+    if (formData.linkedType !== null && formData.linkedId === null) {
+      toast.error("Please select an entity to link to, or set it back to None");
+      return;
+    }
+
     if (viewMode === "edit" && editingPOI) {
       onUpdatePOI(editingPOI.id, {
         title: formData.title.trim(),
@@ -302,6 +396,8 @@ export const MapPOIPanel = memo(function MapPOIPanel({
         lat,
         lng,
         category: formData.category,
+        linkedType: formData.linkedType,
+        linkedId: formData.linkedId,
       });
       toast.success("Place updated successfully");
     } else {
@@ -310,7 +406,9 @@ export const MapPOIPanel = memo(function MapPOIPanel({
         lat,
         lng,
         formData.category,
-        formData.description.trim() || undefined
+        formData.description.trim() || undefined,
+        formData.linkedType,
+        formData.linkedId
       );
       toast.success("Place added successfully");
     }
@@ -324,6 +422,8 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       lat: "",
       lng: "",
       category: "food-drink",
+      linkedType: null,
+      linkedId: null,
     });
 
     // Notify parent to clear coordinates
@@ -493,6 +593,44 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Linked Entity */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Linked entity
+            </label>
+            <div className="flex gap-2">
+              <select
+                value={formData.linkedType ?? ""}
+                onChange={(e) => handleLinkedTypeChange(e.target.value)}
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+              >
+                <option value="">None</option>
+                {LINKABLE_ENTITY_TYPES.map((type) => (
+                  <option key={type.id} value={type.id}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+              {formData.linkedType !== null && (
+                <select
+                  value={formData.linkedId ?? ""}
+                  onChange={(e) => handleLinkedIdChange(e.target.value)}
+                  disabled={isLoadingLinkOptions}
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm disabled:opacity-50"
+                >
+                  <option value="">
+                    {isLoadingLinkOptions ? "Loading…" : "Select…"}
+                  </option>
+                  {linkOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
           </div>
 
           {/* Title Input */}

@@ -411,7 +411,10 @@
     "errors": {
       "mapNotConfigured": "The map is not configured correctly.",
       "importSuccess": "{count, plural, one {Successfully imported # place!} other {Successfully imported # places!}}",
-      "importFailed": "Failed to import file. Please check the format."
+      "importFailed": "Failed to import file. Please check the format.",
+      "poiLoadFailed": "Could not load your places. Reload the page to try again.",
+      "poiSaveFailed": "Could not save “{title}”. The change has been undone.",
+      "poiDeleteFailed": "Could not delete “{title}”. The place has been restored."
     },
     "maps": {
       "planesOfExistence": "Planes of Existence",

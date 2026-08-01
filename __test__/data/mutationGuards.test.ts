@@ -12,6 +12,9 @@ import createMagicItem from "@/app/lib/data/magicitems/createMagicItem";
 import updateMagicItem from "@/app/lib/data/magicitems/updateMagicItem";
 import createNpc from "@/app/lib/data/npc/createNpc";
 import updateNpc from "@/app/lib/data/npc/updateNpc";
+import createPoi from "@/app/lib/data/maps/createPoi";
+import updatePoi from "@/app/lib/data/maps/updatePoi";
+import deletePoi from "@/app/lib/data/maps/deletePoi";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 
@@ -26,6 +29,7 @@ vi.mock("@/app/lib/connections/prisma", () => {
       deities: model(),
       magicitems: model(),
       npc: model(),
+      poi: { ...model(), findUnique: vi.fn(), delete: vi.fn() },
     },
   };
 });
@@ -41,6 +45,13 @@ const mutations = [
   { name: "updateMagicItem", fn: updateMagicItem, table: "magicitems", op: "update" }, // prettier-ignore
   { name: "createNpc", fn: createNpc, table: "npc", op: "create" },
   { name: "updateNpc", fn: updateNpc, table: "npc", op: "update" },
+  { name: "createPoi", fn: createPoi, table: "poi", op: "create" },
+  { name: "updatePoi", fn: updatePoi, table: "poi", op: "update" },
+  // deletePoi takes a bare id, not a formData object — the `{ id: 1 }` call
+  // below is still valid because the auth guard throws before the argument
+  // is ever used. `findUnique` is the first Prisma call it would otherwise
+  // reach.
+  { name: "deletePoi", fn: deletePoi, table: "poi", op: "findUnique" },
 ] as const;
 
 describe("mutation auth guards", () => {

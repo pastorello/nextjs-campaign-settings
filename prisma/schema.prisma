@@ -64,6 +64,21 @@ model npc {
   @@index([name])
 }
 
+model poi {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  lat         Float
+  lng         Float
+  category    String
+  linkedType  String?
+  linkedId    Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([linkedType, linkedId])
+}
+
 model spells {
   id              Int      @id @default(autoincrement())
   description     String   @map("descrizione")

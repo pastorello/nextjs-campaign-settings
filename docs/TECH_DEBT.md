@@ -933,7 +933,12 @@ Steps 6–8 of the original fix list above (inline component copy, the locale sw
 
 `app/modules/maps/hooks/usePOIManager.ts` reads and writes POIs to `localStorage`. They are lost on browser change, cannot be shared, and — most importantly — cannot reference the NPCs and deities stored in Postgres. The map is currently an island.
 
-**Fix:** a `poi` Prisma model with optional relations to `png` and `deities`, plus Server Actions for CRUD. This is as much a feature as a debt item; it appears in [`ROADMAP.md`](./ROADMAP.md) Phase 3.
+**Fix:** a `poi` Prisma model plus Server Actions for CRUD. This is as much a feature as a debt item; it appears in [`ROADMAP.md`](./ROADMAP.md) Phase 3.
+
+**Specified 2026-07-31 in [SPEC-002](./specs/002-map-poi-persistence.md) — Agreed, ready to build.** Two decisions there depart from the one-line fix above and are worth reading before starting:
+
+- **The entity link is polymorphic, not a relation per type.** `linkedType` + `linkedId` hold exactly one link (never an NPC _and_ a deity), so adding locations, dungeons or treasure later costs a `LINKABLE_ENTITY_TYPES` entry rather than a migration. The price is no database-level foreign key — referential integrity for the link lives at the Zod boundary, as `category` already does.
+- **POIs are global to the instance, not user-scoped.** One DM authors one shared world; per-DM scoping arrives for every entity at once with multi-campaign support.
 
 ### TD-18 ✅ `copy-webpack-plugin` forces webpack — **DONE (2026-07-22)**
 

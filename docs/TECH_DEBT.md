@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-07-31
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-14 (Phase 3). Everything else is done — the summary table below is authoritative. **Phase 2 is complete** as of TD-02b.
+**Open items:** TD-14 (Phase 3) — T1–T5 done (PR #57), T6 (marker popup link) and T7 (docs closeout) remain. Everything else is done — the summary table below is authoritative. **Phase 2 is complete** as of TD-02b.
 
 ## Legend
 
@@ -34,7 +34,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred                    | ~~🟡 Medium~~ part   | M      | 2     |
 | TD-12 | ✅ Filter list declared once; count and rows can no longer diverge             | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-13 | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10                     | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-14 | Map POIs persisted only to `localStorage`                                      | 🟡 Medium            | M      | 3     |
+| TD-14 | ◑ Map POIs persisted only to `localStorage` — T1–T5 done, T6/T7 remain         | 🟡 Medium            | M      | 3     |
 | TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring               | ~~🟡 Medium~~ done   | M      | 2     |
 | TD-16 | ✅ Inconsistent formatting                                                     | ~~🟢 Low~~ done      | S      | 1     |
 | TD-17 | ✅ README does not match reality                                               | ~~🟢 Low~~ done      | S      | 1     |
@@ -929,16 +929,23 @@ Steps 6–8 of the original fix list above (inline component copy, the locale sw
 
 ## Phase 3 — Deferred
 
-### TD-14 🟡 Map POIs live only in `localStorage`
+### TD-14 ◑ Map POIs live only in `localStorage` — **T1–T5 DONE (2026-08-01, PR #57)**
 
 `app/modules/maps/hooks/usePOIManager.ts` reads and writes POIs to `localStorage`. They are lost on browser change, cannot be shared, and — most importantly — cannot reference the NPCs and deities stored in Postgres. The map is currently an island.
 
 **Fix:** a `poi` Prisma model plus Server Actions for CRUD. This is as much a feature as a debt item; it appears in [`ROADMAP.md`](./ROADMAP.md) Phase 3.
 
-**Specified 2026-07-31 in [SPEC-002](./specs/002-map-poi-persistence.md) — Agreed, ready to build.** Two decisions there depart from the one-line fix above and are worth reading before starting:
+**Specified 2026-07-31 in [SPEC-002](./specs/002-map-poi-persistence.md) — Agreed.** Two decisions there depart from the one-line fix above and are worth reading before touching this further:
 
 - **The entity link is polymorphic, not a relation per type.** `linkedType` + `linkedId` hold exactly one link (never an NPC _and_ a deity), so adding locations, dungeons or treasure later costs a `LINKABLE_ENTITY_TYPES` entry rather than a migration. The price is no database-level foreign key — referential integrity for the link lives at the Zod boundary, as `category` already does.
 - **POIs are global to the instance, not user-scoped.** One DM authors one shared world; per-DM scoping arrives for every entity at once with multi-campaign support.
+
+**Shipped in PR #57 (T1–T5):** the `poi` table and migration; `buildPoiCreateSchema`/`buildPoiUpdateSchema`; `createPoi`/`updatePoi`/`deletePoi`/`fetchPois`/`fetchLinkableEntities` Server Actions; `usePOIManager` rewritten for optimistic writes against Postgres; `MapPOIPanel`'s type/entity selector pair. See SPEC-002 §10 for what each task settled — the polymorphic-link resolution degrading a stale reference to unlinked, the image-space (not geographic) coordinate bounds, the client-id-stability and per-POI operation-serialisation fixes in the hook.
+
+**Still open — T6 and T7, both small:**
+
+- **T6 — marker popup link.** When a POI has a `linkedType`/`linkedId`, its Leaflet popup (built in `usePOIManager.createMarker`) should gain a "View NPC" / "View deity" link to that entity's page (`/dashboard/npc`, `/dashboard/deities` — check the actual per-entity route, this hasn't been verified yet). Non-goal in SPEC-002 §3 explicitly deferred richer marker content; this is just the link, not the entity's data rendered in the popup.
+- **T7 — docs closeout.** This entry, plus a final read-through of `ARCHITECTURE.md`'s data model section and `ROADMAP.md`'s Phase 3 item, to confirm they still match what actually shipped (they were updated alongside T1–T5, but a T6 marker-link change might touch them again).
 
 ### TD-18 ✅ `copy-webpack-plugin` forces webpack — **DONE (2026-07-22)**
 

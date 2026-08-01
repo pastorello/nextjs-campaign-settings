@@ -217,6 +217,8 @@ The proxy matcher excludes `/api`, so it cannot cover route handlers or Server A
 
 There is no authorisation model: every authenticated user can edit everything. Acceptable for a single-DM tool today; must be addressed before multi-campaign support.
 
+**The ownership model this assumes**, stated once here because several decisions rest on it: one DM authors one shared world, with players as future read-only consumers. No entity is scoped to a user — spells, NPCs, deities and (per [SPEC-002](./specs/002-map-poi-persistence.md)) map POIs are all global to the instance. A future multi-DM platform, where each DM has their own maps and content, is the **Multi-campaign support** item in [`ROADMAP.md`](./ROADMAP.md): it adds `campaignId` to every entity at once. Do not give any single entity a private `userId` or ownership column ahead of that work — a second scoping mechanism is harder to unpick than none.
+
 ---
 
 ## 6. Target architecture

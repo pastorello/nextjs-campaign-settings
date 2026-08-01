@@ -1,15 +1,16 @@
 # Documentation
 
-| Document                                 | What it is                                                      | Read it when                           |
-| ---------------------------------------- | --------------------------------------------------------------- | -------------------------------------- |
-| [`PROJECT_STATE.md`](./PROJECT_STATE.md) | Inventory: stack, layout, data model, current health, dead code | Starting a session; onboarding         |
-| [`ARCHITECTURE.md`](./ARCHITECTURE.md)   | How the pieces fit; the metadata layer explained; gaps marked   | Touching metadata, data access or auth |
-| [`TECH_DEBT.md`](./TECH_DEBT.md)         | 33 prioritised debt items with fixes and execution order        | Deciding what to work on               |
-| [`TESTING.md`](./TESTING.md)             | Test strategy, coverage targets, Jest → Vitest migration        | Writing any test                       |
-| [`ROADMAP.md`](./ROADMAP.md)             | Five phases; feature backlog; explicit non-goals                | Planning; logging an idea              |
-| [`adr/`](./adr/)                         | Architecture decision records — the _why_ behind the code       | Making or revisiting a decision        |
-| [`specs/`](./specs/)                     | Feature specs, written before implementation                    | Building a feature                     |
-| [`../CLAUDE.md`](../CLAUDE.md)           | Conventions and rules for AI-assisted development               | Every AI session                       |
+| Document                                         | What it is                                                      | Read it when                            |
+| ------------------------------------------------ | --------------------------------------------------------------- | --------------------------------------- |
+| [`PROJECT_STATE.md`](./PROJECT_STATE.md)         | Inventory: stack, layout, data model, current health, dead code | Starting a session; onboarding          |
+| [`ARCHITECTURE.md`](./ARCHITECTURE.md)           | How the pieces fit; the metadata layer explained; gaps marked   | Touching metadata, data access or auth  |
+| [`TECH_DEBT.md`](./TECH_DEBT.md)                 | Summary table + open items (TD-37–TD-43), with execution order  | Deciding what to work on                |
+| [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md) | Full write-up of every closed item, TD-01–TD-36                 | Checking if something was already tried |
+| [`TESTING.md`](./TESTING.md)                     | Test strategy, coverage targets, Jest → Vitest migration        | Writing any test                        |
+| [`ROADMAP.md`](./ROADMAP.md)                     | Five phases; feature backlog; explicit non-goals                | Planning; logging an idea               |
+| [`adr/`](./adr/)                                 | Architecture decision records — the _why_ behind the code       | Making or revisiting a decision         |
+| [`specs/`](./specs/)                             | Feature specs, written before implementation                    | Building a feature                      |
+| [`../CLAUDE.md`](../CLAUDE.md)                   | Conventions and rules for AI-assisted development               | Every AI session                        |
 
 ## How these fit together
 
@@ -37,7 +38,7 @@ ROADMAP.md          what to build, in what order
 Documentation that drifts is worse than none, because it is believed. Concretely:
 
 - `PROJECT_STATE.md` §6 (health table) is stale the moment CI turns green — update it as items land.
-- Tick items off `TECH_DEBT.md` as they ship, **in the summary table _and_ the execution order at the bottom**. Keeping the finished item's write-up is deliberate and good — the register is the only record of what was tried and rejected — but its _status_ must be current in both places.
+- Tick items off `TECH_DEBT.md` as they ship, **in the summary table _and_ the execution order at the bottom**, and move the item's full write-up into `TECH_DEBT_ARCHIVE.md` (2026-08-01 split — see that file's header). Keeping the write-up is deliberate and good — the archive is the only record of what was tried and rejected — but the _live_ register should only carry what's still open, so it stays short enough to actually be read before starting work.
 - If an implementation deviates from its spec, amend the spec's Outcome section. Do not leave the spec describing something that was not built.
 - **A completion note is a claim, not a fact.** State how a thing was verified, and prefer a claim the reader can re-run (`pnpm test:e2e --list` says 40) to a number typed once and never rechecked.
 

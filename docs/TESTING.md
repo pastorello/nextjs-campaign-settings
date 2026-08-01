@@ -1,6 +1,6 @@
 # Testing Strategy
 
-**Last updated:** 2026-07-30
+**Last updated:** 2026-08-01
 **Stack:** Vitest + Testing Library (unit/integration) · Playwright (E2E) · MSW where network mocking is needed
 **Decision record:** [ADR-0002](./adr/0002-testing-stack.md)
 
@@ -8,7 +8,7 @@
 
 ## 1. Where we are
 
-**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 173 tests across 19 files in ~3.5s. Coverage is **22.1% lines / 15.4% branches**, enforced in CI as a ratchet — see §2.
+**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 267 tests across 35 files in ~5.6s. Coverage is **27.6% lines / 19.7% branches** (2026-08-01 figure), enforced in CI as a ratchet — see §2. Closing the gap to the 70% exit criterion is tracked as [TD-37–TD-43](./TECH_DEBT.md), one risk tier at a time.
 
 **Playwright landed 2026-07-25 (TD-24).** `pnpm test:e2e` runs **40 tests across 10 files** against a real database and a dev server it starts itself — about 1.2 minutes in CI, quicker locally once the dev server is warm. Nothing is skipped. (`pnpm test:e2e --list` enumerates them without running anything, and without needing a database — the honest way to check this number.)
 
@@ -20,7 +20,7 @@
 >
 > **Anything under `.claude/worktrees/` is a second checkout of this repo.** Both runners walk the filesystem, so a leftover agent worktree makes Vitest collect every suite twice (117 tests read as 228, coverage as 30%) and makes ESLint report thousands of duplicate findings. Both configs now ignore `.claude/**`.
 
-What exists today — 173 unit tests across 19 files. The largest suites (this table is not exhaustive; the error-handling and skeleton suites added by TD-13/TD-25/TD-29 are not listed):
+What exists today — 267 unit tests across 35 files. The largest suites (this table is not exhaustive; the error-handling and skeleton suites added by TD-13/TD-25/TD-29, and the maps/POI/proxy suites added by TD-14/TD-36, are not listed):
 
 | Suite                                               | Tests | Notes                                                                      |
 | --------------------------------------------------- | ----- | -------------------------------------------------------------------------- |
@@ -82,7 +82,7 @@ Everything else is supporting cast.
 
 Set the CI threshold to whatever you actually achieve at the end of Phase 1, then never let it drop. A threshold you have to disable to merge is worse than no threshold.
 
-**Current thresholds are 22/18/15/21 (lines/functions/branches/statements)** — what the suite achieves today, not the targets above. They are a ratchet: raise them whenever a change adds real coverage, never lower them. The table stays the destination.
+**Current thresholds are 27/25/19/27 (lines/functions/branches/statements)**, raised 2026-08-01 to match what the suite actually achieves — what the suite achieves today, not the targets above. They are a ratchet: raise them whenever a change adds real coverage, never lower them. The table stays the destination.
 
 ---
 
@@ -171,7 +171,7 @@ Use `page.getByRole` / `getByLabel`, not CSS selectors — role-based queries do
 Kept for the record, and because four steps went differently than written. Deviations, all deliberate:
 
 1. **`vite-tsconfig-paths` was installed and then removed.** Vite resolves tsconfig paths natively now (`resolve: { tsconfigPaths: true }`); Vitest prints a deprecation notice if you use the plugin. One fewer dependency than this plan called for.
-2. **Coverage thresholds were set at 14/9/9/13, not 70/70/60/70.** Setting them at the target would have failed CI on day one — the exact failure mode §2 warns about. They ratchet up instead, and are **22/18/15/21 today**; §2 is the current figure, this line is what the migration shipped with.
+2. **Coverage thresholds were set at 14/9/9/13, not 70/70/60/70.** Setting them at the target would have failed CI on day one — the exact failure mode §2 warns about. They ratchet up instead, and are **27/25/19/27 today**; §2 is the current figure, this line is what the migration shipped with.
 3. **Playwright was not installed.** TD-03's exit criterion is a green unit suite enforced by CI; the eight specs in §3 are a body of work in their own right, and `pnpm create playwright` is interactive besides. The CI `e2e` job was left documented-as-unrunnable rather than half-done — **TD-24 installed it properly on 2026-07-25**, and the job has been blocking since 2026-07-26.
 4. **Tests import from `vitest` explicitly** rather than relying on `globals: true` for typing. Dropping `@types/jest` left `test`/`expect` untyped under `tsc`, and explicit imports fix that without adding a `types` array to tsconfig, which would have overridden the default and pulled the rug on `@types/node`.
 

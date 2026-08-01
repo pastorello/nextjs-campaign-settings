@@ -8,7 +8,7 @@ Guidance for AI agents (Claude Code, Cowork) working in this repository. Read th
 
 **Campaign Settings** — a self-hosted Next.js app for managing a D&D 5e homebrew campaign setting: spells, magic items, NPCs, deities, and an interactive world map.
 
-Current phase: **hardening for portfolio presentation**. Correctness, tests and code quality take priority over new features. Do not add features unless explicitly asked — if you spot one worth building, note it in `docs/ROADMAP.md` instead.
+Current phase: **hardening.** Correctness, tests and code quality take priority over new features — not to impress a reader, but because a correct, well-documented, low-drift base is what keeps this project cheap to pick back up, for the maintainer and for whichever agent opens it next. Do not add features unless explicitly asked — if you spot one worth building, note it in `docs/ROADMAP.md` instead.
 
 Read [`docs/PROJECT_STATE.md`](./docs/PROJECT_STATE.md) and [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) before your first substantial change in a session.
 
@@ -98,6 +98,7 @@ Git history records what was done. **Nothing records what was deliberately not d
 - **2026-07-22 — `ItemMeta.value` is `ReactNode`, not `PrimitiveValue`.** TD-06's written instruction to repoint the import at `PrimitiveValue` was wrong: the prop always receives `PageMeta.getDatum` output, declared `string | ReactNode`. Restoring `PrimitiveValue` re-breaks `SpellCard` and `DeityCard` with nine errors.
 - **2026-07-22 — `pg` is not dead code.** The raw `postgres` driver was removed in favour of Prisma, but `@prisma/adapter-pg` requires `pg`. `DATABASE_URL` is now the only connection string; `POSTGRES_URL` is gone.
 - **2026-07-22 — No flat file beside a directory of the same name.** `app/lib/utils.ts` and `app/lib/data.ts` were deleted and their one surviving export each moved into `app/lib/utils/data/` and `app/lib/data/`. Do not reintroduce the pattern.
+- **2026-08-01 — This project is not "for portfolio"; do not reintroduce that framing.** The stated goal used to be "hardening for portfolio presentation" (this file) and "portfolio-grade" (`docs/PROJECT_STATE.md`); both were reworded to "sustainable to keep working on" — same practical priorities (correctness and tests before features), different reason, because the audience is the maintainer and future agent sessions, not a reviewer. `README.md` was cut from 240 lines to a minimal functional one (stack, quickstart, commands, doc links) in the same pass — its screenshots, "Project status" scorecard and pitch language existed only to be looked at, cost real sync effort (they were already stale twice), and served no session's actual work. `docs/TECH_DEBT_ARCHIVE.md`'s narrative write-ups were deliberately kept as-is despite reading similarly — that content is a working record of what was tried and rejected, not a showcase, and earns its length. Don't re-add screenshots, status badges or reviewer-facing copy to `README.md` on the theory that it "looks unfinished" without them.
 
 ---
 

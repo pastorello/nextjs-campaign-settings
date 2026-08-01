@@ -34,13 +34,13 @@ export default defineConfig({
       ],
       // Deliberately set to what the suite achieves today, not to the targets
       // in docs/TESTING.md §2. A threshold you have to lower to merge is worse
-      // than no threshold; this one is a ratchet — raise it as TD-01, TD-02 and
-      // the rest bring real tests with them. The per-area targets stay the goal.
+      // than no threshold; this one is a ratchet — raise it as TD-37 through
+      // TD-43 bring real tests with them. The per-area targets stay the goal.
       thresholds: {
-        lines: 21,
-        functions: 18,
-        branches: 15,
-        statements: 21,
+        lines: 27,
+        functions: 25,
+        branches: 19,
+        statements: 27,
       },
     },
   },

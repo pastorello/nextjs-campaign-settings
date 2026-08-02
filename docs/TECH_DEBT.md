@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-08-02
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** none from TD-37–TD-43. TD-37 through TD-43 all closed 2026-08-02, TD-42 last — its "done when" (`app/ui/**` ≥60% lines, `EntityForm`/`EntityList`/`EntityLibrary` individually above that bar) is met. Every correctness/security item from the original audit is done, and this coverage sweep's own targets are met area by area; the suite as a whole sits at 50.68% lines, still short of Phase 2's 70% exit criterion (`docs/ROADMAP.md`) — the register's targets were per-tier, not "70% everywhere," so closing every TD-37–TD-43 item does not by itself reach 70% overall. What that gap is made of belongs in a fresh audit, not a reopened TD-42.
+**Open items:** TD-44, opened 2026-08-02. TD-37 through TD-43 all closed 2026-08-02, TD-42 last — its "done when" (`app/ui/**` ≥60% lines, `EntityForm`/`EntityList`/`EntityLibrary` individually above that bar) is met. Every correctness/security item from the original audit is done, and this coverage sweep's own targets are met area by area; the suite as a whole sits at 50.68% lines, still short of Phase 2's 70% exit criterion (`docs/ROADMAP.md`) — the register's targets were per-tier, not "70% everywhere," so closing every TD-37–TD-43 item does not by itself reach 70% overall. TD-44 re-measures with the coverage report's own blind spot removed and re-scopes what is actually left, rather than reopening a closed item.
 
 ## Legend
 
@@ -64,6 +64,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-41 | ✅ `app/lib/hooks/**` at 52%, target 70% — `useFilterController` entirely untested                 | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-42 | ✅ `app/ui/**` behaviour untested — domain forms/cards/libraries at ~0%, target 60%                | ~~🟢 Low~~ done      | L      | 2     |
 | TD-43 | ✅ `app/modules/maps/**` geometry and hooks near 0%, target 50%                                    | ~~🟢 Low~~ done      | M      | 2     |
+| TD-44 | Re-measure coverage with `coverage.all: true`; re-scope the 70% gap TD-37–43 didn't close          | 🟡 Medium            | S      | 2     |
 
 ---
 
@@ -272,6 +273,25 @@ The original write-up follows for context.
 
 ---
 
+## Post-sweep scoping — TD-44
+
+### TD-44 🟡 Re-measure coverage with `coverage.all: true`; re-scope the 70% gap TD-37–43 didn't close
+
+**Where:** `vitest.config.ts`'s `coverage.all` option (currently unset, so it defaults to `false`); downstream, the coverage figures in `docs/TESTING.md` and the CI ratchet thresholds in `vitest.config.ts`.
+
+**Why:** TD-37 through TD-43 each closed against the per-tier target `docs/TESTING.md` §2 actually named for that area, and every one of those targets is now met. The suite still sits at 50.68% lines against the 70% overall gate — a real gap, but one measured against an incomplete picture. Without `coverage.all: true`, the v8 provider only instruments files at least one test imports; a file nobody has touched yet does not appear in the report at all, so the current ~3289-line denominator undercounts the actual codebase. `docs/TESTING.md`'s own guiding line — "coverage is a diagnostic, not a goal" — cuts both ways: a diagnostic run against a deliberately incomplete file list is not trustworthy input for deciding what to test next. This is the same shape of drift this file's "Coverage hardening" section was opened to fix in the first place (the stale-22%-vs-"Phase-2-complete" disagreement) — recurring here one level down, in the tool that produces the number rather than in how the number was read.
+
+**Plan:** flip `coverage.all: true` in `vitest.config.ts`, run `pnpm test:coverage`, and diff the new report against the current one. Expect the percentage to drop before anything improves — that is the point, not a regression, and the CI ratchet thresholds will need lowering to match reality rather than being gamed to hold. From the resulting picture, file separate, independently-sized items for whatever actually needs work. Two gaps are already visible even without the flag, from a manual breakdown of the current report by directory:
+
+- **Page-level Next.js route components** (`app/[locale]/dashboard/**`, `app/ui/geography`, and similar) are entirely untested and, unlike every other named gap in TD-37–43, were never assigned a target — `docs/TESTING.md` §2's table has no row for this layer at all. It has had no target to hit and no item pushing it forward, which is different from every other tier here having been sized and simply not yet done.
+- **`app/modules/maps/components/**`** (Leaflet rendering) is the reason the maps directory reads 29.7% overall despite `lib/utils/**` + `hooks/**` clearing their 50% target on their own. This was a deliberate TD-43 scope decision, not an oversight — `docs/TESTING.md` already routes this coverage through `e2e/map.spec.ts`, not Vitest. Closing it means growing the e2e suite, a different kind of work with a different risk profile, and should be planned and sized on its own rather than folded into a `pnpm test:coverage` number.
+
+**Do not fold either into a reopened TD-42 or TD-43.** Both closed against the target they were actually given; retroactively enlarging a closed item's scope after the fact is the same class of mistake as `CLAUDE.md`'s "flat file beside a directory" entry in the Decisions log — a boundary that existed for a reason getting quietly redrawn because it was inconvenient in the moment.
+
+**Done when:** `coverage.all: true` is set and committed, a fresh baseline is recorded in `docs/TESTING.md` replacing the current 50.68% figure, the CI ratchet thresholds in `vitest.config.ts` are adjusted to match, and the resulting gap is filed as its own dated item(s) in this register. "Done" here means _scoped_, not necessarily closed — this item's job is producing an accurate map of what is left, not filling in all of it in one session.
+
+---
+
 ## Recommended execution order
 
 ```
@@ -316,6 +336,8 @@ The original write-up follows for context.
 35.  TD-41  app/lib/hooks/** → useFilterController untested, target 70%
 36.  TD-42  app/ui/** behaviour → EntityForm/List/Library first, target 60%
 37.  TD-43  app/modules/maps/** geometry + hooks → target 50%, rendering stays E2E-only
+--- TD-37–43 all closed 2026-08-02; per-tier targets met, but coverage.all: false hides the true gap ---
+38.  TD-44  coverage.all: true, re-measure, re-scope the 70% gap into new dated items
 ```
 
 **Maintenance note (2026-07-30).** This block had drifted badly: it carried ✅ on 9

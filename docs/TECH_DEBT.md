@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-08-02
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-43, opened 2026-08-01. TD-37, TD-38, TD-39, TD-40 and TD-41 closed 2026-08-02; TD-42 partially done the same day. Every correctness/security item from the original audit is done; what is left is coverage — Phase 2's exit criterion (`docs/ROADMAP.md`) has always required 70% and the suite sits at 35.81% lines. TD-37–TD-43 slice that gap by area, ordered by how delicate the area is (auth/DB bootstrap first, presentation-only code last), matching the risk tiers already defined in `docs/TESTING.md` §2. No feature work — every item below adds tests against existing behaviour, nothing more.
+**Open items:** none from TD-37–TD-43 outright; TD-42 partially done. TD-37, TD-38, TD-39, TD-40, TD-41 and TD-43 closed 2026-08-02. Every correctness/security item from the original audit is done; what is left is coverage — Phase 2's exit criterion (`docs/ROADMAP.md`) has always required 70% and the suite sits at 45.88% lines. TD-37–TD-43 sliced that gap by area, ordered by how delicate the area is (auth/DB bootstrap first, presentation-only code last), matching the risk tiers already defined in `docs/TESTING.md` §2 — TD-42 (`app/ui/**` behaviour) is what remains between here and the 70% target.
 
 ## Legend
 
@@ -63,7 +63,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-40 | ✅ Metadata correctness untested — `npcMeta`/`deityMeta` at 14%/25%, target 80%                    | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-41 | ✅ `app/lib/hooks/**` at 52%, target 70% — `useFilterController` entirely untested                 | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-42 | ◑ `app/ui/**` behaviour untested — domain forms/cards/libraries at ~0%, target 60%                 | 🟢 Low               | L      | 2     |
-| TD-43 | `app/modules/maps/**` geometry and hooks near 0%, target 50%                                       | 🟢 Low               | M      | 2     |
+| TD-43 | ✅ `app/modules/maps/**` geometry and hooks near 0%, target 50%                                    | ~~🟢 Low~~ done      | M      | 2     |
 
 ---
 
@@ -229,7 +229,19 @@ The original write-up follows for context.
 
 ---
 
-### TD-43 🟢 `app/modules/maps/**` geometry and hooks near 0%
+### TD-43 ✅ `app/modules/maps/**` geometry and hooks near 0% — **DONE (2026-08-02)**
+
+**Outcome:** `app/modules/maps/lib/utils/**` + `hooks/**` (excluding `components/`) reads 56.16% lines (442/787), above the 50% target. Covered, table-driven, no Leaflet-rendering involved: `coordinates.test.ts` (100%), `validation.test.ts` (86.44%) and `maps.test.ts` (89.52%) — the last of these against the _real_ `leaflet` package rather than a stub, confirmed safe to import headlessly first (bounds/geometry math needs no DOM; only tile rendering does). On the hooks side: `useTheme.test.ts` (mocking `next-themes` directly), `useMapTileProvider.test.ts` (mocking the sibling `useTheme` hook), `useMapControls.test.ts`, `useMapContextMenu.test.ts` (a fake map with working `on`/`off` to drive open/close transitions on right-click, click-away and Escape) and `useSafeMapOperations.test.ts`, all via a hand-built `MapContext.Provider` wrapper rather than the real `MapProvider`, for direct control over the map instance each hook receives.
+
+**Narrower than the original plan, deliberately.** `useMeasurement` (135 lines) and `useMapMarkers` (42 lines) were left uncovered: both create real Leaflet layers via `L.marker(...).addTo(map)`, and `Layer.addTo` calls into `map.addLayer`, which in a real Leaflet `Map` does DOM wiring (`_panes`, icon positioning, `viewreset` listeners) that a hand-rolled fake `addLayer` can't reproduce without re-implementing Leaflet itself. That crosses into the rendering territory this item's own "Why" section already routes to `e2e/map.spec.ts`, not Vitest — the same reasoning TD-36 established. `useGeolocation` (`navigator.geolocation`, real browser permissions flow) was skipped for the same reason: not pure logic, not worth a jsdom-mocked navigator to hit a number. The 50% target was reached without them; the aggregate, not full per-file coverage, is what "done when" asks for.
+
+**Where:** `app/modules/maps/lib/utils/{coordinates,validation,maps}.test.ts`, `app/modules/maps/hooks/{useTheme,useMapTileProvider,useMapControls,useMapContextMenu,useSafeMapOperations}.test.ts`.
+
+The original write-up follows for context.
+
+---
+
+### TD-43 (original) 🟢 `app/modules/maps/**` geometry and hooks near 0%
 
 **Where:** `app/modules/maps/lib/utils/{coordinates,maps,validation}.ts` (all 0%) — these are the same twenty sites TD-20b's write-up names as the reason `noUncheckedIndexedAccess` initially couldn't be verified safe by test; TD-20b shipped anyway with documented non-null assertions instead, so this item is not blocking anything, it is closing the gap TD-20b left on the table. Also `app/modules/maps/hooks/` at 20% (`useMeasurement`, `useMapMarkers`, `useContextMenu`, `useMapControls` all 0%) and `app/modules/maps/components/map/**` (0%, Leaflet rendering).
 

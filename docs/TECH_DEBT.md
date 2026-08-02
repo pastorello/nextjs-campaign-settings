@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-08-02
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-41, TD-43, opened 2026-08-01. TD-37, TD-38, TD-39 and TD-40 closed 2026-08-02; TD-42 partially done the same day. Every correctness/security item from the original audit is done; what is left is coverage — Phase 2's exit criterion (`docs/ROADMAP.md`) has always required 70% and the suite sits at 35.2% lines. TD-37–TD-43 slice that gap by area, ordered by how delicate the area is (auth/DB bootstrap first, presentation-only code last), matching the risk tiers already defined in `docs/TESTING.md` §2. No feature work — every item below adds tests against existing behaviour, nothing more.
+**Open items:** TD-43, opened 2026-08-01. TD-37, TD-38, TD-39, TD-40 and TD-41 closed 2026-08-02; TD-42 partially done the same day. Every correctness/security item from the original audit is done; what is left is coverage — Phase 2's exit criterion (`docs/ROADMAP.md`) has always required 70% and the suite sits at 35.81% lines. TD-37–TD-43 slice that gap by area, ordered by how delicate the area is (auth/DB bootstrap first, presentation-only code last), matching the risk tiers already defined in `docs/TESTING.md` §2. No feature work — every item below adds tests against existing behaviour, nothing more.
 
 ## Legend
 
@@ -61,7 +61,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-38 | ✅ `fetch*`/`get*Count` untested for deities, magicitems, npc — data layer at 51%, target 90%      | ~~🟠 High~~ done     | S      | 2     |
 | TD-39 | ✅ Pure functions in `app/lib/utils/**` at 51%, target 95% — cheapest real coverage in the project | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-40 | ✅ Metadata correctness untested — `npcMeta`/`deityMeta` at 14%/25%, target 80%                    | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-41 | `app/lib/hooks/**` at 52%, target 70% — `useFilterController` entirely untested                    | 🟡 Medium            | S      | 2     |
+| TD-41 | ✅ `app/lib/hooks/**` at 52%, target 70% — `useFilterController` entirely untested                 | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-42 | ◑ `app/ui/**` behaviour untested — domain forms/cards/libraries at ~0%, target 60%                 | 🟢 Low               | L      | 2     |
 | TD-43 | `app/modules/maps/**` geometry and hooks near 0%, target 50%                                       | 🟢 Low               | M      | 2     |
 
@@ -193,7 +193,17 @@ The original write-up follows for context.
 
 ---
 
-### TD-41 🟡 `app/lib/hooks/**` at 52% — `useFilterController` entirely untested
+### TD-41 ✅ `app/lib/hooks/**` at 52% — `useFilterController` entirely untested — **DONE (2026-08-02)**
+
+**Outcome:** `app/lib/hooks/**` now reads 95.56% lines (43/45), above the 70% target. Added `useFilterController.test.ts` (7 tests) via `renderHook`, mocking `next/navigation`'s `useRouter`/`usePathname`/`useSearchParams` the way `useClearSearchParams.test.ts` already does — `useSearchParams` returns a real `URLSearchParams` instance so the hook's own `new URLSearchParams(searchParams)` and `.get()` calls behave exactly as they would against the real API. Covers: inactive/no value with the param absent, active with the parsed value once present, `sortValue` defaulting to ascending and reading `desc` only when the URL says so, and `onFilter` both setting the field's param (resetting `page` to `1`) and — the one branch a first pass could easily miss — removing the param instead of writing `?level=-1` when the value is the query layer's "no selection" sentinel. Test suite grew 504 → 510.
+
+**Where:** `app/lib/hooks/useFilterController.test.ts`.
+
+The original write-up follows for context.
+
+---
+
+### TD-41 (original) 🟡 `app/lib/hooks/**` at 52% — `useFilterController` entirely untested
 
 **Where:** `app/lib/hooks/useFilterController.ts` (0%); `usePageManager.ts` is already at 92%, the pattern to follow.
 

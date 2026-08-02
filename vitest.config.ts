@@ -32,15 +32,24 @@ export default defineConfig({
         "**/*.d.ts",
         "app/modules/maps/components/ui/**",
       ],
+      // No `all: true` here — Vitest 4's v8 provider (this repo runs 4.1.10)
+      // removed the option because instrumenting every `include`d file,
+      // touched by a test or not, is now unconditional default behaviour.
+      // Confirmed 2026-08-02 (TD-44): setting `all: true` on Vitest 3 first
+      // produced the same totals either way, then failed `tsc` outright once
+      // upgraded, because the property no longer exists on `CoverageOptions`.
+      // There is no blind spot left to remove — this file list already is
+      // the whole `app/**` tree.
+      //
       // Deliberately set to what the suite achieves today, not to the targets
       // in docs/TESTING.md §2. A threshold you have to lower to merge is worse
-      // than no threshold; this one is a ratchet — raise it as TD-37 through
-      // TD-43 bring real tests with them. The per-area targets stay the goal.
+      // than no threshold; this one is a ratchet — raise it whenever a change
+      // adds real coverage. Re-measured 2026-08-02 (TD-44).
       thresholds: {
-        lines: 34,
-        functions: 32,
-        branches: 28,
-        statements: 34,
+        lines: 50,
+        functions: 50,
+        branches: 47,
+        statements: 50,
       },
     },
   },

@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-08-02
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-44, opened 2026-08-02. TD-37 through TD-43 all closed 2026-08-02, TD-42 last — its "done when" (`app/ui/**` ≥60% lines, `EntityForm`/`EntityList`/`EntityLibrary` individually above that bar) is met. Every correctness/security item from the original audit is done, and this coverage sweep's own targets are met area by area; the suite as a whole sits at 50.68% lines, still short of Phase 2's 70% exit criterion (`docs/ROADMAP.md`) — the register's targets were per-tier, not "70% everywhere," so closing every TD-37–TD-43 item does not by itself reach 70% overall. TD-44 re-measures with the coverage report's own blind spot removed and re-scopes what is actually left, rather than reopening a closed item.
+**Open items:** TD-45 and TD-46, opened 2026-08-02. TD-44 closed the same day: `coverage.all: true` is on, and — surprisingly — changed nothing (see TD-44's write-up), so the 50.68%-lines baseline stands confirmed rather than corrected. What TD-44 did produce is two properly scoped gaps, filed as TD-45 (page-level route components, 0% covered, never had a target) and TD-46 (`app/modules/maps/components/**` Leaflet rendering, 0% covered, routed through e2e by design). Every correctness/security item from the original audit is done, and the TD-37–TD-43 coverage sweep's own per-tier targets are all met — the suite as a whole is still short of Phase 2's 70% exit criterion (`docs/ROADMAP.md`), and TD-45/TD-46 are what is actually left to close that gap.
 
 ## Legend
 
@@ -64,7 +64,9 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-41 | ✅ `app/lib/hooks/**` at 52%, target 70% — `useFilterController` entirely untested                 | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-42 | ✅ `app/ui/**` behaviour untested — domain forms/cards/libraries at ~0%, target 60%                | ~~🟢 Low~~ done      | L      | 2     |
 | TD-43 | ✅ `app/modules/maps/**` geometry and hooks near 0%, target 50%                                    | ~~🟢 Low~~ done      | M      | 2     |
-| TD-44 | Re-measure coverage with `coverage.all: true`; re-scope the 70% gap TD-37–43 didn't close          | 🟡 Medium            | S      | 2     |
+| TD-44 | ✅ Re-measured coverage with `coverage.all: true`; re-scoped the 70% gap as TD-45/TD-46            | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-45 | Page-level route components (`app/[locale]/dashboard/**`, `app/ui/geography`) untested, no target  | 🟡 Medium            | M      | 2     |
+| TD-46 | `app/modules/maps/components/**` (Leaflet rendering, 737 lines) untested — needs e2e, not Vitest   | 🟡 Medium            | L      | 2     |
 
 ---
 
@@ -273,22 +275,40 @@ The original write-up follows for context.
 
 ---
 
-## Post-sweep scoping — TD-44
+## Post-sweep scoping — TD-44 through TD-46
 
-### TD-44 🟡 Re-measure coverage with `coverage.all: true`; re-scope the 70% gap TD-37–43 didn't close
+### TD-44 ✅ Re-measure coverage with `coverage.all: true`; re-scope the 70% gap TD-37–43 didn't close — **DONE (2026-08-02)**
 
-**Where:** `vitest.config.ts`'s `coverage.all` option (currently unset, so it defaults to `false`); downstream, the coverage figures in `docs/TESTING.md` and the CI ratchet thresholds in `vitest.config.ts`.
+**Outcome:** `coverage.all: true` is set in `vitest.config.ts`. Re-running `pnpm test:coverage` with the flag on and off, on the same commit, produced byte-identical totals — 3289 lines either way, 1667 covered, 50.68%. **The suspected blind spot doesn't exist in this repo.** Without `all: true`, the v8 provider only instruments files a test actually loads — but with 93 test files exercising a codebase this interconnected, every file under `app/**` already gets pulled in transitively (shared definitions, enums re-exported through barrels, config composed from the same modules the tests import directly). There was no invisible file to find. The flag stays on anyway, as the more correct default going forward, and because the plan's premise — "a diagnostic run against a deliberately incomplete file list is not trustworthy input" — is still true in general, just not falsified by anything this repo currently has lying around untouched.
 
-**Why:** TD-37 through TD-43 each closed against the per-tier target `docs/TESTING.md` §2 actually named for that area, and every one of those targets is now met. The suite still sits at 50.68% lines against the 70% overall gate — a real gap, but one measured against an incomplete picture. Without `coverage.all: true`, the v8 provider only instruments files at least one test imports; a file nobody has touched yet does not appear in the report at all, so the current ~3289-line denominator undercounts the actual codebase. `docs/TESTING.md`'s own guiding line — "coverage is a diagnostic, not a goal" — cuts both ways: a diagnostic run against a deliberately incomplete file list is not trustworthy input for deciding what to test next. This is the same shape of drift this file's "Coverage hardening" section was opened to fix in the first place (the stale-22%-vs-"Phase-2-complete" disagreement) — recurring here one level down, in the tool that produces the number rather than in how the number was read.
+**Corrected finding:** the two gaps the original plan flagged as "already visible even without the flag" turned out to be the whole story, not a preview of a bigger one:
 
-**Plan:** flip `coverage.all: true` in `vitest.config.ts`, run `pnpm test:coverage`, and diff the new report against the current one. Expect the percentage to drop before anything improves — that is the point, not a regression, and the CI ratchet thresholds will need lowering to match reality rather than being gamed to hold. From the resulting picture, file separate, independently-sized items for whatever actually needs work. Two gaps are already visible even without the flag, from a manual breakdown of the current report by directory:
+- **Page-level Next.js route components** (`app/[locale]/dashboard/**`, `app/ui/geography`) — 21 files, 121 lines, plus `app/ui/geography/WorldMap.tsx` at 114 lines. 235 lines total, 0% covered, no target in `docs/TESTING.md` §2's table. Filed as **TD-45**.
+- **`app/modules/maps/components/**`** (Leaflet rendering) — 19 files, 737 lines, 0% covered. This alone accounts for the maps directory's low overall score despite `lib/utils/**` + `hooks/**` clearing TD-43's 50% target on their own. Deliberately routed through `e2e/map.spec.ts` rather than Vitest (`docs/TESTING.md` already says so; TD-36 is the standing example of why a Vitest rendering assertion wouldn't have caught that bug anyway). Filed as **TD-46**.
 
-- **Page-level Next.js route components** (`app/[locale]/dashboard/**`, `app/ui/geography`, and similar) are entirely untested and, unlike every other named gap in TD-37–43, were never assigned a target — `docs/TESTING.md` §2's table has no row for this layer at all. It has had no target to hit and no item pushing it forward, which is different from every other tier here having been sized and simply not yet done.
-- **`app/modules/maps/components/**`** (Leaflet rendering) is the reason the maps directory reads 29.7% overall despite `lib/utils/**` + `hooks/**` clearing their 50% target on their own. This was a deliberate TD-43 scope decision, not an oversight — `docs/TESTING.md` already routes this coverage through `e2e/map.spec.ts`, not Vitest. Closing it means growing the e2e suite, a different kind of work with a different risk profile, and should be planned and sized on its own rather than folded into a `pnpm test:coverage` number.
+Thresholds in `vitest.config.ts` raised to 50/50/47/50 (lines/functions/branches/statements) to match what the suite actually achieves, replacing the stale 34/32/28/34 that had drifted behind TD-37–43's own progress. Baseline recorded in `docs/TESTING.md` §1.
 
-**Do not fold either into a reopened TD-42 or TD-43.** Both closed against the target they were actually given; retroactively enlarging a closed item's scope after the fact is the same class of mistake as `CLAUDE.md`'s "flat file beside a directory" entry in the Decisions log — a boundary that existed for a reason getting quietly redrawn because it was inconvenient in the moment.
+**Do not fold TD-45 or TD-46 into a reopened TD-42 or TD-43.** Both closed against the target they were actually given; retroactively enlarging a closed item's scope after the fact is the same class of mistake as `CLAUDE.md`'s "flat file beside a directory" entry in the Decisions log — a boundary that existed for a reason getting quietly redrawn because it was inconvenient in the moment.
 
-**Done when:** `coverage.all: true` is set and committed, a fresh baseline is recorded in `docs/TESTING.md` replacing the current 50.68% figure, the CI ratchet thresholds in `vitest.config.ts` are adjusted to match, and the resulting gap is filed as its own dated item(s) in this register. "Done" here means _scoped_, not necessarily closed — this item's job is producing an accurate map of what is left, not filling in all of it in one session.
+### TD-45 🟡 Page-level route components have no coverage target and 0% coverage
+
+**Where:** `app/[locale]/dashboard/**` (layouts, loading/error/not-found boundaries, the 13 domain `page.tsx` files under `admin/` and the plain list routes) and `app/ui/geography/WorldMap.tsx`. 22 files, 235 lines, all 0%.
+
+**Why:** every other tier in `docs/TESTING.md` §2's coverage-targets table was sized and pushed forward by TD-37–43; this layer was never given a row, so nothing has ever pointed at it. Most of these are thin Server Components (a `page.tsx` that composes a data fetch with a layout shell) — the risky logic they call into (`fetch*`, metadata, mutations) is already covered elsewhere per TD-38/TD-40, so this is not a security gap, but it is 235 lines of the app with zero verification that the composition itself is correct (right fetch called, right component rendered, error/loading boundaries actually wired).
+
+**Plan:** decide a realistic target first — these are Server Components, so this is integration-shaped testing (React Testing Library against the rendered output, or a Next.js-aware harness), not the same shape as the hook/util work TD-37–43 did. `error.tsx`/`not-found.tsx`/`loading.tsx` boundaries are the highest-value subset (they're plain components with real conditional logic, cheapest to reach with RTL). The `admin/*/page.tsx` and `dashboard/*/page.tsx` files are largely repetitive composition — check whether one representative test per pattern, not one per domain, gets most of the value TD-42's `EntityList`/`EntityLibrary` tests didn't already cover from the other side.
+
+**Done when:** a target is added to `docs/TESTING.md` §2's table for this layer, and the suite meets it.
+
+### TD-46 🟡 `app/modules/maps/components/**` (Leaflet rendering) has 0% Vitest coverage by design — needs e2e instead
+
+**Where:** `app/modules/maps/components/map/` — `LeafletMap.tsx`, `MapMarker.tsx`, `MapContextMenu.tsx`, `MapPOIPanel.tsx`, `MapSearchBar.tsx`, `MapMain.tsx`, `MapControls.tsx`, `MapDetailsPanel.tsx`, `MapMeasurementPanel.tsx`, and smaller supporting components. 19 files, 737 lines, 0% covered.
+
+**Why:** `docs/TESTING.md` already routes Leaflet rendering coverage through `e2e/map.spec.ts` rather than Vitest — jsdom can't meaningfully render a Leaflet map, and TD-36's bug (a middleware routing issue) is the standing example of a rendering assertion in Vitest not being where this class of bug actually shows up. This is by far the largest coverage gap left in the codebase — 737 lines is more than the two other items combined — and closing it is e2e work, a different risk profile and skill from the unit/hook work TD-37–46 have otherwise been.
+
+**Plan:** audit what `e2e/map.spec.ts` currently exercises against this component list; most likely it covers a handful of the top-level interactions (placing a POI, opening a marker) and leaves panels, search, and measurement unexercised. Size this as its own multi-session e2e expansion, not a single item — `CLAUDE.md`'s guidance to keep items completable in one session applies to sub-slices of this (e.g. "POI panel CRUD via e2e", "map search and filtering via e2e"), not to "cover the whole maps module" as one unit.
+
+**Done when:** either a concrete e2e coverage target is set and met for this component tree, or — if headless Leaflet rendering coverage is judged not worth the e2e investment — `docs/TESTING.md` §2 is updated to say so explicitly, so the 0% reads as a documented decision rather than an open gap the next session re-discovers.
 
 ---
 

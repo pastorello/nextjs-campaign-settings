@@ -62,7 +62,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-39 | Pure functions in `app/lib/utils/**` at 51%, target 95% — cheapest real coverage in the project | 🟡 Medium            | S      | 2     |
 | TD-40 | Metadata correctness untested — `npcMeta`/`deityMeta` at 14%/25%, target 80%                    | 🟡 Medium            | S      | 2     |
 | TD-41 | `app/lib/hooks/**` at 52%, target 70% — `useFilterController` entirely untested                 | 🟡 Medium            | S      | 2     |
-| TD-42 | `app/ui/**` behaviour untested — domain forms/cards/libraries at ~0%, target 60%                | 🟢 Low               | L      | 2     |
+| TD-42 | ◑ `app/ui/**` behaviour untested — domain forms/cards/libraries at ~0%, target 60%              | 🟢 Low               | L      | 2     |
 | TD-43 | `app/modules/maps/**` geometry and hooks near 0%, target 50%                                    | 🟢 Low               | M      | 2     |
 
 ---
@@ -143,9 +143,11 @@ Figures below are from a live `pnpm test:coverage` run on 2026-08-01, not from t
 
 ---
 
-### TD-42 🟢 `app/ui/**` behaviour untested — domain forms/cards/libraries near 0%
+### TD-42 ◑ `app/ui/**` behaviour untested — domain forms/cards/libraries near 0%
 
-**Where:** effectively all of `app/ui/{deities,npc,magicitems,spells}/`, `app/ui/forms/`, `app/ui/components/` (`EntityList`, `EntityLibrary`, `Modal`, `pagination`), `app/ui/buttons/`. `Select` (91%) and `BaseButton/getCSSClasses` (100%) are the two components already covered — the pattern to extend, not a green field.
+**Progress (2026-08-02):** the shared form machinery is covered, following exactly the "prioritize the TD-09 shells first" plan below — `EntityForm.tsx` (9 tests: create vs. edit mode, the `disableUntilEdited` gate, submit calling `create`/`update` with the right payload shape, field errors surfacing and blocking `onSaveFinished`), `PageForm.tsx` (10 tests: save vs. delete mode, button enablement, `isSaving` copy), and all of `app/ui/forms/inputs/` — `TextInput`, `TextareaInput`, `CheckboxInput`, `FormLabel`, `InputComponent` (which resolves a real `MetaConfigKey` against live `pageMetaFields` config to the right control, rather than a fake registry). Statements coverage moved 27.4% → 29.75%, branches 19.67% → 24.4%. `EntityList`/`EntityLibrary` and the per-domain `*Card.tsx`/`*Form.tsx` wrappers remain open — this item is not done, both TD-09 shells named in "done when" are still outstanding.
+
+**Where:** effectively all of `app/ui/{deities,npc,magicitems,spells}/`, `app/ui/components/` (`EntityList`, `EntityLibrary`, `Modal`, `pagination`), `app/ui/buttons/`. `Select` (91%), `BaseButton/getCSSClasses` (100%) and `app/ui/forms/` (above) are now covered — the pattern to extend, not a green field.
 
 **Why last:** `docs/TESTING.md` §2 sets this tier's target lowest among app code (60%, "behaviour, not markup") and is explicit that this is supporting cast, not one of the four things a reviewer pokes at. It's also the largest single surface in the register (this is why it's sized L, not S) — TD-09 already collapsed four duplicated component quartets into `EntityList`/`EntityLibrary`/`EntityForm`, so most of this domain-specific 0% is actually the same three generic components rendered four times, and testing the generic shell once covers most of the gap rather than requiring 16 separate suites.
 

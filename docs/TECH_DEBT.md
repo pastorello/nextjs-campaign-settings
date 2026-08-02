@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-08-02
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-38 – TD-43, opened 2026-08-01. TD-37 closed 2026-08-02. Every correctness/security item from the original audit is done; what is left is coverage — Phase 2's exit criterion (`docs/ROADMAP.md`) has always required 70% and the suite sits at 28.74% lines. TD-37–TD-43 slice that gap by area, ordered by how delicate the area is (auth/DB bootstrap first, presentation-only code last), matching the risk tiers already defined in `docs/TESTING.md` §2. No feature work — every item below adds tests against existing behaviour, nothing more.
+**Open items:** TD-38 – TD-41, TD-43, opened 2026-08-01. TD-37 closed 2026-08-02; TD-42 partially done the same day. Every correctness/security item from the original audit is done; what is left is coverage — Phase 2's exit criterion (`docs/ROADMAP.md`) has always required 70% and the suite sits at 31.15% lines. TD-37–TD-43 slice that gap by area, ordered by how delicate the area is (auth/DB bootstrap first, presentation-only code last), matching the risk tiers already defined in `docs/TESTING.md` §2. No feature work — every item below adds tests against existing behaviour, nothing more.
 
 ## Legend
 
@@ -19,8 +19,8 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-| ID    | Title                                                                                              | Severity             | Effort | Phase |
-| ----- | --------------------------------------------------------------------------------------------------- | --------------------- | ------ | ----- |
+| ID    | Title                                                                                             | Severity             | Effort | Phase |
+| ----- | ------------------------------------------------------------------------------------------------- | -------------------- | ------ | ----- |
 | TD-01 | ✅ Unauthenticated delete endpoints and Server Actions                                            | ~~🔴 Critical~~ done | M      | 1     |
 | TD-02 | ✅ No input validation, incl. TD-02b's remaining boundaries                                       | ~~🔴 Critical~~ done | M      | 1–2   |
 | TD-03 | ✅ Test suite does not run                                                                        | ~~🔴 Critical~~ done | M      | 1     |

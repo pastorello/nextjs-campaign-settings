@@ -64,7 +64,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-41 | ✅ `app/lib/hooks/**` at 52%, target 70% — `useFilterController` entirely untested                 | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-42 | ✅ `app/ui/**` behaviour untested — domain forms/cards/libraries at ~0%, target 60%                | ~~🟢 Low~~ done      | L      | 2     |
 | TD-43 | ✅ `app/modules/maps/**` geometry and hooks near 0%, target 50%                                    | ~~🟢 Low~~ done      | M      | 2     |
-| TD-44 | ✅ Re-measured coverage with `coverage.all: true`; re-scoped the 70% gap as TD-45/TD-46             | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-44 | ✅ Re-measured coverage with `coverage.all: true`; re-scoped the 70% gap as TD-45/TD-46            | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-45 | Page-level route components (`app/[locale]/dashboard/**`, `app/ui/geography`) untested, no target  | 🟡 Medium            | M      | 2     |
 | TD-46 | `app/modules/maps/components/**` (Leaflet rendering, 737 lines) untested — needs e2e, not Vitest   | 🟡 Medium            | L      | 2     |
 

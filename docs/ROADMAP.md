@@ -37,7 +37,7 @@ Order matters. Deleting dead code first removes roughly half the type errors, so
 
 **Goal:** the code demonstrates deliberate engineering, not just working behaviour. This is the phase that turns "a project that works" into "a project worth showing".
 **Estimated effort:** 16–24 hours.
-**Exit criteria:** ✅ zero `any` · coverage above 70% (**at 27.6% lines today** — still the one criterion open; tracked as TD-37–TD-43) · ✅ the duplicated component quartets are gone · ✅ a keyboard-only user can complete every flow.
+**Exit criteria:** ✅ zero `any` · coverage above 70% (**at 50.68% lines today** — still the one criterion open; TD-37–TD-43 closed their per-tier targets, TD-44 re-measured and re-scoped the remainder as TD-45/TD-46) · ✅ the duplicated component quartets are gone · ✅ a keyboard-only user can complete every flow.
 
 | #   | Task                                                                              | Debt   | Effort |
 | --- | --------------------------------------------------------------------------------- | ------ | ------ |
@@ -63,11 +63,14 @@ Order matters. Deleting dead code first removes roughly half the type errors, so
 | 19  | Domain metadata declarations untested — `npcMeta`/`deityMeta` under 25%           | TD-40  | S      |
 | 20  | `useFilterController` untested; `app/lib/hooks/**` at 52%, target 70%             | TD-41  | S      |
 | 21  | `app/ui/**` behaviour tests — `EntityForm`/`List`/`Library` first                 | TD-42  | L      |
-| 22  | `app/modules/maps/**` geometry + hooks (not rendering) → target 50%               | TD-43  | M      |
+| 22  | ✅ `app/modules/maps/**` geometry + hooks (not rendering) → target 50%            | TD-43  | M      |
+| 23  | ✅ Re-measured with `coverage.all: true`; confirmed no blind spot, re-scoped rest | TD-44  | S      |
+| 24  | Page-level route components (`dashboard/**`, `WorldMap.tsx`) untested, no target  | TD-45  | M      |
+| 25  | `app/modules/maps/components/**` (Leaflet rendering, 737 lines) untested          | TD-46  | L      |
 
 **Also landed here, found while doing the work** rather than planned: TD-25 (startup DB-reachability check), TD-26 (`sottoclassi`/`circolo` duplication), TD-27 (a hidden `classi=0` filter on the spell list), TD-28 (seed ids), TD-31 (shared mutable `PageMeta.options`), TD-32 (nine minutes a run of CI apt), TD-36 (`.jpg` map tiles blocked by the auth/i18n matcher). That is seven defects surfaced by hardening work — the argument for the phase.
 
-**What is actually left:** TD-20b resolved without needing maps-module coverage (documented non-null assertions instead, 2026-07-31 — see its write-up in `TECH_DEBT_ARCHIVE.md`), so this line was stale calling it "blocked". What is genuinely open is coverage itself: TD-37–TD-43, opened 2026-08-01, close the gap between the suite's actual reach (27.6% lines) and this phase's 70% exit criterion, one risk tier at a time.
+**What is actually left:** TD-20b resolved without needing maps-module coverage (documented non-null assertions instead, 2026-07-31 — see its write-up in `TECH_DEBT_ARCHIVE.md`), so this line was stale calling it "blocked". TD-37–TD-43 (opened 2026-08-01) closed every per-tier coverage target; TD-44 (2026-08-02) confirmed the suite's reach isn't undercounted by `coverage.all` and re-scoped the remaining gap to this phase's 70% exit criterion as two dated items: TD-45 (page-level route components) and TD-46 (`app/modules/maps/components/**` Leaflet rendering).
 
 **Item 14 is only half done.** `docs/screenshots/spells-list.png` and `map.jpg` were taken and are still on disk, but the 2026-08-01 README trim (see `CLAUDE.md`'s decisions log) cut the section that referenced them — nothing in the repo links to either file now. Keep them and re-link, or delete them; leaving orphaned binary assets on disk is its own small drift.
 

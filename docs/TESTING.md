@@ -8,7 +8,9 @@
 
 ## 1. Where we are
 
-**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 267 tests across 35 files in ~5.6s. Coverage is **27.6% lines / 19.7% branches** (2026-08-01 figure), enforced in CI as a ratchet — see §2. Closing the gap to the 70% exit criterion is tracked as [TD-37–TD-43](./TECH_DEBT.md), one risk tier at a time.
+**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 682 tests across 93 files. Coverage is **50.68% lines / 47.64% branches** (2026-08-02 figure, measured with `coverage.all: true` — see the TD-44 note below), enforced in CI as a ratchet — see §2. Closing the gap to the 70% exit criterion is tracked as [TD-45 and TD-46](./TECH_DEBT.md).
+
+**`coverage.all: true` (TD-44, 2026-08-02):** flipped on to remove the v8 provider's blind spot — without it, a file no test ever imports doesn't appear in the report at all, so the denominator could be silently undercounting the codebase. In this repo it turned out to change nothing: re-running with the flag on and off produced byte-identical totals (3289 lines either way), because every file under `app/**` is already touched transitively by some test in the 93-file suite — there was no invisible file. The flag stays on regardless, as the correct default going forward; it just wasn't hiding anything today. What the full picture *did* surface, cleanly, is two directories nothing has a target for: page-level route components and `app/modules/maps/components/**` (Leaflet rendering) — filed as TD-45 and TD-46.
 
 **Playwright landed 2026-07-25 (TD-24).** `pnpm test:e2e` runs **40 tests across 10 files** against a real database and a dev server it starts itself — about 1.2 minutes in CI, quicker locally once the dev server is warm. Nothing is skipped. (`pnpm test:e2e --list` enumerates them without running anything, and without needing a database — the honest way to check this number.)
 
@@ -80,9 +82,11 @@ Everything else is supporting cast.
 | `app/modules/maps/**` | 50%     | Leaflet is hard to test headlessly; cover hooks and utils, not rendering |
 | **Overall gate**      | **70%** | Enforced in CI, ratcheted upward over time                               |
 
+**No row exists for page-level Next.js route components** (`app/[locale]/dashboard/**`, `app/ui/geography` — 235 lines, 0% covered) or for `app/modules/maps/components/**` rendering (737 lines, 0% covered, deliberately routed through `e2e/map.spec.ts` instead of Vitest). Both were sized and scoped as TD-45 and TD-46 rather than given a target here, since a target with nothing behind it invites the same drift TD-44 was opened to fix.
+
 Set the CI threshold to whatever you actually achieve at the end of Phase 1, then never let it drop. A threshold you have to disable to merge is worse than no threshold.
 
-**Current thresholds are 27/25/19/27 (lines/functions/branches/statements)**, raised 2026-08-01 to match what the suite actually achieves — what the suite achieves today, not the targets above. They are a ratchet: raise them whenever a change adds real coverage, never lower them. The table stays the destination.
+**Current thresholds are 50/50/47/50 (lines/functions/branches/statements)**, raised 2026-08-02 (TD-44) to match what the suite actually achieves — what the suite achieves today, not the targets above. They are a ratchet: raise them whenever a change adds real coverage, never lower them. The table stays the destination.
 
 ---
 

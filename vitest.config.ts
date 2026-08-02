@@ -37,10 +37,10 @@ export default defineConfig({
       // than no threshold; this one is a ratchet — raise it as TD-37 through
       // TD-43 bring real tests with them. The per-area targets stay the goal.
       thresholds: {
-        lines: 27,
+        lines: 28,
         functions: 25,
-        branches: 19,
-        statements: 27,
+        branches: 20,
+        statements: 28,
       },
     },
   },

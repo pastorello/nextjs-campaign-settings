@@ -10,7 +10,7 @@ import { ArrowRightIcon } from "@heroicons/react/20/solid";
 import { useTranslations } from "next-intl";
 import { Button } from "./button";
 import { useActionState } from "react";
-import { authenticate } from "@/app/lib/actions";
+import { authenticate } from "@/app/lib/actions/authenticate";
 import { useSearchParams } from "next/navigation";
 
 export default function LoginForm() {

@@ -3,7 +3,7 @@
 import { getTranslations } from "next-intl/server";
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
-import logServerIssue from "./notifications/logServerIssue";
+import logServerIssue from "../notifications/logServerIssue";
 
 export async function authenticate(
   _prevState: string | undefined,

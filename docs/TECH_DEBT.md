@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-08-02
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** none from TD-37–TD-43 outright; TD-42 partially done. TD-37, TD-38, TD-39, TD-40, TD-41 and TD-43 closed 2026-08-02. Every correctness/security item from the original audit is done; what is left is coverage — Phase 2's exit criterion (`docs/ROADMAP.md`) has always required 70% and the suite sits at 45.88% lines. TD-37–TD-43 sliced that gap by area, ordered by how delicate the area is (auth/DB bootstrap first, presentation-only code last), matching the risk tiers already defined in `docs/TESTING.md` §2 — TD-42 (`app/ui/**` behaviour) is what remains between here and the 70% target.
+**Open items:** none from TD-37–TD-43. TD-37 through TD-43 all closed 2026-08-02, TD-42 last — its "done when" (`app/ui/**` ≥60% lines, `EntityForm`/`EntityList`/`EntityLibrary` individually above that bar) is met. Every correctness/security item from the original audit is done, and this coverage sweep's own targets are met area by area; the suite as a whole sits at 50.68% lines, still short of Phase 2's 70% exit criterion (`docs/ROADMAP.md`) — the register's targets were per-tier, not "70% everywhere," so closing every TD-37–TD-43 item does not by itself reach 70% overall. What that gap is made of belongs in a fresh audit, not a reopened TD-42.
 
 ## Legend
 
@@ -62,7 +62,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-39 | ✅ Pure functions in `app/lib/utils/**` at 51%, target 95% — cheapest real coverage in the project | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-40 | ✅ Metadata correctness untested — `npcMeta`/`deityMeta` at 14%/25%, target 80%                    | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-41 | ✅ `app/lib/hooks/**` at 52%, target 70% — `useFilterController` entirely untested                 | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-42 | ◑ `app/ui/**` behaviour untested — domain forms/cards/libraries at ~0%, target 60%                 | 🟢 Low               | L      | 2     |
+| TD-42 | ✅ `app/ui/**` behaviour untested — domain forms/cards/libraries at ~0%, target 60%                | ~~🟢 Low~~ done      | L      | 2     |
 | TD-43 | ✅ `app/modules/maps/**` geometry and hooks near 0%, target 50%                                    | ~~🟢 Low~~ done      | M      | 2     |
 
 ---
@@ -215,7 +215,26 @@ The original write-up follows for context.
 
 ---
 
-### TD-42 ◑ `app/ui/**` behaviour untested — domain forms/cards/libraries near 0%
+### TD-42 ✅ `app/ui/**` behaviour untested — domain forms/cards/libraries near 0% — **DONE (2026-08-02)**
+
+**Outcome:** `app/ui/**` reads 60.64% lines (305/503), above the 60% target; `EntityForm.tsx`, `EntityList.tsx` and `EntityLibrary.tsx` — the three TD-09 shells "done when" names — are each at 100%. Following the plan's own priority order:
+
+- **`EntityList.tsx`** (6 tests): dispatch to the one fetch function matching its own `pageType`, the domain empty message, one row per item with the subtitle field rendered only for domains that declare one, a header per `listConfig` column, and the edit/delete actions per row. The row-level buttons (`SortableHeader`, `DeleteButton`, `ModalButton`) are stubbed — each has its own suite below, and re-rendering them here would test their internals twice while adding nothing to what `EntityList` itself is responsible for.
+- **`EntityLibrary.tsx`** (6 tests): the same dispatch shape, one test per domain plus the search-params passthrough, with the four `*Library` components stubbed for the same reason.
+- **Shared buttons** `app/ui/buttons/`: `SortableHeader` (5 tests — plain label vs. filter `<Select>`, sort click writing `sort`/`fieldSort`, filter-select writing the field param), `SelectButtonery` (4), `SortButton` (2), `ModalButton` (7 — the five `modalContent` variants plus open/close/`onSave` forwarding, with `Modal` and all five domain forms stubbed), `DeleteButton` (4 — success, server-reported failure, the missing-`error`-message fallback, and a rejected `fetch`), `ResetSearchButton` (1).
+- **Other shared components**: `pagination.tsx` (6 — active-page rendering, arrow disabling at both ends, the ellipsis rendering as inert text).
+- **Per-domain wrappers**: `SpellForm`/`NpcForm`/`DeityForm`/`MagicItemForm` (2–3 tests each — `EntityForm` stubbed, asserting each wires the right `pageType`/copy namespace/mutations and that the field-layout `children` function renders every field the domain declares; `MagicItemForm`'s `disableUntilEdited={false}` — the one documented behavioural difference among the four — gets its own assertion), `NpcCard` (2 — collapsed vs. expanded content), `NavLinks` (3 — link/label per entry, the admin link only where `listConfig` declares one, active-page highlighting matching either the public or admin path).
+- **Left as-is, deliberately:** `WorldMap.tsx` (114 lines, 0%) — `CLAUDE.md`'s "Decisions and rejected approaches" names this exact file as intentionally-unwired scaffolding; a coverage push here would lock in incomplete behaviour as if it were finished, which is what this item's own "Why" section warns against. `SpellCard`/`DeityCard`/`MagicItemCard`, the four `*Library.tsx` wrappers, `login-form.tsx`, `skeletons.tsx` and a handful of near-pure-markup components (`Spinner`, `Modal`, `sidenav`, `cards.tsx`) were left uncovered too — the 60% target was reached on the aggregate without them, which is what "done when" asks for, and `docs/TESTING.md` §2's own warning against "padding, not verification" argues against chasing markup-only components just to move the number.
+
+**A gap in coverage tooling, not in the suite, found on the way.** Selecting a real Headless UI `Listbox` option (as opposed to just opening it, which `Select.test.tsx` already covered) throws `ReferenceError: ResizeObserver is not defined` — jsdom does not implement it. `SortableHeader.test.tsx` stubs a minimal `ResizeObserver` locally rather than adding one to `vitest.setup.ts`, since no other suite needs it yet; if a second suite hits the same gap, that is the signal to promote the stub to the global setup instead of duplicating it a third time.
+
+**Where:** `app/ui/components/{EntityList,EntityLibrary,pagination}.test.tsx`, `app/ui/buttons/{SortableHeader,SelectButtonery,SortButton,ModalButton,DeleteButton,ResetSearchButton}.test.tsx`, `app/ui/{spells,npc,deities,magicitems}/*Form.test.tsx`, `app/ui/npc/NpcCard.test.tsx`, `app/ui/dashboard/nav-links.test.tsx`.
+
+The original write-up follows for context.
+
+---
+
+### TD-42 (original) ◑ `app/ui/**` behaviour untested — domain forms/cards/libraries near 0%
 
 **Progress (2026-08-02):** the shared form machinery is covered, following exactly the "prioritize the TD-09 shells first" plan below — `EntityForm.tsx` (9 tests: create vs. edit mode, the `disableUntilEdited` gate, submit calling `create`/`update` with the right payload shape, field errors surfacing and blocking `onSaveFinished`), `PageForm.tsx` (10 tests: save vs. delete mode, button enablement, `isSaving` copy), and all of `app/ui/forms/inputs/` — `TextInput`, `TextareaInput`, `CheckboxInput`, `FormLabel`, `InputComponent` (which resolves a real `MetaConfigKey` against live `pageMetaFields` config to the right control, rather than a fake registry). Statements coverage moved 27.4% → 29.75%, branches 19.67% → 24.4%. `EntityList`/`EntityLibrary` and the per-domain `*Card.tsx`/`*Form.tsx` wrappers remain open — this item is not done, both TD-09 shells named in "done when" are still outstanding.
 

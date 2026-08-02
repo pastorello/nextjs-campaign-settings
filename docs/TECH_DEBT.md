@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-08-02
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-39 – TD-41, TD-43, opened 2026-08-01. TD-37 and TD-38 closed 2026-08-02; TD-42 partially done the same day. Every correctness/security item from the original audit is done; what is left is coverage — Phase 2's exit criterion (`docs/ROADMAP.md`) has always required 70% and the suite sits at 33.1% lines. TD-37–TD-43 slice that gap by area, ordered by how delicate the area is (auth/DB bootstrap first, presentation-only code last), matching the risk tiers already defined in `docs/TESTING.md` §2. No feature work — every item below adds tests against existing behaviour, nothing more.
+**Open items:** TD-40, TD-41, TD-43, opened 2026-08-01. TD-37, TD-38 and TD-39 closed 2026-08-02; TD-42 partially done the same day. Every correctness/security item from the original audit is done; what is left is coverage — Phase 2's exit criterion (`docs/ROADMAP.md`) has always required 70% and the suite sits at 34.57% lines. TD-37–TD-43 slice that gap by area, ordered by how delicate the area is (auth/DB bootstrap first, presentation-only code last), matching the risk tiers already defined in `docs/TESTING.md` §2. No feature work — every item below adds tests against existing behaviour, nothing more.
 
 ## Legend
 
@@ -19,51 +19,51 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-| ID    | Title                                                                                             | Severity             | Effort | Phase |
-| ----- | ------------------------------------------------------------------------------------------------- | -------------------- | ------ | ----- |
-| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions                                            | ~~🔴 Critical~~ done | M      | 1     |
-| TD-02 | ✅ No input validation, incl. TD-02b's remaining boundaries                                       | ~~🔴 Critical~~ done | M      | 1–2   |
-| TD-03 | ✅ Test suite does not run                                                                        | ~~🔴 Critical~~ done | M      | 1     |
-| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                                                            | ~~🔴 Critical~~ done | S      | 1     |
-| TD-05 | ✅ No ESLint config, no Prettier, no CI                                                           | ~~🟠 High~~ done     | S      | 1     |
-| TD-06 | ✅ Dead code and tutorial leftovers                                                               | ~~🟠 High~~ done     | S      | 1     |
-| TD-07 | ✅ `next`/`react` pinned; single lockfile                                                         | ~~🟠 High~~ done     | S      | 1     |
-| TD-08 | ✅ Metadata and query layer typed; zero `any`, rule is an error                                   | ~~🟠 High~~ done     | M      | 2     |
-| TD-09 | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm                                | ~~🟠 High~~ done     | L      | 2     |
-| TD-10 | ✅ Toasts (client) vs `logServerIssue` (server) replace the stub                                  | ~~🟠 High~~ done     | M      | 2     |
-| TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred                                       | ~~🟡 Medium~~ part   | M      | 2     |
-| TD-12 | ✅ Filter list declared once; count and rows can no longer diverge                                | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-13 | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10                                        | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-14 | ✅ Map POIs persisted only to `localStorage`                                                      | ~~🟡 Medium~~ done   | M      | 3     |
-| TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring                                  | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-16 | ✅ Inconsistent formatting                                                                        | ~~🟢 Low~~ done      | S      | 1     |
-| TD-17 | ✅ README does not match reality                                                                  | ~~🟢 Low~~ done      | S      | 1     |
-| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                                            | ~~🟢 Low~~ done      | S      | 3     |
-| TD-19 | ✅ Mixed Italian/English identifiers (residual set → TD-33)                                       | ~~🟠 High~~ done     | L      | 2     |
-| TD-20 | ✅ Every flag on, incl. `noUncheckedIndexedAccess` (`noUnusedLocals` rejected)                    | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-21 | ✅ UI strings hardcoded; app must ship in it + en                                                 | ~~🟠 High~~ done     | L      | 2     |
-| TD-22 | ✅ Lint warnings 293 → 0; every rule back to `error`                                              | ~~🟠 High~~ done     | M      | 2     |
-| TD-23 | ✅ Migration drift patched forward; migrations match the schema                                   | ~~🟠 High~~ done     | S      | 1     |
-| TD-24 | ✅ Playwright harness + specs; `e2e` job blocking in CI                                           | ~~🟠 High~~ done     | M      | 1     |
-| TD-25 | ✅ Startup reachability check; 503 distinct from 500                                              | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                                                 | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-27 | ✅ Hidden `classi=0` filter on the spells list removed                                            | ~~🟠 High~~ done     | S      | 2     |
-| TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does                                    | ~~🟠 High~~ done     | S      | 2     |
-| TD-29 | ✅ Loading skeleton was the tutorial's invoices table                                             | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-30 | ✅ Public list pages actually stream; skeleton matches the content                                | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-31 | ✅ `sortSelectOptions` mutated shared `PageMeta.options` in place                                 | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-32 | ✅ E2E job spent 9m a run on `playwright install-deps`                                            | ~~🟠 High~~ done     | S      | 1     |
-| TD-33 | ✅ Italian identifiers TD-19 missed — 16 across 14 files + a directory                            | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-34 | ✅ CI actions pinned to a deprecated Node 20 runtime; Node 22 → 24                                | ~~🟢 Low~~ done      | S      | 2     |
-| TD-35 | ✅ E2E specs assert hardcoded Italian copy instead of reading the catalogue                       | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-36 | ✅ `proxy.ts` matcher let `.jpg` through the auth/i18n gate, breaking map tiles                   | ~~🟠 High~~ done     | S      | 2     |
-| TD-37 | ✅ `authenticate()` and `app/lib/connections/**` are 0% covered — the login and DB-bootstrap path | ~~🟠 High~~ done     | S      | 2     |
-| TD-38 | ✅ `fetch*`/`get*Count` untested for deities, magicitems, npc — data layer at 51%, target 90%     | ~~🟠 High~~ done     | S      | 2     |
-| TD-39 | Pure functions in `app/lib/utils/**` at 51%, target 95% — cheapest real coverage in the project   | 🟡 Medium            | S      | 2     |
-| TD-40 | Metadata correctness untested — `npcMeta`/`deityMeta` at 14%/25%, target 80%                      | 🟡 Medium            | S      | 2     |
-| TD-41 | `app/lib/hooks/**` at 52%, target 70% — `useFilterController` entirely untested                   | 🟡 Medium            | S      | 2     |
-| TD-42 | ◑ `app/ui/**` behaviour untested — domain forms/cards/libraries at ~0%, target 60%                | 🟢 Low               | L      | 2     |
-| TD-43 | `app/modules/maps/**` geometry and hooks near 0%, target 50%                                      | 🟢 Low               | M      | 2     |
+| ID    | Title                                                                                              | Severity             | Effort | Phase |
+| ----- | -------------------------------------------------------------------------------------------------- | -------------------- | ------ | ----- |
+| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions                                             | ~~🔴 Critical~~ done | M      | 1     |
+| TD-02 | ✅ No input validation, incl. TD-02b's remaining boundaries                                        | ~~🔴 Critical~~ done | M      | 1–2   |
+| TD-03 | ✅ Test suite does not run                                                                         | ~~🔴 Critical~~ done | M      | 1     |
+| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                                                             | ~~🔴 Critical~~ done | S      | 1     |
+| TD-05 | ✅ No ESLint config, no Prettier, no CI                                                            | ~~🟠 High~~ done     | S      | 1     |
+| TD-06 | ✅ Dead code and tutorial leftovers                                                                | ~~🟠 High~~ done     | S      | 1     |
+| TD-07 | ✅ `next`/`react` pinned; single lockfile                                                          | ~~🟠 High~~ done     | S      | 1     |
+| TD-08 | ✅ Metadata and query layer typed; zero `any`, rule is an error                                    | ~~🟠 High~~ done     | M      | 2     |
+| TD-09 | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm                                 | ~~🟠 High~~ done     | L      | 2     |
+| TD-10 | ✅ Toasts (client) vs `logServerIssue` (server) replace the stub                                   | ~~🟠 High~~ done     | M      | 2     |
+| TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred                                        | ~~🟡 Medium~~ part   | M      | 2     |
+| TD-12 | ✅ Filter list declared once; count and rows can no longer diverge                                 | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-13 | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10                                         | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-14 | ✅ Map POIs persisted only to `localStorage`                                                       | ~~🟡 Medium~~ done   | M      | 3     |
+| TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring                                   | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-16 | ✅ Inconsistent formatting                                                                         | ~~🟢 Low~~ done      | S      | 1     |
+| TD-17 | ✅ README does not match reality                                                                   | ~~🟢 Low~~ done      | S      | 1     |
+| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                                             | ~~🟢 Low~~ done      | S      | 3     |
+| TD-19 | ✅ Mixed Italian/English identifiers (residual set → TD-33)                                        | ~~🟠 High~~ done     | L      | 2     |
+| TD-20 | ✅ Every flag on, incl. `noUncheckedIndexedAccess` (`noUnusedLocals` rejected)                     | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-21 | ✅ UI strings hardcoded; app must ship in it + en                                                  | ~~🟠 High~~ done     | L      | 2     |
+| TD-22 | ✅ Lint warnings 293 → 0; every rule back to `error`                                               | ~~🟠 High~~ done     | M      | 2     |
+| TD-23 | ✅ Migration drift patched forward; migrations match the schema                                    | ~~🟠 High~~ done     | S      | 1     |
+| TD-24 | ✅ Playwright harness + specs; `e2e` job blocking in CI                                            | ~~🟠 High~~ done     | M      | 1     |
+| TD-25 | ✅ Startup reachability check; 503 distinct from 500                                               | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                                                  | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-27 | ✅ Hidden `classi=0` filter on the spells list removed                                             | ~~🟠 High~~ done     | S      | 2     |
+| TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does                                     | ~~🟠 High~~ done     | S      | 2     |
+| TD-29 | ✅ Loading skeleton was the tutorial's invoices table                                              | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-30 | ✅ Public list pages actually stream; skeleton matches the content                                 | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-31 | ✅ `sortSelectOptions` mutated shared `PageMeta.options` in place                                  | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-32 | ✅ E2E job spent 9m a run on `playwright install-deps`                                             | ~~🟠 High~~ done     | S      | 1     |
+| TD-33 | ✅ Italian identifiers TD-19 missed — 16 across 14 files + a directory                             | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-34 | ✅ CI actions pinned to a deprecated Node 20 runtime; Node 22 → 24                                 | ~~🟢 Low~~ done      | S      | 2     |
+| TD-35 | ✅ E2E specs assert hardcoded Italian copy instead of reading the catalogue                        | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-36 | ✅ `proxy.ts` matcher let `.jpg` through the auth/i18n gate, breaking map tiles                    | ~~🟠 High~~ done     | S      | 2     |
+| TD-37 | ✅ `authenticate()` and `app/lib/connections/**` are 0% covered — the login and DB-bootstrap path  | ~~🟠 High~~ done     | S      | 2     |
+| TD-38 | ✅ `fetch*`/`get*Count` untested for deities, magicitems, npc — data layer at 51%, target 90%      | ~~🟠 High~~ done     | S      | 2     |
+| TD-39 | ✅ Pure functions in `app/lib/utils/**` at 51%, target 95% — cheapest real coverage in the project | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-40 | Metadata correctness untested — `npcMeta`/`deityMeta` at 14%/25%, target 80%                       | 🟡 Medium            | S      | 2     |
+| TD-41 | `app/lib/hooks/**` at 52%, target 70% — `useFilterController` entirely untested                    | 🟡 Medium            | S      | 2     |
+| TD-42 | ◑ `app/ui/**` behaviour untested — domain forms/cards/libraries at ~0%, target 60%                 | 🟢 Low               | L      | 2     |
+| TD-43 | `app/modules/maps/**` geometry and hooks near 0%, target 50%                                       | 🟢 Low               | M      | 2     |
 
 ---
 
@@ -140,7 +140,24 @@ The original write-up follows for context.
 
 ---
 
-### TD-39 🟡 Pure functions in `app/lib/utils/**` at 51%, cheapest real coverage available
+### TD-39 ✅ Pure functions in `app/lib/utils/**` at 51%, cheapest real coverage available — **DONE (2026-08-02)**
+
+**Outcome:** `app/lib/utils/**` reads 100% lines, above the 95% target. Test suite grew 348 → 393 (45 new tests across 9 files).
+
+- `filterByMeta.test.ts` (10 tests) — no filter, case-insensitive search term, no match, an array-type meta filter, a scalar meta filter via equality, a search term combined with a meta filter (both must match), an empty-array filter value ignored, a negative numeric filter value ignored, a non-array/non-numeric field value under an array filter, and the default empty `meta` argument.
+- `generatePagination.test.ts` (4 tests), `getOptionColorClass.test.ts` (3), `getSearchParam.test.ts` (7, against real `SpellMetaField` metadata rather than a stub — an integer, an array field both serialized and bare, a string, a boolean, an unknown field, and an invalid value), `isArrayEmpty.test.ts` / `isObjectArray.test.ts` (table-driven, matching the existing validator style) — one test file each, table-driven per the plan.
+- `resolveFieldValue.test.ts` — the one branch nothing in the app actually reaches (every declared field has `options`, a `getDatum`, or is boolean) needed a stub `PageMeta` rather than real config, to exercise the bare `String(value)` fallback. `renderRichText.test.tsx` — a one-line component, covered with a plain render assertion.
+- `sortByField/index.test.ts` — extended from one `test()` block asserting three cases to nine, covering descending order, case sensitivity on and off, equal elements, a custom `sortedValues` order, and non-array input.
+
+**Not touched:** `isKeyOfItem.ts`, `isNumberArray.ts`, `isStringArray.ts`, `isValidDataArray.ts`, `isValidDataObject.ts`, `isValidFunction.ts`, `isValidString.ts`, `elementExists.ts`, `createEmptyArray.ts`, `getDataLabel.ts`, `parseSerializedArray.ts`, `resolveOptions.ts`, `sortSelectOptions.ts` — all were already at or near 100%, covered indirectly through component tests (`TextInput.test.tsx`, `renderFieldValue.test.ts`, etc.) rather than a dedicated suite of their own.
+
+**A few filenames in the original write-up don't exist under those names** — `getPagination.ts` is `generatePagination.ts`, `cssColorClass.ts` is `getOptionColorClass.ts`. Same drift TD-37's write-up had; noted rather than silently worked around.
+
+The original write-up follows for context.
+
+---
+
+### TD-39 (original) 🟡 Pure functions in `app/lib/utils/**` at 51%, cheapest real coverage available
 
 **Where:** `filterByMeta.ts`, `getPagination.ts`, `getSearchParam.ts`, `cssColorClass.ts` — all 0%; `isArrayEmpty.ts`/`isObjectArray.ts`/`isStringArray.ts` at 0–50%; `sortByField` at 80%.
 

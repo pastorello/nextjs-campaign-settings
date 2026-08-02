@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-08-02
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-40, TD-41, TD-43, opened 2026-08-01. TD-37, TD-38 and TD-39 closed 2026-08-02; TD-42 partially done the same day. Every correctness/security item from the original audit is done; what is left is coverage — Phase 2's exit criterion (`docs/ROADMAP.md`) has always required 70% and the suite sits at 34.57% lines. TD-37–TD-43 slice that gap by area, ordered by how delicate the area is (auth/DB bootstrap first, presentation-only code last), matching the risk tiers already defined in `docs/TESTING.md` §2. No feature work — every item below adds tests against existing behaviour, nothing more.
+**Open items:** TD-41, TD-43, opened 2026-08-01. TD-37, TD-38, TD-39 and TD-40 closed 2026-08-02; TD-42 partially done the same day. Every correctness/security item from the original audit is done; what is left is coverage — Phase 2's exit criterion (`docs/ROADMAP.md`) has always required 70% and the suite sits at 35.2% lines. TD-37–TD-43 slice that gap by area, ordered by how delicate the area is (auth/DB bootstrap first, presentation-only code last), matching the risk tiers already defined in `docs/TESTING.md` §2. No feature work — every item below adds tests against existing behaviour, nothing more.
 
 ## Legend
 
@@ -60,7 +60,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-37 | ✅ `authenticate()` and `app/lib/connections/**` are 0% covered — the login and DB-bootstrap path  | ~~🟠 High~~ done     | S      | 2     |
 | TD-38 | ✅ `fetch*`/`get*Count` untested for deities, magicitems, npc — data layer at 51%, target 90%      | ~~🟠 High~~ done     | S      | 2     |
 | TD-39 | ✅ Pure functions in `app/lib/utils/**` at 51%, target 95% — cheapest real coverage in the project | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-40 | Metadata correctness untested — `npcMeta`/`deityMeta` at 14%/25%, target 80%                       | 🟡 Medium            | S      | 2     |
+| TD-40 | ✅ Metadata correctness untested — `npcMeta`/`deityMeta` at 14%/25%, target 80%                    | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-41 | `app/lib/hooks/**` at 52%, target 70% — `useFilterController` entirely untested                    | 🟡 Medium            | S      | 2     |
 | TD-42 | ◑ `app/ui/**` behaviour untested — domain forms/cards/libraries at ~0%, target 60%                 | 🟢 Low               | L      | 2     |
 | TD-43 | `app/modules/maps/**` geometry and hooks near 0%, target 50%                                       | 🟢 Low               | M      | 2     |
@@ -169,7 +169,19 @@ The original write-up follows for context.
 
 ---
 
-### TD-40 🟡 Metadata correctness untested — `npcMeta` 14%, `deityMeta` 25%
+### TD-40 ✅ Metadata correctness untested — `npcMeta` 14%, `deityMeta` 25% — **DONE (2026-08-02)**
+
+**Outcome:** `app/lib/config/**` now reads 98.55% lines (68/69), above the 80% target. Added `pageMetaInvariants.testkit.ts` — not a test file itself (excluded from vitest's `**/*.{test,spec}.*` glob), a shared `describePageMetaInvariants(suiteName, meta)` helper called once per domain — plus `deity/deityMeta.test.ts`, `npc/npcMeta.test.ts`, `spells/SpellsMeta.test.ts`, and `pageMetaFields.test.ts` for the three base fields (`id`/`name`/`description`) declared directly on `pageMetaFields.ts` rather than in a domain meta object. Each domain suite runs the shared invariants (every field has a working `validator`, every select/multiselect has a non-empty `options` list, every `getDatum` survives a representative value for its `fieldType`) plus one domain-specific assertion: every declared field key appears in that domain's `queryFields` entry, so a field that stops being filterable is caught here rather than by a user noticing a missing filter control. `magicItemMeta.ts` needed no test of its own — it was already above 80% by virtue of being exercised through TD-38's `fetchFilteredMagicItems` suite. Test suite grew 349 → 504 (`describe.each` turns one domain file into one test per field per invariant, which is the bulk of that jump).
+
+**One lint fix the plan didn't anticipate.** `expect(field.validator.safeParse).toBeTypeOf("function")` trips `@typescript-eslint/unbound-method` — passing a method off an object as a bare reference, the same class of issue `checkDatabaseReachable.test.ts` already documents for `vi.mocked(prisma.$queryRaw)`. Fixed the same way: `expect(typeof field.validator.safeParse).toBe("function")` reads the property instead of unbinding the method.
+
+**Where:** `app/lib/config/pageMetaInvariants.testkit.ts` (new), `app/lib/config/deity/deityMeta.test.ts`, `app/lib/config/npc/npcMeta.test.ts`, `app/lib/config/spells/SpellsMeta.test.ts`, `app/lib/config/pageMetaFields.test.ts`.
+
+The original write-up follows for context.
+
+---
+
+### TD-40 (original) 🟡 Metadata correctness untested — `npcMeta` 14%, `deityMeta` 25%
 
 **Where:** `app/lib/config/npc/npcMeta.ts` (14.28%), `app/lib/config/deity/deityMeta.ts` (25%), `app/lib/config/spells/SpellsMeta.ts` (50%), `pageMetaFields.ts` (60%).
 

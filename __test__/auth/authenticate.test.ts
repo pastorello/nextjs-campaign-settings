@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { authenticate } from "@/app/lib/actions";
+import { authenticate } from "@/app/lib/actions/authenticate";
 import { signIn } from "@/auth";
 import logServerIssue from "@/app/lib/notifications/logServerIssue";
 

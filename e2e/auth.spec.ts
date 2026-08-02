@@ -41,7 +41,7 @@ test.describe("authentication", () => {
     // The failure must be visible to the user, not only logged server-side —
     // this is the assertion TD-10 exists to keep honest. Wrong password against
     // a real email is a CredentialsSignin AuthError, which the server maps to
-    // this exact catalogue key (app/lib/actions.ts).
+    // this exact catalogue key (app/lib/actions/authenticate.ts).
     await expect(
       page.getByText(messages.common.auth.invalidCredentials).first()
     ).toBeVisible();

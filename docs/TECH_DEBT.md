@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-08-02
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-38 – TD-41, TD-43, opened 2026-08-01. TD-37 closed 2026-08-02; TD-42 partially done the same day. Every correctness/security item from the original audit is done; what is left is coverage — Phase 2's exit criterion (`docs/ROADMAP.md`) has always required 70% and the suite sits at 31.15% lines. TD-37–TD-43 slice that gap by area, ordered by how delicate the area is (auth/DB bootstrap first, presentation-only code last), matching the risk tiers already defined in `docs/TESTING.md` §2. No feature work — every item below adds tests against existing behaviour, nothing more.
+**Open items:** TD-39 – TD-41, TD-43, opened 2026-08-01. TD-37 and TD-38 closed 2026-08-02; TD-42 partially done the same day. Every correctness/security item from the original audit is done; what is left is coverage — Phase 2's exit criterion (`docs/ROADMAP.md`) has always required 70% and the suite sits at 33.1% lines. TD-37–TD-43 slice that gap by area, ordered by how delicate the area is (auth/DB bootstrap first, presentation-only code last), matching the risk tiers already defined in `docs/TESTING.md` §2. No feature work — every item below adds tests against existing behaviour, nothing more.
 
 ## Legend
 
@@ -58,7 +58,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-35 | ✅ E2E specs assert hardcoded Italian copy instead of reading the catalogue                       | ~~🟡 Medium~~ done   | M      | 2     |
 | TD-36 | ✅ `proxy.ts` matcher let `.jpg` through the auth/i18n gate, breaking map tiles                   | ~~🟠 High~~ done     | S      | 2     |
 | TD-37 | ✅ `authenticate()` and `app/lib/connections/**` are 0% covered — the login and DB-bootstrap path | ~~🟠 High~~ done     | S      | 2     |
-| TD-38 | `fetch*`/`get*Count` untested for deities, magicitems, npc — data layer at 51%, target 90%        | 🟠 High              | S      | 2     |
+| TD-38 | ✅ `fetch*`/`get*Count` untested for deities, magicitems, npc — data layer at 51%, target 90%     | ~~🟠 High~~ done     | S      | 2     |
 | TD-39 | Pure functions in `app/lib/utils/**` at 51%, target 95% — cheapest real coverage in the project   | 🟡 Medium            | S      | 2     |
 | TD-40 | Metadata correctness untested — `npcMeta`/`deityMeta` at 14%/25%, target 80%                      | 🟡 Medium            | S      | 2     |
 | TD-41 | `app/lib/hooks/**` at 52%, target 70% — `useFilterController` entirely untested                   | 🟡 Medium            | S      | 2     |
@@ -112,7 +112,23 @@ The original write-up follows for context.
 
 ---
 
-### TD-38 🟠 Data-layer `fetch*`/`get*Count` untested for deities, magicitems, npc
+### TD-38 ✅ Data-layer `fetch*`/`get*Count` untested for deities, magicitems, npc — **DONE (2026-08-02)**
+
+**Outcome:** `app/lib/data/**` reads 93.75% statements / 93.61% lines, above the 90% target. Test suite grew 322 → 348 (26 new tests across 10 files). All three previously-0% domains (`deities`, `magicitems`, `npc`) are now at 100% for `fetchFiltered*`/`get*Count`/`delete*ById`, and `spells/getSpellsCount.ts` (the one outlier) is covered too.
+
+- Three tests per domain, mirroring `fetchFilteredSpells.test.ts`: a well-formed row parses, a malformed one throws `DatabaseError` rather than returning bad data, and a Prisma failure is wrapped rather than leaking a raw driver error. Rows are built generically from `entityFieldKeys(pageType)` + `fieldMeta[key].defaultValue` — the same fixture `buildEntitySchema.test.ts` already uses to prove `buildResultSchema` accepts a real row — instead of one hand-written literal per domain, so a field renamed in the metadata can't silently desync the fixture from the schema it is meant to exercise.
+- One test per domain for `get*Count`, which also exercises `getItemsCount.ts` (the shared function all four wrappers call, previously 0% despite being on the "already covered" side of TD-38's write-up).
+- Four tests per domain for `delete*ById`: deletes an existing row, 404s a missing one without deleting, and wraps both a lookup failure and a delete failure in `DatabaseError`.
+
+**The plan's "throws without a session" case for `delete*ById` does not apply, and was not added.** Unlike `deletePoi` (a Server Action that calls `requireSession()` directly, since POI deletion has no route handler), `deleteDeityById`/`deleteMagicItemById`/`deleteNpcById` are internal helpers with no auth check of their own — per TD-01's note, the guard lives at the DELETE route handler that is these functions' only caller, not in the functions themselves. Asserting a guard that isn't there would have been testing a behaviour the code doesn't have.
+
+**Where:** `app/lib/data/deities/{fetchFilteredDeities,getDeitiesCount,deleteDeityById}.ts` and the equivalent triplets under `app/lib/data/magicitems/` and `app/lib/data/npc/` — all at 0%. `app/lib/data/spells/getSpellsCount.ts` is the one outlier that's also 0%; everything else in `spells` is covered.
+
+The original write-up follows for context.
+
+---
+
+### TD-38 (original) 🟠 Data-layer `fetch*`/`get*Count` untested for deities, magicitems, npc
 
 **Where:** `app/lib/data/deities/{fetchFilteredDeities,getDeitiesCount,deleteDeityById}.ts` and the equivalent triplets under `app/lib/data/magicitems/` and `app/lib/data/npc/` — all at 0%. `app/lib/data/spells/getSpellsCount.ts` is the one outlier that's also 0%; everything else in `spells` is covered.
 

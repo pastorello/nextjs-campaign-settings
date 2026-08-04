@@ -47,11 +47,16 @@ export default defineConfig({
       // adds real coverage. Re-measured 2026-08-02 (TD-44).
       // Raised from 50/50/47/50 after TD-45 (page-level route components,
       // 2026-08-04): the suite now measures 54.51/53.77/48.92/54.22.
+      // Raised again from 54/53/48/54 after TD-46's Tier 1 Vitest suites
+      // (2026-08-04): LeafletMap, MapContextMenu, MapMeasurementPanel,
+      // MapControls, MapPOIPanel — the maps components WorldMap.tsx actually
+      // renders — went from 0% to real coverage; the suite now measures
+      // 63.81/63.54/60.89/64.72.
       thresholds: {
-        lines: 54,
-        functions: 53,
-        branches: 48,
-        statements: 54,
+        lines: 63,
+        functions: 64,
+        branches: 60,
+        statements: 63,
       },
     },
   },

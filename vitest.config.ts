@@ -52,11 +52,19 @@ export default defineConfig({
       // MapControls, MapPOIPanel — the maps components WorldMap.tsx actually
       // renders — went from 0% to real coverage; the suite now measures
       // 63.81/63.54/60.89/64.72.
+      // Raised again from 63/64/60/63 after TD-46's Tier 2 (2026-08-04):
+      // the remaining unreached maps/components/map/** tree (MapSearchBar,
+      // MapDetailsPanel, MapTileSwitcher, MapThemeSwitcher, MapUser,
+      // MapTopBar, LeafletGeoJSON, LeafletTileLayer) tested as-is per the
+      // "vendored library stays as inventory" rule in CLAUDE.md rather than
+      // wired into WorldMap.tsx or deleted — the suite now measures
+      // 70.09/71.57/69.66/69.87. This crosses docs/ROADMAP.md's Phase 2
+      // exit criterion (coverage above 70%).
       thresholds: {
-        lines: 63,
-        functions: 64,
-        branches: 60,
-        statements: 63,
+        lines: 70,
+        functions: 71,
+        branches: 69,
+        statements: 69,
       },
     },
   },

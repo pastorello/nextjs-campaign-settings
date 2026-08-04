@@ -1,8 +1,8 @@
 # Technical Debt Register
 
-**Last updated:** 2026-08-02
+**Last updated:** 2026-08-04
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-45 and TD-46, opened 2026-08-02. TD-44 closed the same day: `coverage.all: true` is on, and — surprisingly — changed nothing (see TD-44's write-up), so the 50.68%-lines baseline stands confirmed rather than corrected. What TD-44 did produce is two properly scoped gaps, filed as TD-45 (page-level route components, 0% covered, never had a target) and TD-46 (`app/modules/maps/components/**` Leaflet rendering, 0% covered, routed through e2e by design). Every correctness/security item from the original audit is done, and the TD-37–TD-43 coverage sweep's own per-tier targets are all met — the suite as a whole is still short of Phase 2's 70% exit criterion (`docs/ROADMAP.md`), and TD-45/TD-46 are what is actually left to close that gap.
+**Open items:** TD-46 only. TD-44 (2026-08-02) found `coverage.all: true` changed nothing, confirming the 50.68%-lines baseline rather than correcting it, and produced two properly scoped gaps: TD-45 (page-level route components) and TD-46 (`app/modules/maps/components/**` Leaflet rendering, routed through e2e by design). TD-45 closed 2026-08-04: 10 new test files, one per repeated shape rather than per domain, brought the suite to 54.51% lines / 48.92% branches (682 → 709 tests). Every correctness/security item from the original audit is done, and the TD-37–TD-43 coverage sweep's own per-tier targets are all met — the suite as a whole is still short of Phase 2's 70% exit criterion (`docs/ROADMAP.md`), and TD-46 is what is left to close that gap.
 
 ## Legend
 
@@ -65,7 +65,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-42 | ✅ `app/ui/**` behaviour untested — domain forms/cards/libraries at ~0%, target 60%                | ~~🟢 Low~~ done      | L      | 2     |
 | TD-43 | ✅ `app/modules/maps/**` geometry and hooks near 0%, target 50%                                    | ~~🟢 Low~~ done      | M      | 2     |
 | TD-44 | ✅ Re-measured coverage with `coverage.all: true`; re-scoped the 70% gap as TD-45/TD-46            | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-45 | Page-level route components (`app/[locale]/dashboard/**`, `app/ui/geography`) untested, no target  | 🟡 Medium            | M      | 2     |
+| TD-45 | ✅ Page-level route components (`app/[locale]/dashboard/**`, `app/ui/geography`) covered           | ~~🟡 Medium~~ done   | M      | 2     |
 | TD-46 | `app/modules/maps/components/**` (Leaflet rendering, 737 lines) untested — needs e2e, not Vitest   | 🟡 Medium            | L      | 2     |
 
 ---
@@ -290,15 +290,21 @@ Thresholds in `vitest.config.ts` raised to 50/50/47/50 (lines/functions/branches
 
 **Do not fold TD-45 or TD-46 into a reopened TD-42 or TD-43.** Both closed against the target they were actually given; retroactively enlarging a closed item's scope after the fact is the same class of mistake as `CLAUDE.md`'s "flat file beside a directory" entry in the Decisions log — a boundary that existed for a reason getting quietly redrawn because it was inconvenient in the moment.
 
-### TD-45 🟡 Page-level route components have no coverage target and 0% coverage
+### TD-45 ✅ Page-level route components have no coverage target and 0% coverage — **DONE (2026-08-04)**
 
 **Where:** `app/[locale]/dashboard/**` (layouts, loading/error/not-found boundaries, the 13 domain `page.tsx` files under `admin/` and the plain list routes) and `app/ui/geography/WorldMap.tsx`. 22 files, 235 lines, all 0%.
 
 **Why:** every other tier in `docs/TESTING.md` §2's coverage-targets table was sized and pushed forward by TD-37–43; this layer was never given a row, so nothing has ever pointed at it. Most of these are thin Server Components (a `page.tsx` that composes a data fetch with a layout shell) — the risky logic they call into (`fetch*`, metadata, mutations) is already covered elsewhere per TD-38/TD-40, so this is not a security gap, but it is 235 lines of the app with zero verification that the composition itself is correct (right fetch called, right component rendered, error/loading boundaries actually wired).
 
-**Plan:** decide a realistic target first — these are Server Components, so this is integration-shaped testing (React Testing Library against the rendered output, or a Next.js-aware harness), not the same shape as the hook/util work TD-37–43 did. `error.tsx`/`not-found.tsx`/`loading.tsx` boundaries are the highest-value subset (they're plain components with real conditional logic, cheapest to reach with RTL). The `admin/*/page.tsx` and `dashboard/*/page.tsx` files are largely repetitive composition — check whether one representative test per pattern, not one per domain, gets most of the value TD-42's `EntityList`/`EntityLibrary` tests didn't already cover from the other side.
+**Outcome:** followed the plan's "one representative test per pattern, not one per domain" — 10 new test files, 27 new tests, suite 682 → 709. Coverage 50.68% → 54.51% lines, 47.64% → 48.92% branches; `vitest.config.ts` thresholds raised 50/50/47/50 → 54/53/48/54.
 
-**Done when:** a target is added to `docs/TESTING.md` §2's table for this layer, and the suite meets it.
+- `error.test.tsx`, `not-found.test.tsx`, `(overview)/loading.test.tsx`, `layout.test.tsx` — the plain-component boundaries, each covering its own conditional logic directly (the generic-vs-unreachable branch in `error.tsx`, the reset/console.error wiring, etc).
+- `(overview)/page.test.tsx` — the one page with its own shape (`dynamic = "force-dynamic"`, `CardWrapper` composition).
+- `spells/page.test.tsx` — representative of the public list-page pattern (`ListPage` + `EntityLibrary`, `generateMetadata`, item-count fetch); `deities`/`magicitems`/`npc` share the same shape and are not duplicated.
+- `admin/spells/page.test.tsx` — representative of the admin list-page pattern (`Search`/`BaseButton`/`ResetButton`/`EntityList`/`Pagination`); same non-duplication rationale.
+- `admin/spells/new/page.test.tsx` — representative of the admin "new item" pattern (a thin client component wiring a domain form's cancel/save to `router.push`).
+- `geography/page.test.tsx` — the map-switcher's own state (selected map, highlighted button), with `WorldMap`/`MapProvider`/`MapErrorBoundary` stubbed.
+- `WorldMap.test.tsx` — the component's own state machine (image-overlay bootstrap effect, POI-location-selection flow, export/import), with its six child map components and five hooks stubbed since each already has its own suite (`app/modules/maps/hooks/*.test.ts`). Not exhaustive — several props (`selectedCountry`, the measurement panel) have no wired UI trigger yet per the "unused is not dead" note in `CLAUDE.md`, and stayed untested for the same reason.
 
 ### TD-46 🟡 `app/modules/maps/components/**` (Leaflet rendering) has 0% Vitest coverage by design — needs e2e instead
 

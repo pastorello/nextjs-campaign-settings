@@ -8,7 +8,9 @@
 
 ## 1. Where we are
 
-**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 682 tests across 93 files. Coverage is **50.68% lines / 47.64% branches** (2026-08-02 figure — see the TD-44 note below), enforced in CI as a ratchet — see §2. Closing the gap to the 70% exit criterion is tracked as [TD-45 and TD-46](./TECH_DEBT.md).
+**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 709 tests across 103 files. Coverage is **54.51% lines / 48.92% branches** (2026-08-04 figure, after TD-45), enforced in CI as a ratchet — see §2. Closing the remaining gap to the 70% exit criterion is tracked as [TD-46](./TECH_DEBT.md).
+
+**TD-45 done (2026-08-04):** page-level route components (`app/[locale]/dashboard/**`, `app/ui/geography/WorldMap.tsx`) had no coverage target and 0% coverage. 10 new test files cover the repeated shapes once each rather than per domain — `error.tsx`/`not-found.tsx`/`loading.tsx`/`layout.tsx`, the overview page, the public list-page pattern (`spells/page.tsx` stands in for `deities`/`magicitems`/`npc`), the admin list-page pattern (`admin/spells/page.tsx`), the admin "new item" pattern (`admin/spells/new/page.tsx`), `geography/page.tsx`'s map-switcher state, and `WorldMap.tsx`'s own bootstrap effect and POI-selection flow (its six child components and five hooks are stubbed — each already has its own suite). 27 new tests; suite grew 682 → 709.
 
 **`coverage.all` investigated, found moot (TD-44, 2026-08-02):** the plan was to flip `coverage.all: true` to remove the v8 provider's suspected blind spot — without it, a file no test ever imports doesn't appear in the report at all, so the denominator could in principle be silently undercounting the codebase. Trying it on Vitest 3 first produced byte-identical totals (3289 lines) with the flag on or off; on this repo's Vitest 4.1.10 the option doesn't even compile anymore, because `CoverageOptions` dropped it — "instrument every `include`d file regardless of import" is now unconditional default behaviour, not an opt-in. So there was no blind spot to remove and nothing to set in `vitest.config.ts`. What the full picture _did_ surface, cleanly, is two directories nothing has a target for: page-level route components and `app/modules/maps/components/**` (Leaflet rendering) — filed as TD-45 and TD-46.
 
@@ -82,7 +84,7 @@ Everything else is supporting cast.
 | `app/modules/maps/**` | 50%     | Leaflet is hard to test headlessly; cover hooks and utils, not rendering |
 | **Overall gate**      | **70%** | Enforced in CI, ratcheted upward over time                               |
 
-**No row exists for page-level Next.js route components** (`app/[locale]/dashboard/**`, `app/ui/geography` — 235 lines, 0% covered) or for `app/modules/maps/components/**` rendering (737 lines, 0% covered, deliberately routed through `e2e/map.spec.ts` instead of Vitest). Both were sized and scoped as TD-45 and TD-46 rather than given a target here, since a target with nothing behind it invites the same drift TD-44 was opened to fix.
+**No row exists for `app/modules/maps/components/**` rendering** (737 lines, 0% covered, deliberately routed through `e2e/map.spec.ts` instead of Vitest). Scoped as TD-46 rather than given a target here, since a target with nothing behind it invites the same drift TD-44 was opened to fix. The sibling gap this row used to cover — page-level Next.js route components (`app/[locale]/dashboard/**`, `app/ui/geography`) — was closed by TD-45.
 
 Set the CI threshold to whatever you actually achieve at the end of Phase 1, then never let it drop. A threshold you have to disable to merge is worse than no threshold.
 

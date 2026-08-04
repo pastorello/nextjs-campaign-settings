@@ -45,11 +45,13 @@ export default defineConfig({
       // in docs/TESTING.md §2. A threshold you have to lower to merge is worse
       // than no threshold; this one is a ratchet — raise it whenever a change
       // adds real coverage. Re-measured 2026-08-02 (TD-44).
+      // Raised from 50/50/47/50 after TD-45 (page-level route components,
+      // 2026-08-04): the suite now measures 54.51/53.77/48.92/54.22.
       thresholds: {
-        lines: 50,
-        functions: 50,
-        branches: 47,
-        statements: 50,
+        lines: 54,
+        functions: 53,
+        branches: 48,
+        statements: 54,
       },
     },
   },

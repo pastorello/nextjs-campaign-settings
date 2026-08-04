@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-08-04
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-46 only. TD-44 (2026-08-02) found `coverage.all: true` changed nothing, confirming the 50.68%-lines baseline rather than correcting it, and produced two properly scoped gaps: TD-45 (page-level route components) and TD-46 (`app/modules/maps/components/**` Leaflet rendering, routed through e2e by design). TD-45 closed 2026-08-04: 10 new test files, one per repeated shape rather than per domain, brought the suite to 54.51% lines / 48.92% branches (682 → 709 tests). Every correctness/security item from the original audit is done, and the TD-37–TD-43 coverage sweep's own per-tier targets are all met — the suite as a whole is still short of Phase 2's 70% exit criterion (`docs/ROADMAP.md`); TD-46 is what is left to close that gap, and is itself a multi-session e2e effort — sub-slice 1 (POI panel CRUD) closed 2026-08-04, 2–4 open.
+**Open items:** TD-46 only. TD-44 (2026-08-02) found `coverage.all: true` changed nothing, confirming the 50.68%-lines baseline rather than correcting it, and produced two properly scoped gaps: TD-45 (page-level route components) and TD-46 (`app/modules/maps/components/**` Leaflet rendering, routed through e2e by design). TD-45 closed 2026-08-04: 10 new test files, one per repeated shape rather than per domain, brought the suite to 54.51% lines / 48.92% branches (682 → 709 tests). Every correctness/security item from the original audit is done, and the TD-37–TD-43 coverage sweep's own per-tier targets are all met — the suite as a whole is still short of Phase 2's 70% exit criterion (`docs/ROADMAP.md`); TD-46 is what is left to close that gap, and is itself a multi-session e2e effort. Sub-slices closed 2026-08-04: POI panel CRUD, measurement (distance mode). Search/filtering turned out to target unreachable UI (`MapSearchBar` is commented out of `WorldMap.tsx`) and is blocked on a product decision rather than scheduled.
 
 ## Legend
 
@@ -19,54 +19,54 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-| ID    | Title                                                                                                 | Severity             | Effort | Phase |
-| ----- | ----------------------------------------------------------------------------------------------------- | -------------------- | ------ | ----- |
-| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions                                                | ~~🔴 Critical~~ done | M      | 1     |
-| TD-02 | ✅ No input validation, incl. TD-02b's remaining boundaries                                           | ~~🔴 Critical~~ done | M      | 1–2   |
-| TD-03 | ✅ Test suite does not run                                                                            | ~~🔴 Critical~~ done | M      | 1     |
-| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                                                                | ~~🔴 Critical~~ done | S      | 1     |
-| TD-05 | ✅ No ESLint config, no Prettier, no CI                                                               | ~~🟠 High~~ done     | S      | 1     |
-| TD-06 | ✅ Dead code and tutorial leftovers                                                                   | ~~🟠 High~~ done     | S      | 1     |
-| TD-07 | ✅ `next`/`react` pinned; single lockfile                                                             | ~~🟠 High~~ done     | S      | 1     |
-| TD-08 | ✅ Metadata and query layer typed; zero `any`, rule is an error                                       | ~~🟠 High~~ done     | M      | 2     |
-| TD-09 | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm                                    | ~~🟠 High~~ done     | L      | 2     |
-| TD-10 | ✅ Toasts (client) vs `logServerIssue` (server) replace the stub                                      | ~~🟠 High~~ done     | M      | 2     |
-| TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred                                           | ~~🟡 Medium~~ part   | M      | 2     |
-| TD-12 | ✅ Filter list declared once; count and rows can no longer diverge                                    | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-13 | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10                                            | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-14 | ✅ Map POIs persisted only to `localStorage`                                                          | ~~🟡 Medium~~ done   | M      | 3     |
-| TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring                                      | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-16 | ✅ Inconsistent formatting                                                                            | ~~🟢 Low~~ done      | S      | 1     |
-| TD-17 | ✅ README does not match reality                                                                      | ~~🟢 Low~~ done      | S      | 1     |
-| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                                                | ~~🟢 Low~~ done      | S      | 3     |
-| TD-19 | ✅ Mixed Italian/English identifiers (residual set → TD-33)                                           | ~~🟠 High~~ done     | L      | 2     |
-| TD-20 | ✅ Every flag on, incl. `noUncheckedIndexedAccess` (`noUnusedLocals` rejected)                        | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-21 | ✅ UI strings hardcoded; app must ship in it + en                                                     | ~~🟠 High~~ done     | L      | 2     |
-| TD-22 | ✅ Lint warnings 293 → 0; every rule back to `error`                                                  | ~~🟠 High~~ done     | M      | 2     |
-| TD-23 | ✅ Migration drift patched forward; migrations match the schema                                       | ~~🟠 High~~ done     | S      | 1     |
-| TD-24 | ✅ Playwright harness + specs; `e2e` job blocking in CI                                               | ~~🟠 High~~ done     | M      | 1     |
-| TD-25 | ✅ Startup reachability check; 503 distinct from 500                                                  | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                                                     | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-27 | ✅ Hidden `classi=0` filter on the spells list removed                                                | ~~🟠 High~~ done     | S      | 2     |
-| TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does                                        | ~~🟠 High~~ done     | S      | 2     |
-| TD-29 | ✅ Loading skeleton was the tutorial's invoices table                                                 | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-30 | ✅ Public list pages actually stream; skeleton matches the content                                    | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-31 | ✅ `sortSelectOptions` mutated shared `PageMeta.options` in place                                     | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-32 | ✅ E2E job spent 9m a run on `playwright install-deps`                                                | ~~🟠 High~~ done     | S      | 1     |
-| TD-33 | ✅ Italian identifiers TD-19 missed — 16 across 14 files + a directory                                | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-34 | ✅ CI actions pinned to a deprecated Node 20 runtime; Node 22 → 24                                    | ~~🟢 Low~~ done      | S      | 2     |
-| TD-35 | ✅ E2E specs assert hardcoded Italian copy instead of reading the catalogue                           | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-36 | ✅ `proxy.ts` matcher let `.jpg` through the auth/i18n gate, breaking map tiles                       | ~~🟠 High~~ done     | S      | 2     |
-| TD-37 | ✅ `authenticate()` and `app/lib/connections/**` are 0% covered — the login and DB-bootstrap path     | ~~🟠 High~~ done     | S      | 2     |
-| TD-38 | ✅ `fetch*`/`get*Count` untested for deities, magicitems, npc — data layer at 51%, target 90%         | ~~🟠 High~~ done     | S      | 2     |
-| TD-39 | ✅ Pure functions in `app/lib/utils/**` at 51%, target 95% — cheapest real coverage in the project    | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-40 | ✅ Metadata correctness untested — `npcMeta`/`deityMeta` at 14%/25%, target 80%                       | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-41 | ✅ `app/lib/hooks/**` at 52%, target 70% — `useFilterController` entirely untested                    | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-42 | ✅ `app/ui/**` behaviour untested — domain forms/cards/libraries at ~0%, target 60%                   | ~~🟢 Low~~ done      | L      | 2     |
-| TD-43 | ✅ `app/modules/maps/**` geometry and hooks near 0%, target 50%                                       | ~~🟢 Low~~ done      | M      | 2     |
-| TD-44 | ✅ Re-measured coverage with `coverage.all: true`; re-scoped the 70% gap as TD-45/TD-46               | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-45 | ✅ Page-level route components (`app/[locale]/dashboard/**`, `app/ui/geography`) covered              | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-46 | `app/modules/maps/components/**` (Leaflet rendering, 737 lines) — e2e, not Vitest; sub-slice 1/4 done | 🟡 Medium            | L      | 2     |
+| ID    | Title                                                                                                  | Severity             | Effort | Phase |
+| ----- | ------------------------------------------------------------------------------------------------------ | -------------------- | ------ | ----- |
+| TD-01 | ✅ Unauthenticated delete endpoints and Server Actions                                                 | ~~🔴 Critical~~ done | M      | 1     |
+| TD-02 | ✅ No input validation, incl. TD-02b's remaining boundaries                                            | ~~🔴 Critical~~ done | M      | 1–2   |
+| TD-03 | ✅ Test suite does not run                                                                             | ~~🔴 Critical~~ done | M      | 1     |
+| TD-04 | ✅ TypeScript errors on `tsc --noEmit`                                                                 | ~~🔴 Critical~~ done | S      | 1     |
+| TD-05 | ✅ No ESLint config, no Prettier, no CI                                                                | ~~🟠 High~~ done     | S      | 1     |
+| TD-06 | ✅ Dead code and tutorial leftovers                                                                    | ~~🟠 High~~ done     | S      | 1     |
+| TD-07 | ✅ `next`/`react` pinned; single lockfile                                                              | ~~🟠 High~~ done     | S      | 1     |
+| TD-08 | ✅ Metadata and query layer typed; zero `any`, rule is an error                                        | ~~🟠 High~~ done     | M      | 2     |
+| TD-09 | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm                                     | ~~🟠 High~~ done     | L      | 2     |
+| TD-10 | ✅ Toasts (client) vs `logServerIssue` (server) replace the stub                                       | ~~🟠 High~~ done     | M      | 2     |
+| TD-11 | ✅ Timestamps + `@@index([nome])`; relations still deferred                                            | ~~🟡 Medium~~ part   | M      | 2     |
+| TD-12 | ✅ Filter list declared once; count and rows can no longer diverge                                     | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-13 | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10                                             | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-14 | ✅ Map POIs persisted only to `localStorage`                                                           | ~~🟡 Medium~~ done   | M      | 3     |
+| TD-15 | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring                                       | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-16 | ✅ Inconsistent formatting                                                                             | ~~🟢 Low~~ done      | S      | 1     |
+| TD-17 | ✅ README does not match reality                                                                       | ~~🟢 Low~~ done      | S      | 1     |
+| TD-18 | ✅ `copy-webpack-plugin` forces webpack over Turbopack                                                 | ~~🟢 Low~~ done      | S      | 3     |
+| TD-19 | ✅ Mixed Italian/English identifiers (residual set → TD-33)                                            | ~~🟠 High~~ done     | L      | 2     |
+| TD-20 | ✅ Every flag on, incl. `noUncheckedIndexedAccess` (`noUnusedLocals` rejected)                         | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-21 | ✅ UI strings hardcoded; app must ship in it + en                                                      | ~~🟠 High~~ done     | L      | 2     |
+| TD-22 | ✅ Lint warnings 293 → 0; every rule back to `error`                                                   | ~~🟠 High~~ done     | M      | 2     |
+| TD-23 | ✅ Migration drift patched forward; migrations match the schema                                        | ~~🟠 High~~ done     | S      | 1     |
+| TD-24 | ✅ Playwright harness + specs; `e2e` job blocking in CI                                                | ~~🟠 High~~ done     | M      | 1     |
+| TD-25 | ✅ Startup reachability check; 503 distinct from 500                                                   | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-26 | ✅ `sottoclassi` / `circolo` duplication resolved                                                      | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-27 | ✅ Hidden `classi=0` filter on the spells list removed                                                 | ~~🟠 High~~ done     | S      | 2     |
+| TD-28 | ✅ Seed ids removed; the database assigns them, as the UI does                                         | ~~🟠 High~~ done     | S      | 2     |
+| TD-29 | ✅ Loading skeleton was the tutorial's invoices table                                                  | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-30 | ✅ Public list pages actually stream; skeleton matches the content                                     | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-31 | ✅ `sortSelectOptions` mutated shared `PageMeta.options` in place                                      | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-32 | ✅ E2E job spent 9m a run on `playwright install-deps`                                                 | ~~🟠 High~~ done     | S      | 1     |
+| TD-33 | ✅ Italian identifiers TD-19 missed — 16 across 14 files + a directory                                 | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-34 | ✅ CI actions pinned to a deprecated Node 20 runtime; Node 22 → 24                                     | ~~🟢 Low~~ done      | S      | 2     |
+| TD-35 | ✅ E2E specs assert hardcoded Italian copy instead of reading the catalogue                            | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-36 | ✅ `proxy.ts` matcher let `.jpg` through the auth/i18n gate, breaking map tiles                        | ~~🟠 High~~ done     | S      | 2     |
+| TD-37 | ✅ `authenticate()` and `app/lib/connections/**` are 0% covered — the login and DB-bootstrap path      | ~~🟠 High~~ done     | S      | 2     |
+| TD-38 | ✅ `fetch*`/`get*Count` untested for deities, magicitems, npc — data layer at 51%, target 90%          | ~~🟠 High~~ done     | S      | 2     |
+| TD-39 | ✅ Pure functions in `app/lib/utils/**` at 51%, target 95% — cheapest real coverage in the project     | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-40 | ✅ Metadata correctness untested — `npcMeta`/`deityMeta` at 14%/25%, target 80%                        | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-41 | ✅ `app/lib/hooks/**` at 52%, target 70% — `useFilterController` entirely untested                     | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-42 | ✅ `app/ui/**` behaviour untested — domain forms/cards/libraries at ~0%, target 60%                    | ~~🟢 Low~~ done      | L      | 2     |
+| TD-43 | ✅ `app/modules/maps/**` geometry and hooks near 0%, target 50%                                        | ~~🟢 Low~~ done      | M      | 2     |
+| TD-44 | ✅ Re-measured coverage with `coverage.all: true`; re-scoped the 70% gap as TD-45/TD-46                | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-45 | ✅ Page-level route components (`app/[locale]/dashboard/**`, `app/ui/geography`) covered               | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-46 | `app/modules/maps/components/**` (Leaflet rendering, 737 lines) — e2e, not Vitest; 2/4 sub-slices done | 🟡 Medium            | L      | 2     |
 
 ---
 
@@ -312,23 +312,21 @@ Thresholds in `vitest.config.ts` raised to 50/50/47/50 (lines/functions/branches
 
 **Why:** `docs/TESTING.md` already routes Leaflet rendering coverage through `e2e/map.spec.ts` rather than Vitest — jsdom can't meaningfully render a Leaflet map, and TD-36's bug (a middleware routing issue) is the standing example of a rendering assertion in Vitest not being where this class of bug actually shows up. This is by far the largest coverage gap left in the codebase — 737 lines is more than the two other items combined — and closing it is e2e work, a different risk profile and skill from the unit/hook work TD-37–46 have otherwise been.
 
-**Plan:** audit what `e2e/map.spec.ts` currently exercises against this component list; most likely it covers a handful of the top-level interactions (placing a POI, opening a marker) and leaves panels, search, and measurement unexercised. Size this as its own multi-session e2e expansion, not a single item — `CLAUDE.md`'s guidance to keep items completable in one session applies to sub-slices of this (e.g. "POI panel CRUD via e2e", "map search and filtering via e2e"), not to "cover the whole maps module" as one unit.
+**Plan:** audit what `e2e/map.spec.ts` currently exercises against this component list; most likely it covers a handful of the top-level interactions (placing a POI, opening a marker) and leaves panels, search, and measurement unexercised. Size this as its own multi-session e2e expansion, not a single item — `CLAUDE.md`'s guidance to keep items completable in one session applies to sub-slices of this (e.g. "POI panel CRUD via e2e", "measurement via e2e"), not to "cover the whole maps module" as one unit.
 
-**Audit (2026-08-04).** What e2e already exercised before this session, against the component list above:
+**Audit and sub-slices (2026-08-04).** What e2e already exercised before this work, against the component list above:
 
 - `map.spec.ts` — map mount/artwork, world switching, and the right-click context menu opening with its three items visible. Doesn't drive any menu item to completion.
-- `map-poi-link.spec.ts` (pre-existing, not previously listed in `docs/TESTING.md` §"E2E — Playwright" — added here) — the "Add to My Places" → linked-entity flow end to end, including the popup's "View NPC" link. Doesn't cover edit, delete, or an unlinked POI.
-- Untouched: `MapSearchBar` (country search/select), `MapMeasurementPanel`, `MapTileSwitcher`, `MapDetailsPanel`, `MapTopBar`, `MapControls`, `MapUser`, `LeafletGeoJSON`/`LeafletMarker`/`LeafletTileLayer` directly (only indirectly via the specs above), and — until this session — basic POI edit/delete.
+- `map-poi-link.spec.ts` (pre-existing, previously missing from `docs/TESTING.md` §"E2E — Playwright") — the "Add to My Places" → linked-entity flow end to end, including the popup's "View NPC" link. Doesn't cover edit, delete, or an unlinked POI.
 
-**Sub-slices** (each sized to one session, per the plan above):
+Sub-slices closed or attempted since:
 
-1. ✅ **POI panel CRUD** (2026-08-04) — `e2e/map-poi-crud.spec.ts`: add an unlinked POI → appears in the list panel → edit its title → delete it → gone. Complements `map-poi-link.spec.ts` rather than duplicating it.
-2. Map search and filtering — `MapSearchBar`'s country search/select and clear-selection flow.
-3. Measurement — `MapMeasurementPanel`'s start/click-points/finish-measurement flow, reachable from the context menu's "Measure" item.
-4. Tile/theme switching and remaining controls — `MapTileSwitcher`, `MapControls`, `MapDetailsPanel`'s own content once a country is selected.
+1. ✅ **POI panel CRUD** — add an unlinked POI → list → edit → delete → gone (`e2e/map-poi-crud.spec.ts`). Complements `map-poi-link.spec.ts`.
+2. ❌ **Map search/filtering — abandoned, not a coverage gap.** `MapSearchBar` (country search, the search-triggered "My Places" and "Measure" entry points) is entirely commented out in `app/ui/geography/WorldMap.tsx` — the same "unused is not dead" MVP gap `map-poi-link.spec.ts`'s own comment already documents for the search-bar POI entry point, just not previously generalised to the whole component. A user cannot reach it today, so there is nothing here for an e2e spec to exercise without first wiring the component up — a feature decision, not a test-coverage one, and out of scope for a hardening-phase item. Do not re-attempt this sub-slice until `MapSearchBar` is deliberately wired into `WorldMap.tsx` under its own item.
+3. ✅ **Measurement** — distance mode from the context menu's "Measure" item: select the mode, place points, watch the running distance, finish, close (`e2e/map-measurement.spec.ts`). Area mode not covered — same UI, would assert the same shape.
+4. Tile/theme switching and remaining controls — also not currently wired into `WorldMap.tsx` (`MapTileSwitcher`/`MapThemeSwitcher` have no importer there; only `MapControls` — zoom/reset/fullscreen — is live). Re-scope or drop once that's confirmed either way; don't file it as before assuming it's reachable.
 
-**Done when:** either a concrete e2e coverage target is set and met for this component tree, or — if headless Leaflet rendering coverage is judged not worth the e2e investment — `docs/TESTING.md` §2 is updated to say so explicitly, so the 0% reads as a documented decision rather than an open gap the next session re-discovers. Sub-slice 1 is closed; 2–4 remain open under this same TD-46 id — do not re-file them as new numbers.
-
+**Done when:** either a concrete e2e coverage target is set and met for this component tree, or — if headless Leaflet rendering coverage is judged not worth the e2e investment — `docs/TESTING.md` §2 is updated to say so explicitly, so the 0% reads as a documented decision rather than an open gap the next session re-discovers. Sub-slices 1 and 3 are closed; 2 is blocked on a product decision, not scheduled; 4 needs the same reachability check before it's attempted. Do not re-file any of these as new TD numbers.
 ---
 
 ## Recommended execution order

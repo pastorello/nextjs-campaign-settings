@@ -327,7 +327,6 @@ Sub-slices closed or attempted since:
 4. Tile/theme switching and remaining controls — also not currently wired into `WorldMap.tsx` (`MapTileSwitcher`/`MapThemeSwitcher` have no importer there; only `MapControls` — zoom/reset/fullscreen — is live). Re-scope or drop once that's confirmed either way; don't file it as before assuming it's reachable.
 
 **Done when:** either a concrete e2e coverage target is set and met for this component tree, or — if headless Leaflet rendering coverage is judged not worth the e2e investment — `docs/TESTING.md` §2 is updated to say so explicitly, so the 0% reads as a documented decision rather than an open gap the next session re-discovers. Sub-slices 1 and 3 are closed; 2 is blocked on a product decision, not scheduled; 4 needs the same reachability check before it's attempted. Do not re-file any of these as new TD numbers.
-
 ---
 
 ## Recommended execution order

@@ -1,16 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unused-vars -- WorldMap is a work-in-progress MVP over the vendored maps module; its unwired handlers and locals are kept on purpose. See CLAUDE.md, "unused is not dead". */
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { LeafletMap } from "@/app/modules/maps/components/map/LeafletMap";
 import { MapControls } from "@/app/modules/maps/components/map/MapControls";
-import { MapDetailsPanel } from "@/app/modules/maps/components/map/MapDetailsPanel";
 import { MapMeasurementPanel } from "@/app/modules/maps/components/map/MapMeasurementPanel";
 import { MapContextMenu } from "@/app/modules/maps/components/map/MapContextMenu";
 import { MapPOIPanel } from "@/app/modules/maps/components/map/MapPOIPanel";
-import { useMapTileProvider } from "@/app/modules/maps/hooks/useMapTileProvider";
 import { useMapContextMenu } from "@/app/modules/maps/hooks/useMapContextMenu";
 import { useMapMarkers } from "@/app/modules/maps/hooks/useMapMarkers";
 import { usePOIManager } from "@/app/modules/maps/hooks/usePOIManager";
@@ -19,21 +16,16 @@ import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import { notifyError } from "@/app/lib/notifications/notify";
 
-// Memoized style object to prevent unnecessary re-renders
-const GEOJSON_STYLE = {
-  fillColor: "#3b82f6",
-  fillOpacity: 0.2,
-  color: "#2563eb",
-  weight: 2,
-} as const;
-
 /**
- * MapMain - Main map component with theme-aware tile provider
+ * WorldMap - the map view backing `/dashboard/geography`.
  *
- * Optimizations:
- * - Memoized callbacks to prevent unnecessary re-renders
- * - Static style object for GeoJSON
- * - Stable function references
+ * A work-in-progress MVP over the vendored `app/modules/maps` module: it
+ * wires up the panels and hooks the current UI actually reaches (POI CRUD,
+ * measurement, the context menu, zoom/reset/fullscreen), not the module's
+ * full component set. Country search/selection and its details panel are
+ * not wired here yet — there is no entry point into them (TD-46) — so this
+ * file omits them rather than carrying dead state for a feature nothing
+ * triggers. See CLAUDE.md, "unused is not dead", for what's still scaffolding.
  */
 function WorldMap({
   mapUrl,
@@ -47,8 +39,6 @@ function WorldMap({
   initialZoom: number;
 }) {
   const t = useTranslations("geography.errors");
-  const [selectedCountry, setSelectedCountry] =
-    useState<GeoJSON.Feature | null>(null);
   const [isMeasurementOpen, setIsMeasurementOpen] = useState(false);
   const [isPOIPanelOpen, setIsPOIPanelOpen] = useState(false);
   const [poiFilterCategory, setPOIFilterCategory] =
@@ -63,10 +53,6 @@ function WorldMap({
     lat: number;
     lng: number;
   } | null>(null);
-
-  // Use custom hook for theme-aware tile provider management
-  const { tileProvider, currentProviderId, setProviderId } =
-    useMapTileProvider();
 
   // Context menu hook
   const {
@@ -94,26 +80,6 @@ function WorldMap({
   const [currentImage, setCurrentImage] = useState<L.ImageOverlay | null>(null);
 
   // Memoized callbacks to prevent unnecessary re-renders
-  const handleCountrySelect = useCallback(async (countryId: string) => {
-    try {
-      const response = await fetch(
-        `/api/countries/${encodeURIComponent(countryId)}`
-      );
-      const feature = (await response.json()) as GeoJSON.Feature;
-      setSelectedCountry(feature);
-    } catch (error) {
-      console.error("Error loading country GeoJSON:", error);
-    }
-  }, []);
-
-  const handleClearSelection = useCallback(() => {
-    setSelectedCountry(null);
-  }, []);
-
-  const handleMeasurementOpen = useCallback(() => {
-    setIsMeasurementOpen(true);
-  }, []);
-
   const handleMeasurementClose = useCallback(() => {
     setIsMeasurementOpen(false);
   }, []);
@@ -139,13 +105,6 @@ function WorldMap({
   }, []);
 
   // POI Panel handlers
-  const handleOpenPOIPanel = useCallback((category?: POICategory) => {
-    setPOIFilterCategory(category || null);
-    setPOIInitialCoords(null);
-    setPOIPanelMode("list");
-    setIsPOIPanelOpen(true);
-  }, []);
-
   const handleClosePOIPanel = useCallback(() => {
     setIsPOIPanelOpen(false);
     setIsSelectingPOILocation(false);
@@ -224,35 +183,6 @@ function WorldMap({
     [importGeoJSON, t]
   );
 
-  // Category click handler for MapTopBar
-  const handleCategoryClick = useCallback(
-    (categoryId: string) => {
-      // Map category IDs to POI categories
-      const categoryMapping: Record<string, POICategory> = {
-        restaurants: "food-drink",
-        hotels: "lodging",
-        attractions: "tourism",
-        transit: "transport",
-      };
-
-      const poiCategory = categoryMapping[categoryId.toLowerCase()];
-      if (poiCategory) {
-        handleOpenPOIPanel(poiCategory);
-      }
-    },
-    [handleOpenPOIPanel]
-  );
-
-  // Memoize tile layer props to prevent unnecessary updates
-  const tileLayerProps = useMemo(
-    () => ({
-      url: tileProvider.url,
-      attribution: tileProvider.attribution,
-      maxZoom: tileProvider.maxZoom,
-    }),
-    [tileProvider.url, tileProvider.attribution, tileProvider.maxZoom]
-  );
-
   const initializeMap = async () => {
     if (!isValidString(mapUrl)) {
       notifyError(t("mapNotConfigured"));
@@ -304,30 +234,8 @@ function WorldMap({
         cursorStyle={isSelectingPOILocation ? "crosshair" : "grab"}
       ></LeafletMap>
 
-      {/* Search Bar
-      <MapSearchBar
-        onCountrySelect={handleCountrySelect}
-        selectedCountry={selectedCountry}
-        onClearSelection={handleClearSelection}
-        onMeasurementClick={handleMeasurementOpen}
-        onPOIClick={() => handleOpenPOIPanel()}
-        isPOIPanelOpen={isPOIPanelOpen}
-        onClosePOIPanel={handleClosePOIPanel}
-      /> 
-      */}
-
-      {/* Top Bar
-      <MapTopBar onCategoryClick={handleCategoryClick} />
-       */}
-
       {/* Map Controls */}
       <MapControls />
-
-      {/* Country Details Panel */}
-      <MapDetailsPanel
-        country={selectedCountry}
-        onClose={handleClearSelection}
-      />
 
       {/* Measurement Panel */}
       <MapMeasurementPanel

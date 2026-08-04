@@ -2,12 +2,13 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { toast } from "sonner";
 
-// WorldMap composes six already-independently-tested map subcomponents and
-// five already-independently-tested hooks (see app/modules/maps/hooks/*.test.ts)
+// WorldMap composes five already-independently-tested map subcomponents and
+// four already-independently-tested hooks (see app/modules/maps/hooks/*.test.ts)
 // around its own state machine. Per the "unused is not dead" note in
-// CLAUDE.md this file is a work-in-progress MVP — several props (selected
-// country, measurement panel, context menu) have no wired trigger yet. These
-// tests cover the state this component itself owns: the image-overlay
+// CLAUDE.md this file is a work-in-progress MVP over the vendored maps
+// module — country search/selection isn't wired here yet (TD-46), so
+// WorldMap.tsx doesn't import MapDetailsPanel or useMapTileProvider at all.
+// These tests cover the state this component itself owns: the image-overlay
 // bootstrap effect, the POI-location-selection flow, and export/import.
 
 let onClick: ((lat: number, lng: number) => void) | undefined;
@@ -22,9 +23,6 @@ vi.mock("@/app/modules/maps/components/map/LeafletMap", () => ({
 }));
 vi.mock("@/app/modules/maps/components/map/MapControls", () => ({
   MapControls: () => <div data-testid="map-controls" />,
-}));
-vi.mock("@/app/modules/maps/components/map/MapDetailsPanel", () => ({
-  MapDetailsPanel: () => <div data-testid="map-details-panel" />,
 }));
 vi.mock("@/app/modules/maps/components/map/MapMeasurementPanel", () => ({
   MapMeasurementPanel: () => <div data-testid="map-measurement-panel" />,
@@ -64,13 +62,6 @@ vi.mock("@/app/modules/maps/components/map/MapPOIPanel", () => ({
   },
 }));
 
-vi.mock("@/app/modules/maps/hooks/useMapTileProvider", () => ({
-  useMapTileProvider: () => ({
-    tileProvider: { url: "tiles/{z}/{x}/{y}", attribution: "", maxZoom: 10 },
-    currentProviderId: "osm",
-    setProviderId: vi.fn(),
-  }),
-}));
 vi.mock("@/app/modules/maps/hooks/useMapContextMenu", () => ({
   useMapContextMenu: () => ({
     isOpen: false,

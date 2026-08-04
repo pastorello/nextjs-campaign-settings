@@ -84,7 +84,7 @@ Everything else is supporting cast.
 | `app/modules/maps/**` | 50%     | Leaflet is hard to test headlessly; cover hooks and utils, not rendering |
 | **Overall gate**      | **70%** | Enforced in CI, ratcheted upward over time                               |
 
-**No row exists for `app/modules/maps/components/**` rendering** (737 lines, 0% covered, deliberately routed through `e2e/map.spec.ts` instead of Vitest). Scoped as TD-46 rather than given a target here, since a target with nothing behind it invites the same drift TD-44 was opened to fix. The sibling gap this row used to cover — page-level Next.js route components (`app/[locale]/dashboard/**`, `app/ui/geography`) — was closed by TD-45.
+**No row exists for `app/modules/maps/components/**` rendering** (737 lines, 0% covered). Scoped as TD-46 rather than given a target here, since a target with nothing behind it invites the same drift TD-44 was opened to fix. The sibling gap this row used to cover — page-level Next.js route components (`app/[locale]/dashboard/**`, `app/ui/geography`) — was closed by TD-45. **Not e2e-only, unlike `app/modules/maps/components/map/**`'s Leaflet canvas itself** (jsdom genuinely can't render that, see "Explicitly out of scope" below): TD-46 found most of this tree — panels, forms, lists — is regular React UI, testable in Vitest with the Leaflet/map hooks stubbed, the same pattern `WorldMap.test.tsx` already uses.
 
 Set the CI threshold to whatever you actually achieve at the end of Phase 1, then never let it drop. A threshold you have to disable to merge is worse than no threshold.
 

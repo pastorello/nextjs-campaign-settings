@@ -41,6 +41,7 @@ Steps 1–3 are cheap and go in one file. Do not skip straight to 4 for anything
 | #   | Feature                                             | Status                       | Phase |
 | --- | --------------------------------------------------- | ---------------------------- | ----- |
 | 001 | [Combat tracker](./001-combat-tracker.md)           | Draft — skeleton, not agreed | 4     |
-| 002 | [Map POI persistence](./002-map-poi-persistence.md) | Agreed — ready to build      | 3     |
+| 002 | [Map POI persistence](./002-map-poi-persistence.md) | Shipped 2026-08-01           | 3     |
+| 003 | [Real relations](./003-real-relations.md)           | Draft — not agreed           | 3     |
 
 Feature ideas live in [`../ROADMAP.md`](../ROADMAP.md) until they are ready for a spec.

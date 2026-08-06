@@ -1,6 +1,6 @@
 # ADR-0008: Store map images on a local filesystem volume, served through an authenticated route
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-06
 - **Deciders:** the maintainer (DM), with Claude Code
 - **Related:** [SPEC-004](../specs/004-world-model.md) §9 question 1 (this ADR unblocks it), TD-36 (why `.jpg` bypasses the auth gate today), TD-01 (`requireApiSession` on route handlers), [ADR-0004](./0004-server-actions-over-rest-api.md)

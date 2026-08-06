@@ -1,9 +1,24 @@
 # SPEC-003: Real relations for the entity-shaped Int columns
 
-- **Status:** Draft — not agreed
+- **Status:** Superseded by [SPEC-004](./004-world-model.md) (2026-08-06) — the analysis stands, the plan does not
 - **Date:** 2026-08-06
 - **Phase:** 3
 - **Related:** TD-11 (schema timestamps/indexes; relations were explicitly deferred there), `ROADMAP.md` Phase 3 items "Real relations" and "Locations as first-class entities", [ADR-0003](../adr/0003-metadata-driven-domain-configuration.md), [ADR-0005](../adr/0005-english-identifiers.md), SPEC-002 (precedent for DB-backed select options)
+
+---
+
+> **Superseded on 2026-08-06, the day it was drafted.** The DM's intent for the project came out during review: this is to become a **tool for building worlds**, not a reference app for one campaign. Locations, factions and maps are all to be authored by hand, inside a `Universe → Plane → Region → City → Dungeon` containment hierarchy.
+>
+> That breaks this spec's central proposal. Seeding a flat `location {id, name}` table and adding foreign keys is not a step toward that model — the table needs `kind`, `parentId`, coordinates and a map, which is essentially all of it, and the 33 flat entries need arranging into a tree, which is the DM's knowledge rather than a mechanical migration. Worse, a record's location turns out to be **derived** from where its pin sits in the tree, so the columns this spec wanted to constrain with foreign keys are ones [SPEC-004](./004-world-model.md) deletes.
+>
+> **What survives, and is why this file is kept rather than deleted:**
+>
+> - §1's finding that nothing validates option membership, and that an unmatched value renders as an empty cell — filed as **TD-61** and shipping independently of any schema work.
+> - §1's second finding that `pageMetaFields` is a flat, name-keyed registry, so a shared field like `location` cannot be changed for one domain without changing it for the other.
+> - §6's entity-versus-vocabulary classification, which is what established that most option-backed columns should stay enums. SPEC-004 inherits it.
+> - §6's argument for preserving existing id numbering across a migration rather than renumbering. SPEC-004 applies it to `faction`.
+>
+> The `faction` half of this spec is carried into SPEC-004 largely unchanged; factions are flat and untouched by the hierarchy.
 
 ---
 

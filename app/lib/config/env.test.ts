@@ -16,6 +16,7 @@ describe("env", () => {
 
   it("parses a well-formed DATABASE_URL", async () => {
     process.env.DATABASE_URL = "postgresql://user:pass@localhost:5432/db";
+    process.env.UPLOAD_DIR = "./storage/maps";
 
     const { default: env } = await import("./env");
 
@@ -24,13 +25,31 @@ describe("env", () => {
 
   it("throws, naming the variable, when DATABASE_URL is missing", async () => {
     delete process.env.DATABASE_URL;
+    process.env.UPLOAD_DIR = "./storage/maps";
 
     await expect(import("./env")).rejects.toThrow(/DATABASE_URL/);
   });
 
   it("throws when DATABASE_URL is not a valid connection string", async () => {
     process.env.DATABASE_URL = "not-a-url";
+    process.env.UPLOAD_DIR = "./storage/maps";
 
     await expect(import("./env")).rejects.toThrow(/DATABASE_URL/);
+  });
+
+  it("parses a well-formed UPLOAD_DIR", async () => {
+    process.env.DATABASE_URL = "postgresql://user:pass@localhost:5432/db";
+    process.env.UPLOAD_DIR = "./storage/maps";
+
+    const { default: env } = await import("./env");
+
+    expect(env.UPLOAD_DIR).toBe("./storage/maps");
+  });
+
+  it("throws, naming the variable, when UPLOAD_DIR is missing", async () => {
+    process.env.DATABASE_URL = "postgresql://user:pass@localhost:5432/db";
+    delete process.env.UPLOAD_DIR;
+
+    await expect(import("./env")).rejects.toThrow(/UPLOAD_DIR/);
   });
 });

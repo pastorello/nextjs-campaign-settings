@@ -39,6 +39,9 @@ next-env.d.ts
 # Prisma
 /generated/prisma
 
+# Uploaded map images (ADR-0008) — dev-local, not committed
+/storage
+
 # Playwright
 /test-results/
 /playwright-report/

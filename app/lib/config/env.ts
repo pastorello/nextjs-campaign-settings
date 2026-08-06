@@ -4,6 +4,9 @@ const envSchema = z.object({
   DATABASE_URL: z
     .string()
     .url("DATABASE_URL must be a valid connection string"),
+  // Where uploaded map images live on disk (ADR-0008). Dev: a gitignored
+  // `./storage/maps`; production: the same path backed by a named volume.
+  UPLOAD_DIR: z.string().min(1, "UPLOAD_DIR must not be empty"),
 });
 
 /**

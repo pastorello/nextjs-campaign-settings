@@ -67,6 +67,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-44 | ✅ Re-measured coverage with `coverage.all: true`; re-scoped the 70% gap as TD-45/TD-46                     | ~~🟡 Medium~~ done   | S      | 2     |
 | TD-45 | ✅ Page-level route components (`app/[locale]/dashboard/**`, `app/ui/geography`) covered                    | ~~🟡 Medium~~ done   | M      | 2     |
 | TD-46 | ✅ `app/modules/maps/components/**` (Leaflet rendering, 737 lines) Vitest coverage — Tier 1 and Tier 2 done | ~~🟡 Medium~~ done   | L      | 2     |
+| TD-58 | ✅ Dependabot grouped a major ESLint bump into the dev-dependencies group, breaking CI                     | ~~🟠 High~~ done     | S      | 3     |
 
 ---
 
@@ -351,6 +352,20 @@ Sub-slices closed or attempted, in order:
 6. ✅ **Tier 2 Vitest suites (2026-08-04)** — `MapSearchBar`, `MapTopBar`, `MapTileSwitcher`, `MapThemeSwitcher`, `MapUser`, `LeafletGeoJSON`, `LeafletTileLayer`, `MapDetailsPanel`. See outcome above.
 
 **Done.** Both tiers have Vitest coverage; Tier 2 was tested in place rather than wired-or-deleted, per the user's explicit call against `CLAUDE.md`'s "vendored library stays as inventory" rule. `docs/TESTING.md` §2 now reflects the actual result — Vitest, not e2e, is what closed most of this. The suite crosses Phase 2's 70% coverage exit criterion; no further TD is filed for this component tree unless a future session decides to wire or delete the dead `MapMain` subtree, which would be a product decision, not a coverage one.
+
+---
+
+## TD-58 ✅ Dependabot grouped a major ESLint bump into the dev-dependencies group, breaking CI — DONE (2026-08-06)
+
+**Where:** `.github/dependabot.yml`.
+
+**Why:** TD-57 (2026-08-04) added Dependabot with an `ignore` list blocking major-version bumps for `next`/`react`/`@prisma/*`/`typescript` — packages `CLAUDE.md` rule 7 says need a human changelog read — and an `exclude-patterns` list keeping `typescript` out of the grouped `dev-dependencies` PR for the same reason. `eslint` wasn't on either list. Dependabot PR #81 (2026-08-06) grouped a major ESLint bump (9.39.2 → 10.8.0) together with 12 unrelated patch/minor updates under `chore(deps-dev): bump the dev-dependencies group`, and CI's `pnpm lint` step failed: `TypeError: Error while loading rule 'react/display-name': contextOrFilename.getFilename is not a function`. ESLint 10 changed `context.getFilename()` (the *rule*-context method, not `Linter#getFilename` — the two are separate APIs in ESLint's docs) in a way `eslint-plugin-react@7.37.5` — pulled in transitively by `eslint-config-next` — still calls the old way. Not a bug in this codebase; an upstream incompatibility that a same-day major-version PR surfaced.
+
+**Fix:** added `eslint` to `dependabot.yml`'s `dev-dependencies` group `exclude-patterns` (so a future major bump can't hide inside an otherwise-safe grouped PR) and to the `ignore` list with `update-types: ["version-update:semver-major"]` (so Dependabot won't propose one until a human reads the changelog and confirms `eslint-plugin-react`/`eslint-config-next` compatibility) — same treatment as `next`/`react`/`@prisma/*`/`typescript`.
+
+**Not done here:** PR #81 itself. It bundles the breaking major bump with 12 safe updates; resolving it (closing and letting Dependabot re-open a clean set, or manually splitting it) is a GitHub action left to the maintainer rather than done from this session.
+
+**A gap worth naming, not fixed here:** TD-56 and TD-57 (2026-08-04 — `.env.example` and this same `dependabot.yml`) were never given entries in this register despite shipping and merging; a PR merge-commit message claimed "record TD-47 – TD-57" but no `TECH_DEBT.md` entry for any of TD-47–TD-57 exists except this one. Backfilling those is out of scope for this fix — it touches unrelated history — but it means the register currently understates what's actually been done, the same "two documents disagreeing" failure the 2026-07-30 maintenance note below already warns about.
 
 ---
 

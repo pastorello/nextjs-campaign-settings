@@ -18,6 +18,7 @@ updates:
           - "*"
         exclude-patterns:
           - typescript
+          - eslint
       prod-dependencies:
         applies-to: version-updates
         dependency-type: production
@@ -36,6 +37,8 @@ updates:
       - dependency-name: "@prisma/*"
         update-types: ["version-update:semver-major"]
       - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      - dependency-name: eslint
         update-types: ["version-update:semver-major"]
 
   # GitHub Actions updates

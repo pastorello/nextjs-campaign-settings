@@ -1,0 +1,52 @@
+version: 2
+updates:
+  # npm package updates
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+    # Group same-major version bumps together to reduce PR noise.
+    # Excluded packages require a human to read the changelog and are handled
+    # separately per CLAUDE.md rule 7.
+    groups:
+      dev-dependencies:
+        applies-to: version-updates
+        dependency-type: development
+        patterns:
+          - "*"
+        exclude-patterns:
+          - typescript
+      prod-dependencies:
+        applies-to: version-updates
+        dependency-type: production
+        patterns:
+          - "*"
+        exclude-patterns:
+          - next
+          - react
+          - "@prisma/*"
+    # Never bump major versions of these — they need human changelog reads.
+    ignore:
+      - dependency-name: next
+        update-types: ["version-update:semver-major"]
+      - dependency-name: react
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@prisma/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions updates
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+    groups:
+      actions:
+        applies-to: version-updates
+        patterns:
+          - "*"

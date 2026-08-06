@@ -74,6 +74,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-61 | Option-backed `Int` fields accept any number; an out-of-list value renders as a blank cell                  | 🟠 High              | S      | 3     |
 | TD-62 | POI category names are hardcoded English and reach the UI — a TD-21 leftover                                | 🟢 Low               | S      | 3     |
 | TD-64 | `WorldMap.tsx`'s async-effect map-loading pattern trips `react-hooks/set-state-in-effect`                   | 🟢 Low               | S      | 3     |
+| TD-65 | `DATABASE_URL` in this dev environment isn't a throwaway DB — e2e debris landed in real data              | 🟡 Medium             | S      | 3     |
 
 ---
 
@@ -459,6 +460,20 @@ Surfaced again on 2026-08-06 while shipping SPEC-004 M2's migration, which had t
 **Plan:** re-evaluate once `eslint-plugin-react-hooks`/`eslint-config-next` ships a fixed version of this rule for async functions, or decide deliberately to restructure `initializeMap` (e.g. split the async fetch from the synchronous state commit) if no fix lands. Until then it carries a scoped `eslint-disable-next-line react-hooks/set-state-in-effect` with this TD referenced inline.
 
 **Done when:** the disable comment is removed and `pnpm lint` still passes, either because the upstream rule stopped flagging this pattern or because the effect was restructured to satisfy it.
+
+---
+
+## TD-65 🟡 `DATABASE_URL` in this dev environment isn't a throwaway DB — e2e debris landed in real data
+
+**Where:** `.env`'s `DATABASE_URL`, which `pnpm test:e2e` also writes and deletes real rows against (`CLAUDE.md`'s own warning on the command).
+
+**Why:** found 2026-08-06 while starting SPEC-004 T3 — the `poi` table's only 5 rows were e2e test debris (`"E2E World 1786045869959"`, four `"E2E POI …"` rows linked to `npc` ids 713–716), not a DM-created root. No real world had been created via the M4 UI yet; the debris was masquerading as one, with an arbitrary uploaded test image instead of the real `piani-esistenza.jpg`. Deleted by hand before T3's seed ran (confirmed no live-data references first: nothing had `parentId` pointing at the fake root, `npc` 713–716 weren't otherwise touched).
+
+This means whatever ran `pnpm test:e2e` most recently was pointed at this same dev database rather than a disposable one, contrary to `CLAUDE.md`'s explicit instruction. It is easy to do by accident — nothing enforces `DATABASE_URL` being different for `pnpm dev` vs `pnpm test:e2e`, both read the same `.env`.
+
+**Plan:** either a second env file (`.env.test`) `test:e2e`'s Playwright config loads instead of `.env`, or a runtime guard that refuses to run the e2e suite against whatever `DATABASE_URL` currently resolves to in the shared `.env` (e.g. requiring a `_e2e` suffix in the database name). Whichever is chosen, document it in `docs/TESTING.md` next to the existing warning so it's enforced, not just written down.
+
+**Done when:** running `pnpm test:e2e` locally cannot write to the same database `pnpm dev` uses, either because the config makes it structurally impossible or because a guard refuses to start otherwise.
 
 ---
 

@@ -21,13 +21,22 @@ Put together: if anyone edits one of those arrays — renumbering entries, or de
 
 This is not hypothetical. `app/lib/config/npc/factions.ts` runs `0…8, 10…19, 21, 22` — **values 9 and 20 are missing**, which means entries were removed from that list at some point in the past. Whether any `npc` row still holds a `9` or a `20` is unknown and cannot be determined from the code; it needs a query against the live database (see §5, "Pre-migration audit").
 
-### A second finding: three `deities` fields exist in the data but not in the metadata
+### A second finding: field names are a global namespace, so `location` cannot be migrated per-domain
 
-`deities` has three FK-shaped columns — `luogo` (`location`), `allineamento` (`alignment`), `dominioallineamento` (`alignmentDomain`) — that **have no declaration in `deityMeta.ts`**. `DeityMetaField.location` exists in the enum; nothing in the metadata registry uses it. Since the metadata layer drives form rendering, list columns, filters, query construction _and_ validation from that single declaration, a column absent from it is invisible to the whole app: the DM cannot see, filter or edit these three fields, and no validator ever runs on them.
+`alignment`, `alignmentDomain` and `location` are shared by `npc` and `deities`, and the metadata layer expresses that **by name collision rather than by an explicit shared declaration**. `pageMetaFields.ts` builds one flat registry by spreading all four domain metas into a single object:
 
-**They are not dead, and not garbage.** `app/seed/initial-data/deities.ts` populates all three on every seeded deity, with values that resolve cleanly against the existing option lists — `location` holds `0, 1, 2, 4, 9` (all inside `locationList`'s `0…32`), `alignment` holds `0, 1, 2` (exactly the three `alignments` values), `alignmentDomain` holds `0, 1, 2` (inside `alignmentDomains`' four). `app/seed/importLibrary.ts` additionally maps them from the legacy Italian export format (`luogo: "location"`, `allineamento: "alignment"`). The data is intentional and coherent; only the metadata declaration is missing.
+```ts
+...deitiesMeta, ...spellsMeta, ...magicItemsMeta, ...npcMeta,
+```
 
-So this is **the inverse of dead code**: a field that exists everywhere except the one layer that would make it usable. It is a real drift item in its own right, and it is a prerequisite question for this spec rather than a blocker — see §9, open question 5, for the decision it forces about whether `deities.location` joins Class A.
+`DeityMetaField.alignment` and `NpcMetaField.alignment` are both the string `"alignment"`, so the key resolves to whichever spread came last — `npcMeta`. `deityMeta.ts` therefore declares no `alignment`, `alignmentDomain` or `location` entry of its own, and does not need to: `formFields.ts`, `listConfig.ts` and `queryFields.ts` all reference `DeityMetaField.*` for these three, and each resolves through `npcMeta`'s declaration. The fields render, filter and validate on the deities pages exactly as they do on NPC pages.
+
+Two consequences that matter here:
+
+- **`deities.location` is fully in scope.** It is a live, declared, filterable field backed by the same `locationList` as `npc.location`, holding values in the same range (the seed writes `0, 1, 2, 4, 9`). It joins Class A alongside `npc.location`.
+- **The two cannot be migrated independently.** One `location` declaration serves both domains, so pointing it at the database changes `npc` and `deities` in the same edit. A plan that migrates "npc first, deities later" is not available; the FK must land on both tables in the same migration as the metadata change.
+
+Worth recording for a future reader, though not this spec's business: last-spread-wins means a domain meta that ever declares a field name another domain already uses is **silently overridden**, with no type error. It is correct today only because the shared fields genuinely are identical.
 
 ## 2. Goal
 
@@ -65,7 +74,8 @@ Almost all of this is invisible. The user-facing surface is the two dropdowns (`
 -- values with no matching option, per column being related
 SELECT DISTINCT fazione FROM npc
   WHERE fazione NOT IN (0,1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,21,22);
-SELECT DISTINCT luogo FROM npc WHERE luogo NOT IN (0,1,2,…,32);
+SELECT DISTINCT luogo FROM npc     WHERE luogo NOT IN (0,1,2,…,32);
+SELECT DISTINCT luogo FROM deities WHERE luogo NOT IN (0,1,2,…,32);
 
 -- and, separately, for the Class B validator work (T1): every option-backed
 -- column, to size how much existing data the new validators would reject
@@ -96,12 +106,12 @@ This is the spec's central decision, and the reason it is not "replace every Int
 
 **Class A — genuine entities.** The DM authors them, they belong to this campaign setting, they will grow attributes, and other records belong _to_ them.
 
-| Column         | Options | Becomes    |
-| -------------- | ------- | ---------- |
-| `npc.location` | 33      | `location` |
-| `npc.faction`  | 21      | `faction`  |
+| Column                             | Options | Becomes    |
+| ---------------------------------- | ------- | ---------- |
+| `npc.location`, `deities.location` | 33      | `location` |
+| `npc.faction`                      | 21      | `faction`  |
 
-`deities.location` belongs here on shape and on data — its seeded values resolve against the same `locationList` — but is held out of the table above pending §9's open question 5, which decides whether its missing metadata declaration is written first. It is expected to join.
+Both `location` columns move together — they are one metadata declaration serving two domains (§1).
 
 **Class B — closed vocabulary.** Fixed sets that come from the 5e rules or the setting's cosmology. They are not DM-authored, they do not gain attributes, and a table for them would add a join and a seed to maintain in exchange for nothing.
 
@@ -109,15 +119,24 @@ This is the spec's central decision, and the reason it is not "replace every Int
 
 **Class B keeps its `Int` column and its TypeScript list — but gains a real validator.** This is where most of the correctness benefit of the whole item actually lives, and it needs no migration at all.
 
-`deities.residence` is the one judgement call: it is backed by `celestialPlanes` (7 options) and names a plane of existence, which is arguably a place. It is classed as vocabulary because the seven planes are cosmology — fixed by the setting's design, not locations a DM adds — and nothing will ever be "based at" one the way an NPC is based in a town. It is also the one option-backed `deities` field that _is_ declared in `deityMeta`, so unlike `deities.location` it is at least live. **Flagged as an open question rather than settled.**
+**`deities.residence` stays vocabulary in this spec, but is destined to become a location.** It is backed by `celestialPlanes` (7 planes of existence). The DM's stated long-term intent (2026-08-06) is a map tool built on a containment hierarchy:
+
+```
+Universe → Plane of Existence → Region → City → Dungeon (playable grid)
+```
+
+Under that model a plane of existence is simply the second tier of the same tree that holds cities and dungeons — so `residence` is a location, not a fixed vocabulary, and `Location`'s own "Luoghi Divini" block is already the third place the same idea is expressed (§9, question 6).
+
+Converting it now would mean designing the hierarchy now, which is a feature spec of its own and firmly out of scope here. **What this spec owes that future is only that it does not block it**: the `location` table must be able to gain `parentId` (self-relation) and `kind` as an additive migration, with no rewrite of existing rows. The proposed shape does — both are nullable columns on a table whose ids never change. `residence` therefore keeps its `Int` + `celestialPlanes` list and gains only a membership validator, and the Locations spec inherits the job of folding it in.
 
 ### Proposed schema
 
 ```prisma
 model location {
-  id   Int    @id                    // NOT autoincrement — see below
-  name String
-  npc  npc[]
+  id      Int       @id                    // NOT autoincrement — see below
+  name    String
+  npc     npc[]
+  deities deities[]
 
   @@map("luoghi")
 }
@@ -138,7 +157,11 @@ model npc {
   faction    faction  @relation(fields: [factionId], references: [id], onDelete: Restrict)
 }
 
-// deities is deliberately untouched — see §1's second finding.
+model deities {
+  // …unchanged fields…
+  locationId Int      @map("luogo")
+  location   location @relation(fields: [locationId], references: [id], onDelete: Restrict)
+}
 ```
 
 **`id` is not `@default(autoincrement())`, deliberately.** The new tables are seeded with the _existing_ numbering, gaps included — `faction` gets ids `0…8, 10…19, 21, 22`, exactly the values `factions.ts` declares. Preserving the numbers is what makes the migration a pure metadata change with **zero row rewrites**: every `npc.fazione` already holds the right value, so adding the FK constraint is the whole job. Renumbering to a clean sequence would mean rewriting every referencing row, which is precisely the silent-repointing failure this spec is about, performed deliberately. Ids for rows added later come from an explicit `max(id) + 1`, or the table is switched to a sequence in a follow-up once nothing depends on the numbering.
@@ -185,13 +208,12 @@ A shared helper in `app/lib/utils/validators/` building a Zod schema from an opt
 
 - [ ] The pre-migration audit query is recorded, run against the live database, and its result written into this spec before any schema change is applied.
 - [ ] `location` and `faction` tables exist, seeded with exactly the ids the TypeScript lists declare today, gaps preserved.
-- [ ] No `npc` row's `luogo` / `fazione` value differs before and after the migration — verified by a checksum query over both columns, run before and after.
-- [ ] `deities` is untouched by this change: no column added, dropped or rewritten.
+- [ ] No `npc` or `deities` row's `luogo` / `fazione` value differs before and after the migration — verified by a checksum query over each column, run before and after.
 - [ ] A payload with a `faction`/`location` id that does not exist is rejected with a field-level error, not a 500 and not a write.
 - [ ] A payload with an out-of-list value for a Class B field (e.g. `rarity: 99`) is rejected with a field-level error. Regression test per field type — scalar and array.
-- [ ] Deleting a `location` row that an NPC references fails at the database level rather than orphaning the NPC.
-- [ ] Every existing NPC displays the same location and faction label after the migration as before — verified by a test that reads a representative row through the metadata layer both ways.
-- [ ] The Location and Faction selects in the NPC form list the same entries, in the same order, as before.
+- [ ] Deleting a `location` row that an NPC or deity references fails at the database level rather than orphaning it.
+- [ ] Every existing NPC and deity displays the same location, faction and alignment label after the migration as before — verified by a test that reads a representative row through the metadata layer both ways.
+- [ ] The Location and Faction selects list the same entries in the same order as before, on both the NPC and the deity forms.
 - [ ] `npc.locations.*` / `npc.factions.*` keys are removed from both message catalogues and TD-21's key-set CI check stays green.
 - [ ] Every new or changed mutation still rejects an unauthenticated request.
 - [ ] The migration is reversible: a down path drops the FKs and tables leaving every `Int` value intact, demonstrated on a throwaway database.
@@ -210,31 +232,26 @@ _Not filled in — sections above are not agreed yet. §7's async-options design
 
 **Open questions**
 
-1. **Is `deities.residence` a location or vocabulary?** Classed as vocabulary in §6 on the reasoning that divine planes are cosmology, but the DM's intent decides. If it is a place, it joins Class A and the `location` table gains a `kind` discriminator — a materially bigger change.
+1. ~~Is `deities.residence` a location or vocabulary?~~ **Answered 2026-08-06: a location, eventually.** The DM intends a map tool built on `Universe → Plane of Existence → Region → City → Dungeon`, which makes a plane the second tier of the same tree as cities. It stays vocabulary in this spec and is folded in by the Locations spec; the obligation this spec carries is only that `location` can gain `parentId`/`kind` additively — see §6.
 2. **Do the new tables get `@@map` to Italian plurals, or English names?** They are new tables (SPEC-002's precedent says English, straight through) but they hold what the legacy Italian columns point at (the rest of the schema's precedent says `@map`). Both defensible; §6 proposes `@@map` for consistency with the columns referencing them.
-3. **Should the validator fix ship as its own item, ahead of this?** It needs no migration, fixes the silent-blank failure for all ~20 fields rather than two, and is a fraction of the risk. It is written into this spec as T1 for context, but it stands alone and would deliver most of the correctness benefit immediately. **Recommended.**
+3. ~~Should the validator fix ship as its own item, ahead of this?~~ **Answered 2026-08-06: yes.** Filed as its own debt item and shipped ahead of any schema work. It is no longer a task of this spec; §7's validator note stays only as context for why the relations still matter afterwards.
 4. ~~Does anything outside the app write to these columns?~~ **Answered while drafting:** yes — `app/seed/initial-data/*.ts` writes every option-backed column directly, and `app/seed/importLibrary.ts` maps them from the legacy Italian export format. Both must seed the `location`/`faction` tables before writing `npc`, or the FK rejects the seed. This is a real ordering constraint on T2, not just a note.
-5. **Do `deities.location` / `alignment` / `alignmentDomain` get their missing metadata declarations, and does that happen before this spec or inside it?** The evidence (§1) says they are intended fields whose declarations were never written: the seed populates all three with values that resolve correctly against the existing option lists, and the legacy importer maps them. Three ways forward, in increasing scope:
-
-   - **(a) Declare them first, as a separate small item.** Three `PageMeta` entries reusing `locationList`/`alignments`/`alignmentDomains`, which the DM immediately gains as visible, filterable, editable fields. Then `deities.location` joins Class A here on the same footing as `npc.location`. **Recommended** — it is a genuinely small change, it makes the data visible before a constraint is put on it, and it means this spec relates a field the app can actually see.
-   - **(b) Relate `deities.location` anyway, leaving it undeclared.** Works technically — the FK constrains the column regardless of whether the metadata layer knows about it — but puts an enforced constraint on data no one can view or correct, which makes any future orphan unfixable through the UI.
-   - **(c) Leave `deities` out entirely,** as this draft currently has it. Cheapest, but leaves "relations for the FK-shaped columns" half-done and the metadata gap unrecorded.
-
-   Under (a) or (b), §6's Class A table gains `deities.location`, the `location` model gains a `deities deities[]` back-relation, and §5's audit gains the matching `SELECT DISTINCT luogo FROM deities` query.
-
-6. **`DivineResidence` (12 entries) and `Zone` are imported by nothing.** `DivineResidence` duplicates, character for character, the display strings in `Location`'s "Luoghi Divini" block (`"Paradiso (Sole)"`, `"Elysium (Luna)"`, `"Fiume delle Anime"`, `"Alba dei Tempi"`, …) while `deities.residence` actually reads a third list, `celestialPlanes` (7 planes). So the setting's geography is modelled three times, in three incompatible vocabularies, two of which are unreferenced. Per `CLAUDE.md`'s "unused is not dead" rule this is a question, not a cleanup: are `DivineResidence`/`Zone` scaffolding for something planned, or leftovers? Not this spec's job either way, but it is the strongest argument that a single `location` table is worth having.
+5. ~~Do `deities.location` / `alignment` / `alignmentDomain` need metadata declarations?~~ **Answered 2026-08-06: they already have them.** They resolve through `npcMeta`'s declarations via the flat `pageMetaFields` registry (§1) and render, filter and validate correctly on the deities pages today. The original draft's claim that they were invisible was wrong.
+6. ~~What are `DivineResidence` and `Zone`?~~ **Answered 2026-08-06: leftovers, safe to delete.** Superseded by `Location` / `celestialPlanes`; `DivineResidence` duplicates `Location`'s "Luoghi Divini" display strings character for character. Removal is a separate cleanup commit, not part of this spec.
+7. **Do the `location` / `faction` tables need a `name` column at all, or should the seeded name come from the message catalogues?** Today's labels live in `messages/{it,en}.json` under `npc.locations.*` / `npc.factions.*` and are therefore translated. Once these are rows, §3 says their names become campaign content and stop being translated — which is correct per `CLAUDE.md`, but it means the Italian catalogue's strings become the table's `name` and the English ones are discarded. **Confirm that is intended before T2 seeds anything**, because it is not reversible from the catalogue side once the keys are deleted.
 
 ## 10. Task breakdown
 
-_Provisional — depends on the open questions above._
+_Provisional — §7's async-options design and open question 7 are unresolved._
 
-- [ ] **T0** — Run the §5 audit against the live database; record the result here _(no code; blocks T3 onward)_
-- [ ] **T1** — `optionValueValidator` helper + apply to all option-backed fields, scalar and array _(test: valid value passes, out-of-list value rejected with a field error, per domain; array variant covers `spells.circle`/`classes`)_ — **ships independently of everything below**
-- [ ] **T2** — `location` + `faction` Prisma models and the seeding migration, no FK yet _(test: migration applies on a throwaway DB; seeded ids match the TypeScript lists exactly, gaps included)_
-- [ ] **T3** — Add the FK constraints _(test: before/after checksum over `luogo`/`fazione` is identical; deleting a referenced location fails)_
-- [ ] **T4** — Metadata layer reads `location`/`faction` options from the database _(test: the NPC form's selects render the same entries in the same order as before; blocked on §7's design)_
-- [ ] **T5** — Remove the now-dead catalogue keys and the two TypeScript lists _(test: TD-21's key-set check green; no import of the deleted files remains)_
-- [ ] **T6** — Docs: `ARCHITECTURE.md` data model section, close the ROADMAP item, note follow-ups
+**Prerequisite, outside this spec:** the membership-validator item (TD-61). It ships first, on its own, and covers every option-backed field including the ones that stay vocabulary. Nothing below depends on it landing, but the correctness benefit arrives with it rather than here.
+
+- [ ] **T0** — Run the §5 audit against the live database; record the result here _(no code; blocks T2 onward)_
+- [ ] **T1** — `location` + `faction` Prisma models and the seeding migration, no FK yet. Seed order updated so both tables are written before `npc`/`deities` _(test: migration applies on a throwaway DB; seeded ids match the TypeScript lists exactly, gaps included; `pnpm db:seed` still succeeds end to end)_
+- [ ] **T2** — Add the FK constraints to `npc.luogo`, `npc.fazione` and `deities.luogo` _(test: before/after checksum per column is identical; deleting a referenced location fails)_
+- [ ] **T3** — Metadata layer reads `location`/`faction` options from the database. One declaration serves both domains, so this changes the NPC and deity forms together _(test: both forms' selects render the same entries in the same order as before; blocked on §7's design)_
+- [ ] **T4** — Remove the now-dead catalogue keys and the two TypeScript lists _(test: TD-21's key-set check green; no import of the deleted files remains)_
+- [ ] **T5** — Docs: `ARCHITECTURE.md` data model section, close the ROADMAP item, note follow-ups
 
 ## 11. Outcome
 

@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-08-06
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** none. TD-44 (2026-08-02) found `coverage.all: true` changed nothing, confirming the 50.68%-lines baseline rather than correcting it, and produced two properly scoped gaps: TD-45 (page-level route components) and TD-46 (`app/modules/maps/components/**` Leaflet rendering). TD-45 closed 2026-08-04: 10 new test files brought the suite to 54.51% lines / 48.92% branches (682 → 709 tests). TD-46's e2e sub-slices (POI CRUD, measurement) verified real flows but — `vitest.config.ts` excludes `e2e/**` from coverage — never moved that number, so the item pivoted to Vitest, tiered by whether `WorldMap.tsx` actually renders the component. **Tier 1 closed 2026-08-04:** five new suites (`LeafletMap`, `MapContextMenu`, `MapMeasurementPanel`, `MapControls`, `MapPOIPanel`) brought the suite to 63.81% lines / 60.89% branches (709 → 755 tests). **Tier 2 closed the same day:** the remaining eight components (`MapSearchBar`, `MapTopBar`, `MapTileSwitcher`, `MapThemeSwitcher`, `MapUser`, `LeafletGeoJSON`, `LeafletTileLayer`, `MapDetailsPanel`) — reachable only through `MapMain.tsx`, which has no importer outside its own directory — were tested as-is per the user's cable-or-delete call, bringing the suite to **70.09% lines / 69.66% branches (755 → 807 tests)**. **This crosses Phase 2's 70% exit criterion** — see `docs/ROADMAP.md`. TD-58/TD-59 (2026-08-06) closed a Dependabot config gap that broke CI twice on the same day (an ungrouped ESLint major bump, then a `prisma` CLI/client version split); see their write-ups below.
+**Open items:** TD-61 (option-backed `Int` fields accept any number — see below; opened 2026-08-06, agreed to ship ahead of SPEC-003's schema work). TD-44 (2026-08-02) found `coverage.all: true` changed nothing, confirming the 50.68%-lines baseline rather than correcting it, and produced two properly scoped gaps: TD-45 (page-level route components) and TD-46 (`app/modules/maps/components/**` Leaflet rendering). TD-45 closed 2026-08-04: 10 new test files brought the suite to 54.51% lines / 48.92% branches (682 → 709 tests). TD-46's e2e sub-slices (POI CRUD, measurement) verified real flows but — `vitest.config.ts` excludes `e2e/**` from coverage — never moved that number, so the item pivoted to Vitest, tiered by whether `WorldMap.tsx` actually renders the component. **Tier 1 closed 2026-08-04:** five new suites (`LeafletMap`, `MapContextMenu`, `MapMeasurementPanel`, `MapControls`, `MapPOIPanel`) brought the suite to 63.81% lines / 60.89% branches (709 → 755 tests). **Tier 2 closed the same day:** the remaining eight components (`MapSearchBar`, `MapTopBar`, `MapTileSwitcher`, `MapThemeSwitcher`, `MapUser`, `LeafletGeoJSON`, `LeafletTileLayer`, `MapDetailsPanel`) — reachable only through `MapMain.tsx`, which has no importer outside its own directory — were tested as-is per the user's cable-or-delete call, bringing the suite to **70.09% lines / 69.66% branches (755 → 807 tests)**. **This crosses Phase 2's 70% exit criterion** — see `docs/ROADMAP.md`. TD-58/TD-59 (2026-08-06) closed a Dependabot config gap that broke CI twice on the same day (an ungrouped ESLint major bump, then a `prisma` CLI/client version split); see their write-ups below.
 
 **TD-47 – TD-55 do not exist in this document, and that is not an oversight to fix.** A 2026-08-06 merge commit ("docs: record TD-47 – TD-57 from the 2026-08-04 audit pass", PR #80) claimed to record all nine, but its actual diff only ever added `.env.example` and `dependabot.yml` — TD-56 and TD-57's fixes, still themselves undocumented here until this pass added TD-58/TD-59 alongside them. No PR, commit, or doc anywhere in this repo's history contains what TD-47–TD-55 were about; they were most likely identified in an external audit session (a Cowork pass, per `CLAUDE.md`'s "Bringing research into the codebase" section) whose findings were never committed. **Do not re-litigate this as a documentation bug to fix by writing entries** — there is nothing to transcribe, only a merge-commit message that overclaimed. Do not reuse IDs 47–55 for new items; skip to the next free number instead, so a rediscovered original write-up (if one ever surfaces) has an unambiguous home.
 
@@ -71,6 +71,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-46 | ✅ `app/modules/maps/components/**` (Leaflet rendering, 737 lines) Vitest coverage — Tier 1 and Tier 2 done | ~~🟡 Medium~~ done   | L      | 2     |
 | TD-58 | ✅ Dependabot grouped a major ESLint bump into the dev-dependencies group, breaking CI                      | ~~🟠 High~~ done     | S      | 3     |
 | TD-59 | ✅ `prisma` CLI and `@prisma/client`/`@prisma/adapter-pg` could bump independently, breaking the build      | ~~🟠 High~~ done     | S      | 3     |
+| TD-61 | Option-backed `Int` fields accept any number; an out-of-list value renders as a blank cell                  | 🟠 High              | S      | 3     |
 
 ---
 
@@ -385,6 +386,28 @@ Sub-slices closed or attempted, in order:
 - Aligned the repo to the already-in-flight version to unblock both stuck PRs: `prisma`, `@prisma/client`, `@prisma/adapter-pg` all pinned to `7.9.1` (previously `@prisma/adapter-pg` was already at `^7.9.1` while `@prisma/client`/`prisma` sat at `^7.1.0` — a pre-existing mismatch in the repo before either PR, just not yet triggered). `pnpm prisma generate`, `pnpm build`, `pnpm typecheck`, `pnpm lint` and the full suite (807 tests) all verified green locally before pushing.
 
 **Not done here:** closing PR #83 and #87 themselves — once this merges, both are superseded (the versions they proposed are already in `main`) and can be closed without merging, a GitHub action left to the maintainer.
+
+---
+
+## TD-61 🟠 Option-backed `Int` fields accept any number; an out-of-list value renders as a blank cell
+
+**Where:** every field in `app/lib/config/**` that declares an `options` list — roughly 20 across `npcMeta`, `deityMeta`, `magicItemMeta` and `SpellsMeta`.
+
+**Why:** these fields store an `Int` whose meaning comes entirely from a `value:` literal in a hand-maintained TypeScript array (`factions.ts`, `locationList.ts`, `rarity.ts`, …). Nothing checks that a submitted number is actually in the list:
+
+- Nine fields declare `validator: z.number().int()`, which accepts `999`.
+- The nine option-backed fields in `deityMeta` declare `validator: z.coerce.number()` — weaker still, accepting the string `"999"` and the non-integer `5.7`.
+- Postgres has no constraint either: the columns are plain `Int`.
+
+The failure is silent, not loud. `getDataLabel` filters the option list for a matching `value` and returns `""` when nothing matches, so a row holding an unmatched number displays an **empty cell** — in the list, the card and the form — with no error anywhere. Editing one of the option arrays (renumbering, or deleting an entry) therefore repoints or blanks every row that held an affected number, with nothing to catch it. `factions.ts` already runs `0…8, 10…19, 21, 22` — values 9 and 20 were removed at some point, and whether any row still holds them is unknown.
+
+**Plan:** one shared helper in `app/lib/utils/validators/` that builds a Zod schema from an option list (plus an array variant for `spells.circle` / `spells.classes`), applied to every option-backed field so a new one cannot be declared without membership checking. `pageMetaInvariants.testkit.ts` (TD-40) is the natural place to assert that every field declaring `options` also validates against them, so the rule is enforced for future fields rather than just fixed for today's.
+
+**Audit first.** Run a `SELECT DISTINCT` per option-backed column against the live database before applying the validators. If existing rows hold out-of-list values, a membership validator turns every future save of those rows into a validation failure — on a field the DM may not even be editing. That case needs a decision (repair the data, or reject only newly-submitted out-of-list values), not just the validator.
+
+**Why it is its own item, not part of SPEC-003.** It needs no migration, no schema change and no new table; it covers all ~20 fields rather than the two that become relations; and it is where most of the correctness benefit of the whole "real relations" idea actually lives. Agreed on 2026-08-06 to ship ahead of any schema work. See [`docs/specs/003-real-relations.md`](./specs/003-real-relations.md) §1 for the full analysis.
+
+**Done when:** every field declaring `options` rejects a value outside that list with a field-level error, there is a test proving it per domain (scalar and array), and the invariant suite fails if a future field declares `options` without a matching validator.
 
 ---
 

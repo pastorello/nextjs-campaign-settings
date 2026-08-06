@@ -77,6 +77,7 @@ jobs:
       POSTGRES_URL: postgres://admin:postgres@localhost:5432/campaign_settings_test
       DATABASE_URL: postgresql://admin:postgres@localhost:5432/campaign_settings_test
       AUTH_SECRET: ci-only-secret-not-used-in-production
+      UPLOAD_DIR: /tmp/campaign-settings-maps-test
     steps:
       - uses: actions/checkout@v7
 
@@ -119,6 +120,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://admin:postgres@localhost:5432/placeholder
       AUTH_SECRET: ci-only-secret-not-used-in-production
+      UPLOAD_DIR: /tmp/campaign-settings-maps-build
     steps:
       - uses: actions/checkout@v7
 
@@ -176,6 +178,7 @@ jobs:
       POSTGRES_URL: postgres://admin:postgres@localhost:5432/campaign_settings_e2e
       DATABASE_URL: postgresql://admin:postgres@localhost:5432/campaign_settings_e2e
       AUTH_SECRET: ci-only-secret-not-used-in-production
+      UPLOAD_DIR: /tmp/campaign-settings-maps-e2e
     steps:
       - uses: actions/checkout@v7
 

@@ -74,8 +74,13 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-61 | Option-backed `Int` fields accept any number; an out-of-list value renders as a blank cell                  | 🟠 High              | S      | 3     |
 | TD-62 | POI category names are hardcoded English and reach the UI — a TD-21 leftover                                | 🟢 Low               | S      | 3     |
 | TD-64 | `WorldMap.tsx`'s async-effect map-loading pattern trips `react-hooks/set-state-in-effect`                   | 🟢 Low               | S      | 3     |
-| TD-65 | `DATABASE_URL` in this dev environment isn't a throwaway DB — e2e debris landed in real data              | 🟡 Medium             | S      | 3     |
-| TD-66 | `UPLOAD_DIR`'s relative default silently splits map-image files from the DB rows referencing them          | 🟡 Medium             | S      | 3     |
+| TD-65 | `DATABASE_URL` in this dev environment isn't a throwaway DB — e2e debris landed in real data                | 🟡 Medium            | S      | 3     |
+| TD-66 | `UPLOAD_DIR`'s relative default silently splits map-image files from the DB rows referencing them           | 🟡 Medium            | S      | 3     |
+| TD-67 | "Add to My Places" context-menu label is misleading — it creates any kind, not just a POI                   | 🟢 Low               | S      | 3     |
+| TD-68 | `MapPOIPanel`'s Close button is unclickable — a same-`z-index` overlay intercepts the click                 | 🟠 High              | S      | 3     |
+| TD-69 | `poi.linkedType`/`linkedId` has no unique constraint — a second pin per NPC/deity is silently possible      | 🟠 High              | S      | 3     |
+| TD-70 | No rendering path exists for `deity`/`npc` pins on the map, even once positioned                            | 🟡 Medium            | M      | 3     |
+| TD-71 | No way to position or edit a place that already exists — only newly-created ones get coordinates            | 🟠 High              | L      | 3     |
 
 ---
 
@@ -489,6 +494,72 @@ Hit 2026-08-07: SPEC-004 T3's migration script (`app/seed/migrateWorldTreeT3.ts`
 **Plan:** default `UPLOAD_DIR` to an absolute path outside any checkout (e.g. derived from a fixed location, not `./storage/maps`), so every process on a machine — regardless of which directory it runs from — reads and writes the same files. At minimum, document in `.env.example` that `UPLOAD_DIR` must be identical, and ideally external to, every checkout sharing a `DATABASE_URL`.
 
 **Done when:** running the app (or a migration script) from a second checkout of this repo, pointed at the same `DATABASE_URL`, serves every existing map image with no manual file copy.
+
+---
+
+## TD-67 🟢 "Add to My Places" context-menu label is misleading — it creates any kind, not just a POI
+
+**Where:** [`MapContextMenu.tsx`](../app/modules/maps/components/map/MapContextMenu.tsx)'s `label="Add to My Places"` / `sublabel="Save this location"` menu item — the only entry point into `MapPOIPanel`'s "Add Place" form.
+
+**Why:** found 2026-08-07 verifying SPEC-004 T2/T3's UI end-to-end. Since M5, that one context-menu item opens a form whose first field is a `Kind` selector covering all seven kinds (`region`, `plane`, `city`, `dungeon`, `deity`, `npc`, `poi`) — not just a POI. The label and sublabel both predate M5 and were never updated once the form grew beyond POIs, so a DM reading "Add to My Places / Save this location" has no reason to expect a plane or an NPC pin lives behind it.
+
+**Plan:** rename to something kind-neutral, e.g. "Add Place" / "Create a place here" — matching the form's own heading, which already says "Add Place".
+
+**Done when:** the context-menu item's label and sublabel describe what the form actually does for every kind, not just POI.
+
+---
+
+## TD-68 🟠 `MapPOIPanel`'s Close button is unclickable — a same-`z-index` overlay intercepts the click
+
+**Where:** [`MapPOIPanel.tsx`](../app/modules/maps/components/map/MapPOIPanel.tsx) — the desktop side-panel's close button (`absolute top-4 right-4 z-10`, `aria-label="Close"`) versus the hero-image gradient overlay (`absolute inset-0 bg-gradient-to-t ... z-10`) in the same stacking context.
+
+**Why:** found and reproduced live 2026-08-07. Both elements share `z-10`; per CSS stacking rules a tie resolves by DOM order, and the gradient overlay comes after the button, so it wins and sits on top everywhere the two overlap — including exactly where the close button is. `document.elementFromPoint()` at the button's own center returns the gradient `div`, not the button, confirming every click there is swallowed before it reaches `onClick`. Once open, a DM has no way to close this panel from the button that says "Close" — only navigating away or (on mobile, a separate `Drawer` implementation) swiping down still works.
+
+**Plan:** give the close button a higher `z-index` than the overlay (e.g. `z-20`), or move the overlay behind the button in DOM order. One-line fix; the risk is only in not noticing the _other_ elements sharing `z-10` in this same panel (the "Add"/"Import"/"Export"/"Clear" header buttons, if any share the hero image) — worth a quick pass over the whole header once fixing this.
+
+**Done when:** clicking the visible "Close" (X) button closes the desktop panel every time, verified by a test that simulates a click at the button's actual rendered position (not just calling the handler directly, which would not have caught this).
+
+---
+
+## TD-69 🟠 `poi.linkedType`/`linkedId` has no unique constraint — a second pin per NPC/deity is silently possible
+
+**Where:** [`prisma/schema.prisma`](../prisma/schema.prisma)'s `poi` model — currently `@@index([linkedType, linkedId])`, a plain index.
+
+**Why:** SPEC-004 §6 documents this pair as `@@unique([linkedType, linkedId])` and relies on that guarantee explicitly: "it makes a second pin for the same NPC impossible rather than merely discouraged." The unique constraint was never actually added when M2 built the column — only a lookup index. Found 2026-08-07 by reproducing it directly: creating a `deity` place through `MapPOIPanel` for Elune (already pinned by SPEC-004 T4's migration, `linkedId` 18) succeeded without any error, leaving two `deity` pins for the same record. Deleted by hand after confirming nothing referenced the duplicate.
+
+This is a real data-integrity gap, not just a spec/implementation mismatch on paper: nothing in the app — form validation, the server action, or the database — stops it from recurring for any NPC or deity, silently, indefinitely.
+
+**Plan:** add the unique constraint via a proper migration (`prisma migrate diff` against the live DB per TD-63's hand-apply workaround, or once TD-63 is resolved, a normal `migrate dev`). Audit first: `SELECT "linkedType", "linkedId", count(*) FROM poi WHERE "linkedType" IS NOT NULL GROUP BY 1,2 HAVING count(*) > 1` against the live dev DB, to confirm no other duplicate exists before the constraint would reject one.
+
+**Done when:** the constraint exists in `schema.prisma` and the live DB, and a test proves a second `create` for the same `(linkedType, linkedId)` pair is rejected.
+
+---
+
+## TD-70 🟡 No rendering path exists for `deity`/`npc` pins on the map, even once positioned
+
+**Where:** `app/modules/maps/hooks/` — `usePOIManager.ts` only renders `kind: "poi"` markers (filters `row.kind === "poi"`); `useNavigableChildren.ts` only renders navigable kinds (`region`/`plane`/`city`/`dungeon`) that carry a map. Nothing renders `deity` or `npc` pins.
+
+**Why:** found 2026-08-07 giving Elune (a deity) real coordinates through `MapPOIPanel`'s "Add Place" flow — the row was created successfully (until TD-69's duplicate got cleaned up) with `lat`/`lng` set, but nothing appeared on the map. There is currently no hook, marker layer, or icon set for `deity`/`npc` kinds at all — not a bug in an existing path, an entirely missing one.
+
+This sits next to, but is narrower than, SPEC-004 T4's already-deferred "derive and display location from the tree" (reading a record's place by walking up its pin — see `docs/specs/004-world-model.md` T4). That deferred item is about _computing_ a location to show in the NPC/deity UI; this item is about the map itself never drawing a `deity`/`npc` pin as a marker at all — a DM can give one coordinates (TD-71 aside, once they exist to give), but can never see it on the map to confirm the placement looks right.
+
+**Plan:** a `useLinkedEntityMarkers`-style hook (or extend `useNavigableChildren`'s pattern) that fetches this place's `deity`/`npc` children with non-null coordinates and renders them with their own marker style, distinct from POI category icons and the navigable-kind markers.
+
+**Done when:** a `deity` or `npc` pin with coordinates renders as a clickable marker on its parent's map.
+
+---
+
+## TD-71 🟠 No way to position or edit a place that already exists — only newly-created ones get coordinates
+
+**Where:** `MapPOIPanel.tsx`'s `handleEditMode` (only reachable from `POIListItem`'s `onEdit`, itself only ever fed `kind: "poi"` rows by `usePOIManager`) — the only path in the app that can set or change a place's `lat`/`lng` after creation.
+
+**Why:** found 2026-08-07 while verifying SPEC-004 T3/T4's seeded tree (166 places and pins, all with `null` coordinates by design — "assigned a parent, not yet placed", per §6). There is no UI to give any of them a position: the only way a `region`/`plane`/`city`/`dungeon`/`deity`/`npc` place gets `lat`/`lng` is choosing that kind in "Add Place" _at creation time_, right-clicking the exact spot on the map. Nothing lets a DM select an existing place from the tree and say "place it here" — the closest workaround is deleting and recreating it, which loses everything that made it what it was (a `deity`/`npc`'s `linkedId`, a `region`'s own children underneath it).
+
+This is not a bug introduced by T3/T4 — the gap predates them (M5 was only ever designed around create-time positioning) — but T3/T4 are what expose it: they are the first thing to populate the tree with places nothing can ever position through the UI as it stands today.
+
+**Plan:** a product decision, not just an implementation one — needs deciding where this belongs (a "position" mode reachable from the tree/list view, dragging an existing marker, or something else) before it's built. Flagged in conversation 2026-08-07; not yet designed.
+
+**Done when:** a DM can select any existing place (any kind, not just `poi`) and give it a position on its parent's map, without deleting and recreating it.
 
 ---
 

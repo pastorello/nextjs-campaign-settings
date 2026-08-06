@@ -107,6 +107,7 @@ export default async function fetchPois(): Promise<Poi[]> {
       category: row.category,
       linkedType: isValidLink ? linkedType : null,
       linkedId: isValidLink ? linkedId : null,
+      parentId: row.parentId,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

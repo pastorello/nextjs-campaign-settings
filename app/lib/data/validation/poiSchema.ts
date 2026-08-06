@@ -36,6 +36,9 @@ const poiFields = {
   category: z.enum(categoryIds),
   linkedType: z.enum(linkableTypeIds).nullable().optional(),
   linkedId: z.coerce.number().int().positive().nullable().optional(),
+  // SPEC-004 M7: which tree place this POI is a child of. Optional — a POI
+  // created outside the tree (or before it existed) has none.
+  parentId: z.coerce.number().int().positive().nullable().optional(),
 };
 
 /**

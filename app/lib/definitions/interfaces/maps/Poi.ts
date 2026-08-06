@@ -13,6 +13,9 @@ interface Poi {
   category: string;
   linkedType: LinkableEntityType | null;
   linkedId: number | null;
+  // SPEC-004 M7: which place this pin is a child of. Null for a POI created
+  // before the tree existed, or (in principle) one created outside it.
+  parentId: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,7 +25,8 @@ export default Poi;
 /**
  * Payload for `createPoi`: everything but the server-assigned id and
  * timestamps. `linkedType`/`linkedId` are optional — a POI need not link to
- * anything.
+ * anything. `parentId` is optional for the same reason: not every caller of
+ * `createPoi` is scoped to a tree place.
  */
 export interface PoiCreateInput {
   title: string;
@@ -32,6 +36,7 @@ export interface PoiCreateInput {
   category: string;
   linkedType?: LinkableEntityType | null;
   linkedId?: number | null;
+  parentId?: number | null;
 }
 
 /**

@@ -27,8 +27,16 @@ export default async function createPoi(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  const { title, lat, lng, category, description, linkedType, linkedId } =
-    parsed.data;
+  const {
+    title,
+    lat,
+    lng,
+    category,
+    description,
+    linkedType,
+    linkedId,
+    parentId,
+  } = parsed.data;
 
   let created;
   try {
@@ -47,6 +55,7 @@ export default async function createPoi(
         ...(description !== undefined && { description }),
         ...(linkedType !== undefined && { linkedType }),
         ...(linkedId !== undefined && { linkedId }),
+        ...(parentId !== undefined && { parentId }),
       },
     });
   } catch (error) {

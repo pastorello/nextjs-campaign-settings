@@ -84,6 +84,9 @@ vi.mock("@/app/modules/maps/hooks/usePOIManager", () => ({
     flyToPOI: vi.fn(),
   }),
 }));
+vi.mock("@/app/modules/maps/hooks/useNavigableChildren", () => ({
+  useNavigableChildren: () => [],
+}));
 
 const setView = vi.fn();
 const setMinZoom = vi.fn();
@@ -127,10 +130,12 @@ const bounds: L.LatLngBoundsExpression = [
 async function renderMap(mapUrl = "/maps/test.jpg") {
   render(
     <WorldMap
+      parentId={1}
       mapUrl={mapUrl}
       bounds={bounds}
       initialView={[500, 500]}
       initialZoom={1}
+      onDescend={vi.fn()}
     />
   );
   await waitFor(() => {
@@ -155,10 +160,12 @@ describe("WorldMap", () => {
   it("notifies instead of loading an overlay when mapUrl is blank", async () => {
     render(
       <WorldMap
+        parentId={1}
         mapUrl=""
         bounds={bounds}
         initialView={[500, 500]}
         initialZoom={1}
+        onDescend={vi.fn()}
       />
     );
 

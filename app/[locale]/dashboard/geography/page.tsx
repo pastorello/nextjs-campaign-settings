@@ -1,109 +1,38 @@
-"use client";
-import { useTranslations } from "next-intl";
-import NonEmptyArray from "@/app/lib/definitions/types/NonEmptyArray";
-import {
-  MapErrorBoundary,
-  MapLoadingSpinner,
-} from "@/app/modules/maps/components/map";
-import { MapProvider } from "@/app/modules/maps/contexts/MapContext";
-import BaseButton from "@/app/ui/buttons/BaseButton";
-import WorldMap from "@/app/ui/geography/WorldMap";
-import PageTitle from "@/app/ui/typography/PageTitle";
-import clsx from "clsx";
-import { useState } from "react";
+import { getTranslations } from "next-intl/server";
+import { Metadata } from "next";
 
-interface MapOption {
-  nameKey: string;
-  file: string;
-  bounds: L.LatLngBoundsExpression;
-  initialView: L.LatLngExpression;
-  initialZoom: number;
+import { Link } from "@/i18n/navigation";
+import fetchRootPlace from "@/app/lib/data/maps/fetchRootPlace";
+import GeographyExplorer from "@/app/ui/geography/GeographyExplorer";
+import PageTitle from "@/app/ui/typography/PageTitle";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("geography.page");
+  return { title: t("title") };
 }
 
-const availableMaps: NonEmptyArray<MapOption> = [
-  {
-    nameKey: "planesOfExistence",
-    file: "/maps/piani-esistenza.jpg",
-    bounds: [
-      [0, 0],
-      [1000, 1333],
-    ] as L.LatLngBoundsExpression,
-    initialView: [700, 655] as L.LatLngExpression,
-    initialZoom: -2,
-  },
-  {
-    nameKey: "materialWorld",
-    file: "/maps/mondo-materiale.jpg",
-    bounds: [
-      [0, 0],
-      [1000, 1142],
-    ] as L.LatLngBoundsExpression,
-    initialView: [500, 655] as L.LatLngExpression,
-    initialZoom: 1,
-  },
-  {
-    nameKey: "kingdomOfKang",
-    file: "/maps/regno-di-kang.jpg",
-    bounds: [
-      [0, 0],
-      [500, 1000],
-    ] as L.LatLngBoundsExpression,
-    initialView: [150, 540] as L.LatLngExpression,
-    initialZoom: 2,
-  },
-  {
-    nameKey: "citySkreebars",
-    file: "/maps/skreebars.jpg",
-    bounds: [
-      [0, 0],
-      [1000, 1333],
-    ] as L.LatLngBoundsExpression,
-    initialView: [150, 540] as L.LatLngExpression,
-    initialZoom: -2,
-  },
-];
+/**
+ * The tree-navigation entry point (SPEC-004 §10 M7). The hardcoded four-map
+ * switcher this page used to render is gone — replaced by the tree itself,
+ * per the spec's own instruction. `public/maps/**` and their message keys
+ * are untouched: migrating the four legacy maps into the tree is SPEC-004
+ * T3, beyond the MVP, not this milestone.
+ */
+export default async function GeographyPage() {
+  const t = await getTranslations("geography");
+  const root = await fetchRootPlace();
 
-const GeographyPage = () => {
-  const t = useTranslations("geography");
-  const [selectedMap, setSelectedMap] = useState<number>(0);
-
-  // `availableMaps[selectedMap]` is an index read, so under
-  // noUncheckedIndexedAccess it is `Map | undefined` — correctly, since
-  // `selectedMap` is state and nothing constrains it to a valid index. Falling
-  // back to the first map is what the page already assumed implicitly.
-  const currentMap = availableMaps[selectedMap] ?? availableMaps[0];
-
-  return (
-    <div>
-      <PageTitle className="mb-4">{t("page.title")}</PageTitle>
-      <div className="grid gap-2 grid-cols-4 mb-4">
-        {availableMaps.map((map, index) => (
-          <BaseButton
-            className={clsx({
-              "bg-violet-700": selectedMap === index,
-            })}
-            key={map.nameKey}
-            onClick={() => setSelectedMap(index)}
-          >
-            {t(`maps.${map.nameKey}`)}
-          </BaseButton>
-        ))}
+  if (!root) {
+    return (
+      <div>
+        <PageTitle className="mb-4">{t("page.title")}</PageTitle>
+        <p className="mb-4">{t("noWorldYet")}</p>
+        <Link href="/dashboard/world" className="text-blue-600 underline">
+          {t("createWorldLink")}
+        </Link>
       </div>
-      <div className="relative w-full h-screen">
-        <MapErrorBoundary>
-          <MapProvider>
-            <WorldMap
-              mapUrl={currentMap.file}
-              bounds={currentMap.bounds}
-              initialView={currentMap.initialView}
-              initialZoom={currentMap.initialZoom}
-            />
-            <MapLoadingSpinner />
-          </MapProvider>
-        </MapErrorBoundary>
-      </div>
-    </div>
-  );
-};
+    );
+  }
 
-export default GeographyPage;
+  return <GeographyExplorer root={root} />;
+}

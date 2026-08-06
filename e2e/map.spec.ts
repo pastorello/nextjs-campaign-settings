@@ -1,52 +1,37 @@
 import { test, expect } from "@playwright/test";
 
-import messages from "@/messages/it.json";
-
 /**
  * The Leaflet map. Per docs/TESTING.md §"Explicitly out of scope" this does not
- * test Leaflet's own rendering — it tests that our module mounts it, that the
- * map switcher swaps the artwork, and that the context menu a DM uses to drop a
- * marker opens where they click.
+ * test Leaflet's own rendering — it tests that our module mounts it and that
+ * the context menu a DM uses to drop a marker opens where they click.
+ *
+ * SPEC-004 M7 replaced the hardcoded four-map switcher with tree navigation:
+ * `/dashboard/geography` now shows the root place `world.setup.ts` creates,
+ * served through `/api/maps/[id]/image`, not a `/maps/*.jpg` file. The former
+ * "switching world swaps the map image" test asserted on that switcher
+ * button, which no longer exists, and is gone with it — a real "descend into
+ * a region" e2e test needs a nested region to click, and nothing can create
+ * one without M5's kind selector (see SPEC-004 §10 M7's own note on this).
  *
  * NOTE: this map has no tile layer. Each world is a single hand-drawn image
- * served from /maps/*.jpg and placed with Leaflet's image overlay, so the DOM
- * carries one `.leaflet-image-layer` and no `.leaflet-tile` at all. Asserting
- * on tiles looks right and always fails.
+ * placed with Leaflet's image overlay, so the DOM carries one
+ * `.leaflet-image-layer` and no `.leaflet-tile` at all. Asserting on tiles
+ * looks right and always fails.
  */
 const imageLayer = ".leaflet-image-layer";
 
 test.describe("world map", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/dashboard/geography");
-    await expect(
-      page.getByRole("heading", { name: messages.geography.page.title })
-    ).toBeVisible();
+    await expect(page.locator(".leaflet-container")).toBeVisible();
   });
 
   test("the map mounts and renders its artwork", async ({ page }) => {
-    await expect(page.locator(".leaflet-container")).toBeVisible();
-
     // A mounted-but-imageless map is the failure mode worth catching: it looks
     // like a grey box and throws nothing.
     const overlay = page.locator(imageLayer);
     await expect(overlay).toBeVisible();
-    await expect(overlay).toHaveAttribute("src", /\/maps\/.+\.(jpg|png)$/);
-  });
-
-  test("switching world swaps the map image", async ({ page }) => {
-    const overlay = page.locator(imageLayer);
-
-    const before = await overlay.getAttribute("src");
-
-    await page
-      .getByRole("button", { name: messages.geography.maps.kingdomOfKang })
-      .click();
-
-    await expect
-      .poll(() => overlay.getAttribute("src"), {
-        message: "the image overlay should point at a different map",
-      })
-      .not.toBe(before);
+    await expect(overlay).toHaveAttribute("src", /\/api\/maps\/.+\/image$/);
   });
 
   test("right-clicking the map opens the context menu", async ({ page }) => {

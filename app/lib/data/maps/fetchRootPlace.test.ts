@@ -18,7 +18,14 @@ describe("fetchRootPlace", () => {
     await expect(fetchRootPlace()).resolves.toBeNull();
     expect(findFirst).toHaveBeenCalledWith({
       where: { kind: "region", parentId: null },
-      select: { id: true, title: true, mapImage: true },
+      select: {
+        id: true,
+        title: true,
+        mapImage: true,
+        mapBounds: true,
+        mapInitialView: true,
+        mapInitialZoom: true,
+      },
     });
   });
 
@@ -27,13 +34,42 @@ describe("fetchRootPlace", () => {
       id: 1,
       title: "Aerivel",
       mapImage: "uploaded-id.png",
+      mapBounds: null,
+      mapInitialView: null,
+      mapInitialZoom: null,
     });
 
     await expect(fetchRootPlace()).resolves.toEqual({
       id: 1,
       title: "Aerivel",
       mapImage: "uploaded-id.png",
+      mapBounds: null,
+      mapInitialView: null,
+      mapInitialZoom: null,
     });
+  });
+
+  it("passes through a stored map view (SPEC-004 M7)", async () => {
+    findFirst.mockResolvedValue({
+      id: 1,
+      title: "Aerivel",
+      mapImage: "uploaded-id.png",
+      mapBounds: [
+        [0, 0],
+        [500, 500],
+      ],
+      mapInitialView: [250, 250],
+      mapInitialZoom: 2,
+    });
+
+    const result = await fetchRootPlace();
+
+    expect(result?.mapBounds).toEqual([
+      [0, 0],
+      [500, 500],
+    ]);
+    expect(result?.mapInitialView).toEqual([250, 250]);
+    expect(result?.mapInitialZoom).toBe(2);
   });
 
   // Defensive: today nothing can create a `kind: "region"`, `parentId: null`

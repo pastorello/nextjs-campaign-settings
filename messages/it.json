@@ -408,6 +408,9 @@
     "page": {
       "title": "Geografia"
     },
+    "up": "Sali",
+    "noWorldYet": "Non hai ancora creato il tuo mondo.",
+    "createWorldLink": "Crea il tuo mondo",
     "errors": {
       "mapNotConfigured": "La mappa non è configurata correttamente.",
       "importSuccess": "{count, plural, one {Importato con successo # luogo!} other {Importati con successo # luoghi!}}",

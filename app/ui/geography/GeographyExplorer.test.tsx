@@ -1,0 +1,149 @@
+import { act, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/app/modules/maps/components/map", () => ({
+  MapErrorBoundary: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  MapLoadingSpinner: () => <div data-testid="map-loading-spinner" />,
+}));
+vi.mock("@/app/modules/maps/contexts/MapContext", () => ({
+  MapProvider: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+}));
+
+interface CapturedWorldMapProps {
+  parentId: number;
+  mapUrl: string;
+  bounds: unknown;
+  initialView: unknown;
+  initialZoom: number;
+  onDescend: (child: {
+    id: number;
+    title: string;
+    lat: number;
+    lng: number;
+    mapImage: string;
+    mapBounds: unknown;
+    mapInitialView: unknown;
+    mapInitialZoom: number | null;
+  }) => void;
+}
+
+let capturedProps: CapturedWorldMapProps | null = null;
+vi.mock("@/app/ui/geography/WorldMap", () => ({
+  default: (props: CapturedWorldMapProps) => {
+    capturedProps = props;
+    return <div data-testid="world-map">{props.mapUrl}</div>;
+  },
+}));
+
+import GeographyExplorer from "./GeographyExplorer";
+
+const root = {
+  id: 1,
+  title: "Aerivel",
+  mapImage: "aerivel.png",
+  mapBounds: null,
+  mapInitialView: null,
+  mapInitialZoom: null,
+};
+
+const kang = {
+  id: 2,
+  title: "Kingdom of Kang",
+  lat: 5,
+  lng: 5,
+  mapImage: "kang.png",
+  mapBounds: null,
+  mapInitialView: null,
+  mapInitialZoom: null,
+};
+
+const skreebars = {
+  id: 3,
+  title: "Skreebars",
+  lat: 5,
+  lng: 5,
+  mapImage: "skreebars.png",
+  mapBounds: null,
+  mapInitialView: null,
+  mapInitialZoom: null,
+};
+
+function descend(child: typeof kang) {
+  act(() => {
+    capturedProps?.onDescend(child);
+  });
+}
+
+function ascend() {
+  act(() => {
+    screen.getByText("up").click();
+  });
+}
+
+describe("GeographyExplorer (SPEC-004 M7)", () => {
+  it("renders the root's own map and title, no up button", () => {
+    render(<GeographyExplorer root={root} />);
+
+    expect(screen.getByTestId("world-map")).toHaveTextContent(
+      "/api/maps/aerivel.png/image"
+    );
+    expect(screen.getByText("Aerivel")).toBeInTheDocument();
+    expect(capturedProps?.parentId).toBe(1);
+    expect(screen.queryByText("up")).not.toBeInTheDocument();
+  });
+
+  it("descends into a navigable child, replacing the map and title", () => {
+    render(<GeographyExplorer root={root} />);
+
+    descend(kang);
+
+    expect(screen.getByTestId("world-map")).toHaveTextContent(
+      "/api/maps/kang.png/image"
+    );
+    expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
+    expect(capturedProps?.parentId).toBe(2);
+  });
+
+  it("shows the up button once descended, and ascends back to the root on click", () => {
+    render(<GeographyExplorer root={root} />);
+
+    descend(kang);
+    expect(screen.getByText("up")).toBeInTheDocument();
+
+    ascend();
+
+    expect(screen.getByText("Aerivel")).toBeInTheDocument();
+    expect(screen.queryByText("up")).not.toBeInTheDocument();
+  });
+
+  it("descends two levels and returns to the root one step at a time", () => {
+    render(<GeographyExplorer root={root} />);
+
+    descend(kang);
+    descend(skreebars);
+
+    expect(screen.getByText("Skreebars")).toBeInTheDocument();
+
+    ascend();
+    expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
+
+    ascend();
+    expect(screen.getByText("Aerivel")).toBeInTheDocument();
+    expect(screen.queryByText("up")).not.toBeInTheDocument();
+  });
+
+  it("falls back to the default bounds/view/zoom when the place has none stored", () => {
+    render(<GeographyExplorer root={root} />);
+
+    expect(capturedProps?.bounds).toEqual([
+      [0, 0],
+      [2000, 2000],
+    ]);
+    expect(capturedProps?.initialView).toEqual([1000, 1000]);
+    expect(capturedProps?.initialZoom).toBe(-2);
+  });
+});

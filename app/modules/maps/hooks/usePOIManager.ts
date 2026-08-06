@@ -15,19 +15,27 @@ import {
 } from "@/app/modules/maps/constants/poi-categories";
 import { getLinkableEntityTypeById } from "@/app/modules/maps/constants/linkable-entities";
 import { notifyError } from "@/app/lib/notifications/notify";
-import fetchPois from "@/app/lib/data/maps/fetchPois";
+import fetchPlaceChildren from "@/app/lib/data/maps/fetchPlaceChildren";
 import createPoi from "@/app/lib/data/maps/createPoi";
 import updatePoiAction from "@/app/lib/data/maps/updatePoi";
 import deletePoiAction from "@/app/lib/data/maps/deletePoi";
-import type Poi from "@/app/lib/definitions/interfaces/maps/Poi";
+import type PlaceChild from "@/app/lib/definitions/interfaces/maps/PlaceChild";
 import type { Marker } from "leaflet";
 
 /**
- * Maps a persisted row to the client shape: a stable client key, and epoch
- * milliseconds instead of `Date` (which is what the panel and the GeoJSON
- * export have always worked in).
+ * Maps a persisted, positioned `kind: "poi"` child to the client shape: a
+ * stable client key, and epoch milliseconds instead of `Date` (which is
+ * what the panel and the GeoJSON export have always worked in). Takes the
+ * narrowed shape `loadPOIs` already filtered `fetchPlaceChildren`'s rows
+ * down to — `lat`/`lng`/`category` are nullable on a `PlaceChild` in
+ * general (a `region`/`deity`/`npc` child has none of them), but never for
+ * one this hook decided is a POI.
  */
-function toClientPOI(row: Poi, clientId: string, category: POICategory): POI {
+function toClientPOI(
+  row: PlaceChild & { lat: number; lng: number; category: string },
+  clientId: string,
+  category: POICategory
+): POI {
   return {
     id: clientId,
     title: row.title,
@@ -84,7 +92,7 @@ function toClientPOI(row: Poi, clientId: string, category: POICategory): POI {
  *
  * @returns Object with POI management functions and state
  */
-export function usePOIManager() {
+export function usePOIManager(parentId: number) {
   const map = useLeafletMap();
   const t = useTranslations("geography.errors");
   const [pois, setPOIs] = useState<POI[]>([]);
@@ -141,16 +149,33 @@ export function usePOIManager() {
   }, []);
 
   /**
-   * Load POIs from the server
+   * Load this place's `kind: "poi"` children from the server (SPEC-004 M7).
+   * `fetchPlaceChildren` can return any kind — `region`/`deity`/`npc`
+   * siblings are this hook's business too, but they have no category (often
+   * no position either) and are rendered elsewhere, not managed here.
    */
   const loadPOIs = useCallback(async () => {
     try {
-      const rows = await fetchPois();
+      const rows = await fetchPlaceChildren(parentId);
+
+      const poiRows = rows.filter(
+        (
+          row
+        ): row is typeof row & {
+          lat: number;
+          lng: number;
+          category: string;
+        } =>
+          row.kind === "poi" &&
+          row.lat !== null &&
+          row.lng !== null &&
+          row.category !== null
+      );
 
       const loaded: POI[] = [];
       const serverIds = new Map<string, number>();
 
-      for (const row of rows) {
+      for (const row of poiRows) {
         // The category column has no database-level enum, so a row can name
         // a category this build no longer knows. Discard it with a warning
         // rather than widening the type — the same call TD-02b made for a
@@ -173,7 +198,7 @@ export function usePOIManager() {
     } finally {
       setIsLoading(false);
     }
-  }, [commit]);
+  }, [commit, parentId]);
 
   /**
    * Generate unique POI ID
@@ -334,6 +359,7 @@ export function usePOIManager() {
             lat,
             lng,
             category,
+            parentId,
             ...(description !== undefined && { description }),
             ...(linkedType != null &&
               linkedId != null && { linkedType, linkedId }),
@@ -355,7 +381,7 @@ export function usePOIManager() {
 
       return newPOI;
     },
-    [commit, enqueue, generateId]
+    [commit, enqueue, generateId, parentId]
   );
 
   /**
@@ -562,6 +588,7 @@ export function usePOIManager() {
                 lat: poi.lat,
                 lng: poi.lng,
                 category: poi.category,
+                parentId,
                 ...(poi.description !== undefined && {
                   description: poi.description,
                 }),
@@ -590,7 +617,7 @@ export function usePOIManager() {
         throw new Error("Invalid GeoJSON format");
       }
     },
-    [commit, enqueue, generateId]
+    [commit, enqueue, generateId, parentId]
   );
 
   /**

@@ -408,6 +408,9 @@
     "page": {
       "title": "Geography"
     },
+    "up": "Up",
+    "noWorldYet": "You haven't created your world yet.",
+    "createWorldLink": "Create your world",
     "errors": {
       "mapNotConfigured": "The map is not configured correctly.",
       "importSuccess": "{count, plural, one {Successfully imported # place!} other {Successfully imported # places!}}",

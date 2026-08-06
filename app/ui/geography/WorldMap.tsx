@@ -11,6 +11,10 @@ import { MapPOIPanel } from "@/app/modules/maps/components/map/MapPOIPanel";
 import { useMapContextMenu } from "@/app/modules/maps/hooks/useMapContextMenu";
 import { useMapMarkers } from "@/app/modules/maps/hooks/useMapMarkers";
 import { usePOIManager } from "@/app/modules/maps/hooks/usePOIManager";
+import {
+  useNavigableChildren,
+  type NavigableChild,
+} from "@/app/modules/maps/hooks/useNavigableChildren";
 import type { POICategory, POIGeoJSON } from "@/app/modules/maps/types/poi";
 import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
 import isValidString from "@/app/lib/utils/validators/isValidString";
@@ -26,17 +30,27 @@ import { notifyError } from "@/app/lib/notifications/notify";
  * not wired here yet — there is no entry point into them (TD-46) — so this
  * file omits them rather than carrying dead state for a feature nothing
  * triggers. See CLAUDE.md, "unused is not dead", for what's still scaffolding.
+ *
+ * `parentId` scopes both the `kind: "poi"` panel (SPEC-002, via
+ * `usePOIManager`) and the navigable `region` markers (SPEC-004 M7, via
+ * `useNavigableChildren`) to the place currently being viewed — the fix for
+ * §1's "every POI renders on every map" defect. `onDescend` is called when a
+ * navigable marker is clicked; `GeographyExplorer` owns what happens next.
  */
 function WorldMap({
+  parentId,
   mapUrl,
   bounds,
   initialView,
   initialZoom,
+  onDescend,
 }: {
+  parentId: number;
   mapUrl: string;
   bounds: L.LatLngBoundsExpression;
   initialView: L.LatLngExpression;
   initialZoom: number;
+  onDescend: (child: NavigableChild) => void;
 }) {
   const t = useTranslations("geography.errors");
   const [isMeasurementOpen, setIsMeasurementOpen] = useState(false);
@@ -64,7 +78,7 @@ function WorldMap({
   // User markers hook
   const { addMarker } = useMapMarkers();
 
-  // POI Manager hook
+  // POI Manager hook, scoped to the place currently being viewed
   const {
     pois,
     addPOI,
@@ -74,7 +88,10 @@ function WorldMap({
     exportGeoJSON,
     importGeoJSON,
     flyToPOI,
-  } = usePOIManager();
+  } = usePOIManager(parentId);
+
+  // Navigable `region` children, same scope — clicking one calls `onDescend`
+  useNavigableChildren(parentId, onDescend);
 
   const map = useLeafletMap();
   const [currentImage, setCurrentImage] = useState<L.ImageOverlay | null>(null);

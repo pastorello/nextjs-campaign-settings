@@ -73,10 +73,27 @@ model poi {
   category    String
   linkedType  String?
   linkedId    Int?
+
+  // SPEC-004 M2 — additive, unused until M3+ validates and M4-M7 wire it up.
+  // Existing rows default to `kind: "poi"`, `parentId: null`, keeping their
+  // `category` as the only classification that currently means anything.
+  kind        String   @default("poi")
+  parentId    Int?
+  parent      poi?     @relation("PoiTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children    poi[]    @relation("PoiTree")
+
+  // A place's own map (only meaningful for `kind: "region"`). Null for
+  // every other kind, including all rows that predate M2.
+  mapImage       String?
+  mapBounds      Json?
+  mapInitialView Json?
+  mapInitialZoom Int?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([linkedType, linkedId])
+  @@index([parentId])
 }
 
 model spells {

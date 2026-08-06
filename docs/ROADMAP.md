@@ -94,10 +94,19 @@ The order is load-bearing. Item 1 types the metadata layer, which turns the swee
 
 Everything below needs a spec before implementation.
 
-- **Real relations.** Replace bare `Int` foreign-key-shaped columns (`faction`, `location`, `alignment`) with actual Prisma relations. Renumbering a hardcoded TypeScript array currently corrupts existing rows silently — this fixes a real correctness problem, not just a modelling nicety. _(Related: TD-11.)_
+- **Real relations.** Replace bare `Int` foreign-key-shaped columns (`faction`, `location`) with actual Prisma relations. Specified in [SPEC-003](./specs/003-real-relations.md) (Draft, 2026-08-06), which found the problem is two jobs, not one: **the correctness half is [TD-61](./TECH_DEBT.md)** — nothing validates that an option-backed `Int` is in its list, and an unmatched value renders as a blank cell rather than an error — and it ships first, alone, covering all ~20 option-backed fields. The relations half covers only the two lists that are genuinely entities (`location`, `faction`); the rest are closed vocabularies that stay enums, per that spec's §6. _(Related: TD-11, TD-61.)_
 - **Locations as first-class entities.** A location becomes a record with a description, a map coordinate and the NPCs based there.
+
+  **The DM's longer-term intent (recorded 2026-08-06)** is a map tool built on a containment hierarchy, where each tier can carry its own uploaded map:
+
+  ```
+  Universe → Plane of Existence → Region → City → Dungeon (playable grid for miniatures)
+  ```
+
+  This is what makes `deities.residence` — currently a 7-entry `celestialPlanes` vocabulary — a location rather than an enum: a plane of existence is simply the second tier of that tree. It is also why the setting's geography currently exists three times in incompatible forms (`Location`'s 33 entries, `celestialPlanes`' 7, and the now-orphaned `DivineResidence`'s 12). SPEC-003 deliberately does not build the hierarchy, but constrains its own `location` table so `parentId` and `kind` can be added additively, without rewriting rows. Needs its own spec before implementation.
+
 - **✅ Map POIs in the database.** POIs moved out of `localStorage` into Postgres, each optionally linked to exactly one entity — `npc` or `deities` today, extensible to locations, dungeons and treasure without a migration per type. Clicking a marker opens the linked entity. Done 2026-08-01. _(TD-14; specified in [SPEC-002](./specs/002-map-poi-persistence.md).)_
-- **Multi-campaign support.** A `Campaign` model with `campaignId` on every entity. Prerequisite for anything shared or multi-user. Today's model is one DM authoring one shared world, so no entity is user-scoped — including POIs, which are deliberately global ([SPEC-002](./specs/002-map-poi-persistence.md) §2). Scoping arrives here, for everything at once; nothing should grow its own private ownership column beforehand.
+- **Campaigns as stories, not as scoping.** _(Reframed 2026-08-06 — this entry previously read "Multi-campaign support: a `Campaign` model with `campaignId` on every entity".)_ A campaign is **a storyline that plays out inside the universe**, not a boundary around every record. Each DM authors exactly one universe — that is the root of everything, per [SPEC-004](./specs/004-world-model.md) — and may run several campaigns within it. What exists today are the raw materials: spells, magic items, NPCs, deities and the map. Plot, sessions and encounters are the part not yet designed, and no `campaignId` belongs on any entity until they are.
 - **Cross-entity search.** One search box across spells, items, NPCs and deities.
 
 ---

@@ -31,3 +31,4 @@ Do **not** write one for routine implementation choices, naming, or anything a c
 | [0005](./0005-english-identifiers.md)                  | English identifiers in code, Italian in the UI  | Accepted | 2026-07-22 |
 | [0006](./0006-bilingual-ui.md)                         | Bilingual UI (it + en), single-language content | Accepted | 2026-07-22 |
 | [0007](./0007-message-key-resolution-boundary.md)      | Resolve message keys at the render boundary     | Accepted | 2026-07-30 |
+| [0008](./0008-map-image-storage.md)                    | Map images on a local volume, served with auth  | Accepted | 2026-08-06 |

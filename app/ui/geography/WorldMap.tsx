@@ -264,6 +264,10 @@ function WorldMap({
   };
 
   useEffect(() => {
+    // Standard async-effect data loading (fetch the image, then setState);
+    // the lint rule can't see through the `await` inside `initializeMap` and
+    // treats this as a synchronous setState-in-effect. Tracked as TD-64.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void initializeMap();
     // `initializeMap` reads `currentImage` to remove the previous overlay, and
     // ends by calling `setCurrentImage`. Adding it (or `currentImage`) to this

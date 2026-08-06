@@ -42,7 +42,7 @@ Order matters. Deleting dead code first removes roughly half the type errors, so
 | #   | Task                                                                              | Debt   | Effort |
 | --- | --------------------------------------------------------------------------------- | ------ | ------ |
 | 1   | ✅ `PageMeta` a discriminated union; `any` eliminated, rule now an error          | TD-08  | M      |
-| 2   | ◑ Strict flags, cheap batch + `target: ES2022`; `exactOptional…` on too           | TD-20a | S      |
+| 2   | ✅ Strict flags, cheap batch + `target: ES2022`; `exactOptional…` on too          | TD-20a | S      |
 | 3   | ✅ Rename identifiers to English; `png` → `npc`; columns kept via `@map`          | TD-19  | L      |
 | 3b  | ✅ Finish it — the 16 Italian identifiers TD-19 missed                            | TD-33  | S      |
 | 4   | ✅ Bilingual UI: extract strings, `messages/{it,en}.json`, locale switcher        | TD-21  | L      |
@@ -55,7 +55,7 @@ Order matters. Deleting dead code first removes roughly half the type errors, so
 | 11  | ✅ `noUncheckedIndexedAccess` — resolved via documented assertions, not coverage  | TD-20b | M      |
 | 12  | ✅ Accessibility pass: axe at zero violations + a keyboard audit                  | TD-15  | M      |
 | 13  | ✅ Loading and empty states audited (TD-29 skeletons, TD-30 streaming)            | —      | S      |
-| 14  | ◑ Screenshots for the README (spell list + map) — taken, now orphaned (see below) | —      | S      |
+| 14  | ✅ Screenshots for the README (spell list + map) — orphaned, deleted (see below)  | —      | S      |
 | 15  | ✅ Lint warnings 293 → 0; every rule back to `error`                              | TD-22  | M      |
 | 16  | Auth entry point + DB connection bootstrap untested (0%)                          | TD-37  | S      |
 | 17  | Data-layer `fetch*`/`get*Count` untested for 3 of 4 domains                       | TD-38  | S      |
@@ -70,9 +70,9 @@ Order matters. Deleting dead code first removes roughly half the type errors, so
 
 **Also landed here, found while doing the work** rather than planned: TD-25 (startup DB-reachability check), TD-26 (`sottoclassi`/`circolo` duplication), TD-27 (a hidden `classi=0` filter on the spell list), TD-28 (seed ids), TD-31 (shared mutable `PageMeta.options`), TD-32 (nine minutes a run of CI apt), TD-36 (`.jpg` map tiles blocked by the auth/i18n matcher). That is seven defects surfaced by hardening work — the argument for the phase.
 
-**What is actually left:** TD-20b resolved without needing maps-module coverage (documented non-null assertions instead, 2026-07-31 — see its write-up in `TECH_DEBT_ARCHIVE.md`), so this line was stale calling it "blocked". TD-37–TD-43 (opened 2026-08-01) closed every per-tier coverage target; TD-44 (2026-08-02) confirmed the suite's reach isn't undercounted by `coverage.all` and re-scoped the remaining gap to this phase's 70% exit criterion as two dated items: TD-45 (page-level route components) and TD-46 (`app/modules/maps/components/**` Leaflet rendering).
+**What is actually left:** nothing — **Phase 2 is complete.** TD-20b resolved without needing maps-module coverage (documented non-null assertions instead, 2026-07-31 — see its write-up in `TECH_DEBT_ARCHIVE.md`). TD-37–TD-43 (opened 2026-08-01) closed every per-tier coverage target; TD-44 (2026-08-02) confirmed the suite's reach isn't undercounted by `coverage.all` and re-scoped the remaining gap to this phase's 70% exit criterion as two dated items: TD-45 (page-level route components) and TD-46 (`app/modules/maps/components/**` Leaflet rendering), both closed 2026-08-04. **Item 2 (TD-20a) was also already done** — `tsconfig.json` carries every flag the row names (`target: ES2022`, `exactOptionalPropertyTypes`, etc.); the ◑ marker here had simply never been updated after TD-20a's own write-up in `TECH_DEBT_ARCHIVE.md` recorded it finished on 2026-07-31.
 
-**Item 14 is only half done.** `docs/screenshots/spells-list.png` and `map.jpg` were taken and are still on disk, but the 2026-08-01 README trim (see `CLAUDE.md`'s decisions log) cut the section that referenced them — nothing in the repo links to either file now. Keep them and re-link, or delete them; leaving orphaned binary assets on disk is its own small drift.
+**Item 14 (2026-08-06):** `docs/screenshots/spells-list.png` and `map.jpg` were orphaned — taken for a README section the 2026-08-01 trim removed (see `CLAUDE.md`'s decisions log) — and nothing in the repo linked to either file. `CLAUDE.md`'s 2026-08-01 entry explicitly rejects re-adding screenshots to `README.md`, so re-linking was never the live option; both files are deleted.
 
 > **Items 3 and 4 were meant to run together, and did not.** This line used to read
 > _"Items 3 and 4 are deliberately adjacent: both touch all 54 domain files, and

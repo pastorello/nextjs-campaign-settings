@@ -280,7 +280,7 @@ _Not filled in — the open questions below block it._
 ### MVP (§5.1) — purely additive, nothing dropped
 
 - [x] **M1** — `MapImageStore` + upload endpoint + authenticated serving route, per [ADR-0008](../adr/0008-map-image-storage.md) _(test: an image round-trips; an unauthenticated fetch is refused; oversized and wrong-type uploads are rejected)_
-- [ ] **M2** — `poi` gains `kind`, `parentId` and the map columns. Existing rows keep working, their `category` intact under `kind: "poi"` _(test: migration applies; every existing POI still reads back unchanged)_
+- [x] **M2** — `poi` gains `kind`, `parentId` and the map columns. Existing rows keep working, their `category` intact under `kind: "poi"` _(test: migration applies; every existing POI still reads back unchanged)_
 - [ ] **M3** — Kind-aware validation: the discriminated union of §5.1's table _(test: a `deity` with a map, a `region` without one, and a `poi` with a link are each rejected with a field error)_
 - [ ] **M4** — Create-your-world flow on an empty installation _(test: an empty DB offers it and nothing else; a second root is refused)_
 - [ ] **M5** — `MapPOIPanel` gains the kind selector and, for `region`, the map upload. The existing type→entity select is reused for `deity`/`npc` _(test: each kind saves and reloads with the right shape)_

@@ -428,6 +428,25 @@ Found on 2026-08-06 while drafting [SPEC-004](./specs/004-world-model.md), which
 
 ---
 
+## TD-63 🟡 Local dev DB's migration history has a gap `migrate dev`/`migrate deploy` cannot get past
+
+**Where:** `my-database-container` (the maintainer's local dev Postgres, `DATABASE_URL` in `.env`). `_prisma_migrations` there.
+
+**Why:** the dev database was originally built with `db push`, and only some migrations were ever recorded as applied against it — `20260730020000_rename_png_table_to_npc` and `20260731120000_add_poi_table` (both hand-applied via `docker exec … psql` then marked with `prisma migrate resolve --applied`, per that migration's own header comment). The three migrations before them (`20251126152855_resetio`, `20260726093000_add_spells_nome_drop_tutorial_tables`, `20260726100000_add_timestamps_and_name_indexes`) were never recorded, even though the schema they describe is already live — the DB's actual shape and its tracked history disagree.
+
+This blocks both commands that assume a clean history:
+
+- `prisma migrate dev` builds a shadow database and replays every migration file from empty; the replay dies partway through with `relation "png" does not exist` (a step assumes state the shadow DB never had, because the real DB got there by a different path).
+- `prisma migrate deploy` tries to apply the DB's actual pending list in order and dies the same way, now with `relation "deities" already exists` — the SQL is trying to create a table the live DB already has.
+
+Surfaced again on 2026-08-06 while shipping SPEC-004 M2's migration, which had to be applied the same workaround way as M1: hand-write the SQL (via `prisma migrate diff --from-config-datasource --to-schema` against the live DB, which needs no shadow database), apply it directly with `docker exec … psql`, then `prisma migrate resolve --applied` to record it. Attempting `migrate deploy` first left a **failed** `20251126152855_resetio` row in `_prisma_migrations` (`finished_at` null) — worth checking before the next migration attempt, since a failed row there can itself block `migrate deploy`.
+
+**Plan:** for each of the 3 untracked migrations, confirm the schema they describe genuinely already matches the live DB (diff, don't assume), then `prisma migrate resolve --applied` each one in order. After that, `migrate dev`/`migrate deploy` should work normally again and this workaround stops being necessary for every future schema change.
+
+**Done when:** `prisma migrate status` on the dev DB reports no pending and no failed migrations, and a throwaway schema change round-trips through `prisma migrate dev` without the hand-apply workaround.
+
+---
+
 ## Recommended execution order
 
 ```

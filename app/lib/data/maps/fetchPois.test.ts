@@ -96,4 +96,29 @@ describe("fetchPois", () => {
     expect(result[0]?.linkedType).toBeNull();
     expect(result[0]?.linkedId).toBeNull();
   });
+
+  // SPEC-004 M2: `kind`, `parentId` and the map columns are additive — every
+  // pre-existing row reads back with `kind: "poi"`, `parentId: null` and no
+  // map. This locks in that a row shaped like that (as every row is, right
+  // after the migration) still maps to exactly the same `Poi` this test file
+  // already asserts elsewhere, with the new columns not leaking through.
+  it("reads a row with M2's default tree columns unchanged", async () => {
+    poiFindMany.mockResolvedValue([
+      {
+        ...baseRow,
+        linkedType: null,
+        linkedId: null,
+        kind: "poi",
+        parentId: null,
+        mapImage: null,
+        mapBounds: null,
+        mapInitialView: null,
+        mapInitialZoom: null,
+      },
+    ]);
+
+    const result = await fetchPois();
+
+    expect(result).toEqual([{ ...baseRow, linkedType: null, linkedId: null }]);
+  });
 });

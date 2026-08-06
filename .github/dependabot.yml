@@ -11,6 +11,18 @@ updates:
     # Excluded packages require a human to read the changelog and are handled
     # separately per CLAUDE.md rule 7.
     groups:
+      # prisma (the CLI/generator, a devDependency) and @prisma/client /
+      # @prisma/adapter-pg (prod dependencies) must move in lockstep — Prisma
+      # requires the generator and the client runtime to match, and a
+      # generator/runtime version mismatch produces a broken build (missing
+      # query-compiler WASM module), not just a lint warning. A single group
+      # spanning both dependency types keeps them bumped together in one PR
+      # instead of two independent ones that each break the build alone.
+      prisma:
+        applies-to: version-updates
+        patterns:
+          - prisma
+          - "@prisma/*"
       dev-dependencies:
         applies-to: version-updates
         dependency-type: development
@@ -19,6 +31,7 @@ updates:
         exclude-patterns:
           - typescript
           - eslint
+          - prisma
       prod-dependencies:
         applies-to: version-updates
         dependency-type: production
@@ -33,6 +46,8 @@ updates:
       - dependency-name: next
         update-types: ["version-update:semver-major"]
       - dependency-name: react
+        update-types: ["version-update:semver-major"]
+      - dependency-name: prisma
         update-types: ["version-update:semver-major"]
       - dependency-name: "@prisma/*"
         update-types: ["version-update:semver-major"]

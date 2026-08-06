@@ -5,6 +5,7 @@ import type { Marker } from "leaflet";
 
 import { useLeafletMap } from "./useLeafletMap";
 import fetchPlaceChildren from "@/app/lib/data/maps/fetchPlaceChildren";
+import { NAVIGABLE_PLACE_KINDS } from "@/app/modules/maps/constants/place-kinds";
 import type PlaceChild from "@/app/lib/definitions/interfaces/maps/PlaceChild";
 
 export interface NavigableChild {
@@ -20,14 +21,16 @@ export interface NavigableChild {
 }
 
 /**
- * Renders the current place's navigable `region` children as clickable
- * markers, calling `onDescend` when one is clicked (SPEC-004 §10 M7 — the
- * fix for the "clicking the material world does nothing" defect in §1).
+ * Renders the current place's navigable children (SPEC-004 §10 M7 — the fix
+ * for the "clicking the material world does nothing" defect in §1; T2 widens
+ * "navigable" from `region` alone to `NAVIGABLE_PLACE_KINDS`) as clickable
+ * markers, calling `onDescend` when one is clicked.
  *
- * A `region` is created through `MapPOIPanel`'s kind selector (SPEC-004
- * M5), which doesn't touch this hook's own list — `refetchToken` is how the
- * panel's caller asks for a reload after a successful create, the same way
- * `parentId` changing already triggers one when the DM descends.
+ * A navigable place is created through `MapPOIPanel`'s kind selector
+ * (SPEC-004 M5), which doesn't touch this hook's own list —
+ * `refetchToken` is how the panel's caller asks for a reload after a
+ * successful create, the same way `parentId` changing already triggers one
+ * when the DM descends.
  */
 export function useNavigableChildren(
   parentId: number,
@@ -54,7 +57,7 @@ export function useNavigableChildren(
             lng: number;
             mapImage: string;
           } =>
-            row.kind === "region" &&
+            (NAVIGABLE_PLACE_KINDS as readonly string[]).includes(row.kind) &&
             row.mapImage !== null &&
             row.lat !== null &&
             row.lng !== null

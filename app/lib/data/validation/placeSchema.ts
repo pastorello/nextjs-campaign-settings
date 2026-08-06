@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { POI_CATEGORIES } from "@/app/modules/maps/constants/poi-categories";
+import { NAVIGABLE_PLACE_KINDS } from "@/app/modules/maps/constants/place-kinds";
 import type { POICategory } from "@/app/modules/maps/types/poi";
 
 // Derived from the runtime list rather than repeating the union as string
@@ -44,10 +45,16 @@ const noneOfTheOthers = {
   mapInitialZoom: z.undefined().optional(),
 };
 
-const regionSchema = z.object({
+/**
+ * `region`, `plane`, `city` and `dungeon` (SPEC-004 T2) share one shape — a
+ * bigger place containing smaller ones, distinguished only by `kind` itself,
+ * so one schema variant validates all four rather than repeating it per
+ * kind.
+ */
+const navigableSchema = z.object({
   ...commonFields,
   ...noneOfTheOthers,
-  kind: z.literal("region"),
+  kind: z.enum(NAVIGABLE_PLACE_KINDS),
   mapImage: z.string().min(1),
   mapBounds: z.tuple([coordinatePair, coordinatePair]).optional(),
   mapInitialView: coordinatePair.optional(),
@@ -78,14 +85,12 @@ const poiSchema = z.object({
 });
 
 /**
- * The discriminated union of SPEC-004 §5.1's table: `kind` decides which
- * other fields are required, forbidden, or optional. Not yet called from
- * `createPoi`/`updatePoi` — M5 wires this in once `MapPOIPanel` sends
- * `kind` in its payload; `PLACE_KINDS` (the closed vocabulary this union's
- * `kind` literals implement) is unused until then too.
+ * The discriminated union of SPEC-004 §5.1's table (plus T2's richer
+ * vocabulary): `kind` decides which other fields are required, forbidden,
+ * or optional.
  */
 export const placeSchema = z.discriminatedUnion("kind", [
-  regionSchema,
+  navigableSchema,
   deitySchema,
   npcSchema,
   poiSchema,

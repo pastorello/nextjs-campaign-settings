@@ -43,13 +43,15 @@ export interface LinkableEntityTypeConfig {
 }
 
 /**
- * The world tree's place kinds (SPEC-004 §5.1) — the MVP's closed set.
- * `region` is the only navigable kind and carries its own map; `deity` and
- * `npc` each link to exactly one record; `poi` is a categorized leaf marker
- * like the 14 existing categories. The richer vocabulary (plane, city,
- * dungeon, …) is SPEC-004 T2, not built yet.
+ * The world tree's place kinds (SPEC-004 §5.1, richer vocabulary added by
+ * T2). `region`, `plane`, `city` and `dungeon` are the navigable kinds —
+ * each carries its own map, per `NAVIGABLE_PLACE_KINDS` in
+ * `constants/place-kinds.ts`; `deity` and `npc` each link to exactly one
+ * record; `poi` is a categorized leaf marker like the 14 existing
+ * categories.
  */
-export type PlaceKind = "region" | "deity" | "npc" | "poi";
+export type PlaceKind =
+  "region" | "plane" | "city" | "dungeon" | "deity" | "npc" | "poi";
 
 export interface POI {
   id: string;

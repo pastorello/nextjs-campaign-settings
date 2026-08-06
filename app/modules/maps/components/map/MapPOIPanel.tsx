@@ -28,7 +28,10 @@ import {
   getCategoryBgColor,
 } from "@/app/modules/maps/constants/poi-categories";
 import { LINKABLE_ENTITY_TYPES } from "@/app/modules/maps/constants/linkable-entities";
-import { PLACE_KINDS } from "@/app/modules/maps/constants/place-kinds";
+import {
+  PLACE_KINDS,
+  isNavigablePlaceKind,
+} from "@/app/modules/maps/constants/place-kinds";
 import { formatDecimalDegrees } from "@/app/modules/maps/lib/utils/coordinates";
 import { ALLOWED_MAP_IMAGE_CONTENT_TYPES } from "@/app/lib/storage/mapImageUploadRules";
 import fetchLinkableEntities, {
@@ -36,13 +39,14 @@ import fetchLinkableEntities, {
 } from "@/app/lib/data/maps/fetchLinkableEntities";
 
 /**
- * A `region`, `deity` or `npc` place under the current parent (SPEC-004 M5).
- * `kind: "poi"` is deliberately not part of this — it keeps going through
- * `onAddPOI`, unchanged. See `createPlace.ts` for why.
+ * A navigable place (`region`, `plane`, `city`, `dungeon`), `deity` or `npc`
+ * place under the current parent (SPEC-004 M5, T2). `kind: "poi"` is
+ * deliberately not part of this — it keeps going through `onAddPOI`,
+ * unchanged. See `createPlace.ts` for why.
  */
 export type AddPlaceInput =
   | {
-      kind: "region";
+      kind: "region" | "plane" | "city" | "dungeon";
       title: string;
       lat: number;
       lng: number;
@@ -100,7 +104,7 @@ interface MapPOIPanelProps {
   cursorLat?: number | undefined;
   cursorLng?: number | undefined;
   mode?: "list" | "add"; // Control view mode from parent
-  // Creates a region/deity/npc place under the current parent, returning
+  // Creates a navigable/deity/npc place under the current parent, returning
   // whether it succeeded. Not optional: every consumer of this panel is now
   // scoped to a place (SPEC-004 M7), so there is always a parent to attach
   // to.
@@ -118,7 +122,7 @@ interface POIFormData {
   category: POICategory;
   linkedType: LinkableEntityType | null;
   linkedId: number | null;
-  // `region` only — the file staged for upload, not yet sent anywhere.
+  // Navigable kinds only — the file staged for upload, not yet sent anywhere.
   mapFile: File | null;
 }
 
@@ -507,7 +511,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       return;
     }
 
-    if (formData.kind === "region") {
+    if (isNavigablePlaceKind(formData.kind)) {
       if (!formData.mapFile) {
         toast.error("Please choose a map image");
         return;
@@ -530,7 +534,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
         };
 
         const succeeded = await onAddPlace({
-          kind: "region",
+          kind: formData.kind,
           title,
           lat,
           lng,
@@ -538,7 +542,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           ...(description !== undefined && { description }),
         });
         if (!succeeded) {
-          toast.error("Could not save the region");
+          toast.error("Could not save the place");
           return;
         }
       } finally {
@@ -792,8 +796,8 @@ export const MapPOIPanel = memo(function MapPOIPanel({
             </div>
           )}
 
-          {/* Map Image — kind: "region" only */}
-          {formData.kind === "region" && (
+          {/* Map Image — navigable kinds only (region, plane, city, dungeon) */}
+          {isNavigablePlaceKind(formData.kind) && (
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Map image

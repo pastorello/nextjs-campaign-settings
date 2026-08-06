@@ -36,7 +36,7 @@ import createPlace from "@/app/lib/data/maps/createPlace";
  * triggers. See CLAUDE.md, "unused is not dead", for what's still scaffolding.
  *
  * `parentId` scopes both the `kind: "poi"` panel (SPEC-002, via
- * `usePOIManager`) and the navigable `region` markers (SPEC-004 M7, via
+ * `usePOIManager`) and the navigable-kind markers (SPEC-004 M7, via
  * `useNavigableChildren`) to the place currently being viewed — the fix for
  * §1's "every POI renders on every map" defect. `onDescend` is called when a
  * navigable marker is clicked; `GeographyExplorer` owns what happens next.
@@ -102,20 +102,12 @@ function WorldMap({
   // Navigable `region` children, same scope — clicking one calls `onDescend`
   useNavigableChildren(parentId, onDescend, placesRefetchToken);
 
-  // Creates a region/deity/npc place under the current parent (SPEC-004
-  // M5). `kind: "poi"` never reaches this — the panel keeps that on the
+  // Creates a navigable/deity/npc place under the current parent (SPEC-004
+  // M5, T2). `kind: "poi"` never reaches this — the panel keeps that on the
   // original `addPOI` path (see createPlace.ts for why).
   const handleAddPlace = useCallback(
     async (input: AddPlaceInput): Promise<boolean> => {
-      // Branched per kind, not `{ ...input, parentId }`: spreading a union
-      // loses each member's own discrimination, so TS can no longer tell
-      // `createPlace` which of `placeSchema`'s variants it is looking at.
-      const result =
-        input.kind === "region"
-          ? await createPlace({ ...input, parentId })
-          : input.kind === "deity"
-            ? await createPlace({ ...input, parentId })
-            : await createPlace({ ...input, parentId });
+      const result = await createPlace({ ...input, parentId });
       if (result.ok) {
         setPlacesRefetchToken((token) => token + 1);
       }

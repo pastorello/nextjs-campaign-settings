@@ -102,8 +102,9 @@ model poi {
   parent      poi?     @relation("PoiTree", fields: [parentId], references: [id], onDelete: Restrict)
   children    poi[]    @relation("PoiTree")
 
-  // A place's own map (only meaningful for `kind: "region"`). Null for
-  // every other kind, including all rows that predate M2.
+  // A place's own map (only meaningful for the navigable kinds — `region`,
+  // `plane`, `city`, `dungeon`; SPEC-004 T2). Null for every other kind,
+  // including all rows that predate M2.
   mapImage       String?
   mapBounds      Json?
   mapInitialView Json?

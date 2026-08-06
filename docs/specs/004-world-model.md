@@ -292,7 +292,7 @@ _Not filled in — the open questions below block it._
 ### Beyond the MVP — the destructive half, only once the tree is trusted
 
 - [x] **T1** — `faction` table + seed + FK on `npc.fazione` _(independent of everything above)_. Scoped to schema/data only, per §7: `npcMeta`'s faction field keeps reading `factions.ts`'s static list unchanged — the async-options problem stays unsolved, exactly as §7/§9 say it should for this item. `npc.faction` (the scalar column) is untouched; `factionRef` is a new, additive relation field nothing reads yet.
-- [ ] **T2** — The richer kind vocabulary: plane, city, dungeon as additional values
+- [x] **T2** — The richer kind vocabulary: `plane`, `city`, `dungeon` join `region` as navigable kinds, each carrying its own map. One shared `navigableSchema` in `placeSchema.ts` (discriminated on `z.enum(NAVIGABLE_PLACE_KINDS)`) replaces the old `region`-only branch; `NAVIGABLE_PLACE_KINDS`/`isNavigablePlaceKind` in `constants/place-kinds.ts` replace every `kind === "region"` check (`createPlace.ts`, `useNavigableChildren.ts`, `MapPOIPanel.tsx`). No migration — `kind` is already `String`, closed only in code. Root creation (`createRootPlace.ts`) stays `region`-only by design, unaffected.
 - [ ] **T3** — Migrate the four existing maps and the 33 legacy places into the tree, DM-reviewed against the parentage evidence in §6
 - [ ] **T4** — NPC/deity pins for existing records; derive and display location from the tree
 - [ ] **T5** — Drop `npc.luogo`, `deities.luogo`, `deities.residenza`; remove `locationList`, `celestialPlanes` and their catalogue keys _(the point of no easy return — write the down migration first)_

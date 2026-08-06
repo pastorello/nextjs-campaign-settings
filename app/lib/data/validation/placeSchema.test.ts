@@ -47,6 +47,30 @@ describe("placeSchema", () => {
     });
   });
 
+  describe.each(["plane", "city", "dungeon"])("%s (T2)", (kind) => {
+    it(`accepts a ${kind} with a map and no category or link`, () => {
+      const result = placeSchema.safeParse({
+        ...commonFields,
+        kind,
+        mapImage: "generated-id.png",
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it(`rejects a ${kind} without a map`, () => {
+      const result = placeSchema.safeParse({
+        ...commonFields,
+        kind,
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.flatten().fieldErrors.mapImage).toBeDefined();
+      }
+    });
+  });
+
   describe("deity", () => {
     it("accepts a deity linked to a record and no map", () => {
       const result = placeSchema.safeParse({
@@ -175,7 +199,7 @@ describe("placeSchema", () => {
   it("rejects an unrecognised kind", () => {
     const result = placeSchema.safeParse({
       ...commonFields,
-      kind: "dungeon",
+      kind: "castle",
       category: "religion",
     });
 

@@ -9,9 +9,9 @@ import { placeSchema, type PlaceInput } from "../validation/placeSchema";
 import type { CreatePlaceResult } from "../../definitions/interfaces/maps/Place";
 
 /**
- * Creates a `region`, `deity` or `npc` place under an existing parent
- * (SPEC-004 §10 M5) — `MapPOIPanel`'s kind selector calls this once a kind
- * other than `poi` is chosen. `kind: "poi"` keeps going through `createPoi`
+ * Creates a place under an existing parent (SPEC-004 §10 M5, T2) —
+ * `MapPOIPanel`'s kind selector calls this once a kind other than `poi` is
+ * chosen. `kind: "poi"` keeps going through `createPoi`
  * unchanged: `placeSchema`'s `poi` variant forbids a link, which would
  * silently narrow the optional-link feature SPEC-002 shipped (and
  * `map-poi-link.spec.ts` still exercises) — a real product change, not
@@ -47,7 +47,15 @@ export default async function createPlace(
         ...(data.description !== undefined && {
           description: data.description,
         }),
-        ...(data.kind === "region" && {
+        // Spelled out as literal equalities rather than
+        // `isNavigablePlaceKind(data.kind)`: the helper's type predicate
+        // doesn't narrow `data`'s zod-inferred discriminated union here the
+        // way a direct literal comparison does, and the union member this
+        // block depends on (`mapImage` etc.) needs that narrowing.
+        ...((data.kind === "region" ||
+          data.kind === "plane" ||
+          data.kind === "city" ||
+          data.kind === "dungeon") && {
           mapImage: data.mapImage,
           ...(data.mapBounds !== undefined && { mapBounds: data.mapBounds }),
           ...(data.mapInitialView !== undefined && {

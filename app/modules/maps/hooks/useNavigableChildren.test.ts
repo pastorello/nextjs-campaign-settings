@@ -87,7 +87,7 @@ describe("useNavigableChildren", () => {
     await waitFor(() => expect(fetchPlaceChildren).toHaveBeenCalledTimes(2));
   });
 
-  it("exposes only navigable region children — not poi, deity or npc kinds", async () => {
+  it("exposes only navigable children — not poi, deity or npc kinds", async () => {
     fetchPlaceChildren.mockResolvedValue([
       row({ id: 1, kind: "region" }),
       row({ id: 2, kind: "poi", category: "religion", mapImage: null }),
@@ -99,12 +99,15 @@ describe("useNavigableChildren", () => {
         mapImage: null,
       }),
       row({ id: 4, kind: "region", mapImage: null }), // no map yet, not navigable
+      row({ id: 5, kind: "plane" }),
+      row({ id: 6, kind: "city" }),
+      row({ id: 7, kind: "dungeon" }),
     ]);
 
     const { result } = renderHook(() => useNavigableChildren(1, vi.fn()));
 
-    await waitFor(() => expect(result.current).toHaveLength(1));
-    expect(result.current[0]?.id).toBe(1);
+    await waitFor(() => expect(result.current).toHaveLength(4));
+    expect(result.current.map((c) => c.id)).toEqual([1, 5, 6, 7]);
   });
 
   it("adds a marker to the map for each navigable child", async () => {

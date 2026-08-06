@@ -72,6 +72,21 @@ describe("useNavigableChildren", () => {
     await waitFor(() => expect(fetchPlaceChildren).toHaveBeenCalledWith(42));
   });
 
+  it("refetches when refetchToken changes, e.g. after MapPOIPanel creates a region", async () => {
+    fetchPlaceChildren.mockResolvedValue([]);
+
+    const { rerender } = renderHook(
+      ({ token }: { token: number }) =>
+        useNavigableChildren(42, vi.fn(), token),
+      { initialProps: { token: 0 } }
+    );
+    await waitFor(() => expect(fetchPlaceChildren).toHaveBeenCalledTimes(1));
+
+    rerender({ token: 1 });
+
+    await waitFor(() => expect(fetchPlaceChildren).toHaveBeenCalledTimes(2));
+  });
+
   it("exposes only navigable region children — not poi, deity or npc kinds", async () => {
     fetchPlaceChildren.mockResolvedValue([
       row({ id: 1, kind: "region" }),

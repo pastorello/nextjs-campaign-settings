@@ -20,6 +20,7 @@ import type {
   POI,
   POICategory,
   LinkableEntityType,
+  PlaceKind,
 } from "@/app/modules/maps/types/poi";
 import {
   POI_CATEGORIES,
@@ -27,10 +28,45 @@ import {
   getCategoryBgColor,
 } from "@/app/modules/maps/constants/poi-categories";
 import { LINKABLE_ENTITY_TYPES } from "@/app/modules/maps/constants/linkable-entities";
+import { PLACE_KINDS } from "@/app/modules/maps/constants/place-kinds";
 import { formatDecimalDegrees } from "@/app/modules/maps/lib/utils/coordinates";
+import { ALLOWED_MAP_IMAGE_CONTENT_TYPES } from "@/app/lib/storage/mapImageUploadRules";
 import fetchLinkableEntities, {
   type LinkableEntityOption,
 } from "@/app/lib/data/maps/fetchLinkableEntities";
+
+/**
+ * A `region`, `deity` or `npc` place under the current parent (SPEC-004 M5).
+ * `kind: "poi"` is deliberately not part of this — it keeps going through
+ * `onAddPOI`, unchanged. See `createPlace.ts` for why.
+ */
+export type AddPlaceInput =
+  | {
+      kind: "region";
+      title: string;
+      lat: number;
+      lng: number;
+      description?: string;
+      mapImage: string;
+    }
+  | {
+      kind: "deity";
+      title: string;
+      lat: number;
+      lng: number;
+      description?: string;
+      linkedType: "deity";
+      linkedId: number;
+    }
+  | {
+      kind: "npc";
+      title: string;
+      lat: number;
+      lng: number;
+      description?: string;
+      linkedType: "npc";
+      linkedId: number;
+    };
 
 interface MapPOIPanelProps {
   isOpen: boolean;
@@ -64,11 +100,17 @@ interface MapPOIPanelProps {
   cursorLat?: number | undefined;
   cursorLng?: number | undefined;
   mode?: "list" | "add"; // Control view mode from parent
+  // Creates a region/deity/npc place under the current parent, returning
+  // whether it succeeded. Not optional: every consumer of this panel is now
+  // scoped to a place (SPEC-004 M7), so there is always a parent to attach
+  // to.
+  onAddPlace: (input: AddPlaceInput) => Promise<boolean>;
 }
 
 type ViewMode = "list" | "add" | "edit";
 
 interface POIFormData {
+  kind: PlaceKind;
   title: string;
   description: string;
   lat: string;
@@ -76,6 +118,8 @@ interface POIFormData {
   category: POICategory;
   linkedType: LinkableEntityType | null;
   linkedId: number | null;
+  // `region` only — the file staged for upload, not yet sent anywhere.
+  mapFile: File | null;
 }
 
 /**
@@ -185,9 +229,11 @@ export const MapPOIPanel = memo(function MapPOIPanel({
   cursorLat,
   cursorLng,
   mode: externalMode,
+  onAddPlace,
 }: MapPOIPanelProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [editingPOI, setEditingPOI] = useState<POI | null>(null);
+  const [isSavingPlace, setIsSavingPlace] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const snapPoints = [0.4, 0.7, 1];
   // TD-20b: snapPoints is a fixed literal array declared above, with three elements.
@@ -224,6 +270,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
   // Initialize form data - derive from props when available
   const initialFormData = useMemo<POIFormData>(
     () => ({
+      kind: "poi",
       title: "",
       description: "",
       lat: initialLatStr,
@@ -231,6 +278,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       category: filterCategory || "food-drink",
       linkedType: null,
       linkedId: null,
+      mapFile: null,
     }),
     [initialLatStr, initialLngStr, filterCategory]
   );
@@ -337,6 +385,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     setViewMode("add");
     setEditingPOI(null);
     setFormData({
+      kind: "poi",
       title: "",
       description: "",
       lat: initialLatStr,
@@ -344,17 +393,22 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       category: filterCategory || "food-drink",
       linkedType: null,
       linkedId: null,
+      mapFile: null,
     });
   }, [setViewMode, initialLatStr, initialLngStr, filterCategory]);
 
   /**
-   * Handle edit POI mode
+   * Handle edit POI mode. Editing is always `kind: "poi"` — `pois` (and so
+   * the row this edits) never contains anything else (SPEC-004 M7,
+   * `usePOIManager` only manages `kind: "poi"` children); the kind selector
+   * below only renders in "add" mode for that reason.
    */
   const handleEditMode = useCallback(
     (poi: POI) => {
       setViewMode("edit");
       setEditingPOI(poi);
       setFormData({
+        kind: "poi",
         title: poi.title,
         description: poi.description || "",
         lat: poi.lat.toFixed(6),
@@ -362,19 +416,42 @@ export const MapPOIPanel = memo(function MapPOIPanel({
         category: poi.category,
         linkedType: poi.linkedType ?? null,
         linkedId: poi.linkedId ?? null,
+        mapFile: null,
       });
     },
     [setViewMode]
   );
 
+  const resetFormAfterSave = useCallback(() => {
+    setViewMode("list");
+    setEditingPOI(null);
+    setFormData({
+      kind: "poi",
+      title: "",
+      description: "",
+      lat: "",
+      lng: "",
+      category: "food-drink",
+      linkedType: null,
+      linkedId: null,
+      mapFile: null,
+    });
+    onClearCoordinates?.();
+  }, [setViewMode, onClearCoordinates]);
+
   /**
-   * Handle save POI
+   * Handle save. `kind: "poi"` (the only kind an edit ever is) keeps the
+   * original synchronous, optimistic path through `onAddPOI`/`onUpdatePOI`.
+   * `region`/`deity`/`npc` creation goes through `onAddPlace` instead
+   * (SPEC-004 M5) — a real server round-trip, so the button disables while
+   * it's in flight rather than optimistically closing the form.
    */
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     const lat = parseFloat(formData.lat);
     const lng = parseFloat(formData.lng);
+    const title = formData.title.trim();
 
-    if (!formData.title.trim()) {
+    if (!title) {
       toast.error("Please enter a title");
       return;
     }
@@ -384,14 +461,16 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       return;
     }
 
-    if (formData.linkedType !== null && formData.linkedId === null) {
-      toast.error("Please select an entity to link to, or set it back to None");
-      return;
-    }
-
     if (viewMode === "edit" && editingPOI) {
+      if (formData.linkedType !== null && formData.linkedId === null) {
+        toast.error(
+          "Please select an entity to link to, or set it back to None"
+        );
+        return;
+      }
+
       onUpdatePOI(editingPOI.id, {
-        title: formData.title.trim(),
+        title,
         description: formData.description.trim() || undefined,
         lat,
         lng,
@@ -400,42 +479,127 @@ export const MapPOIPanel = memo(function MapPOIPanel({
         linkedId: formData.linkedId,
       });
       toast.success("Place updated successfully");
-    } else {
+      resetFormAfterSave();
+      return;
+    }
+
+    const description = formData.description.trim() || undefined;
+
+    if (formData.kind === "poi") {
+      if (formData.linkedType !== null && formData.linkedId === null) {
+        toast.error(
+          "Please select an entity to link to, or set it back to None"
+        );
+        return;
+      }
+
       onAddPOI(
-        formData.title.trim(),
+        title,
         lat,
         lng,
         formData.category,
-        formData.description.trim() || undefined,
+        description,
         formData.linkedType,
         formData.linkedId
       );
       toast.success("Place added successfully");
+      resetFormAfterSave();
+      return;
     }
 
-    // Clear form and reset state
-    setViewMode("list");
-    setEditingPOI(null);
-    setFormData({
-      title: "",
-      description: "",
-      lat: "",
-      lng: "",
-      category: "food-drink",
-      linkedType: null,
-      linkedId: null,
-    });
+    if (formData.kind === "region") {
+      if (!formData.mapFile) {
+        toast.error("Please choose a map image");
+        return;
+      }
 
-    // Notify parent to clear coordinates
-    onClearCoordinates?.();
+      setIsSavingPlace(true);
+      try {
+        const uploadBody = new FormData();
+        uploadBody.set("file", formData.mapFile);
+        const uploadResponse = await fetch("/api/maps/upload", {
+          method: "POST",
+          body: uploadBody,
+        });
+        if (!uploadResponse.ok) {
+          toast.error("Could not upload the map");
+          return;
+        }
+        const { id: mapImage } = (await uploadResponse.json()) as {
+          id: string;
+        };
+
+        const succeeded = await onAddPlace({
+          kind: "region",
+          title,
+          lat,
+          lng,
+          mapImage,
+          ...(description !== undefined && { description }),
+        });
+        if (!succeeded) {
+          toast.error("Could not save the region");
+          return;
+        }
+      } finally {
+        setIsSavingPlace(false);
+      }
+
+      toast.success("Place added successfully");
+      resetFormAfterSave();
+      return;
+    }
+
+    // kind is "deity" or "npc" — branched, not a single object built from
+    // `formData.kind`: `formData.kind` is still the two-member union here,
+    // and `AddPlaceInput`'s deity/npc variants are separate types, so a
+    // literal built from the union doesn't structurally match either one.
+    const { kind, linkedId } = formData;
+    if (linkedId === null) {
+      toast.error("Please select an entity to link to");
+      return;
+    }
+
+    setIsSavingPlace(true);
+    let succeeded: boolean;
+    try {
+      succeeded = await (kind === "deity"
+        ? onAddPlace({
+            kind: "deity",
+            title,
+            lat,
+            lng,
+            linkedType: "deity",
+            linkedId,
+            ...(description !== undefined && { description }),
+          })
+        : onAddPlace({
+            kind: "npc",
+            title,
+            lat,
+            lng,
+            linkedType: "npc",
+            linkedId,
+            ...(description !== undefined && { description }),
+          }));
+    } finally {
+      setIsSavingPlace(false);
+    }
+    if (!succeeded) {
+      toast.error("Could not save the place");
+      return;
+    }
+
+    toast.success("Place added successfully");
+    resetFormAfterSave();
   }, [
     formData,
     viewMode,
     editingPOI,
     onAddPOI,
     onUpdatePOI,
-    onClearCoordinates,
-    setViewMode,
+    onAddPlace,
+    resetFormAfterSave,
   ]);
 
   /**
@@ -507,6 +671,37 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     if (viewMode === "add" || viewMode === "edit") {
       return (
         <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-900 scrollbar-thin px-6 py-4">
+          {/* Kind Selection — add mode only. Editing is always kind: "poi"
+              (see handleEditMode), so changing kind mid-edit has no meaning. */}
+          {viewMode === "add" && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Kind
+              </label>
+              <select
+                value={formData.kind}
+                onChange={(e) => {
+                  const kind = e.target.value as PlaceKind;
+                  setFormData((prev) => ({
+                    ...prev,
+                    kind,
+                    linkedType:
+                      kind === "deity" || kind === "npc" ? kind : null,
+                    linkedId: null,
+                    mapFile: null,
+                  }));
+                }}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+              >
+                {PLACE_KINDS.map((kind) => (
+                  <option key={kind} value={kind}>
+                    {kind}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Coordinates Section */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -572,66 +767,115 @@ export const MapPOIPanel = memo(function MapPOIPanel({
             )}
           </div>
 
-          {/* Category Selection */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Category
-            </label>
-            <select
-              value={formData.category}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  category: e.target.value as POICategory,
-                }))
-              }
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-            >
-              {POI_CATEGORIES.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.icon} {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Linked Entity */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Linked entity
-            </label>
-            <div className="flex gap-2">
+          {/* Category Selection — kind: "poi" only */}
+          {formData.kind === "poi" && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Category
+              </label>
               <select
-                value={formData.linkedType ?? ""}
-                onChange={(e) => handleLinkedTypeChange(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                value={formData.category}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    category: e.target.value as POICategory,
+                  }))
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
               >
-                <option value="">None</option>
-                {LINKABLE_ENTITY_TYPES.map((type) => (
-                  <option key={type.id} value={type.id}>
-                    {type.label}
+                {POI_CATEGORIES.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.icon} {cat.name}
                   </option>
                 ))}
               </select>
-              {formData.linkedType !== null && (
+            </div>
+          )}
+
+          {/* Map Image — kind: "region" only */}
+          {formData.kind === "region" && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Map image
+              </label>
+              <input
+                type="file"
+                accept={ALLOWED_MAP_IMAGE_CONTENT_TYPES.join(",")}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    mapFile: e.target.files?.[0] ?? null,
+                  }))
+                }
+                className="block w-full text-sm text-gray-900 dark:text-white"
+              />
+            </div>
+          )}
+
+          {/* Linked Entity — kind: "poi" (optional, either type), or
+              kind: "deity"/"npc" (required, type fixed by the kind chosen
+              above, so only the entity itself is picked here). */}
+          {formData.kind === "poi" && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Linked entity
+              </label>
+              <div className="flex gap-2">
                 <select
-                  value={formData.linkedId ?? ""}
-                  onChange={(e) => handleLinkedIdChange(e.target.value)}
-                  disabled={isLoadingLinkOptions}
-                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm disabled:opacity-50"
+                  value={formData.linkedType ?? ""}
+                  onChange={(e) => handleLinkedTypeChange(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
                 >
-                  <option value="">
-                    {isLoadingLinkOptions ? "Loading…" : "Select…"}
-                  </option>
-                  {linkOptions.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.name}
+                  <option value="">None</option>
+                  {LINKABLE_ENTITY_TYPES.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.label}
                     </option>
                   ))}
                 </select>
-              )}
+                {formData.linkedType !== null && (
+                  <select
+                    value={formData.linkedId ?? ""}
+                    onChange={(e) => handleLinkedIdChange(e.target.value)}
+                    disabled={isLoadingLinkOptions}
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm disabled:opacity-50"
+                  >
+                    <option value="">
+                      {isLoadingLinkOptions ? "Loading…" : "Select…"}
+                    </option>
+                    {linkOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
             </div>
-          </div>
+          )}
+          {(formData.kind === "deity" || formData.kind === "npc") && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {LINKABLE_ENTITY_TYPES.find((t) => t.id === formData.kind)
+                  ?.label ?? formData.kind}
+              </label>
+              <select
+                value={formData.linkedId ?? ""}
+                onChange={(e) => handleLinkedIdChange(e.target.value)}
+                disabled={isLoadingLinkOptions}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm disabled:opacity-50"
+              >
+                <option value="">
+                  {isLoadingLinkOptions ? "Loading…" : "Select…"}
+                </option>
+                {linkOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Title Input */}
           <div className="mb-6">
@@ -808,11 +1052,16 @@ export const MapPOIPanel = memo(function MapPOIPanel({
             {viewMode === "edit" ? "Edit Place" : "Add Place"}
           </h3>
           <button
-            onClick={handleSave}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+            onClick={() => void handleSave()}
+            disabled={isSavingPlace}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-50"
           >
             <Save className="h-4 w-4" />
-            {viewMode === "edit" ? "Update" : "Save"}
+            {isSavingPlace
+              ? "Saving…"
+              : viewMode === "edit"
+                ? "Update"
+                : "Save"}
           </button>
         </div>
       )}

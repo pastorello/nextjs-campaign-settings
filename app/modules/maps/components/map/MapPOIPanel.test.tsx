@@ -38,6 +38,7 @@ function baseProps() {
     onExport: vi.fn(),
     onImport: vi.fn(),
     onFlyTo: vi.fn(),
+    onAddPlace: vi.fn().mockResolvedValue(true),
   };
 }
 
@@ -275,5 +276,160 @@ describe("MapPOIPanel — add/edit form", () => {
 
     expect(screen.getByText("No places yet")).toBeInTheDocument();
     expect(props.onAddPOI).not.toHaveBeenCalled();
+  });
+});
+
+describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
+  function kindSelect() {
+    return screen.getByText("Kind").closest("div")!.querySelector("select")!;
+  }
+
+  it("defaults to poi, with category and the optional link visible", () => {
+    render(<MapPOIPanel {...baseProps()} />);
+    fireEvent.click(screen.getByText("Add"));
+
+    expect(kindSelect()).toHaveValue("poi");
+    expect(screen.getByText("Category")).toBeInTheDocument();
+    expect(screen.getByText("Linked entity")).toBeInTheDocument();
+  });
+
+  it("switching to region hides category/link and shows the map image field", () => {
+    render(<MapPOIPanel {...baseProps()} />);
+    fireEvent.click(screen.getByText("Add"));
+
+    fireEvent.change(kindSelect(), { target: { value: "region" } });
+
+    expect(screen.queryByText("Category")).not.toBeInTheDocument();
+    expect(screen.queryByText("Linked entity")).not.toBeInTheDocument();
+    expect(screen.getByText("Map image")).toBeInTheDocument();
+  });
+
+  it("switching to deity hides category and requires an entity, no type dropdown", () => {
+    render(<MapPOIPanel {...baseProps()} />);
+    fireEvent.click(screen.getByText("Add"));
+
+    fireEvent.change(kindSelect(), { target: { value: "deity" } });
+
+    expect(screen.queryByText("Category")).not.toBeInTheDocument();
+    expect(screen.queryByText("Linked entity")).not.toBeInTheDocument();
+    expect(screen.getByText("Deity")).toBeInTheDocument();
+  });
+
+  it("rejects saving a region with no map image chosen", async () => {
+    const props = baseProps();
+    render(<MapPOIPanel {...props} initialLat={1} initialLng={2} />);
+
+    fireEvent.click(screen.getByText("Add"));
+    fireEvent.change(kindSelect(), { target: { value: "region" } });
+    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
+      target: { value: "Kingdom of Kang" },
+    });
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith("Please choose a map image")
+    );
+    expect(props.onAddPlace).not.toHaveBeenCalled();
+  });
+
+  it("uploads the map and creates a region", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ id: "kang.png" }),
+      })
+    );
+    const props = baseProps();
+    render(<MapPOIPanel {...props} initialLat={1} initialLng={2} />);
+
+    fireEvent.click(screen.getByText("Add"));
+    fireEvent.change(kindSelect(), { target: { value: "region" } });
+    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
+      target: { value: "Kingdom of Kang" },
+    });
+    const file = new File(["bytes"], "kang.png", { type: "image/png" });
+    fireEvent.change(
+      screen.getByText("Map image").closest("div")!.querySelector("input")!,
+      { target: { files: [file] } }
+    );
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() => expect(props.onAddPlace).toHaveBeenCalled());
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/maps/upload",
+      expect.objectContaining({ method: "POST" })
+    );
+    expect(props.onAddPlace).toHaveBeenCalledWith({
+      kind: "region",
+      title: "Kingdom of Kang",
+      lat: 1,
+      lng: 2,
+      mapImage: "kang.png",
+    });
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith("Place added successfully")
+    );
+  });
+
+  it("rejects saving a deity with no entity selected", async () => {
+    const props = baseProps();
+    render(<MapPOIPanel {...props} initialLat={1} initialLng={2} />);
+
+    fireEvent.click(screen.getByText("Add"));
+    fireEvent.change(kindSelect(), { target: { value: "deity" } });
+    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
+      target: { value: "Helios" },
+    });
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        "Please select an entity to link to"
+      )
+    );
+    expect(props.onAddPlace).not.toHaveBeenCalled();
+  });
+
+  it("creates an npc pin with the reused entity select", async () => {
+    fetchLinkableEntities.mockResolvedValue([{ id: 9, name: "Dexter" }]);
+    const props = baseProps();
+    render(<MapPOIPanel {...props} initialLat={5} initialLng={6} />);
+
+    fireEvent.click(screen.getByText("Add"));
+    fireEvent.change(kindSelect(), { target: { value: "npc" } });
+    await screen.findByText("Dexter");
+
+    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
+      target: { value: "Dexter Nemrod" },
+    });
+    fireEvent.change(
+      screen.getByText("NPC").closest("div")!.querySelector("select")!,
+      { target: { value: "9" } }
+    );
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(props.onAddPlace).toHaveBeenCalledWith({
+        kind: "npc",
+        title: "Dexter Nemrod",
+        lat: 5,
+        lng: 6,
+        linkedType: "npc",
+        linkedId: 9,
+      })
+    );
+  });
+
+  it("does not show the kind selector while editing", () => {
+    render(<MapPOIPanel {...baseProps()} pois={[poi]} />);
+
+    const row = screen
+      .getByText("Skreebars Market")
+      .closest("div")!.parentElement!;
+    fireEvent.mouseEnter(row);
+    fireEvent.click(screen.getByTitle("Edit"));
+
+    expect(screen.queryByText("Kind")).not.toBeInTheDocument();
   });
 });

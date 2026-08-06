@@ -24,14 +24,15 @@ export interface NavigableChild {
  * markers, calling `onDescend` when one is clicked (SPEC-004 §10 M7 — the
  * fix for the "clicking the material world does nothing" defect in §1).
  *
- * A `region` can only be created through M5's panel work, which hasn't
- * shipped yet, so this list is empty in the running app today. It exists so
- * descending works correctly the moment a region can be created — the same
- * "not yet referenced" shape M1-M4 shipped in.
+ * A `region` is created through `MapPOIPanel`'s kind selector (SPEC-004
+ * M5), which doesn't touch this hook's own list — `refetchToken` is how the
+ * panel's caller asks for a reload after a successful create, the same way
+ * `parentId` changing already triggers one when the DM descends.
  */
 export function useNavigableChildren(
   parentId: number,
-  onDescend: (child: NavigableChild) => void
+  onDescend: (child: NavigableChild) => void,
+  refetchToken: number = 0
 ): NavigableChild[] {
   const map = useLeafletMap();
   const [children, setChildren] = useState<NavigableChild[]>([]);
@@ -80,7 +81,7 @@ export function useNavigableChildren(
     return () => {
       cancelled = true;
     };
-  }, [parentId]);
+  }, [parentId, refetchToken]);
 
   useEffect(() => {
     if (!map) return;

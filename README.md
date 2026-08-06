@@ -39,23 +39,19 @@ pnpm install
 
 ### 2. Configure
 
-Create a `.env` in the project root:
+Copy `.env.example` to `.env` and edit the values:
 
-```
-POSTGRES_DB=your_db_name
-POSTGRES_USER=your_admin_user
-POSTGRES_PASSWORD=your_secure_password
-POSTGRES_PORT=5432
-AUTH_SECRET=your-secret-key
-
-DATABASE_URL="postgresql://your_admin_user:your_secure_password@localhost:5432/your_db_name"
+```bash
+cp .env.example .env
 ```
 
-Generate `AUTH_SECRET` with:
+Then generate a strong `AUTH_SECRET`:
 
 ```bash
 pnpm dlx auth secret
 ```
+
+This command will replace the placeholder in `.env` with a cryptographically secure value.
 
 ### 3. Start the database
 

@@ -121,15 +121,32 @@ model poi {
   updatedAt   DateTime @updatedAt
 
   @@index([parentId])
-  @@index([linkedType, linkedId])
+  @@unique([linkedType, linkedId])   // one pin per NPC or deity — see §9 q5
 }
 ```
 
 **`category` becomes `kind`.** The 14 existing category ids survive unchanged as leaf kinds; the structural kinds (`universe`, `plane`, `region`, `city`, `dungeon`) are added alongside them. One field, because a city is not a category-plus-a-type — it is a kind of place.
 
+### The `kind` set is closed
+
+`kind` is **a validated string against a fixed set declared in code — not a table, and not user-extensible.** Decided 2026-08-06: place types must not proliferate into custom values. This is exactly the "closed vocabulary" class SPEC-003 §6 identified, and it inherits TD-61's membership validator rather than inventing its own check.
+
+The shape already exists in this module and is followed rather than replaced — `POICategory` is a string union and `POI_CATEGORIES` an array of configs (`id`, `name`, `color`, `bgColor`, `icon`). `PlaceKind` extends that pattern with the one property the tree needs:
+
+```ts
+{ id: "city",   navigable: true,  … }   // may carry a map; clicking enters it
+{ id: "inn",    navigable: false, … }   // leaf; clicking opens its panel
+```
+
+**`navigable` belongs in the kind declaration, not in a column.** A boolean column beside `kind` could contradict it — a row claiming `kind: "city", navigable: false` has no meaning, and nothing would reject it. Deriving it from the kind makes that state unrepresentable. Whether a place _has_ a map is a separate, genuine question (`mapImage` null or not): a city with no map uploaded yet is navigable in principle and empty in practice.
+
+**One consequence worth stating:** a closed set means adding a place type is a code change and a deploy, in a tool whose whole point is that the DM authors their world without one. That is accepted deliberately — the set describes the _structure_ of a world, which is the app's model, while the DM authors the _contents_. If that line ever chafes, the escape hatch is a `kind` table, and the interface above is what makes swapping to it cheap.
+
 **`title` becomes `name`,** matching every other entity in the schema.
 
 **Why the region stays a point.** `lat`/`lng` position a place on its parent's map. Attaching a zoomed map to a _shape_ later means adding a nullable `bounds Json?` and treating a place with bounds as an area — additive, no rewrite of existing rows, which is the constraint §3 imposes on this design.
+
+**`@@unique([linkedType, linkedId])` relies on Postgres treating NULLs as distinct,** which it does by default: every unlinked place carries `(null, null)` and none of them collide, while `("npc", 7)` can exist only once. The constraint costs nothing for the many places that link to nothing, and it makes a second pin for the same NPC impossible rather than merely discouraged. It also supplies the index that lookups by link would otherwise need.
 
 **Coordinates are nullable, deliberately, and mean two different things.** Null because the parent has no map (contained), or null because nobody has placed it yet (migrated). Both are legitimate; the UI distinguishes them by looking at the parent, not by a flag.
 
@@ -176,6 +193,8 @@ Places themselves are **deliberately kept outside the metadata layer**, exactly 
 - [ ] A faction can be created, renamed and assigned to an NPC without a source edit.
 - [ ] All 33 legacy places exist after migration, parented per their `Location.ts` section, listed as unplaced, and every NPC and deity still resolves to the place it referenced before.
 - [ ] Deleting a place with children is refused; deleting a linked NPC leaves the pin unlinked rather than broken.
+- [ ] A second pin for an NPC or deity that already has one is rejected; moving one is an edit to the existing pin. Many unlinked places coexist without tripping the constraint.
+- [ ] A place's `kind` outside the declared set is rejected at the Zod boundary; a leaf kind cannot be given a map.
 - [ ] Reparenting a place under its own descendant is rejected.
 - [ ] Every new mutation rejects an unauthenticated request and validates input with a Zod schema.
 - [ ] Reading a map's children costs one query regardless of tree depth.
@@ -195,10 +214,10 @@ _Not filled in — the open questions below block it._
 **Open questions**
 
 1. ~~Where do uploaded map images live?~~ **Answered by [ADR-0008](../adr/0008-map-image-storage.md) (2026-08-06):** the local filesystem under `UPLOAD_DIR`, served through an authenticated route handler rather than from `public/`, behind a `MapImageStore` interface so object storage remains a one-file swap. That ADR also records that the four existing maps are currently served **unauthenticated** — `proxy.ts` excludes `.jpg` from the auth gate per TD-36 — and closes that exposure by moving them out of `public/`.
-2. **`kind`: a database enum, a validated string, or a table?** A string validated at the Zod boundary matches how `category` works today and how `POI_CATEGORIES` is declared; a table would let the DM invent their own place types, which fits "a tool for building worlds" but is more machinery. Recommend the validated string first.
+2. ~~`kind`: a database enum, a validated string, or a table?~~ **Answered 2026-08-06: a validated string, and a deliberately closed set.** Not a table — the DM does not want place types proliferating into custom values. See §6, "The `kind` set is closed".
 3. **Does the deity's residence (`celestialPlanes`, 7 values) become a place reference too?** SPEC-003 classed it as vocabulary pending this model. Under this model a plane of existence _is_ a place, so `deities.residence` looks like the same derived-from-the-tree treatment as `location`. Confirm before migrating.
 4. **What arranges the 33 legacy places into a tree, exactly?** Their `Location.ts` sections give a first parent guess, but "Isola dei Druidi" or "Monte An-ki" being cities under the material world is an assumption. The DM should review the proposed tree before step 3 runs.
-5. Should an NPC be placeable in more than one place over time (a travelling merchant)? Today one pin per record is assumed. If not, say so; if yes, the link is one-to-many and the model changes.
+5. ~~Should an NPC be placeable in more than one place over time?~~ **Answered 2026-08-06: no — one pin per record.** A travelling NPC is moved by the DM by hand, which is an edit to the existing pin, not a second one. The link stays one-to-one, and `@@unique([linkedType, linkedId])` enforces it (§6).
 
 ## 10. Task breakdown
 

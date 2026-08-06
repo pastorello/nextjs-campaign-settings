@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-08-06
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-61 (option-backed `Int` fields accept any number — see below; opened 2026-08-06, agreed to ship ahead of SPEC-003's schema work). TD-44 (2026-08-02) found `coverage.all: true` changed nothing, confirming the 50.68%-lines baseline rather than correcting it, and produced two properly scoped gaps: TD-45 (page-level route components) and TD-46 (`app/modules/maps/components/**` Leaflet rendering). TD-45 closed 2026-08-04: 10 new test files brought the suite to 54.51% lines / 48.92% branches (682 → 709 tests). TD-46's e2e sub-slices (POI CRUD, measurement) verified real flows but — `vitest.config.ts` excludes `e2e/**` from coverage — never moved that number, so the item pivoted to Vitest, tiered by whether `WorldMap.tsx` actually renders the component. **Tier 1 closed 2026-08-04:** five new suites (`LeafletMap`, `MapContextMenu`, `MapMeasurementPanel`, `MapControls`, `MapPOIPanel`) brought the suite to 63.81% lines / 60.89% branches (709 → 755 tests). **Tier 2 closed the same day:** the remaining eight components (`MapSearchBar`, `MapTopBar`, `MapTileSwitcher`, `MapThemeSwitcher`, `MapUser`, `LeafletGeoJSON`, `LeafletTileLayer`, `MapDetailsPanel`) — reachable only through `MapMain.tsx`, which has no importer outside its own directory — were tested as-is per the user's cable-or-delete call, bringing the suite to **70.09% lines / 69.66% branches (755 → 807 tests)**. **This crosses Phase 2's 70% exit criterion** — see `docs/ROADMAP.md`. TD-58/TD-59 (2026-08-06) closed a Dependabot config gap that broke CI twice on the same day (an ungrouped ESLint major bump, then a `prisma` CLI/client version split); see their write-ups below.
+**Open items:** TD-61 (option-backed `Int` fields accept any number) and TD-62 (POI category labels hardcoded in English) — both opened 2026-08-06, both independent of the world-model design in [SPEC-004](./specs/004-world-model.md). TD-44 (2026-08-02) found `coverage.all: true` changed nothing, confirming the 50.68%-lines baseline rather than correcting it, and produced two properly scoped gaps: TD-45 (page-level route components) and TD-46 (`app/modules/maps/components/**` Leaflet rendering). TD-45 closed 2026-08-04: 10 new test files brought the suite to 54.51% lines / 48.92% branches (682 → 709 tests). TD-46's e2e sub-slices (POI CRUD, measurement) verified real flows but — `vitest.config.ts` excludes `e2e/**` from coverage — never moved that number, so the item pivoted to Vitest, tiered by whether `WorldMap.tsx` actually renders the component. **Tier 1 closed 2026-08-04:** five new suites (`LeafletMap`, `MapContextMenu`, `MapMeasurementPanel`, `MapControls`, `MapPOIPanel`) brought the suite to 63.81% lines / 60.89% branches (709 → 755 tests). **Tier 2 closed the same day:** the remaining eight components (`MapSearchBar`, `MapTopBar`, `MapTileSwitcher`, `MapThemeSwitcher`, `MapUser`, `LeafletGeoJSON`, `LeafletTileLayer`, `MapDetailsPanel`) — reachable only through `MapMain.tsx`, which has no importer outside its own directory — were tested as-is per the user's cable-or-delete call, bringing the suite to **70.09% lines / 69.66% branches (755 → 807 tests)**. **This crosses Phase 2's 70% exit criterion** — see `docs/ROADMAP.md`. TD-58/TD-59 (2026-08-06) closed a Dependabot config gap that broke CI twice on the same day (an ungrouped ESLint major bump, then a `prisma` CLI/client version split); see their write-ups below.
 
 **TD-47 – TD-55 do not exist in this document, and that is not an oversight to fix.** A 2026-08-06 merge commit ("docs: record TD-47 – TD-57 from the 2026-08-04 audit pass", PR #80) claimed to record all nine, but its actual diff only ever added `.env.example` and `dependabot.yml` — TD-56 and TD-57's fixes, still themselves undocumented here until this pass added TD-58/TD-59 alongside them. No PR, commit, or doc anywhere in this repo's history contains what TD-47–TD-55 were about; they were most likely identified in an external audit session (a Cowork pass, per `CLAUDE.md`'s "Bringing research into the codebase" section) whose findings were never committed. **Do not re-litigate this as a documentation bug to fix by writing entries** — there is nothing to transcribe, only a merge-commit message that overclaimed. Do not reuse IDs 47–55 for new items; skip to the next free number instead, so a rediscovered original write-up (if one ever surfaces) has an unambiguous home.
 
@@ -72,6 +72,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-58 | ✅ Dependabot grouped a major ESLint bump into the dev-dependencies group, breaking CI                      | ~~🟠 High~~ done     | S      | 3     |
 | TD-59 | ✅ `prisma` CLI and `@prisma/client`/`@prisma/adapter-pg` could bump independently, breaking the build      | ~~🟠 High~~ done     | S      | 3     |
 | TD-61 | Option-backed `Int` fields accept any number; an out-of-list value renders as a blank cell                  | 🟠 High              | S      | 3     |
+| TD-62 | POI category names are hardcoded English and reach the UI — a TD-21 leftover                                | 🟢 Low               | S      | 3     |
 
 ---
 
@@ -408,6 +409,22 @@ The failure is silent, not loud. `getDataLabel` filters the option list for a ma
 **Why it is its own item, not part of SPEC-003.** It needs no migration, no schema change and no new table; it covers all ~20 fields rather than the two that become relations; and it is where most of the correctness benefit of the whole "real relations" idea actually lives. Agreed on 2026-08-06 to ship ahead of any schema work. See [`docs/specs/003-real-relations.md`](./specs/003-real-relations.md) §1 for the full analysis.
 
 **Done when:** every field declaring `options` rejects a value outside that list with a field-level error, there is a test proving it per domain (scalar and array), and the invariant suite fails if a future field declares `options` without a matching validator.
+
+---
+
+## TD-62 🟢 POI category names are hardcoded English and reach the UI
+
+**Where:** `app/modules/maps/constants/poi-categories.ts` — the `name` field of all 14 `POI_CATEGORIES` entries (`"Food & Drink"`, `"Shopping"`, `"Transport"`, …). Rendered at [`MapPOIPanel.tsx:330`](../app/modules/maps/components/map/MapPOIPanel.tsx).
+
+**Why:** TD-21 extracted every user-facing string into `messages/{it,en}.json` and the app ships bilingual, but this list was missed — it declares its labels inline, in English, and the panel renders them directly. An Italian user filtering POIs by category sees English labels. `CLAUDE.md`'s rule is explicit: no new hardcoded UI strings, and these are old ones that survived the sweep.
+
+Found on 2026-08-06 while drafting [SPEC-004](./specs/004-world-model.md), which turns `category` into the world model's `kind` and re-themes these values for the setting (an inn, a temple, a boat in the harbour) — so the strings are going to be rewritten anyway.
+
+**Plan:** replace `name: "Food & Drink"` with a `labelKey`, resolved at the render boundary per [ADR-0007](./adr/0007-message-key-resolution-boundary.md), the way every option list in `app/lib/config/**` already does. Add the 14 keys to both catalogues so TD-21's CI key-set check stays green.
+
+**Sequencing:** cheap and self-contained, so it can ship now. But if SPEC-004 is built soon it will rewrite this list wholesale, and doing both means translating strings twice — worth checking which is closer before starting.
+
+**Done when:** no `POI_CATEGORIES` entry carries a hardcoded display string, and switching locale changes the category labels in `MapPOIPanel`.
 
 ---
 

@@ -152,7 +152,21 @@ The shape already exists in this module and is followed rather than replaced —
 
 ### What this removes
 
-`npc.location`, `deities.location` and `npc.faction` are the columns SPEC-003 proposed to turn into foreign keys. Under this model **the two `location` columns are deleted instead**: a record's place is derived by walking up from its pin, so a stored location column would be a second, divergent source of truth. `faction` is unaffected by the tree and does become a real table:
+`npc.location`, `deities.location`, `deities.residence` and `npc.faction` are the columns SPEC-003 proposed to turn into foreign keys. Under this model **the three place columns are deleted instead**: a record's place is derived by walking up from its pin, so a stored location column would be a second, divergent source of truth.
+
+**`deities.location` and `deities.residence` turn out to be two tiers of this very hierarchy, stored as independent columns.** The seed makes it plain:
+
+| Deity   | `residence` (plane) | `location` (place within it) |
+| ------- | ------------------- | ---------------------------- |
+| Helios  | Cieli               | Paradiso (Sole)              |
+| Elune   | Cieli               | Elysium (Luna)               |
+| Gork    | Inferi              | Inferno                      |
+| Labasu  | Selva Oscura        | L'Abisso                     |
+| Venerys | Selva Fatata        | Isola dei Druidi             |
+
+Paradiso is _inside_ the Heavens; the Isle of Druids is _inside_ the Fae Wood. The pair is a parent and a child, and **nothing enforces that they agree** — `location: Paradiso` with `residence: Inferi` is accepted and displayed today without complaint, the same integrity gap SPEC-003 §1 found everywhere else. One pin at Paradiso yields both: the place directly, the plane by walking up.
+
+`faction` is unaffected by the tree and does become a real table:
 
 ```prisma
 model faction {
@@ -167,8 +181,10 @@ model faction {
 The DM's world must survive. 119 NPCs reference locations today.
 
 1. Create the `faction` table, seeded from `factions.ts` preserving its ids (including the gaps at 9 and 20, per SPEC-003 §6's reasoning — no row is rewritten). Add the FK on `npc.fazione`.
-2. Create the universe root from the current `piani-esistenza.jpg`, and the other three maps as its descendants, reproducing the chain the file names already imply: universe → material world (plane) → kingdom of Kang (region) → Skreebars (city). Their `bounds`/`initialView`/`initialZoom` move out of `page.tsx` into the rows.
-3. Seed the 33 places from `locationList`, **parented by the section they sit in inside `Location.ts`** — `//Luoghi Divini` under the universe, `//Città` and `//Dungeon` under the material world — with null coordinates. Every one starts unplaced.
+2. Create the universe root from the current `piani-esistenza.jpg`, then the seven `celestialPlanes` as planes beneath it, then the other three maps down the chain the file names already imply: material world (plane) → kingdom of Kang (region) → Skreebars (city). Their `bounds`/`initialView`/`initialZoom` move out of `page.tsx` into the rows. **The material world is itself one of the seven planes** (`Terra`), not a sibling of them — confirm which before seeding, since it decides whether the existing map attaches to a new row or an already-seeded one.
+3. Seed the 33 places from `locationList` with null coordinates — every one starts unplaced. Parentage comes from two sources, in this order of trust:
+   - **The deity rows themselves**, whose `residence`/`location` pairs are direct evidence of which plane contains which place (the table above): Paradiso and Elysium under the Heavens, Inferno under the Underworld, the Abyss under the Dark Wood, the Isle of Druids under the Fae Wood.
+   - **`Location.ts`'s section comments** (`//Luoghi Divini`, `//Città`, `//Dungeon`) for the rest — but only as a first guess. They are demonstrably not reliable: the Isle of Druids sits under `//Città`, yet Venerys places it in the Fae Wood, not the material world. Every parent derived this way needs DM review before step 5 runs.
 4. For each NPC and deity, create a pin (`linkedType`/`linkedId`) whose parent is the place their `location` column names, with null coordinates.
 5. Only then drop `npc.luogo` and `deities.luogo`.
 
@@ -190,6 +206,7 @@ Places themselves are **deliberately kept outside the metadata layer**, exactly 
 - [ ] **A pin appears only on its parent's map** — the defect in §1 is gone, verified by a test that creates pins under two different parents and asserts each map shows only its own.
 - [ ] A place with no map can contain other places, including NPC pins, and those have null coordinates.
 - [ ] An NPC's sheet displays its location derived from the tree, with no location field stored on the NPC.
+- [ ] A deity's sheet displays both its place and the plane containing it, both derived from one pin — Helios shows Paradiso, in the Heavens — with neither column stored. The contradictory pair that is representable today is no longer expressible.
 - [ ] A faction can be created, renamed and assigned to an NPC without a source edit.
 - [ ] All 33 legacy places exist after migration, parented per their `Location.ts` section, listed as unplaced, and every NPC and deity still resolves to the place it referenced before.
 - [ ] Deleting a place with children is refused; deleting a linked NPC leaves the pin unlinked rather than broken.
@@ -215,7 +232,7 @@ _Not filled in — the open questions below block it._
 
 1. ~~Where do uploaded map images live?~~ **Answered by [ADR-0008](../adr/0008-map-image-storage.md) (2026-08-06):** the local filesystem under `UPLOAD_DIR`, served through an authenticated route handler rather than from `public/`, behind a `MapImageStore` interface so object storage remains a one-file swap. That ADR also records that the four existing maps are currently served **unauthenticated** — `proxy.ts` excludes `.jpg` from the auth gate per TD-36 — and closes that exposure by moving them out of `public/`.
 2. ~~`kind`: a database enum, a validated string, or a table?~~ **Answered 2026-08-06: a validated string, and a deliberately closed set.** Not a table — the DM does not want place types proliferating into custom values. See §6, "The `kind` set is closed".
-3. **Does the deity's residence (`celestialPlanes`, 7 values) become a place reference too?** SPEC-003 classed it as vocabulary pending this model. Under this model a plane of existence _is_ a place, so `deities.residence` looks like the same derived-from-the-tree treatment as `location`. Confirm before migrating.
+3. ~~Does the deity's residence become a place reference too?~~ **Answered 2026-08-06: yes.** A plane of existence is a place — the second tier of the tree — so `deities.residence` is derived from the pin's ancestry exactly as `location` is, and the column is deleted with the others. The seven `celestialPlanes` become the first places seeded under the universe root, and the deity rows' `residence`/`location` pairs supply real parentage evidence for the migration (§6).
 4. **What arranges the 33 legacy places into a tree, exactly?** Their `Location.ts` sections give a first parent guess, but "Isola dei Druidi" or "Monte An-ki" being cities under the material world is an assumption. The DM should review the proposed tree before step 3 runs.
 5. ~~Should an NPC be placeable in more than one place over time?~~ **Answered 2026-08-06: no — one pin per record.** A travelling NPC is moved by the DM by hand, which is an edit to the existing pin, not a second one. The link stays one-to-one, and `@@unique([linkedType, linkedId])` enforces it (§6).
 
@@ -230,7 +247,7 @@ _Provisional — depends on the open questions above._
 - [ ] **T4** — Create-universe flow and map upload _(test: empty DB offers it; a second universe is refused)_
 - [ ] **T5** — Migrate the four maps and the 33 places into the tree, DM-reviewed _(test: every legacy place exists with its expected parent)_
 - [ ] **T6** — NPC/deity pins; derive and display location from the tree _(test: an NPC's sheet shows the right place; a contained NPC shows its container)_
-- [ ] **T7** — Drop `npc.luogo` / `deities.luogo`; remove `locationList` and its catalogue keys _(test: TD-21 key-set check green; no import of the deleted files remains)_
+- [ ] **T7** — Drop `npc.luogo`, `deities.luogo` and `deities.residenza`; remove `locationList`, `celestialPlanes` and their catalogue keys _(test: TD-21 key-set check green; no import of the deleted files remains)_
 - [ ] **T8** — Docs: ADR for the tree model, `ARCHITECTURE.md`, close the ROADMAP items, correct the multi-campaign entry
 
 ## 11. Outcome

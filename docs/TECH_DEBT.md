@@ -68,6 +68,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-45 | ✅ Page-level route components (`app/[locale]/dashboard/**`, `app/ui/geography`) covered                    | ~~🟡 Medium~~ done   | M      | 2     |
 | TD-46 | ✅ `app/modules/maps/components/**` (Leaflet rendering, 737 lines) Vitest coverage — Tier 1 and Tier 2 done | ~~🟡 Medium~~ done   | L      | 2     |
 | TD-58 | ✅ Dependabot grouped a major ESLint bump into the dev-dependencies group, breaking CI                      | ~~🟠 High~~ done     | S      | 3     |
+| TD-59 | ✅ `prisma` CLI and `@prisma/client`/`@prisma/adapter-pg` could bump independently, breaking the build      | ~~🟠 High~~ done     | S      | 3     |
 
 ---
 
@@ -366,6 +367,22 @@ Sub-slices closed or attempted, in order:
 **Not done here:** PR #81 itself. It bundles the breaking major bump with 12 safe updates; resolving it (closing and letting Dependabot re-open a clean set, or manually splitting it) is a GitHub action left to the maintainer rather than done from this session.
 
 **A gap worth naming, not fixed here:** TD-56 and TD-57 (2026-08-04 — `.env.example` and this same `dependabot.yml`) were never given entries in this register despite shipping and merging; a PR merge-commit message claimed "record TD-47 – TD-57" but no `TECH_DEBT.md` entry for any of TD-47–TD-57 exists except this one. Backfilling those is out of scope for this fix — it touches unrelated history — but it means the register currently understates what's actually been done, the same "two documents disagreeing" failure the 2026-07-30 maintenance note below already warns about.
+
+---
+
+## TD-59 ✅ `prisma` CLI and `@prisma/client`/`@prisma/adapter-pg` could bump independently, breaking the build — DONE (2026-08-06)
+
+**Where:** `.github/dependabot.yml`, `package.json`, `pnpm-lock.yaml`.
+
+**Why:** Prisma requires the CLI/generator (`prisma`, a devDependency) and the client runtime it targets (`@prisma/client`, `@prisma/adapter-pg`, both prod dependencies) to be on the same version — a mismatch produces code the runtime can't satisfy, not a warning. TD-57's `dependabot.yml` grouped dependencies by `dependency-type` (`dev-dependencies` vs `prod-dependencies`), which put `prisma` and `@prisma/client`/`@prisma/adapter-pg` in two different groups with no relationship between them. Surfaced 2026-08-06 as two simultaneously open PRs, each breaking CI alone: **PR #83** bumped `@prisma/client` alone (7.1.0 → 7.9.1) — Turbopack's build failed with `Module not found: Can't resolve '@prisma/client/runtime/query_compiler_bg.postgresql.mjs'`, because the still-7.1.0 generator emits an import for a runtime filename the 7.9.1 client no longer ships (only `query_compiler_fast_bg.*`/`query_compiler_small_bg.*` variants exist there now). **PR #87** (the grouped dev-dependencies PR) bumped `prisma` to 7.9.1 without touching the client packages — the mirror-image half of the same mismatch, left latent because that PR's own failure was TD-58's ESLint issue, found first.
+
+**Fix:**
+
+- `dependabot.yml`: added a `prisma` group matching `prisma` and `@prisma/*` with no `dependency-type` restriction, so both sides bump together in one atomic PR regardless of prod/dev classification. Added `exclude-patterns: [prisma]` to `dev-dependencies` so the CLI doesn't also get swept into that group (it would otherwise match both). `prod-dependencies` already excluded `@prisma/*`, kept as-is.
+- Added `prisma` (the bare CLI, previously not covered — only `@prisma/*` was) to the major-version `ignore` list, matching `CLAUDE.md` rule 7.
+- Aligned the repo to the already-in-flight version to unblock both stuck PRs: `prisma`, `@prisma/client`, `@prisma/adapter-pg` all pinned to `7.9.1` (previously `@prisma/adapter-pg` was already at `^7.9.1` while `@prisma/client`/`prisma` sat at `^7.1.0` — a pre-existing mismatch in the repo before either PR, just not yet triggered). `pnpm prisma generate`, `pnpm build`, `pnpm typecheck`, `pnpm lint` and the full suite (807 tests) all verified green locally before pushing.
+
+**Not done here:** closing PR #83 and #87 themselves — once this merges, both are superseded (the versions they proposed are already in `main`) and can be closed without merging, a GitHub action left to the maintainer.
 
 ---
 

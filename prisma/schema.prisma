@@ -68,9 +68,13 @@ model poi {
   id          Int      @id @default(autoincrement())
   title       String
   description String?
-  lat         Float
-  lng         Float
-  category    String
+  // Nullable since SPEC-004 M4: the tree's root `region` has no parent map
+  // to be positioned on and no `category` (that's `kind: "poi"`'s field).
+  // Every row `fetchPois` (SPEC-002's legacy read) serves is still fully
+  // positioned and categorized — it filters out anything that is not.
+  lat         Float?
+  lng         Float?
+  category    String?
   linkedType  String?
   linkedId    Int?
 

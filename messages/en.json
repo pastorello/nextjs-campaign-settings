@@ -423,6 +423,24 @@
       "citySkreebars": "City of Skreebars"
     }
   },
+  "world": {
+    "page": {
+      "title": "Create your world",
+      "exists": "Your world, “{title}”, already exists."
+    },
+    "form": {
+      "nameLabel": "World name",
+      "namePlaceholder": "e.g. Aerivel",
+      "mapLabel": "Map",
+      "submit": "Create world"
+    },
+    "errors": {
+      "nameRequired": "The world's name is required.",
+      "mapRequired": "Upload a map.",
+      "uploadFailed": "Could not upload the map. Try again.",
+      "createFailed": "Could not create the world. Try again."
+    }
+  },
   "npc": {
     "alignments": {
       "good": "Good",

@@ -121,4 +121,29 @@ describe("fetchPois", () => {
 
     expect(result).toEqual([{ ...baseRow, linkedType: null, linkedId: null }]);
   });
+
+  // SPEC-004 M4: `lat`/`lng`/`category` became nullable for the tree's root
+  // `region`, which this legacy reader was never meant to serve — it has no
+  // position to put a marker at. Filtered out rather than crashing on a
+  // `Poi` it can't fully construct.
+  it("excludes a row with no position (the tree's root region)", async () => {
+    poiFindMany.mockResolvedValue([
+      { ...baseRow, linkedType: null, linkedId: null },
+      {
+        ...baseRow,
+        id: 2,
+        title: "The World",
+        lat: null,
+        lng: null,
+        category: null,
+        linkedType: null,
+        linkedId: null,
+      },
+    ]);
+
+    const result = await fetchPois();
+
+    expect(result).toHaveLength(1);
+    expect(result[0]?.id).toBe(1);
+  });
 });

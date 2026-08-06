@@ -423,6 +423,24 @@
       "citySkreebars": "Città di Skreebars"
     }
   },
+  "world": {
+    "page": {
+      "title": "Crea il tuo mondo",
+      "exists": "Il tuo mondo, «{title}», esiste già."
+    },
+    "form": {
+      "nameLabel": "Nome del mondo",
+      "namePlaceholder": "es. Aerivel",
+      "mapLabel": "Mappa",
+      "submit": "Crea il mondo"
+    },
+    "errors": {
+      "nameRequired": "Il nome del mondo è obbligatorio.",
+      "mapRequired": "Carica una mappa.",
+      "uploadFailed": "Caricamento della mappa non riuscito. Riprova.",
+      "createFailed": "Impossibile creare il mondo. Riprova."
+    }
+  },
   "npc": {
     "alignments": {
       "good": "Bene",

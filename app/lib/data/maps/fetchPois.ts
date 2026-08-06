@@ -50,12 +50,23 @@ async function findValidIds(
 export default async function fetchPois(): Promise<Poi[]> {
   await requireSession();
 
-  let rows;
+  let allRows;
   try {
-    rows = await prisma.poi.findMany({ orderBy: { createdAt: "asc" } });
+    allRows = await prisma.poi.findMany({ orderBy: { createdAt: "asc" } });
   } catch (error) {
     throw toDatabaseError("fetching poi", error);
   }
+
+  // `lat`/`lng`/`category` are nullable since SPEC-004 M4 — the tree's root
+  // `region` has none of the three. This reader predates the tree (SPEC-002)
+  // and every consumer of its `Poi[]` renders a marker at a position with a
+  // category, so a row missing any of them is not a POI this reader knows
+  // how to serve; the type predicate narrows the rest of the function back
+  // to the fully-positioned, categorized shape it already assumed.
+  const rows = allRows.filter(
+    (row): row is typeof row & { lat: number; lng: number; category: string } =>
+      row.lat !== null && row.lng !== null && row.category !== null
+  );
 
   const npcIds: number[] = [];
   const deityIds: number[] = [];

@@ -45,6 +45,19 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
 
+    // Creates the tree's root place (SPEC-004 M4-M7) so specs that expect
+    // an interactive map at /dashboard/geography have one — see
+    // world.setup.ts for why db:seed itself doesn't do this.
+    {
+      name: "world-setup",
+      testMatch: /world\.setup\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "e2e/.auth/user.json",
+      },
+      dependencies: ["setup"],
+    },
+
     {
       name: "chromium",
       testIgnore: /auth\.spec\.ts/,
@@ -52,7 +65,7 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         storageState: "e2e/.auth/user.json",
       },
-      dependencies: ["setup"],
+      dependencies: ["setup", "world-setup"],
     },
   ],
 

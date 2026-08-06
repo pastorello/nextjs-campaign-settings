@@ -5,6 +5,7 @@
     "node": ">=24"
   },
   "scripts": {
+    "postinstall": "prisma generate",
     "build": "next build --turbopack",
     "dev": "next dev --turbopack",
     "start": "next start",

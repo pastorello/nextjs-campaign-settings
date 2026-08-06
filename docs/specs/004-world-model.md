@@ -1,6 +1,6 @@
 # SPEC-004: The world model — one tree of places
 
-- **Status:** Draft — not agreed
+- **Status:** Draft — model agreed 2026-08-06, MVP scope agreed (§5.1); implementation not started
 - **Date:** 2026-08-06
 - **Phase:** 3
 - **Related:** supersedes the plan in [SPEC-003](./003-real-relations.md) (its analysis stands); builds on [SPEC-002](./002-map-poi-persistence.md)'s `poi` table and polymorphic entity link; `ROADMAP.md` Phase 3 items "Real relations", "Locations as first-class entities" and "Multi-campaign support"; TD-61 (validators, ships independently)
@@ -81,6 +81,45 @@ The DM's own walkthrough, from an empty installation:
 | Two places at the same coordinates                | Allowed. Pins overlap; no uniqueness constraint.                                                                                                                                        |
 | Very deep nesting                                 | No enforced depth limit, but the tree must be read with a bounded query (§9) rather than by recursing per level, or a deep world costs one round trip per tier.                         |
 | Cycle in the tree (a place made its own ancestor) | Rejected at the mutation boundary — reparenting validates that the new parent is not a descendant. Postgres will not catch this; a self-referencing FK permits cycles.                  |
+
+## 5.1 MVP scope
+
+Agreed 2026-08-06. The full model above is the destination; this is the first shippable slice, and its defining property is that **it is purely additive — no column is dropped, no existing data is migrated, nothing that works today stops working.**
+
+**The MVP is complete when** the DM can open an empty installation, upload the map of the planes, and build downward from it: adding regions that open their own maps, pinning deities and NPCs, and marking places of interest — navigating by clicking rather than by a map switcher.
+
+### The four kinds, and what each requires
+
+The DM's own list, and it replaces the current "always a category, optionally a link" shape. `kind` is the discriminator that decides what else the place carries:
+
+| `kind`   | Carries a map | Links to a record | Category | Clicking it…            |
+| -------- | ------------- | ----------------- | -------- | ----------------------- |
+| `region` | **required**  | no                | no       | opens its map           |
+| `deity`  | no            | **required**      | no       | opens the deity's sheet |
+| `npc`    | no            | **required**      | no       | opens the NPC's sheet   |
+| `poi`    | no            | no                | yes      | opens its detail panel  |
+
+Plus the root, which is a `region` with no parent.
+
+`region` is deliberately the **only** navigable kind in the MVP. The richer vocabulary of the full model — plane, city, dungeon — is the same thing with a more specific label, and adding those values later is purely additive: more entries in a closed set, no migration, no reshaping. Shipping one navigable kind first avoids asking the DM to classify every node correctly before the navigation itself has been proven.
+
+This is a discriminated union, and the codebase already models one — `PageMeta` became a discriminated union on `fieldType` under TD-08. Same approach: the kind decides which fields are required, and the validator rejects the combinations that make no sense (a `deity` with a map, a `region` with no map, a `poi` with a link).
+
+### What the MVP builds
+
+1. **Upload the root map.** An empty installation offers exactly one action: name your world and upload its map. Storage and authenticated serving per [ADR-0008](../adr/0008-map-image-storage.md).
+2. **Add a place, from the map.** The existing `MapPOIPanel` already has the type→entity cascading select that `deity` and `npc` need — [`fetchLinkableEntities`](../../app/lib/data/maps/fetchLinkableEntities.ts), built for SPEC-002. It gains the `kind` selector and, for `region`, a map upload. This is an extension of a working panel, not a new one.
+3. **Navigate by clicking.** Clicking a `region` opens its map and renders that region's children. **The four-button map switcher in [`geography/page.tsx`](../../app/[locale]/dashboard/geography/page.tsx) is removed** — it is replaced by the tree itself. One "up" button returns to the parent; full breadcrumbs are explicitly not in the MVP.
+4. **Pins render only on their parent's map** — the defect in §1, fixed as a consequence of the tree rather than as a separate patch.
+
+### What the MVP deliberately leaves alone
+
+- **`npc.location`, `deities.location`, `deities.residence` stay exactly as they are**, with their dropdowns and their data. The tree is built alongside them, and the DM populates it at their own pace. Deleting those columns (§6) happens only once the tree holds the real world and the DM has confirmed it — a separate, later, and far riskier step.
+- **The 33 legacy places and the four existing maps are not migrated.** The MVP is exercised by building a world from nothing, which is the DM's own stated starting point. Migrating the existing world is its own task, informed by whatever the MVP teaches.
+- **The `faction` table.** Unrelated to maps; it can ship before, after, or never alongside this.
+- **The 14 POI categories**, kept as-is under `kind: "poi"` and re-themed later (see also TD-62, which notes their labels are hardcoded English).
+
+**Why additive matters here.** The full model deletes three columns and rewrites what "where is this NPC" means. That is worth doing, and it is not worth doing before the navigation has been used against a real world. An MVP that only adds can be abandoned, rebuilt or reshaped without a down migration and without risking the DM's existing data.
 
 ## 6. Data model changes
 
@@ -238,17 +277,24 @@ _Not filled in — the open questions below block it._
 
 ## 10. Task breakdown
 
-_Provisional — depends on the open questions above._
+### MVP (§5.1) — purely additive, nothing dropped
 
-- [ ] **T0** — Agree the model _(image storage resolved: [ADR-0008](../adr/0008-map-image-storage.md))_
-- [ ] **T1** — `faction` table + seed + FK on `npc.fazione`, no tree yet _(test: migration preserves every NPC's faction; a faction can be created and assigned)_
-- [ ] **T2** — Extend `poi` into the tree: `kind`, `parentId`, map columns; `category` → `kind`, `title` → `name` _(test: migration applies; existing POIs survive with their category as kind)_
-- [ ] **T3** — Pins render only on their parent's map; navigation into a child map; breadcrumbs _(test: the §8 two-parent case; e2e for click-through)_
-- [ ] **T4** — Create-universe flow and map upload _(test: empty DB offers it; a second universe is refused)_
-- [ ] **T5** — Migrate the four maps and the 33 places into the tree, DM-reviewed _(test: every legacy place exists with its expected parent)_
-- [ ] **T6** — NPC/deity pins; derive and display location from the tree _(test: an NPC's sheet shows the right place; a contained NPC shows its container)_
-- [ ] **T7** — Drop `npc.luogo`, `deities.luogo` and `deities.residenza`; remove `locationList`, `celestialPlanes` and their catalogue keys _(test: TD-21 key-set check green; no import of the deleted files remains)_
-- [ ] **T8** — Docs: ADR for the tree model, `ARCHITECTURE.md`, close the ROADMAP items, correct the multi-campaign entry
+- [ ] **M1** — `MapImageStore` + upload endpoint + authenticated serving route, per [ADR-0008](../adr/0008-map-image-storage.md) _(test: an image round-trips; an unauthenticated fetch is refused; oversized and wrong-type uploads are rejected)_
+- [ ] **M2** — `poi` gains `kind`, `parentId` and the map columns. Existing rows keep working, their `category` intact under `kind: "poi"` _(test: migration applies; every existing POI still reads back unchanged)_
+- [ ] **M3** — Kind-aware validation: the discriminated union of §5.1's table _(test: a `deity` with a map, a `region` without one, and a `poi` with a link are each rejected with a field error)_
+- [ ] **M4** — Create-your-world flow on an empty installation _(test: an empty DB offers it and nothing else; a second root is refused)_
+- [ ] **M5** — `MapPOIPanel` gains the kind selector and, for `region`, the map upload. The existing type→entity select is reused for `deity`/`npc` _(test: each kind saves and reloads with the right shape)_
+- [ ] **M6** — Pins render only on their parent's map _(test: two parents, two maps, each showing only its own children)_
+- [ ] **M7** — Click a `region` to descend, one button to ascend; the four-button switcher is removed _(test: e2e — descend two levels and return)_
+
+### Beyond the MVP — the destructive half, only once the tree is trusted
+
+- [ ] **T1** — `faction` table + seed + FK on `npc.fazione` _(independent of everything above)_
+- [ ] **T2** — The richer kind vocabulary: plane, city, dungeon as additional values
+- [ ] **T3** — Migrate the four existing maps and the 33 legacy places into the tree, DM-reviewed against the parentage evidence in §6
+- [ ] **T4** — NPC/deity pins for existing records; derive and display location from the tree
+- [ ] **T5** — Drop `npc.luogo`, `deities.luogo`, `deities.residenza`; remove `locationList`, `celestialPlanes` and their catalogue keys _(the point of no easy return — write the down migration first)_
+- [ ] **T6** — Docs: ADR for the tree model, `ARCHITECTURE.md`, close the ROADMAP items
 
 ## 11. Outcome
 

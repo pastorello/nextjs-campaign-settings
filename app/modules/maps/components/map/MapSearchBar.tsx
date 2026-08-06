@@ -58,6 +58,11 @@ export function MapSearchBar({
   const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [prevSearchQuery, setPrevSearchQuery] = useState(searchQuery);
+  if (searchQuery !== prevSearchQuery) {
+    setPrevSearchQuery(searchQuery);
+    setSelectedIndex(-1);
+  }
 
   const { locateUser, isLocating, isAvailable } = useGeolocation();
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -151,11 +156,6 @@ export function MapSearchBar({
       });
     }
   }, [selectedIndex]);
-
-  // Reset selected index when search query changes
-  useEffect(() => {
-    setSelectedIndex(-1);
-  }, [searchQuery]);
 
   // Close on outside click
   useEffect(() => {

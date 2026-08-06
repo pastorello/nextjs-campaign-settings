@@ -73,6 +73,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-59 | ✅ `prisma` CLI and `@prisma/client`/`@prisma/adapter-pg` could bump independently, breaking the build      | ~~🟠 High~~ done     | S      | 3     |
 | TD-61 | Option-backed `Int` fields accept any number; an out-of-list value renders as a blank cell                  | 🟠 High              | S      | 3     |
 | TD-62 | POI category names are hardcoded English and reach the UI — a TD-21 leftover                                | 🟢 Low               | S      | 3     |
+| TD-64 | `WorldMap.tsx`'s async-effect map-loading pattern trips `react-hooks/set-state-in-effect`                   | 🟢 Low               | S      | 3     |
 
 ---
 
@@ -444,6 +445,20 @@ Surfaced again on 2026-08-06 while shipping SPEC-004 M2's migration, which had t
 **Plan:** for each of the 3 untracked migrations, confirm the schema they describe genuinely already matches the live DB (diff, don't assume), then `prisma migrate resolve --applied` each one in order. After that, `migrate dev`/`migrate deploy` should work normally again and this workaround stops being necessary for every future schema change.
 
 **Done when:** `prisma migrate status` on the dev DB reports no pending and no failed migrations, and a throwaway schema change round-trips through `prisma migrate dev` without the hand-apply workaround.
+
+---
+
+## TD-64 🟢 `WorldMap.tsx`'s async-effect map-loading pattern trips `react-hooks/set-state-in-effect`
+
+**Where:** [`app/ui/geography/WorldMap.tsx`](../app/ui/geography/WorldMap.tsx) — the `useEffect` that calls `void initializeMap()`.
+
+**Why:** PR #90 (Dependabot, dev-dependencies group) bumped `eslint-config-next` 16.0.10 → 16.2.12, which pulled in the React Compiler's `react-hooks/set-state-in-effect` and `react-hooks/refs` rules. Three pre-existing patterns started failing `pnpm lint` as a result — unrelated to what that PR actually changed (only `package.json`/lockfile). Two were fixed outright on 2026-08-06: `MapSearchBar.tsx`'s `selectedIndex` reset moved from a `useEffect` to the "adjust state during render" pattern from the React docs, and `usePOIManager.ts`'s `tRef.current = t` moved from the render body into a dependency-less `useEffect`.
+
+`WorldMap.tsx`'s case is different: `initializeMap` is `async`, and the rule appears to flag any function invoked directly in an effect body that transitively calls `setState`, even through an `await` — a known category of false positive for this rule with async local functions. The effect itself is the standard "load an external resource, then set state" pattern effects exist for; rewriting it to satisfy the rule would mean restructuring the map-loading flow, not just moving a line.
+
+**Plan:** re-evaluate once `eslint-plugin-react-hooks`/`eslint-config-next` ships a fixed version of this rule for async functions, or decide deliberately to restructure `initializeMap` (e.g. split the async fetch from the synchronous state commit) if no fix lands. Until then it carries a scoped `eslint-disable-next-line react-hooks/set-state-in-effect` with this TD referenced inline.
+
+**Done when:** the disable comment is removed and `pnpm lint` still passes, either because the upstream rule stopped flagging this pattern or because the effect was restructured to satisfy it.
 
 ---
 

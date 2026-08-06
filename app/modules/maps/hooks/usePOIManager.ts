@@ -123,7 +123,9 @@ export function usePOIManager(parentId: number) {
   // memoisation into an infinite load → render → load loop. Depending on
   // another library's memoisation for termination is not a bet worth taking.
   const tRef = useRef(t);
-  tRef.current = t;
+  useEffect(() => {
+    tRef.current = t;
+  });
 
   /**
    * Applies a change to the POI list, keeping the ref and React state in

@@ -2,18 +2,22 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MapProvider } from "@/app/modules/maps/contexts/MapContext";
-import type Poi from "@/app/lib/definitions/interfaces/maps/Poi";
+import type PlaceChild from "@/app/lib/definitions/interfaces/maps/PlaceChild";
 
 // The Server Actions the hook now persists through. `vi.hoisted` because the
 // mock factories below are hoisted above this file's own statements.
-const { fetchPois, createPoi, updatePoi, deletePoi } = vi.hoisted(() => ({
-  fetchPois: vi.fn(),
-  createPoi: vi.fn(),
-  updatePoi: vi.fn(),
-  deletePoi: vi.fn(),
-}));
+const { fetchPlaceChildren, createPoi, updatePoi, deletePoi } = vi.hoisted(
+  () => ({
+    fetchPlaceChildren: vi.fn(),
+    createPoi: vi.fn(),
+    updatePoi: vi.fn(),
+    deletePoi: vi.fn(),
+  })
+);
 
-vi.mock("@/app/lib/data/maps/fetchPois", () => ({ default: fetchPois }));
+vi.mock("@/app/lib/data/maps/fetchPlaceChildren", () => ({
+  default: fetchPlaceChildren,
+}));
 vi.mock("@/app/lib/data/maps/createPoi", () => ({ default: createPoi }));
 vi.mock("@/app/lib/data/maps/updatePoi", () => ({ default: updatePoi }));
 vi.mock("@/app/lib/data/maps/deletePoi", () => ({ default: deletePoi }));
@@ -41,21 +45,30 @@ vi.mock("next-intl", () => ({
 
 import { usePOIManager } from "./usePOIManager";
 
-const storedRow: Poi = {
+const storedRow: PlaceChild = {
   id: 7,
   title: "Tavern",
   description: null,
+  kind: "poi",
   lat: 10,
   lng: 20,
   category: "food-drink",
   linkedType: null,
   linkedId: null,
+  mapImage: null,
+  mapBounds: null,
+  mapInitialView: null,
+  mapInitialZoom: null,
   createdAt: new Date(1),
   updatedAt: new Date(1),
 };
 
+const PARENT_ID = 1;
+
 async function renderLoaded() {
-  const rendered = renderHook(() => usePOIManager(), { wrapper: MapProvider });
+  const rendered = renderHook(() => usePOIManager(PARENT_ID), {
+    wrapper: MapProvider,
+  });
   await waitFor(() => expect(rendered.result.current.isLoading).toBe(false));
   return rendered;
 }
@@ -76,7 +89,7 @@ async function settle(interaction: () => void) {
 describe("usePOIManager — loading from the server (TD-14)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    fetchPois.mockResolvedValue([]);
+    fetchPlaceChildren.mockResolvedValue([]);
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
@@ -86,7 +99,7 @@ describe("usePOIManager — loading from the server (TD-14)", () => {
   });
 
   it("loads persisted POIs, keying them by their database id", async () => {
-    fetchPois.mockResolvedValue([storedRow]);
+    fetchPlaceChildren.mockResolvedValue([storedRow]);
 
     const { result } = await renderLoaded();
 
@@ -107,7 +120,7 @@ describe("usePOIManager — loading from the server (TD-14)", () => {
   });
 
   it("carries a POI's link through to the client shape", async () => {
-    fetchPois.mockResolvedValue([
+    fetchPlaceChildren.mockResolvedValue([
       { ...storedRow, linkedType: "deity", linkedId: 3 },
     ]);
 
@@ -118,7 +131,7 @@ describe("usePOIManager — loading from the server (TD-14)", () => {
   });
 
   it("discards a row whose category this build does not know", async () => {
-    fetchPois.mockResolvedValue([
+    fetchPlaceChildren.mockResolvedValue([
       storedRow,
       { ...storedRow, id: 8, category: "not-a-category" },
     ]);
@@ -129,8 +142,36 @@ describe("usePOIManager — loading from the server (TD-14)", () => {
     expect(console.warn).toHaveBeenCalled();
   });
 
+  it("ignores a sibling that is a region, deity or npc, not a poi", async () => {
+    fetchPlaceChildren.mockResolvedValue([
+      storedRow,
+      {
+        ...storedRow,
+        id: 9,
+        kind: "region",
+        lat: null,
+        lng: null,
+        category: null,
+        mapImage: "kang.png",
+      },
+      {
+        ...storedRow,
+        id: 10,
+        kind: "deity",
+        category: null,
+        linkedType: "deity",
+        linkedId: 3,
+      },
+    ]);
+
+    const { result } = await renderLoaded();
+
+    expect(result.current.pois).toHaveLength(1);
+    expect(result.current.pois[0]?.id).toBe("7");
+  });
+
   it("reports a failed load instead of crashing the map", async () => {
-    fetchPois.mockRejectedValue(new Error("database down"));
+    fetchPlaceChildren.mockRejectedValue(new Error("database down"));
 
     const { result } = await renderLoaded();
 
@@ -142,7 +183,7 @@ describe("usePOIManager — loading from the server (TD-14)", () => {
 describe("usePOIManager — optimistic writes (TD-14)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    fetchPois.mockResolvedValue([]);
+    fetchPlaceChildren.mockResolvedValue([]);
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
@@ -176,6 +217,20 @@ describe("usePOIManager — optimistic writes (TD-14)", () => {
 
     expect(result.current.pois).toHaveLength(1);
     expect(notifyError).not.toHaveBeenCalled();
+  });
+
+  it("attaches a new POI to the place currently being viewed", async () => {
+    createPoi.mockResolvedValue({ ok: true, id: 42 });
+
+    const { result } = await renderLoaded();
+
+    await settle(() => {
+      result.current.addPOI("Tavern", 10, 20, "food-drink");
+    });
+
+    expect(createPoi).toHaveBeenCalledWith(
+      expect.objectContaining({ parentId: PARENT_ID })
+    );
   });
 
   it("rolls the POI back and reports when the write is rejected", async () => {
@@ -283,7 +338,7 @@ describe("usePOIManager — optimistic writes (TD-14)", () => {
   });
 
   it("restores a deleted POI when the delete fails", async () => {
-    fetchPois.mockResolvedValue([storedRow]);
+    fetchPlaceChildren.mockResolvedValue([storedRow]);
     deletePoi.mockRejectedValue(new Error("database down"));
 
     const { result } = await renderLoaded();
@@ -297,7 +352,7 @@ describe("usePOIManager — optimistic writes (TD-14)", () => {
   });
 
   it("reverts an edit the server rejects", async () => {
-    fetchPois.mockResolvedValue([storedRow]);
+    fetchPlaceChildren.mockResolvedValue([storedRow]);
     updatePoi.mockResolvedValue({
       ok: false,
       errors: { title: ["Too short"] },
@@ -314,7 +369,7 @@ describe("usePOIManager — optimistic writes (TD-14)", () => {
   });
 
   it("keeps an edit the server accepts", async () => {
-    fetchPois.mockResolvedValue([storedRow]);
+    fetchPlaceChildren.mockResolvedValue([storedRow]);
     updatePoi.mockResolvedValue({ ok: true });
 
     const { result } = await renderLoaded();

@@ -97,6 +97,9 @@ export default async function fetchPlaceChildren(
       linkedType: isValidLink ? linkedType : null,
       linkedId: isValidLink ? linkedId : null,
       mapImage: row.mapImage,
+      mapBounds: row.mapBounds,
+      mapInitialView: row.mapInitialView,
+      mapInitialZoom: row.mapInitialZoom,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

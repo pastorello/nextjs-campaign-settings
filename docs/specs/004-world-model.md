@@ -285,7 +285,7 @@ _Not filled in — the open questions below block it._
 - [x] **M4** — Create-your-world flow on an empty installation _(test: an empty DB offers it and nothing else; a second root is refused)_
 - [ ] **M5** — `MapPOIPanel` gains the kind selector and, for `region`, the map upload. The existing type→entity select is reused for `deity`/`npc` _(test: each kind saves and reloads with the right shape)_
 - [x] **M6** — Pins render only on their parent's map _(test: two parents, two maps, each showing only its own children)_
-- [ ] **M7** — Click a `region` to descend, one button to ascend; the four-button switcher is removed _(test: e2e — descend two levels and return)_
+- [x] **M7** — Click a `region` to descend, one button to ascend; the four-button switcher is removed. Covered at the component level (`GeographyExplorer.test.tsx`'s "descends two levels and returns" case with mocked data), not by a real Playwright e2e spec — a genuine e2e test needs a nested `region` to click, and nothing can create one without M5's kind selector. Worth adding once M5 ships.
 
 ### Beyond the MVP — the destructive half, only once the tree is trusted
 

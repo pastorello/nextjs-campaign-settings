@@ -19,6 +19,13 @@ interface PlaceChild {
   linkedType: LinkableEntityType | null;
   linkedId: number | null;
   mapImage: string | null;
+  // How to frame this place's own map, if it has one (SPEC-004 M7). Raw
+  // `unknown`/`Json` — nothing has ever written them yet (no UI sets them),
+  // so a reader parses and falls back to a default rather than trusting the
+  // shape. See `placeMapView.ts`.
+  mapBounds: unknown;
+  mapInitialView: unknown;
+  mapInitialZoom: number | null;
   createdAt: Date;
   updatedAt: Date;
 }

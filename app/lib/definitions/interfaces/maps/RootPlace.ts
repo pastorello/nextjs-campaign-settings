@@ -7,6 +7,11 @@ interface RootPlace {
   id: number;
   title: string;
   mapImage: string;
+  // How to frame the root's map (SPEC-004 M7) — see `PlaceChild.ts` and
+  // `placeMapView.ts` for why these are raw and parsed defensively.
+  mapBounds: unknown;
+  mapInitialView: unknown;
+  mapInitialZoom: number | null;
 }
 
 export default RootPlace;

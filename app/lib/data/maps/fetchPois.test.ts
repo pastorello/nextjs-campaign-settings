@@ -119,7 +119,9 @@ describe("fetchPois", () => {
 
     const result = await fetchPois();
 
-    expect(result).toEqual([{ ...baseRow, linkedType: null, linkedId: null }]);
+    expect(result).toEqual([
+      { ...baseRow, linkedType: null, linkedId: null, parentId: null },
+    ]);
   });
 
   // SPEC-004 M4: `lat`/`lng`/`category` became nullable for the tree's root

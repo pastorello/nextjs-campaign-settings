@@ -1,57 +1,73 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/app/modules/maps/components/map", () => ({
-  MapErrorBoundary: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
-  MapLoadingSpinner: () => <div data-testid="map-loading-spinner" />,
+vi.mock("next-intl/server", () => ({
+  getTranslations: () => Promise.resolve((key: string) => key),
 }));
-vi.mock("@/app/modules/maps/contexts/MapContext", () => ({
-  MapProvider: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
-}));
-vi.mock("@/app/ui/geography/WorldMap", () => ({
-  default: ({ mapUrl }: { mapUrl: string }) => (
-    <div data-testid="world-map">{mapUrl}</div>
+
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({
+    href,
+    children,
+    className,
+  }: {
+    href: string;
+    children: React.ReactNode;
+    className?: string;
+  }) => (
+    <a href={href} className={className}>
+      {children}
+    </a>
   ),
 }));
 
-import GeographyPage from "./page";
+const fetchRootPlace = vi.fn<() => unknown>();
+vi.mock("@/app/lib/data/maps/fetchRootPlace", () => ({
+  default: () => fetchRootPlace(),
+}));
 
-describe("dashboard geography Page", () => {
-  it("renders the first map by default", () => {
-    render(<GeographyPage />);
+vi.mock("@/app/ui/geography/GeographyExplorer", () => ({
+  default: ({ root }: { root: { title: string } }) => (
+    <div data-testid="geography-explorer">{root.title}</div>
+  ),
+}));
 
-    expect(screen.getByTestId("world-map")).toHaveTextContent(
-      "/maps/piani-esistenza.jpg"
+import GeographyPage, { generateMetadata } from "./page";
+
+describe("dashboard geography Page (SPEC-004 M7)", () => {
+  it("titles the page from the geography.page catalogue", async () => {
+    const metadata = await generateMetadata();
+
+    expect(metadata.title).toBe("title");
+  });
+
+  it("offers the create-world prompt on an empty installation, not the explorer", async () => {
+    fetchRootPlace.mockResolvedValue(null);
+
+    render(await GeographyPage());
+
+    expect(screen.queryByTestId("geography-explorer")).not.toBeInTheDocument();
+    expect(screen.getByText("noWorldYet")).toBeInTheDocument();
+    expect(screen.getByText("createWorldLink")).toHaveAttribute(
+      "href",
+      "/dashboard/world"
     );
   });
 
-  it("switches the rendered map when another option is clicked", () => {
-    render(<GeographyPage />);
+  it("renders the tree explorer once a root exists", async () => {
+    fetchRootPlace.mockResolvedValue({
+      id: 1,
+      title: "Aerivel",
+      mapImage: "aerivel.png",
+      mapBounds: null,
+      mapInitialView: null,
+      mapInitialZoom: null,
+    });
 
-    fireEvent.click(screen.getByText("maps.materialWorld"));
+    render(await GeographyPage());
 
-    expect(screen.getByTestId("world-map")).toHaveTextContent(
-      "/maps/mondo-materiale.jpg"
+    expect(screen.getByTestId("geography-explorer")).toHaveTextContent(
+      "Aerivel"
     );
-  });
-
-  it("highlights only the currently selected map's button", () => {
-    render(<GeographyPage />);
-    const planesButton = () =>
-      screen.getByText("maps.planesOfExistence").closest("button");
-    const materialButton = () =>
-      screen.getByText("maps.materialWorld").closest("button");
-
-    expect(planesButton()).toHaveClass("bg-violet-700");
-    expect(materialButton()).not.toHaveClass("bg-violet-700");
-
-    fireEvent.click(screen.getByText("maps.materialWorld"));
-
-    expect(materialButton()).toHaveClass("bg-violet-700");
-    expect(planesButton()).not.toHaveClass("bg-violet-700");
   });
 });

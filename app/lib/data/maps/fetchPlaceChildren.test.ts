@@ -32,6 +32,9 @@ function row(overrides: Partial<Record<string, unknown>>) {
     linkedType: null,
     linkedId: null,
     mapImage: null,
+    mapBounds: null,
+    mapInitialView: null,
+    mapInitialZoom: null,
     createdAt: new Date("2026-01-01"),
     updatedAt: new Date("2026-01-01"),
     ...overrides,
@@ -104,6 +107,34 @@ describe("fetchPlaceChildren", () => {
       lng: null,
       category: null,
     });
+  });
+
+  it("exposes a region child's stored map view (SPEC-004 M7)", async () => {
+    poiFindMany.mockResolvedValue([
+      row({
+        id: 5,
+        kind: "region",
+        lat: 5,
+        lng: 5,
+        category: null,
+        mapImage: "kang.png",
+        mapBounds: [
+          [0, 0],
+          [500, 500],
+        ],
+        mapInitialView: [250, 250],
+        mapInitialZoom: 2,
+      }),
+    ]);
+
+    const [child] = await fetchPlaceChildren(1);
+
+    expect(child?.mapBounds).toEqual([
+      [0, 0],
+      [500, 500],
+    ]);
+    expect(child?.mapInitialView).toEqual([250, 250]);
+    expect(child?.mapInitialZoom).toBe(2);
   });
 
   it("degrades a link whose target was deleted to unlinked", async () => {

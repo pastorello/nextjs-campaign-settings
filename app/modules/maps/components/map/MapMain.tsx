@@ -68,7 +68,11 @@ export function MapMain() {
   // User markers hook
   const { addMarker } = useMapMarkers();
 
-  // POI Manager hook
+  // POI Manager hook. `MapMain` is vendored inventory (CLAUDE.md, "unused is
+  // not dead") — nothing outside `app/modules/maps/` imports it, so there is
+  // no real "current place" to scope `usePOIManager` to. `0` keeps this
+  // unreachable component compiling against `usePOIManager`'s SPEC-004 M7
+  // signature without inventing a design for a place this file never had.
   const {
     pois,
     addPOI,
@@ -78,7 +82,7 @@ export function MapMain() {
     exportGeoJSON,
     importGeoJSON,
     flyToPOI,
-  } = usePOIManager();
+  } = usePOIManager(0);
 
   // Memoized callbacks to prevent unnecessary re-renders
   const handleCountrySelect = useCallback(async (countryId: string) => {

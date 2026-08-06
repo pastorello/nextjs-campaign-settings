@@ -304,6 +304,28 @@ describe("WorldMap", () => {
     });
   });
 
+  it("creates a place of a T2 navigable kind (e.g. city) under the current parent", async () => {
+    await renderMap();
+
+    const succeeded = await onAddPlace?.({
+      kind: "city",
+      title: "Skreebars",
+      lat: 3,
+      lng: 4,
+      mapImage: "skreebars.png",
+    });
+
+    expect(succeeded).toBe(true);
+    expect(createPlace).toHaveBeenCalledWith({
+      kind: "city",
+      title: "Skreebars",
+      lat: 3,
+      lng: 4,
+      mapImage: "skreebars.png",
+      parentId: 1,
+    });
+  });
+
   it("bumps useNavigableChildren's refetch token after a successful create", async () => {
     await renderMap();
     const tokenBefore = useNavigableChildren.mock.calls.at(-1)?.[2];

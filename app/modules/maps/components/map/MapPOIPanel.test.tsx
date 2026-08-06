@@ -304,6 +304,29 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
     expect(screen.getByText("Map image")).toBeInTheDocument();
   });
 
+  it("lists the T2 navigable kinds alongside region", () => {
+    render(<MapPOIPanel {...baseProps()} />);
+    fireEvent.click(screen.getByText("Add"));
+
+    const values = [...kindSelect().querySelectorAll("option")].map((o) =>
+      o.getAttribute("value")
+    );
+    expect(values).toEqual(
+      expect.arrayContaining(["region", "plane", "city", "dungeon"])
+    );
+  });
+
+  it("switching to city (T2) hides category/link and shows the map image field", () => {
+    render(<MapPOIPanel {...baseProps()} />);
+    fireEvent.click(screen.getByText("Add"));
+
+    fireEvent.change(kindSelect(), { target: { value: "city" } });
+
+    expect(screen.queryByText("Category")).not.toBeInTheDocument();
+    expect(screen.queryByText("Linked entity")).not.toBeInTheDocument();
+    expect(screen.getByText("Map image")).toBeInTheDocument();
+  });
+
   it("switching to deity hides category and requires an entity, no type dropdown", () => {
     render(<MapPOIPanel {...baseProps()} />);
     fireEvent.click(screen.getByText("Add"));

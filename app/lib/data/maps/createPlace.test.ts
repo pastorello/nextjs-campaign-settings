@@ -42,6 +42,28 @@ describe("createPlace", () => {
     });
   });
 
+  it("creates a city with its map image (T2)", async () => {
+    create.mockResolvedValue({ id: 43 });
+
+    const result = await createPlace({
+      ...commonFields,
+      kind: "city",
+      mapImage: "skreebars.png",
+    });
+
+    expect(result).toEqual({ ok: true, id: 43 });
+    expect(create).toHaveBeenCalledWith({
+      data: {
+        title: "Somewhere",
+        lat: 10,
+        lng: 20,
+        kind: "city",
+        parentId: 1,
+        mapImage: "skreebars.png",
+      },
+    });
+  });
+
   it("creates a deity pin with its link", async () => {
     create.mockResolvedValue({ id: 7 });
 

@@ -188,13 +188,13 @@ _Not filled in — the open questions below block it._
 **Risks**
 
 - **This is much larger than SPEC-003, and it deletes columns.** Steps 2–4 of the migration encode the DM's own knowledge of their world; a wrong parent guess is not a crash, it is a world that comes back subtly wrong. Step 5 must not run until the DM has confirmed the migrated tree looks right — it is the point of no easy return.
-- **Image upload is now a dependency, not a Phase 5 nicety.** Sixty maps cannot live in `public/maps`. Where uploaded images are stored, how they are served, and what limits apply are unresolved and block the create-universe flow.
+- **Image upload is now a dependency, not a Phase 5 nicety.** Sixty maps cannot live in `public/maps`. Storage and access are settled by [ADR-0008](../adr/0008-map-image-storage.md); what remains is the upload endpoint itself, which needs a size limit, a content-type allowlist and app-generated filenames — a new attack surface in an app that has not had one before.
 - **The async-options problem is inherited from SPEC-003 §7 and still unsolved** for `faction`.
 - The tree must be read with a recursive CTE or a materialized path; a naive per-level query makes a deep world slow in a way that only shows up once the DM has built one.
 
 **Open questions**
 
-1. **Where do uploaded map images live?** Self-hosted, so the filesystem is the obvious answer, but it needs a writable volume, a size limit, and a decision about what happens on backup/restore. This blocks step 1 of the flow and deserves its own ADR.
+1. ~~Where do uploaded map images live?~~ **Answered by [ADR-0008](../adr/0008-map-image-storage.md) (2026-08-06):** the local filesystem under `UPLOAD_DIR`, served through an authenticated route handler rather than from `public/`, behind a `MapImageStore` interface so object storage remains a one-file swap. That ADR also records that the four existing maps are currently served **unauthenticated** — `proxy.ts` excludes `.jpg` from the auth gate per TD-36 — and closes that exposure by moving them out of `public/`.
 2. **`kind`: a database enum, a validated string, or a table?** A string validated at the Zod boundary matches how `category` works today and how `POI_CATEGORIES` is declared; a table would let the DM invent their own place types, which fits "a tool for building worlds" but is more machinery. Recommend the validated string first.
 3. **Does the deity's residence (`celestialPlanes`, 7 values) become a place reference too?** SPEC-003 classed it as vocabulary pending this model. Under this model a plane of existence _is_ a place, so `deities.residence` looks like the same derived-from-the-tree treatment as `location`. Confirm before migrating.
 4. **What arranges the 33 legacy places into a tree, exactly?** Their `Location.ts` sections give a first parent guess, but "Isola dei Druidi" or "Monte An-ki" being cities under the material world is an assumption. The DM should review the proposed tree before step 3 runs.
@@ -204,7 +204,7 @@ _Not filled in — the open questions below block it._
 
 _Provisional — depends on the open questions above._
 
-- [ ] **T0** — Agree the model, resolve question 1 (image storage) with an ADR
+- [ ] **T0** — Agree the model _(image storage resolved: [ADR-0008](../adr/0008-map-image-storage.md))_
 - [ ] **T1** — `faction` table + seed + FK on `npc.fazione`, no tree yet _(test: migration preserves every NPC's faction; a faction can be created and assigned)_
 - [ ] **T2** — Extend `poi` into the tree: `kind`, `parentId`, map columns; `category` → `kind`, `title` → `name` _(test: migration applies; existing POIs survive with their category as kind)_
 - [ ] **T3** — Pins render only on their parent's map; navigation into a child map; breadcrumbs _(test: the §8 two-parent case; e2e for click-through)_

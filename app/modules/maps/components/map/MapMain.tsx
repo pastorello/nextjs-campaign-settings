@@ -338,6 +338,10 @@ export function MapMain() {
         cursorLat={cursorCoords?.lat}
         cursorLng={cursorCoords?.lng}
         mode={poiPanelMode}
+        // Vendored inventory (CLAUDE.md, "unused is not dead") — nothing
+        // outside app/modules/maps/ imports MapMain, so there is no real
+        // parent to create a region/deity/npc place under.
+        onAddPlace={() => Promise.resolve(false)}
       />
     </div>
   );

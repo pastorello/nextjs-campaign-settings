@@ -43,15 +43,18 @@ const exportGeoJSON = vi.fn(() => ({
   features: [],
 }));
 const importGeoJSON = vi.fn(() => 2);
+let onAddPlace: ((input: unknown) => Promise<boolean>) | undefined;
 vi.mock("@/app/modules/maps/components/map/MapPOIPanel", () => ({
   MapPOIPanel: (props: {
     onRequestLocation: () => void;
     onImport: (file: File) => void | Promise<void>;
     initialLat?: number;
     initialLng?: number;
+    onAddPlace: (input: unknown) => Promise<boolean>;
   }) => {
     onRequestLocation = props.onRequestLocation;
     onImport = props.onImport;
+    onAddPlace = props.onAddPlace;
     return (
       <div
         data-testid="map-poi-panel"
@@ -60,6 +63,12 @@ vi.mock("@/app/modules/maps/components/map/MapPOIPanel", () => ({
       />
     );
   },
+}));
+
+const createPlace =
+  vi.fn<(...args: unknown[]) => Promise<{ ok: boolean; id?: number }>>();
+vi.mock("@/app/lib/data/maps/createPlace", () => ({
+  default: (...args: unknown[]) => createPlace(...args),
 }));
 
 vi.mock("@/app/modules/maps/hooks/useMapContextMenu", () => ({
@@ -84,8 +93,11 @@ vi.mock("@/app/modules/maps/hooks/usePOIManager", () => ({
     flyToPOI: vi.fn(),
   }),
 }));
+const useNavigableChildren = vi
+  .fn<(...args: unknown[]) => unknown[]>()
+  .mockReturnValue([]);
 vi.mock("@/app/modules/maps/hooks/useNavigableChildren", () => ({
-  useNavigableChildren: () => [],
+  useNavigableChildren: (...args: unknown[]) => useNavigableChildren(...args),
 }));
 
 const setView = vi.fn();
@@ -145,6 +157,8 @@ async function renderMap(mapUrl = "/maps/test.jpg") {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  createPlace.mockResolvedValue({ ok: true, id: 1 });
+  useNavigableChildren.mockReturnValue([]);
 });
 
 describe("WorldMap", () => {
@@ -266,5 +280,64 @@ describe("WorldMap", () => {
     await onImport?.(badFile);
 
     expect(toast.error).toHaveBeenCalledWith("importFailed");
+  });
+
+  it("creates a place under the current parent (SPEC-004 M5)", async () => {
+    await renderMap();
+
+    const succeeded = await onAddPlace?.({
+      kind: "region",
+      title: "Kingdom of Kang",
+      lat: 1,
+      lng: 2,
+      mapImage: "kang.png",
+    });
+
+    expect(succeeded).toBe(true);
+    expect(createPlace).toHaveBeenCalledWith({
+      kind: "region",
+      title: "Kingdom of Kang",
+      lat: 1,
+      lng: 2,
+      mapImage: "kang.png",
+      parentId: 1,
+    });
+  });
+
+  it("bumps useNavigableChildren's refetch token after a successful create", async () => {
+    await renderMap();
+    const tokenBefore = useNavigableChildren.mock.calls.at(-1)?.[2];
+
+    await onAddPlace?.({
+      kind: "region",
+      title: "Kingdom of Kang",
+      lat: 1,
+      lng: 2,
+      mapImage: "kang.png",
+    });
+
+    await waitFor(() => {
+      const tokenAfter = useNavigableChildren.mock.calls.at(-1)?.[2];
+      expect(tokenAfter).not.toBe(tokenBefore);
+    });
+  });
+
+  it("does not bump the refetch token when the create fails", async () => {
+    createPlace.mockResolvedValue({ ok: false });
+    await renderMap();
+    const callsBefore = useNavigableChildren.mock.calls.length;
+
+    const succeeded = await onAddPlace?.({
+      kind: "region",
+      title: "Kingdom of Kang",
+      lat: 1,
+      lng: 2,
+      mapImage: "kang.png",
+    });
+
+    expect(succeeded).toBe(false);
+    // Give a re-render a chance to happen; asserting equal counts, not a
+    // change, so no waitFor to await.
+    expect(useNavigableChildren.mock.calls.length).toBe(callsBefore);
   });
 });

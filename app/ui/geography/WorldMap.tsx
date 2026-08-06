@@ -7,7 +7,10 @@ import { LeafletMap } from "@/app/modules/maps/components/map/LeafletMap";
 import { MapControls } from "@/app/modules/maps/components/map/MapControls";
 import { MapMeasurementPanel } from "@/app/modules/maps/components/map/MapMeasurementPanel";
 import { MapContextMenu } from "@/app/modules/maps/components/map/MapContextMenu";
-import { MapPOIPanel } from "@/app/modules/maps/components/map/MapPOIPanel";
+import {
+  MapPOIPanel,
+  type AddPlaceInput,
+} from "@/app/modules/maps/components/map/MapPOIPanel";
 import { useMapContextMenu } from "@/app/modules/maps/hooks/useMapContextMenu";
 import { useMapMarkers } from "@/app/modules/maps/hooks/useMapMarkers";
 import { usePOIManager } from "@/app/modules/maps/hooks/usePOIManager";
@@ -19,6 +22,7 @@ import type { POICategory, POIGeoJSON } from "@/app/modules/maps/types/poi";
 import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import { notifyError } from "@/app/lib/notifications/notify";
+import createPlace from "@/app/lib/data/maps/createPlace";
 
 /**
  * WorldMap - the map view backing `/dashboard/geography`.
@@ -90,8 +94,35 @@ function WorldMap({
     flyToPOI,
   } = usePOIManager(parentId);
 
+  // Bumped after a successful region/deity/npc create so
+  // `useNavigableChildren` reloads — its own effect only reruns on
+  // `parentId`/`refetchToken` changing, and creating a place changes neither.
+  const [placesRefetchToken, setPlacesRefetchToken] = useState(0);
+
   // Navigable `region` children, same scope — clicking one calls `onDescend`
-  useNavigableChildren(parentId, onDescend);
+  useNavigableChildren(parentId, onDescend, placesRefetchToken);
+
+  // Creates a region/deity/npc place under the current parent (SPEC-004
+  // M5). `kind: "poi"` never reaches this — the panel keeps that on the
+  // original `addPOI` path (see createPlace.ts for why).
+  const handleAddPlace = useCallback(
+    async (input: AddPlaceInput): Promise<boolean> => {
+      // Branched per kind, not `{ ...input, parentId }`: spreading a union
+      // loses each member's own discrimination, so TS can no longer tell
+      // `createPlace` which of `placeSchema`'s variants it is looking at.
+      const result =
+        input.kind === "region"
+          ? await createPlace({ ...input, parentId })
+          : input.kind === "deity"
+            ? await createPlace({ ...input, parentId })
+            : await createPlace({ ...input, parentId });
+      if (result.ok) {
+        setPlacesRefetchToken((token) => token + 1);
+      }
+      return result.ok;
+    },
+    [parentId]
+  );
 
   const map = useLeafletMap();
   const [currentImage, setCurrentImage] = useState<L.ImageOverlay | null>(null);
@@ -292,6 +323,7 @@ function WorldMap({
         cursorLat={cursorCoords?.lat}
         cursorLng={cursorCoords?.lng}
         mode={poiPanelMode}
+        onAddPlace={handleAddPlace}
       />
     </div>
   );

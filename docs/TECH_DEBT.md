@@ -75,6 +75,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-62 | POI category names are hardcoded English and reach the UI — a TD-21 leftover                                | 🟢 Low               | S      | 3     |
 | TD-64 | `WorldMap.tsx`'s async-effect map-loading pattern trips `react-hooks/set-state-in-effect`                   | 🟢 Low               | S      | 3     |
 | TD-65 | `DATABASE_URL` in this dev environment isn't a throwaway DB — e2e debris landed in real data              | 🟡 Medium             | S      | 3     |
+| TD-66 | `UPLOAD_DIR`'s relative default silently splits map-image files from the DB rows referencing them          | 🟡 Medium             | S      | 3     |
 
 ---
 
@@ -474,6 +475,20 @@ This means whatever ran `pnpm test:e2e` most recently was pointed at this same d
 **Plan:** either a second env file (`.env.test`) `test:e2e`'s Playwright config loads instead of `.env`, or a runtime guard that refuses to run the e2e suite against whatever `DATABASE_URL` currently resolves to in the shared `.env` (e.g. requiring a `_e2e` suffix in the database name). Whichever is chosen, document it in `docs/TESTING.md` next to the existing warning so it's enforced, not just written down.
 
 **Done when:** running `pnpm test:e2e` locally cannot write to the same database `pnpm dev` uses, either because the config makes it structurally impossible or because a guard refuses to start otherwise.
+
+---
+
+## TD-66 🟡 `UPLOAD_DIR`'s relative default silently splits map-image files from the DB rows referencing them
+
+**Where:** [`app/lib/config/env.ts`](../app/lib/config/env.ts)'s `UPLOAD_DIR` (default `./storage/maps`, per `.env.example`), consumed by [`FilesystemMapImageStore`](../app/lib/storage/FilesystemMapImageStore.ts).
+
+**Why:** `UPLOAD_DIR` is a relative path, resolved against whatever `process.cwd()` happens to be for the process that wrote it — not tied to the repo root or to any other process reading it. `DATABASE_URL` has no such ambiguity (it names a server, not a location on disk), so nothing about running two checkouts of the same repo against one shared Postgres instance warns that map images need the same care.
+
+Hit 2026-08-07: SPEC-004 T3's migration script (`app/seed/migrateWorldTreeT3.ts`) ran from an agent worktree, uploading four map images via `defaultMapImageStore.put()`. The DB rows it created (in the one shared dev database) correctly reference those images' ids — but the actual JPEG bytes landed in the worktree's own `./storage/maps/`, not the maintainer's separate checkout of the same repo. `/dashboard/geography` loaded with no errors (`fetchRootPlace` succeeded — the DB row was fine) but every map image 404'd, because that checkout's `./storage/maps/` was empty. Fixed by hand: copying the four files across.
+
+**Plan:** default `UPLOAD_DIR` to an absolute path outside any checkout (e.g. derived from a fixed location, not `./storage/maps`), so every process on a machine — regardless of which directory it runs from — reads and writes the same files. At minimum, document in `.env.example` that `UPLOAD_DIR` must be identical, and ideally external to, every checkout sharing a `DATABASE_URL`.
+
+**Done when:** running the app (or a migration script) from a second checkout of this repo, pointed at the same `DATABASE_URL`, serves every existing map image with no manual file copy.
 
 ---
 

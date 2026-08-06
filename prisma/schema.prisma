@@ -61,7 +61,23 @@ model npc {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  // SPEC-004 T1 — additive, not yet referenced by any code path. `faction`
+  // (the scalar Int column above) is untouched on purpose: the metadata
+  // layer still reads it and `factions.ts`'s static list directly (SPEC-004
+  // §7, "the async-options problem ... is unchanged here"). `factionRef`
+  // only adds the FK's integrity guarantee — named to avoid colliding with
+  // the sibling scalar field `faction` on this same model, not because the
+  // `faction` table needs a different name.
+  factionRef faction @relation(fields: [faction], references: [id], onDelete: Restrict)
+
   @@index([name])
+}
+
+model faction {
+  id   Int    @id
+  name String
+
+  npc npc[]
 }
 
 model poi {

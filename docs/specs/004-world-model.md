@@ -291,7 +291,7 @@ _Not filled in — the open questions below block it._
 
 ### Beyond the MVP — the destructive half, only once the tree is trusted
 
-- [ ] **T1** — `faction` table + seed + FK on `npc.fazione` _(independent of everything above)_
+- [x] **T1** — `faction` table + seed + FK on `npc.fazione` _(independent of everything above)_. Scoped to schema/data only, per §7: `npcMeta`'s faction field keeps reading `factions.ts`'s static list unchanged — the async-options problem stays unsolved, exactly as §7/§9 say it should for this item. `npc.faction` (the scalar column) is untouched; `factionRef` is a new, additive relation field nothing reads yet.
 - [ ] **T2** — The richer kind vocabulary: plane, city, dungeon as additional values
 - [ ] **T3** — Migrate the four existing maps and the 33 legacy places into the tree, DM-reviewed against the parentage evidence in §6
 - [ ] **T4** — NPC/deity pins for existing records; derive and display location from the tree

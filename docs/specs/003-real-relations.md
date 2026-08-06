@@ -21,11 +21,13 @@ Put together: if anyone edits one of those arrays — renumbering entries, or de
 
 This is not hypothetical. `app/lib/config/npc/factions.ts` runs `0…8, 10…19, 21, 22` — **values 9 and 20 are missing**, which means entries were removed from that list at some point in the past. Whether any `npc` row still holds a `9` or a `20` is unknown and cannot be determined from the code; it needs a query against the live database (see §5, "Pre-migration audit").
 
-### A second finding, which narrows this spec's scope
+### A second finding: three `deities` fields exist in the data but not in the metadata
 
-`deities` has three FK-shaped columns in Postgres — `luogo` (`location`), `allineamento` (`alignment`), `dominioallineamento` (`alignmentDomain`) — that **have no declaration in `deityMeta.ts` at all**. `DeityMetaField.location` exists in the enum; nothing in the metadata registry uses it. The metadata layer drives form rendering, list columns, filters and query construction from a single declaration, so a column absent from it is invisible to the entire app: no control, no filter, no display, and no validation on the way in.
+`deities` has three FK-shaped columns — `luogo` (`location`), `allineamento` (`alignment`), `dominioallineamento` (`alignmentDomain`) — that **have no declaration in `deityMeta.ts`**. `DeityMetaField.location` exists in the enum; nothing in the metadata registry uses it. Since the metadata layer drives form rendering, list columns, filters, query construction _and_ validation from that single declaration, a column absent from it is invisible to the whole app: the DM cannot see, filter or edit these three fields, and no validator ever runs on them.
 
-That means **`deities.location` cannot join this spec as written.** Its values are dormant — never read, never written by the app, and of unknown provenance. Pointing a foreign key at them would either fail on garbage or freeze whatever happens to be there into an enforced constraint. Deciding what those columns are for is its own question (see §9, open question 5), and until it is answered `deities` is out of scope: **this spec relates `npc.location` and `npc.faction` only.**
+**They are not dead, and not garbage.** `app/seed/initial-data/deities.ts` populates all three on every seeded deity, with values that resolve cleanly against the existing option lists — `location` holds `0, 1, 2, 4, 9` (all inside `locationList`'s `0…32`), `alignment` holds `0, 1, 2` (exactly the three `alignments` values), `alignmentDomain` holds `0, 1, 2` (inside `alignmentDomains`' four). `app/seed/importLibrary.ts` additionally maps them from the legacy Italian export format (`luogo: "location"`, `allineamento: "alignment"`). The data is intentional and coherent; only the metadata declaration is missing.
+
+So this is **the inverse of dead code**: a field that exists everywhere except the one layer that would make it usable. It is a real drift item in its own right, and it is a prerequisite question for this spec rather than a blocker — see §9, open question 5, for the decision it forces about whether `deities.location` joins Class A.
 
 ## 2. Goal
 
@@ -99,7 +101,7 @@ This is the spec's central decision, and the reason it is not "replace every Int
 | `npc.location` | 33      | `location` |
 | `npc.faction`  | 21      | `faction`  |
 
-`deities.location` would belong here on shape alone, but is excluded — see §1's second finding.
+`deities.location` belongs here on shape and on data — its seeded values resolve against the same `locationList` — but is held out of the table above pending §9's open question 5, which decides whether its missing metadata declaration is written first. It is expected to join.
 
 **Class B — closed vocabulary.** Fixed sets that come from the 5e rules or the setting's cosmology. They are not DM-authored, they do not gain attributes, and a table for them would add a join and a seed to maintain in exchange for nothing.
 
@@ -211,8 +213,16 @@ _Not filled in — sections above are not agreed yet. §7's async-options design
 1. **Is `deities.residence` a location or vocabulary?** Classed as vocabulary in §6 on the reasoning that divine planes are cosmology, but the DM's intent decides. If it is a place, it joins Class A and the `location` table gains a `kind` discriminator — a materially bigger change.
 2. **Do the new tables get `@@map` to Italian plurals, or English names?** They are new tables (SPEC-002's precedent says English, straight through) but they hold what the legacy Italian columns point at (the rest of the schema's precedent says `@map`). Both defensible; §6 proposes `@@map` for consistency with the columns referencing them.
 3. **Should the validator fix ship as its own item, ahead of this?** It needs no migration, fixes the silent-blank failure for all ~20 fields rather than two, and is a fraction of the risk. It is written into this spec as T1 for context, but it stands alone and would deliver most of the correctness benefit immediately. **Recommended.**
-4. Does anything outside the app write to these columns (a seed, a fixture, an import script) in a way the FK would newly break?
-5. **What are `deities.luogo` / `allineamento` / `dominioallineamento` for?** Three columns exist in Postgres with no metadata declaration, so the app never reads or writes them (§1). Either they are legacy from before deities were modelled as they are now — in which case they are dead columns and TD-11's deferred-relations note is the place to retire them — or they are intended and the metadata declarations were simply never written, in which case `deities.location` rejoins Class A and this spec grows. **This blocks nothing in T1–T3 but must be answered before the spec is called complete**, because "relations for the FK-shaped columns" cannot claim to be done while three of them are unaccounted for.
+4. ~~Does anything outside the app write to these columns?~~ **Answered while drafting:** yes — `app/seed/initial-data/*.ts` writes every option-backed column directly, and `app/seed/importLibrary.ts` maps them from the legacy Italian export format. Both must seed the `location`/`faction` tables before writing `npc`, or the FK rejects the seed. This is a real ordering constraint on T2, not just a note.
+5. **Do `deities.location` / `alignment` / `alignmentDomain` get their missing metadata declarations, and does that happen before this spec or inside it?** The evidence (§1) says they are intended fields whose declarations were never written: the seed populates all three with values that resolve correctly against the existing option lists, and the legacy importer maps them. Three ways forward, in increasing scope:
+
+   - **(a) Declare them first, as a separate small item.** Three `PageMeta` entries reusing `locationList`/`alignments`/`alignmentDomains`, which the DM immediately gains as visible, filterable, editable fields. Then `deities.location` joins Class A here on the same footing as `npc.location`. **Recommended** — it is a genuinely small change, it makes the data visible before a constraint is put on it, and it means this spec relates a field the app can actually see.
+   - **(b) Relate `deities.location` anyway, leaving it undeclared.** Works technically — the FK constrains the column regardless of whether the metadata layer knows about it — but puts an enforced constraint on data no one can view or correct, which makes any future orphan unfixable through the UI.
+   - **(c) Leave `deities` out entirely,** as this draft currently has it. Cheapest, but leaves "relations for the FK-shaped columns" half-done and the metadata gap unrecorded.
+
+   Under (a) or (b), §6's Class A table gains `deities.location`, the `location` model gains a `deities deities[]` back-relation, and §5's audit gains the matching `SELECT DISTINCT luogo FROM deities` query.
+
+6. **`DivineResidence` (12 entries) and `Zone` are imported by nothing.** `DivineResidence` duplicates, character for character, the display strings in `Location`'s "Luoghi Divini" block (`"Paradiso (Sole)"`, `"Elysium (Luna)"`, `"Fiume delle Anime"`, `"Alba dei Tempi"`, …) while `deities.residence` actually reads a third list, `celestialPlanes` (7 planes). So the setting's geography is modelled three times, in three incompatible vocabularies, two of which are unreferenced. Per `CLAUDE.md`'s "unused is not dead" rule this is a question, not a cleanup: are `DivineResidence`/`Zone` scaffolding for something planned, or leftovers? Not this spec's job either way, but it is the strongest argument that a single `location` table is worth having.
 
 ## 10. Task breakdown
 

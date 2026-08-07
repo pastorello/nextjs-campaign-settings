@@ -20,7 +20,8 @@ export type POICategory =
 
 export interface POICategoryConfig {
   id: POICategory;
-  name: string;
+  /** Message key resolved with `t()` at the render boundary — see ADR-0007. */
+  labelKey: string;
   color: string;
   bgColor: string;
   icon: string;

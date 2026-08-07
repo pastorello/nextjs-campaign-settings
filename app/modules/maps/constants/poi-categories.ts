@@ -10,98 +10,98 @@ import type {
 export const POI_CATEGORIES: POICategoryConfig[] = [
   {
     id: "food-drink",
-    name: "Food & Drink",
+    labelKey: "geography.poiCategories.foodDrink",
     color: "#f97316", // Orange
     bgColor: "#fed7aa",
     icon: "🍽️",
   },
   {
     id: "shopping",
-    name: "Shopping",
+    labelKey: "geography.poiCategories.shopping",
     color: "#a855f7", // Purple
     bgColor: "#e9d5ff",
     icon: "🛍️",
   },
   {
     id: "transport",
-    name: "Transport",
+    labelKey: "geography.poiCategories.transport",
     color: "#3b82f6", // Blue
     bgColor: "#bfdbfe",
     icon: "🚌",
   },
   {
     id: "lodging",
-    name: "Lodging",
+    labelKey: "geography.poiCategories.lodging",
     color: "#06b6d4", // Cyan
     bgColor: "#a5f3fc",
     icon: "🏨",
   },
   {
     id: "health",
-    name: "Health",
+    labelKey: "geography.poiCategories.health",
     color: "#ef4444", // Red
     bgColor: "#fecaca",
     icon: "🏥",
   },
   {
     id: "entertainment",
-    name: "Entertainment",
+    labelKey: "geography.poiCategories.entertainment",
     color: "#eab308", // Yellow
     bgColor: "#fef08a",
     icon: "🎭",
   },
   {
     id: "nature",
-    name: "Nature",
+    labelKey: "geography.poiCategories.nature",
     color: "#22c55e", // Green
     bgColor: "#bbf7d0",
     icon: "🌳",
   },
   {
     id: "services",
-    name: "Services",
+    labelKey: "geography.poiCategories.services",
     color: "#1e40af", // Dark Blue
     bgColor: "#93c5fd",
     icon: "🔧",
   },
   {
     id: "education",
-    name: "Education",
+    labelKey: "geography.poiCategories.education",
     color: "#14b8a6", // Teal
     bgColor: "#99f6e4",
     icon: "🎓",
   },
   {
     id: "religion",
-    name: "Religion",
+    labelKey: "geography.poiCategories.religion",
     color: "#92400e", // Brown
     bgColor: "#d6d3d1",
     icon: "⛪",
   },
   {
     id: "business",
-    name: "Business",
+    labelKey: "geography.poiCategories.business",
     color: "#6b7280", // Gray
     bgColor: "#d1d5db",
     icon: "💼",
   },
   {
     id: "tourism",
-    name: "Tourism",
+    labelKey: "geography.poiCategories.tourism",
     color: "#ec4899", // Pink
     bgColor: "#fbcfe8",
     icon: "📸",
   },
   {
     id: "emergency",
-    name: "Emergency",
+    labelKey: "geography.poiCategories.emergency",
     color: "#991b1b", // Red Dark
     bgColor: "#fca5a5",
     icon: "🚨",
   },
   {
     id: "utilities",
-    name: "Utilities",
+    labelKey: "geography.poiCategories.utilities",
     color: "#374151", // Dark Gray
     bgColor: "#9ca3af",
     icon: "⚡",

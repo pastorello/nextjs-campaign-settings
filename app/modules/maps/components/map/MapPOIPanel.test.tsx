@@ -189,9 +189,10 @@ describe("MapPOIPanel — add/edit form", () => {
     fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
       target: { value: "New Place" },
     });
-    fireEvent.change(screen.getByDisplayValue("🍽️ Food & Drink"), {
-      target: { value: "tourism" },
-    });
+    fireEvent.change(
+      screen.getByDisplayValue("🍽️ geography.poiCategories.foodDrink"),
+      { target: { value: "tourism" } }
+    );
     fireEvent.click(screen.getByText("Save"));
 
     expect(props.onAddPOI).toHaveBeenCalledWith(

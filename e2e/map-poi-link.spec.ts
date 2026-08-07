@@ -107,4 +107,89 @@ test.describe("POI linked-entity popup link", () => {
       .click();
     await expect(npcRow(page, npcName)).toHaveCount(0);
   });
+
+  // TD-69: `poi.linkedType`/`linkedId` gained a unique constraint — a second
+  // pin for the same NPC used to succeed silently, leaving two pins for one
+  // entity. `usePOIManager.addPOI` already had a rollback-and-toast path for
+  // a failed `createPoi` call (used for network/validation failures); this
+  // proves the same path now also fires for the database's own rejection,
+  // not just the cases the code anticipated.
+  test("a second POI linked to the same NPC is rejected, not silently duplicated", async ({
+    page,
+  }) => {
+    const npcName = `E2E POI unique link ${Date.now()}`;
+    const firstTitle = `E2E POI unique first ${Date.now()}`;
+    const secondTitle = `E2E POI unique second ${Date.now()}`;
+
+    await page.goto("/dashboard/admin/npc");
+    await page
+      .getByRole("link", { name: messages.npc.page.newItemButton })
+      .click();
+    // Without this wait, `getByLabel("Nome")` can transiently resolve to the
+    // list page's "Ordina per nome" sort button (a substring match) before
+    // the create form mounts, and Playwright locks onto that stale element
+    // instead of retrying — the sibling test above waits on this same
+    // heading first for the same reason.
+    await expect(
+      page.getByRole("heading", { name: messages.npc.form.createTitle })
+    ).toBeVisible();
+    await page.getByLabel(messages.common.fields.name.label).fill(npcName);
+    await page
+      .getByRole("button", { name: messages.npc.form.createButton })
+      .click();
+    await page.waitForURL("**/dashboard/admin/npc");
+
+    await page.goto("/dashboard/geography");
+    const map = page.locator(".leaflet-container");
+    await expect(map).toBeVisible();
+
+    const addPoiLinkedToNpc = async (title: string, x: number) => {
+      await map.click({ button: "right", position: { x, y: 300 } });
+      await page.getByRole("button", { name: /Add Place/ }).click();
+      await page.getByPlaceholder("Enter place name").fill(title);
+
+      const linkedTypeSelect = page
+        .locator("select")
+        .filter({ has: page.locator("option", { hasText: "None" }) });
+      await linkedTypeSelect.selectOption("npc");
+
+      const linkedEntitySelect = linkedTypeSelect.locator(
+        "xpath=following-sibling::select[1]"
+      );
+      await expect(
+        linkedEntitySelect.locator("option", { hasText: npcName })
+      ).toBeAttached();
+      await linkedEntitySelect.selectOption({ label: npcName });
+
+      await page.getByRole("button", { name: "Save" }).click();
+    };
+
+    await addPoiLinkedToNpc(firstTitle, 700);
+    await expect(
+      page.locator("button", { hasText: firstTitle }).first()
+    ).toBeVisible();
+
+    await addPoiLinkedToNpc(secondTitle, 600);
+
+    // The optimistic add is rolled back and usePOIManager's existing
+    // rollback-and-toast path fires — proving the database, not just the
+    // form, refused the duplicate.
+    await expect(page.getByText(/Impossibile salvare/)).toBeVisible();
+    await expect(page.locator("button", { hasText: secondTitle })).toHaveCount(
+      0
+    );
+    await expect(
+      page.locator("button", { hasText: firstTitle }).first()
+    ).toBeVisible();
+
+    await gotoNpcAdmin(page, npcName);
+    await npcRow(page, npcName)
+      .getByRole("button", { name: messages.common.form.delete })
+      .click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: messages.common.form.delete })
+      .click();
+    await expect(npcRow(page, npcName)).toHaveCount(0);
+  });
 });

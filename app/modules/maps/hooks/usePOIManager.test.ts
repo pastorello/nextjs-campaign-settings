@@ -43,6 +43,36 @@ vi.mock("next-intl", () => ({
   useTranslations: () => translate,
 }));
 
+// Marker/drag tests (TD-71, SPEC-005 §5.B) need a real-enough Leaflet map
+// present — every other test in this file leaves it null via `MapProvider`'s
+// default, which short-circuits `createMarker`/`renderMarkers` before any of
+// this runs. Mocking the hook directly, same as `useNavigableChildren.test.ts`,
+// is simpler than driving `MapProvider`'s own `setMap`.
+const fakeMap = { hasLayer: vi.fn(() => true), removeLayer: vi.fn() };
+vi.mock("@/app/modules/maps/hooks/useLeafletMap", () => ({
+  useLeafletMap: () => fakeMap,
+}));
+
+const dragendHandlers = new Map<unknown, () => void>();
+const markerGetLatLng = vi.fn(() => ({ lat: 99, lng: 88 }));
+const markerAddTo = vi.fn();
+const marker = vi.fn((..._args: unknown[]) => {
+  const instance = {
+    addTo: markerAddTo,
+    bindPopup: vi.fn(),
+    getLatLng: markerGetLatLng,
+    on: vi.fn((event: string, handler: () => void) => {
+      if (event === "dragend") dragendHandlers.set(instance, handler);
+    }),
+  };
+  markerAddTo.mockReturnValue(instance);
+  return instance;
+});
+vi.mock("leaflet", () => ({
+  marker: (...args: unknown[]) => marker(...args),
+  divIcon: vi.fn(() => ({})),
+}));
+
 import { usePOIManager } from "./usePOIManager";
 
 const storedRow: PlaceChild = {
@@ -381,5 +411,56 @@ describe("usePOIManager — optimistic writes (TD-14)", () => {
     expect(result.current.pois[0]?.title).toBe("Renamed");
     expect(updatePoi).toHaveBeenCalledWith({ id: 7, title: "Renamed" });
     expect(notifyError).not.toHaveBeenCalled();
+  });
+});
+
+describe("usePOIManager — marker drag (TD-71, SPEC-005 §5.B)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    dragendHandlers.clear();
+    fetchPlaceChildren.mockResolvedValue([storedRow]);
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("renders the marker as draggable", async () => {
+    await renderLoaded();
+
+    await waitFor(() => expect(marker).toHaveBeenCalled());
+    const options = marker.mock.calls[0]?.[1] as { draggable?: boolean };
+    expect(options.draggable).toBe(true);
+  });
+
+  it("repositions the POI when the marker's dragend fires", async () => {
+    updatePoi.mockResolvedValue({ ok: true });
+    const { result } = await renderLoaded();
+    await waitFor(() => expect(dragendHandlers.size).toBe(1));
+
+    await settle(() => {
+      dragendHandlers.values().next().value?.();
+    });
+
+    expect(result.current.pois[0]).toMatchObject({ lat: 99, lng: 88 });
+    expect(updatePoi).toHaveBeenCalledWith({ id: 7, lat: 99, lng: 88 });
+    expect(notifyError).not.toHaveBeenCalled();
+  });
+
+  it("reverts and notifies when the server rejects the drag", async () => {
+    updatePoi.mockResolvedValue({ ok: false });
+    const { result } = await renderLoaded();
+    await waitFor(() => expect(dragendHandlers.size).toBe(1));
+
+    await settle(() => {
+      dragendHandlers.values().next().value?.();
+    });
+
+    expect(result.current.pois[0]).toMatchObject({
+      lat: storedRow.lat,
+      lng: storedRow.lng,
+    });
+    expect(notifyError).toHaveBeenCalledWith("poiSaveFailed");
   });
 });

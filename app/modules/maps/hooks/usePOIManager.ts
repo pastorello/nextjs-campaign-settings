@@ -210,6 +210,70 @@ export function usePOIManager(parentId: number) {
   }, []);
 
   /**
+   * Update existing POI. Declared ahead of `createMarker`/`renderMarkers`
+   * (its original position, further down, is where `addPOI` also lives) —
+   * `renderMarkers` calls this from a marker's `dragend` handler (TD-71,
+   * SPEC-005 §5.B), and a `const` referenced before its own declaration in
+   * the same function body is a TS/TDZ error even inside a closure that
+   * only runs later.
+   */
+  const updatePOI = useCallback(
+    (id: string, updates: Partial<Omit<POI, "id" | "createdAt">>) => {
+      const previous = poisRef.current.find((poi) => poi.id === id);
+      if (!previous) return;
+
+      commit((current) =>
+        current.map((poi) =>
+          poi.id === id ? { ...poi, ...updates, updatedAt: Date.now() } : poi
+        )
+      );
+
+      enqueue(id, async () => {
+        const serverId = serverIdsRef.current.get(id);
+        // No server id means the create failed and this POI was already rolled
+        // back out of the list. Nothing to update.
+        if (serverId === undefined) return;
+
+        const restore = () => {
+          commit((current) =>
+            current.map((poi) => (poi.id === id ? previous : poi))
+          );
+          notifyError(tRef.current("poiSaveFailed", { title: previous.title }));
+        };
+
+        try {
+          const result = await updatePoiAction({
+            id: serverId,
+            ...(updates.title !== undefined && { title: updates.title }),
+            ...(updates.description !== undefined && {
+              description: updates.description,
+            }),
+            ...(updates.lat !== undefined && { lat: updates.lat }),
+            ...(updates.lng !== undefined && { lng: updates.lng }),
+            ...(updates.category !== undefined && {
+              category: updates.category,
+            }),
+            // Sent as a pair or not at all — see `poiSchema.ts`'s
+            // `hasPairedLink`. The panel always submits its link selector's
+            // full current state, never one field alone.
+            ...(updates.linkedType !== undefined &&
+              updates.linkedId !== undefined && {
+                linkedType: updates.linkedType,
+                linkedId: updates.linkedId,
+              }),
+          });
+
+          if (!result.ok) restore();
+        } catch (error) {
+          console.error("Failed to update POI:", error);
+          restore();
+        }
+      });
+    },
+    [commit, enqueue]
+  );
+
+  /**
    * Create marker for POI
    */
   const createMarker = useCallback(
@@ -221,6 +285,10 @@ export function usePOIManager(parentId: number) {
         const markerBgClass = getCategoryMarkerBgClass(poi.category);
 
         const marker = L.marker([poi.lat, poi.lng], {
+          // TD-71, SPEC-005 §5.B — a placed marker can be dragged to a new
+          // spot; `renderMarkers` wires the `dragend` handler once this
+          // returns, since `updatePOI` isn't in scope here.
+          draggable: true,
           icon: L.divIcon({
             className: "custom-poi-marker",
             html: `
@@ -303,10 +371,17 @@ export function usePOIManager(parentId: number) {
       }
 
       if (marker) {
+        // TD-71, SPEC-005 §5.B — reposition on drop. `updatePOI` already
+        // does the optimistic-update/revert/toast dance; this only has to
+        // read the marker's new position and hand it off.
+        marker.on("dragend", () => {
+          const { lat, lng } = marker.getLatLng();
+          updatePOI(poi.id, { lat, lng });
+        });
         markersRef.current.set(poi.id, marker);
       }
     }
-  }, [map, pois, createMarker]);
+  }, [map, pois, createMarker, updatePOI]);
 
   /**
    * Add new POI
@@ -370,65 +445,6 @@ export function usePOIManager(parentId: number) {
       return newPOI;
     },
     [commit, enqueue, generateId, parentId]
-  );
-
-  /**
-   * Update existing POI
-   */
-  const updatePOI = useCallback(
-    (id: string, updates: Partial<Omit<POI, "id" | "createdAt">>) => {
-      const previous = poisRef.current.find((poi) => poi.id === id);
-      if (!previous) return;
-
-      commit((current) =>
-        current.map((poi) =>
-          poi.id === id ? { ...poi, ...updates, updatedAt: Date.now() } : poi
-        )
-      );
-
-      enqueue(id, async () => {
-        const serverId = serverIdsRef.current.get(id);
-        // No server id means the create failed and this POI was already rolled
-        // back out of the list. Nothing to update.
-        if (serverId === undefined) return;
-
-        const restore = () => {
-          commit((current) =>
-            current.map((poi) => (poi.id === id ? previous : poi))
-          );
-          notifyError(tRef.current("poiSaveFailed", { title: previous.title }));
-        };
-
-        try {
-          const result = await updatePoiAction({
-            id: serverId,
-            ...(updates.title !== undefined && { title: updates.title }),
-            ...(updates.description !== undefined && {
-              description: updates.description,
-            }),
-            ...(updates.lat !== undefined && { lat: updates.lat }),
-            ...(updates.lng !== undefined && { lng: updates.lng }),
-            ...(updates.category !== undefined && {
-              category: updates.category,
-            }),
-            // Sent as a pair or not at all — see `poiSchema.ts`'s
-            // `hasPairedLink`. The panel always submits its link selector's
-            // full current state, never one field alone.
-            ...(updates.linkedType !== undefined &&
-              updates.linkedId !== undefined && {
-                linkedType: updates.linkedType,
-                linkedId: updates.linkedId,
-              }),
-          });
-
-          if (!result.ok) restore();
-        } catch (error) {
-          console.error("Failed to update POI:", error);
-          restore();
-        }
-      });
-    },
-    [commit, enqueue]
   );
 
   /**

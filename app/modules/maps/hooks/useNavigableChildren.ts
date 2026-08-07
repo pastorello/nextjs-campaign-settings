@@ -41,7 +41,9 @@ export function useNavigableChildren(
   const [children, setChildren] = useState<NavigableChild[]>([]);
   const markersRef = useRef<Marker[]>([]);
   const onDescendRef = useRef(onDescend);
-  onDescendRef.current = onDescend;
+  useEffect(() => {
+    onDescendRef.current = onDescend;
+  });
 
   useEffect(() => {
     let cancelled = false;

@@ -10,6 +10,58 @@ import magicItemsMeta from "./magicitem/magicItemMeta";
 import deitiesMeta from "./deity/deityMeta";
 import renderRichText from "../utils/data/renderRichText";
 
+/**
+ * Fields more than one domain meta may declare without it being an accident —
+ * see `pagesConfig.ts`'s note on why the deity pages reach for `NpcMetaField`.
+ * Add a name here only when it genuinely means the same thing in every domain
+ * that shares it. `location` stays until SPEC-004 T5b drops the column and the
+ * field with it.
+ */
+type SharedMetaField = "alignment" | "alignmentDomain" | "location";
+
+/**
+ * Keys two domain metas both declare, outside the deliberately shared set.
+ * Domain metas key their entries by enum member, and string enums are
+ * nominal — `DeityMetaField.alignment` and `NpcMetaField.alignment` are
+ * different types despite both being `"alignment"` (see `MetaConfigKey`'s own
+ * note on this). A bare `keyof A & keyof B` would intersect to `never` even
+ * when the two really do collide, silently defeating the whole check; the
+ * template literal coerces each side to its underlying string first, the way
+ * `MetaConfigKey` already does.
+ */
+type CollidingKeys<
+  A extends Record<string, unknown>,
+  B extends Record<string, unknown>,
+> = Exclude<
+  `${Extract<keyof A, string>}` & `${Extract<keyof B, string>}`,
+  SharedMetaField
+>;
+
+/**
+ * Fails to typecheck unless every domain-meta pair below is disjoint outside
+ * `SharedMetaField`. `object spread` does not report duplicate keys — the
+ * last one wins silently — so without this, a field name reused across two
+ * domain metas would compile clean and one domain's declaration would just
+ * disappear at runtime. See TD-74.
+ *
+ * A mapped type rather than a union of `CollidingKeys<...>`: today every pair
+ * is genuinely disjoint, so a union of six `never`s would be indistinguishable
+ * constituents — exactly what `no-duplicate-type-constituents` and
+ * `no-redundant-type-constituents` exist to catch, and rightly so for a real
+ * union. This isn't one; each property below type-checks independently
+ * against `never`; whichever pair collides names itself in the error.
+ */
+type DomainMetaPairs = {
+  deitiesSpells: CollidingKeys<typeof deitiesMeta, typeof spellsMeta>;
+  deitiesMagicItems: CollidingKeys<typeof deitiesMeta, typeof magicItemsMeta>;
+  deitiesNpc: CollidingKeys<typeof deitiesMeta, typeof npcMeta>;
+  spellsMagicItems: CollidingKeys<typeof spellsMeta, typeof magicItemsMeta>;
+  spellsNpc: CollidingKeys<typeof spellsMeta, typeof npcMeta>;
+  magicItemsNpc: CollidingKeys<typeof magicItemsMeta, typeof npcMeta>;
+};
+type AssertAllDisjoint<T extends Record<keyof DomainMetaPairs, never>> = T;
+export type DomainMetaFieldsAreDisjoint = AssertAllDisjoint<DomainMetaPairs>;
+
 const pageMetaFields = {
   //GENERAL
   description: {

@@ -2066,6 +2066,29 @@ Three alternatives, and why not:
 
 ---
 
+## TD-74 ✅ `pageMetaFields` spread four domain metas into one flat object — a name collision silently discarded one — **DONE (2026-08-08)**
+
+**Outcome:** `pageMetaFields.ts` now declares a `SharedMetaField` union (`"alignment" | "alignmentDomain" | "location"`) and a type-level check, `DomainMetaFieldsAreDisjoint`, asserting that every pair of the four domain metas is disjoint outside that set. A real collision fails `pnpm typecheck`, naming the offending pair.
+
+Two things surfaced only by testing the guard against an induced collision, not obvious from the plan:
+
+- **A naive `keyof A & keyof B` never catches anything**, because domain metas key their entries by enum member and string enums are nominal — `DeityMetaField.alignment` and `NpcMetaField.alignment` are different types despite both being `"alignment"` (the same fact `MetaConfigKey`'s own comment already documents, for the same reason). `keyof typeof deitiesMeta & keyof typeof npcMeta` intersects to `never` even when the two really do share a key, silently defeating the whole check. Verified in isolation before writing it into the real file: an `E1.alignment`/`E2.alignment` pair (same string, different enum) produces no error with a bare `keyof` intersection and does with `` `${keyof A}` & `${keyof B}` `` — the template literal `MetaConfigKey` already uses to collapse enum members to their string values.
+- **A union of the six pairwise checks doesn't survive lint.** Today every pair is genuinely disjoint, so `CollidingKeys<...> | CollidingKeys<...> | ...` is six indistinguishable `never`s — exactly what `@typescript-eslint/no-duplicate-type-constituents` and `no-redundant-type-constituents` exist to catch, and they did, correctly, since this isn't the union it looks like. Restructured as a mapped object type (`DomainMetaPairs`, one named property per pair) checked against `Record<keyof DomainMetaPairs, never>` instead — no `|` syntax for the linter to flag, and a real collision now names its pair in the error (e.g. `magicItemsNpc`) rather than just surfacing as an anonymous string literal.
+
+**Verified by probe, not by an automated test** — this project has no type-testing harness (no `.test-d.ts` convention, no `expectTypeOf`/`tsd` anywhere), and the "Done when" below is itself phrased as a manual `pnpm typecheck` check. Added a throwaway colliding key to `npcMeta.ts` (`rarity`, already declared in `magicItemsMeta`) and confirmed `pnpm typecheck` failed naming `magicItemsNpc`; added a throwaway `DeityMetaField.location` entry to `deityMeta.ts` and confirmed the allowed-shared-field case stayed clean; reverted both. `pnpm typecheck`, `pnpm lint` and `pnpm format:check` all pass on the real change.
+
+**Where:** `app/lib/config/pageMetaFields.ts`.
+
+**Why:** the registry is built as `{ ...deitiesMeta, ...spellsMeta, ...magicItemsMeta, ...npcMeta }`. Domain metas key their entries by enum member, and those members are plain strings — `DeityMetaField.alignment` and `NpcMetaField.alignment` are both `"alignment"`. **Last spread wins, so `npcMeta`'s declaration is the one that survives, and `deityMeta`'s is discarded with no type error.** Object spread does not report duplicate keys, and `satisfies Record<string, PageMeta>` only checks the shape of what survives.
+
+This was correct purely by accident of the colliding fields being identical: `alignment`, `alignmentDomain` and `location` genuinely are the same field for both domains, which is why `deityMeta.ts` declares none of them and `pagesConfig.ts`/`listConfig.ts` reach for `NpcMetaField.*` on the deity pages. `pagesConfig.ts`'s own header comment documents the arrangement, so the sharing is deliberate.
+
+**What made it debt rather than a design** is that nothing distinguished deliberate sharing from an accidental collision. If someone added a `deities.title` while `npcMeta` already declared `title` — plausible, both domains have one, and they mean different things — the deity form and list would have silently rendered the NPC field's label, placeholder, options and validator. No compiler error, no test failure unless one happened to assert that exact label. SPEC-003 §1 spotted this and recorded it as "worth recording for a future reader, though not this spec's business"; it was true and unguarded from then until this fix.
+
+The risk was rising with [SPEC-006](./specs/006-table-backed-options.md): once a field can declare `optionTable`, a collision would silently swap not just a label but _where a field's options come from_ — this guard is now in place before SPEC-006 T6 switches `npcMeta.faction` to a table source.
+
+---
+
 ## TD-72 🟢 `usePOIManager.ts` and `useNavigableChildren.ts` build marker/popup HTML with inline `style`, not Tailwind classes
 
 **Where:** `app/modules/maps/hooks/usePOIManager.ts`'s `createMarker` (POI markers and their popups) and `useNavigableChildren.ts`'s marker `html` — both build Leaflet `L.divIcon`/`bindPopup` content as raw HTML template strings using `style="..."` attributes.

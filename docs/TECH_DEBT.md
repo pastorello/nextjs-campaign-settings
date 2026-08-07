@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-08
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-74.** It is written up below; everything else in the summary table is closed.
+**Open items: none.** Everything in the summary table is closed.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -95,16 +95,16 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-71 | ✅ No way to position or edit a place that already exists — only newly-created ones get coordinates         | ~~🟠 High~~ done     | L      | 3     |
 | TD-72 | ✅ `usePOIManager.ts`/`useNavigableChildren.ts` marker HTML uses inline `style`, not Tailwind classes       | ~~🟢 Low~~ done      | S      | 3     |
 | TD-73 | ✅ `.env.test.example`'s documented e2e setup (`prisma db push`) leaves a fresh DB unable to seed           | ~~🟡 Medium~~ done   | S      | 3     |
-| TD-74 | `pageMetaFields` spreads four domain metas into one flat object — a name collision silently discards one    | 🟡 Medium            | S      | 3     |
+| TD-74 | ✅ `pageMetaFields` spread four domain metas into one flat object — a name collision silently discarded one | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-75 | ✅ `pnpm test` fails on a clean checkout — one suite needs a `DATABASE_URL` that only CI provides           | ~~🟡 Medium~~ done   | S      | 3     |
 
 ---
 
 ---
 
-## Closed items — TD-01 through TD-73, and TD-75
+## Closed items — TD-01 through TD-75
 
-Everything the 2026-07-22 audit found, plus everything found while doing the work through 2026-08-08, is closed: correctness, security, dead code, formatting, CI, accessibility, the metadata-layer types, the identifier rename, the bilingual UI, the migration drift, the E2E harness, the coverage sweep that crossed Phase 2's 70% gate, the whole SPEC-004 map/world-tree run, and the clean-checkout `pnpm test` gap. The summary table above is the current status of each.
+Everything the 2026-07-22 audit found, plus everything found while doing the work through 2026-08-08, is closed: correctness, security, dead code, formatting, CI, accessibility, the metadata-layer types, the identifier rename, the bilingual UI, the migration drift, the E2E harness, the coverage sweep that crossed Phase 2's 70% gate, the whole SPEC-004 map/world-tree run, the clean-checkout `pnpm test` gap, and the metadata layer's unguarded field-name collision. The summary table above is the current status of each.
 
 **Each item's full write-up — what was found, why, the fix — is in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)**, moved there in two passes (TD-01–TD-36 on 2026-08-01, the rest on 2026-08-08). Nothing was deleted; the archive keeps every "(original)" problem framing exactly as recorded, per the policy in [`docs/README.md`](./README.md#keeping-them-honest).
 
@@ -112,20 +112,4 @@ Everything the 2026-07-22 audit found, plus everything found while doing the wor
 
 ## Open items
 
-## TD-74 `pageMetaFields` spreads four domain metas into one flat object — a name collision silently discards one
-
-**Where:** `app/lib/config/pageMetaFields.ts`.
-
-**Why:** the registry is built as `{ ...deitiesMeta, ...spellsMeta, ...magicItemsMeta, ...npcMeta }`. Domain metas key their entries by enum member, and those members are plain strings — `DeityMetaField.alignment` and `NpcMetaField.alignment` are both `"alignment"`. **Last spread wins, so `npcMeta`'s declaration is the one that survives, and `deityMeta`'s is discarded with no type error.** Object spread does not report duplicate keys, and `satisfies Record<string, PageMeta>` only checks the shape of what survives.
-
-This is correct today purely by accident of the colliding fields being identical: `alignment`, `alignmentDomain` and `location` genuinely are the same field for both domains, which is why `deityMeta.ts` declares none of them and `pagesConfig.ts`/`listConfig.ts` reach for `NpcMetaField.*` on the deity pages. `pagesConfig.ts`'s own header comment documents the arrangement, so the sharing is deliberate.
-
-**What makes it debt rather than a design** is that nothing distinguishes deliberate sharing from an accidental collision. If someone adds a `deities.title` while `npcMeta` already declares `title` — plausible, both domains have one, and they mean different things — the deity form and list would silently render the NPC field's label, placeholder, options and validator. No compiler error, no test failure unless one happens to assert that exact label. SPEC-003 §1 spotted this and recorded it as "worth recording for a future reader, though not this spec's business"; it has been true and unguarded since.
-
-The risk rises with [SPEC-006](./specs/006-table-backed-options.md): once a field can declare `optionTable`, a collision would silently swap not just a label but _where a field's options come from_.
-
-**Plan:** make a collision a compile error rather than a silent overwrite. Cheapest credible form is a type-level check that the four metas' key sets are pairwise disjoint except for an explicitly declared shared set — a `SharedMetaField` union naming `alignment`, `alignmentDomain` and (until T5b deletes it) `location`, so intentional sharing is written down and anything else fails to build. A runtime assertion at module load is the fallback if the type-level version proves unreadable; it is strictly worse (it fails at boot rather than at compile) but still beats silence.
-
-Worth doing **before** SPEC-006 T6 switches `npcMeta.faction` to a table source, so the guard exists before the blast radius grows.
-
-**Done when:** adding a duplicate field name to two domain metas fails `pnpm typecheck`, with the three genuinely shared fields declared as such in one place.
+None.

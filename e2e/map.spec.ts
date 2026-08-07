@@ -45,4 +45,31 @@ test.describe("world map", () => {
     await expect(menu.getByText("Add Marker")).toBeVisible();
     await expect(menu.getByText("Copy Coordinates")).toBeVisible();
   });
+
+  // TD-68: MapPOIPanel's desktop Close button and the hero-image gradient
+  // overlay behind it shared `z-10`, so the overlay (later in DOM order)
+  // painted on top and silently swallowed every click at the button's own
+  // position — invisible to a test that calls the click handler directly.
+  // Playwright's `.click()` verifies the click point actually resolves to
+  // the target element before dispatching, so this would have failed with
+  // a "subtree intercepts pointer events" timeout under the old z-index.
+  test("clicking the visible Close button closes the desktop POI panel", async ({
+    page,
+  }) => {
+    const map = page.locator(".leaflet-container");
+    await expect(map).toBeVisible();
+
+    await map.click({ button: "right", position: { x: 400, y: 250 } });
+    await page.getByRole("button", { name: /Add Place/ }).click();
+
+    const closeButton = page.getByRole("button", { name: "Close" });
+    await expect(closeButton).toBeVisible();
+
+    const panel = closeButton.locator("xpath=..");
+    await expect(panel).not.toHaveClass(/-translate-x-full/);
+
+    await closeButton.click();
+
+    await expect(panel).toHaveClass(/-translate-x-full/);
+  });
 });

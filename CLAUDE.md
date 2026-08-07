@@ -60,7 +60,7 @@ docker-compose up       # Postgres on :5432
 
 > Every script here is live. If a command fails because it is missing, say so rather than working around it.
 >
-> `test:e2e` starts its own dev server and **writes to whatever `DATABASE_URL` points at** — the CRUD specs create and delete real rows. Point it at a throwaway database. It runs serially on one worker, so prefer a single spec while iterating: `pnpm test:e2e e2e/<name>.spec.ts --project=chromium` (`auth.spec.ts` runs under the `unauthenticated` project instead).
+> `test:e2e` starts its own dev server against `.env.test`'s `DATABASE_URL`, never `.env`'s — the CRUD specs create and delete real rows, and `playwright.config.ts` refuses to start if `.env.test` is missing or matches `.env` (TD-65; see `docs/TESTING.md` §E2E for setup). It runs serially on one worker, so prefer a single spec while iterating: `pnpm test:e2e e2e/<name>.spec.ts --project=chromium` (`auth.spec.ts` runs under the `unauthenticated` project instead).
 
 ---
 

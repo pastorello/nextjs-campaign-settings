@@ -11,6 +11,7 @@ import { fetchFilteredDeities } from "@/app/lib/data/deities/fetchFilteredDeitie
 import { fetchFilteredMagicItems } from "@/app/lib/data/magicitems/fetchFilteredMagicItems";
 import { fetchFilteredNpc } from "@/app/lib/data/npc/fetchFilteredNpc";
 import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
+import fetchDerivedLocations from "@/app/lib/data/maps/fetchDerivedLocations";
 
 import SortableHeader from "../buttons/SortableHeader";
 import DeleteButton from "../buttons/DeleteButton";
@@ -61,6 +62,18 @@ export default async function EntityList(props: {
     props.pageType,
     props.searchParams ?? {}
   )) as unknown as ListItem[];
+
+  // Attached after the fetch, not read from it: `fetchFiltered*`'s result
+  // schema (`buildResultSchema`, keyed off `pagesConfig`) strips any key it
+  // does not declare, and `derivedLocation` deliberately isn't declared
+  // there (see `pageMetaFields.ts`) — it is never part of the write schema.
+  if (props.pageType === PageType.Npc || props.pageType === PageType.Deity) {
+    const linkedType = props.pageType === PageType.Npc ? "npc" : "deity";
+    const derivedLocations = await fetchDerivedLocations(linkedType);
+    for (const item of items) {
+      item.derivedLocation = derivedLocations.get(item.id as number) ?? "";
+    }
+  }
 
   return (
     <div className="mt-6 flow-root">

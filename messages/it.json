@@ -45,7 +45,8 @@
     "table": {
       "name": "Nome",
       "actions": "Azioni",
-      "edit": "Modifica"
+      "edit": "Modifica",
+      "derivedLocation": "Posizione (mappa)"
     },
     "form": {
       "cancel": "Annulla",

@@ -10,6 +10,13 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    // Mirrors the CI job env (`.github/workflows/ci.yml`) so `pnpm test` is
+    // green on a fresh checkout with no `.env` file. `env.ts` validates
+    // `DATABASE_URL` at import time (TD-02b), and this is the only value
+    // that reaches it here — no real database is touched by unit tests. (TD-75)
+    env: {
+      DATABASE_URL: "postgresql://admin:postgres@localhost:5432/placeholder",
+    },
     setupFiles: ["./vitest.setup.ts"],
     include: ["**/*.{test,spec}.{ts,tsx}"],
     // `.claude/**` holds agent worktrees — full checkouts of this repo. Without

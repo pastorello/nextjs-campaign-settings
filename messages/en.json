@@ -424,6 +424,22 @@
       "materialWorld": "Material World",
       "kingdomOfKang": "Kingdom of Kang",
       "citySkreebars": "City of Skreebars"
+    },
+    "poiCategories": {
+      "foodDrink": "Food & Drink",
+      "shopping": "Shopping",
+      "transport": "Transport",
+      "lodging": "Lodging",
+      "health": "Health",
+      "entertainment": "Entertainment",
+      "nature": "Nature",
+      "services": "Services",
+      "education": "Education",
+      "religion": "Religion",
+      "business": "Business",
+      "tourism": "Tourism",
+      "emergency": "Emergency",
+      "utilities": "Utilities"
     }
   },
   "world": {

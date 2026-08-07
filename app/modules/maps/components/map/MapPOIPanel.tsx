@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Drawer } from "vaul";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import type {
   POI,
   POICategory,
@@ -235,6 +236,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
   mode: externalMode,
   onAddPlace,
 }: MapPOIPanelProps) {
+  const t = useTranslations();
   const [isMobile, setIsMobile] = useState(false);
   const [editingPOI, setEditingPOI] = useState<POI | null>(null);
   const [isSavingPlace, setIsSavingPlace] = useState(false);
@@ -378,8 +380,11 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     ? pois.filter((poi) => poi.category === filterCategory)
     : pois;
 
-  const categoryName = filterCategory
-    ? POI_CATEGORIES.find((c) => c.id === filterCategory)?.name
+  const filterCategoryLabelKey = filterCategory
+    ? POI_CATEGORIES.find((c) => c.id === filterCategory)?.labelKey
+    : undefined;
+  const categoryName = filterCategoryLabelKey
+    ? t(filterCategoryLabelKey)
     : "My Places";
 
   /**
@@ -789,7 +794,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
               >
                 {POI_CATEGORIES.map((cat) => (
                   <option key={cat.id} value={cat.id}>
-                    {cat.icon} {cat.name}
+                    {cat.icon} {t(cat.labelKey)}
                   </option>
                 ))}
               </select>

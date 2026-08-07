@@ -1,12 +1,23 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { fetchPlaceChildren } = vi.hoisted(() => ({
+const { fetchPlaceChildren, updatePoi } = vi.hoisted(() => ({
   fetchPlaceChildren: vi.fn(),
+  updatePoi: vi.fn(),
 }));
 vi.mock("@/app/lib/data/maps/fetchPlaceChildren", () => ({
   default: fetchPlaceChildren,
 }));
+vi.mock("@/app/lib/data/maps/updatePoi", () => ({ default: updatePoi }));
+
+const { notifyError } = vi.hoisted(() => ({ notifyError: vi.fn() }));
+vi.mock("@/app/lib/notifications/notify", () => ({
+  notifyError,
+  notifySuccess: vi.fn(),
+}));
+
+// `next-intl` is already mocked globally in vitest.setup.ts (echoes the key
+// back), which is enough for this hook's one `t()` call.
 
 const fakeMap = {
   hasLayer: vi.fn(() => true),
@@ -18,13 +29,22 @@ vi.mock("@/app/modules/maps/hooks/useLeafletMap", () => ({
 
 const bindPopup = vi.fn();
 const markerAddTo = vi.fn();
-const marker = vi.fn(() => {
-  const instance = { addTo: markerAddTo, bindPopup };
+const markerGetLatLng = vi.fn(() => ({ lat: 99, lng: 88 }));
+const dragendHandlers = new Map<unknown, () => void>();
+const marker = vi.fn((..._args: unknown[]) => {
+  const instance = {
+    addTo: markerAddTo,
+    bindPopup,
+    getLatLng: markerGetLatLng,
+    on: vi.fn((event: string, handler: () => void) => {
+      if (event === "dragend") dragendHandlers.set(instance, handler);
+    }),
+  };
   markerAddTo.mockReturnValue(instance);
   return instance;
 });
 vi.mock("leaflet", () => ({
-  marker: (...args: unknown[]) => marker(...(args as [])),
+  marker: (...args: unknown[]) => marker(...args),
   divIcon: vi.fn(() => ({})),
 }));
 
@@ -54,6 +74,8 @@ import { useLinkedEntityMarkers } from "./useLinkedEntityMarkers";
 describe("useLinkedEntityMarkers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    dragendHandlers.clear();
+    updatePoi.mockResolvedValue({ ok: true });
   });
 
   it("fetches this place's children scoped by parentId", async () => {
@@ -140,5 +162,59 @@ describe("useLinkedEntityMarkers", () => {
     unmount();
 
     expect(fakeMap.removeLayer).toHaveBeenCalled();
+  });
+});
+
+describe("useLinkedEntityMarkers — drag to reposition (TD-71, SPEC-005 §5.B)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    dragendHandlers.clear();
+    updatePoi.mockResolvedValue({ ok: true });
+  });
+
+  it("renders the marker as draggable", async () => {
+    fetchPlaceChildren.mockResolvedValue([row({ id: 1 })]);
+
+    renderHook(() => useLinkedEntityMarkers(1));
+
+    await waitFor(() => expect(marker).toHaveBeenCalled());
+    const options = marker.mock.calls[0]?.[1] as { draggable?: boolean };
+    expect(options.draggable).toBe(true);
+  });
+
+  it("sends only id/lat/lng on drop, never category", async () => {
+    fetchPlaceChildren.mockResolvedValue([row({ id: 1 })]);
+
+    renderHook(() => useLinkedEntityMarkers(1));
+    await waitFor(() => expect(dragendHandlers.size).toBe(1));
+
+    await act(async () => {
+      dragendHandlers.values().next().value?.();
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(updatePoi).toHaveBeenCalledWith({ id: 1, lat: 99, lng: 88 })
+    );
+  });
+
+  it("reverts the position and notifies when the server rejects the drag", async () => {
+    updatePoi.mockResolvedValue({ ok: false });
+    fetchPlaceChildren.mockResolvedValue([
+      row({ id: 1, title: "Elune", lat: 10, lng: 20 }),
+    ]);
+
+    const { result } = renderHook(() => useLinkedEntityMarkers(1));
+    await waitFor(() => expect(dragendHandlers.size).toBe(1));
+
+    await act(async () => {
+      dragendHandlers.values().next().value?.();
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(notifyError).toHaveBeenCalledWith("placePositionFailed")
+    );
+    expect(result.current[0]).toMatchObject({ lat: 10, lng: 20 });
   });
 });

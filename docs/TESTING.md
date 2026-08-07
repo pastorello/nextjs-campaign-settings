@@ -25,7 +25,7 @@
 > **`pnpm test:e2e` writes to a dedicated `.env.test` database, never `.env`'s (TD-65).** The CRUD specs create, edit and delete real records, and `.env`'s database is the real one you develop against — a 2026-08-06 incident found e2e debris (`"E2E World …"`, `"E2E POI …"` rows) sitting in it, undetected, because nothing enforced the separation `docs/TESTING.md` only used to _ask_ for. `playwright.config.ts` now enforces it structurally instead:
 >
 > 1. Copy `.env.test.example` to `.env.test` and create a second database inside the same Postgres container — same credentials as `.env`, a different name (the file has the exact commands).
-> 2. Push the schema to it: `DATABASE_URL="<.env.test's URL>" pnpm prisma db push`.
+> 2. Apply migrations to it: `DATABASE_URL="<.env.test's URL>" pnpm prisma migrate deploy`. Not `db push` — `db push` only diffs the schema shape, so it skips migration files entirely; `add_faction_table_and_fk` seeds the `faction` table with a raw-SQL `INSERT`, and `db push` leaves that table empty, which then fails `pnpm db:seed` on `npc`'s foreign key to it (TD-73).
 > 3. `pnpm test:e2e` reads `.env.test`'s `DATABASE_URL` and passes it explicitly to the dev server it spawns — `.env`'s value is never used for this. It refuses to start if `.env.test` is missing, has no `DATABASE_URL`, or that value is identical to `.env`'s.
 > 4. It also never reuses an already-running `pnpm dev` on `:3000` (`reuseExistingServer: false`, unconditionally) — that was the actual mechanism behind the 2026-08-06 incident: a manually-started dev server against the real `.env` got silently attached to instead of the e2e-configured one. A stray server on `:3000` now makes the suite fail on a port conflict instead of writing to the wrong place.
 >

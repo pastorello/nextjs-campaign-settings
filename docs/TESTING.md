@@ -22,7 +22,14 @@
 
 > **Two warnings before you run either suite.**
 >
-> **`pnpm test:e2e` writes to whatever database `DATABASE_URL` points at.** The CRUD specs create, edit and delete real records. They use timestamped names and clean up after themselves, but an interrupted run leaves an `E2E …` row behind. Point it at a throwaway database, not at a campaign you care about.
+> **`pnpm test:e2e` writes to a dedicated `.env.test` database, never `.env`'s (TD-65).** The CRUD specs create, edit and delete real records, and `.env`'s database is the real one you develop against — a 2026-08-06 incident found e2e debris (`"E2E World …"`, `"E2E POI …"` rows) sitting in it, undetected, because nothing enforced the separation `docs/TESTING.md` only used to _ask_ for. `playwright.config.ts` now enforces it structurally instead:
+>
+> 1. Copy `.env.test.example` to `.env.test` and create a second database inside the same Postgres container — same credentials as `.env`, a different name (the file has the exact commands).
+> 2. Push the schema to it: `DATABASE_URL="<.env.test's URL>" pnpm prisma db push`.
+> 3. `pnpm test:e2e` reads `.env.test`'s `DATABASE_URL` and passes it explicitly to the dev server it spawns — `.env`'s value is never used for this. It refuses to start if `.env.test` is missing, has no `DATABASE_URL`, or that value is identical to `.env`'s.
+> 4. It also never reuses an already-running `pnpm dev` on `:3000` (`reuseExistingServer: false`, unconditionally) — that was the actual mechanism behind the 2026-08-06 incident: a manually-started dev server against the real `.env` got silently attached to instead of the e2e-configured one. A stray server on `:3000` now makes the suite fail on a port conflict instead of writing to the wrong place.
+>
+> In CI none of this applies: the `e2e` job provisions its own disposable Postgres service and sets `DATABASE_URL` directly as a job env var, so `playwright.config.ts` skips the `.env.test` check there entirely (see `.github/workflows/ci.yml`).
 >
 > **No spec may assume how much data exists.** Every count is read off the page and every assertion is relative to it, because the same suite runs against a 4-row seed and against a 361-spell library. Two rules follow from getting this wrong once: a record a spec creates is _not_ on page 1 of a real list, so look it up with `?query=`; and a click on a filter must wait for hydration, or it lands on server-rendered markup with no handler attached and is silently swallowed.
 >

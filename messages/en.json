@@ -417,7 +417,8 @@
       "importFailed": "Failed to import file. Please check the format.",
       "poiLoadFailed": "Could not load your places. Reload the page to try again.",
       "poiSaveFailed": "Could not save “{title}”. The change has been undone.",
-      "poiDeleteFailed": "Could not delete “{title}”. The place has been restored."
+      "poiDeleteFailed": "Could not delete “{title}”. The place has been restored.",
+      "placePositionFailed": "Could not position “{title}”. Try again."
     },
     "maps": {
       "planesOfExistence": "Planes of Existence",

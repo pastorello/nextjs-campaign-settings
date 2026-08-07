@@ -666,5 +666,11 @@ export function usePOIManager(parentId: number) {
     importGeoJSON,
     flyToPOI,
     poiCount: pois.length,
+    // Re-runs the same load `loadPOIs` does on mount (TD-71, SPEC-005 §5.A)
+    // — positioning a previously-unplaced `kind: "poi"` child happens
+    // through a direct `updatePoi` call outside this hook's own optimistic
+    // path (it isn't in `pois` yet, so `updatePOI` has nothing to find), so
+    // the caller reloads explicitly once that write lands.
+    reloadPOIs: loadPOIs,
   };
 }

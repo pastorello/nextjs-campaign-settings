@@ -19,11 +19,13 @@ import {
   type NavigableChild,
 } from "@/app/modules/maps/hooks/useNavigableChildren";
 import { useLinkedEntityMarkers } from "@/app/modules/maps/hooks/useLinkedEntityMarkers";
+import { useUnplacedChildren } from "@/app/modules/maps/hooks/useUnplacedChildren";
 import type { POICategory, POIGeoJSON } from "@/app/modules/maps/types/poi";
 import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import { notifyError } from "@/app/lib/notifications/notify";
 import createPlace from "@/app/lib/data/maps/createPlace";
+import updatePoiAction from "@/app/lib/data/maps/updatePoi";
 
 /**
  * WorldMap - the map view backing `/dashboard/geography`.
@@ -73,6 +75,13 @@ function WorldMap({
     lat: number;
     lng: number;
   } | null>(null);
+  // The unplaced child currently being positioned (TD-71, SPEC-005 §5.A) —
+  // title is captured at selection time so a failure toast can name it
+  // without re-reading `unplacedChildren`, which may have moved on by then.
+  const [positioningPlace, setPositioningPlace] = useState<{
+    id: number;
+    title: string;
+  } | null>(null);
 
   // Context menu hook
   const {
@@ -94,6 +103,7 @@ function WorldMap({
     exportGeoJSON,
     importGeoJSON,
     flyToPOI,
+    reloadPOIs,
   } = usePOIManager(parentId);
 
   // Bumped after a successful region/deity/npc create so
@@ -107,6 +117,10 @@ function WorldMap({
   // `deity`/`npc` children with coordinates, same scope and refetch trigger
   // (TD-70) — leaves, not navigable, so no `onDescend` wiring.
   useLinkedEntityMarkers(parentId, placesRefetchToken);
+
+  // This place's children with no position yet, any kind (TD-71, SPEC-005
+  // §5.A) — feeds MapPOIPanel's "Unplaced places" section.
+  const unplacedChildren = useUnplacedChildren(parentId, placesRefetchToken);
 
   // Creates a navigable/deity/npc place under the current parent (SPEC-004
   // M5, T2). `kind: "poi"` never reaches this — the panel keeps that on the
@@ -154,6 +168,7 @@ function WorldMap({
   const handleClosePOIPanel = useCallback(() => {
     setIsPOIPanelOpen(false);
     setIsSelectingPOILocation(false);
+    setPositioningPlace(null);
     setPOIPanelMode("list");
     // Reset coordinates and category after a brief delay to allow panel to close smoothly
     setTimeout(() => {
@@ -161,6 +176,20 @@ function WorldMap({
       setPOIInitialCoords(null);
     }, 100);
   }, []);
+
+  // Toggles positioning mode for an unplaced child (TD-71, SPEC-005 §5.A):
+  // choosing the one already being positioned cancels it, choosing a
+  // different one switches the target.
+  const handlePositionPlace = useCallback(
+    (id: number) => {
+      setPositioningPlace((prev) => {
+        if (prev?.id === id) return null;
+        const child = unplacedChildren.find((candidate) => candidate.id === id);
+        return child ? { id: child.id, title: child.title } : null;
+      });
+    },
+    [unplacedChildren]
+  );
 
   // Handle POI location selection request
   const handleRequestPOILocation = useCallback(() => {
@@ -179,27 +208,66 @@ function WorldMap({
     setPOIPanelMode(mode as "list" | "add");
   }, []);
 
-  // Handle map click for POI location selection
+  // Handle map click for POI location selection, and for positioning an
+  // existing unplaced place (TD-71, SPEC-005 §5.A) — the two flows share
+  // the crosshair mode, but positioning writes to an existing row via
+  // `updatePoi` instead of seeding the "add" form.
   const handleMapClick = useCallback(
     (lat: number, lng: number) => {
+      if (positioningPlace) {
+        const { id, title } = positioningPlace;
+        setPositioningPlace(null);
+        setCursorCoords(null);
+        void (async () => {
+          try {
+            const result = await updatePoiAction({ id, lat, lng });
+            if (result.ok) {
+              setPlacesRefetchToken((token) => token + 1);
+              void reloadPOIs();
+            } else {
+              toast.error(t("placePositionFailed", { title }));
+            }
+          } catch (error) {
+            console.error("Failed to position place:", error);
+            toast.error(t("placePositionFailed", { title }));
+          }
+        })();
+        return;
+      }
+
       if (isSelectingPOILocation) {
         setPOIInitialCoords({ lat, lng });
         setIsSelectingPOILocation(false);
         setCursorCoords(null);
       }
     },
-    [isSelectingPOILocation]
+    [positioningPlace, isSelectingPOILocation, reloadPOIs, t]
   );
 
   // Handle map mouse move for cursor tracking
   const handleMapMouseMove = useCallback(
     (lat: number, lng: number) => {
-      if (isSelectingPOILocation) {
+      if (isSelectingPOILocation || positioningPlace) {
         setCursorCoords({ lat, lng });
       }
     },
-    [isSelectingPOILocation]
+    [isSelectingPOILocation, positioningPlace]
   );
+
+  // Cancel any in-progress positioning when the DM navigates to a different
+  // map (TD-71, SPEC-005 §5.A edge case) — `WorldMap` isn't remounted on
+  // `parentId` change, so this state would otherwise survive the navigation
+  // and point at a place that no longer belongs to the map being viewed.
+  // The "adjusting state during render" pattern (React docs, "You Might Not
+  // Need an Effect"), not a `useEffect` — `MapSearchBar` already uses this
+  // exact shape for the same reason: a `setState` inside an effect body
+  // trips `react-hooks/set-state-in-effect`.
+  const [prevParentId, setPrevParentId] = useState(parentId);
+  if (parentId !== prevParentId) {
+    setPrevParentId(parentId);
+    setPositioningPlace(null);
+    setCursorCoords(null);
+  }
 
   const handlePOIExport = useCallback(() => {
     const geojson = exportGeoJSON();
@@ -286,7 +354,9 @@ function WorldMap({
         className="w-full h-full"
         onClick={handleMapClick}
         onMouseMove={handleMapMouseMove}
-        cursorStyle={isSelectingPOILocation ? "crosshair" : "grab"}
+        cursorStyle={
+          isSelectingPOILocation || positioningPlace ? "crosshair" : "grab"
+        }
       ></LeafletMap>
 
       {/* Map Controls */}
@@ -331,6 +401,9 @@ function WorldMap({
         cursorLng={cursorCoords?.lng}
         mode={poiPanelMode}
         onAddPlace={handleAddPlace}
+        unplacedChildren={unplacedChildren}
+        onPositionPlace={handlePositionPlace}
+        positioningPlaceId={positioningPlace?.id ?? null}
       />
     </div>
   );

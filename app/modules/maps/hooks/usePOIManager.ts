@@ -10,7 +10,7 @@ import type {
   LinkableEntityType,
 } from "@/app/modules/maps/types/poi";
 import {
-  getCategoryColor,
+  getCategoryMarkerBgClass,
   isPOICategory,
 } from "@/app/modules/maps/constants/poi-categories";
 import { getLinkableEntityTypeById } from "@/app/modules/maps/constants/linkable-entities";
@@ -210,6 +210,70 @@ export function usePOIManager(parentId: number) {
   }, []);
 
   /**
+   * Update existing POI. Declared ahead of `createMarker`/`renderMarkers`
+   * (its original position, further down, is where `addPOI` also lives) —
+   * `renderMarkers` calls this from a marker's `dragend` handler (TD-71,
+   * SPEC-005 §5.B), and a `const` referenced before its own declaration in
+   * the same function body is a TS/TDZ error even inside a closure that
+   * only runs later.
+   */
+  const updatePOI = useCallback(
+    (id: string, updates: Partial<Omit<POI, "id" | "createdAt">>) => {
+      const previous = poisRef.current.find((poi) => poi.id === id);
+      if (!previous) return;
+
+      commit((current) =>
+        current.map((poi) =>
+          poi.id === id ? { ...poi, ...updates, updatedAt: Date.now() } : poi
+        )
+      );
+
+      enqueue(id, async () => {
+        const serverId = serverIdsRef.current.get(id);
+        // No server id means the create failed and this POI was already rolled
+        // back out of the list. Nothing to update.
+        if (serverId === undefined) return;
+
+        const restore = () => {
+          commit((current) =>
+            current.map((poi) => (poi.id === id ? previous : poi))
+          );
+          notifyError(tRef.current("poiSaveFailed", { title: previous.title }));
+        };
+
+        try {
+          const result = await updatePoiAction({
+            id: serverId,
+            ...(updates.title !== undefined && { title: updates.title }),
+            ...(updates.description !== undefined && {
+              description: updates.description,
+            }),
+            ...(updates.lat !== undefined && { lat: updates.lat }),
+            ...(updates.lng !== undefined && { lng: updates.lng }),
+            ...(updates.category !== undefined && {
+              category: updates.category,
+            }),
+            // Sent as a pair or not at all — see `poiSchema.ts`'s
+            // `hasPairedLink`. The panel always submits its link selector's
+            // full current state, never one field alone.
+            ...(updates.linkedType !== undefined &&
+              updates.linkedId !== undefined && {
+                linkedType: updates.linkedType,
+                linkedId: updates.linkedId,
+              }),
+          });
+
+          if (!result.ok) restore();
+        } catch (error) {
+          console.error("Failed to update POI:", error);
+          restore();
+        }
+      });
+    },
+    [commit, enqueue]
+  );
+
+  /**
    * Create marker for POI
    */
   const createMarker = useCallback(
@@ -218,28 +282,18 @@ export function usePOIManager(parentId: number) {
 
       try {
         const L = await import("leaflet");
-        const color = getCategoryColor(poi.category);
+        const markerBgClass = getCategoryMarkerBgClass(poi.category);
 
         const marker = L.marker([poi.lat, poi.lng], {
+          // TD-71, SPEC-005 §5.B — a placed marker can be dragged to a new
+          // spot; `renderMarkers` wires the `dragend` handler once this
+          // returns, since `updatePOI` isn't in scope here.
+          draggable: true,
           icon: L.divIcon({
             className: "custom-poi-marker",
             html: `
-          <div style="
-            width: 32px;
-            height: 32px;
-            background: ${color};
-            border: 3px solid white;
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          ">
-            <div style="
-              transform: rotate(45deg);
-              font-size: 14px;
-            ">📍</div>
+          <div class="w-8 h-8 flex items-center justify-center -rotate-45 shadow-[0_3px_8px_rgba(0,0,0,0.3)] border-3 border-white rounded-[50%_50%_50%_0] ${markerBgClass}">
+            <div class="rotate-45 text-sm">📍</div>
           </div>
         `,
             iconSize: [32, 32],
@@ -254,19 +308,19 @@ export function usePOIManager(parentId: number) {
             ? getLinkableEntityTypeById(poi.linkedType)
             : undefined;
         const popupContent = `
-      <div style="min-width: 150px;">
-        <div style="font-weight: 600; margin-bottom: 4px;">${poi.title}</div>
+      <div class="min-w-[150px]">
+        <div class="font-semibold mb-1">${poi.title}</div>
         ${
           poi.description
-            ? `<div style="font-size: 12px; color: #666; margin-bottom: 4px;">${poi.description}</div>`
+            ? `<div class="text-xs text-gray-600 mb-1">${poi.description}</div>`
             : ""
         }
-        <div style="font-size: 11px; color: #999;">${poi.lat.toFixed(
+        <div class="text-[11px] text-gray-400">${poi.lat.toFixed(
           6
         )}, ${poi.lng.toFixed(6)}</div>
         ${
           linkedEntityType && poi.linkedId != null
-            ? `<a href="${linkedEntityType.path}?id=${poi.linkedId}" style="font-size: 12px; color: #2563eb; text-decoration: underline; display: inline-block; margin-top: 4px;">View ${linkedEntityType.label}</a>`
+            ? `<a href="${linkedEntityType.path}?id=${poi.linkedId}" class="text-xs text-blue-500 underline inline-block mt-1">View ${linkedEntityType.label}</a>`
             : ""
         }
       </div>
@@ -317,10 +371,17 @@ export function usePOIManager(parentId: number) {
       }
 
       if (marker) {
+        // TD-71, SPEC-005 §5.B — reposition on drop. `updatePOI` already
+        // does the optimistic-update/revert/toast dance; this only has to
+        // read the marker's new position and hand it off.
+        marker.on("dragend", () => {
+          const { lat, lng } = marker.getLatLng();
+          updatePOI(poi.id, { lat, lng });
+        });
         markersRef.current.set(poi.id, marker);
       }
     }
-  }, [map, pois, createMarker]);
+  }, [map, pois, createMarker, updatePOI]);
 
   /**
    * Add new POI
@@ -384,65 +445,6 @@ export function usePOIManager(parentId: number) {
       return newPOI;
     },
     [commit, enqueue, generateId, parentId]
-  );
-
-  /**
-   * Update existing POI
-   */
-  const updatePOI = useCallback(
-    (id: string, updates: Partial<Omit<POI, "id" | "createdAt">>) => {
-      const previous = poisRef.current.find((poi) => poi.id === id);
-      if (!previous) return;
-
-      commit((current) =>
-        current.map((poi) =>
-          poi.id === id ? { ...poi, ...updates, updatedAt: Date.now() } : poi
-        )
-      );
-
-      enqueue(id, async () => {
-        const serverId = serverIdsRef.current.get(id);
-        // No server id means the create failed and this POI was already rolled
-        // back out of the list. Nothing to update.
-        if (serverId === undefined) return;
-
-        const restore = () => {
-          commit((current) =>
-            current.map((poi) => (poi.id === id ? previous : poi))
-          );
-          notifyError(tRef.current("poiSaveFailed", { title: previous.title }));
-        };
-
-        try {
-          const result = await updatePoiAction({
-            id: serverId,
-            ...(updates.title !== undefined && { title: updates.title }),
-            ...(updates.description !== undefined && {
-              description: updates.description,
-            }),
-            ...(updates.lat !== undefined && { lat: updates.lat }),
-            ...(updates.lng !== undefined && { lng: updates.lng }),
-            ...(updates.category !== undefined && {
-              category: updates.category,
-            }),
-            // Sent as a pair or not at all — see `poiSchema.ts`'s
-            // `hasPairedLink`. The panel always submits its link selector's
-            // full current state, never one field alone.
-            ...(updates.linkedType !== undefined &&
-              updates.linkedId !== undefined && {
-                linkedType: updates.linkedType,
-                linkedId: updates.linkedId,
-              }),
-          });
-
-          if (!result.ok) restore();
-        } catch (error) {
-          console.error("Failed to update POI:", error);
-          restore();
-        }
-      });
-    },
-    [commit, enqueue]
   );
 
   /**
@@ -680,5 +682,11 @@ export function usePOIManager(parentId: number) {
     importGeoJSON,
     flyToPOI,
     poiCount: pois.length,
+    // Re-runs the same load `loadPOIs` does on mount (TD-71, SPEC-005 §5.A)
+    // — positioning a previously-unplaced `kind: "poi"` child happens
+    // through a direct `updatePoi` call outside this hook's own optimistic
+    // path (it isn't in `pois` yet, so `updatePOI` has nothing to find), so
+    // the caller reloads explicitly once that write lands.
+    reloadPOIs: loadPOIs,
   };
 }

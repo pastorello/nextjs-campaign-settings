@@ -24,6 +24,8 @@ export interface POICategoryConfig {
   labelKey: string;
   color: string;
   bgColor: string;
+  /** Tailwind `bg-*` class matching `color` exactly — for the Leaflet marker's raw HTML string, which the content scanner can't pick up from `color`'s hex value (CLAUDE.md rule #8). */
+  markerBgClass: string;
   icon: string;
 }
 

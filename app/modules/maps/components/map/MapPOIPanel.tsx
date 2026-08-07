@@ -13,6 +13,7 @@ import {
   Edit2,
   MapPin,
   XCircle,
+  ChevronDown,
 } from "lucide-react";
 import { Drawer } from "vaul";
 import { toast } from "sonner";
@@ -38,6 +39,7 @@ import { ALLOWED_MAP_IMAGE_CONTENT_TYPES } from "@/app/lib/storage/mapImageUploa
 import fetchLinkableEntities, {
   type LinkableEntityOption,
 } from "@/app/lib/data/maps/fetchLinkableEntities";
+import type { UnplacedChild } from "@/app/modules/maps/hooks/useUnplacedChildren";
 
 /**
  * A navigable place (`region`, `plane`, `city`, `dungeon`), `deity` or `npc`
@@ -110,6 +112,16 @@ interface MapPOIPanelProps {
   // scoped to a place (SPEC-004 M7), so there is always a parent to attach
   // to.
   onAddPlace: (input: AddPlaceInput) => Promise<boolean>;
+  // This place's children still missing a position, any kind (TD-71,
+  // SPEC-005 §5.A) — the "Unplaced places" section above the POI list.
+  // Required like `onAddPlace`: every consumer is scoped to a place, so
+  // there is always a (possibly empty) list to show.
+  unplacedChildren: UnplacedChild[];
+  // Toggles positioning mode for a child: calling it with an id already
+  // being positioned cancels, same as calling it with a new one switches
+  // the target. `null` means nothing is being positioned right now.
+  onPositionPlace: (id: number) => void;
+  positioningPlaceId: number | null;
 }
 
 type ViewMode = "list" | "add" | "edit";
@@ -235,11 +247,15 @@ export const MapPOIPanel = memo(function MapPOIPanel({
   cursorLng,
   mode: externalMode,
   onAddPlace,
+  unplacedChildren,
+  onPositionPlace,
+  positioningPlaceId,
 }: MapPOIPanelProps) {
   const t = useTranslations();
   const [isMobile, setIsMobile] = useState(false);
   const [editingPOI, setEditingPOI] = useState<POI | null>(null);
   const [isSavingPlace, setIsSavingPlace] = useState(false);
+  const [isUnplacedOpen, setIsUnplacedOpen] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const snapPoints = [0.4, 0.7, 1];
   // TD-20b: snapPoints is a fixed literal array declared above, with three elements.
@@ -970,6 +986,62 @@ export const MapPOIPanel = memo(function MapPOIPanel({
             </button>
           </div>
         </div>
+
+        {/* Unplaced places (TD-71, SPEC-005 §5.A) — any kind with no
+            lat/lng yet. Above the POI list: positioning one is the
+            precondition for it to ever appear there or on the map at all. */}
+        {unplacedChildren.length > 0 && (
+          <div className="border-b dark:border-gray-800">
+            <button
+              onClick={() => setIsUnplacedOpen((open) => !open)}
+              className="w-full flex items-center justify-between px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
+              <span>Unplaced places ({unplacedChildren.length})</span>
+              <ChevronDown
+                className={`h-4 w-4 transition-transform ${
+                  isUnplacedOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            {isUnplacedOpen && (
+              <div className="divide-y divide-gray-200 dark:divide-gray-800">
+                {unplacedChildren.map((child) => {
+                  const isPositioning = positioningPlaceId === child.id;
+                  return (
+                    <div
+                      key={child.id}
+                      className="flex items-center justify-between gap-3 px-6 py-2"
+                    >
+                      <div className="min-w-0">
+                        <div className="text-sm text-gray-900 dark:text-white truncate">
+                          {child.title}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                          {child.kind}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => onPositionPlace(child.id)}
+                        className={`flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                          isPositioning
+                            ? "bg-blue-600 hover:bg-blue-700 text-white"
+                            : "bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300"
+                        }`}
+                      >
+                        <MapPin
+                          className={`h-3.5 w-3.5 ${isPositioning ? "animate-pulse" : ""}`}
+                        />
+                        {isPositioning
+                          ? "Click on map (cancel)"
+                          : "Position on map"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* POI List */}
         <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-900 scrollbar-thin">

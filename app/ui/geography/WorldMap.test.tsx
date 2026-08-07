@@ -44,6 +44,7 @@ const exportGeoJSON = vi.fn(() => ({
 }));
 const importGeoJSON = vi.fn(() => 2);
 let onAddPlace: ((input: unknown) => Promise<boolean>) | undefined;
+let onPositionPlace: ((id: number) => void) | undefined;
 vi.mock("@/app/modules/maps/components/map/MapPOIPanel", () => ({
   MapPOIPanel: (props: {
     onRequestLocation: () => void;
@@ -51,15 +52,21 @@ vi.mock("@/app/modules/maps/components/map/MapPOIPanel", () => ({
     initialLat?: number;
     initialLng?: number;
     onAddPlace: (input: unknown) => Promise<boolean>;
+    unplacedChildren: { id: number; title: string; kind: string }[];
+    onPositionPlace: (id: number) => void;
+    positioningPlaceId: number | null;
   }) => {
     onRequestLocation = props.onRequestLocation;
     onImport = props.onImport;
     onAddPlace = props.onAddPlace;
+    onPositionPlace = props.onPositionPlace;
     return (
       <div
         data-testid="map-poi-panel"
         data-initial-lat={props.initialLat}
         data-initial-lng={props.initialLng}
+        data-unplaced-count={props.unplacedChildren.length}
+        data-positioning-id={props.positioningPlaceId ?? undefined}
       />
     );
   },
@@ -69,6 +76,12 @@ const createPlace =
   vi.fn<(...args: unknown[]) => Promise<{ ok: boolean; id?: number }>>();
 vi.mock("@/app/lib/data/maps/createPlace", () => ({
   default: (...args: unknown[]) => createPlace(...args),
+}));
+
+const updatePoi =
+  vi.fn<(input: unknown) => Promise<{ ok: boolean; errors?: unknown }>>();
+vi.mock("@/app/lib/data/maps/updatePoi", () => ({
+  default: (input: unknown) => updatePoi(input),
 }));
 
 vi.mock("@/app/modules/maps/hooks/useMapContextMenu", () => ({
@@ -81,6 +94,7 @@ vi.mock("@/app/modules/maps/hooks/useMapContextMenu", () => ({
 vi.mock("@/app/modules/maps/hooks/useMapMarkers", () => ({
   useMapMarkers: () => ({ addMarker: vi.fn() }),
 }));
+const reloadPOIs = vi.fn();
 vi.mock("@/app/modules/maps/hooks/usePOIManager", () => ({
   usePOIManager: () => ({
     pois: [],
@@ -91,7 +105,14 @@ vi.mock("@/app/modules/maps/hooks/usePOIManager", () => ({
     exportGeoJSON,
     importGeoJSON,
     flyToPOI: vi.fn(),
+    reloadPOIs,
   }),
+}));
+const useUnplacedChildren = vi
+  .fn<(...args: unknown[]) => { id: number; title: string; kind: string }[]>()
+  .mockReturnValue([]);
+vi.mock("@/app/modules/maps/hooks/useUnplacedChildren", () => ({
+  useUnplacedChildren: (...args: unknown[]) => useUnplacedChildren(...args),
 }));
 const useNavigableChildren = vi
   .fn<(...args: unknown[]) => unknown[]>()
@@ -165,8 +186,10 @@ async function renderMap(mapUrl = "/maps/test.jpg") {
 beforeEach(() => {
   vi.clearAllMocks();
   createPlace.mockResolvedValue({ ok: true, id: 1 });
+  updatePoi.mockResolvedValue({ ok: true });
   useNavigableChildren.mockReturnValue([]);
   useLinkedEntityMarkers.mockReturnValue([]);
+  useUnplacedChildren.mockReturnValue([]);
 });
 
 describe("WorldMap", () => {
@@ -372,5 +395,108 @@ describe("WorldMap", () => {
     // Give a re-render a chance to happen; asserting equal counts, not a
     // change, so no waitFor to await.
     expect(useNavigableChildren.mock.calls.length).toBe(callsBefore);
+  });
+});
+
+describe("WorldMap — positioning an unplaced place (TD-71, SPEC-005 §5.A)", () => {
+  beforeEach(() => {
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    ]);
+  });
+
+  it("enters crosshair mode and passes the positioning id to the panel", async () => {
+    await renderMap();
+
+    act(() => {
+      onPositionPlace?.(5);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("leaflet-map")).toHaveAttribute(
+        "data-cursor",
+        "crosshair"
+      );
+    });
+    expect(screen.getByTestId("map-poi-panel")).toHaveAttribute(
+      "data-positioning-id",
+      "5"
+    );
+  });
+
+  it("positions the place on the next map click, sending only id/lat/lng", async () => {
+    await renderMap();
+
+    act(() => {
+      onPositionPlace?.(5);
+    });
+    act(() => {
+      onClick?.(10, 20);
+    });
+
+    await waitFor(() => {
+      expect(updatePoi).toHaveBeenCalledWith({ id: 5, lat: 10, lng: 20 });
+    });
+    expect(reloadPOIs).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.getByTestId("leaflet-map")).toHaveAttribute(
+        "data-cursor",
+        "grab"
+      );
+    });
+  });
+
+  it("bumps the navigable/linked refetch token after a successful positioning", async () => {
+    await renderMap();
+    const tokenBefore = useNavigableChildren.mock.calls.at(-1)?.[2];
+
+    act(() => {
+      onPositionPlace?.(5);
+    });
+    act(() => {
+      onClick?.(10, 20);
+    });
+
+    await waitFor(() => {
+      const tokenAfter = useNavigableChildren.mock.calls.at(-1)?.[2];
+      expect(tokenAfter).not.toBe(tokenBefore);
+    });
+  });
+
+  it("cancels positioning on a second click of the same place, without touching the map", async () => {
+    await renderMap();
+
+    act(() => {
+      onPositionPlace?.(5);
+    });
+    act(() => {
+      onPositionPlace?.(5);
+    });
+
+    expect(screen.getByTestId("map-poi-panel")).not.toHaveAttribute(
+      "data-positioning-id"
+    );
+
+    act(() => {
+      onClick?.(10, 20);
+    });
+    expect(updatePoi).not.toHaveBeenCalled();
+  });
+
+  it("toasts and leaves the place unplaced when the update fails", async () => {
+    updatePoi.mockResolvedValue({ ok: false });
+    await renderMap();
+
+    act(() => {
+      onPositionPlace?.(5);
+    });
+    act(() => {
+      onClick?.(10, 20);
+    });
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("placePositionFailed");
+    });
+    expect(reloadPOIs).not.toHaveBeenCalled();
   });
 });

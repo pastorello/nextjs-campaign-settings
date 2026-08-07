@@ -417,7 +417,8 @@
       "importFailed": "Importazione del file non riuscita. Controlla il formato.",
       "poiLoadFailed": "Impossibile caricare i luoghi. Ricarica la pagina per riprovare.",
       "poiSaveFailed": "Impossibile salvare «{title}». La modifica è stata annullata.",
-      "poiDeleteFailed": "Impossibile eliminare «{title}». Il luogo è stato ripristinato."
+      "poiDeleteFailed": "Impossibile eliminare «{title}». Il luogo è stato ripristinato.",
+      "placePositionFailed": "Impossibile posizionare «{title}». Riprova."
     },
     "maps": {
       "planesOfExistence": "Piani di Esistenza",

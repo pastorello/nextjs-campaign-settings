@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import type { Marker } from "leaflet";
 
 import { useLeafletMap } from "./useLeafletMap";
 import fetchPlaceChildren from "@/app/lib/data/maps/fetchPlaceChildren";
+import updatePoiAction from "@/app/lib/data/maps/updatePoi";
+import { notifyError } from "@/app/lib/notifications/notify";
 import { getLinkableEntityTypeById } from "@/app/modules/maps/constants/linkable-entities";
 import type { LinkableEntityType } from "@/app/modules/maps/types/poi";
 
@@ -52,8 +55,60 @@ export function useLinkedEntityMarkers(
   refetchToken: number = 0
 ): LinkedEntityChild[] {
   const map = useLeafletMap();
+  const t = useTranslations("geography.errors");
   const [children, setChildren] = useState<LinkedEntityChild[]>([]);
   const markersRef = useRef<Marker[]>([]);
+
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  });
+
+  // Readable synchronously, unlike `children` itself — see the identical
+  // note in `useNavigableChildren.ts`: a `setState` updater is not
+  // guaranteed to run before the next line of caller code, so
+  // `repositionChild` cannot read `previous` off it directly.
+  const childrenRef = useRef<LinkedEntityChild[]>([]);
+  useEffect(() => {
+    childrenRef.current = children;
+  }, [children]);
+
+  /**
+   * Repositions a deity/npc marker on drag (TD-71, SPEC-005 §5.B) —
+   * optimistic, matching `useNavigableChildren.repositionChild`. Only ever
+   * sends `lat`/`lng` — never `category`, which would silently write a
+   * `poi`-only field onto this row.
+   */
+  const repositionChild = useCallback(
+    async (id: number, lat: number, lng: number) => {
+      const previous = childrenRef.current.find((child) => child.id === id);
+      if (!previous) return;
+
+      setChildren((current) =>
+        current.map((child) =>
+          child.id === id ? { ...child, lat, lng } : child
+        )
+      );
+
+      const revert = () => {
+        setChildren((current) =>
+          current.map((child) => (child.id === id ? previous : child))
+        );
+        notifyError(
+          tRef.current("placePositionFailed", { title: previous.title })
+        );
+      };
+
+      try {
+        const result = await updatePoiAction({ id, lat, lng });
+        if (!result.ok) revert();
+      } catch (error) {
+        console.error("Failed to reposition linked entity place:", error);
+        revert();
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -121,6 +176,10 @@ export function useLinkedEntityMarkers(
         // globs like any other `app/**` file, so it's still Tailwind
         // classes, never inline `style` (CLAUDE.md: no inline styles).
         const marker = L.marker([child.lat, child.lng], {
+          // TD-71, SPEC-005 §5.B — draggable to reposition. No descend
+          // concern to guard against here, unlike `useNavigableChildren` —
+          // a deity/npc marker's only other interaction is its popup link.
+          draggable: true,
           icon: L.divIcon({
             className: "custom-linked-entity-marker",
             html: `
@@ -133,6 +192,10 @@ export function useLinkedEntityMarkers(
             popupAnchor: [0, -16],
           }),
         }).addTo(map);
+        marker.on("dragend", () => {
+          const { lat, lng } = marker.getLatLng();
+          void repositionChild(child.id, lat, lng);
+        });
 
         const popupContent = `
       <div class="min-w-[150px]">
@@ -158,7 +221,7 @@ export function useLinkedEntityMarkers(
       });
       markersRef.current = [];
     };
-  }, [map, children]);
+  }, [map, children, repositionChild]);
 
   return children;
 }

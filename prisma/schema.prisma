@@ -113,7 +113,12 @@ model poi {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@index([linkedType, linkedId])
+  // A second pin for the same NPC/deity was silently possible before this —
+  // the column pair only had a lookup index, no uniqueness guarantee
+  // (TD-69). NULLs (every unlinked poi) are exempt under Postgres's normal
+  // unique-constraint semantics, so this only rejects an exact duplicate
+  // (linkedType, linkedId) pair.
+  @@unique([linkedType, linkedId])
   @@index([parentId])
 }
 

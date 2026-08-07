@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-08-07
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-61, TD-62, TD-64 through TD-69 all closed 2026-08-07 (see their write-ups below). Remaining open items are TD-70 and TD-71 (found 2026-08-06/07, see the summary table). TD-44 (2026-08-02) found `coverage.all: true` changed nothing, confirming the 50.68%-lines baseline rather than correcting it, and produced two properly scoped gaps: TD-45 (page-level route components) and TD-46 (`app/modules/maps/components/**` Leaflet rendering). TD-45 closed 2026-08-04: 10 new test files brought the suite to 54.51% lines / 48.92% branches (682 → 709 tests). TD-46's e2e sub-slices (POI CRUD, measurement) verified real flows but — `vitest.config.ts` excludes `e2e/**` from coverage — never moved that number, so the item pivoted to Vitest, tiered by whether `WorldMap.tsx` actually renders the component. **Tier 1 closed 2026-08-04:** five new suites (`LeafletMap`, `MapContextMenu`, `MapMeasurementPanel`, `MapControls`, `MapPOIPanel`) brought the suite to 63.81% lines / 60.89% branches (709 → 755 tests). **Tier 2 closed the same day:** the remaining eight components (`MapSearchBar`, `MapTopBar`, `MapTileSwitcher`, `MapThemeSwitcher`, `MapUser`, `LeafletGeoJSON`, `LeafletTileLayer`, `MapDetailsPanel`) — reachable only through `MapMain.tsx`, which has no importer outside its own directory — were tested as-is per the user's cable-or-delete call, bringing the suite to **70.09% lines / 69.66% branches (755 → 807 tests)**. **This crosses Phase 2's 70% exit criterion** — see `docs/ROADMAP.md`. TD-58/TD-59 (2026-08-06) closed a Dependabot config gap that broke CI twice on the same day (an ungrouped ESLint major bump, then a `prisma` CLI/client version split); see their write-ups below.
+**Open items:** TD-61, TD-62, TD-64 through TD-70 all closed 2026-08-07 (see their write-ups below). Remaining open items are TD-71 and TD-72 (found 2026-08-07, see the summary table). TD-44 (2026-08-02) found `coverage.all: true` changed nothing, confirming the 50.68%-lines baseline rather than correcting it, and produced two properly scoped gaps: TD-45 (page-level route components) and TD-46 (`app/modules/maps/components/**` Leaflet rendering). TD-45 closed 2026-08-04: 10 new test files brought the suite to 54.51% lines / 48.92% branches (682 → 709 tests). TD-46's e2e sub-slices (POI CRUD, measurement) verified real flows but — `vitest.config.ts` excludes `e2e/**` from coverage — never moved that number, so the item pivoted to Vitest, tiered by whether `WorldMap.tsx` actually renders the component. **Tier 1 closed 2026-08-04:** five new suites (`LeafletMap`, `MapContextMenu`, `MapMeasurementPanel`, `MapControls`, `MapPOIPanel`) brought the suite to 63.81% lines / 60.89% branches (709 → 755 tests). **Tier 2 closed the same day:** the remaining eight components (`MapSearchBar`, `MapTopBar`, `MapTileSwitcher`, `MapThemeSwitcher`, `MapUser`, `LeafletGeoJSON`, `LeafletTileLayer`, `MapDetailsPanel`) — reachable only through `MapMain.tsx`, which has no importer outside its own directory — were tested as-is per the user's cable-or-delete call, bringing the suite to **70.09% lines / 69.66% branches (755 → 807 tests)**. **This crosses Phase 2's 70% exit criterion** — see `docs/ROADMAP.md`. TD-58/TD-59 (2026-08-06) closed a Dependabot config gap that broke CI twice on the same day (an ungrouped ESLint major bump, then a `prisma` CLI/client version split); see their write-ups below.
 
 **TD-47 – TD-55 do not exist in this document, and that is not an oversight to fix.** A 2026-08-06 merge commit ("docs: record TD-47 – TD-57 from the 2026-08-04 audit pass", PR #80) claimed to record all nine, but its actual diff only ever added `.env.example` and `dependabot.yml` — TD-56 and TD-57's fixes, still themselves undocumented here until this pass added TD-58/TD-59 alongside them. No PR, commit, or doc anywhere in this repo's history contains what TD-47–TD-55 were about; they were most likely identified in an external audit session (a Cowork pass, per `CLAUDE.md`'s "Bringing research into the codebase" section) whose findings were never committed. **Do not re-litigate this as a documentation bug to fix by writing entries** — there is nothing to transcribe, only a merge-commit message that overclaimed. Do not reuse IDs 47–55 for new items; skip to the next free number instead, so a rediscovered original write-up (if one ever surfaces) has an unambiguous home.
 
@@ -79,8 +79,9 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-67 | ✅ "Add to My Places" context-menu label is misleading — it creates any kind, not just a POI                | ~~🟢 Low~~ done      | S      | 3     |
 | TD-68 | ✅ `MapPOIPanel`'s Close button is unclickable — a same-`z-index` overlay intercepts the click              | ~~🟠 High~~ done     | S      | 3     |
 | TD-69 | ✅ `poi.linkedType`/`linkedId` has no unique constraint — a second pin per NPC/deity is silently possible   | ~~🟠 High~~ done     | S      | 3     |
-| TD-70 | No rendering path exists for `deity`/`npc` pins on the map, even once positioned                            | 🟡 Medium            | M      | 3     |
+| TD-70 | ✅ No rendering path exists for `deity`/`npc` pins on the map, even once positioned                         | ~~🟡 Medium~~ done   | M      | 3     |
 | TD-71 | No way to position or edit a place that already exists — only newly-created ones get coordinates            | 🟠 High              | L      | 3     |
+| TD-72 | `usePOIManager.ts`/`useNavigableChildren.ts` marker HTML uses inline `style`, not Tailwind classes          | 🟢 Low               | S      | 3     |
 
 ---
 
@@ -543,7 +544,7 @@ This is a real data-integrity gap, not just a spec/implementation mismatch on pa
 
 ---
 
-## TD-70 🟡 No rendering path exists for `deity`/`npc` pins on the map, even once positioned
+## TD-70 ✅ No rendering path exists for `deity`/`npc` pins on the map, even once positioned — **DONE (2026-08-07)**
 
 **Where:** `app/modules/maps/hooks/` — `usePOIManager.ts` only renders `kind: "poi"` markers (filters `row.kind === "poi"`); `useNavigableChildren.ts` only renders navigable kinds (`region`/`plane`/`city`/`dungeon`) that carry a map. Nothing renders `deity` or `npc` pins.
 
@@ -551,9 +552,11 @@ This is a real data-integrity gap, not just a spec/implementation mismatch on pa
 
 This sits next to, but is narrower than, SPEC-004 T4's already-deferred "derive and display location from the tree" (reading a record's place by walking up its pin — see `docs/specs/004-world-model.md` T4). That deferred item is about _computing_ a location to show in the NPC/deity UI; this item is about the map itself never drawing a `deity`/`npc` pin as a marker at all — a DM can give one coordinates (TD-71 aside, once they exist to give), but can never see it on the map to confirm the placement looks right.
 
-**Plan:** a `useLinkedEntityMarkers`-style hook (or extend `useNavigableChildren`'s pattern) that fetches this place's `deity`/`npc` children with non-null coordinates and renders them with their own marker style, distinct from POI category icons and the navigable-kind markers.
+**Fix:** exactly the plan's shape — `app/modules/maps/hooks/useLinkedEntityMarkers.ts`, mirroring `useNavigableChildren.ts`'s data-fetch/draw-effect structure (same `fetchPlaceChildren` call, same `refetchToken` wiring), but filtering for `kind === "deity" || kind === "npc"` with non-null coordinates and a resolved link, and rendering its own circular marker (colour and emoji per `LinkableEntityType` — purple ✨ for `deity`, teal 🧑 for `npc`) with a popup linking to the entity's own page, reusing `usePOIManager.createMarker`'s popup-link pattern. Wired into `WorldMap.tsx` alongside `useNavigableChildren`, sharing the same `parentId`/`placesRefetchToken`. New code, so unlike the POI popup it's modeled on, the title is HTML-escaped before reaching the popup — no reason to start a fresh file with an XSS gap an existing one happens to have.
 
-**Done when:** a `deity` or `npc` pin with coordinates renders as a clickable marker on its parent's map.
+**Verification, and a real Playwright/Leaflet interaction bug found along the way:** `e2e/map-linked-entity-markers.spec.ts` creates a deity, places it via "Add Place", and clicks the resulting marker. A real Playwright `.click()` (move-then-mousedown-then-mouseup) reliably failed to open the bound popup — reproduced directly: the marker received focus and Leaflet's own outline-suppression ran, proving the click landed on the right element, but no `.leaflet-popup` ever appeared, while a plain synthetic `element.click()` run by hand in a live browser session opened it every time. Root cause: Leaflet's own map-drag handler reads Playwright's synthetic mouse movement into position as the start of a pan and suppresses the click it would otherwise forward to the marker — not a bug in this hook or the app, and the reason `map-poi-link.spec.ts`'s existing popup test never actually clicks a marker either, using `flyToPOI`'s `openPopup()` call instead. Worked around here with `locator.dispatchEvent("click")`, which fires the DOM event Leaflet listens for without going through synthetic-mouse-event drag detection.
+
+**Done when:** a `deity` or `npc` pin with coordinates renders as a clickable marker on its parent's map. ✅ — 7 new unit tests (`useLinkedEntityMarkers.test.ts`, incl. an HTML-escaping case) plus the e2e test above, run against a real Postgres.
 
 ---
 
@@ -568,6 +571,18 @@ This is not a bug introduced by T3/T4 — the gap predates them (M5 was only eve
 **Plan:** a product decision, not just an implementation one — needs deciding where this belongs (a "position" mode reachable from the tree/list view, dragging an existing marker, or something else) before it's built. Flagged in conversation 2026-08-07; not yet designed.
 
 **Done when:** a DM can select any existing place (any kind, not just `poi`) and give it a position on its parent's map, without deleting and recreating it.
+
+---
+
+## TD-72 🟢 `usePOIManager.ts` and `useNavigableChildren.ts` build marker/popup HTML with inline `style`, not Tailwind classes
+
+**Where:** `app/modules/maps/hooks/usePOIManager.ts`'s `createMarker` (POI markers and their popups) and `useNavigableChildren.ts`'s marker `html` — both build Leaflet `L.divIcon`/`bindPopup` content as raw HTML template strings using `style="..."` attributes.
+
+**Why:** found 2026-08-07 when the maintainer reviewed PR #119 (TD-70) and pointed out `useLinkedEntityMarkers.ts` — new in that PR — did the same thing, and flagged it as a rule that was true all along but never written down: this project uses Tailwind exclusively, no inline styles, including in non-JSX raw HTML strings (CLAUDE.md's "Non-negotiable rules" §8 now says so explicitly). `useLinkedEntityMarkers.ts` was fixed before merge. These two older files were the precedent it copied the _pattern_ from (not the specific violation — inline styles predate TD-70 entirely) and are now the only two places in `app/modules/maps/**` still doing it.
+
+**Plan:** convert both to the same `class="..."` Tailwind-utility approach `useLinkedEntityMarkers.ts` now uses — straightforward 1:1 translation (`width: 32px` → `w-8`, `border-radius: 50%` → `rounded-full`, arbitrary values for anything off the default scale), no behavior change. Small enough to be one commit touching both files.
+
+**Done when:** no `style="..."` attribute remains in any marker or popup HTML string under `app/modules/maps/**`.
 
 ---
 

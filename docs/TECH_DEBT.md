@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-08-07
 **Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-61, TD-62, TD-64 through TD-70 all closed 2026-08-07 (see their write-ups below). Remaining open items are TD-71 and TD-72 (found 2026-08-07, see the summary table). TD-44 (2026-08-02) found `coverage.all: true` changed nothing, confirming the 50.68%-lines baseline rather than correcting it, and produced two properly scoped gaps: TD-45 (page-level route components) and TD-46 (`app/modules/maps/components/**` Leaflet rendering). TD-45 closed 2026-08-04: 10 new test files brought the suite to 54.51% lines / 48.92% branches (682 → 709 tests). TD-46's e2e sub-slices (POI CRUD, measurement) verified real flows but — `vitest.config.ts` excludes `e2e/**` from coverage — never moved that number, so the item pivoted to Vitest, tiered by whether `WorldMap.tsx` actually renders the component. **Tier 1 closed 2026-08-04:** five new suites (`LeafletMap`, `MapContextMenu`, `MapMeasurementPanel`, `MapControls`, `MapPOIPanel`) brought the suite to 63.81% lines / 60.89% branches (709 → 755 tests). **Tier 2 closed the same day:** the remaining eight components (`MapSearchBar`, `MapTopBar`, `MapTileSwitcher`, `MapThemeSwitcher`, `MapUser`, `LeafletGeoJSON`, `LeafletTileLayer`, `MapDetailsPanel`) — reachable only through `MapMain.tsx`, which has no importer outside its own directory — were tested as-is per the user's cable-or-delete call, bringing the suite to **70.09% lines / 69.66% branches (755 → 807 tests)**. **This crosses Phase 2's 70% exit criterion** — see `docs/ROADMAP.md`. TD-58/TD-59 (2026-08-06) closed a Dependabot config gap that broke CI twice on the same day (an ungrouped ESLint major bump, then a `prisma` CLI/client version split); see their write-ups below.
+**Open items:** TD-61, TD-62, TD-64 through TD-72 all closed 2026-08-07 (see their write-ups below). The remaining open item is TD-73 (found 2026-08-07 doing TD-71's e2e work, see the summary table). TD-44 (2026-08-02) found `coverage.all: true` changed nothing, confirming the 50.68%-lines baseline rather than correcting it, and produced two properly scoped gaps: TD-45 (page-level route components) and TD-46 (`app/modules/maps/components/**` Leaflet rendering). TD-45 closed 2026-08-04: 10 new test files brought the suite to 54.51% lines / 48.92% branches (682 → 709 tests). TD-46's e2e sub-slices (POI CRUD, measurement) verified real flows but — `vitest.config.ts` excludes `e2e/**` from coverage — never moved that number, so the item pivoted to Vitest, tiered by whether `WorldMap.tsx` actually renders the component. **Tier 1 closed 2026-08-04:** five new suites (`LeafletMap`, `MapContextMenu`, `MapMeasurementPanel`, `MapControls`, `MapPOIPanel`) brought the suite to 63.81% lines / 60.89% branches (709 → 755 tests). **Tier 2 closed the same day:** the remaining eight components (`MapSearchBar`, `MapTopBar`, `MapTileSwitcher`, `MapThemeSwitcher`, `MapUser`, `LeafletGeoJSON`, `LeafletTileLayer`, `MapDetailsPanel`) — reachable only through `MapMain.tsx`, which has no importer outside its own directory — were tested as-is per the user's cable-or-delete call, bringing the suite to **70.09% lines / 69.66% branches (755 → 807 tests)**. **This crosses Phase 2's 70% exit criterion** — see `docs/ROADMAP.md`. TD-58/TD-59 (2026-08-06) closed a Dependabot config gap that broke CI twice on the same day (an ungrouped ESLint major bump, then a `prisma` CLI/client version split); see their write-ups below.
 
 **TD-47 – TD-55 do not exist in this document, and that is not an oversight to fix.** A 2026-08-06 merge commit ("docs: record TD-47 – TD-57 from the 2026-08-04 audit pass", PR #80) claimed to record all nine, but its actual diff only ever added `.env.example` and `dependabot.yml` — TD-56 and TD-57's fixes, still themselves undocumented here until this pass added TD-58/TD-59 alongside them. No PR, commit, or doc anywhere in this repo's history contains what TD-47–TD-55 were about; they were most likely identified in an external audit session (a Cowork pass, per `CLAUDE.md`'s "Bringing research into the codebase" section) whose findings were never committed. **Do not re-litigate this as a documentation bug to fix by writing entries** — there is nothing to transcribe, only a merge-commit message that overclaimed. Do not reuse IDs 47–55 for new items; skip to the next free number instead, so a rediscovered original write-up (if one ever surfaces) has an unambiguous home.
 
@@ -80,8 +80,9 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-68 | ✅ `MapPOIPanel`'s Close button is unclickable — a same-`z-index` overlay intercepts the click              | ~~🟠 High~~ done     | S      | 3     |
 | TD-69 | ✅ `poi.linkedType`/`linkedId` has no unique constraint — a second pin per NPC/deity is silently possible   | ~~🟠 High~~ done     | S      | 3     |
 | TD-70 | ✅ No rendering path exists for `deity`/`npc` pins on the map, even once positioned                         | ~~🟡 Medium~~ done   | M      | 3     |
-| TD-71 | No way to position or edit a place that already exists — only newly-created ones get coordinates            | 🟠 High              | L      | 3     |
-| TD-72 | `usePOIManager.ts`/`useNavigableChildren.ts` marker HTML uses inline `style`, not Tailwind classes          | 🟢 Low               | S      | 3     |
+| TD-71 | ✅ No way to position or edit a place that already exists — only newly-created ones get coordinates         | ~~🟠 High~~ done     | L      | 3     |
+| TD-72 | ✅ `usePOIManager.ts`/`useNavigableChildren.ts` marker HTML uses inline `style`, not Tailwind classes       | ~~🟢 Low~~ done      | S      | 3     |
+| TD-73 | `.env.test.example`'s documented e2e setup (`prisma db push`) leaves a fresh DB unable to seed              | 🟡 Medium            | S      | 3     |
 
 ---
 
@@ -560,7 +561,28 @@ This sits next to, but is narrower than, SPEC-004 T4's already-deferred "derive 
 
 ---
 
-## TD-71 🟠 No way to position or edit a place that already exists — only newly-created ones get coordinates
+## TD-71 ✅ No way to position or edit a place that already exists — only newly-created ones get coordinates — **DONE (2026-08-07)**
+
+**Outcome:** both interactions the 2026-08-07 product decision called for, per [SPEC-005](./specs/005-place-repositioning.md) — a "Da posizionare"/"Unplaced places" section in `MapPOIPanel`'s list view (click-to-place through the existing crosshair mode) and drag-to-reposition on every marker all three hooks render. `updatePoi` needed no changes at all — no `kind` filter, no `kind` field in its update schema, so it was already reusable for any kind; every write in both flows sends only `{ id, lat, lng }`, never `category` (SPEC-005 §6's one hazard).
+
+Landed as nine commits on `td71-place-repositioning`, in SPEC-005 §10's order:
+
+- **T0 (TD-72, done first — see its own entry):** inline `style` → Tailwind in the two marker hooks' HTML, sequenced ahead because T4/T5 rewrite the same lines.
+- **T1:** `useUnplacedChildren.ts` — data-only hook reading a place's children still missing `lat`/`lng`, any kind.
+- **T2:** the panel section itself (presentational), plus a `positioningPlaceId` prop so a row shows "Click on map (cancel)" while its own positioning is in flight.
+- **T3:** wiring into `WorldMap.tsx` — the crosshair mode is shared with the create flow, branching on whether a place is being positioned; `usePOIManager` exports `reloadPOIs` (its existing internal `loadPOIs`) since a newly-positioned `poi` isn't in its own optimistic-update state yet.
+- **T4–T6:** drag-to-reposition in `usePOIManager.ts`, `useNavigableChildren.ts` and `useLinkedEntityMarkers.ts`. `useNavigableChildren.ts` needed an explicit guard (`justDragged`, a plain per-marker closure variable) so a drop doesn't also trigger `onDescend` — Leaflet's own click suppression after a drag isn't a documented cross-version/touch guarantee.
+- **T7:** e2e coverage for the drag flow (`e2e/map-place-repositioning.spec.ts`) — a real mouse gesture, reload, and a coordinate-changed assertion proving the write persisted. **The picker flow (§5.A) has no e2e spec, deliberately** — there is no in-app path that produces an unplaced place to start from (`placeSchema.ts` requires `lat`/`lng` at creation for every kind; the only unplaced rows that have ever existed are SPEC-004's one-time seed script's), and reaching around that with raw-DB seeding in the e2e harness would be a new precedent bigger than this item. Covered instead at the unit/integration level: `useUnplacedChildren.test.ts`, `MapPOIPanel.test.tsx`'s unplaced-places block, `WorldMap.test.tsx`'s positioning block.
+
+**A real bug found by a test, not by inspection, mid-implementation:** `useNavigableChildren.ts`'s first draft read `previous` off the closure inside `setChildren`'s own updater function — React does not guarantee that updater runs before the next line of caller code executes, so `previous` was `undefined` by the time `revert()` needed it on a failed drag. Fixed the same way `usePOIManager` already does it: a `childrenRef` kept in sync via its own effect, read synchronously instead of trusting the updater's timing. Applied correctly from the start in `useLinkedEntityMarkers.ts` (T6).
+
+**Also found doing T7's local e2e setup, not fixed here:** filed as TD-73 — `.env.test.example`'s documented `prisma db push` step leaves a fresh e2e database unable to seed, because the `faction` table's data only comes from a migration's raw SQL, which `db push` never runs.
+
+The original write-up follows for context.
+
+---
+
+### TD-71 (original) 🟠 No way to position or edit a place that already exists — only newly-created ones get coordinates
 
 **Where:** `MapPOIPanel.tsx`'s `handleEditMode` (only reachable from `POIListItem`'s `onEdit`, itself only ever fed `kind: "poi"` rows by `usePOIManager`) — the only path in the app that can set or change a place's `lat`/`lng` after creation.
 
@@ -568,25 +590,19 @@ This sits next to, but is narrower than, SPEC-004 T4's already-deferred "derive 
 
 This is not a bug introduced by T3/T4 — the gap predates them (M5 was only ever designed around create-time positioning) — but T3/T4 are what expose it: they are the first thing to populate the tree with places nothing can ever position through the UI as it stands today.
 
-**Plan:** the product decision was taken 2026-08-07 — **both** interactions, written up as [SPEC-005](./specs/005-place-repositioning.md) (Draft): a "Da posizionare" section in `MapPOIPanel`'s list view for places that have no coordinates yet (click-to-place through the existing crosshair mode), and drag-to-reposition on every marker the three hooks already render. `updatePoi` turns out to be reusable as-is for any kind — see SPEC-005 §6. Implementation plan and task breakdown are in that spec's §9/§10; it sequences TD-72 first, since flow B rewrites the same marker lines.
-
 **Done when:** a DM can select any existing place (any kind, not just `poi`) and give it a position on its parent's map, without deleting and recreating it.
 
-**Session handoff (2026-08-07):** TD-61, TD-62 and TD-64 through TD-70 all closed this session, each its own branch + PR, all merged (PRs #110–#119). TD-72 filed along the way (found reviewing PR #119), not started. TD-71 is the only item left in this register, and the largest — start the next session here.
+---
 
-**Before writing any code:** the "Plan" line above is not yet answered. Ask the maintainer where this belongs — options on the table so far, not decided between:
+## TD-73 🟡 `.env.test.example`'s documented e2e setup (`prisma db push`) leaves a fresh DB unable to seed
 
-- A "position" mode reachable from the tree/list view (pick a place, then click the map)
-- Dragging an existing marker directly on the map to reposition it
-- Something else not yet proposed
+**Where:** `.env.test.example`, `docs/TESTING.md` §E2E's setup instructions.
 
-This is a product decision (what the interaction should feel like for a DM), not an implementation detail — guessing and building the wrong one costs more than asking first.
+**Why:** found 2026-08-07 provisioning a fresh e2e database for TD-71's T7. Both places instruct `DATABASE_URL="<.env.test's URL>" pnpm prisma db push` to sync the schema before `pnpm db:seed`. Following that exactly reproduces: `magicitems`/`deities` seed fine, then `npc` fails with `Foreign key constraint violated on the constraint: npc_fazione_fkey`. The `faction` table (SPEC-004 T1) is populated by a raw-SQL `INSERT` inside migration `20260806220000_add_faction_table_and_fk`, not by `prismaSeed.ts` — `db push` diffs the schema shape only, it never runs migration files, so the table exists but stays empty. `prisma migrate deploy` (which does run migration SQL) fixes it; confirmed working against the same fresh database.
 
-**Once the shape is agreed, likely touch points** (not a full plan — the design decision above determines the actual scope):
+**Plan:** change `.env.test.example`'s comment and `docs/TESTING.md` §E2E to say `prisma migrate deploy`, not `prisma db push`. Worth checking whether any other data-seeding migration has the same problem before calling this done — `add_faction_table_and_fk` might not be the only one.
 
-- `MapPOIPanel.tsx`'s `handleEditMode` — today only ever reachable from `POIListItem.onEdit`, which `usePOIManager` only ever feeds `kind: "poi"` rows. Repositioning a `region`/`plane`/`city`/`dungeon`/`deity`/`npc` needs a path into edit mode that doesn't exist yet.
-- The three marker-rendering hooks now live in `app/modules/maps/hooks/`: `usePOIManager.ts` (POI), `useNavigableChildren.ts` (navigable kinds), `useLinkedEntityMarkers.ts` (deity/npc, TD-70). Whichever kind becomes repositionable needs its marker layer to support that, in whichever of these three hooks owns it.
-- A server action to update `lat`/`lng` on an existing `poi` row likely doesn't exist yet for non-`poi` kinds — check `updatePoi.ts` before assuming it's reusable as-is.
+**Done when:** following `.env.test.example`'s own instructions on a brand-new database, verbatim, ends with a working `pnpm db:seed` and a passing `pnpm test:e2e`.
 
 ---
 

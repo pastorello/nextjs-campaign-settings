@@ -1,9 +1,9 @@
 # SPEC-005: Place repositioning
 
-- **Status:** Draft
+- **Status:** Shipped 2026-08-07
 - **Date:** 2026-08-07
 - **Phase:** 3
-- **Related:** TD-71, SPEC-002 (map POI persistence), SPEC-004 (world model / place hierarchy)
+- **Related:** TD-71, TD-72, TD-73, SPEC-002 (map POI persistence), SPEC-004 (world model / place hierarchy)
 
 ---
 
@@ -72,14 +72,14 @@ None. This is entirely inside `app/modules/maps/`, not the `PageMeta`-driven dom
 
 ## 8. Acceptance criteria
 
-- [ ] A DM can select any unplaced place (any `kind`) from a picker scoped to the current map and give it a position by clicking the map.
-- [ ] A DM can drag any placed marker (any `kind`) to a new position on its current map.
-- [ ] Both paths call `updatePoi` with only `{ id, lat, lng }` — never `category` for a non-`poi` row.
-- [ ] A failed drag reverts the marker to its prior position and surfaces a toast, matching `usePOIManager.updatePOI`'s existing pattern.
-- [ ] Repositioning a navigable place (`region`/`plane`/`city`/`dungeon`) does not alter its own `mapImage`/`mapBounds`/children.
-- [ ] Every new mutation call still goes through `requireSession` (already true inside `updatePoi` — no new mutation is being added, only new callers).
-- [ ] Marker HTML/styling added or touched in this work uses Tailwind classes, never inline `style` (CLAUDE.md rule #8 — this bit `useLinkedEntityMarkers.ts` before, TD-70).
-- [ ] Coverage has not dropped.
+- [x] A DM can select any unplaced place (any `kind`) from a picker scoped to the current map and give it a position by clicking the map.
+- [x] A DM can drag any placed marker (any `kind`) to a new position on its current map.
+- [x] Both paths call `updatePoi` with only `{ id, lat, lng }` — never `category` for a non-`poi` row.
+- [x] A failed drag reverts the marker to its prior position and surfaces a toast, matching `usePOIManager.updatePOI`'s existing pattern.
+- [x] Repositioning a navigable place (`region`/`plane`/`city`/`dungeon`) does not alter its own `mapImage`/`mapBounds`/children.
+- [x] Every new mutation call still goes through `requireSession` (already true inside `updatePoi` — no new mutation is being added, only new callers).
+- [x] Marker HTML/styling added or touched in this work uses Tailwind classes, never inline `style` (CLAUDE.md rule #8 — this bit `useLinkedEntityMarkers.ts` before, TD-70).
+- [x] Coverage has not dropped.
 
 ## 9. Implementation plan
 
@@ -119,16 +119,22 @@ None. This is entirely inside `app/modules/maps/`, not the `PageMeta`-driven dom
 
 ## 10. Task breakdown
 
-- [ ] **T0** — Land TD-72 first (inline `style` → Tailwind in `usePOIManager.ts` / `useNavigableChildren.ts` marker HTML). Not part of this spec; sequenced here because T5/T6 rewrite the same lines. _(test: existing hook suites stay green)_
-- [ ] **T1** — `useUnplacedChildren` hook. _(test: new `useUnplacedChildren.test.ts` — returns rows missing either coordinate, across all kinds; excludes fully-placed rows; refetches on `refetchToken`)_
-- [ ] **T2** — Panel section: `unplacedChildren` + `onPositionPlace` props, collapsible "Da posizionare (N)" above the POI list, plus both message catalogues. _(test: `MapPOIPanel.test.tsx` — section absent when the list is empty, one row per unplaced child, action fires `onPositionPlace` with the right id; `messages.test.ts` parity)_
-- [ ] **T3** — Flow A wiring in `WorldMap` + `reloadPOIs` exposed from `usePOIManager`. _(test: `WorldMap` suite — choosing a place enters crosshair mode, the next map click calls `updatePoi` with `{ id, lat, lng }` and nothing else, success triggers the three reloads, failure toasts and leaves the place unplaced)_
-- [ ] **T4** — Flow B for `poi` in `usePOIManager`. _(test: `usePOIManager.test.ts` — `dragend` calls `updatePoi` with the new coordinates; a rejected call reverts the POI's coordinates in state)_
-- [ ] **T5** — Flow B for `useNavigableChildren`, including the no-descend-on-drop guard. _(test: dragging fires the update and not `onDescend`; failure reverts the marker; a plain click still descends)_
-- [ ] **T6** — Flow B for `useLinkedEntityMarkers`. _(test: same as T5 minus the descend case)_
-- [ ] **T7** — E2E covering both flows: position a seeded unplaced place, then drag it somewhere else, and assert both survive a reload. _(test: is the test)_
-- [ ] **T8** — Close TD-71 in `docs/TECH_DEBT.md`; fill §11 below. _(test: n/a)_
+- [x] **T0** — Land TD-72 first (inline `style` → Tailwind in `usePOIManager.ts` / `useNavigableChildren.ts` marker HTML). Not part of this spec; sequenced here because T5/T6 rewrite the same lines. _(test: existing hook suites stay green)_
+- [x] **T1** — `useUnplacedChildren` hook. _(test: new `useUnplacedChildren.test.ts` — returns rows missing either coordinate, across all kinds; excludes fully-placed rows; refetches on `refetchToken`)_
+- [x] **T2** — Panel section: `unplacedChildren` + `onPositionPlace` props, collapsible "Unplaced places (N)" above the POI list. Plain English strings, not a catalogue — see §11 deviation. _(test: `MapPOIPanel.test.tsx` — section absent when the list is empty, one row per unplaced child, action fires `onPositionPlace` with the right id, positioning state shows and cancels)_
+- [x] **T3** — Flow A wiring in `WorldMap` + `reloadPOIs` exposed from `usePOIManager`. _(test: `WorldMap` suite — choosing a place enters crosshair mode, the next map click calls `updatePoi` with `{ id, lat, lng }` and nothing else, success bumps the refetch token and reloads, failure toasts and leaves the place unplaced, a second click of the same place cancels)_
+- [x] **T4** — Flow B for `poi` in `usePOIManager`. _(test: `usePOIManager.test.ts` — marker renders draggable, `dragend` calls `updatePoi` with the new coordinates, a rejected call reverts)_
+- [x] **T5** — Flow B for `useNavigableChildren`, including the no-descend-on-drop guard. _(test: draggable, sends only `{id,lat,lng}`, dragend+click doesn't call `onDescend`, a plain click still does, failure reverts and notifies)_
+- [x] **T6** — Flow B for `useLinkedEntityMarkers`. _(test: same as T5 minus the descend case)_
+- [x] **T7** — E2E for the drag flow against a real row (`e2e/map-place-repositioning.spec.ts`). The picker flow has no e2e spec — see §11 deviation. _(test: is the test)_
+- [x] **T8** — Close TD-71 in `docs/TECH_DEBT.md`; fill §11 below. _(test: n/a)_
 
 ## 11. Outcome
 
-_Fill in at close._
+- **Shipped:** 2026-08-07
+- **Deviations from spec and why:**
+  - **§9's T2 line planned message-catalogue entries for the new copy; the shipped version uses plain English string literals instead.** Reading `MapPOIPanel.tsx` before implementing showed the file has no `COPY` object and is almost entirely hardcoded English already — `useTranslations()` is only ever called for the two pre-existing category-label keys. Adding one lone translated string in an otherwise-untranslated 1100-line component would have been a smaller, more confusing inconsistency than matching the file's actual current state. TD-21 (bilingual UI) hasn't reached this file yet; when it does, this copy gets swept up with the rest of it, not ahead of it.
+  - **§10's T7 planned e2e coverage for both flows; only the drag flow (§5.B) shipped one.** Writing the picker flow's (§5.A) setup surfaced that there is no in-app path that produces an unplaced place — `placeSchema.ts` requires `lat`/`lng` at creation for every kind, so the only rows that have ever existed without them are SPEC-004's one-time world-seed script's. A true e2e test needs to start from a row shaped like that, which nothing the running app does can produce; reaching around it (raw-DB seeding inside the e2e harness, a pattern no other spec in this suite uses) would be a bigger precedent than this item should set unilaterally. §5.A's wiring is instead covered at the level it's actually reachable: `useUnplacedChildren.test.ts` (data), `MapPOIPanel.test.tsx`'s unplaced-places block (picker UI), `WorldMap.test.tsx`'s positioning block (crosshair mode, the exact `updatePoi` payload, the reload trigger). Documented in the e2e spec's own header, not just here.
+- **Follow-up debt created:**
+  - **TD-73** — `.env.test.example`'s documented local e2e setup (`prisma db push`) leaves a fresh database unable to seed, because the `faction` table's rows only exist via a migration's raw SQL, which `db push` never runs. `prisma migrate deploy` works. Found provisioning T7's local e2e run; not fixed here since it's a docs/migration-tooling gap, not a maps one.
+  - A real bug surfaced by a test during T5, already fixed within this same item (not filed separately): `useNavigableChildren.ts`'s first draft read `previous` off `setChildren`'s own updater closure, which React does not guarantee runs before the caller's next line — `revert()` silently no-opped on a failed drag. Fixed with a synchronously-readable `childrenRef`, matching `usePOIManager`'s existing pattern; applied correctly from the start in T6.

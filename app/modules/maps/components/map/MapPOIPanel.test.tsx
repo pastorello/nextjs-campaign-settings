@@ -39,6 +39,9 @@ function baseProps() {
     onImport: vi.fn(),
     onFlyTo: vi.fn(),
     onAddPlace: vi.fn().mockResolvedValue(true),
+    unplacedChildren: [],
+    onPositionPlace: vi.fn(),
+    positioningPlaceId: null,
   };
 }
 
@@ -150,6 +153,83 @@ describe("MapPOIPanel — list view", () => {
     fireEvent.change(input, { target: { files: [file] } });
 
     expect(props.onImport).toHaveBeenCalledWith(file);
+  });
+});
+
+describe("MapPOIPanel — unplaced places (TD-71, SPEC-005 §5.A)", () => {
+  it("renders no section when there are no unplaced children", () => {
+    render(<MapPOIPanel {...baseProps()} />);
+    expect(screen.queryByText(/Unplaced places/)).not.toBeInTheDocument();
+  });
+
+  it("lists each unplaced child with its title, kind and a count", () => {
+    render(
+      <MapPOIPanel
+        {...baseProps()}
+        unplacedChildren={[
+          { id: 1, title: "Kingdom of Kang", kind: "region" },
+          { id: 2, title: "Marta the Smith", kind: "npc" },
+        ]}
+      />
+    );
+
+    expect(screen.getByText("Unplaced places (2)")).toBeInTheDocument();
+    expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
+    expect(screen.getByText("region")).toBeInTheDocument();
+    expect(screen.getByText("Marta the Smith")).toBeInTheDocument();
+    expect(screen.getByText("npc")).toBeInTheDocument();
+  });
+
+  it("calls onPositionPlace with the chosen child's id", () => {
+    const props = baseProps();
+    render(
+      <MapPOIPanel
+        {...props}
+        unplacedChildren={[{ id: 7, title: "Kingdom of Kang", kind: "region" }]}
+      />
+    );
+
+    fireEvent.click(screen.getByText("Position on map"));
+
+    expect(props.onPositionPlace).toHaveBeenCalledWith(7);
+  });
+
+  it("shows the positioning state and cancels it on a second click", () => {
+    const props = baseProps();
+    const { rerender } = render(
+      <MapPOIPanel
+        {...props}
+        unplacedChildren={[{ id: 7, title: "Kingdom of Kang", kind: "region" }]}
+        positioningPlaceId={7}
+      />
+    );
+
+    fireEvent.click(screen.getByText("Click on map (cancel)"));
+    expect(props.onPositionPlace).toHaveBeenCalledWith(7);
+
+    rerender(
+      <MapPOIPanel
+        {...props}
+        unplacedChildren={[{ id: 7, title: "Kingdom of Kang", kind: "region" }]}
+        positioningPlaceId={null}
+      />
+    );
+    expect(screen.getByText("Position on map")).toBeInTheDocument();
+  });
+
+  it("collapses and expands the section on click, without affecting the POI list", () => {
+    render(
+      <MapPOIPanel
+        {...baseProps()}
+        pois={[poi]}
+        unplacedChildren={[{ id: 7, title: "Kingdom of Kang", kind: "region" }]}
+      />
+    );
+
+    expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Unplaced places (1)"));
+    expect(screen.queryByText("Kingdom of Kang")).not.toBeInTheDocument();
+    expect(screen.getByText("Skreebars Market")).toBeInTheDocument();
   });
 });
 

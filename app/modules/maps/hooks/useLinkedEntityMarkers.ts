@@ -32,10 +32,10 @@ function escapeHtml(value: string): string {
 
 const MARKER_ICON: Record<
   LinkableEntityType,
-  { color: string; emoji: string }
+  { bgClass: string; emoji: string }
 > = {
-  deity: { color: "#9333ea", emoji: "✨" },
-  npc: { color: "#0891b2", emoji: "🧑" },
+  deity: { bgClass: "bg-purple-600", emoji: "✨" },
+  npc: { bgClass: "bg-cyan-600", emoji: "🧑" },
 };
 
 /**
@@ -113,25 +113,19 @@ export function useLinkedEntityMarkers(
       markersRef.current = [];
 
       for (const child of children) {
-        const { color, emoji } = MARKER_ICON[child.linkedType];
+        const { bgClass, emoji } = MARKER_ICON[child.linkedType];
         const config = getLinkableEntityTypeById(child.linkedType);
 
+        // Leaflet renders `html` as raw markup outside React, so this can't
+        // be JSX — but the string is still scanned by Tailwind's content
+        // globs like any other `app/**` file, so it's still Tailwind
+        // classes, never inline `style` (CLAUDE.md: no inline styles).
         const marker = L.marker([child.lat, child.lng], {
           icon: L.divIcon({
             className: "custom-linked-entity-marker",
             html: `
-          <div style="
-            width: 32px;
-            height: 32px;
-            background: ${color};
-            border: 3px solid white;
-            border-radius: 50%;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          ">
-            <div style="font-size: 15px;">${emoji}</div>
+          <div class="w-8 h-8 ${bgClass} border-[3px] border-white rounded-full shadow-[0_3px_8px_rgba(0,0,0,0.3)] flex items-center justify-center">
+            <div class="text-sm">${emoji}</div>
           </div>
         `,
             iconSize: [32, 32],
@@ -141,11 +135,11 @@ export function useLinkedEntityMarkers(
         }).addTo(map);
 
         const popupContent = `
-      <div style="min-width: 150px;">
-        <div style="font-weight: 600; margin-bottom: 4px;">${escapeHtml(child.title)}</div>
+      <div class="min-w-[150px]">
+        <div class="font-semibold mb-1">${escapeHtml(child.title)}</div>
         ${
           config
-            ? `<a href="${config.path}?id=${child.linkedId}" style="font-size: 12px; color: #2563eb; text-decoration: underline; display: inline-block; margin-top: 4px;">View ${config.label}</a>`
+            ? `<a href="${config.path}?id=${child.linkedId}" class="text-xs text-blue-600 underline inline-block mt-1">View ${config.label}</a>`
             : ""
         }
       </div>

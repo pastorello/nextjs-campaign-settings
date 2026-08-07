@@ -82,6 +82,7 @@ docker-compose up       # Postgres on :5432
 5. **Never commit `.env`,** and never print secrets in output.
 6. **Do not run destructive database commands** (`prisma migrate reset`, `db push --force-reset`, `DROP`) without explicit confirmation in the conversation.
 7. **Do not upgrade `next` / `react` / `prisma` major versions** as a side effect of another task.
+8. **Styling is Tailwind utility classes, never inline `style`.** This applies even outside JSX: `app/modules/maps/**`'s Leaflet layers build marker/popup content as raw HTML strings (`L.divIcon`'s `html`, `marker.bindPopup(...)`), not JSX — but Tailwind's content scanner matches class-name-shaped strings in any file under its `content` glob (`tailwind.config.ts`), regardless of whether they sit inside a `className` attribute or a template literal. Use `class="w-8 h-8 bg-purple-600 rounded-full ..."` there, arbitrary values (`border-[3px]`, `shadow-[0_3px_8px_rgba(0,0,0,0.3)]`) where the default scale doesn't have an exact match — never `style="width: 32px; ..."`. Found 2026-08-07 in `useLinkedEntityMarkers.ts` (TD-70) and fixed before merge; flagged by the maintainer as a rule that was true all along but never written down.
 
 ---
 

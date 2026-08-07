@@ -21,7 +21,7 @@ test.describe("POI panel CRUD", () => {
 
     // Add
     await map.click({ button: "right", position: { x: 400, y: 250 } });
-    await page.getByRole("button", { name: /Add to My Places/ }).click();
+    await page.getByRole("button", { name: /Add Place/ }).click();
     await page.getByPlaceholder("Enter place name").fill(title);
     await page
       .locator("select")

@@ -68,7 +68,7 @@ describe("MapContextMenu", () => {
     expect(container2).toBeEmptyDOMElement();
   });
 
-  it("shows Add Marker, Measure and Copy Coordinates, but not Add to My Places without onAddPOI", () => {
+  it("shows Add Marker, Measure and Copy Coordinates, but not Add Place without onAddPOI", () => {
     render(
       <MapContextMenu
         isOpen
@@ -82,12 +82,12 @@ describe("MapContextMenu", () => {
     expect(screen.getByText("Add Marker")).toBeInTheDocument();
     expect(screen.getByText("Measure")).toBeInTheDocument();
     expect(screen.getByText("Copy Coordinates")).toBeInTheDocument();
-    expect(screen.queryByText("Add to My Places")).not.toBeInTheDocument();
+    expect(screen.queryByText("Add Place")).not.toBeInTheDocument();
   });
 
-  it("shows Add to My Places when onAddPOI is provided", () => {
+  it("shows Add Place when onAddPOI is provided", () => {
     renderMenu();
-    expect(screen.getByText("Add to My Places")).toBeInTheDocument();
+    expect(screen.getByText("Add Place")).toBeInTheDocument();
   });
 
   it("calls onAddMarker with the clicked coordinates, then closes", () => {
@@ -111,7 +111,7 @@ describe("MapContextMenu", () => {
   it("calls onAddPOI with the clicked coordinates, then closes", () => {
     const { onAddPOI, onClose } = renderMenu();
 
-    fireEvent.click(screen.getByText("Add to My Places"));
+    fireEvent.click(screen.getByText("Add Place"));
 
     expect(onAddPOI).toHaveBeenCalledWith(12.3456, 65.4321);
     expect(onClose).toHaveBeenCalled();

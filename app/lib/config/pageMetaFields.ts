@@ -44,6 +44,24 @@ const pageMetaFields = {
     validator: z.string(),
     getDatum: (datum: string) => datum,
   },
+  /**
+   * Read-only, computed from the `poi` tree (SPEC-004 T4) — not a database
+   * column, so deliberately absent from every domain's `pagesConfig` entry:
+   * that list also drives `buildEntitySchema`'s write payload, and this
+   * field is never something a create/update sends. It exists here, not in
+   * `npcMeta`/`deityMeta`, because both list columns share it the same way
+   * they already share `location` (see `pagesConfig.ts`'s note on
+   * last-spread-wins).
+   */
+  derivedLocation: {
+    metaField: "derivedLocation",
+    labelKey: "common.table.derivedLocation",
+    defaultValue: "",
+    fieldType: FieldType.string,
+    controlType: ControlType.Text,
+    validator: z.string().optional(),
+    getDatum: (datum: string) => datum,
+  },
   ...deitiesMeta,
   ...spellsMeta,
   ...magicItemsMeta,

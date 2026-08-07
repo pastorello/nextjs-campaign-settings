@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import PageType from "@/app/lib/definitions/types/PageType";
 
@@ -46,9 +46,22 @@ vi.mock("@/app/lib/data/magicitems/fetchFilteredMagicItems", () => ({
     fetchFilteredMagicItems(...args),
 }));
 
+// Npc and Deity both trigger a second, tree-derived read (SPEC-004 T4).
+// Stubbed to an empty map by default so every existing Npc/Deity case below
+// stays about what it already tested; the dedicated derived-location test
+// overrides it.
+const fetchDerivedLocations = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/maps/fetchDerivedLocations", () => ({
+  default: (...args: unknown[]) => fetchDerivedLocations(...args),
+}));
+
 import EntityList from "./EntityList";
 
 describe("EntityList", () => {
+  beforeEach(() => {
+    fetchDerivedLocations.mockResolvedValue(new Map());
+  });
+
   it("dispatches to the fetch function matching its own pageType only", async () => {
     fetchFilteredSpells.mockResolvedValue([]);
     fetchFilteredNpc.mockResolvedValue([]);
@@ -112,6 +125,46 @@ describe("EntityList", () => {
     expect(screen.getByText("Bahamut").closest("p")?.textContent).toBe(
       "Bahamut"
     );
+  });
+
+  it("shows an NPC's tree-derived location, not just its stored location field", async () => {
+    fetchFilteredNpc.mockResolvedValue([
+      {
+        id: 42,
+        name: "Dexter Nemrod",
+        title: "",
+        alignment: 1,
+        alignmentDomain: 1,
+        faction: 1,
+        location: 1,
+      },
+    ]);
+    fetchDerivedLocations.mockResolvedValue(new Map([[42, "Skreebars"]]));
+
+    render(await EntityList({ pageType: PageType.Npc }));
+
+    expect(fetchDerivedLocations).toHaveBeenCalledWith("npc");
+    expect(screen.getByText("Skreebars")).toBeInTheDocument();
+  });
+
+  it("leaves the derived-location cell blank for a record with no pin yet", async () => {
+    fetchFilteredDeities.mockResolvedValue([
+      {
+        id: 7,
+        name: "Helios",
+        alignment: 1,
+        alignmentDomain: 1,
+        deityRank: 1,
+        deityType: 1,
+        residence: 1,
+      },
+    ]);
+    fetchDerivedLocations.mockResolvedValue(new Map());
+
+    render(await EntityList({ pageType: PageType.Deity }));
+
+    expect(fetchDerivedLocations).toHaveBeenCalledWith("deity");
+    expect(screen.getByText("Helios")).toBeInTheDocument();
   });
 
   it("renders a header for every column listConfig declares for the domain", async () => {

@@ -65,6 +65,11 @@ const listConfig: Record<PageType, ListConfig> = {
         fieldKey: NpcMetaField.location,
         labelKey: "npc.fields.location.label",
       },
+      {
+        fieldKey: "derivedLocation",
+        labelKey: "common.table.derivedLocation",
+        sortable: false,
+      },
     ],
     emptyMessageKey: "npc.page.emptyMessage",
     editModalTitleKey: "npc.form.editTitle",
@@ -93,6 +98,11 @@ const listConfig: Record<PageType, ListConfig> = {
       {
         fieldKey: DeityMetaField.residence,
         labelKey: "deities.fields.residence.label",
+      },
+      {
+        fieldKey: "derivedLocation",
+        labelKey: "common.table.derivedLocation",
+        sortable: false,
       },
     ],
     emptyMessageKey: "deities.page.emptyMessage",

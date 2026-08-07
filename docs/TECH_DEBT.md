@@ -568,7 +568,7 @@ This sits next to, but is narrower than, SPEC-004 T4's already-deferred "derive 
 
 This is not a bug introduced by T3/T4 — the gap predates them (M5 was only ever designed around create-time positioning) — but T3/T4 are what expose it: they are the first thing to populate the tree with places nothing can ever position through the UI as it stands today.
 
-**Plan:** a product decision, not just an implementation one — needs deciding where this belongs (a "position" mode reachable from the tree/list view, dragging an existing marker, or something else) before it's built. Flagged in conversation 2026-08-07; not yet designed.
+**Plan:** the product decision was taken 2026-08-07 — **both** interactions, written up as [SPEC-005](./specs/005-place-repositioning.md) (Draft): a "Da posizionare" section in `MapPOIPanel`'s list view for places that have no coordinates yet (click-to-place through the existing crosshair mode), and drag-to-reposition on every marker the three hooks already render. `updatePoi` turns out to be reusable as-is for any kind — see SPEC-005 §6. Implementation plan and task breakdown are in that spec's §9/§10; it sequences TD-72 first, since flow B rewrites the same marker lines.
 
 **Done when:** a DM can select any existing place (any kind, not just `poi`) and give it a position on its parent's map, without deleting and recreating it.
 

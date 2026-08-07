@@ -12,12 +12,17 @@ import ItemMeta from "../components/ItemMeta";
 import Deity from "@/app/lib/definitions/interfaces/deities/Deity";
 import pageMetaFields from "@/app/lib/config/pageMetaFields";
 import DeityMetaField from "@/app/lib/definitions/enums/deities/DeityMetaField";
+import DerivedPlacement from "@/app/lib/definitions/interfaces/maps/DerivedPlacement";
 import DeityRank from "@/app/lib/definitions/enums/deities/DeityRank";
 import magicColors from "@/app/lib/config/deity/magicColors";
 import getOptionColorClass from "@/app/lib/utils/data/getOptionColorClass";
 import resolveFieldValue from "@/app/lib/utils/data/resolveFieldValue";
 
-const DeityCard = (props: { cardItem: Deity }) => {
+const DeityCard = (props: {
+  cardItem: Deity;
+  /** Absent while nobody has pinned this deity anywhere (SPEC-004 T5a). */
+  placement?: DerivedPlacement | undefined;
+}) => {
   const t = useTranslations();
   return (
     <Disclosure>
@@ -104,21 +109,16 @@ const DeityCard = (props: { cardItem: Deity }) => {
           <hr className="my-2" />
           <div className="flex w-full p-2">
             <div className="w-[50%] p-1">
+              {/* Both halves derived from the deity's single pin (SPEC-004
+                  §6): the place it sits in, and the nearest `plane` above
+                  it. The two stored columns could disagree — Paradiso with
+                  a residence of Inferi was accepted and displayed — which
+                  one pin makes unrepresentable. */}
               <ItemMeta
                 label={t("deities.card.residence")}
-                value={`${
-                  resolveFieldValue(
-                    pageMetaFields[DeityMetaField.location],
-                    props.cardItem[DeityMetaField.location],
-                    t
-                  ) as string
-                }, ${
-                  resolveFieldValue(
-                    pageMetaFields[DeityMetaField.residence],
-                    props.cardItem[DeityMetaField.residence],
-                    t
-                  ) as string
-                }`}
+                value={[props.placement?.place, props.placement?.plane]
+                  .filter(Boolean)
+                  .join(", ")}
               />
               <ItemMeta
                 label={t("deities.card.celestialBody")}

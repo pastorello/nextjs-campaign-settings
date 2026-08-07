@@ -6,10 +6,23 @@ import { fetchFilteredMagicItems } from "@/app/lib/data/magicitems/fetchFiltered
 import { fetchFilteredNpc } from "@/app/lib/data/npc/fetchFilteredNpc";
 import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
 
+import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
+import { toDerivedPlacements } from "@/app/modules/maps/lib/utils/deriveEntityAncestry";
+import type { LinkableEntityType } from "@/app/modules/maps/types/poi";
+
 import DeityLibrary from "../deities/DeityLibrary";
 import MagicItemLibrary from "../magicitems/MagicItemLibrary";
 import NpcLibrary from "../npc/NpcLibrary";
 import SpellLibrary from "../spells/SpellLibrary";
+
+/**
+ * Where each record sits in the world tree (SPEC-004 T5a), resolved here
+ * because the libraries below are client components and cannot await.
+ * Reduced to plain strings before it crosses that boundary — see
+ * `toDerivedPlacements`.
+ */
+const placementsFor = async (linkedType: LinkableEntityType) =>
+  toDerivedPlacements(await fetchDerivedAncestry(linkedType));
 
 /**
  * Fetches a domain's rows and hands them to its card library (TD-30).
@@ -39,9 +52,19 @@ export default async function EntityLibrary(props: {
     case PageType.Spell:
       return <SpellLibrary items={await fetchFilteredSpells(searchParams)} />;
     case PageType.Npc:
-      return <NpcLibrary items={await fetchFilteredNpc(searchParams)} />;
+      return (
+        <NpcLibrary
+          items={await fetchFilteredNpc(searchParams)}
+          placements={await placementsFor("npc")}
+        />
+      );
     case PageType.Deity:
-      return <DeityLibrary items={await fetchFilteredDeities(searchParams)} />;
+      return (
+        <DeityLibrary
+          items={await fetchFilteredDeities(searchParams)}
+          placements={await placementsFor("deity")}
+        />
+      );
     case PageType.MagicItem:
       return (
         <MagicItemLibrary items={await fetchFilteredMagicItems(searchParams)} />

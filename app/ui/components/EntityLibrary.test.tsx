@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import PageType from "@/app/lib/definitions/types/PageType";
 
@@ -18,8 +18,17 @@ vi.mock("../magicitems/MagicItemLibrary", () => ({
   ),
 }));
 vi.mock("../npc/NpcLibrary", () => ({
-  default: ({ items }: { items: unknown[] }) => (
-    <div>NpcLibrary:{items.length}</div>
+  default: ({
+    items,
+    placements,
+  }: {
+    items: unknown[];
+    placements: Record<number, { place: string | null }>;
+  }) => (
+    <div>
+      NpcLibrary:{items.length}
+      <span>placed:{Object.keys(placements).length}</span>
+    </div>
   ),
 }));
 vi.mock("../spells/SpellLibrary", () => ({
@@ -47,9 +56,22 @@ vi.mock("@/app/lib/data/magicitems/fetchFilteredMagicItems", () => ({
     fetchFilteredMagicItems(...args),
 }));
 
+// Npc and Deity resolve each record's place in the world tree (SPEC-004
+// T5a). Mocked both to keep this suite about dispatch and because the real
+// module reaches prisma, which needs a DATABASE_URL this suite has no
+// business requiring.
+const fetchDerivedAncestry = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/maps/fetchDerivedAncestry", () => ({
+  default: (...args: unknown[]) => fetchDerivedAncestry(...args),
+}));
+
 import EntityLibrary from "./EntityLibrary";
 
 describe("EntityLibrary", () => {
+  beforeEach(() => {
+    fetchDerivedAncestry.mockResolvedValue(new Map());
+  });
+
   it("fetches spells and renders SpellLibrary for PageType.Spell", async () => {
     fetchFilteredSpells.mockResolvedValue([{ id: 1 }, { id: 2 }]);
 
@@ -66,6 +88,18 @@ describe("EntityLibrary", () => {
 
     expect(fetchFilteredNpc).toHaveBeenCalled();
     expect(screen.getByText("NpcLibrary:1")).toBeInTheDocument();
+  });
+
+  it("hands NpcLibrary each record's derived placement, not just the rows", async () => {
+    fetchFilteredNpc.mockResolvedValue([{ id: 42 }]);
+    fetchDerivedAncestry.mockResolvedValue(
+      new Map([[42, [{ id: 1, title: "Skreebars", kind: "city" }]]])
+    );
+
+    render(await EntityLibrary({ pageType: PageType.Npc }));
+
+    expect(fetchDerivedAncestry).toHaveBeenCalledWith("npc");
+    expect(screen.getByText("placed:1")).toBeInTheDocument();
   });
 
   it("fetches deities and renders DeityLibrary for PageType.Deity", async () => {

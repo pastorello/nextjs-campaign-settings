@@ -4,6 +4,7 @@ import ControlType from "@/app/lib/definitions/types/ControlType";
 import FieldType from "@/app/lib/definitions/types/FieldType";
 import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import locationList from "@/app/lib/config/geography/locationList";
+import optionValueValidator from "@/app/lib/utils/validators/optionValueValidator";
 import z from "zod";
 
 import alignmentDomains from "./alignmentDomains";
@@ -29,7 +30,7 @@ const npcMeta = {
     fieldType: FieldType.integer,
     options: alignments,
     controlType: ControlType.Select,
-    validator: z.number().int(),
+    validator: optionValueValidator(alignments),
   },
   [NpcMetaField.alignmentDomain]: {
     labelKey: "npc.fields.alignmentDomain.label",
@@ -38,7 +39,7 @@ const npcMeta = {
     fieldType: FieldType.integer,
     options: alignmentDomains,
     controlType: ControlType.Select,
-    validator: z.number().int(),
+    validator: optionValueValidator(alignmentDomains),
   },
   [NpcMetaField.position]: {
     labelKey: "npc.fields.position.label",
@@ -57,7 +58,7 @@ const npcMeta = {
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
     options: locationList,
-    validator: z.number().int(),
+    validator: optionValueValidator(locationList),
   },
   [NpcMetaField.faction]: {
     labelKey: "npc.fields.faction.label",
@@ -66,7 +67,7 @@ const npcMeta = {
     fieldType: FieldType.integer,
     options: factions,
     controlType: ControlType.Select,
-    validator: z.number().int(),
+    validator: optionValueValidator(factions),
   },
   [NpcMetaField.appearance]: {
     labelKey: "npc.fields.appearance.label",

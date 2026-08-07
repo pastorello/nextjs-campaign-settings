@@ -48,5 +48,23 @@ export function describePageMetaInvariants(
         field.getDatum!(representativeValue[field.fieldType])
       ).not.toThrow();
     });
+
+    it("rejects a value outside its option list (TD-61)", () => {
+      if (!field.options || field.options.length === 0) return;
+      if (
+        field.fieldType !== FieldType.integer &&
+        field.fieldType !== FieldType.array
+      ) {
+        return;
+      }
+
+      const usedValues = new Set(field.options.map((option) => option.value));
+      let outsider = 1;
+      while (usedValues.has(outsider)) outsider++;
+
+      const candidate =
+        field.fieldType === FieldType.array ? [outsider] : outsider;
+      expect(field.validator.safeParse(candidate).success).toBe(false);
+    });
   });
 }

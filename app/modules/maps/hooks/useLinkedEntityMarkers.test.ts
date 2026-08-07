@@ -1,0 +1,144 @@
+import { renderHook, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { fetchPlaceChildren } = vi.hoisted(() => ({
+  fetchPlaceChildren: vi.fn(),
+}));
+vi.mock("@/app/lib/data/maps/fetchPlaceChildren", () => ({
+  default: fetchPlaceChildren,
+}));
+
+const fakeMap = {
+  hasLayer: vi.fn(() => true),
+  removeLayer: vi.fn(),
+};
+vi.mock("@/app/modules/maps/hooks/useLeafletMap", () => ({
+  useLeafletMap: () => fakeMap,
+}));
+
+const bindPopup = vi.fn();
+const markerAddTo = vi.fn();
+const marker = vi.fn(() => {
+  const instance = { addTo: markerAddTo, bindPopup };
+  markerAddTo.mockReturnValue(instance);
+  return instance;
+});
+vi.mock("leaflet", () => ({
+  marker: (...args: unknown[]) => marker(...(args as [])),
+  divIcon: vi.fn(() => ({})),
+}));
+
+function row(overrides: Partial<Record<string, unknown>> = {}) {
+  return {
+    id: 1,
+    title: "Elune",
+    description: null,
+    kind: "deity",
+    lat: 10,
+    lng: 20,
+    category: null,
+    linkedType: "deity",
+    linkedId: 18,
+    mapImage: null,
+    mapBounds: null,
+    mapInitialView: null,
+    mapInitialZoom: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  };
+}
+
+import { useLinkedEntityMarkers } from "./useLinkedEntityMarkers";
+
+describe("useLinkedEntityMarkers", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("fetches this place's children scoped by parentId", async () => {
+    fetchPlaceChildren.mockResolvedValue([]);
+
+    renderHook(() => useLinkedEntityMarkers(42));
+
+    await waitFor(() => expect(fetchPlaceChildren).toHaveBeenCalledWith(42));
+  });
+
+  it("refetches when refetchToken changes", async () => {
+    fetchPlaceChildren.mockResolvedValue([]);
+
+    const { rerender } = renderHook(
+      ({ token }: { token: number }) => useLinkedEntityMarkers(42, token),
+      { initialProps: { token: 0 } }
+    );
+    await waitFor(() => expect(fetchPlaceChildren).toHaveBeenCalledTimes(1));
+
+    rerender({ token: 1 });
+
+    await waitFor(() => expect(fetchPlaceChildren).toHaveBeenCalledTimes(2));
+  });
+
+  it("exposes only positioned, linked deity and npc children", async () => {
+    fetchPlaceChildren.mockResolvedValue([
+      row({ id: 1, kind: "deity" }),
+      row({ id: 2, kind: "npc", linkedType: "npc", linkedId: 7 }),
+      row({ id: 3, kind: "region" }),
+      row({ id: 4, kind: "poi", category: "religion" }),
+      row({ id: 5, kind: "deity", lat: null, lng: null }), // not positioned
+      row({ id: 6, kind: "deity", linkedType: null, linkedId: null }), // orphaned link
+    ]);
+
+    const { result } = renderHook(() => useLinkedEntityMarkers(1));
+
+    await waitFor(() => expect(result.current).toHaveLength(2));
+    expect(result.current.map((c) => c.id)).toEqual([1, 2]);
+  });
+
+  it("adds a marker to the map for each linked child", async () => {
+    fetchPlaceChildren.mockResolvedValue([row({ id: 1 })]);
+
+    renderHook(() => useLinkedEntityMarkers(1));
+
+    await waitFor(() =>
+      expect(marker).toHaveBeenCalledWith([10, 20], expect.any(Object))
+    );
+    expect(markerAddTo).toHaveBeenCalledWith(fakeMap);
+  });
+
+  it("binds a popup linking to the entity's page", async () => {
+    fetchPlaceChildren.mockResolvedValue([
+      row({ id: 1, title: "Elune", linkedType: "deity", linkedId: 18 }),
+    ]);
+
+    renderHook(() => useLinkedEntityMarkers(1));
+
+    await waitFor(() => expect(bindPopup).toHaveBeenCalledTimes(1));
+    const popupHtml = bindPopup.mock.calls[0]?.[0] as string;
+    expect(popupHtml).toContain("Elune");
+    expect(popupHtml).toContain("/dashboard/deities?id=18");
+  });
+
+  it("escapes a title containing HTML before it reaches the popup", async () => {
+    fetchPlaceChildren.mockResolvedValue([
+      row({ id: 1, title: '<img src=x onerror="alert(1)">' }),
+    ]);
+
+    renderHook(() => useLinkedEntityMarkers(1));
+
+    await waitFor(() => expect(bindPopup).toHaveBeenCalledTimes(1));
+    const popupHtml = bindPopup.mock.calls[0]?.[0] as string;
+    expect(popupHtml).not.toContain("<img");
+    expect(popupHtml).toContain("&lt;img");
+  });
+
+  it("removes markers on unmount", async () => {
+    fetchPlaceChildren.mockResolvedValue([row({ id: 1 })]);
+
+    const { unmount } = renderHook(() => useLinkedEntityMarkers(1));
+
+    await waitFor(() => expect(markerAddTo).toHaveBeenCalled());
+    unmount();
+
+    expect(fakeMap.removeLayer).toHaveBeenCalled();
+  });
+});

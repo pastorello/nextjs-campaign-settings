@@ -99,6 +99,13 @@ const useNavigableChildren = vi
 vi.mock("@/app/modules/maps/hooks/useNavigableChildren", () => ({
   useNavigableChildren: (...args: unknown[]) => useNavigableChildren(...args),
 }));
+const useLinkedEntityMarkers = vi
+  .fn<(...args: unknown[]) => unknown[]>()
+  .mockReturnValue([]);
+vi.mock("@/app/modules/maps/hooks/useLinkedEntityMarkers", () => ({
+  useLinkedEntityMarkers: (...args: unknown[]) =>
+    useLinkedEntityMarkers(...args),
+}));
 
 const setView = vi.fn();
 const setMinZoom = vi.fn();
@@ -159,6 +166,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   createPlace.mockResolvedValue({ ok: true, id: 1 });
   useNavigableChildren.mockReturnValue([]);
+  useLinkedEntityMarkers.mockReturnValue([]);
 });
 
 describe("WorldMap", () => {
@@ -326,9 +334,10 @@ describe("WorldMap", () => {
     });
   });
 
-  it("bumps useNavigableChildren's refetch token after a successful create", async () => {
+  it("bumps useNavigableChildren's and useLinkedEntityMarkers's refetch token after a successful create", async () => {
     await renderMap();
-    const tokenBefore = useNavigableChildren.mock.calls.at(-1)?.[2];
+    const navigableTokenBefore = useNavigableChildren.mock.calls.at(-1)?.[2];
+    const linkedTokenBefore = useLinkedEntityMarkers.mock.calls.at(-1)?.[1];
 
     await onAddPlace?.({
       kind: "region",
@@ -339,8 +348,10 @@ describe("WorldMap", () => {
     });
 
     await waitFor(() => {
-      const tokenAfter = useNavigableChildren.mock.calls.at(-1)?.[2];
-      expect(tokenAfter).not.toBe(tokenBefore);
+      const navigableTokenAfter = useNavigableChildren.mock.calls.at(-1)?.[2];
+      const linkedTokenAfter = useLinkedEntityMarkers.mock.calls.at(-1)?.[1];
+      expect(navigableTokenAfter).not.toBe(navigableTokenBefore);
+      expect(linkedTokenAfter).not.toBe(linkedTokenBefore);
     });
   });
 

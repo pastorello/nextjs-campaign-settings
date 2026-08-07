@@ -18,6 +18,7 @@ import {
   useNavigableChildren,
   type NavigableChild,
 } from "@/app/modules/maps/hooks/useNavigableChildren";
+import { useLinkedEntityMarkers } from "@/app/modules/maps/hooks/useLinkedEntityMarkers";
 import type { POICategory, POIGeoJSON } from "@/app/modules/maps/types/poi";
 import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
 import isValidString from "@/app/lib/utils/validators/isValidString";
@@ -35,11 +36,12 @@ import createPlace from "@/app/lib/data/maps/createPlace";
  * file omits them rather than carrying dead state for a feature nothing
  * triggers. See CLAUDE.md, "unused is not dead", for what's still scaffolding.
  *
- * `parentId` scopes both the `kind: "poi"` panel (SPEC-002, via
- * `usePOIManager`) and the navigable-kind markers (SPEC-004 M7, via
- * `useNavigableChildren`) to the place currently being viewed — the fix for
- * §1's "every POI renders on every map" defect. `onDescend` is called when a
- * navigable marker is clicked; `GeographyExplorer` owns what happens next.
+ * `parentId` scopes the `kind: "poi"` panel (SPEC-002, via `usePOIManager`),
+ * the navigable-kind markers (SPEC-004 M7, via `useNavigableChildren`) and
+ * the `deity`/`npc` markers (TD-70, via `useLinkedEntityMarkers`) to the
+ * place currently being viewed — the fix for §1's "every POI renders on
+ * every map" defect. `onDescend` is called when a navigable marker is
+ * clicked; `GeographyExplorer` owns what happens next.
  */
 function WorldMap({
   parentId,
@@ -101,6 +103,10 @@ function WorldMap({
 
   // Navigable `region` children, same scope — clicking one calls `onDescend`
   useNavigableChildren(parentId, onDescend, placesRefetchToken);
+
+  // `deity`/`npc` children with coordinates, same scope and refetch trigger
+  // (TD-70) — leaves, not navigable, so no `onDescend` wiring.
+  useLinkedEntityMarkers(parentId, placesRefetchToken);
 
   // Creates a navigable/deity/npc place under the current parent (SPEC-004
   // M5, T2). `kind: "poi"` never reaches this — the panel keeps that on the

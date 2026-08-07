@@ -604,6 +604,8 @@ This is not a bug introduced by T3/T4 — the gap predates them (M5 was only eve
 
 **Done when:** following `.env.test.example`'s own instructions on a brand-new database, verbatim, ends with a working `pnpm db:seed` and a passing `pnpm test:e2e`.
 
+**Session handoff (2026-08-07):** TD-71 and TD-72 closed this session (PR #122, merged) — SPEC-005's picker + drag repositioning, both flows, all three marker hooks, e2e coverage for the drag flow. TD-73 above is the only item left in this register; start the next session there. It's a small, self-contained fix (S) — a doc/instructions correction (`.env.test.example` + `docs/TESTING.md` §E2E) plus verifying no _other_ data-seeding migration has the same `db push`-skips-raw-SQL problem `add_faction_table_and_fk` does. `grep -l "INSERT INTO" prisma/migrations/*/migration.sql` is the fast way to find every migration that seeds data outside `prismaSeed.ts`, and each one is worth a quick check. A fresh `my_database_e2e` (or equivalent) already exists locally from this session's TD-71 e2e work if it's still around — `prisma migrate deploy` against it is what confirmed the fix, not `db push`.
+
 ---
 
 ## TD-72 🟢 `usePOIManager.ts` and `useNavigableChildren.ts` build marker/popup HTML with inline `style`, not Tailwind classes

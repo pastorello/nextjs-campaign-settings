@@ -39,3 +39,12 @@ export function isNavigablePlaceKind(
 ): kind is (typeof NAVIGABLE_PLACE_KINDS)[number] {
   return (NAVIGABLE_PLACE_KINDS as readonly string[]).includes(kind);
 }
+
+/**
+ * Narrows a raw string to `PlaceKind`. `poi.kind` has no database-level
+ * enum, so a row read back is only a `string` as far as the type system
+ * knows — same reasoning as `isPOICategory` in `poi-categories.ts`.
+ */
+export function isPlaceKind(value: string): value is PlaceKind {
+  return (PLACE_KINDS as readonly string[]).includes(value);
+}

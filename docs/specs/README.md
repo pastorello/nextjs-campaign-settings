@@ -38,12 +38,14 @@ Steps 1–3 are cheap and go in one file. Do not skip straight to 4 for anything
 
 ## Index
 
-| #   | Feature                                             | Status                       | Phase |
-| --- | --------------------------------------------------- | ---------------------------- | ----- |
-| 001 | [Combat tracker](./001-combat-tracker.md)           | Draft — skeleton, not agreed | 4     |
-| 002 | [Map POI persistence](./002-map-poi-persistence.md) | Shipped 2026-08-01           | 3     |
-| 003 | [Real relations](./003-real-relations.md)           | Superseded by 004            | 3     |
-| 004 | [World model](./004-world-model.md)                 | Agreed — MVP scoped, §5.1    | 3     |
-| 005 | [Place repositioning](./005-place-repositioning.md) | Shipped 2026-08-07           | 3     |
+| #   | Feature                                               | Status                       | Phase |
+| --- | ----------------------------------------------------- | ---------------------------- | ----- |
+| 001 | [Combat tracker](./001-combat-tracker.md)             | Draft — skeleton, not agreed | 4     |
+| 002 | [Map POI persistence](./002-map-poi-persistence.md)   | Shipped 2026-08-01           | 3     |
+| 003 | [Real relations](./003-real-relations.md)             | Superseded by 004            | 3     |
+| 004 | [World model](./004-world-model.md)                   | Accepted — only T5b left     | 3     |
+| 005 | [Place repositioning](./005-place-repositioning.md)   | Shipped 2026-08-07           | 3     |
+| 006 | [Table-backed options](./006-table-backed-options.md) | Draft — not agreed           | 3     |
+| 007 | [Placement backlog](./007-placement-backlog.md)       | Draft — not agreed, small    | 3     |
 
 Feature ideas live in [`../ROADMAP.md`](../ROADMAP.md) until they are ready for a spec.

@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-08
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-63, TD-74 and TD-75.** All three are written up below; everything else in the summary table is closed.
+**Open items: TD-74 and TD-75.** Both are written up below; everything else in the summary table is closed.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -84,7 +84,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-59 | ✅ `prisma` CLI and `@prisma/client`/`@prisma/adapter-pg` could bump independently, breaking the build      | ~~🟠 High~~ done     | S      | 3     |
 | TD-61 | ✅ Option-backed `Int` fields accept any number; an out-of-list value renders as a blank cell               | ~~🟠 High~~ done     | S      | 3     |
 | TD-62 | ✅ POI category names are hardcoded English and reach the UI — a TD-21 leftover                             | ~~🟢 Low~~ done      | S      | 3     |
-| TD-63 | 🟡 Local dev DB's migration history has a gap `migrate dev`/`migrate deploy` cannot get past                | 🟡 Medium            | S      | 3     |
+| TD-63 | ✅ Local dev DB's migration history had a gap `migrate dev`/`migrate deploy` couldn't get past              | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-64 | ✅ `WorldMap.tsx`'s async-effect map-loading pattern trips `react-hooks/set-state-in-effect`                | ~~🟢 Low~~ done      | S      | 3     |
 | TD-65 | ✅ `DATABASE_URL` in this dev environment isn't a throwaway DB — e2e debris landed in real data             | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-66 | ✅ `UPLOAD_DIR`'s relative default silently splits map-image files from the DB rows referencing them        | ~~🟡 Medium~~ done   | S      | 3     |
@@ -102,38 +102,15 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ---
 
-## Closed items — TD-01 through TD-62, and TD-64 through TD-73
+## Closed items — TD-01 through TD-63, and TD-64 through TD-73
 
-Everything the 2026-07-22 audit found, plus everything found while doing the work through 2026-08-07, is closed: correctness, security, dead code, formatting, CI, accessibility, the metadata-layer types, the identifier rename, the bilingual UI, the migration drift, the E2E harness, the coverage sweep that crossed Phase 2's 70% gate, and the whole SPEC-004 map/world-tree run. The summary table above is the current status of each.
+Everything the 2026-07-22 audit found, plus everything found while doing the work through 2026-08-08, is closed: correctness, security, dead code, formatting, CI, accessibility, the metadata-layer types, the identifier rename, the bilingual UI, the migration drift, the E2E harness, the coverage sweep that crossed Phase 2's 70% gate, and the whole SPEC-004 map/world-tree run. The summary table above is the current status of each.
 
 **Each item's full write-up — what was found, why, the fix — is in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)**, moved there in two passes (TD-01–TD-36 on 2026-08-01, the rest on 2026-08-08). Nothing was deleted; the archive keeps every "(original)" problem framing exactly as recorded, per the policy in [`docs/README.md`](./README.md#keeping-them-honest).
 
 ---
 
 ## Open items
-
-## TD-63 🟡 Local dev DB's migration history has a gap `migrate dev`/`migrate deploy` cannot get past
-
-> **Status re-verified 2026-08-08, and the scope has shrunk.** `pnpm prisma migrate status` against the dev DB now reports **two** unapplied migrations, not the three this write-up describes: `20260726093000_add_spells_nome_drop_tutorial_tables` and `20260726100000_add_timestamps_and_name_indexes`. `20251126152855_resetio` is recorded as applied, so the failed row the last paragraph warns about is gone. Nothing else has changed — `migrate dev`/`migrate deploy` are still unusable and every schema change since has needed the hand-apply workaround. Adjust the plan below from three migrations to two.
->
-> **This item was invisible until this audit.** It had a full write-up but no row in the summary table, and the file header said "Open items: none" — so a session picking work off this register would have concluded there was nothing to do. The row exists now.
-
-**Where:** `my-database-container` (the maintainer's local dev Postgres, `DATABASE_URL` in `.env`). `_prisma_migrations` there.
-
-**Why:** the dev database was originally built with `db push`, and only some migrations were ever recorded as applied against it — `20260730020000_rename_png_table_to_npc` and `20260731120000_add_poi_table` (both hand-applied via `docker exec … psql` then marked with `prisma migrate resolve --applied`, per that migration's own header comment). The three migrations before them (`20251126152855_resetio`, `20260726093000_add_spells_nome_drop_tutorial_tables`, `20260726100000_add_timestamps_and_name_indexes`) were never recorded, even though the schema they describe is already live — the DB's actual shape and its tracked history disagree.
-
-This blocks both commands that assume a clean history:
-
-- `prisma migrate dev` builds a shadow database and replays every migration file from empty; the replay dies partway through with `relation "png" does not exist` (a step assumes state the shadow DB never had, because the real DB got there by a different path).
-- `prisma migrate deploy` tries to apply the DB's actual pending list in order and dies the same way, now with `relation "deities" already exists` — the SQL is trying to create a table the live DB already has.
-
-Surfaced again on 2026-08-06 while shipping SPEC-004 M2's migration, which had to be applied the same workaround way as M1: hand-write the SQL (via `prisma migrate diff --from-config-datasource --to-schema` against the live DB, which needs no shadow database), apply it directly with `docker exec … psql`, then `prisma migrate resolve --applied` to record it. Attempting `migrate deploy` first left a **failed** `20251126152855_resetio` row in `_prisma_migrations` (`finished_at` null) — worth checking before the next migration attempt, since a failed row there can itself block `migrate deploy`.
-
-**Plan:** for each of the 3 untracked migrations, confirm the schema they describe genuinely already matches the live DB (diff, don't assume), then `prisma migrate resolve --applied` each one in order. After that, `migrate dev`/`migrate deploy` should work normally again and this workaround stops being necessary for every future schema change.
-
-**Done when:** `prisma migrate status` on the dev DB reports no pending and no failed migrations, and a throwaway schema change round-trips through `prisma migrate dev` without the hand-apply workaround.
-
----
 
 ## TD-74 `pageMetaFields` spreads four domain metas into one flat object — a name collision silently discards one
 

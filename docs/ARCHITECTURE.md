@@ -1,6 +1,6 @@
 # Architecture
 
-**Last updated:** 2026-08-01
+**Last updated:** 2026-08-08
 
 This document describes how Campaign Settings is put together today, and marks the places where the intended design and the current implementation diverge. Divergences are tagged **[GAP]** and tracked in [`TECH_DEBT.md`](./TECH_DEBT.md).
 
@@ -8,13 +8,13 @@ This document describes how Campaign Settings is put together today, and marks t
 
 ## 1. High-level shape
 
-Campaign Settings is a Next.js App Router application with no separate backend. Server Components read directly from Postgres through Prisma; Server Actions write to it. There is no REST API layer for domain data — the only route handlers are four DELETE endpoints and two read-only GeoJSON endpoints for the map.
+Campaign Settings is a Next.js App Router application with no separate backend. Server Components read directly from Postgres through Prisma; Server Actions write to it. There is no REST API layer for domain data. The route handlers are four DELETE endpoints, two read-only GeoJSON endpoints for the map, and — since [ADR-0008](./adr/0008-map-image-storage.md) — two for map images: an authenticated `GET` that streams an uploaded map, and the upload endpoint itself. `find app/api -name route.ts` is the current list.
 
 ```
 Browser
   │
   ├── RSC payload ────────► Server Components ──► Data layer ──► Prisma ──► Postgres
-  │                          (app/dashboard/**)   (app/lib/data)
+  │                      (app/[locale]/dashboard/**)  (app/lib/data)
   │
   ├── Server Action POST ─► Mutations ───────────► Prisma ──► Postgres
   │                          (createX/updateX)

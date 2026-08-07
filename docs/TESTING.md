@@ -1,6 +1,6 @@
 # Testing Strategy
 
-**Last updated:** 2026-08-01
+**Last updated:** 2026-08-08
 **Stack:** Vitest + Testing Library (unit/integration) · Playwright (E2E) · MSW where network mocking is needed
 **Decision record:** [ADR-0002](./adr/0002-testing-stack.md)
 
@@ -8,17 +8,32 @@
 
 ## 1. Where we are
 
-**Migrated to Vitest on 2026-07-22 (TD-03).** `pnpm test` runs 807 tests across 116 files. Coverage is **70.09% lines / 69.66% branches** (2026-08-04 figure, after TD-46's Tier 2 maps suites), enforced in CI as a ratchet — see §2. This crosses the 70% Phase 2 exit criterion — see [`docs/ROADMAP.md`](./ROADMAP.md).
+**Migrated to Vitest on 2026-07-22 (TD-03).** Coverage crossed the 70% Phase 2 exit criterion on 2026-08-04 with TD-46's Tier 2 maps suites, and is enforced in CI as a ratchet — see §2.
 
-**TD-46 Tier 1 done (2026-08-04):** `LeafletMap.test.tsx`, `MapContextMenu.test.tsx`, `MapMeasurementPanel.test.tsx`, `MapControls.test.tsx`, `MapPOIPanel.test.tsx` — the five `app/modules/maps/components/map/**` components `WorldMap.tsx` actually renders, previously all at 0%. 46 new tests; suite grew 709 → 755; lines 54.51% → 63.81%. `LeafletMap`'s own suite mocks the `leaflet` module directly (`L.map()`, event wiring) rather than stubbing a wrapper hook, and along the way found that its `onClick`/`cursorStyle` effects key off prop identity, not map readiness — documented in the test file rather than "fixed", since it's how `WorldMap.tsx`'s real usage already works (a `useCallback` whose identity changes on the relevant state change).
+> **Do not read a test count out of this file.** Until 2026-08-08 this paragraph said "807 tests across 116 files" while §1's own table thirty lines below said "267 unit tests across 35 files" — the same document, disagreeing with itself by a factor of three, and both figures wrong. Neither is recorded here any more. Run the command:
+>
+> ```bash
+> pnpm test 2>&1 | tail -4          # unit tests and files
+> pnpm test:e2e --list | tail -1    # E2E tests and files, no database needed
+> ```
+>
+> This is [`docs/README.md`](./README.md#keeping-them-honest)'s rule applied to the file that had broken it worst: _counts and statuses rot; prose about why does not._
 
-**TD-46 Tier 2 done (2026-08-04):** the remaining `app/modules/maps/components/map/**` components — `MapSearchBar`, `MapTopBar`, `MapTileSwitcher`, `MapThemeSwitcher`, `MapUser`, `LeafletGeoJSON`, `LeafletTileLayer`, `MapDetailsPanel` — reachable only through `MapMain.tsx`, which itself has no importer outside its own directory. Asked the user for a cable-or-delete decision per CLAUDE.md's "vendored library stays as inventory" rule; the answer was to test them as-is, in isolation, without wiring `MapMain` into `WorldMap.tsx`. 52 new tests across 8 files; suite grew 755 → 807; lines 63.81% → 70.09%, branches 60.89% → 69.66%. `MapSearchBar.test.tsx` and `MapDetailsPanel.test.tsx` are the two substantial suites (14 and 7 tests): search debounce via `vi.useFakeTimers`/`advanceTimersByTimeAsync`, keyboard navigation, and — since the dropdown panel is CSS-collapsed rather than unmounted (`max-h-0`/`opacity-0`) — assertions check the panel's class list rather than the absence of result text. `MapUser.test.tsx` opens its Radix `DropdownMenu` in jsdom with a plain `fireEvent.pointerDown` + `fireEvent.click` on the trigger, no `user-event` dependency needed. `MapDetailsPanel` is tested on its desktop-panel branch only (jsdom's default `window.innerWidth` already reads as desktop), matching `MapPOIPanel.test.tsx`'s existing convention of not exercising the mobile `Drawer` branch.
+**How the 70% gate was reached (2026-08-02 → 2026-08-04).** TD-44 checked whether the coverage denominator was undercounting (it was not — `coverage.all` is unconditional default behaviour on Vitest 4), then re-scoped the remaining gap into TD-45 (page-level route components) and TD-46 (`app/modules/maps/components/**`), both closed 2026-08-04. **The per-item narrative moved to [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md) on 2026-08-08**; what was worth keeping here is the technique, below.
 
-**TD-45 done (2026-08-04):** page-level route components (`app/[locale]/dashboard/**`, `app/ui/geography/WorldMap.tsx`) had no coverage target and 0% coverage. 10 new test files cover the repeated shapes once each rather than per domain — `error.tsx`/`not-found.tsx`/`loading.tsx`/`layout.tsx`, the overview page, the public list-page pattern (`spells/page.tsx` stands in for `deities`/`magicitems`/`npc`), the admin list-page pattern (`admin/spells/page.tsx`), the admin "new item" pattern (`admin/spells/new/page.tsx`), `geography/page.tsx`'s map-switcher state, and `WorldMap.tsx`'s own bootstrap effect and POI-selection flow (its child components and hooks are stubbed — each already has its own suite; five components and four hooks after TD-46's cleanup removed two that were dead, not unwired). 27 new tests; suite grew 682 → 709.
+### Techniques that took a while to work out
 
-**`coverage.all` investigated, found moot (TD-44, 2026-08-02):** the plan was to flip `coverage.all: true` to remove the v8 provider's suspected blind spot — without it, a file no test ever imports doesn't appear in the report at all, so the denominator could in principle be silently undercounting the codebase. Trying it on Vitest 3 first produced byte-identical totals (3289 lines) with the flag on or off; on this repo's Vitest 4.1.10 the option doesn't even compile anymore, because `CoverageOptions` dropped it — "instrument every `include`d file regardless of import" is now unconditional default behaviour, not an opt-in. So there was no blind spot to remove and nothing to set in `vitest.config.ts`. What the full picture _did_ surface, cleanly, is two directories nothing has a target for: page-level route components and `app/modules/maps/components/**` (Leaflet rendering) — filed as TD-45 and TD-46.
+Reach for these before rediscovering them. All are in use in the suites named.
 
-**Playwright landed 2026-07-25 (TD-24).** `pnpm test:e2e` runs **40 tests across 10 files** against a real database and a dev server it starts itself — about 1.2 minutes in CI, quicker locally once the dev server is warm. Nothing is skipped. (`pnpm test:e2e --list` enumerates them without running anything, and without needing a database — the honest way to check this number.)
+- **Leaflet** — mock the `leaflet` module itself (`L.map()`, event wiring), not a wrapper hook around it. `LeafletMap.test.tsx`. The raw canvas is the only genuinely untestable part (see "Explicitly out of scope"); everything above it is ordinary React.
+- **A panel that is CSS-collapsed rather than unmounted** (`max-h-0`/`opacity-0`) — assert on the element's class list, not on the absence of its text, which is still in the DOM. `MapSearchBar.test.tsx`, `MapDetailsPanel.test.tsx`.
+- **Debounced input** — `vi.useFakeTimers()` with `advanceTimersByTimeAsync`. `MapSearchBar.test.tsx`.
+- **A Radix `DropdownMenu` in jsdom** — `fireEvent.pointerDown` then `fireEvent.click` on the trigger opens it. No `user-event` dependency needed. `MapUser.test.tsx`.
+- **Responsive components** — test the desktop branch only; jsdom's default `window.innerWidth` already reads as desktop, and the mobile `Drawer` branch is deliberately not exercised. `MapPOIPanel.test.tsx` set this convention.
+- **Repeated page shapes** — cover each shape once, not once per domain. `spells/page.tsx` stands in for `deities`/`magicitems`/`npc`; the same for the admin list and "new item" patterns. TD-45's ten files.
+- **A component whose children each have their own suite** — stub the children and test only this component's own logic. `WorldMap.test.tsx`.
+- **A hoisted mock reference, not `vi.mocked(prisma.x.y)`** — the latter trips `unbound-method` outside `__test__/**`, where the rule is off. `createPoi.test.ts` documents why; `fetchDerivedAncestry.test.ts` follows it.
+  **Playwright landed 2026-07-25 (TD-24).** `pnpm test:e2e` runs against a real database and a dev server it starts itself — a couple of minutes in CI, quicker locally once the dev server is warm. Nothing is skipped. The suite has grown steadily with the SPEC-004 map work; `pnpm test:e2e --list` is the honest way to see its current size, and needs no database.
 
 > **Two warnings before you run either suite.**
 >
@@ -35,7 +50,7 @@
 >
 > **Anything under `.claude/worktrees/` is a second checkout of this repo.** Both runners walk the filesystem, so a leftover agent worktree makes Vitest collect every suite twice (117 tests read as 228, coverage as 30%) and makes ESLint report thousands of duplicate findings. Both configs now ignore `.claude/**`.
 
-What exists today — 267 unit tests across 35 files. The largest suites (this table is not exhaustive; the error-handling and skeleton suites added by TD-13/TD-25/TD-29, and the maps/POI/proxy suites added by TD-14/TD-36, are not listed):
+**The load-bearing suites**, listed because they are the ones §2 says must be right — not as an inventory, which would rot. Counts are omitted for the same reason; run the suite:
 
 | Suite                                               | Tests | Notes                                                                      |
 | --------------------------------------------------- | ----- | -------------------------------------------------------------------------- |
@@ -51,7 +66,7 @@ What exists today — 267 unit tests across 35 files. The largest suites (this t
 | `__test__/utils/createEmptyArray.test.ts`           | 1     | Carried over — was never collected before, the filename was malformed      |
 | `app/ui/forms/inputs/Select/Select.test.tsx`        | 2     | Carried over                                                               |
 
-Plus **40 Playwright tests** in `e2e/`, listed in §3.
+The E2E specs are listed in §3.
 
 **Still missing, and deliberately so:** integration tests against a real Postgres. Described below, not started. (The Playwright layer that used to be listed here landed with TD-24 on 2026-07-25.)
 
@@ -71,14 +86,14 @@ Everything else is supporting cast.
 ### The pyramid, sized for this project
 
 ```
-        ╱  E2E — Playwright  ╲            ~8 specs
+        ╱  E2E — Playwright  ╲            one spec per critical flow
        ╱   critical user flows ╲
       ╱─────────────────────────╲
-     ╱  Integration — Vitest     ╲        ~30 tests
+     ╱  Integration — Vitest     ╲        not started — see below
     ╱   data layer + Server        ╲
    ╱    Actions against a real DB   ╲
   ╱───────────────────────────────────╲
- ╱   Unit — Vitest                     ╲  ~60 tests
+ ╱   Unit — Vitest                     ╲  the bulk of the suite
 ╱    pure functions, hooks, components  ╲
 ─────────────────────────────────────────
 ```
@@ -151,7 +166,7 @@ Each test seeds and truncates its own fixtures. No shared mutable state between 
 
 ### E2E — Playwright
 
-Chromium in CI; add Firefox and WebKit once the suite is stable. Roughly eight specs, no more — E2E is expensive and each one must earn its place.
+Chromium in CI; add Firefox and WebKit once the suite is stable. E2E is expensive and each spec must earn its place — but the ceiling this line used to set ("roughly eight specs, no more") was passed deliberately during the SPEC-004 map work, where the flows genuinely are end-to-end. The rule is that each one earns its place, not that there are eight.
 
 | Spec                      | Flow                                                                                                                                 | Built as                                                                                                    |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
@@ -186,93 +201,11 @@ Use `page.getByRole` / `getByLabel`, not CSS selectors — role-based queries do
 
 ---
 
-## 4. Migration from Jest to Vitest — ✅ DONE (2026-07-22)
+## 4. Migration from Jest to Vitest
 
-Kept for the record, and because four steps went differently than written. Deviations, all deliberate:
+**Done 2026-07-22 (TD-03).** The plan, and the four steps that went differently from it, are in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md) — moved there on 2026-08-08 because 88 lines of a finished migration, install commands and all, is not what someone opening this file to write a test needs to scroll past.
 
-1. **`vite-tsconfig-paths` was installed and then removed.** Vite resolves tsconfig paths natively now (`resolve: { tsconfigPaths: true }`); Vitest prints a deprecation notice if you use the plugin. One fewer dependency than this plan called for.
-2. **Coverage thresholds were set at 14/9/9/13, not 70/70/60/70.** Setting them at the target would have failed CI on day one — the exact failure mode §2 warns about. They ratchet up instead, and are **27/25/19/27 today**; §2 is the current figure, this line is what the migration shipped with.
-3. **Playwright was not installed.** TD-03's exit criterion is a green unit suite enforced by CI; the eight specs in §3 are a body of work in their own right, and `pnpm create playwright` is interactive besides. The CI `e2e` job was left documented-as-unrunnable rather than half-done — **TD-24 installed it properly on 2026-07-25**, and the job has been blocking since 2026-07-26.
-4. **Tests import from `vitest` explicitly** rather than relying on `globals: true` for typing. Dropping `@types/jest` left `test`/`expect` untyped under `tsc`, and explicit imports fix that without adding a `types` array to tsconfig, which would have overridden the default and pulled the rug on `@types/node`.
-
-Also removed: `__test__/mocks/next/*`, orphaned once Jest's `moduleNameMapper` went away — nothing imported them.
-
-**Original plan below.** Effort was ~2h as estimated.
-
-**1 — Install**
-
-```bash
-pnpm remove jest jest-environment-jsdom @types/jest @babel/preset-env @babel/preset-react @babel/preset-typescript
-pnpm add -D vitest @vitejs/plugin-react vite-tsconfig-paths jsdom @vitest/coverage-v8
-```
-
-**2 — `vitest.config.ts`**
-
-```ts
-import { defineConfig } from "vitest/config";
-import react from "@vitejs/plugin-react";
-import tsconfigPaths from "vite-tsconfig-paths";
-
-export default defineConfig({
-  plugins: [react(), tsconfigPaths()],
-  test: {
-    environment: "jsdom",
-    globals: true,
-    setupFiles: ["./vitest.setup.ts"],
-    include: ["**/*.{test,spec}.{ts,tsx}"],
-    exclude: ["**/node_modules/**", "**/e2e/**", "**/.next/**"],
-    coverage: {
-      provider: "v8",
-      reporter: ["text", "lcov"],
-      exclude: ["**/*.config.*", "**/generated/**", "app/seed/**", "**/*.d.ts"],
-      thresholds: { lines: 70, functions: 70, branches: 60, statements: 70 },
-    },
-  },
-});
-```
-
-`vite-tsconfig-paths` makes the `@/*` alias work without duplicating the mapping — one fewer thing to keep in sync than Jest's `moduleNameMapper`.
-
-**3 — `vitest.setup.ts`**
-
-Port `jest.setup.ts`, replacing `jest.mock` with `vi.mock`. The `TextEncoder`/`TextDecoder` polyfills are no longer needed — Vitest's jsdom environment provides them.
-
-**4 — Delete**
-
-`jest.config.ts`, `jest.setup.ts`, `babel.config.js`, `__test__/stubs/` (Vite handles CSS and asset imports natively).
-
-**5 — Port existing tests**
-
-Rename `__test__/utils/createEmptyArraytest..ts` → `createEmptyArray.test.ts` (it was never being collected). Keep `generatePwdHash.test.ts`, `parseSerializedArray.test.ts`, `sortByField/index.test.ts`, `Select.test.tsx`. Delete `dashboard-snapshot.tsx`. The `__test__/mocks/next/*` mocks mostly carry over with `jest.fn` → `vi.fn`.
-
-**6 — Playwright**
-
-```bash
-pnpm create playwright
-```
-
-Config: `testDir: "./e2e"`, `webServer` pointing at `pnpm dev`, `baseURL: "http://localhost:3000"`, `trace: "on-first-retry"`.
-
-**7 — Scripts**
-
-> ⚠️ The `typecheck` script below is the **original plan and is wrong** — do not
-> copy it. A bare `tsc --noEmit` passes vacuously in a fresh checkout, because the
-> route-handler signatures live in types Next generates. The live script is
-> `next typegen && tsc --noEmit`; see TD-04.
-
-```json
-{
-  "typecheck": "tsc --noEmit",
-  "lint": "eslint .",
-  "test": "vitest run",
-  "test:watch": "vitest",
-  "test:coverage": "vitest run --coverage",
-  "test:e2e": "playwright test",
-  "test:e2e:ui": "playwright test --ui"
-}
-```
-
----
+The one deviation still worth knowing while writing tests: **tests import `describe`/`it`/`expect` from `vitest` explicitly** rather than relying on `globals: true`. Dropping `@types/jest` left them untyped under `tsc`, and explicit imports fix that without a `types` array in tsconfig, which would have overridden the default and pulled the rug on `@types/node`.
 
 ## 5. Conventions
 

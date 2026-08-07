@@ -57,12 +57,12 @@ Order matters. Deleting dead code first removes roughly half the type errors, so
 | 13  | ✅ Loading and empty states audited (TD-29 skeletons, TD-30 streaming)            | —      | S      |
 | 14  | ✅ Screenshots for the README (spell list + map) — orphaned, deleted (see below)  | —      | S      |
 | 15  | ✅ Lint warnings 293 → 0; every rule back to `error`                              | TD-22  | M      |
-| 16  | Auth entry point + DB connection bootstrap untested (0%)                          | TD-37  | S      |
-| 17  | Data-layer `fetch*`/`get*Count` untested for 3 of 4 domains                       | TD-38  | S      |
-| 18  | `app/lib/utils/**` pure functions at 51%, target 95%                              | TD-39  | S      |
-| 19  | Domain metadata declarations untested — `npcMeta`/`deityMeta` under 25%           | TD-40  | S      |
-| 20  | `useFilterController` untested; `app/lib/hooks/**` at 52%, target 70%             | TD-41  | S      |
-| 21  | `app/ui/**` behaviour tests — `EntityForm`/`List`/`Library` first                 | TD-42  | L      |
+| 16  | ✅ Auth entry point + DB connection bootstrap untested (0%)                       | TD-37  | S      |
+| 17  | ✅ Data-layer `fetch*`/`get*Count` untested for 3 of 4 domains                    | TD-38  | S      |
+| 18  | ✅ `app/lib/utils/**` pure functions at 51%, target 95%                           | TD-39  | S      |
+| 19  | ✅ Domain metadata declarations untested — `npcMeta`/`deityMeta` under 25%        | TD-40  | S      |
+| 20  | ✅ `useFilterController` untested; `app/lib/hooks/**` at 52%, target 70%          | TD-41  | S      |
+| 21  | ✅ `app/ui/**` behaviour tests — `EntityForm`/`List`/`Library` first              | TD-42  | L      |
 | 22  | ✅ `app/modules/maps/**` geometry + hooks (not rendering) → target 50%            | TD-43  | M      |
 | 23  | ✅ Re-measured with `coverage.all: true`; confirmed no blind spot, re-scoped rest | TD-44  | S      |
 | 24  | ✅ Page-level route components (`dashboard/**`, `WorldMap.tsx`)                   | TD-45  | M      |
@@ -149,3 +149,17 @@ Recording these prevents rediscussing them:
 2. Within a phase, follow the order given — the sequencing is deliberate.
 3. Feature ideas get logged here, not built. When one reaches the top, write the spec first.
 4. If a bug is found during hardening, fix it with a regression test rather than filing it. That is the point of the phase.
+
+### Phases close; they do not stay closed, and that is fine
+
+**Phases 1 and 2 are complete, and the project is in Phase 3.** That does not mean no Phase-1 or Phase-2 work will ever be filed again, and finding some is not evidence that a phase was closed prematurely.
+
+The evidence is in the register. Every item from TD-61 onward was found while building Phase 3 features, and several are plainly Phase-2-flavoured quality work: TD-61 (missing validation on option-backed fields), TD-62 (hardcoded English strings that TD-21's bilingual pass missed), TD-64 (a lint rule violation), TD-72 (inline styles where the project's rule is Tailwind). They are filed under Phase 3 because that is **when they were found**, not because they belong to Phase 3's goal.
+
+The distinction that matters:
+
+- **A phase's exit criteria are a one-time gate**, checked against the codebase as it was when the phase closed. Phase 2's were met on 2026-08-04 when coverage crossed 70%. That fact does not expire.
+- **The standards a phase established are permanent.** Zero `any`, everything validated at the boundary, no hardcoded UI strings, coverage that does not drop — these are now `CLAUDE.md`'s Definition of Done, enforced per change. New work meets them as it lands.
+- **So a "Phase 2 item" found today is not a reopened phase.** It is a Definition-of-Done violation in new code, or an older gap the phase's sweep genuinely missed. Fix it under its own TD number and keep going; do not reopen the phase, and do not treat the roadmap's phase boundaries as something to re-litigate.
+
+Do not, therefore, go looking for Phase-2 work to "finish the phase" before starting Phase 3 items. The phase is finished. What remains is the ordinary discipline of not regressing it.

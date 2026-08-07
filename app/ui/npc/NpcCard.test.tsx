@@ -34,6 +34,28 @@ describe("NpcCard", () => {
     expect(screen.getByText("Advisor")).toBeInTheDocument();
   });
 
+  it("shows the tree-derived place, not the stored location field", () => {
+    render(
+      <NpcCard
+        cardItem={item}
+        placement={{ place: "Skreebars", plane: "Terra" }}
+      />
+    );
+
+    expect(screen.getByText("Skreebars")).toBeInTheDocument();
+    // `item.location` is 1, whose label would be the first locationList
+    // entry — the card must not be resolving that any more.
+    expect(
+      screen.queryByText("npc.locations.paradiso")
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders no place for an NPC nobody has pinned yet", () => {
+    render(<NpcCard cardItem={item} />);
+
+    expect(screen.queryByText("Skreebars")).not.toBeInTheDocument();
+  });
+
   it("reveals personality and the description panel on expand", () => {
     render(<NpcCard cardItem={item} />);
 

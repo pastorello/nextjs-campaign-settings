@@ -50,16 +50,16 @@ vi.mock("@/app/lib/data/magicitems/fetchFilteredMagicItems", () => ({
 // Stubbed to an empty map by default so every existing Npc/Deity case below
 // stays about what it already tested; the dedicated derived-location test
 // overrides it.
-const fetchDerivedLocations = vi.fn<(...args: unknown[]) => unknown>();
-vi.mock("@/app/lib/data/maps/fetchDerivedLocations", () => ({
-  default: (...args: unknown[]) => fetchDerivedLocations(...args),
+const fetchDerivedAncestry = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/maps/fetchDerivedAncestry", () => ({
+  default: (...args: unknown[]) => fetchDerivedAncestry(...args),
 }));
 
 import EntityList from "./EntityList";
 
 describe("EntityList", () => {
   beforeEach(() => {
-    fetchDerivedLocations.mockResolvedValue(new Map());
+    fetchDerivedAncestry.mockResolvedValue(new Map());
   });
 
   it("dispatches to the fetch function matching its own pageType only", async () => {
@@ -139,11 +139,13 @@ describe("EntityList", () => {
         location: 1,
       },
     ]);
-    fetchDerivedLocations.mockResolvedValue(new Map([[42, "Skreebars"]]));
+    fetchDerivedAncestry.mockResolvedValue(
+      new Map([[42, [{ id: 1, title: "Skreebars", kind: "city" }]]])
+    );
 
     render(await EntityList({ pageType: PageType.Npc }));
 
-    expect(fetchDerivedLocations).toHaveBeenCalledWith("npc");
+    expect(fetchDerivedAncestry).toHaveBeenCalledWith("npc");
     expect(screen.getByText("Skreebars")).toBeInTheDocument();
   });
 
@@ -159,11 +161,11 @@ describe("EntityList", () => {
         residence: 1,
       },
     ]);
-    fetchDerivedLocations.mockResolvedValue(new Map());
+    fetchDerivedAncestry.mockResolvedValue(new Map());
 
     render(await EntityList({ pageType: PageType.Deity }));
 
-    expect(fetchDerivedLocations).toHaveBeenCalledWith("deity");
+    expect(fetchDerivedAncestry).toHaveBeenCalledWith("deity");
     expect(screen.getByText("Helios")).toBeInTheDocument();
   });
 

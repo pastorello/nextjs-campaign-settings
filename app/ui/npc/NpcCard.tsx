@@ -3,17 +3,19 @@ import {
   DisclosureButton,
   DisclosurePanel,
 } from "@headlessui/react";
-import { useTranslations } from "next-intl";
 
 import Icon from "../components/Icon";
 import IconType from "../buttons/BaseButton/IconType";
 import pageMetaFields from "@/app/lib/config/pageMetaFields";
 import NpcItem from "@/app/lib/definitions/interfaces/npc/NpcItem";
 import NpcMetaField from "@/app/lib/definitions/enums/npc/NpcMetaField";
-import resolveFieldValue from "@/app/lib/utils/data/resolveFieldValue";
+import DerivedPlacement from "@/app/lib/definitions/interfaces/maps/DerivedPlacement";
 
-const NpcCard = (props: { cardItem: NpcItem }) => {
-  const t = useTranslations();
+const NpcCard = (props: {
+  cardItem: NpcItem;
+  /** Absent while nobody has pinned this NPC anywhere (SPEC-004 T5a). */
+  placement?: DerivedPlacement | undefined;
+}) => {
   const markup = { __html: props.cardItem.description };
 
   return (
@@ -42,12 +44,11 @@ const NpcCard = (props: { cardItem: NpcItem }) => {
               props.cardItem[NpcMetaField.appearance]
             )}
           </div>
+          {/* Derived from the NPC's pin in the world tree, not from the
+              `location` column beside it — see SPEC-004 §5 point 6. Blank
+              until someone places them on a map, which is a valid state. */}
           <div className="w-[200px] text-xl">
-            {resolveFieldValue(
-              pageMetaFields[NpcMetaField.location],
-              props.cardItem[NpcMetaField.location],
-              t
-            )}
+            {props.placement?.place ?? ""}
           </div>
           <div className="w-[40px] group-data-open:rotate-180">
             <Icon iconType={IconType.chevronDown} />

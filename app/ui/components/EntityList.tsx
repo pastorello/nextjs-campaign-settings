@@ -11,7 +11,7 @@ import { fetchFilteredDeities } from "@/app/lib/data/deities/fetchFilteredDeitie
 import { fetchFilteredMagicItems } from "@/app/lib/data/magicitems/fetchFilteredMagicItems";
 import { fetchFilteredNpc } from "@/app/lib/data/npc/fetchFilteredNpc";
 import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
-import fetchDerivedLocations from "@/app/lib/data/maps/fetchDerivedLocations";
+import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
 
 import SortableHeader from "../buttons/SortableHeader";
 import DeleteButton from "../buttons/DeleteButton";
@@ -69,9 +69,12 @@ export default async function EntityList(props: {
   // there (see `pageMetaFields.ts`) — it is never part of the write schema.
   if (props.pageType === PageType.Npc || props.pageType === PageType.Deity) {
     const linkedType = props.pageType === PageType.Npc ? "npc" : "deity";
-    const derivedLocations = await fetchDerivedLocations(linkedType);
+    const ancestry = await fetchDerivedAncestry(linkedType);
     for (const item of items) {
-      item.derivedLocation = derivedLocations.get(item.id as number) ?? "";
+      // The list wants the immediate place only; the plane above it is a
+      // card-level concern (`DeityCard`), so the rest of the chain is
+      // simply unused here.
+      item.derivedLocation = ancestry.get(item.id as number)?.[0]?.title ?? "";
     }
   }
 

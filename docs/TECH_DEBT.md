@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-08
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-63 and TD-74.** Both are written up below; everything else in the summary table is closed.
+**Open items: TD-63, TD-74 and TD-75.** All three are written up below; everything else in the summary table is closed.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -96,6 +96,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-72 | ✅ `usePOIManager.ts`/`useNavigableChildren.ts` marker HTML uses inline `style`, not Tailwind classes       | ~~🟢 Low~~ done      | S      | 3     |
 | TD-73 | ✅ `.env.test.example`'s documented e2e setup (`prisma db push`) leaves a fresh DB unable to seed           | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-74 | `pageMetaFields` spreads four domain metas into one flat object — a name collision silently discards one    | 🟡 Medium            | S      | 3     |
+| TD-75 | `pnpm test` fails on a clean checkout — one suite needs a `DATABASE_URL` that only CI provides              | 🟡 Medium            | S      | 3     |
 
 ---
 
@@ -153,3 +154,30 @@ Worth doing **before** SPEC-006 T6 switches `npcMeta.faction` to a table source,
 **Done when:** adding a duplicate field name to two domain metas fails `pnpm typecheck`, with the three genuinely shared fields declared as such in one place.
 
 ---
+
+---
+
+## TD-75 🟡 `pnpm test` fails on a clean checkout — one suite needs a `DATABASE_URL` that only CI provides
+
+**Where:** `app/lib/config/env.ts` (the eager validation), surfaced by `app/lib/storage/FilesystemMapImageStore.test.ts`. The harness gap is in `vitest.config.ts`, which sets no `env`.
+
+**Why:** `env.ts` parses the environment **at import time** — deliberately, per TD-02b, and the file says why: _"a missing variable throws immediately, naming it, at the first import instead of at first use."_ That is right for the app. It also means any test that exercises real code importing `env.ts` needs a `DATABASE_URL` present, and nothing in the test harness provides one.
+
+So `pnpm test` on a machine that has not exported it fails **one file out of 139** with a `ZodError` naming `DATABASE_URL`, while everything else passes. Reproduced 2026-08-08; `set -a; . ./.env; set +a; pnpm test` is green, so the failure is environmental, not a real regression.
+
+**Two things make this worth an item rather than a note.**
+
+- **It is invisible in CI**, which is why it has survived. `.github/workflows/ci.yml` sets `DATABASE_URL: postgresql://admin:postgres@localhost:5432/placeholder` as a job env var for the `test` job, so the suite is green there and nothing signals the gap.
+- **It makes the project's own Definition of Done unreliable.** `CLAUDE.md` requires "`pnpm test` passes" before a change is complete. On a fresh clone that command is red for reasons unrelated to the change, so the first thing anyone does is diagnose a non-bug — the exact cost `CLAUDE.local.md` exists to prevent.
+
+Today it is one file. The two sibling suites (`app/api/maps/[id]/image/route.test.ts`, `app/api/maps/upload/route.test.ts`) mock `defaultMapImageStore` and never reach `env.ts`, so they are unaffected — but the exposure grows with every future test that exercises real code reading validated env.
+
+**Plan:** give `vitest.config.ts` an `env` block setting a placeholder `DATABASE_URL`, mirroring exactly what CI already does. Self-contained, no dependency on a gitignored local file, and it fixes the class rather than the instance.
+
+Three alternatives, and why not:
+
+- **Load `.env` in `vitest.setup.ts`** — makes the suite depend on a gitignored file, so a fresh clone still fails. This is the obvious-looking fix and it does not work.
+- **Mock `env.ts` in the affected suite** — narrow, and recurs for every future test of code that reads env.
+- **Make `env.ts` validate lazily.** This would fix it, and it **reverses a deliberate TD-02b decision** quoted above. Do not trade the app's fail-fast behaviour for a test-harness convenience; fix the harness.
+
+**Done when:** `git clone`, `pnpm install`, `pnpm test` is green with no `.env` file and no `DATABASE_URL` exported.

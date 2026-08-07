@@ -125,6 +125,14 @@ test.describe("POI linked-entity popup link", () => {
     await page
       .getByRole("link", { name: messages.npc.page.newItemButton })
       .click();
+    // Without this wait, `getByLabel("Nome")` can transiently resolve to the
+    // list page's "Ordina per nome" sort button (a substring match) before
+    // the create form mounts, and Playwright locks onto that stale element
+    // instead of retrying — the sibling test above waits on this same
+    // heading first for the same reason.
+    await expect(
+      page.getByRole("heading", { name: messages.npc.form.createTitle })
+    ).toBeVisible();
     await page.getByLabel(messages.common.fields.name.label).fill(npcName);
     await page
       .getByRole("button", { name: messages.npc.form.createButton })

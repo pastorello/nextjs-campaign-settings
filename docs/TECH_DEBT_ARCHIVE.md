@@ -2041,6 +2041,31 @@ Surfaced again on 2026-08-06 while shipping SPEC-004 M2's migration, which had t
 
 ---
 
+## TD-75 ✅ `pnpm test` fails on a clean checkout — one suite needs a `DATABASE_URL` that only CI provides — **DONE (2026-08-08)**
+
+**Outcome:** `vitest.config.ts`'s `test` block now sets `env: { DATABASE_URL: "postgresql://admin:postgres@localhost:5432/placeholder" }`, the same placeholder `.github/workflows/ci.yml` already sets for the `test` job. Verified with `env -u DATABASE_URL pnpm test`: 139/139 files, 1029/1029 tests, green with no `.env` file present and nothing exported. `pnpm typecheck`, `pnpm lint` and `pnpm format:check` all pass on the same change.
+
+**Where:** `app/lib/config/env.ts` (the eager validation), surfaced by `app/lib/storage/FilesystemMapImageStore.test.ts`. The harness gap was in `vitest.config.ts`, which set no `env`.
+
+**Why:** `env.ts` parses the environment **at import time** — deliberately, per TD-02b, and the file says why: _"a missing variable throws immediately, naming it, at the first import instead of at first use."_ That is right for the app. It also means any test that exercises real code importing `env.ts` needs a `DATABASE_URL` present, and nothing in the test harness provided one.
+
+So `pnpm test` on a machine that had not exported it failed **one file out of 139** with a `ZodError` naming `DATABASE_URL`, while everything else passed. Reproduced 2026-08-08; `set -a; . ./.env; set +a; pnpm test` was green, so the failure was environmental, not a real regression.
+
+**Two things made this worth an item rather than a note.**
+
+- **It was invisible in CI**, which is why it survived. `.github/workflows/ci.yml` sets `DATABASE_URL: postgresql://admin:postgres@localhost:5432/placeholder` as a job env var for the `test` job, so the suite was green there and nothing signalled the gap.
+- **It made the project's own Definition of Done unreliable.** `CLAUDE.md` requires "`pnpm test` passes" before a change is complete. On a fresh clone that command was red for reasons unrelated to the change, so the first thing anyone did was diagnose a non-bug — the exact cost `CLAUDE.local.md` exists to prevent.
+
+**Plan (as executed):** gave `vitest.config.ts` an `env` block setting a placeholder `DATABASE_URL`, mirroring exactly what CI already does. Self-contained, no dependency on a gitignored local file, and it fixes the class rather than the instance.
+
+Three alternatives, and why not:
+
+- **Load `.env` in `vitest.setup.ts`** — makes the suite depend on a gitignored file, so a fresh clone still fails. This is the obvious-looking fix and it does not work.
+- **Mock `env.ts` in the affected suite** — narrow, and recurs for every future test of code that reads env.
+- **Make `env.ts` validate lazily.** This would fix it, and it **reverses a deliberate TD-02b decision** quoted above. Do not trade the app's fail-fast behaviour for a test-harness convenience; fix the harness.
+
+---
+
 ## TD-72 🟢 `usePOIManager.ts` and `useNavigableChildren.ts` build marker/popup HTML with inline `style`, not Tailwind classes
 
 **Where:** `app/modules/maps/hooks/usePOIManager.ts`'s `createMarker` (POI markers and their popups) and `useNavigableChildren.ts`'s marker `html` — both build Leaflet `L.divIcon`/`bindPopup` content as raw HTML template strings using `style="..."` attributes.

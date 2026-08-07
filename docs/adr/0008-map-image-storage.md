@@ -37,7 +37,7 @@ Other constraints that matter:
 
 Three parts:
 
-1. **Storage.** Files land under `UPLOAD_DIR` (dev: a gitignored `./storage/maps`; production: the same path backed by a named Docker volume once the app is containerised). Because the path comes from the environment, dev and production run the same code.
+1. **Storage.** Files land under `UPLOAD_DIR` — must be an absolute path, defaulting to a fixed location under the home directory if unset (TD-66: a relative default resolved against `process.cwd()` silently split map images across checkouts of this repo sharing one `DATABASE_URL`); production points the same variable at a named Docker volume once the app is containerised. Because the path comes from the environment, dev and production run the same code.
 2. **Access.** A route handler at `app/api/maps/[id]/image/route.ts` calls `requireApiSession()` — the guard TD-01 established for every route handler — then streams the file. No unauthenticated path to a map exists. The existing four maps move out of `public/maps/` in the same change, which closes the current exposure.
 3. **An interface, not a hard-coded `fs` call.** A small `MapImageStore` (`put`, `get`, `delete`) with a filesystem implementation. Swapping to S3, MinIO or a rented host later replaces one file and an env var, not the call sites.
 

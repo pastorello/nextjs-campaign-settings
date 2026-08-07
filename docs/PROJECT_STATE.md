@@ -71,7 +71,9 @@ pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageM
 │   │   ├── definitions/     # enums / interfaces / types, one per file
 │   │   ├── hooks/           # usePageManager (one, generic) + useFilterController
 │   │   ├── utils/           # validators, data helpers
-│   │   └── actions.ts       # authenticate() server action
+│   │   └── actions/
+│   │       ├── authenticate.ts  # authenticate() server action
+│   │       └── search/          # useClearSearchParams
 │   ├── modules/maps/        # Self-contained Leaflet module (components/hooks/contexts/types)
 │   ├── seed/                # Prisma seed + initial data
 │   └── ui/                  # All presentational components

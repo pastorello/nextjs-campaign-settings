@@ -172,7 +172,7 @@ The matcher excludes `/api`, so the proxy cannot protect the route handlers or S
 
 Two things are deliberately kept despite having no importers, and must survive a cleanup pass — see CLAUDE.md, _Decisions and rejected approaches_:
 
-- `app/lib/definitions/enums/deities/Circolo.ts` — 23 thematic magic circles from the setting's original design, which the DM intends to revisit.
+- `app/lib/definitions/enums/deities/Circle.ts` — 23 thematic magic circles from the setting's original design, which the DM intends to revisit. (Named `Circolo.ts` until TD-33 renamed it; this line still said the old name until 2026-08-08.)
 - `app/ui/components/Spinner.tsx` — a full-page framer-motion loader, orphaned when `BaseButton.buttonState` absorbed the inline save spinner. Reads as an intended `loading.tsx` affordance, not a leftover.
 
 ---

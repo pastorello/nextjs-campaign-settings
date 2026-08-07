@@ -8,7 +8,9 @@ Guidance for AI agents (Claude Code, Cowork) working in this repository. Read th
 
 **Campaign Settings** — a self-hosted Next.js app for managing a D&D 5e homebrew campaign setting: spells, magic items, NPCs, deities, and an interactive world map.
 
-Current phase: **hardening.** Correctness, tests and code quality take priority over new features — not to impress a reader, but because a correct, well-documented, low-drift base is what keeps this project cheap to pick back up, for the maintainer and for whichever agent opens it next. Do not add features unless explicitly asked — if you spot one worth building, note it in `docs/ROADMAP.md` instead.
+Current phase: **3 — data model and relations** (`docs/ROADMAP.md`). Phases 1 and 2 (correctness, then quality) are complete, and the standards they established are permanent: correctness, tests and code quality still take priority over new features — not to impress a reader, but because a correct, well-documented, low-drift base is what keeps this project cheap to pick back up, for the maintainer and for whichever agent opens it next.
+
+**Feature work now happens, but only through a spec.** Do not add a feature unless it is explicitly asked for or already specified in `docs/specs/` — if you spot one worth building, note it in `docs/ROADMAP.md` instead.
 
 Read [`docs/PROJECT_STATE.md`](./docs/PROJECT_STATE.md) and [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) before your first substantial change in a session.
 
@@ -16,7 +18,7 @@ Read [`docs/PROJECT_STATE.md`](./docs/PROJECT_STATE.md) and [`docs/ARCHITECTURE.
 
 ## Language conventions
 
-**Target state** — all code in English; user-facing text Italian today, Italian + English once TD-21 lands. See [ADR-0005](./docs/adr/0005-english-identifiers.md) and [ADR-0006](./docs/adr/0006-bilingual-ui.md).
+**Reached, both halves** — all code is in English (TD-19/TD-33), and the UI ships bilingual from `messages/{it,en}.json` (TD-21). See [ADR-0005](./docs/adr/0005-english-identifiers.md) and [ADR-0006](./docs/adr/0006-bilingual-ui.md).
 
 | Context                                                            | Language                                                                                         |
 | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
@@ -28,15 +30,14 @@ Read [`docs/PROJECT_STATE.md`](./docs/PROJECT_STATE.md) and [`docs/ARCHITECTURE.
 
 **The rename happened — TD-19 landed 2026-07-30.** Domain fields and enums are English (`name`, `description`, `level`, `circle`, `npc`); Postgres columns stayed Italian and are decoupled by Prisma `@map` (`name String @map("nome")`). So `psql` and raw SQL still show `nome`, `descrizione`, `livello`, and that is expected, not drift.
 
-**A residual set survived it: 16 Italian identifiers, tracked as TD-33.** Mostly option-list data and geography/tarot enums (`Circolo`, `Luogo`, `Tarocco`, `fazioni`, `allineamenti`, `FazioneItem`). They are unfinished work under ADR-0005, **not** a deliberate exception.
+**The 16 identifiers TD-19 missed were finished by TD-33** — `Circolo` → `Circle`, `Luogo`, `Tarocco`, `fazioni`, `allineamenti`, `FazioneItem` and the rest. Nothing Italian remains in the identifier layer. If you find one, it is a genuine miss, not an exception: rename it, and land it as its own pure-rename commit rather than mixed into a behaviour change.
 
 Rules that still hold:
 
-- **Do not opportunistically rename the TD-33 identifiers** as part of unrelated work. Land them as one pure-rename commit, as TD-19 did. Unlike TD-19's, these renames are fully compiler-verified — nothing here is string-keyed — but a rename mixed into a behaviour change is still unreviewable.
 - **New code uses English identifiers.** Never invent a new Italian one.
 - Never put Italian in technical identifiers, comments or documentation.
 - **The metadata layer is still string-keyed in places, and the compiler will not catch what you miss.** `getQuery.ts` hardcodes the free-text-search and default-sort field as a literal; that exact line was one of TD-19's two near-misses, caught only by the test suite going red. A missed key becomes a filter that silently stops filtering, which no type error announces.
-- **Do not add new hardcoded UI strings.** The app ships bilingual (TD-21, still open). Until the catalogues exist, keep new user-facing copy in one obvious place per file so extraction stays cheap — do not scatter it through JSX. Several files already carry a single `COPY` object at the top for this reason; follow that.
+- **Do not add new hardcoded UI strings.** The catalogues exist (`messages/it.json`, `messages/en.json`) and the app ships bilingual, so new user-facing copy goes in **both** of them and is read through `next-intl` — never written into JSX. A key added to one locale and not the other fails CI's key-set check. Resolve keys at the render boundary, per [ADR-0007](./docs/adr/0007-message-key-resolution-boundary.md).
 
 ---
 
@@ -66,7 +67,7 @@ docker-compose up       # Postgres on :5432
 
 ## Architecture in one screen
 
-- **Next.js App Router.** Server Components read from Postgres via Prisma. Server Actions write. No REST layer for domain data; the only route handlers are four DELETE endpoints and two read-only GeoJSON endpoints.
+- **Next.js App Router.** Server Components read from Postgres via Prisma. Server Actions write. No REST layer for domain data; the route handlers are four DELETE endpoints, two read-only GeoJSON endpoints, and two for map images — an authenticated `GET` that streams an uploaded map and the upload endpoint itself ([ADR-0008](./docs/adr/0008-map-image-storage.md)). `find app/api -name route.ts` is the current list.
 - **The metadata layer is the core abstraction.** Each field is declared once in `app/lib/config/<domain>/<domain>Meta.ts` as a `PageMeta`, composed into `pageMetaFields.ts` and ordered per page in `pagesConfig.ts`. That single declaration drives form rendering, list columns, filters and Prisma query construction. **Never bypass it** by hardcoding a field in a component — extend the metadata instead.
 - **One concept per file** in `app/lib/definitions/` (enums, interfaces, types) and `app/lib/data/` (one function per file). Follow this.
 - **`app/modules/maps/` is the quality bar.** Self-contained, typed, with an error boundary and defensive hooks. When refactoring elsewhere, aim for that structure.
@@ -93,7 +94,7 @@ Git history records what was done. **Nothing records what was deliberately not d
 **Add an entry when** a suggestion is rejected, an approach is chosen over an obvious alternative, or an instruction written in `docs/` turns out to be wrong. Two lines each. A genuinely architectural decision goes in an ADR and is only linked from here. Keep this list short enough to be read every session — if it passes ~15 entries, prune the ones the code now makes obvious.
 
 - **2026-07-22 — Unused is not dead: ask before deleting.** Some unused code is scaffolding for features not yet built. `app/modules/maps/components/map/` is a vendored library (taken from a GitHub project) and stays as inventory even where nothing in the app imports it. Do not remove an unused component on the strength of "nothing references it" — distinguish _dead_ (tutorial leftover, superseded duplicate) from _unwired_ (waiting to be used), and when unsure, ask. (`BaseButton.buttonState` was such an unwired-but-planned prop; it was implemented on 2026-07-25 — loading / active / disabled / default — and now drives the button, so it is no longer an example of this.) **Narrowed 2026-08-04 (TD-46):** this no longer covers `WorldMap.tsx` itself — its country-search subsystem (`selectedCountry`, `MapDetailsPanel`, `useMapTileProvider`, the commented-out `MapSearchBar`/`MapTopBar` JSX) was genuinely dead, not unwired-and-waiting: nothing could ever trigger it, since the only entry point was the commented-out search bar. Removed in that cleanup. `WorldMap.tsx` now only imports what it actually renders; re-add country search as a deliberate feature, wired end to end, rather than restoring the old dead scaffolding.
-- **2026-07-22 — `Circolo.ts` stays, though nothing imports it.** The 23 thematic magic circles are the surviving half of the setting's original design; spells are now grouped by D&D 5e subclasses instead, and the DM intends to revisit the idea. Not dead code — do not delete it in a cleanup pass.
+- **2026-07-22 — `Circle.ts` stays, though nothing imports it.** The 23 thematic magic circles are the surviving half of the setting's original design; spells are now grouped by D&D 5e subclasses instead, and the DM intends to revisit the idea. Not dead code — do not delete it in a cleanup pass. _(Was `Circolo.ts` until TD-33 renamed it on 2026-07-30; this entry still said the old name until 2026-08-08, so an agent grepping for `Circolo.ts` found nothing and could reasonably have concluded the file was already gone.)_
 - **2026-07-22 — `circolo` holds subclass ids and is labelled "Sottoclassi".** The concept converged: the column keeps its old name (renaming it is TD-19 plus a migration) while the UI says what it actually contains. The duplicate `sottoclassi` field was removed from the code — it was never populated, and its column is dropped with TD-11.
 - **2026-07-22 — No AI session log in this repo.** A sibling project (`local-social-network`) keeps a `docs/ai-log/` of per-session logs; this project deliberately does not. The durable half of that format — decisions and rejections — lives in this section instead, where it is actually read. Do not propose adding one.
 - **2026-07-22 — `ItemMeta.value` is `ReactNode`, not `PrimitiveValue`.** TD-06's written instruction to repoint the import at `PrimitiveValue` was wrong: the prop always receives `PageMeta.getDatum` output, declared `string | ReactNode`. Restoring `PrimitiveValue` re-breaks `SpellCard` and `DeityCard` with nine errors.
@@ -153,7 +154,7 @@ For architectural decisions (choosing a library, changing a data model, introduc
 
 ## External skill packs
 
-Five skills from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) are installed:
+Five skills from [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) are installed, in **`.agents/skills/`** (not `.claude/skills/`):
 
 | Skill                          | Used for                                                      |
 | ------------------------------ | ------------------------------------------------------------- |
@@ -201,8 +202,8 @@ Reference the debt ID where one applies: `fix(auth): require session on delete e
 ## Where things live
 
 ```
-app/api/**                    route handlers (DELETE + GeoJSON)
-app/dashboard/**              authenticated pages
+app/api/**                    route handlers (DELETE, GeoJSON, map images)
+app/[locale]/dashboard/**     authenticated pages (locale segment added by TD-21)
 app/lib/config/**             ← metadata declarations (start here for field changes)
 app/lib/data/<domain>/**      ← data access, one function per file
 app/lib/definitions/**        enums / interfaces / types, one per file

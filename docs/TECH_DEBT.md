@@ -1,10 +1,21 @@
 # Technical Debt Register
 
-**Last updated:** 2026-08-07
-**Scope:** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why their numbering is chronological rather than thematic. Each item is independently actionable and sized to be completable in one focused session.
-**Open items:** TD-74 (filed 2026-08-08, found while writing [SPEC-006](./specs/006-table-backed-options.md)). TD-61, TD-62, TD-64 through TD-73 all closed 2026-08-07 (see their write-ups below). TD-44 (2026-08-02) found `coverage.all: true` changed nothing, confirming the 50.68%-lines baseline rather than correcting it, and produced two properly scoped gaps: TD-45 (page-level route components) and TD-46 (`app/modules/maps/components/**` Leaflet rendering). TD-45 closed 2026-08-04: 10 new test files brought the suite to 54.51% lines / 48.92% branches (682 → 709 tests). TD-46's e2e sub-slices (POI CRUD, measurement) verified real flows but — `vitest.config.ts` excludes `e2e/**` from coverage — never moved that number, so the item pivoted to Vitest, tiered by whether `WorldMap.tsx` actually renders the component. **Tier 1 closed 2026-08-04:** five new suites (`LeafletMap`, `MapContextMenu`, `MapMeasurementPanel`, `MapControls`, `MapPOIPanel`) brought the suite to 63.81% lines / 60.89% branches (709 → 755 tests). **Tier 2 closed the same day:** the remaining eight components (`MapSearchBar`, `MapTopBar`, `MapTileSwitcher`, `MapThemeSwitcher`, `MapUser`, `LeafletGeoJSON`, `LeafletTileLayer`, `MapDetailsPanel`) — reachable only through `MapMain.tsx`, which has no importer outside its own directory — were tested as-is per the user's cable-or-delete call, bringing the suite to **70.09% lines / 69.66% branches (755 → 807 tests)**. **This crosses Phase 2's 70% exit criterion** — see `docs/ROADMAP.md`. TD-58/TD-59 (2026-08-06) closed a Dependabot config gap that broke CI twice on the same day (an ungrouped ESLint major bump, then a `prisma` CLI/client version split); see their write-ups below.
+**Last updated:** 2026-08-08
+**What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**TD-47 – TD-55 do not exist in this document, and that is not an oversight to fix.** A 2026-08-06 merge commit ("docs: record TD-47 – TD-57 from the 2026-08-04 audit pass", PR #80) claimed to record all nine, but its actual diff only ever added `.env.example` and `dependabot.yml` — TD-56 and TD-57's fixes, still themselves undocumented here until this pass added TD-58/TD-59 alongside them. No PR, commit, or doc anywhere in this repo's history contains what TD-47–TD-55 were about; they were most likely identified in an external audit session (a Cowork pass, per `CLAUDE.md`'s "Bringing research into the codebase" section) whose findings were never committed. **Do not re-litigate this as a documentation bug to fix by writing entries** — there is nothing to transcribe, only a merge-commit message that overclaimed. Do not reuse IDs 47–55 for new items; skip to the next free number instead, so a rediscovered original write-up (if one ever surfaces) has an unambiguous home.
+**Open items: TD-63, TD-74 and TD-75.** All three are written up below; everything else in the summary table is closed.
+
+**Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
+
+**TD-47 – TD-57 and TD-60 have no write-up here, and that is not an oversight to fix.** Three different situations, verified 2026-08-08:
+
+- **TD-47 – TD-55: nothing to transcribe.** A 2026-08-06 merge commit ("docs: record TD-47 – TD-57 from the 2026-08-04 audit pass", PR #80) claimed to record them; its actual diff added only `.env.example` and `dependabot.yml`. No PR, commit or doc anywhere in this repo's history says what these nine were about — most likely an external audit session (a Cowork pass, per `CLAUDE.md`'s "Bringing research into the codebase") whose findings were never committed.
+- **TD-56 and TD-57 shipped as code but never got an entry.** They are the `.env.example` and `dependabot.yml` work in that same PR. The fixes are live; only the register entry is missing, and reconstructing one after the fact would be a guess.
+- **TD-60 was never claimed by anything** — a skipped number.
+
+**Do not re-litigate any of this by writing entries**, and do not reuse these IDs for new items; skip to the next free number, so a rediscovered write-up (if one ever surfaces) has an unambiguous home.
+
+---
 
 ## Legend
 
@@ -73,6 +84,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-59 | ✅ `prisma` CLI and `@prisma/client`/`@prisma/adapter-pg` could bump independently, breaking the build      | ~~🟠 High~~ done     | S      | 3     |
 | TD-61 | ✅ Option-backed `Int` fields accept any number; an out-of-list value renders as a blank cell               | ~~🟠 High~~ done     | S      | 3     |
 | TD-62 | ✅ POI category names are hardcoded English and reach the UI — a TD-21 leftover                             | ~~🟢 Low~~ done      | S      | 3     |
+| TD-63 | 🟡 Local dev DB's migration history has a gap `migrate dev`/`migrate deploy` cannot get past                | 🟡 Medium            | S      | 3     |
 | TD-64 | ✅ `WorldMap.tsx`'s async-effect map-loading pattern trips `react-hooks/set-state-in-effect`                | ~~🟢 Low~~ done      | S      | 3     |
 | TD-65 | ✅ `DATABASE_URL` in this dev environment isn't a throwaway DB — e2e debris landed in real data             | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-66 | ✅ `UPLOAD_DIR`'s relative default silently splits map-image files from the DB rows referencing them        | ~~🟡 Medium~~ done   | S      | 3     |
@@ -84,366 +96,27 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-72 | ✅ `usePOIManager.ts`/`useNavigableChildren.ts` marker HTML uses inline `style`, not Tailwind classes       | ~~🟢 Low~~ done      | S      | 3     |
 | TD-73 | ✅ `.env.test.example`'s documented e2e setup (`prisma db push`) leaves a fresh DB unable to seed           | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-74 | `pageMetaFields` spreads four domain metas into one flat object — a name collision silently discards one    | 🟡 Medium            | S      | 3     |
+| TD-75 | `pnpm test` fails on a clean checkout — one suite needs a `DATABASE_URL` that only CI provides              | 🟡 Medium            | S      | 3     |
 
 ---
 
-## Closed items — TD-01 through TD-36
+---
 
-Every item the 2026-07-22 audit found, plus everything found while doing the work through 2026-08-01, is closed. Correctness, security, dead code, formatting, CI, accessibility, the metadata-layer types, the identifier rename, the bilingual UI, the migration drift, the E2E harness — all done, with tests. The summary table above is the current status of each.
+## Closed items — TD-01 through TD-62, and TD-64 through TD-73
 
-**The full write-up for each — what was found, why, the fix — moved to [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)** on 2026-08-01, so this file stays what it's for: deciding what to work on next. Nothing was deleted; the archive keeps every "(original)" problem framing exactly as recorded, per the policy in [`docs/README.md`](./README.md#keeping-them-honest).
+Everything the 2026-07-22 audit found, plus everything found while doing the work through 2026-08-07, is closed: correctness, security, dead code, formatting, CI, accessibility, the metadata-layer types, the identifier rename, the bilingual UI, the migration drift, the E2E harness, the coverage sweep that crossed Phase 2's 70% gate, and the whole SPEC-004 map/world-tree run. The summary table above is the current status of each.
+
+**Each item's full write-up — what was found, why, the fix — is in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)**, moved there in two passes (TD-01–TD-36 on 2026-08-01, the rest on 2026-08-08). Nothing was deleted; the archive keeps every "(original)" problem framing exactly as recorded, per the policy in [`docs/README.md`](./README.md#keeping-them-honest).
 
 ---
 
-## Coverage hardening — TD-37 through TD-43
-
-**Opened 2026-08-01.** Every audit-era correctness item is closed; TD-36 was the last bug this project knew about. What remains is that `docs/ROADMAP.md`'s Phase 2 exit criterion — coverage above 70% — was never actually met. The register said "Phase 2 is complete" while the roadmap's own exit-criteria line said "at 22% — the one criterion still far off"; both were reading the same number and drawing different conclusions. **A test suite that hasn't looked at most of the code cannot promise the code is right — this is drift between what the register claims and what CI actually checks, the exact failure mode `docs/TESTING.md`'s "coverage is a diagnostic, not a goal" line exists to prevent.**
-
-These seven items are one coverage pass, split by area so each stays a single-session unit, in the order `docs/TESTING.md` §2's own target table implies: the auth/DB boundary first (an unverified login path is a security question, not a polish one), then the data layer, then presentation-only code last. **No item here changes behaviour** — every one adds tests against what the code already does. If a test reveals the code does the wrong thing, that becomes its own bug-fix item, not scope creep on the coverage item that found it.
-
-Figures below are from a live `pnpm test:coverage` run on 2026-08-01, not from the (now corrected) stale 22% figure in `docs/TESTING.md`.
-
-### TD-37 ✅ `authenticate()` and `app/lib/connections/**` are 0% covered — **DONE (2026-08-02)**
-
-**Outcome:** all four files this item named are now covered — `app/lib/connections/**` reads 100% lines / 83.33% branches, and `app/lib/actions.ts` and `app/lib/actions/search/useClearSearchParams.ts` (the real name of the "`searchParams.ts`" this item's write-up pointed at) are both at 100%. Test suite grew 267 → 283.
-
-- `__test__/auth/authenticate.test.ts` (6 tests) — the three outcomes the plan named (success, `CredentialsSignin`, any other `AuthError`), plus that `logServerIssue` fires only for the `AuthError` cases and that a non-`AuthError` rethrows rather than being swallowed. `next-auth`'s own barrel import pulls in `next/server`, which vitest/jsdom cannot resolve, and `@auth/core` (where `AuthError`/`CredentialsSignin` actually live) is a transitive dependency pnpm does not hoist — so `next-auth` is mocked with minimal local classes reproducing the one property the code reads (`error.type`), rather than importing the real ones.
-- `app/lib/connections/checkDatabaseReachable.test.ts` (6 tests) — the actual filename (this item's write-up said `dbReachable.ts`). Covers the success path, a connection failure naming host and port, the documented port-5432 default, an unset/malformed `DATABASE_URL` degrading to a named message rather than throwing, and a non-connection failure (e.g. a missing relation) logging the underlying message instead of the "nothing is listening" copy. Follows `createPoi.test.ts`'s documented pattern of a direct hoisted mock reference rather than `vi.mocked(prisma.$queryRaw)`, which trips `unbound-method`.
-- `app/lib/connections/prisma.test.ts` (3 tests) — the singleton itself, previously untested and invisible in the coverage table for an unrelated reason (see below): the adapter is built from the validated `DATABASE_URL`, the client is constructed with that adapter, and the global-caching behaviour (reused across module reloads outside production) actually reuses rather than reconstructing.
-- `app/lib/actions/search/useClearSearchParams.test.ts` (1 test) — the hook clears search params by replacing the current pathname.
-
-**A display bug found on the way, not fixed here.** `app/lib/actions.ts` (a flat file) sits beside `app/lib/actions/` (a directory) — the exact "flat file beside a directory of the same name" pattern `CLAUDE.md`'s decision log already forbids. It doesn't break anything at runtime, but it breaks `pnpm test:coverage`'s human-readable table: the row for `app/lib/actions.ts` is silently dropped from the printed output entirely (confirmed present and at 100% in `coverage/coverage-summary.json`, just never rendered in the text table). Filed as a follow-up rather than fixed here, since a rename is a mechanical, unrelated change that belongs in its own commit. **Resolved 2026-08-02, same day, in `8093b41`** — `authenticate()` moved to `app/lib/actions/authenticate.ts`; the directory-shadowing flat file is gone.
-
-**Where:** `app/lib/actions.ts` (the `authenticate` Server Action bound to the login form), `app/lib/connections/prisma.ts` (the singleton every data function imports), `app/lib/connections/checkDatabaseReachable.ts` (TD-25's startup check — the original write-up below calls it `dbReachable.ts`), `app/lib/actions/search/useClearSearchParams.ts` (the write-up calls it `searchParams.ts`).
-
-The original write-up follows for context.
-
----
-
-### TD-37 (original) 🟠 `authenticate()` and `app/lib/connections/**` are 0% covered
-
-**Where:** `app/lib/actions.ts` (the `authenticate` Server Action bound to the login form), `app/lib/connections/prisma.ts` (the singleton every data function imports), `app/lib/connections/dbReachable.ts` (TD-25's startup check), `app/lib/actions/search/searchParams.ts`.
-
-**Why this is first, not the data layer.** Every other auth-adjacent path already has tests — `requireSession`/`requireApiSession` (`__test__/auth/session-guards.test.ts`), the eight mutation guards, the four DELETE endpoints. `authenticate()` is the one gap in that set: the function that turns a submitted credential into a session in the first place is currently unverified by anything except `e2e/auth.spec.ts`, which checks the user-visible outcome, not this function's own branches (wrong password, unknown email, NextAuth throwing `CredentialsSignin` vs. an unexpected error). `dbReachable.ts` is TD-25's fix for a real incident (an unreachable Postgres surfacing as an opaque React error) — untested since the day it landed.
-
-**Plan:** mock `next-auth`'s `signIn` and Prisma's `user.findUnique` the way `mutationGuards.test.ts` already mocks Prisma; cover the three outcomes `authenticate()` distinguishes (success, bad credentials, unexpected throw) and that each produces the right return value for the form to render. For `dbReachable.ts`, mock the `SELECT 1` call to fail and assert the log line names the host/port, per TD-25's own "done when".
-
-**Done when:** `app/lib/actions.ts` and `app/lib/connections/**` are at or above the 90% `app/lib/data/**` target — they are the same trust tier.
-
----
-
-### TD-38 ✅ Data-layer `fetch*`/`get*Count` untested for deities, magicitems, npc — **DONE (2026-08-02)**
-
-**Outcome:** `app/lib/data/**` reads 93.75% statements / 93.61% lines, above the 90% target. Test suite grew 322 → 348 (26 new tests across 10 files). All three previously-0% domains (`deities`, `magicitems`, `npc`) are now at 100% for `fetchFiltered*`/`get*Count`/`delete*ById`, and `spells/getSpellsCount.ts` (the one outlier) is covered too.
-
-- Three tests per domain, mirroring `fetchFilteredSpells.test.ts`: a well-formed row parses, a malformed one throws `DatabaseError` rather than returning bad data, and a Prisma failure is wrapped rather than leaking a raw driver error. Rows are built generically from `entityFieldKeys(pageType)` + `fieldMeta[key].defaultValue` — the same fixture `buildEntitySchema.test.ts` already uses to prove `buildResultSchema` accepts a real row — instead of one hand-written literal per domain, so a field renamed in the metadata can't silently desync the fixture from the schema it is meant to exercise.
-- One test per domain for `get*Count`, which also exercises `getItemsCount.ts` (the shared function all four wrappers call, previously 0% despite being on the "already covered" side of TD-38's write-up).
-- Four tests per domain for `delete*ById`: deletes an existing row, 404s a missing one without deleting, and wraps both a lookup failure and a delete failure in `DatabaseError`.
-
-**The plan's "throws without a session" case for `delete*ById` does not apply, and was not added.** Unlike `deletePoi` (a Server Action that calls `requireSession()` directly, since POI deletion has no route handler), `deleteDeityById`/`deleteMagicItemById`/`deleteNpcById` are internal helpers with no auth check of their own — per TD-01's note, the guard lives at the DELETE route handler that is these functions' only caller, not in the functions themselves. Asserting a guard that isn't there would have been testing a behaviour the code doesn't have.
-
-**Where:** `app/lib/data/deities/{fetchFilteredDeities,getDeitiesCount,deleteDeityById}.ts` and the equivalent triplets under `app/lib/data/magicitems/` and `app/lib/data/npc/` — all at 0%. `app/lib/data/spells/getSpellsCount.ts` is the one outlier that's also 0%; everything else in `spells` is covered.
-
-The original write-up follows for context.
-
----
-
-### TD-38 (original) 🟠 Data-layer `fetch*`/`get*Count` untested for deities, magicitems, npc
-
-**Where:** `app/lib/data/deities/{fetchFilteredDeities,getDeitiesCount,deleteDeityById}.ts` and the equivalent triplets under `app/lib/data/magicitems/` and `app/lib/data/npc/` — all at 0%. `app/lib/data/spells/getSpellsCount.ts` is the one outlier that's also 0%; everything else in `spells` is covered.
-
-**Why:** `app/lib/data/**` is the project's own stated highest-value tier (90% target, "the risky part" per `docs/TESTING.md` §2) and sits at 83% today only because these four domains' count/fetch functions were never included when `getQuery.test.ts` and the mutation suites were written — `getQuery.ts` itself (the shared query builder all four call into) is already at 91%. This isn't four new test strategies, it's the existing `fetchFilteredSpells`/`getSpellsCount` pattern applied to three more domains that use the identical shape.
-
-**Plan:** mirror `app/lib/data/spells/fetchFilteredSpells.test.ts` for the three missing domains — same mocked-Prisma approach already proven there. `deleteDeityById`/`deleteMagicItemById`/`deleteNpcById` need the same "throws without a session" case `mutationGuards.test.ts` already asserts for every `create*`/`update*`.
-
-**Done when:** `app/lib/data/**` reads ≥90% lines in the coverage report, matching `docs/TESTING.md` §2's target.
-
----
-
-### TD-39 ✅ Pure functions in `app/lib/utils/**` at 51%, cheapest real coverage available — **DONE (2026-08-02)**
-
-**Outcome:** `app/lib/utils/**` reads 100% lines, above the 95% target. Test suite grew 348 → 393 (45 new tests across 9 files).
-
-- `filterByMeta.test.ts` (10 tests) — no filter, case-insensitive search term, no match, an array-type meta filter, a scalar meta filter via equality, a search term combined with a meta filter (both must match), an empty-array filter value ignored, a negative numeric filter value ignored, a non-array/non-numeric field value under an array filter, and the default empty `meta` argument.
-- `generatePagination.test.ts` (4 tests), `getOptionColorClass.test.ts` (3), `getSearchParam.test.ts` (7, against real `SpellMetaField` metadata rather than a stub — an integer, an array field both serialized and bare, a string, a boolean, an unknown field, and an invalid value), `isArrayEmpty.test.ts` / `isObjectArray.test.ts` (table-driven, matching the existing validator style) — one test file each, table-driven per the plan.
-- `resolveFieldValue.test.ts` — the one branch nothing in the app actually reaches (every declared field has `options`, a `getDatum`, or is boolean) needed a stub `PageMeta` rather than real config, to exercise the bare `String(value)` fallback. `renderRichText.test.tsx` — a one-line component, covered with a plain render assertion.
-- `sortByField/index.test.ts` — extended from one `test()` block asserting three cases to nine, covering descending order, case sensitivity on and off, equal elements, a custom `sortedValues` order, and non-array input.
-
-**Not touched:** `isKeyOfItem.ts`, `isNumberArray.ts`, `isStringArray.ts`, `isValidDataArray.ts`, `isValidDataObject.ts`, `isValidFunction.ts`, `isValidString.ts`, `elementExists.ts`, `createEmptyArray.ts`, `getDataLabel.ts`, `parseSerializedArray.ts`, `resolveOptions.ts`, `sortSelectOptions.ts` — all were already at or near 100%, covered indirectly through component tests (`TextInput.test.tsx`, `renderFieldValue.test.ts`, etc.) rather than a dedicated suite of their own.
-
-**A few filenames in the original write-up don't exist under those names** — `getPagination.ts` is `generatePagination.ts`, `cssColorClass.ts` is `getOptionColorClass.ts`. Same drift TD-37's write-up had; noted rather than silently worked around.
-
-The original write-up follows for context.
-
----
-
-### TD-39 (original) 🟡 Pure functions in `app/lib/utils/**` at 51%, cheapest real coverage available
-
-**Where:** `filterByMeta.ts`, `getPagination.ts`, `getSearchParam.ts`, `cssColorClass.ts` — all 0%; `isArrayEmpty.ts`/`isObjectArray.ts`/`isStringArray.ts` at 0–50%; `sortByField` at 80%.
-
-**Why:** `docs/TESTING.md` §2 sets this tier's target at 95% precisely because these are "trivial to cover" — no I/O, no mocking, table-driven `it.each` the way `isValidString`/`isNumberArray` already are. It's the highest coverage-per-hour in the register; the only reason it's ranked below TD-37/TD-38 is that pure-function bugs here are lower-stakes than an unverified auth path or query builder.
-
-**Plan:** table-driven tests per function, same shape as the existing validator suites — empty input, single item, malformed input, the documented edge case in each function's own comment (e.g. `filterByMeta`'s handling of a filter key not present in the metadata).
-
-**Done when:** `app/lib/utils/**` reads ≥95% lines.
-
----
-
-### TD-40 ✅ Metadata correctness untested — `npcMeta` 14%, `deityMeta` 25% — **DONE (2026-08-02)**
-
-**Outcome:** `app/lib/config/**` now reads 98.55% lines (68/69), above the 80% target. Added `pageMetaInvariants.testkit.ts` — not a test file itself (excluded from vitest's `**/*.{test,spec}.*` glob), a shared `describePageMetaInvariants(suiteName, meta)` helper called once per domain — plus `deity/deityMeta.test.ts`, `npc/npcMeta.test.ts`, `spells/SpellsMeta.test.ts`, and `pageMetaFields.test.ts` for the three base fields (`id`/`name`/`description`) declared directly on `pageMetaFields.ts` rather than in a domain meta object. Each domain suite runs the shared invariants (every field has a working `validator`, every select/multiselect has a non-empty `options` list, every `getDatum` survives a representative value for its `fieldType`) plus one domain-specific assertion: every declared field key appears in that domain's `queryFields` entry, so a field that stops being filterable is caught here rather than by a user noticing a missing filter control. `magicItemMeta.ts` needed no test of its own — it was already above 80% by virtue of being exercised through TD-38's `fetchFilteredMagicItems` suite. Test suite grew 349 → 504 (`describe.each` turns one domain file into one test per field per invariant, which is the bulk of that jump).
-
-**One lint fix the plan didn't anticipate.** `expect(field.validator.safeParse).toBeTypeOf("function")` trips `@typescript-eslint/unbound-method` — passing a method off an object as a bare reference, the same class of issue `checkDatabaseReachable.test.ts` already documents for `vi.mocked(prisma.$queryRaw)`. Fixed the same way: `expect(typeof field.validator.safeParse).toBe("function")` reads the property instead of unbinding the method.
-
-**Where:** `app/lib/config/pageMetaInvariants.testkit.ts` (new), `app/lib/config/deity/deityMeta.test.ts`, `app/lib/config/npc/npcMeta.test.ts`, `app/lib/config/spells/SpellsMeta.test.ts`, `app/lib/config/pageMetaFields.test.ts`.
-
-The original write-up follows for context.
-
----
-
-### TD-40 (original) 🟡 Metadata correctness untested — `npcMeta` 14%, `deityMeta` 25%
-
-**Where:** `app/lib/config/npc/npcMeta.ts` (14.28%), `app/lib/config/deity/deityMeta.ts` (25%), `app/lib/config/spells/SpellsMeta.ts` (50%), `pageMetaFields.ts` (60%).
-
-**Why:** the metadata layer is "the core abstraction" per `CLAUDE.md` — every field declared here drives form rendering, list columns, filters and query construction in one place, which is exactly why a wrong declaration is high-blast-radius and exactly why `docs/TESTING.md` §2 sets an 80% target here despite this being declarative data, not logic. `getQuery.test.ts` already covers the query builder that _consumes_ this data; nothing asserts the declarations themselves — that every field has a matching `validator`, that `getDatum` returns what the type says, that option lists used as `defaultValue: list[0].value` are non-empty (the exact class of bug `firstOptionValue.ts` was written to prevent, per TD-20b's write-up in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)).
-
-**Plan:** one test per domain metadata file asserting structural invariants across every declared field (validator present and matches the field's type, `getDatum` doesn't throw on a representative row, filterable fields appear in the filter list) rather than one test per field — the failure mode this guards against is a missing or wrong declaration, not a specific field's behaviour.
-
-**Done when:** `app/lib/config/**` reads ≥80% lines.
-
----
-
-### TD-41 ✅ `app/lib/hooks/**` at 52% — `useFilterController` entirely untested — **DONE (2026-08-02)**
-
-**Outcome:** `app/lib/hooks/**` now reads 95.56% lines (43/45), above the 70% target. Added `useFilterController.test.ts` (7 tests) via `renderHook`, mocking `next/navigation`'s `useRouter`/`usePathname`/`useSearchParams` the way `useClearSearchParams.test.ts` already does — `useSearchParams` returns a real `URLSearchParams` instance so the hook's own `new URLSearchParams(searchParams)` and `.get()` calls behave exactly as they would against the real API. Covers: inactive/no value with the param absent, active with the parsed value once present, `sortValue` defaulting to ascending and reading `desc` only when the URL says so, and `onFilter` both setting the field's param (resetting `page` to `1`) and — the one branch a first pass could easily miss — removing the param instead of writing `?level=-1` when the value is the query layer's "no selection" sentinel. Test suite grew 504 → 510.
-
-**Where:** `app/lib/hooks/useFilterController.test.ts`.
-
-The original write-up follows for context.
-
----
-
-### TD-41 (original) 🟡 `app/lib/hooks/**` at 52% — `useFilterController` entirely untested
-
-**Where:** `app/lib/hooks/useFilterController.ts` (0%); `usePageManager.ts` is already at 92%, the pattern to follow.
-
-**Why:** filter state is what the URL round-trips through `getQuery.ts` — a bug here produces a filter UI that silently shows the wrong count or the wrong rows, the same failure class `getQuery.test.ts`'s own top-billing ("the highest-value unit tests in the project") exists to catch on the query side. The hook that drives it from the client has no equivalent.
-
-**Plan:** `@testing-library/react`'s `renderHook`, the same tooling already in the dev dependencies for component tests (see TD-42). Cover add/remove/clear-filter transitions and that the hook's output shape matches what `getQuery.ts` expects as input, so a future change to one side is caught by the other's tests.
-
-**Done when:** `app/lib/hooks/**` reads ≥70% lines.
-
----
-
-### TD-42 ✅ `app/ui/**` behaviour untested — domain forms/cards/libraries near 0% — **DONE (2026-08-02)**
-
-**Outcome:** `app/ui/**` reads 60.64% lines (305/503), above the 60% target; `EntityForm.tsx`, `EntityList.tsx` and `EntityLibrary.tsx` — the three TD-09 shells "done when" names — are each at 100%. Following the plan's own priority order:
-
-- **`EntityList.tsx`** (6 tests): dispatch to the one fetch function matching its own `pageType`, the domain empty message, one row per item with the subtitle field rendered only for domains that declare one, a header per `listConfig` column, and the edit/delete actions per row. The row-level buttons (`SortableHeader`, `DeleteButton`, `ModalButton`) are stubbed — each has its own suite below, and re-rendering them here would test their internals twice while adding nothing to what `EntityList` itself is responsible for.
-- **`EntityLibrary.tsx`** (6 tests): the same dispatch shape, one test per domain plus the search-params passthrough, with the four `*Library` components stubbed for the same reason.
-- **Shared buttons** `app/ui/buttons/`: `SortableHeader` (5 tests — plain label vs. filter `<Select>`, sort click writing `sort`/`fieldSort`, filter-select writing the field param), `SelectButtonery` (4), `SortButton` (2), `ModalButton` (7 — the five `modalContent` variants plus open/close/`onSave` forwarding, with `Modal` and all five domain forms stubbed), `DeleteButton` (4 — success, server-reported failure, the missing-`error`-message fallback, and a rejected `fetch`), `ResetSearchButton` (1).
-- **Other shared components**: `pagination.tsx` (6 — active-page rendering, arrow disabling at both ends, the ellipsis rendering as inert text).
-- **Per-domain wrappers**: `SpellForm`/`NpcForm`/`DeityForm`/`MagicItemForm` (2–3 tests each — `EntityForm` stubbed, asserting each wires the right `pageType`/copy namespace/mutations and that the field-layout `children` function renders every field the domain declares; `MagicItemForm`'s `disableUntilEdited={false}` — the one documented behavioural difference among the four — gets its own assertion), `NpcCard` (2 — collapsed vs. expanded content), `NavLinks` (3 — link/label per entry, the admin link only where `listConfig` declares one, active-page highlighting matching either the public or admin path).
-- **Left as-is, deliberately:** `WorldMap.tsx` (114 lines, 0%) — `CLAUDE.md`'s "Decisions and rejected approaches" names this exact file as intentionally-unwired scaffolding; a coverage push here would lock in incomplete behaviour as if it were finished, which is what this item's own "Why" section warns against. `SpellCard`/`DeityCard`/`MagicItemCard`, the four `*Library.tsx` wrappers, `login-form.tsx`, `skeletons.tsx` and a handful of near-pure-markup components (`Spinner`, `Modal`, `sidenav`, `cards.tsx`) were left uncovered too — the 60% target was reached on the aggregate without them, which is what "done when" asks for, and `docs/TESTING.md` §2's own warning against "padding, not verification" argues against chasing markup-only components just to move the number.
-
-**A gap in coverage tooling, not in the suite, found on the way.** Selecting a real Headless UI `Listbox` option (as opposed to just opening it, which `Select.test.tsx` already covered) throws `ReferenceError: ResizeObserver is not defined` — jsdom does not implement it. `SortableHeader.test.tsx` stubs a minimal `ResizeObserver` locally rather than adding one to `vitest.setup.ts`, since no other suite needs it yet; if a second suite hits the same gap, that is the signal to promote the stub to the global setup instead of duplicating it a third time.
-
-**Where:** `app/ui/components/{EntityList,EntityLibrary,pagination}.test.tsx`, `app/ui/buttons/{SortableHeader,SelectButtonery,SortButton,ModalButton,DeleteButton,ResetSearchButton}.test.tsx`, `app/ui/{spells,npc,deities,magicitems}/*Form.test.tsx`, `app/ui/npc/NpcCard.test.tsx`, `app/ui/dashboard/nav-links.test.tsx`.
-
-The original write-up follows for context.
-
----
-
-### TD-42 (original) ◑ `app/ui/**` behaviour untested — domain forms/cards/libraries near 0%
-
-**Progress (2026-08-02):** the shared form machinery is covered, following exactly the "prioritize the TD-09 shells first" plan below — `EntityForm.tsx` (9 tests: create vs. edit mode, the `disableUntilEdited` gate, submit calling `create`/`update` with the right payload shape, field errors surfacing and blocking `onSaveFinished`), `PageForm.tsx` (10 tests: save vs. delete mode, button enablement, `isSaving` copy), and all of `app/ui/forms/inputs/` — `TextInput`, `TextareaInput`, `CheckboxInput`, `FormLabel`, `InputComponent` (which resolves a real `MetaConfigKey` against live `pageMetaFields` config to the right control, rather than a fake registry). Statements coverage moved 27.4% → 29.75%, branches 19.67% → 24.4%. `EntityList`/`EntityLibrary` and the per-domain `*Card.tsx`/`*Form.tsx` wrappers remain open — this item is not done, both TD-09 shells named in "done when" are still outstanding.
-
-**Where:** effectively all of `app/ui/{deities,npc,magicitems,spells}/`, `app/ui/components/` (`EntityList`, `EntityLibrary`, `Modal`, `pagination`), `app/ui/buttons/`. `Select` (91%), `BaseButton/getCSSClasses` (100%) and `app/ui/forms/` (above) are now covered — the pattern to extend, not a green field.
-
-**Why last:** `docs/TESTING.md` §2 sets this tier's target lowest among app code (60%, "behaviour, not markup") and is explicit that this is supporting cast, not one of the four things a reviewer pokes at. It's also the largest single surface in the register (this is why it's sized L, not S) — TD-09 already collapsed four duplicated component quartets into `EntityList`/`EntityLibrary`/`EntityForm`, so most of this domain-specific 0% is actually the same three generic components rendered four times, and testing the generic shell once covers most of the gap rather than requiring 16 separate suites.
-
-**Plan:** Testing Library, user-facing queries (`getByRole`, `getByLabelText`) not snapshot tests, per `docs/TESTING.md`'s existing stance. Prioritize `EntityForm`/`EntityList`/`EntityLibrary` (the TD-09 shells, highest leverage) before the thin per-domain `*Card.tsx`/`*Form.tsx` wrappers around them. Skip pure-markup components with no logic (e.g. `PageTitle.tsx`) — coverage there would be padding, not verification, exactly what `docs/TESTING.md` §2 warns against chasing.
-
-**Done when:** `app/ui/**` reads ≥60% lines, with `EntityForm`/`EntityList`/`EntityLibrary` individually above that bar.
-
----
-
-### TD-43 ✅ `app/modules/maps/**` geometry and hooks near 0% — **DONE (2026-08-02)**
-
-**Outcome:** `app/modules/maps/lib/utils/**` + `hooks/**` (excluding `components/`) reads 56.16% lines (442/787), above the 50% target. Covered, table-driven, no Leaflet-rendering involved: `coordinates.test.ts` (100%), `validation.test.ts` (86.44%) and `maps.test.ts` (89.52%) — the last of these against the _real_ `leaflet` package rather than a stub, confirmed safe to import headlessly first (bounds/geometry math needs no DOM; only tile rendering does). On the hooks side: `useTheme.test.ts` (mocking `next-themes` directly), `useMapTileProvider.test.ts` (mocking the sibling `useTheme` hook), `useMapControls.test.ts`, `useMapContextMenu.test.ts` (a fake map with working `on`/`off` to drive open/close transitions on right-click, click-away and Escape) and `useSafeMapOperations.test.ts`, all via a hand-built `MapContext.Provider` wrapper rather than the real `MapProvider`, for direct control over the map instance each hook receives.
-
-**Narrower than the original plan, deliberately.** `useMeasurement` (135 lines) and `useMapMarkers` (42 lines) were left uncovered: both create real Leaflet layers via `L.marker(...).addTo(map)`, and `Layer.addTo` calls into `map.addLayer`, which in a real Leaflet `Map` does DOM wiring (`_panes`, icon positioning, `viewreset` listeners) that a hand-rolled fake `addLayer` can't reproduce without re-implementing Leaflet itself. That crosses into the rendering territory this item's own "Why" section already routes to `e2e/map.spec.ts`, not Vitest — the same reasoning TD-36 established. `useGeolocation` (`navigator.geolocation`, real browser permissions flow) was skipped for the same reason: not pure logic, not worth a jsdom-mocked navigator to hit a number. The 50% target was reached without them; the aggregate, not full per-file coverage, is what "done when" asks for.
-
-**Where:** `app/modules/maps/lib/utils/{coordinates,validation,maps}.test.ts`, `app/modules/maps/hooks/{useTheme,useMapTileProvider,useMapControls,useMapContextMenu,useSafeMapOperations}.test.ts`.
-
-The original write-up follows for context.
-
----
-
-### TD-43 (original) 🟢 `app/modules/maps/**` geometry and hooks near 0%
-
-**Where:** `app/modules/maps/lib/utils/{coordinates,maps,validation}.ts` (all 0%) — these are the same twenty sites TD-20b's write-up names as the reason `noUncheckedIndexedAccess` initially couldn't be verified safe by test; TD-20b shipped anyway with documented non-null assertions instead, so this item is not blocking anything, it is closing the gap TD-20b left on the table. Also `app/modules/maps/hooks/` at 20% (`useMeasurement`, `useMapMarkers`, `useContextMenu`, `useMapControls` all 0%) and `app/modules/maps/components/map/**` (0%, Leaflet rendering).
-
-**Why last:** `docs/TESTING.md` §2 sets this tier's target lowest in the whole project (50%) and says why — "Leaflet is hard to test headlessly; cover hooks and utils, not rendering." `CLAUDE.md`'s "Decisions and rejected approaches" also flags this module as partly-vendored, partly-unwired-by-design scaffolding (`WorldMap.tsx`'s unused imports are deliberate) — a blanket coverage push here risks writing tests that lock in scaffolding as if it were finished behaviour, which is not this item's job.
-
-**Plan:** `coordinates.ts`/`maps.ts`/`validation.ts` are pure geometry functions despite living in the maps module — test them exactly like TD-39's utils, table-driven, no Leaflet needed. `useMeasurement`/`useMapMarkers`/`useContextMenu`/`useMapControls` are plain hooks and take `renderHook`, same as TD-41. **Explicitly out of scope:** rendering `LeafletMap.tsx`/`MapMarker.tsx`/`MapContextMenu.tsx` themselves — `docs/TESTING.md` already routes that coverage through Playwright's `e2e/map.spec.ts`, not Vitest, and TD-36 is the live example of why a rendering assertion in Vitest wouldn't have caught the real bug anyway (it was a middleware routing issue, invisible to a component test).
-
-**Done when:** `app/modules/maps/lib/utils/**` and `app/modules/maps/hooks/**` (excluding `components/`) read ≥50% lines.
-
----
-
-## Post-sweep scoping — TD-44 through TD-46
-
-### TD-44 ✅ Re-measure coverage with `coverage.all: true`; re-scope the 70% gap TD-37–43 didn't close — **DONE (2026-08-02)**
-
-**Outcome:** `coverage.all: true` is set in `vitest.config.ts`. Re-running `pnpm test:coverage` with the flag on and off, on the same commit, produced byte-identical totals — 3289 lines either way, 1667 covered, 50.68%. **The suspected blind spot doesn't exist in this repo.** Without `all: true`, the v8 provider only instruments files a test actually loads — but with 93 test files exercising a codebase this interconnected, every file under `app/**` already gets pulled in transitively (shared definitions, enums re-exported through barrels, config composed from the same modules the tests import directly). There was no invisible file to find. The flag stays on anyway, as the more correct default going forward, and because the plan's premise — "a diagnostic run against a deliberately incomplete file list is not trustworthy input" — is still true in general, just not falsified by anything this repo currently has lying around untouched.
-
-**Corrected finding:** the two gaps the original plan flagged as "already visible even without the flag" turned out to be the whole story, not a preview of a bigger one:
-
-- **Page-level Next.js route components** (`app/[locale]/dashboard/**`, `app/ui/geography`) — 21 files, 121 lines, plus `app/ui/geography/WorldMap.tsx` at 114 lines. 235 lines total, 0% covered, no target in `docs/TESTING.md` §2's table. Filed as **TD-45**.
-- **`app/modules/maps/components/**`** (Leaflet rendering) — 19 files, 737 lines, 0% covered. This alone accounts for the maps directory's low overall score despite `lib/utils/**` + `hooks/**` clearing TD-43's 50% target on their own. Deliberately routed through `e2e/map.spec.ts` rather than Vitest (`docs/TESTING.md` already says so; TD-36 is the standing example of why a Vitest rendering assertion wouldn't have caught that bug anyway). Filed as **TD-46**.
-
-Thresholds in `vitest.config.ts` raised to 50/50/47/50 (lines/functions/branches/statements) to match what the suite actually achieves, replacing the stale 34/32/28/34 that had drifted behind TD-37–43's own progress. Baseline recorded in `docs/TESTING.md` §1.
-
-**Do not fold TD-45 or TD-46 into a reopened TD-42 or TD-43.** Both closed against the target they were actually given; retroactively enlarging a closed item's scope after the fact is the same class of mistake as `CLAUDE.md`'s "flat file beside a directory" entry in the Decisions log — a boundary that existed for a reason getting quietly redrawn because it was inconvenient in the moment.
-
-### TD-45 ✅ Page-level route components have no coverage target and 0% coverage — **DONE (2026-08-04)**
-
-**Where:** `app/[locale]/dashboard/**` (layouts, loading/error/not-found boundaries, the 13 domain `page.tsx` files under `admin/` and the plain list routes) and `app/ui/geography/WorldMap.tsx`. 22 files, 235 lines, all 0%.
-
-**Why:** every other tier in `docs/TESTING.md` §2's coverage-targets table was sized and pushed forward by TD-37–43; this layer was never given a row, so nothing has ever pointed at it. Most of these are thin Server Components (a `page.tsx` that composes a data fetch with a layout shell) — the risky logic they call into (`fetch*`, metadata, mutations) is already covered elsewhere per TD-38/TD-40, so this is not a security gap, but it is 235 lines of the app with zero verification that the composition itself is correct (right fetch called, right component rendered, error/loading boundaries actually wired).
-
-**Outcome:** followed the plan's "one representative test per pattern, not one per domain" — 10 new test files, 27 new tests, suite 682 → 709. Coverage 50.68% → 54.51% lines, 47.64% → 48.92% branches; `vitest.config.ts` thresholds raised 50/50/47/50 → 54/53/48/54.
-
-- `error.test.tsx`, `not-found.test.tsx`, `(overview)/loading.test.tsx`, `layout.test.tsx` — the plain-component boundaries, each covering its own conditional logic directly (the generic-vs-unreachable branch in `error.tsx`, the reset/console.error wiring, etc).
-- `(overview)/page.test.tsx` — the one page with its own shape (`dynamic = "force-dynamic"`, `CardWrapper` composition).
-- `spells/page.test.tsx` — representative of the public list-page pattern (`ListPage` + `EntityLibrary`, `generateMetadata`, item-count fetch); `deities`/`magicitems`/`npc` share the same shape and are not duplicated.
-- `admin/spells/page.test.tsx` — representative of the admin list-page pattern (`Search`/`BaseButton`/`ResetButton`/`EntityList`/`Pagination`); same non-duplication rationale.
-- `admin/spells/new/page.test.tsx` — representative of the admin "new item" pattern (a thin client component wiring a domain form's cancel/save to `router.push`).
-- `geography/page.test.tsx` — the map-switcher's own state (selected map, highlighted button), with `WorldMap`/`MapProvider`/`MapErrorBoundary` stubbed.
-- `WorldMap.test.tsx` — the component's own state machine (image-overlay bootstrap effect, POI-location-selection flow, export/import), with its child map components and hooks stubbed since each already has its own suite (`app/modules/maps/hooks/*.test.ts`). **Updated 2026-08-04 (TD-46):** the file was five components / four hooks even at TD-45 time — `MapDetailsPanel`/`useMapTileProvider` and the country-search state they backed were dead code, not unwired scaffolding, and were removed in `WorldMap.tsx`'s cleanup rather than left for this suite to eventually stub. The measurement panel is wired and covered separately, by e2e (`e2e/map-measurement.spec.ts`).
-
-### TD-46 ✅ `app/modules/maps/components/**` (Leaflet rendering) had 0% Vitest coverage — DONE (2026-08-04)
-
-**Where:** `app/modules/maps/components/map/` — `LeafletMap.tsx`, `MapMarker.tsx`, `MapContextMenu.tsx`, `MapPOIPanel.tsx`, `MapSearchBar.tsx`, `MapMain.tsx`, `MapControls.tsx`, `MapDetailsPanel.tsx`, `MapMeasurementPanel.tsx`, and smaller supporting components. 19 files, 737 lines, 0% covered.
-
-**Why:** `docs/TESTING.md` originally routed this through `e2e/map.spec.ts` rather than Vitest — jsdom can't meaningfully render a Leaflet map, and TD-36's bug (a middleware routing issue) is the standing example of a rendering assertion in Vitest not being where this class of bug actually shows up. That's still true for the map canvas itself, but it doesn't apply to most of this tree: `vitest.config.ts` excludes `**/e2e/**` from coverage and measures `app/**` (this directory included), so **no amount of Playwright spec here moves the coverage number** — TD-45's own `WorldMap.test.tsx` already proved these components' _surrounding UI_ (forms, lists, panel state) is perfectly testable in jsdom with the map hooks stubbed. This is by far the largest coverage gap left in the codebase — 737 lines is more than the two other items combined.
-
-**Strategy pivot (2026-08-04).** The first three sub-slices below were e2e (`map-poi-crud.spec.ts`, `map-measurement.spec.ts`) and real, valuable user-flow verification — but they left the coverage number untouched and are not what closes this item. Going forward TD-46 is Vitest work, following `WorldMap.test.tsx`'s pattern (stub the map/Leaflet internals, test the component's own state and rendering), split into two tiers so effort goes to code that ships before code that might not:
-
-- **Tier 1 — components `WorldMap.tsx` actually renders today:** `MapPOIPanel`, `MapContextMenu`, `MapMeasurementPanel`, `MapControls`, `LeafletMap`. 0% coverage on live code — the real gap. **✅ Done 2026-08-04** — see outcome below.
-- **Tier 2 — components only `MapMain.tsx` (unused reference copy) references:** `MapSearchBar`, `MapTopBar`, `MapTileSwitcher`, `MapThemeSwitcher`, `MapUser`, `LeafletGeoJSON`, `LeafletTileLayer`, `MapDetailsPanel`. Decide cable-or-delete per component _before_ writing tests for it — testing something destined for deletion is the worst ratio on the list. `MapDetailsPanel` moved here 2026-08-04: it's no longer imported by `WorldMap.tsx` at all (see below). **✅ Done 2026-08-04** — see outcome below.
-
-**Tier 1 outcome (2026-08-04).** Five new test files — `LeafletMap.test.tsx`, `MapContextMenu.test.tsx`, `MapMeasurementPanel.test.tsx`, `MapControls.test.tsx`, `MapPOIPanel.test.tsx` —46 new tests, suite 709 → 755. Coverage 54.51% → 63.81% lines, 48.92% → 60.89% branches; `vitest.config.ts` thresholds raised 54/53/48/54 → 63/64/60/63.
-
-- `LeafletMap.test.tsx` mocks the `leaflet` module directly (`L.map()`, `map.on`/`off`, `getContainer`) rather than a wrapper hook — the one component in this tree actually driving Leaflet's own API, as opposed to reacting to state around it. Found along the way, not fixed: its `onClick`/`cursorStyle` effects depend on `[onClick]`/`[cursorStyle]` identity, not on whether `mapRef.current` is populated yet, so on first mount — with a stable callback — neither wires up. `WorldMap.tsx`'s real usage happens to work around this: `handleMapClick`'s `useCallback` is keyed on `isSelectingPOILocation`, so toggling location-selection is what changes the callback identity and triggers the effect to (re)run, by which point the map has initialized. The test documents this rather than treating it as a bug to fix under a coverage item.
-- `MapContextMenu.test.tsx` — pure props component, no hooks: open/closed rendering, all three menu actions (add marker, measure, add-to-POI) firing with the clicked coordinates and closing, clipboard copy with the "Copied!" feedback state, outside-click-to-close (with the real 0ms `setTimeout` the component uses to avoid closing itself from the same contextmenu event) versus inside-click no-op.
-- `MapMeasurementPanel.test.tsx` — mocks `useMeasurement`; mode-tab toggling (start vs. clear on a re-click), point count and distance/area display with the component's own m/km and m²/ha/km² formatting thresholds, Undo/Done disabled-state rules per mode, and that the panel's own `lastMeasurement` state (not the mocked hook) is what keeps the result visible once `mode` resets to idle on finish.
-- `MapControls.test.tsx` — mocks `useMapControls`/`useGeolocation`; button-to-hook wiring, disabled zoom/reset with no map, and the `fullscreenchange` listener flipping the Enter/Exit fullscreen label and icon.
-- `MapPOIPanel.test.tsx` — the largest (889 lines): list rendering and category filtering, Export/Clear disabled with no POIs, confirmed Clear All, add/edit/delete/fly-to, title and coordinate validation on save, the linked-entity type→id cascading select with `fetchLinkableEntities` mocked, and import-file wiring. Desktop panel branch only (`window.innerWidth` pinned above the mobile breakpoint) — the mobile `Drawer` branch is unexercised, matching the "one representative shape, not every branch" approach TD-45 used.
-
-**Tier 2 outcome (2026-08-04).** Before writing anything, checked who actually imports the eight remaining components: `MapMain.tsx` wires together `MapSearchBar` → `MapUser`, `MapTopBar`, `MapTileSwitcher`, `LeafletGeoJSON`, `LeafletTileLayer`, `MapDetailsPanel` — and `MapMain.tsx` itself has zero importers outside its own directory (`grep` confirmed only a barrel re-export in `index.ts`). `MapThemeSwitcher` is orphaned even from `MapMain`. Per `CLAUDE.md`'s "vendored library stays as inventory, ask before deleting" rule, asked the user for a cable-or-delete decision rather than assuming either way; the answer was **test as-is, leave dead** — write coverage for each component in isolation, without wiring `MapMain` into `WorldMap.tsx`. Eight new test files, 52 new tests, suite 755 → 807. Coverage 63.81% → 70.09% lines, 60.89% → 69.66% branches; `vitest.config.ts` thresholds raised 63/64/60/63 → 70/71/69/69. **This crosses Phase 2's 70% coverage exit criterion** — see `docs/ROADMAP.md`.
-
-- `MapTopBar.test.tsx`, `MapThemeSwitcher.test.tsx` — small pure-props/single-hook components: pill rendering and click wiring; mounted/unmounted placeholder, icon/label per theme, toggle wiring (mocks `useTheme`).
-- `MapUser.test.tsx` — the one Radix `DropdownMenu` in this tree with a test. jsdom has no `user-event` dependency in this repo, but a plain `fireEvent.pointerDown` + `fireEvent.click` on the trigger opens it reliably; from there, item clicks (GitHub link, Close Maps → `router.push("/")`, the mobile theme toggle) are ordinary `fireEvent.click`.
-- `MapTileSwitcher.test.tsx` — selected-provider label, fallback to the first layer for an unknown id, `onProviderChange` wiring. The label text appears twice (main button + slide-out panel), so assertions scope with `within()` on the main button's role rather than a bare `getByText`.
-- `LeafletGeoJSON.test.tsx`, `LeafletTileLayer.test.tsx` — mock `@/app/modules/maps/hooks/useLeafletMap` directly (a fake map object) plus the `leaflet` module's `geoJSON`/`tileLayer` factories, following `LeafletMap.test.tsx`'s pattern of stubbing Leaflet itself rather than a wrapper. Cover: no-op with no map yet, add-and-fly-to-bounds / add-with-defaults, style/prop overrides, invalid-bounds and invalid-url guards, layer replacement on prop change, and cleanup on unmount.
-- `MapDetailsPanel.test.tsx` — desktop panel branch only (jsdom's default `window.innerWidth` already reads as desktop), matching `MapPOIPanel.test.tsx`'s convention. Covers the `fetch` to `restcountries.com` keyed on `ISO_A2` (missing code → no fetch), the rendered facts (population/area/capital/currency/languages), a rejected fetch logging rather than throwing, and the close button.
-- `MapSearchBar.test.tsx` — the largest of the eight (14 tests): immediate fetch on focus, the 150ms debounce on typing (`vi.useFakeTimers` + `advanceTimersByTimeAsync`), loading/no-results/fetch-failure states, click and keyboard (arrow/Enter/Escape) selection, the selected-country and POI-panel display modes, locate-me and Map Tools wiring, and outside-click collapse. The dropdown panel is CSS-collapsed (`max-h-0`/`opacity-0`) rather than unmounted when closed, so "is it closed" assertions check the panel's class list, not the absence of result text — an early version of these tests asserted text removal and failed for exactly this reason.
-
-**`WorldMap.tsx` cleanup (2026-08-04, TD-46).** The file carried an `eslint-disable @typescript-eslint/no-unused-vars` covering its whole body, justified by `CLAUDE.md`'s "unused is not dead" note. Re-examined: most of what it covered was genuinely dead, not unwired-and-waiting — `MapSearchBar`/`MapTopBar` were commented out of the JSX entirely (no path to ever render), and everything that existed only to feed them (`selectedCountry` state, `handleCountrySelect`, `handleClearSelection`, `handleOpenPOIPanel`, `handleCategoryClick`, `handleMeasurementOpen`, `GEOJSON_STYLE`, the whole `useMapTileProvider()` call and `tileLayerProps`, and the `<MapDetailsPanel>` render — confirmed dead by removing the disable comment and letting `eslint` name every unused local) was removed along with them. The disable comment is gone; the file now imports and renders only what it uses. `CLAUDE.md`'s decision-log entry was narrowed to match — see there for what's still legitimately unwired-scaffolding versus what wasn't.
-
-**Audit (2026-08-04).** What e2e exercised before the strategy pivot, against the Tier 1/2 component list above:
-
-- `map.spec.ts` — map mount/artwork, world switching, and the right-click context menu opening with its three items visible.
-- `map-poi-link.spec.ts` (pre-existing, previously missing from `docs/TESTING.md` §"E2E — Playwright") — the "Add to My Places" → linked-entity flow end to end, including the popup's "View NPC" link.
-
-Sub-slices closed or attempted, in order:
-
-1. ✅ **POI panel CRUD (e2e)** — add an unlinked POI → list → edit → delete → gone (`e2e/map-poi-crud.spec.ts`). Real flow coverage; doesn't move the Vitest number.
-2. ❌ **Map search/filtering (e2e) — abandoned.** `MapSearchBar`'s only entry point (the search bar itself) was commented out of `WorldMap.tsx` — unreachable by a real user, so there was nothing for e2e to exercise. Now Tier 2: wire-then-test, or delete, as a deliberate feature decision.
-3. ✅ **Measurement (e2e)** — distance mode from the context menu's "Measure" item (`e2e/map-measurement.spec.ts`). Real flow coverage; doesn't move the Vitest number.
-4. Tile/theme switching — `MapTileSwitcher`/`MapThemeSwitcher` confirmed to have no importer in `WorldMap.tsx` (same status as the now-removed `useMapTileProvider` call). Given a Vitest suite in Tier 2 instead of e2e, since there's no reachable user flow to drive.
-5. ✅ **Tier 1 Vitest suites (2026-08-04)** — `MapPOIPanel`, `MapContextMenu`, `MapMeasurementPanel`, `MapControls`, `LeafletMap`. See outcome above.
-6. ✅ **Tier 2 Vitest suites (2026-08-04)** — `MapSearchBar`, `MapTopBar`, `MapTileSwitcher`, `MapThemeSwitcher`, `MapUser`, `LeafletGeoJSON`, `LeafletTileLayer`, `MapDetailsPanel`. See outcome above.
-
-**Done.** Both tiers have Vitest coverage; Tier 2 was tested in place rather than wired-or-deleted, per the user's explicit call against `CLAUDE.md`'s "vendored library stays as inventory" rule. `docs/TESTING.md` §2 now reflects the actual result — Vitest, not e2e, is what closed most of this. The suite crosses Phase 2's 70% coverage exit criterion; no further TD is filed for this component tree unless a future session decides to wire or delete the dead `MapMain` subtree, which would be a product decision, not a coverage one.
-
----
-
-## TD-58 ✅ Dependabot grouped a major ESLint bump into the dev-dependencies group, breaking CI — DONE (2026-08-06)
-
-**Where:** `.github/dependabot.yml`.
-
-**Why:** TD-57 (2026-08-04) added Dependabot with an `ignore` list blocking major-version bumps for `next`/`react`/`@prisma/*`/`typescript` — packages `CLAUDE.md` rule 7 says need a human changelog read — and an `exclude-patterns` list keeping `typescript` out of the grouped `dev-dependencies` PR for the same reason. `eslint` wasn't on either list. Dependabot PR #81 (2026-08-06) grouped a major ESLint bump (9.39.2 → 10.8.0) together with 12 unrelated patch/minor updates under `chore(deps-dev): bump the dev-dependencies group`, and CI's `pnpm lint` step failed: `TypeError: Error while loading rule 'react/display-name': contextOrFilename.getFilename is not a function`. ESLint 10 changed `context.getFilename()` (the _rule_-context method, not `Linter#getFilename` — the two are separate APIs in ESLint's docs) in a way `eslint-plugin-react@7.37.5` — pulled in transitively by `eslint-config-next` — still calls the old way. Not a bug in this codebase; an upstream incompatibility that a same-day major-version PR surfaced.
-
-**Fix:** added `eslint` to `dependabot.yml`'s `dev-dependencies` group `exclude-patterns` (so a future major bump can't hide inside an otherwise-safe grouped PR) and to the `ignore` list with `update-types: ["version-update:semver-major"]` (so Dependabot won't propose one until a human reads the changelog and confirms `eslint-plugin-react`/`eslint-config-next` compatibility) — same treatment as `next`/`react`/`@prisma/*`/`typescript`.
-
-**Not done here:** PR #81 itself. It bundles the breaking major bump with 12 safe updates; resolving it (closing and letting Dependabot re-open a clean set, or manually splitting it) is a GitHub action left to the maintainer rather than done from this session.
-
-**A gap worth naming, not fixed here:** TD-56 and TD-57 (2026-08-04 — `.env.example` and this same `dependabot.yml`) were never given entries in this register despite shipping and merging; a PR merge-commit message claimed "record TD-47 – TD-57" but no `TECH_DEBT.md` entry for any of TD-47–TD-57 exists except this one. Backfilling those is out of scope for this fix — it touches unrelated history — but it means the register currently understates what's actually been done, the same "two documents disagreeing" failure the 2026-07-30 maintenance note below already warns about.
-
----
-
-## TD-59 ✅ `prisma` CLI and `@prisma/client`/`@prisma/adapter-pg` could bump independently, breaking the build — DONE (2026-08-06)
-
-**Where:** `.github/dependabot.yml`, `package.json`, `pnpm-lock.yaml`.
-
-**Why:** Prisma requires the CLI/generator (`prisma`, a devDependency) and the client runtime it targets (`@prisma/client`, `@prisma/adapter-pg`, both prod dependencies) to be on the same version — a mismatch produces code the runtime can't satisfy, not a warning. TD-57's `dependabot.yml` grouped dependencies by `dependency-type` (`dev-dependencies` vs `prod-dependencies`), which put `prisma` and `@prisma/client`/`@prisma/adapter-pg` in two different groups with no relationship between them. Surfaced 2026-08-06 as two simultaneously open PRs, each breaking CI alone: **PR #83** bumped `@prisma/client` alone (7.1.0 → 7.9.1) — Turbopack's build failed with `Module not found: Can't resolve '@prisma/client/runtime/query_compiler_bg.postgresql.mjs'`, because the still-7.1.0 generator emits an import for a runtime filename the 7.9.1 client no longer ships (only `query_compiler_fast_bg.*`/`query_compiler_small_bg.*` variants exist there now). **PR #87** (the grouped dev-dependencies PR) bumped `prisma` to 7.9.1 without touching the client packages — the mirror-image half of the same mismatch, left latent because that PR's own failure was TD-58's ESLint issue, found first.
-
-**Fix:**
-
-- `dependabot.yml`: added a `prisma` group matching `prisma` and `@prisma/*` with no `dependency-type` restriction, so both sides bump together in one atomic PR regardless of prod/dev classification. Added `exclude-patterns: [prisma]` to `dev-dependencies` so the CLI doesn't also get swept into that group (it would otherwise match both). `prod-dependencies` already excluded `@prisma/*`, kept as-is.
-- Added `prisma` (the bare CLI, previously not covered — only `@prisma/*` was) to the major-version `ignore` list, matching `CLAUDE.md` rule 7.
-- Aligned the repo to the already-in-flight version to unblock both stuck PRs: `prisma`, `@prisma/client`, `@prisma/adapter-pg` all pinned to `7.9.1` (previously `@prisma/adapter-pg` was already at `^7.9.1` while `@prisma/client`/`prisma` sat at `^7.1.0` — a pre-existing mismatch in the repo before either PR, just not yet triggered). `pnpm prisma generate`, `pnpm build`, `pnpm typecheck`, `pnpm lint` and the full suite (807 tests) all verified green locally before pushing.
-
-**Not done here:** closing PR #83 and #87 themselves — once this merges, both are superseded (the versions they proposed are already in `main`) and can be closed without merging, a GitHub action left to the maintainer.
-
----
-
-## TD-61 ✅ Option-backed `Int` fields accept any number; an out-of-list value renders as a blank cell — DONE (2026-08-07)
-
-**Outcome:** audited every option-backed column against the live database first (per the plan below) — `SELECT DISTINCT`-equivalent checks via a throwaway script against all 18 columns (`npc.alignment`/`alignmentDomain`/`location`/`faction`, `magicitems.rarity`/`type`, `spells.level`/`circle`/`classes`, and `deities`' 9 option-backed columns) found zero out-of-list values, so a strict membership validator could be applied directly with no data-repair step. Added `optionValueValidator`/`optionArrayValidator` in `app/lib/utils/validators/`, each building a Zod schema from an option list's `value`s; applied to all ~20 fields across `npcMeta`, `deityMeta`, `magicItemMeta`, `SpellsMeta`, replacing every `z.number().int()` and (on `deityMeta`) the weaker `z.coerce.number()`. `pageMetaInvariants.testkit.ts` (TD-40) gained a generic invariant — any field declaring `options` on an integer or array `fieldType` must reject a value not in that list — so it now runs automatically for every domain's test file, including a new `magicItemMeta.test.ts` (the only domain that didn't already have one). Unit tests cover both validator functions directly; `pnpm test`, `pnpm typecheck`, `pnpm lint` and `pnpm format:check` all pass (two pre-existing, unrelated `UPLOAD_DIR`-env failures in `prisma.test.ts` reproduce on `main` too).
-
-**Where:** every field in `app/lib/config/**` that declares an `options` list — roughly 20 across `npcMeta`, `deityMeta`, `magicItemMeta` and `SpellsMeta`.
-
-**Why:** these fields store an `Int` whose meaning comes entirely from a `value:` literal in a hand-maintained TypeScript array (`factions.ts`, `locationList.ts`, `rarity.ts`, …). Nothing checks that a submitted number is actually in the list:
-
-- Nine fields declare `validator: z.number().int()`, which accepts `999`.
-- The nine option-backed fields in `deityMeta` declare `validator: z.coerce.number()` — weaker still, accepting the string `"999"` and the non-integer `5.7`.
-- Postgres has no constraint either: the columns are plain `Int`.
-
-The failure is silent, not loud. `getDataLabel` filters the option list for a matching `value` and returns `""` when nothing matches, so a row holding an unmatched number displays an **empty cell** — in the list, the card and the form — with no error anywhere. Editing one of the option arrays (renumbering, or deleting an entry) therefore repoints or blanks every row that held an affected number, with nothing to catch it. `factions.ts` already runs `0…8, 10…19, 21, 22` — values 9 and 20 were removed at some point, and whether any row still holds them is unknown.
-
-**Plan:** one shared helper in `app/lib/utils/validators/` that builds a Zod schema from an option list (plus an array variant for `spells.circle` / `spells.classes`), applied to every option-backed field so a new one cannot be declared without membership checking. `pageMetaInvariants.testkit.ts` (TD-40) is the natural place to assert that every field declaring `options` also validates against them, so the rule is enforced for future fields rather than just fixed for today's.
-
-**Audit first.** Run a `SELECT DISTINCT` per option-backed column against the live database before applying the validators. If existing rows hold out-of-list values, a membership validator turns every future save of those rows into a validation failure — on a field the DM may not even be editing. That case needs a decision (repair the data, or reject only newly-submitted out-of-list values), not just the validator.
-
-**Why it is its own item, not part of SPEC-003.** It needs no migration, no schema change and no new table; it covers all ~20 fields rather than the two that become relations; and it is where most of the correctness benefit of the whole "real relations" idea actually lives. Agreed on 2026-08-06 to ship ahead of any schema work. See [`docs/specs/003-real-relations.md`](./specs/003-real-relations.md) §1 for the full analysis.
-
-**Done when:** every field declaring `options` rejects a value outside that list with a field-level error, there is a test proving it per domain (scalar and array), and the invariant suite fails if a future field declares `options` without a matching validator.
-
----
-
-## TD-62 ✅ POI category names are hardcoded English and reach the UI — DONE (2026-08-07)
-
-**Outcome:** SPEC-004 (already largely implemented by the time this was picked up) kept the 14 POI categories as-is under `kind: "poi"`, confirming the re-theming it flagged as a reason to wait hadn't landed — so this could proceed independently, per its own "Sequencing" note. `POICategoryConfig.name: string` became `labelKey: string`, resolved at the render boundary in `MapPOIPanel.tsx` with `useTranslations()` (ADR-0007's pattern) rather than `resolveOptions`/`SelectOption`, since the category shape carries `color`/`bgColor`/`icon` fields that don't fit that generic type. Added `geography.poiCategories.*` — 14 keys — to both `messages/en.json` and `messages/it.json` (English keeps the original strings; Italian is new authoring, no rulebook to check against per ADR-0007's note on the setting's own lists). `MapPOIPanel.test.tsx`'s one assertion touching a category label was updated to match `vitest.setup.ts`'s global `next-intl` mock (identity function, returns the raw key). Verified live in the browser: switching the locale selector changes all 14 category labels in the "Add Place" panel's Category dropdown. Scope stayed strictly to `POI_CATEGORIES`' `name`/`labelKey` field — the rest of `MapPOIPanel.tsx` (and the map module generally) has plenty of other hardcoded English copy (`"My Places"`, `"Category"`, `"Linked entity"`, the context menu's `"Copy Coordinates"` / `"Add to My Places"`, …), a much larger pre-existing TD-21 gap this item was never scoped to close.
-
-**Where:** `app/modules/maps/constants/poi-categories.ts` — the `name` field of all 14 `POI_CATEGORIES` entries (`"Food & Drink"`, `"Shopping"`, `"Transport"`, …). Rendered at [`MapPOIPanel.tsx:330`](../app/modules/maps/components/map/MapPOIPanel.tsx).
-
-**Why:** TD-21 extracted every user-facing string into `messages/{it,en}.json` and the app ships bilingual, but this list was missed — it declares its labels inline, in English, and the panel renders them directly. An Italian user filtering POIs by category sees English labels. `CLAUDE.md`'s rule is explicit: no new hardcoded UI strings, and these are old ones that survived the sweep.
-
-Found on 2026-08-06 while drafting [SPEC-004](./specs/004-world-model.md), which turns `category` into the world model's `kind` and re-themes these values for the setting (an inn, a temple, a boat in the harbour) — so the strings are going to be rewritten anyway.
-
-**Plan:** replace `name: "Food & Drink"` with a `labelKey`, resolved at the render boundary per [ADR-0007](./adr/0007-message-key-resolution-boundary.md), the way every option list in `app/lib/config/**` already does. Add the 14 keys to both catalogues so TD-21's CI key-set check stays green.
-
-**Sequencing:** cheap and self-contained, so it can ship now. But if SPEC-004 is built soon it will rewrite this list wholesale, and doing both means translating strings twice — worth checking which is closer before starting.
-
-**Done when:** no `POI_CATEGORIES` entry carries a hardcoded display string, and switching locale changes the category labels in `MapPOIPanel`.
-
----
+## Open items
 
 ## TD-63 🟡 Local dev DB's migration history has a gap `migrate dev`/`migrate deploy` cannot get past
+
+> **Status re-verified 2026-08-08, and the scope has shrunk.** `pnpm prisma migrate status` against the dev DB now reports **two** unapplied migrations, not the three this write-up describes: `20260726093000_add_spells_nome_drop_tutorial_tables` and `20260726100000_add_timestamps_and_name_indexes`. `20251126152855_resetio` is recorded as applied, so the failed row the last paragraph warns about is gone. Nothing else has changed — `migrate dev`/`migrate deploy` are still unusable and every schema change since has needed the hand-apply workaround. Adjust the plan below from three migrations to two.
+>
+> **This item was invisible until this audit.** It had a full write-up but no row in the summary table, and the file header said "Open items: none" — so a session picking work off this register would have concluded there was nothing to do. The row exists now.
 
 **Where:** `my-database-container` (the maintainer's local dev Postgres, `DATABASE_URL` in `.env`). `_prisma_migrations` there.
 
@@ -459,153 +132,6 @@ Surfaced again on 2026-08-06 while shipping SPEC-004 M2's migration, which had t
 **Plan:** for each of the 3 untracked migrations, confirm the schema they describe genuinely already matches the live DB (diff, don't assume), then `prisma migrate resolve --applied` each one in order. After that, `migrate dev`/`migrate deploy` should work normally again and this workaround stops being necessary for every future schema change.
 
 **Done when:** `prisma migrate status` on the dev DB reports no pending and no failed migrations, and a throwaway schema change round-trips through `prisma migrate dev` without the hand-apply workaround.
-
----
-
-## TD-64 ✅ `WorldMap.tsx`'s async-effect map-loading pattern trips `react-hooks/set-state-in-effect` — **DONE (2026-08-07)**
-
-**Where:** [`app/ui/geography/WorldMap.tsx`](../app/ui/geography/WorldMap.tsx) — the `useEffect` that used to call `void initializeMap()`.
-
-**Why:** PR #90 (Dependabot, dev-dependencies group) bumped `eslint-config-next` 16.0.10 → 16.2.12, which pulled in the React Compiler's `react-hooks/set-state-in-effect` and `react-hooks/refs` rules. Three pre-existing patterns started failing `pnpm lint` as a result — unrelated to what that PR actually changed (only `package.json`/lockfile). Two were fixed outright on 2026-08-06: `MapSearchBar.tsx`'s `selectedIndex` reset moved from a `useEffect` to the "adjust state during render" pattern from the React docs, and `usePOIManager.ts`'s `tRef.current = t` moved from the render body into a dependency-less `useEffect`. PR #90 itself went 49 commits stale before it could land and was superseded by PR #112, which carried the same dependency bump plus a third pre-existing fix in this family (`useNavigableChildren.ts`'s ref mutated during render) and pinned `eslint-plugin-react-hooks` to `7.1.1` via `pnpm.overrides` — without that override, `pnpm install` resolved 7.0.1, which does not flag this rule family at all.
-
-`WorldMap.tsx`'s case was different from the other two: the old `initializeMap` was `async`, and the rule flagged the function invoked directly in the effect body because it transitively called `setState` through an `await` — a known category of false positive for this rule with async local functions declared, then called, in an effect. Re-verified against `eslint-plugin-react-hooks@7.1.1` on 2026-08-07: still flagged, so the false-positive read held and no upstream fix had landed.
-
-**Fix:** restructured the effect per the plan below — the dynamic `import("leaflet")` is the only genuinely async step, so it now stays a plain `.then()`/`.catch()` chain instead of an `async` function called from the effect body. Building the overlay and calling `setCurrentImage` moved into the `.then()` callback, which the rule can see is synchronous. A `cancelled` flag guards against committing state after an unmount or a `map`/`mapUrl` change mid-flight (the old `async` version had no such guard). No behavior change; `WorldMap.test.tsx`'s 11 cases pass unmodified.
-
-**Done when:** the disable comment is removed and `pnpm lint` still passes. ✅ — no `eslint-disable-next-line react-hooks/set-state-in-effect` remains in this file.
-
----
-
-## TD-65 ✅ `DATABASE_URL` in this dev environment isn't a throwaway DB — e2e debris landed in real data — **DONE (2026-08-07)**
-
-**Where:** `.env`'s `DATABASE_URL`, which `pnpm test:e2e` also writes and deletes real rows against (`CLAUDE.md`'s own warning on the command).
-
-**Why:** found 2026-08-06 while starting SPEC-004 T3 — the `poi` table's only 5 rows were e2e test debris (`"E2E World 1786045869959"`, four `"E2E POI …"` rows linked to `npc` ids 713–716), not a DM-created root. No real world had been created via the M4 UI yet; the debris was masquerading as one, with an arbitrary uploaded test image instead of the real `piani-esistenza.jpg`. Deleted by hand before T3's seed ran (confirmed no live-data references first: nothing had `parentId` pointing at the fake root, `npc` 713–716 weren't otherwise touched).
-
-This means whatever ran `pnpm test:e2e` most recently was pointed at this same dev database rather than a disposable one, contrary to `CLAUDE.md`'s explicit instruction. It is easy to do by accident — nothing enforced `DATABASE_URL` being different for `pnpm dev` vs `pnpm test:e2e`, both read the same `.env`. On investigation, the more precise mechanism is Playwright's own `reuseExistingServer: true` default outside CI: a `pnpm dev` already running against `.env`'s real database is exactly what gets silently attached to, rather than a fresh e2e-configured server.
-
-**Fix:** both parts of the plan below, not just one. `playwright.config.ts` now loads `.env.test` (new — see `.env.test.example`) and passes its `DATABASE_URL` explicitly to the dev server it spawns for `webServer`, never `.env`'s; it throws at config-load time if `.env.test` is missing, has no `DATABASE_URL`, or that value matches `.env`'s. Separately, `reuseExistingServer` is now unconditionally `false` (previously `!process.env.CI`, i.e. `true` locally) — the actual root cause found above — so a stray dev server on `:3000` now fails the run on a port conflict instead of being silently reused. Both checks are skipped in CI (`process.env.CI`), which has no `.env`/`.env.test` at all — the `e2e` job already provisions its own disposable Postgres service and sets `DATABASE_URL` as a job-level env var (`.github/workflows/ci.yml`), so requiring a file there would just break CI for no protection gained. `docs/TESTING.md` §E2E and `CLAUDE.md`'s command warning updated to describe the new setup and point at `.env.test.example`'s exact commands for creating the second database inside the same Postgres container.
-
-**Done when:** running `pnpm test:e2e` locally cannot write to the same database `pnpm dev` uses, either because the config makes it structurally impossible or because a guard refuses to start otherwise. ✅ — verified directly: `pnpm exec playwright test --list` throws before listing anything when `.env.test` is absent, and again when its `DATABASE_URL` is set equal to `.env`'s; succeeds once it names a distinct database.
-
----
-
-## TD-66 ✅ `UPLOAD_DIR`'s relative default silently splits map-image files from the DB rows referencing them — **DONE (2026-08-07)**
-
-**Where:** [`app/lib/config/env.ts`](../app/lib/config/env.ts)'s `UPLOAD_DIR` (default `./storage/maps`, per `.env.example`), consumed by [`FilesystemMapImageStore`](../app/lib/storage/FilesystemMapImageStore.ts).
-
-**Why:** `UPLOAD_DIR` is a relative path, resolved against whatever `process.cwd()` happens to be for the process that wrote it — not tied to the repo root or to any other process reading it. `DATABASE_URL` has no such ambiguity (it names a server, not a location on disk), so nothing about running two checkouts of the same repo against one shared Postgres instance warns that map images need the same care.
-
-Hit 2026-08-07: SPEC-004 T3's migration script (`app/seed/migrateWorldTreeT3.ts`) ran from an agent worktree, uploading four map images via `defaultMapImageStore.put()`. The DB rows it created (in the one shared dev database) correctly reference those images' ids — but the actual JPEG bytes landed in the worktree's own `./storage/maps/`, not the maintainer's separate checkout of the same repo. `/dashboard/geography` loaded with no errors (`fetchRootPlace` succeeded — the DB row was fine) but every map image 404'd, because that checkout's `./storage/maps/` was empty. Fixed by hand: copying the four files across.
-
-**Fix:** `env.ts` now rejects a relative `UPLOAD_DIR` outright — `path.isAbsolute()`, refined at parse time, throwing a message that names TD-66 — instead of silently resolving it against whichever checkout happens to be running. When `UPLOAD_DIR` is unset entirely, it now defaults to a fixed, checkout-independent path under `os.homedir()` (`~/.campaign-settings/storage/maps`) rather than throwing as it did before; every checkout on the same machine agrees on this path regardless of `process.cwd()`. `.env.example` documents the requirement and leaves the variable commented out (recommending the default) rather than shipping the relative value that caused the incident; `docs/adr/0008-map-image-storage.md` updated to match. **Side effect worth noting:** making `UPLOAD_DIR` optional-with-a-default also fixed 3 previously-failing, pre-existing test cases in `app/lib/connections/prisma.test.ts` that had nothing to do with TD-66 directly — they failed only because `UPLOAD_DIR` wasn't set in their test environment, which the new default now supplies. `app/lib/storage/FilesystemMapImageStore.test.ts` still fails standalone on a missing `DATABASE_URL`, unrelated to this fix.
-
-**Done when:** running the app (or a migration script) from a second checkout of this repo, pointed at the same `DATABASE_URL`, serves every existing map image with no manual file copy. ✅ — both checkouts now resolve `UPLOAD_DIR` to the same absolute, home-anchored path by default; a checkout that still has an old relative value in its own `.env` fails loudly at startup instead of silently writing to the wrong directory.
-
----
-
-## TD-67 ✅ "Add to My Places" context-menu label is misleading — it creates any kind, not just a POI — **DONE (2026-08-07)**
-
-**Where:** [`MapContextMenu.tsx`](../app/modules/maps/components/map/MapContextMenu.tsx)'s `label="Add to My Places"` / `sublabel="Save this location"` menu item — the only entry point into `MapPOIPanel`'s "Add Place" form.
-
-**Why:** found 2026-08-07 verifying SPEC-004 T2/T3's UI end-to-end. Since M5, that one context-menu item opens a form whose first field is a `Kind` selector covering all seven kinds (`region`, `plane`, `city`, `dungeon`, `deity`, `npc`, `poi`) — not just a POI. The label and sublabel both predate M5 and were never updated once the form grew beyond POIs, so a DM reading "Add to My Places / Save this location" has no reason to expect a plane or an NPC pin lives behind it.
-
-**Fix:** exactly the rename the plan proposed — `label="Add Place"` / `sublabel="Create a place here"`, matching `MapPOIPanel`'s own "Add Place" heading. `MapContextMenu.tsx` still hardcodes its copy directly in JSX (TD-21, bilingual UI, has not reached this file), so this stays a plain string change, not a catalogue key. Updated every reference to the old copy: `MapContextMenu.test.tsx`'s assertions and test names, and the `getByRole` selectors in `e2e/map-poi-crud.spec.ts` and `e2e/map-poi-link.spec.ts`.
-
-**Done when:** the context-menu item's label and sublabel describe what the form actually does for every kind, not just POI. ✅ — verified via `MapContextMenu.test.tsx` (8/8 passing, including the "shows/hides depending on `onAddPOI`" and "calls `onAddPOI`" cases against the new text). The two e2e specs' `getByRole` selectors were updated to match but not re-run end-to-end in this session — no `.env.test` was set up locally and the change is a same-length string swap already covered by the unit-level render assertions; CI's `e2e` job will be the first real run against the new copy.
-
----
-
-## TD-68 ✅ `MapPOIPanel`'s Close button is unclickable — a same-`z-index` overlay intercepts the click — **DONE (2026-08-07)**
-
-**Where:** [`MapPOIPanel.tsx`](../app/modules/maps/components/map/MapPOIPanel.tsx) — the desktop side-panel's close button (`absolute top-4 right-4 z-10`, `aria-label="Close"`) versus the hero-image gradient overlay (`absolute inset-0 bg-gradient-to-t ... z-10`) in the same stacking context.
-
-**Why:** found and reproduced live 2026-08-07. Both elements share `z-10`; per CSS stacking rules a tie resolves by DOM order, and the gradient overlay comes after the button, so it wins and sits on top everywhere the two overlap — including exactly where the close button is. `document.elementFromPoint()` at the button's own center returns the gradient `div`, not the button, confirming every click there is swallowed before it reaches `onClick`. Once open, a DM has no way to close this panel from the button that says "Close" — only navigating away or (on mobile, a separate `Drawer` implementation) swiping down still works.
-
-**Fix:** exactly the one-line fix the plan proposed — the close button's `z-10` raised to `z-20`, matching the title overlay's existing `z-20` and clearing the gradient's `z-10`. Audited the rest of the header per the plan's own risk note: the Add/Import/Export/Clear action buttons live in a normal-flow (non-`absolute`) row below the hero image entirely, never overlapping it — no other element in this panel shared the collision.
-
-**Verification:** added `e2e/map.spec.ts`'s "clicking the visible Close button closes the desktop POI panel" — a real Playwright `.click()`, which performs actionability/hit-target interception before dispatching, exactly the check `document.elementFromPoint()` did manually during triage. Confirmed both directions locally: reverted to `z-10` and re-ran just this test, which failed with Playwright's own diagnostic naming the exact intercepting element — `<div class="... bg-gradient-to-t ... z-10">... subtree intercepts pointer events` — then restored `z-20` and re-ran, passing (5/5 in the full file). `MapPOIPanel.test.tsx`'s existing `fireEvent.click` case (27/27 passing) was insufficient on its own, as the plan predicted: it calls the handler directly and would not have caught this.
-
-**Done when:** clicking the visible "Close" (X) button closes the desktop panel every time, verified by a test that simulates a click at the button's actual rendered position (not just calling the handler directly, which would not have caught this). ✅
-
----
-
-## TD-69 ✅ `poi.linkedType`/`linkedId` has no unique constraint — a second pin per NPC/deity is silently possible — **DONE (2026-08-07)**
-
-**Where:** [`prisma/schema.prisma`](../prisma/schema.prisma)'s `poi` model — currently `@@index([linkedType, linkedId])`, a plain index.
-
-**Why:** SPEC-004 §6 documents this pair as `@@unique([linkedType, linkedId])` and relies on that guarantee explicitly: "it makes a second pin for the same NPC impossible rather than merely discouraged." The unique constraint was never actually added when M2 built the column — only a lookup index. Found 2026-08-07 by reproducing it directly: creating a `deity` place through `MapPOIPanel` for Elune (already pinned by SPEC-004 T4's migration, `linkedId` 18) succeeded without any error, leaving two `deity` pins for the same record. Deleted by hand after confirming nothing referenced the duplicate.
-
-This is a real data-integrity gap, not just a spec/implementation mismatch on paper: nothing in the app — form validation, the server action, or the database — stops it from recurring for any NPC or deity, silently, indefinitely.
-
-**Fix:** ran the audit query first (`SELECT "linkedType", "linkedId", count(*) FROM poi WHERE "linkedType" IS NOT NULL GROUP BY 1,2 HAVING count(*) > 1` against the live dev DB) — 0 rows, nothing for the constraint to reject. Replaced the plain `@@index` with `@@unique([linkedType, linkedId])` in `schema.prisma` (Postgres's normal unique-index semantics exempt `NULL`, so every unlinked `poi` row is unaffected). TD-63 is still open, so this went through its documented hand-apply workaround rather than `prisma migrate dev`: wrote `prisma/migrations/20260807130000_poi_linked_unique_constraint/migration.sql` by hand, applied it directly against the live dev DB via `docker exec … psql`, then `prisma migrate resolve --applied`. `prisma migrate diff` against the live DB afterward reported only one remaining difference — an empty, pre-existing `customers` table unrelated to this schema and to TD-69 — confirming nothing else leaked into this migration.
-
-**Verification:** added `e2e/map-poi-link.spec.ts`'s "a second POI linked to the same NPC is rejected, not silently duplicated", run against a real Postgres with the migration applied. The server log confirms the actual mechanism: a genuine `PrismaClientKnownRequestError` (`P2002`, `Unique constraint failed on the fields: (linkedType, linkedId)`) is thrown by the real database, caught by `usePOIManager.addPOI`'s existing rollback-and-toast path (previously only unit-tested against a generic mocked rejection, never against this real error), and surfaced to the DM as "Impossibile salvare «…». La modifica è stata annullata." — the second pin is never created. Chose a real end-to-end test over a mocked unit test deliberately: a mock proves the application's error-handling code path works, not that the database itself enforces the constraint, which is the actual claim TD-69 needed proven.
-
-**Done when:** the constraint exists in `schema.prisma` and the live DB, and a test proves a second `create` for the same `(linkedType, linkedId)` pair is rejected. ✅
-
----
-
-## TD-70 ✅ No rendering path exists for `deity`/`npc` pins on the map, even once positioned — **DONE (2026-08-07)**
-
-**Where:** `app/modules/maps/hooks/` — `usePOIManager.ts` only renders `kind: "poi"` markers (filters `row.kind === "poi"`); `useNavigableChildren.ts` only renders navigable kinds (`region`/`plane`/`city`/`dungeon`) that carry a map. Nothing renders `deity` or `npc` pins.
-
-**Why:** found 2026-08-07 giving Elune (a deity) real coordinates through `MapPOIPanel`'s "Add Place" flow — the row was created successfully (until TD-69's duplicate got cleaned up) with `lat`/`lng` set, but nothing appeared on the map. There is currently no hook, marker layer, or icon set for `deity`/`npc` kinds at all — not a bug in an existing path, an entirely missing one.
-
-This sits next to, but is narrower than, SPEC-004 T4's already-deferred "derive and display location from the tree" (reading a record's place by walking up its pin — see `docs/specs/004-world-model.md` T4). That deferred item is about _computing_ a location to show in the NPC/deity UI; this item is about the map itself never drawing a `deity`/`npc` pin as a marker at all — a DM can give one coordinates (TD-71 aside, once they exist to give), but can never see it on the map to confirm the placement looks right.
-
-**Fix:** exactly the plan's shape — `app/modules/maps/hooks/useLinkedEntityMarkers.ts`, mirroring `useNavigableChildren.ts`'s data-fetch/draw-effect structure (same `fetchPlaceChildren` call, same `refetchToken` wiring), but filtering for `kind === "deity" || kind === "npc"` with non-null coordinates and a resolved link, and rendering its own circular marker (colour and emoji per `LinkableEntityType` — purple ✨ for `deity`, teal 🧑 for `npc`) with a popup linking to the entity's own page, reusing `usePOIManager.createMarker`'s popup-link pattern. Wired into `WorldMap.tsx` alongside `useNavigableChildren`, sharing the same `parentId`/`placesRefetchToken`. New code, so unlike the POI popup it's modeled on, the title is HTML-escaped before reaching the popup — no reason to start a fresh file with an XSS gap an existing one happens to have.
-
-**Verification, and a real Playwright/Leaflet interaction bug found along the way:** `e2e/map-linked-entity-markers.spec.ts` creates a deity, places it via "Add Place", and clicks the resulting marker. A real Playwright `.click()` (move-then-mousedown-then-mouseup) reliably failed to open the bound popup — reproduced directly: the marker received focus and Leaflet's own outline-suppression ran, proving the click landed on the right element, but no `.leaflet-popup` ever appeared, while a plain synthetic `element.click()` run by hand in a live browser session opened it every time. Root cause: Leaflet's own map-drag handler reads Playwright's synthetic mouse movement into position as the start of a pan and suppresses the click it would otherwise forward to the marker — not a bug in this hook or the app, and the reason `map-poi-link.spec.ts`'s existing popup test never actually clicks a marker either, using `flyToPOI`'s `openPopup()` call instead. Worked around here with `locator.dispatchEvent("click")`, which fires the DOM event Leaflet listens for without going through synthetic-mouse-event drag detection.
-
-**Done when:** a `deity` or `npc` pin with coordinates renders as a clickable marker on its parent's map. ✅ — 7 new unit tests (`useLinkedEntityMarkers.test.ts`, incl. an HTML-escaping case) plus the e2e test above, run against a real Postgres.
-
----
-
-## TD-71 ✅ No way to position or edit a place that already exists — only newly-created ones get coordinates — **DONE (2026-08-07)**
-
-**Outcome:** both interactions the 2026-08-07 product decision called for, per [SPEC-005](./specs/005-place-repositioning.md) — a "Da posizionare"/"Unplaced places" section in `MapPOIPanel`'s list view (click-to-place through the existing crosshair mode) and drag-to-reposition on every marker all three hooks render. `updatePoi` needed no changes at all — no `kind` filter, no `kind` field in its update schema, so it was already reusable for any kind; every write in both flows sends only `{ id, lat, lng }`, never `category` (SPEC-005 §6's one hazard).
-
-Landed as nine commits on `td71-place-repositioning`, in SPEC-005 §10's order:
-
-- **T0 (TD-72, done first — see its own entry):** inline `style` → Tailwind in the two marker hooks' HTML, sequenced ahead because T4/T5 rewrite the same lines.
-- **T1:** `useUnplacedChildren.ts` — data-only hook reading a place's children still missing `lat`/`lng`, any kind.
-- **T2:** the panel section itself (presentational), plus a `positioningPlaceId` prop so a row shows "Click on map (cancel)" while its own positioning is in flight.
-- **T3:** wiring into `WorldMap.tsx` — the crosshair mode is shared with the create flow, branching on whether a place is being positioned; `usePOIManager` exports `reloadPOIs` (its existing internal `loadPOIs`) since a newly-positioned `poi` isn't in its own optimistic-update state yet.
-- **T4–T6:** drag-to-reposition in `usePOIManager.ts`, `useNavigableChildren.ts` and `useLinkedEntityMarkers.ts`. `useNavigableChildren.ts` needed an explicit guard (`justDragged`, a plain per-marker closure variable) so a drop doesn't also trigger `onDescend` — Leaflet's own click suppression after a drag isn't a documented cross-version/touch guarantee.
-- **T7:** e2e coverage for the drag flow (`e2e/map-place-repositioning.spec.ts`) — a real mouse gesture, reload, and a coordinate-changed assertion proving the write persisted. **The picker flow (§5.A) has no e2e spec, deliberately** — there is no in-app path that produces an unplaced place to start from (`placeSchema.ts` requires `lat`/`lng` at creation for every kind; the only unplaced rows that have ever existed are SPEC-004's one-time seed script's), and reaching around that with raw-DB seeding in the e2e harness would be a new precedent bigger than this item. Covered instead at the unit/integration level: `useUnplacedChildren.test.ts`, `MapPOIPanel.test.tsx`'s unplaced-places block, `WorldMap.test.tsx`'s positioning block.
-
-**A real bug found by a test, not by inspection, mid-implementation:** `useNavigableChildren.ts`'s first draft read `previous` off the closure inside `setChildren`'s own updater function — React does not guarantee that updater runs before the next line of caller code executes, so `previous` was `undefined` by the time `revert()` needed it on a failed drag. Fixed the same way `usePOIManager` already does it: a `childrenRef` kept in sync via its own effect, read synchronously instead of trusting the updater's timing. Applied correctly from the start in `useLinkedEntityMarkers.ts` (T6).
-
-**Also found doing T7's local e2e setup, not fixed here:** filed as TD-73 — `.env.test.example`'s documented `prisma db push` step leaves a fresh e2e database unable to seed, because the `faction` table's data only comes from a migration's raw SQL, which `db push` never runs.
-
-The original write-up follows for context.
-
----
-
-### TD-71 (original) 🟠 No way to position or edit a place that already exists — only newly-created ones get coordinates
-
-**Where:** `MapPOIPanel.tsx`'s `handleEditMode` (only reachable from `POIListItem`'s `onEdit`, itself only ever fed `kind: "poi"` rows by `usePOIManager`) — the only path in the app that can set or change a place's `lat`/`lng` after creation.
-
-**Why:** found 2026-08-07 while verifying SPEC-004 T3/T4's seeded tree (166 places and pins, all with `null` coordinates by design — "assigned a parent, not yet placed", per §6). There is no UI to give any of them a position: the only way a `region`/`plane`/`city`/`dungeon`/`deity`/`npc` place gets `lat`/`lng` is choosing that kind in "Add Place" _at creation time_, right-clicking the exact spot on the map. Nothing lets a DM select an existing place from the tree and say "place it here" — the closest workaround is deleting and recreating it, which loses everything that made it what it was (a `deity`/`npc`'s `linkedId`, a `region`'s own children underneath it).
-
-This is not a bug introduced by T3/T4 — the gap predates them (M5 was only ever designed around create-time positioning) — but T3/T4 are what expose it: they are the first thing to populate the tree with places nothing can ever position through the UI as it stands today.
-
-**Done when:** a DM can select any existing place (any kind, not just `poi`) and give it a position on its parent's map, without deleting and recreating it.
-
----
-
-## TD-73 ✅ `.env.test.example`'s documented e2e setup (`prisma db push`) leaves a fresh DB unable to seed — **DONE (2026-08-07)**
-
-**Outcome:** `.env.test.example` and `docs/TESTING.md` §E2E's step 2 now say `prisma migrate deploy`, with an inline note on why `db push` fails (it skips `add_faction_table_and_fk`'s raw-SQL `INSERT`). `grep -l "INSERT INTO" prisma/migrations/*/migration.sql` returns only that one migration, so no other data-seeding migration has the same gap — nothing else to fix. Verified against the local e2e database left over from TD-71's session (already migrated with `migrate deploy`, not recreated — a `DROP DATABASE`/`CREATE DATABASE` reset was attempted for a from-scratch check but blocked by the permission classifier as destructive): `faction` holds 21 rows, `npc` 2, no FK violation, and `pnpm test:e2e e2e/npc-crud.spec.ts --project=chromium` passes (3/3).
-
-**Where:** `.env.test.example`, `docs/TESTING.md` §E2E's setup instructions.
-
-**Why:** found 2026-08-07 provisioning a fresh e2e database for TD-71's T7. Both places instruct `DATABASE_URL="<.env.test's URL>" pnpm prisma db push` to sync the schema before `pnpm db:seed`. Following that exactly reproduces: `magicitems`/`deities` seed fine, then `npc` fails with `Foreign key constraint violated on the constraint: npc_fazione_fkey`. The `faction` table (SPEC-004 T1) is populated by a raw-SQL `INSERT` inside migration `20260806220000_add_faction_table_and_fk`, not by `prismaSeed.ts` — `db push` diffs the schema shape only, it never runs migration files, so the table exists but stays empty. `prisma migrate deploy` (which does run migration SQL) fixes it; confirmed working against the same fresh database.
-
-**Plan:** change `.env.test.example`'s comment and `docs/TESTING.md` §E2E to say `prisma migrate deploy`, not `prisma db push`. Worth checking whether any other data-seeding migration has the same problem before calling this done — `add_faction_table_and_fk` might not be the only one.
-
-**Done when:** following `.env.test.example`'s own instructions on a brand-new database, verbatim, ends with a working `pnpm db:seed` and a passing `pnpm test:e2e`.
 
 ---
 
@@ -629,75 +155,29 @@ Worth doing **before** SPEC-006 T6 switches `npcMeta.faction` to a table source,
 
 ---
 
-**Session handoff (2026-08-07):** TD-71 and TD-72 closed this session (PR #122, merged) — SPEC-005's picker + drag repositioning, both flows, all three marker hooks, e2e coverage for the drag flow. TD-73 above is the only item left in this register; start the next session there. It's a small, self-contained fix (S) — a doc/instructions correction (`.env.test.example` + `docs/TESTING.md` §E2E) plus verifying no _other_ data-seeding migration has the same `db push`-skips-raw-SQL problem `add_faction_table_and_fk` does. `grep -l "INSERT INTO" prisma/migrations/*/migration.sql` is the fast way to find every migration that seeds data outside `prismaSeed.ts`, and each one is worth a quick check. A fresh `my_database_e2e` (or equivalent) already exists locally from this session's TD-71 e2e work if it's still around — `prisma migrate deploy` against it is what confirmed the fix, not `db push`.
-
 ---
 
-## TD-72 🟢 `usePOIManager.ts` and `useNavigableChildren.ts` build marker/popup HTML with inline `style`, not Tailwind classes
+## TD-75 🟡 `pnpm test` fails on a clean checkout — one suite needs a `DATABASE_URL` that only CI provides
 
-**Where:** `app/modules/maps/hooks/usePOIManager.ts`'s `createMarker` (POI markers and their popups) and `useNavigableChildren.ts`'s marker `html` — both build Leaflet `L.divIcon`/`bindPopup` content as raw HTML template strings using `style="..."` attributes.
+**Where:** `app/lib/config/env.ts` (the eager validation), surfaced by `app/lib/storage/FilesystemMapImageStore.test.ts`. The harness gap is in `vitest.config.ts`, which sets no `env`.
 
-**Why:** found 2026-08-07 when the maintainer reviewed PR #119 (TD-70) and pointed out `useLinkedEntityMarkers.ts` — new in that PR — did the same thing, and flagged it as a rule that was true all along but never written down: this project uses Tailwind exclusively, no inline styles, including in non-JSX raw HTML strings (CLAUDE.md's "Non-negotiable rules" §8 now says so explicitly). `useLinkedEntityMarkers.ts` was fixed before merge. These two older files were the precedent it copied the _pattern_ from (not the specific violation — inline styles predate TD-70 entirely) and are now the only two places in `app/modules/maps/**` still doing it.
+**Why:** `env.ts` parses the environment **at import time** — deliberately, per TD-02b, and the file says why: _"a missing variable throws immediately, naming it, at the first import instead of at first use."_ That is right for the app. It also means any test that exercises real code importing `env.ts` needs a `DATABASE_URL` present, and nothing in the test harness provides one.
 
-**Plan:** convert both to the same `class="..."` Tailwind-utility approach `useLinkedEntityMarkers.ts` now uses — straightforward 1:1 translation (`width: 32px` → `w-8`, `border-radius: 50%` → `rounded-full`, arbitrary values for anything off the default scale), no behavior change. Small enough to be one commit touching both files.
+So `pnpm test` on a machine that has not exported it fails **one file out of 139** with a `ZodError` naming `DATABASE_URL`, while everything else passes. Reproduced 2026-08-08; `set -a; . ./.env; set +a; pnpm test` is green, so the failure is environmental, not a real regression.
 
-**Done when:** no `style="..."` attribute remains in any marker or popup HTML string under `app/modules/maps/**`.
+**Two things make this worth an item rather than a note.**
 
----
+- **It is invisible in CI**, which is why it has survived. `.github/workflows/ci.yml` sets `DATABASE_URL: postgresql://admin:postgres@localhost:5432/placeholder` as a job env var for the `test` job, so the suite is green there and nothing signals the gap.
+- **It makes the project's own Definition of Done unreliable.** `CLAUDE.md` requires "`pnpm test` passes" before a change is complete. On a fresh clone that command is red for reasons unrelated to the change, so the first thing anyone does is diagnose a non-bug — the exact cost `CLAUDE.local.md` exists to prevent.
 
-## Recommended execution order
+Today it is one file. The two sibling suites (`app/api/maps/[id]/image/route.test.ts`, `app/api/maps/upload/route.test.ts`) mock `defaultMapImageStore` and never reach `env.ts`, so they are unaffected — but the exposure grows with every future test that exercises real code reading validated env.
 
-```
-1. ✅ TD-06  delete dead code            → removed ~half of TD-04's errors first
-2. ✅ TD-04  fix remaining type errors
-3. ✅ TD-03  migrate to Vitest, get a green suite
-4. ✅ TD-05  ESLint + Prettier + CI      → locks in 1–3 permanently
-5. ✅ TD-01  auth guards (+ tests)       → done; requireApiSession + requireSession
-6. ✅ TD-02  Zod validation (+ tests)   → buildEntitySchema + parseIdParam
-7. ✅ TD-07  pin versions, one lockfile
-8. ✅ TD-24  Playwright + 40 E2E specs    → needed TD-23 to make the CI job blocking
-9. ✅ TD-17  portfolio README
---- Phase 1 complete: the project is correct, safe and verified ---
-10. ✅ TD-08  type the metadata layer
-11. ◑ TD-20a strict flags, cheap batch + ES2022 target (exactOptionalPropertyTypes done)
-12. ✅ TD-19  rename identifiers to English → residual set became TD-33
-14. ✅ TD-11 schema timestamps + indexes (relations remain, Phase 3)
-14b. ✅ TD-27 SpellLibrary's mount effect deleted
-14c. ✅ TD-28 seed ids removed; the database assigns them
-15. ✅ TD-12  single where-clause
-17. ✅ TD-13  typed errors                  → preserve { cause }; biggest diagnosability win
-18. ✅ TD-25  startup DB-reachability check → done with TD-13, as advised
-19. ✅ TD-10  real notifications            → also closed TD-13's last step
-20. ✅ TD-09  collapse duplicated components
-21. ✅ TD-22  lint backlog to zero          → 293 → 0; every rule back to error
-23. ✅ TD-15  accessibility pass            → zero axe violations, not an allowlist
-23b. ✅ TD-31 hydration mismatch            → shared mutable PageMeta.options
-23c. ✅ TD-26 / TD-29 / TD-30 / TD-32       → see the summary table
-24.  ✅ TD-33  the Italian identifiers TD-19 missed → compiler-verified, no behaviour change
-25.  ✅ TD-21  extract UI strings, ship it + en    → L; message-key resolution + locale switcher + CI key-set check
-26.  ✅ TD-35  e2e specs resolve copy from the catalogue, not literals
-27.  ✅ TD-02b remaining trust boundaries (env, localStorage, GeoJSON, Prisma results) → Phase 2 complete
-28.  ✅ TD-20b noUncheckedIndexedAccess → 20 sites in the vendored maps module fixed with documented assertions
-29.  ✅ TD-14  map POIs into Postgres → Phase 3, closed 2026-08-01
-30.  ✅ TD-36  proxy.ts matcher let .jpg through the auth/i18n gate
-✅ TD-18 was done early (it unblocked the build)
---- everything above is done. What is actually left: coverage, TD-37–TD-43 ---
-31.  TD-37  authenticate() + connections/** → 0% on the one untested auth surface
-32.  TD-38  data-layer fetch/count for deities, magicitems, npc → 51% to the 90% target
-33.  TD-39  app/lib/utils/** pure functions → 51% to the 95% target, cheapest per hour
-34.  TD-40  app/lib/config/** metadata → npcMeta 14%, deityMeta 25%, target 80%
-35.  TD-41  app/lib/hooks/** → useFilterController untested, target 70%
-36.  TD-42  app/ui/** behaviour → EntityForm/List/Library first, target 60%
-37.  TD-43  app/modules/maps/** geometry + hooks → target 50%, rendering stays E2E-only
---- TD-37–43 all closed 2026-08-02; per-tier targets met, but coverage.all: false hides the true gap ---
-38.  TD-44  coverage.all: true, re-measure, re-scope the 70% gap into new dated items
-```
+**Plan:** give `vitest.config.ts` an `env` block setting a placeholder `DATABASE_URL`, mirroring exactly what CI already does. Self-contained, no dependency on a gitignored local file, and it fixes the class rather than the instance.
 
-**Maintenance note (2026-07-30).** This block had drifted badly: it carried ✅ on 9
-items when 21 were done, which made it read as "Phase 2 has barely started" while
-the summary table at the top of this file — which is accurate, and is the one to
-trust — showed the opposite. Two documents disagreeing about what is finished is
-worse than either being merely out of date, because the reader cannot tell which
-to believe. If you close an item, tick it in **both** places or delete this block.
+Three alternatives, and why not:
 
-The ordering is not arbitrary: each step makes the next one cheaper or safer. In particular, do not attempt TD-09 before TD-08, do not attempt TD-01/TD-02 before TD-03 (you want a working test suite before you touch security-critical code), and do not attempt TD-24 before TD-01/TD-02 — the E2E specs assert auth and validation flows those two items create.
+- **Load `.env` in `vitest.setup.ts`** — makes the suite depend on a gitignored file, so a fresh clone still fails. This is the obvious-looking fix and it does not work.
+- **Mock `env.ts` in the affected suite** — narrow, and recurs for every future test of code that reads env.
+- **Make `env.ts` validate lazily.** This would fix it, and it **reverses a deliberate TD-02b decision** quoted above. Do not trade the app's fail-fast behaviour for a test-harness convenience; fix the harness.
+
+**Done when:** `git clone`, `pnpm install`, `pnpm test` is green with no `.env` file and no `DATABASE_URL` exported.

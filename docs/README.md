@@ -4,9 +4,9 @@
 | ------------------------------------------------ | --------------------------------------------------------------- | --------------------------------------- |
 | [`PROJECT_STATE.md`](./PROJECT_STATE.md)         | Inventory: stack, layout, data model, current health, dead code | Starting a session; onboarding          |
 | [`ARCHITECTURE.md`](./ARCHITECTURE.md)           | How the pieces fit; the metadata layer explained; gaps marked   | Touching metadata, data access or auth  |
-| [`TECH_DEBT.md`](./TECH_DEBT.md)                 | Summary table + open items (TD-37–TD-43), with execution order  | Deciding what to work on                |
-| [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md) | Full write-up of every closed item, TD-01–TD-36                 | Checking if something was already tried |
-| [`TESTING.md`](./TESTING.md)                     | Test strategy, coverage targets, Jest → Vitest migration        | Writing any test                        |
+| [`TECH_DEBT.md`](./TECH_DEBT.md)                 | Summary table + the write-ups of items still open               | Deciding what to work on                |
+| [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md) | Full write-up of every closed item, plus retired doc sections   | Checking if something was already tried |
+| [`TESTING.md`](./TESTING.md)                     | Test strategy, coverage targets, techniques, E2E setup          | Writing any test                        |
 | [`ROADMAP.md`](./ROADMAP.md)                     | Five phases; feature backlog; explicit non-goals                | Planning; logging an idea               |
 | [`adr/`](./adr/)                                 | Architecture decision records — the _why_ behind the code       | Making or revisiting a decision         |
 | [`specs/`](./specs/)                             | Feature specs, written before implementation                    | Building a feature                      |
@@ -56,3 +56,27 @@ Documentation that drifts is worse than none, because it is believed. Concretely
 > _why_ does not.** The reasoning in these documents held up under audit almost
 > everywhere. What failed was every number and every checkbox. Prefer writing the
 > reasoning, and derive the numbers from a command when you need them.
+
+> **Audited again on 2026-08-08. The same class of drift had fully recurred, and
+> the lesson above had been written down but not acted on** — the docs kept
+> recording counts.
+>
+> - `TESTING.md` contradicted itself by a factor of three: "807 tests across 116
+>   files" in §1, "267 unit tests across 35 files" thirty lines later. Both wrong.
+> - `PROJECT_STATE.md` claimed 5 Prisma models against 7, 5 migrations against 9,
+>   `app/dashboard/**` against `app/[locale]/dashboard/**`, "no relations between
+>   models" after two had shipped, and pinned a Next.js patch version one behind.
+>   It also still carried a line about a live agent worktree from a session long
+>   over.
+> - `ROADMAP.md`'s Phase 2 table left six rows unticked whose items were closed,
+>   while the exit-criteria line four lines above said the phase was complete.
+> - **The worst one: `TECH_DEBT.md` had an open item, TD-63, with a full write-up
+>   but no row in the summary table — and a header that read "Open items: none".**
+>   A session picking work off the register would have concluded there was nothing
+>   to do.
+>
+> **What changed this time, beyond fixing the values.** Volatile counts were
+> removed from the prose rather than corrected, and replaced with the command that
+> produces them — because correcting a number resets the clock on exactly the same
+> failure. If you find yourself typing a test count, a coverage percentage or a PR
+> number into a document, write the command instead.

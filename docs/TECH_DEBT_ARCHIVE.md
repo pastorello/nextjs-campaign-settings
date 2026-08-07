@@ -2019,6 +2019,28 @@ This is not a bug introduced by T3/T4 — the gap predates them (M5 was only eve
 
 ---
 
+## TD-63 ✅ Local dev DB's migration history had a gap `migrate dev`/`migrate deploy` couldn't get past — **DONE (2026-08-08)**
+
+**Outcome:** resolved all three untracked/failed migration rows against the maintainer's dev DB, and found and fixed one more drift the original write-up hadn't caught.
+
+- Confirmed with `prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script` that the live DB matched the two pending migrations' target schema except for one leftover: the `customers` table (Next.js Learn tutorial debris, 0 rows, no code references — TD-06's dead-tutorial-table cleanup had already gotten `invoices`/`revenue` but missed this one). Dropped it with the maintainer's explicit confirmation, per CLAUDE.md's rule against unconfirmed `DROP`s, then the diff went empty.
+- `prisma migrate resolve --applied` for `20260726093000_add_spells_nome_drop_tutorial_tables` and `20260726100000_add_timestamps_and_name_indexes`, and for the `20251126152855_resetio` row, which had reverted to **failed** since the write-up's last check — exactly the SPEC-004 M2 leftover it had already flagged as "worth checking before the next migration attempt." `applied_steps_count: 0` confirmed it died on its very first statement (an "already exists" against objects `db push` had already created), and the DB-wide diff being empty confirmed its target state was already live, so `--applied` was correct there too.
+- `prisma migrate status` then reported no pending, no failed — but a real `prisma migrate dev` round-trip (throwaway nullable column on `spells`, reverted after) still hit drift: `ALTER TABLE "png" RENAME TO "npc"` (`20260730020000_rename_png_table_to_npc`) renames the table but not Postgres's auto-named objects, so a full sequential replay leaves the primary key `png_pkey` and the name index `png_nome_idx`, while the maintainer's DB — rebuilt with `db push` at some point since — already had `npc_pkey`/`npc_nome_idx`. Added a corrective migration, `20260808150000_rename_npc_pkey_and_index`, doing the two renames explicitly (same pattern as `20260726093000`'s corrective fix), then `resolve --applied` on the dev DB since it was already in the target state.
+- Re-ran the throwaway-column round-trip against the fixed history: `prisma migrate dev` applied cleanly, no shadow-DB drift, no reset prompt.
+
+**Where:** `my-database-container` (the maintainer's local dev Postgres, `DATABASE_URL` in `.env`). `_prisma_migrations` there, plus the new `prisma/migrations/20260808150000_rename_npc_pkey_and_index/`.
+
+**Why:** the dev database was originally built with `db push`, and only some migrations were ever recorded as applied against it — `20260730020000_rename_png_table_to_npc` and `20260731120000_add_poi_table` (both hand-applied via `docker exec … psql` then marked with `prisma migrate resolve --applied`, per that migration's own header comment). The three migrations before them (`20251126152855_resetio`, `20260726093000_add_spells_nome_drop_tutorial_tables`, `20260726100000_add_timestamps_and_name_indexes`) were never recorded, even though the schema they describe was already live — the DB's actual shape and its tracked history disagreed.
+
+This blocked both commands that assume a clean history:
+
+- `prisma migrate dev` builds a shadow database and replays every migration file from empty; the replay died partway through with `relation "png" does not exist` (a step assumed state the shadow DB never had, because the real DB got there by a different path).
+- `prisma migrate deploy` tried to apply the DB's actual pending list in order and died the same way, now with `relation "deities" already exists` — the SQL was trying to create a table the live DB already had.
+
+Surfaced again on 2026-08-06 while shipping SPEC-004 M2's migration, which had to be applied the same workaround way as M1: hand-write the SQL (via `prisma migrate diff --from-config-datasource --to-schema` against the live DB, which needs no shadow database), apply it directly with `docker exec … psql`, then `prisma migrate resolve --applied` to record it.
+
+---
+
 ## TD-75 ✅ `pnpm test` fails on a clean checkout — one suite needs a `DATABASE_URL` that only CI provides — **DONE (2026-08-08)**
 
 **Outcome:** `vitest.config.ts`'s `test` block now sets `env: { DATABASE_URL: "postgresql://admin:postgres@localhost:5432/placeholder" }`, the same placeholder `.github/workflows/ci.yml` already sets for the `test` job. Verified with `env -u DATABASE_URL pnpm test`: 139/139 files, 1029/1029 tests, green with no `.env` file present and nothing exported. `pnpm typecheck`, `pnpm lint` and `pnpm format:check` all pass on the same change.

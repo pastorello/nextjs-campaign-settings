@@ -107,19 +107,8 @@ export function useNavigableChildren(
           icon: L.divIcon({
             className: "custom-navigable-marker",
             html: `
-          <div style="
-            width: 36px;
-            height: 36px;
-            background: #16a34a;
-            border: 3px solid white;
-            border-radius: 50%;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-          ">
-            <div style="font-size: 16px;">🗺️</div>
+          <div class="w-9 h-9 bg-green-600 border-3 border-white rounded-full shadow-[0_3px_8px_rgba(0,0,0,0.3)] flex items-center justify-center cursor-pointer">
+            <div class="text-base">🗺️</div>
           </div>
         `,
             iconSize: [36, 36],

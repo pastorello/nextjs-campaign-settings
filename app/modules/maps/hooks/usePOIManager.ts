@@ -10,7 +10,7 @@ import type {
   LinkableEntityType,
 } from "@/app/modules/maps/types/poi";
 import {
-  getCategoryColor,
+  getCategoryMarkerBgClass,
   isPOICategory,
 } from "@/app/modules/maps/constants/poi-categories";
 import { getLinkableEntityTypeById } from "@/app/modules/maps/constants/linkable-entities";
@@ -218,28 +218,14 @@ export function usePOIManager(parentId: number) {
 
       try {
         const L = await import("leaflet");
-        const color = getCategoryColor(poi.category);
+        const markerBgClass = getCategoryMarkerBgClass(poi.category);
 
         const marker = L.marker([poi.lat, poi.lng], {
           icon: L.divIcon({
             className: "custom-poi-marker",
             html: `
-          <div style="
-            width: 32px;
-            height: 32px;
-            background: ${color};
-            border: 3px solid white;
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          ">
-            <div style="
-              transform: rotate(45deg);
-              font-size: 14px;
-            ">📍</div>
+          <div class="w-8 h-8 flex items-center justify-center -rotate-45 shadow-[0_3px_8px_rgba(0,0,0,0.3)] border-3 border-white rounded-[50%_50%_50%_0] ${markerBgClass}">
+            <div class="rotate-45 text-sm">📍</div>
           </div>
         `,
             iconSize: [32, 32],
@@ -254,19 +240,19 @@ export function usePOIManager(parentId: number) {
             ? getLinkableEntityTypeById(poi.linkedType)
             : undefined;
         const popupContent = `
-      <div style="min-width: 150px;">
-        <div style="font-weight: 600; margin-bottom: 4px;">${poi.title}</div>
+      <div class="min-w-[150px]">
+        <div class="font-semibold mb-1">${poi.title}</div>
         ${
           poi.description
-            ? `<div style="font-size: 12px; color: #666; margin-bottom: 4px;">${poi.description}</div>`
+            ? `<div class="text-xs text-gray-600 mb-1">${poi.description}</div>`
             : ""
         }
-        <div style="font-size: 11px; color: #999;">${poi.lat.toFixed(
+        <div class="text-[11px] text-gray-400">${poi.lat.toFixed(
           6
         )}, ${poi.lng.toFixed(6)}</div>
         ${
           linkedEntityType && poi.linkedId != null
-            ? `<a href="${linkedEntityType.path}?id=${poi.linkedId}" style="font-size: 12px; color: #2563eb; text-decoration: underline; display: inline-block; margin-top: 4px;">View ${linkedEntityType.label}</a>`
+            ? `<a href="${linkedEntityType.path}?id=${poi.linkedId}" class="text-xs text-blue-500 underline inline-block mt-1">View ${linkedEntityType.label}</a>`
             : ""
         }
       </div>

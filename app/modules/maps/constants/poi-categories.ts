@@ -13,6 +13,7 @@ export const POI_CATEGORIES: POICategoryConfig[] = [
     labelKey: "geography.poiCategories.foodDrink",
     color: "#f97316", // Orange
     bgColor: "#fed7aa",
+    markerBgClass: "bg-orange-500",
     icon: "🍽️",
   },
   {
@@ -20,6 +21,7 @@ export const POI_CATEGORIES: POICategoryConfig[] = [
     labelKey: "geography.poiCategories.shopping",
     color: "#a855f7", // Purple
     bgColor: "#e9d5ff",
+    markerBgClass: "bg-purple-500",
     icon: "🛍️",
   },
   {
@@ -27,6 +29,7 @@ export const POI_CATEGORIES: POICategoryConfig[] = [
     labelKey: "geography.poiCategories.transport",
     color: "#3b82f6", // Blue
     bgColor: "#bfdbfe",
+    markerBgClass: "bg-blue-500",
     icon: "🚌",
   },
   {
@@ -34,6 +37,7 @@ export const POI_CATEGORIES: POICategoryConfig[] = [
     labelKey: "geography.poiCategories.lodging",
     color: "#06b6d4", // Cyan
     bgColor: "#a5f3fc",
+    markerBgClass: "bg-cyan-500",
     icon: "🏨",
   },
   {
@@ -41,6 +45,7 @@ export const POI_CATEGORIES: POICategoryConfig[] = [
     labelKey: "geography.poiCategories.health",
     color: "#ef4444", // Red
     bgColor: "#fecaca",
+    markerBgClass: "bg-red-500",
     icon: "🏥",
   },
   {
@@ -48,6 +53,7 @@ export const POI_CATEGORIES: POICategoryConfig[] = [
     labelKey: "geography.poiCategories.entertainment",
     color: "#eab308", // Yellow
     bgColor: "#fef08a",
+    markerBgClass: "bg-yellow-500",
     icon: "🎭",
   },
   {
@@ -55,6 +61,7 @@ export const POI_CATEGORIES: POICategoryConfig[] = [
     labelKey: "geography.poiCategories.nature",
     color: "#22c55e", // Green
     bgColor: "#bbf7d0",
+    markerBgClass: "bg-green-500",
     icon: "🌳",
   },
   {
@@ -62,6 +69,7 @@ export const POI_CATEGORIES: POICategoryConfig[] = [
     labelKey: "geography.poiCategories.services",
     color: "#1e40af", // Dark Blue
     bgColor: "#93c5fd",
+    markerBgClass: "bg-blue-800",
     icon: "🔧",
   },
   {
@@ -69,6 +77,7 @@ export const POI_CATEGORIES: POICategoryConfig[] = [
     labelKey: "geography.poiCategories.education",
     color: "#14b8a6", // Teal
     bgColor: "#99f6e4",
+    markerBgClass: "bg-teal-500",
     icon: "🎓",
   },
   {
@@ -76,6 +85,7 @@ export const POI_CATEGORIES: POICategoryConfig[] = [
     labelKey: "geography.poiCategories.religion",
     color: "#92400e", // Brown
     bgColor: "#d6d3d1",
+    markerBgClass: "bg-amber-800",
     icon: "⛪",
   },
   {
@@ -83,6 +93,7 @@ export const POI_CATEGORIES: POICategoryConfig[] = [
     labelKey: "geography.poiCategories.business",
     color: "#6b7280", // Gray
     bgColor: "#d1d5db",
+    markerBgClass: "bg-gray-500",
     icon: "💼",
   },
   {
@@ -90,6 +101,7 @@ export const POI_CATEGORIES: POICategoryConfig[] = [
     labelKey: "geography.poiCategories.tourism",
     color: "#ec4899", // Pink
     bgColor: "#fbcfe8",
+    markerBgClass: "bg-pink-500",
     icon: "📸",
   },
   {
@@ -97,6 +109,7 @@ export const POI_CATEGORIES: POICategoryConfig[] = [
     labelKey: "geography.poiCategories.emergency",
     color: "#991b1b", // Red Dark
     bgColor: "#fca5a5",
+    markerBgClass: "bg-red-800",
     icon: "🚨",
   },
   {
@@ -104,6 +117,7 @@ export const POI_CATEGORIES: POICategoryConfig[] = [
     labelKey: "geography.poiCategories.utilities",
     color: "#374151", // Dark Gray
     bgColor: "#9ca3af",
+    markerBgClass: "bg-gray-700",
     icon: "⚡",
   },
 ];
@@ -130,6 +144,15 @@ export function isPOICategory(value: string): value is POICategory {
  */
 export function getCategoryColor(id: string): string {
   return getCategoryById(id)?.color || "#6b7280";
+}
+
+/**
+ * Get category marker Tailwind background class by ID (CLAUDE.md rule #8 —
+ * the Leaflet marker's raw HTML string can't use `color`'s hex value, since
+ * Tailwind's content scanner only matches literal class names).
+ */
+export function getCategoryMarkerBgClass(id: string): string {
+  return getCategoryById(id)?.markerBgClass || "bg-gray-500";
 }
 
 /**

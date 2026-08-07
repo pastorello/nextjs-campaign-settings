@@ -3,6 +3,7 @@ import ControlType from "@/app/lib/definitions/types/ControlType";
 import FieldType from "@/app/lib/definitions/types/FieldType";
 import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import MagicItemMetaField from "@/app/lib/definitions/enums/magicitem/MagicItemMetaField";
+import optionValueValidator from "@/app/lib/utils/validators/optionValueValidator";
 import z from "zod";
 
 import rarity from "./rarity";
@@ -16,7 +17,7 @@ const magicItemsMeta = {
     fieldType: FieldType.integer,
     options: rarity,
     controlType: ControlType.Select,
-    validator: z.number().int(),
+    validator: optionValueValidator(rarity),
   },
   [MagicItemMetaField.type]: {
     metaField: "type",
@@ -25,7 +26,7 @@ const magicItemsMeta = {
     fieldType: FieldType.integer,
     options: itemTypes,
     controlType: ControlType.Select,
-    validator: z.number().int(),
+    validator: optionValueValidator(itemTypes),
   },
   [MagicItemMetaField.attuned]: {
     metaField: "attuned",

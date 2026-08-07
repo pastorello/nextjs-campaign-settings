@@ -3,6 +3,8 @@ import SpellMetaField from "../../definitions/enums/spells/SpellMetaField";
 import PageMeta from "../../definitions/interfaces/meta/PageMeta";
 import ControlType from "../../definitions/types/ControlType";
 import FieldType from "../../definitions/types/FieldType";
+import optionArrayValidator from "../../utils/validators/optionArrayValidator";
+import optionValueValidator from "../../utils/validators/optionValueValidator";
 import z from "zod";
 import classes from "./classes";
 import durate from "./durate";
@@ -21,7 +23,7 @@ const spellsMeta = {
     fieldType: FieldType.integer,
     options: levels,
     controlType: ControlType.Select,
-    validator: z.number().int(),
+    validator: optionValueValidator(levels),
   },
   [SpellMetaField.circle]: {
     metaField: "circle",
@@ -30,7 +32,7 @@ const spellsMeta = {
     fieldType: FieldType.array,
     options: subclasses,
     controlType: ControlType.Multiselect,
-    validator: z.array(z.number().int()),
+    validator: optionArrayValidator(subclasses),
   },
   [SpellMetaField.classes]: {
     metaField: "classes",
@@ -42,7 +44,7 @@ const spellsMeta = {
       labelKey: item.labelKey,
     })),
     controlType: ControlType.Multiselect,
-    validator: z.array(z.number().int()),
+    validator: optionArrayValidator(classes),
   },
   [SpellMetaField.castingTime]: {
     metaField: "castingTime",

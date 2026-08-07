@@ -3,6 +3,7 @@ import ControlType from "@/app/lib/definitions/types/ControlType";
 import FieldType from "@/app/lib/definitions/types/FieldType";
 import DeityMetaField from "@/app/lib/definitions/enums/deities/DeityMetaField";
 import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
+import optionValueValidator from "@/app/lib/utils/validators/optionValueValidator";
 
 import magicColors from "./magicColors";
 import z from "zod";
@@ -23,7 +24,7 @@ const deitiesMeta = {
     fieldType: FieldType.integer,
     options: magicColors,
     controlType: ControlType.Select,
-    validator: z.coerce.number(),
+    validator: optionValueValidator(magicColors),
   },
   [DeityMetaField.deityTitle]: {
     metaField: "deityTitle",
@@ -41,7 +42,7 @@ const deitiesMeta = {
     defaultValue: firstOptionValue(deityTypes),
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
-    validator: z.coerce.number(),
+    validator: optionValueValidator(deityTypes),
     options: deityTypes,
   },
   [DeityMetaField.deityRank]: {
@@ -50,7 +51,7 @@ const deitiesMeta = {
     defaultValue: firstOptionValue(deityLevels),
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
-    validator: z.coerce.number(),
+    validator: optionValueValidator(deityLevels),
     options: deityLevels,
   },
   [DeityMetaField.tarotCard]: {
@@ -59,7 +60,7 @@ const deitiesMeta = {
     defaultValue: firstOptionValue(tarotCards),
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
-    validator: z.coerce.number(),
+    validator: optionValueValidator(tarotCards),
     options: tarotCards,
   },
   [DeityMetaField.celestialBody]: {
@@ -68,7 +69,7 @@ const deitiesMeta = {
     defaultValue: firstOptionValue(celestialBodies),
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
-    validator: z.coerce.number(),
+    validator: optionValueValidator(celestialBodies),
     options: celestialBodies,
   },
   [DeityMetaField.element]: {
@@ -77,7 +78,7 @@ const deitiesMeta = {
     defaultValue: firstOptionValue(energyElements),
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
-    validator: z.coerce.number(),
+    validator: optionValueValidator(energyElements),
     options: energyElements,
   },
   [DeityMetaField.deityClass]: {
@@ -86,7 +87,7 @@ const deitiesMeta = {
     defaultValue: firstOptionValue(subclasses),
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
-    validator: z.coerce.number(),
+    validator: optionValueValidator(subclasses),
     options: subclasses,
   },
   [DeityMetaField.holidays]: {
@@ -105,7 +106,7 @@ const deitiesMeta = {
     defaultValue: firstOptionValue(traditionTypes),
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
-    validator: z.coerce.number(),
+    validator: optionValueValidator(traditionTypes),
     options: traditionTypes,
   },
   [DeityMetaField.residence]: {
@@ -114,7 +115,7 @@ const deitiesMeta = {
     defaultValue: firstOptionValue(celestialPlanes),
     fieldType: FieldType.integer,
     controlType: ControlType.Select,
-    validator: z.coerce.number(),
+    validator: optionValueValidator(celestialPlanes),
     options: celestialPlanes,
   },
   [DeityMetaField.meaning]: {

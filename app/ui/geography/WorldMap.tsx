@@ -223,48 +223,53 @@ function WorldMap({
     [importGeoJSON, t]
   );
 
-  const initializeMap = async () => {
+  useEffect(() => {
     if (!isValidString(mapUrl)) {
       notifyError(t("mapNotConfigured"));
       return;
     }
 
-    try {
-      const L = await import("leaflet");
+    let cancelled = false;
 
-      // Remove existing image overlay if present
-      if (currentImage && map) {
-        currentImage.remove();
-        setCurrentImage(null);
-      }
+    // The dynamic `import()` is the only genuinely async step; everything
+    // that follows (building the overlay, committing state) runs in this
+    // `.then()` callback rather than after an `await` inside an async
+    // function passed straight to the effect — the shape the React Compiler
+    // lint rule can actually see through (TD-64).
+    import("leaflet")
+      .then((L) => {
+        if (cancelled) return;
 
-      const image = L.imageOverlay(mapUrl, bounds);
+        // Remove existing image overlay if present
+        if (currentImage && map) {
+          currentImage.remove();
+          setCurrentImage(null);
+        }
 
-      if (map) {
-        image.addTo(map);
-        map.setMinZoom(0);
-        map.setZoom(0);
-        map.setMaxZoom(10);
-        map.setMaxBounds(bounds);
-        map.fitBounds(bounds);
-        map.setView(initialView, initialZoom);
-        setCurrentImage(image);
-      }
-    } catch (error) {
-      console.error("Failed to initialize map image:", error);
-    }
-  };
+        const image = L.imageOverlay(mapUrl, bounds);
 
-  useEffect(() => {
-    // Standard async-effect data loading (fetch the image, then setState);
-    // the lint rule can't see through the `await` inside `initializeMap` and
-    // treats this as a synchronous setState-in-effect. Tracked as TD-64.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void initializeMap();
-    // `initializeMap` reads `currentImage` to remove the previous overlay, and
-    // ends by calling `setCurrentImage`. Adding it (or `currentImage`) to this
-    // effect's dependencies would re-run it every time it sets that state,
-    // reloading the same map image in an infinite loop.
+        if (map) {
+          image.addTo(map);
+          map.setMinZoom(0);
+          map.setZoom(0);
+          map.setMaxZoom(10);
+          map.setMaxBounds(bounds);
+          map.fitBounds(bounds);
+          map.setView(initialView, initialZoom);
+          setCurrentImage(image);
+        }
+      })
+      .catch((error: unknown) => {
+        console.error("Failed to initialize map image:", error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // `currentImage` is read (to remove the previous overlay) and set by this
+    // effect; adding it to the dependency list would re-run the effect every
+    // time it sets that state, reloading the same map image in an infinite
+    // loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, mapUrl]);
 

@@ -186,6 +186,12 @@ This is the best-structured area of the codebase — error boundary, defensive h
 
 POIs are persisted in Postgres (the `poi` model), not `localStorage` — `usePOIManager.ts` writes through `createPoi` / `updatePoi` / `deletePoi` / `fetchPois` (`app/lib/data/maps/`) with optimistic client state, and can optionally link to exactly one `npc` or `deities` row via a polymorphic `linkedType`/`linkedId` pair (`LINKABLE_ENTITY_TYPES` in `constants/linkable-entities.ts`). Done as TD-14; see [SPEC-002](./specs/002-map-poi-persistence.md) for the design.
 
+**The `poi` table is also the world tree** (SPEC-004; [ADR-0009](./adr/0009-world-tree-as-one-polymorphic-table.md)). The same table that holds a leaf POI (an inn, a shrine) also holds every navigable place — the universe root, planes, regions, cities — and the pin for every placed NPC or deity. One column, `kind`, tells them apart; it is a validated string against a fixed set declared in code (`app/modules/maps/constants/place-kinds.ts`), not a database enum or a user-editable table, because the DM's own tree structure is meant to be the app's model, not something they can grow ad hoc. `parentId` (self-referential, `onDelete: Restrict`) gives containment; `mapImage`/`mapBounds`/`mapInitialView`/`mapInitialZoom` are a navigable place's own map, null for leaves.
+
+**A record's location is derived, never stored.** `npc.location`/`deities.location`/`deities.residence` still exist as columns today (removing them is SPEC-004's T5, sequenced after the DM confirms the migrated tree), but the tree-native answer to "where is this NPC" is: find their `poi` pin (`linkedType`/`linkedId`), read its `parentId`'s title. `app/modules/maps/lib/utils/deriveEntityLocations.ts` does this for a whole list in one pass — one query over `poi` (`fetchDerivedLocations`), then an in-memory pointer walk per record, rather than a tree-walk query per row. `EntityList` merges the result into the NPC/deity admin lists as a `derivedLocation` column: declared in `pageMetaFields` so the existing list-rendering machinery can render it, but deliberately absent from every `pagesConfig` entry, so `buildEntitySchema` never treats it as part of the writable payload — read-only by construction, not convention.
+
+Places themselves — including the tree's navigable nodes — are **deliberately outside the metadata layer** (`pagesConfig`/`formFields`/`listConfig`): a place is a map annotation edited from a panel, not a browsable, filterable catalogue page.
+
 ---
 
 ## 5. Auth flow

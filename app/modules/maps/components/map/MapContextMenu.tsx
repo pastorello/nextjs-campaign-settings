@@ -250,7 +250,10 @@ export const MapContextMenu = memo(function MapContextMenu({
         onClick={handleStartMeasurement}
       />
 
-      {/* Add to My Places (if handler provided) */}
+      {/* Add Place (if handler provided) — opens a form covering every
+          kind (region, plane, city, dungeon, deity, npc, poi), not just
+          POIs; label/sublabel match MapPOIPanel's own "Add Place" heading
+          rather than the POI-specific copy this predates (TD-67). */}
       {onAddPOI && (
         <>
           {/* Divider */}
@@ -258,8 +261,8 @@ export const MapContextMenu = memo(function MapContextMenu({
 
           <MenuItem
             icon={<Star className="h-4 w-4" />}
-            label="Add to My Places"
-            sublabel="Save this location"
+            label="Add Place"
+            sublabel="Create a place here"
             onClick={handleAddPOI}
           />
         </>

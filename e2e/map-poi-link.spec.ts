@@ -46,7 +46,7 @@ test.describe("POI linked-entity popup link", () => {
     const map = page.locator(".leaflet-container");
     await expect(map).toBeVisible();
     await map.click({ button: "right", position: { x: 700, y: 300 } });
-    await page.getByRole("button", { name: /Add to My Places/ }).click();
+    await page.getByRole("button", { name: /Add Place/ }).click();
 
     await page.getByPlaceholder("Enter place name").fill(poiTitle);
 
@@ -90,7 +90,7 @@ test.describe("POI linked-entity popup link", () => {
     await expect(page.getByText(npcName)).toBeVisible();
 
     // Clean up the NPC. The POI itself is left behind: `WorldMap.tsx` only
-    // opens `MapPOIPanel` from the right-click "Add to My Places" flow (its
+    // opens `MapPOIPanel` from the right-click "Add Place" flow (its
     // search-bar entry point is commented out — a pre-existing, deliberately
     // unwired MVP gap, see CLAUDE.md "unused is not dead"), so once this
     // navigates away there is no way back into the panel that held the

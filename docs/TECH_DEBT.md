@@ -572,6 +572,22 @@ This is not a bug introduced by T3/T4 — the gap predates them (M5 was only eve
 
 **Done when:** a DM can select any existing place (any kind, not just `poi`) and give it a position on its parent's map, without deleting and recreating it.
 
+**Session handoff (2026-08-07):** TD-61, TD-62 and TD-64 through TD-70 all closed this session, each its own branch + PR, all merged (PRs #110–#119). TD-72 filed along the way (found reviewing PR #119), not started. TD-71 is the only item left in this register, and the largest — start the next session here.
+
+**Before writing any code:** the "Plan" line above is not yet answered. Ask the maintainer where this belongs — options on the table so far, not decided between:
+
+- A "position" mode reachable from the tree/list view (pick a place, then click the map)
+- Dragging an existing marker directly on the map to reposition it
+- Something else not yet proposed
+
+This is a product decision (what the interaction should feel like for a DM), not an implementation detail — guessing and building the wrong one costs more than asking first.
+
+**Once the shape is agreed, likely touch points** (not a full plan — the design decision above determines the actual scope):
+
+- `MapPOIPanel.tsx`'s `handleEditMode` — today only ever reachable from `POIListItem.onEdit`, which `usePOIManager` only ever feeds `kind: "poi"` rows. Repositioning a `region`/`plane`/`city`/`dungeon`/`deity`/`npc` needs a path into edit mode that doesn't exist yet.
+- The three marker-rendering hooks now live in `app/modules/maps/hooks/`: `usePOIManager.ts` (POI), `useNavigableChildren.ts` (navigable kinds), `useLinkedEntityMarkers.ts` (deity/npc, TD-70). Whichever kind becomes repositionable needs its marker layer to support that, in whichever of these three hooks owns it.
+- A server action to update `lat`/`lng` on an existing `poi` row likely doesn't exist yet for non-`poi` kinds — check `updatePoi.ts` before assuming it's reusable as-is.
+
 ---
 
 ## TD-72 🟢 `usePOIManager.ts` and `useNavigableChildren.ts` build marker/popup HTML with inline `style`, not Tailwind classes

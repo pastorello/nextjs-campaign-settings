@@ -72,7 +72,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-58 | ✅ Dependabot grouped a major ESLint bump into the dev-dependencies group, breaking CI                      | ~~🟠 High~~ done     | S      | 3     |
 | TD-59 | ✅ `prisma` CLI and `@prisma/client`/`@prisma/adapter-pg` could bump independently, breaking the build      | ~~🟠 High~~ done     | S      | 3     |
 | TD-61 | ✅ Option-backed `Int` fields accept any number; an out-of-list value renders as a blank cell               | ~~🟠 High~~ done     | S      | 3     |
-| TD-62 | ✅ POI category names are hardcoded English and reach the UI — a TD-21 leftover                              | ~~🟢 Low~~ done      | S      | 3     |
+| TD-62 | ✅ POI category names are hardcoded English and reach the UI — a TD-21 leftover                             | ~~🟢 Low~~ done      | S      | 3     |
 | TD-64 | `WorldMap.tsx`'s async-effect map-loading pattern trips `react-hooks/set-state-in-effect`                   | 🟢 Low               | S      | 3     |
 | TD-65 | `DATABASE_URL` in this dev environment isn't a throwaway DB — e2e debris landed in real data                | 🟡 Medium            | S      | 3     |
 | TD-66 | `UPLOAD_DIR`'s relative default silently splits map-image files from the DB rows referencing them           | 🟡 Medium            | S      | 3     |

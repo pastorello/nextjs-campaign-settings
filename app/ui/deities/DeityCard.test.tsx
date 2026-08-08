@@ -27,8 +27,6 @@ const item: Deity = {
   tradition: 1,
   alignment: 1,
   alignmentDomain: 1,
-  residence: 1,
-  location: 1,
   meaning: "" as TarotMeaning,
 };
 

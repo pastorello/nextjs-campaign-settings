@@ -43,7 +43,6 @@ describe("NpcForm", () => {
       "name",
       "alignment",
       "faction",
-      "location",
       "title",
       "alignmentDomain",
       "position",

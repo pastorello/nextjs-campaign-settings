@@ -32,8 +32,6 @@ export default async function createDeity(
     tradition,
     alignment,
     alignmentDomain,
-    residence,
-    location,
     meaning,
   } = formData;
 
@@ -52,8 +50,6 @@ export default async function createDeity(
       tradition,
       alignment,
       alignmentDomain,
-      residence,
-      location,
       meaning,
     },
   });

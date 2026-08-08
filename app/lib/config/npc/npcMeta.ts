@@ -3,7 +3,6 @@ import NpcMetaField from "@/app/lib/definitions/enums/npc/NpcMetaField";
 import ControlType from "@/app/lib/definitions/types/ControlType";
 import FieldType from "@/app/lib/definitions/types/FieldType";
 import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
-import locationList from "@/app/lib/config/geography/locationList";
 import optionValueValidator from "@/app/lib/utils/validators/optionValueValidator";
 import z from "zod";
 
@@ -50,15 +49,6 @@ const npcMeta = {
     placeholderKey: "npc.fields.position.placeholder",
     validator: z.string().optional(),
     getDatum: (datum: string) => datum,
-  },
-  [NpcMetaField.location]: {
-    labelKey: "npc.fields.location.label",
-    defaultValue: firstOptionValue(locationList),
-    metaField: NpcMetaField.location,
-    fieldType: FieldType.integer,
-    controlType: ControlType.Select,
-    options: locationList,
-    validator: optionValueValidator(locationList),
   },
   [NpcMetaField.faction]: {
     labelKey: "npc.fields.faction.label",

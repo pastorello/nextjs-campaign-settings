@@ -22,8 +22,6 @@ model deities {
   tradition         Int      @map("tradizione")
   alignment         Int      @map("allineamento")
   alignmentDomain   Int      @map("dominioallineamento")
-  residence         Int      @map("residenza")
-  location          Int      @map("luogo")
   meaning           String   @map("significato")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -52,7 +50,6 @@ model npc {
   alignment       Int      @map("allineamento")
   alignmentDomain Int      @map("dominioallineamento")
   position        String?  @db.VarChar(255) @map("mansione")
-  location        Int      @map("luogo")
   faction         Int      @map("fazione")
   appearance      String?  @map("aspetto")
   personality     String?  @map("personalita")

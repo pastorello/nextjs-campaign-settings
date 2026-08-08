@@ -48,14 +48,9 @@ export default function NpcForm({
                 {field(NpcMetaField.alignment)}
               </div>
             </div>
-            <div className="mb-2 w-[25%]">
+            <div className="mb-2 w-[55%]">
               <div className="mb-2 flex w-full">
                 {field(NpcMetaField.faction)}
-              </div>
-            </div>
-            <div className="mb-2 w-[30%]">
-              <div className="mb-2 flex w-full">
-                {field(NpcMetaField.location)}
               </div>
             </div>
           </div>

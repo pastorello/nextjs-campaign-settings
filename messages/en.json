@@ -365,7 +365,6 @@
         "placeholder": "Enter the holidays"
       },
       "tradition": { "label": "Tradition" },
-      "residence": { "label": "Residence" },
       "meaning": {
         "label": "Meaning",
         "placeholder": "Enter the meaning"
@@ -396,15 +395,6 @@
       "urano": "Uranus",
       "venere": "Venus",
       "vergine": "Virgo"
-    },
-    "planes": {
-      "cieli": "Heavens",
-      "tempo": "Time",
-      "terreOniriche": "Dreamlands",
-      "selvaFatata": "Faerie Wood",
-      "selvaOscura": "Dark Wood",
-      "inferi": "Underworld",
-      "terra": "Earth"
     },
     "page": {
       "title": "Geography"
@@ -473,41 +463,6 @@
       "neutrality": "Neutrality",
       "chaos": "Chaos"
     },
-    "locations": {
-      "paradiso": "Paradise (Sun)",
-      "luna": "Elysium (Moon)",
-      "abisso": "The Abyss",
-      "fiumeAnime": "River of Souls",
-      "inferno": "Inferno",
-      "folletti": "Realm of the Sprites",
-      "fate": "Realm of the Fae",
-      "alba": "Dawn of Time",
-      "terreOniriche": "Dreamlands",
-      "druidi": "Isle of the Druids",
-      "monteAnKi": "Mount An-ki",
-      "raminghi": "Solenero Desert",
-      "custodiBianchi": "Monastery of Saint Basil",
-      "annunaki": "Last Home of the Annunaki",
-      "maghiGrigi": "School of the Invisible",
-      "torrerossa": "Village of Torrerossa",
-      "vampiri": "Miravia",
-      "norgam": "Norgam",
-      "butwhag": "Butwhag",
-      "barakTor": "Barak Thor",
-      "custodiVerdi": "Druidic Circle of Valleferro",
-      "maghiNeri": "Coven of the Hags",
-      "demoniRossi": "Temple of the Red Demons",
-      "cinquePicchi": "Mountain of the Five Peaks",
-      "avampostoOrchescho": "Clandestine Orc Outpost",
-      "valleferro": "Valleferro",
-      "skreebars": "Skreebars",
-      "tanaGoblin": "Goblin Den",
-      "torreEnoch": "Tower of Enoch",
-      "ankheet": "Ankheet",
-      "labirinto": "Citadel of the Sprites",
-      "quelThalas": "Quel'Thalas",
-      "isolaCork": "Isle of Captain Cork"
-    },
     "factions": {
       "regnoBianco": "Kingdom of Kang",
       "regnoRosso": "Horde of the Greenskins",
@@ -551,7 +506,6 @@
       "alignment": { "label": "Alignment" },
       "alignmentDomain": { "label": "Domain" },
       "position": { "label": "Position", "placeholder": "Enter position" },
-      "location": { "label": "Location" },
       "faction": { "label": "Faction" },
       "appearance": {
         "label": "Appearance",

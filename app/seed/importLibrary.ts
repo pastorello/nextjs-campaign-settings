@@ -65,7 +65,6 @@ const RENAMES: Record<string, string> = {
   allineamento: "alignment",
   dominioAllineamento: "alignmentDomain",
   mansione: "position",
-  luogo: "location",
   fazione: "faction",
   aspetto: "appearance",
   personalita: "personality",

@@ -12,8 +12,6 @@ enum DeityMetaField {
   tradition = "tradition",
   alignment = "alignment",
   alignmentDomain = "alignmentDomain",
-  residence = "residence",
-  location = "location",
   meaning = "meaning",
 }
 

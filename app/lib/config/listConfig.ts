@@ -62,10 +62,6 @@ const listConfig: Record<PageType, ListConfig> = {
       },
       { fieldKey: NpcMetaField.faction, labelKey: "npc.fields.faction.label" },
       {
-        fieldKey: NpcMetaField.location,
-        labelKey: "npc.fields.location.label",
-      },
-      {
         fieldKey: "derivedLocation",
         labelKey: "common.table.derivedLocation",
         sortable: false,
@@ -94,10 +90,6 @@ const listConfig: Record<PageType, ListConfig> = {
       {
         fieldKey: DeityMetaField.deityType,
         labelKey: "deities.fields.deityType.label",
-      },
-      {
-        fieldKey: DeityMetaField.residence,
-        labelKey: "deities.fields.residence.label",
       },
       {
         fieldKey: "derivedLocation",

@@ -1,50 +1,26 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
 import messages from "@/messages/it.json";
 
 /**
- * Regression tests for three defects in the deities admin list, all of them
+ * Regression tests for two defects in the deities admin list, both of them
  * divergences from its three sibling lists rather than mistakes in isolation —
  * the case TD-09 exists to make impossible. Each of these fails before the fix
  * in the same commit.
  *
  * They assert against seeded records (`app/seed/initial-data/deities.ts`), which
- * is deterministic in CI and locally: "Gork" is declared with
- * `residenza: PlaneOfExistence.Inferi` and `luogo: 4`.
+ * is deterministic in CI and locally: "Gork" is one of the seeded deities.
+ *
+ * A third regression test used to live here — the Residenza column rendering
+ * the wrong field's options — but that column itself is gone as of SPEC-004
+ * T5b, replaced by the tree-derived `derivedLocation` column (covered by
+ * T5a's own tests, not this file).
  */
-
-/** Reads one cell of a row by the text of its column header. */
-const cellUnderHeader = async (page: Page, rowName: string, header: string) => {
-  const headers = await page.getByRole("columnheader").allInnerTexts();
-  const index = headers.findIndex((text) => text.trim() === header);
-
-  expect(index, `no "${header}" column header found`).toBeGreaterThanOrEqual(0);
-
-  const row = page.getByRole("row").filter({ hasText: rowName });
-
-  return (await row.getByRole("cell").allInnerTexts())[index]?.trim();
-};
 
 test.describe("deities admin list", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/dashboard/admin/deities");
     await page.waitForLoadState("networkidle");
-  });
-
-  test("the Residenza column shows the celestial plane, not the patron type", async ({
-    page,
-  }) => {
-    // Was rendering `getDatum(item.luogo)` through tipoPatrono's metadata, so
-    // Gork's luogo of 4 came out as "Elementale" — a deity type, in a column
-    // headed Residenza. The field the schema and deityMeta actually declare for
-    // this is `residenza`, whose options are celestialPlanes.
-    expect(
-      await cellUnderHeader(
-        page,
-        "Gork",
-        messages.deities.fields.residence.label
-      )
-    ).toBe(messages.geography.planes.inferi);
   });
 
   test("every column in the body has a header", async ({ page }) => {

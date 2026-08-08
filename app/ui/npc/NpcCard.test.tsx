@@ -17,7 +17,6 @@ const item: NpcItem = {
   alignment: 1,
   alignmentDomain: 1,
   position: "Advisor",
-  location: 1,
   faction: 1,
   appearance: "An old man in grey robes",
   personality: "Wise and mischievous",
@@ -34,7 +33,7 @@ describe("NpcCard", () => {
     expect(screen.getByText("Advisor")).toBeInTheDocument();
   });
 
-  it("shows the tree-derived place, not the stored location field", () => {
+  it("shows the tree-derived place", () => {
     render(
       <NpcCard
         cardItem={item}
@@ -43,11 +42,6 @@ describe("NpcCard", () => {
     );
 
     expect(screen.getByText("Skreebars")).toBeInTheDocument();
-    // `item.location` is 1, whose label would be the first locationList
-    // entry — the card must not be resolving that any more.
-    expect(
-      screen.queryByText("npc.locations.paradiso")
-    ).not.toBeInTheDocument();
   });
 
   it("renders no place for an NPC nobody has pinned yet", () => {

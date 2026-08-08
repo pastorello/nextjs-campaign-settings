@@ -49,8 +49,6 @@ export default function DeityForm({
             <div className="box-border w-full p-2 lg:w-[15%]">
               {field(DeityMetaField.alignment)}
               {field(DeityMetaField.alignmentDomain)}
-              {field(DeityMetaField.residence)}
-              {field(DeityMetaField.location)}
             </div>
             <div className="box-border w-full p-2 lg:w-[15%]">
               {field(DeityMetaField.celestialBody)}

@@ -14,10 +14,9 @@ import renderRichText from "../utils/data/renderRichText";
  * Fields more than one domain meta may declare without it being an accident —
  * see `pagesConfig.ts`'s note on why the deity pages reach for `NpcMetaField`.
  * Add a name here only when it genuinely means the same thing in every domain
- * that shares it. `location` stays until SPEC-004 T5b drops the column and the
- * field with it.
+ * that shares it.
  */
-type SharedMetaField = "alignment" | "alignmentDomain" | "location";
+type SharedMetaField = "alignment" | "alignmentDomain";
 
 /**
  * Keys two domain metas both declare, outside the deliberately shared set.
@@ -102,8 +101,8 @@ const pageMetaFields = {
    * that list also drives `buildEntitySchema`'s write payload, and this
    * field is never something a create/update sends. It exists here, not in
    * `npcMeta`/`deityMeta`, because both list columns share it the same way
-   * they already share `location` (see `pagesConfig.ts`'s note on
-   * last-spread-wins).
+   * they already share `alignment`/`alignmentDomain` (see `pagesConfig.ts`'s
+   * note on last-spread-wins).
    */
   derivedLocation: {
     metaField: "derivedLocation",

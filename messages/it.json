@@ -365,7 +365,6 @@
         "placeholder": "Inserisci le festività"
       },
       "tradition": { "label": "Tradizione" },
-      "residence": { "label": "Residenza" },
       "meaning": {
         "label": "Significato",
         "placeholder": "Inserisci il significato"
@@ -396,15 +395,6 @@
       "urano": "Urano",
       "venere": "Venere",
       "vergine": "Vergine"
-    },
-    "planes": {
-      "cieli": "Cieli",
-      "tempo": "Tempo",
-      "terreOniriche": "Terre Oniriche",
-      "selvaFatata": "Selva Fatata",
-      "selvaOscura": "Selva Oscura",
-      "inferi": "Inferi",
-      "terra": "Terra"
     },
     "page": {
       "title": "Geografia"
@@ -473,41 +463,6 @@
       "neutrality": "Neutralità",
       "chaos": "Caos"
     },
-    "locations": {
-      "paradiso": "Paradiso (Sole)",
-      "luna": "Elysium (Luna)",
-      "abisso": "L'Abisso",
-      "fiumeAnime": "Fiume delle Anime",
-      "inferno": "Inferno",
-      "folletti": "Regno dei Folletti",
-      "fate": "Regno delle Fate",
-      "alba": "Alba dei Tempi",
-      "terreOniriche": "Terre Oniriche",
-      "druidi": "Isola dei Druidi",
-      "monteAnKi": "Monte An-ki",
-      "raminghi": "Deserto di Solenero",
-      "custodiBianchi": "Monastero di San Basilio",
-      "annunaki": "Ultima casa degli Annunaki",
-      "maghiGrigi": "Scuola dell'Invisibile",
-      "torrerossa": "Villaggio di Torrerossa",
-      "vampiri": "Miravia",
-      "norgam": "Norgam",
-      "butwhag": "Butwhag",
-      "barakTor": "Barak Thor",
-      "custodiVerdi": "Circolo druidico di Valleferro",
-      "maghiNeri": "Congrega delle Megere",
-      "demoniRossi": "Tempio dei Demoni Rossi",
-      "cinquePicchi": "Montagna dei Cinque Picchi",
-      "avampostoOrchescho": "Avamposto clandestino degli orchi",
-      "valleferro": "Valleferro",
-      "skreebars": "Skreebars",
-      "tanaGoblin": "Tana dei Goblin",
-      "torreEnoch": "Torre di Enoch",
-      "ankheet": "Ankheet",
-      "labirinto": "Cittadella dei Folletti",
-      "quelThalas": "Quel'Thalas",
-      "isolaCork": "Isola di Capitan Cork"
-    },
     "factions": {
       "regnoBianco": "Regno di Kang",
       "regnoRosso": "Orda dei Pelleverde",
@@ -551,7 +506,6 @@
       "alignment": { "label": "Allineamento" },
       "alignmentDomain": { "label": "Dominio" },
       "position": { "label": "Mansione", "placeholder": "Inserisci mansione" },
-      "location": { "label": "Luogo" },
       "faction": { "label": "Fazione" },
       "appearance": {
         "label": "Aspetto",

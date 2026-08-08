@@ -2,11 +2,14 @@ import { test, expect } from "@playwright/test";
 
 /**
  * TD-46 (first sub-slice, see docs/TECH_DEBT.md): the "My Places" POI panel's
- * own add/edit/delete flow, distinct from `map-poi-link.spec.ts` which covers
- * the linked-entity popup link and never exercises edit or delete.
+ * own add/edit/delete flow.
  *
  * POIs are rows in Postgres (TD-14 / SPEC-002), not `localStorage` — this
- * writes and deletes a real row like the other CRUD specs.
+ * writes and deletes a real row like the other CRUD specs. The panel's
+ * "Linked entity" selector (TD-14's landmark-to-entity link, tested by the
+ * now-removed `map-poi-link.spec.ts`) was removed by SPEC-008 T8 — the new
+ * landmark-only `poi` table has no columns left for that link — so saving a
+ * POI here no longer has a link step at all.
  */
 test.describe("POI panel CRUD", () => {
   test("a POI can be added, edited, and deleted from the list panel", async ({
@@ -23,10 +26,6 @@ test.describe("POI panel CRUD", () => {
     await map.click({ button: "right", position: { x: 400, y: 250 } });
     await page.getByRole("button", { name: /Add Place/ }).click();
     await page.getByPlaceholder("Enter place name").fill(title);
-    await page
-      .locator("select")
-      .filter({ has: page.locator("option", { hasText: "None" }) })
-      .selectOption({ label: "None" });
     await page.getByRole("button", { name: "Save" }).click();
 
     const listItem = page.locator("button", { hasText: title }).first();

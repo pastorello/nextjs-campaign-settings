@@ -6,8 +6,7 @@ import { test, expect } from "@playwright/test";
  * action every other write in this file already exercises indirectly — this
  * spec's job is proving the drag wiring works end to end against a real row,
  * not re-covering per-kind marker logic the hook unit tests already do
- * (`usePOIManager.test.ts`, `useNavigableChildren.test.ts`,
- * `useLinkedEntityMarkers.test.ts`).
+ * (`usePOIManager.test.ts`, `useNavigableChildren.test.ts`).
  *
  * Uses `kind: "poi"` — the cheapest kind to set up through the UI (no map
  * image upload) and enough to prove the plumbing, per docs/TESTING.md's
@@ -45,10 +44,6 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
     await map.click({ button: "right", position: { x: 300, y: 200 } });
     await page.getByRole("button", { name: /Add Place/ }).click();
     await page.getByPlaceholder("Enter place name").fill(title);
-    await page
-      .locator("select")
-      .filter({ has: page.locator("option", { hasText: "None" }) })
-      .selectOption({ label: "None" });
     await page.getByRole("button", { name: "Save" }).click();
 
     // Save returns the panel to list view, showing the row it just created —
@@ -74,8 +69,8 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
 
     // A real drag, not `.dispatchEvent` — this is the one interaction in
     // the suite that needs Leaflet's own drag handling to actually run, not
-    // to be routed around (contrast map-linked-entity-markers.spec.ts's
-    // popup click, which deliberately avoids it).
+    // to be routed around (contrast `map-poi-crud.spec.ts`'s clicks, which
+    // deliberately avoid it).
     await page.mouse.move(startX, startY);
     await page.mouse.down();
     await page.mouse.move(startX + 40, startY + 20, { steps: 5 });

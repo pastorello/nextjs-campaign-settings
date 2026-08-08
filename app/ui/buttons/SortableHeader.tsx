@@ -80,7 +80,7 @@ const SortableHeader = ({
           value: sortValue === SortOrder.asc ? SortOrder.desc : SortOrder.asc,
         },
         {
-          term: "fieldSort",
+          term: "sortFields",
           value: JSON.stringify({
             [fieldKey]:
               sortValue === SortOrder.asc ? SortOrder.desc : SortOrder.asc,

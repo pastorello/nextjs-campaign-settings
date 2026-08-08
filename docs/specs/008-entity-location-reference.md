@@ -1,6 +1,6 @@
 # SPEC-008: Entity location as a direct reference
 
-- **Status:** T1–T8 implemented and merged to `spec-008-entity-location-reference` (PR #135 docs, #136 code) as of 2026-08-08; only T9 (docs) remains — see the handoff note at the end of §10 before picking this back up.
+- **Status:** Done. T1–T9 implemented and merged to `spec-008-entity-location-reference` (PR #135 docs, #136 code) as of 2026-08-08; see §11 for outcome.
 - **Date:** 2026-08-08
 - **Phase:** 3
 - **Related:** amends [ADR-0009](../adr/0009-world-tree-as-one-polymorphic-table.md) via [ADR-0010](../adr/0010-entity-location-as-stored-reference.md); supersedes SPEC-004 §5 point 6 and §10's "the map is the only way to place a record"; builds on SPEC-002 (map POI persistence, the `poi.category` markers this spec calls landmarks); SPEC-005 (place repositioning — unaffected, still how a Zone or a landmark POI itself gets moved); unblocks the sort/filter need SPEC-004 §10 deferred as "a separate feature if it is ever wanted"; distinct from SPEC-006 (table-backed options, which targets `faction` and other `PageMeta` form controls generally — this spec's location assignment is a bespoke modal outside the form/metadata layer entirely, not a consumer of SPEC-006's mechanism, since SPEC-006 is still Draft and unstarted)
@@ -203,7 +203,7 @@ Mirrors §9's table, split so each task is independently reviewable and the addi
 - [x] **T6** — `location` `PageMeta` entry, `queryFields`/`listConfig` sort-by-Zone and the two-step Zone→POI filter on the admin list, keyed on the backfilled `zoneId`/`poiId` from T2 _(test: sorting is a real `ORDER BY`; filtering by Zone includes descendants; filtering by POI narrows further; "Sconosciuta" is its own filterable option)_
 - [x] **T7** — Verification script (T5a/T5's pattern): confirms every entity's `zoneId` still matches its old pin's `parentId`, re-run immediately before T8 _(test: 124/124 lossless, same gate SPEC-004 T5a used)_
 - [x] **T8** — The destructive migration: reshape the old `poi` table into the new landmark-only `poi` (drop `kind`, `parentId`, `linkedType`, `linkedId`; require `zoneId`), migrate every remaining landmark row, drop the now-redundant navigable-kind rows (superseded by `zone`, populated in T2) and entity pins (superseded by `npc.zoneId`/`poiId`, populated in T2) _(test: T7's verifier green immediately before; every `app/modules/maps/**`/`app/lib/data/maps/**` reader of the old shape updated and passing)_
-- [ ] **T9** — Docs: `docs/ARCHITECTURE.md`'s maps section updated to describe the `zone`/`poi` split; this file's §11 filled in
+- [x] **T9** — Docs: `docs/ARCHITECTURE.md`'s maps section updated to describe the `zone`/`poi` split; this file's §11 filled in
 
 **Handoff note for T9 (2026-08-08).** T1–T8 are merged to `spec-008-entity-location-reference` (PR #136, CI green — Build/Lint/Unit/E2E). T9 is docs-only, two edits:
 
@@ -214,4 +214,8 @@ No code changes expected for T9. `/clear` before starting it — nothing here ne
 
 ## 11. Outcome
 
-_Fill in at close (T9)._
+Shipped as planned in §9/§10, T1–T9, on `spec-008-entity-location-reference` (PR #135 docs, #136 code). Three points worth recording beyond the task table:
+
+- **T8's destructive migration needed no data preservation beyond a `DELETE`.** The live database had zero landmark rows at migration time, so the "reshape the old `poi` table" step in practice dropped the superseded navigable-kind and entity-pin rows and required no row-by-row conversion.
+- **TD-14's "landmark links to an entity" feature was dropped, not carried over.** The old `poi.linkedType`/`linkedId` pair is gone; a landmark can no longer point at an NPC or deity. This was confirmed with the maintainer on 2026-08-08 and was not called out explicitly in this spec's earlier sections — only implied by §6's target schema omitting `linkedType`/`linkedId`. `LINKABLE_ENTITY_TYPES` (`constants/linkable-entities.ts`) survived the removal, repurposed to back the new assignment modal's entity-type picker instead.
+- **A pre-existing `SortableHeader` bug (`fieldSort` vs. `sortFields`) was found and fixed while building T6.** The per-column sort control was reading the wrong URL param name; unrelated to this spec's scope but blocking T6's sort-by-Zone test, so it was fixed in the same PR (commit `dc54dd2`).

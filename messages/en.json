@@ -56,6 +56,18 @@
       "deleting": "Deleting",
       "errorPrefix": "Error: {message}"
     },
+    "location": {
+      "unknown": "Unknown"
+    },
+    "locationModal": {
+      "title": "Assign location",
+      "currentLabel": "Current: {location}",
+      "zoneLabel": "Zone",
+      "zonePlaceholder": "Select a zone",
+      "noZonesAvailable": "No zones available.",
+      "poiLabel": "Specific landmark (optional)",
+      "poiNoneOption": "None (zone only)"
+    },
     "filters": {
       "all": "All",
       "allCount": "All ({count})",

@@ -56,6 +56,18 @@
       "deleting": "Eliminazione...",
       "errorPrefix": "Errore: {message}"
     },
+    "location": {
+      "unknown": "Sconosciuta"
+    },
+    "locationModal": {
+      "title": "Assegna posizione",
+      "currentLabel": "Attuale: {location}",
+      "zoneLabel": "Zona",
+      "zonePlaceholder": "Seleziona una zona",
+      "noZonesAvailable": "Nessuna zona disponibile.",
+      "poiLabel": "Luogo specifico (opzionale)",
+      "poiNoneOption": "Nessuno (solo zona)"
+    },
     "filters": {
       "all": "Tutti",
       "allCount": "Tutti ({count})",

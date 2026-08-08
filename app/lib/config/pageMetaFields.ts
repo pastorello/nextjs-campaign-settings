@@ -96,17 +96,24 @@ const pageMetaFields = {
     getDatum: (datum: string) => datum,
   },
   /**
-   * Read-only, computed from the `poi` tree (SPEC-004 T4) — not a database
-   * column, so deliberately absent from every domain's `pagesConfig` entry:
-   * that list also drives `buildEntitySchema`'s write payload, and this
-   * field is never something a create/update sends. It exists here, not in
-   * `npcMeta`/`deityMeta`, because both list columns share it the same way
-   * they already share `alignment`/`alignmentDomain` (see `pagesConfig.ts`'s
-   * note on last-spread-wins).
+   * The stored `zoneId`/`poiId` reference (SPEC-008 T6) — a real, sortable,
+   * filterable admin-list column, replacing the previous `derivedLocation`
+   * field (an in-memory tree walk over the map's pins, removed here: SPEC-008
+   * T5 already removed the only way that tree ever grew a new pin, so it
+   * would only have gone stale for every entity placed from now on). Read-
+   * only and absent from every domain's `pagesConfig` entry — never part of
+   * a create/update payload, since `assignLocation` (T3) is the only writer
+   * — and shared here rather than duplicated per domain because it means
+   * exactly the same thing for both. `getDatum` is a pure passthrough:
+   * `EntityList` resolves the actual title (the POI's if `poiId` is set,
+   * else the Zone's, else "Sconosciuta") from `fetchEntityLocationSummaries`
+   * before this ever sees the value. Sorting/filtering key on the raw
+   * `zoneId` column, not this display string — see
+   * `buildLocationWhere.ts`/`applyLocationSort.ts`.
    */
-  derivedLocation: {
-    metaField: "derivedLocation",
-    labelKey: "common.table.derivedLocation",
+  location: {
+    metaField: "location",
+    labelKey: "common.table.location",
     defaultValue: "",
     fieldType: FieldType.string,
     controlType: ControlType.Text,

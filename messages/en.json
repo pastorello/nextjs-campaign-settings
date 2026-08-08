@@ -46,7 +46,7 @@
       "name": "Name",
       "actions": "Actions",
       "edit": "Edit",
-      "derivedLocation": "Location (map)",
+      "location": "Location",
       "assignLocation": "Location"
     },
     "form": {

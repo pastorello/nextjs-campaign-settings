@@ -46,7 +46,7 @@
       "name": "Nome",
       "actions": "Azioni",
       "edit": "Modifica",
-      "derivedLocation": "Posizione (mappa)",
+      "location": "Posizione",
       "assignLocation": "Posizione"
     },
     "form": {

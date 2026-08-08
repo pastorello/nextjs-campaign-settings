@@ -11,7 +11,6 @@ import { fetchFilteredDeities } from "@/app/lib/data/deities/fetchFilteredDeitie
 import { fetchFilteredMagicItems } from "@/app/lib/data/magicitems/fetchFilteredMagicItems";
 import { fetchFilteredNpc } from "@/app/lib/data/npc/fetchFilteredNpc";
 import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
-import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
 import fetchEntityLocationSummaries from "@/app/lib/data/maps/fetchEntityLocationSummaries";
 import type LocationSummary from "@/app/lib/definitions/interfaces/maps/LocationSummary";
 
@@ -19,6 +18,7 @@ import SortableHeader from "../buttons/SortableHeader";
 import DeleteButton from "../buttons/DeleteButton";
 import ModalButton from "../buttons/ModalButton";
 import AssignLocationButton from "../buttons/AssignLocationButton";
+import LocationFilterControl from "./LocationFilterControl";
 
 const NAME_FIELD = "name";
 
@@ -68,23 +68,22 @@ export default async function EntityList(props: {
 
   // Attached after the fetch, not read from it: `fetchFiltered*`'s result
   // schema (`buildResultSchema`, keyed off `pagesConfig`) strips any key it
-  // does not declare, and `derivedLocation` deliberately isn't declared
-  // there (see `pageMetaFields.ts`) — it is never part of the write schema.
+  // does not declare, and `location` deliberately isn't declared there (see
+  // `pageMetaFields.ts`) — it is never part of the write schema.
   let locationSummaries: Map<number, LocationSummary> | null = null;
   if (props.pageType === PageType.Npc || props.pageType === PageType.Deity) {
     const linkedType = props.pageType === PageType.Npc ? "npc" : "deity";
-    const ancestry = await fetchDerivedAncestry(linkedType);
     locationSummaries = await fetchEntityLocationSummaries(linkedType);
     for (const item of items) {
-      // The list wants the immediate place only; the plane above it is a
-      // card-level concern (`DeityCard`), so the rest of the chain is
-      // simply unused here.
-      item.derivedLocation = ancestry.get(item.id as number)?.[0]?.title ?? "";
+      item.location =
+        locationSummaries.get(item.id as number)?.title ??
+        t("common.location.unknown");
     }
   }
 
   return (
     <div className="mt-6 flow-root">
+      {locationSummaries && <LocationFilterControl />}
       <div className="inline-block min-w-full align-middle">
         <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
           {isArrayEmpty(items) && <p>{t(config.emptyMessageKey)}</p>}
@@ -110,6 +109,7 @@ export default async function EntityList(props: {
                       <SortableHeader
                         label={t(column.labelKey)}
                         fieldKey={column.fieldKey}
+                        isFiltrable={column.isFiltrable ?? true}
                       />
                     )}
                   </th>

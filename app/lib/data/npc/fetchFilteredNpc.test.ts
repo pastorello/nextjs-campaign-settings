@@ -5,6 +5,12 @@ import { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import { entityFieldKeys } from "@/app/lib/data/validation/buildEntitySchema";
 import DatabaseError from "@/app/lib/errors/DatabaseError";
 
+// fetchFilteredNpc now threads a zoneId/poiId filter (SPEC-008 T6) through
+// buildLocationWhere, which — for the zoneId branch only — calls
+// requireSession(); mocked here so the real next-auth config module never
+// loads, regardless of whether that branch actually runs in a given test.
+vi.mock("@/auth", () => ({ auth: vi.fn() }));
+
 const findMany = vi.fn();
 vi.mock("@/app/lib/connections/prisma", () => ({
   default: { npc: { findMany } },

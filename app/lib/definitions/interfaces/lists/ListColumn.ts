@@ -27,6 +27,15 @@ interface ListColumn {
    */
   sortable?: boolean;
 
+  /**
+   * Whether `SortableHeader` renders its built-in, `PageMeta.options`-driven
+   * filter select. Defaults to true. `false` for a column whose filter UI is
+   * bespoke and lives elsewhere on the page instead — SPEC-008 T6's
+   * "Location" column, whose Zone/POI picker needs an async-fetched,
+   * cascading list `PageMeta.options`'s static shape cannot express.
+   */
+  isFiltrable?: boolean;
+
   /** Rendered beneath the value in the same cell — the NPC list's `titolo`. */
   subtitleField?: MetaConfigKey;
 }

@@ -1,6 +1,6 @@
 # SPEC-008: Entity location as a direct reference
 
-- **Status:** Agreed — 2026-08-08, after review; see §9/§10 for the implementation plan
+- **Status:** T1–T8 implemented and merged to `spec-008-entity-location-reference` (PR #135 docs, #136 code) as of 2026-08-08; only T9 (docs) remains — see the handoff note at the end of §10 before picking this back up.
 - **Date:** 2026-08-08
 - **Phase:** 3
 - **Related:** amends [ADR-0009](../adr/0009-world-tree-as-one-polymorphic-table.md) via [ADR-0010](../adr/0010-entity-location-as-stored-reference.md); supersedes SPEC-004 §5 point 6 and §10's "the map is the only way to place a record"; builds on SPEC-002 (map POI persistence, the `poi.category` markers this spec calls landmarks); SPEC-005 (place repositioning — unaffected, still how a Zone or a landmark POI itself gets moved); unblocks the sort/filter need SPEC-004 §10 deferred as "a separate feature if it is ever wanted"; distinct from SPEC-006 (table-backed options, which targets `faction` and other `PageMeta` form controls generally — this spec's location assignment is a bespoke modal outside the form/metadata layer entirely, not a consumer of SPEC-006's mechanism, since SPEC-006 is still Draft and unstarted)
@@ -195,16 +195,23 @@ This consistency (`poiId` set ⇒ `zoneId = poi.zoneId`) is **not enforced by a 
 
 Mirrors §9's table, split so each task is independently reviewable and the additive half can ship (and be used) before the destructive half starts.
 
-- [ ] **T1** — `zone` table added to the schema; `npc`/`deities` gain nullable `zoneId`/`poiId`. Purely additive — nothing reads these columns yet _(test: migration applies; every existing row unaffected)_
-- [ ] **T2** — Backfill script populates `zone` from today's `poi` navigable-kind rows and `npc.zoneId`/`deities.zoneId` from each entity's current pin, id-preserving, idempotent, run by hand — same discipline as SPEC-004 T3/T4 _(test: re-running is a no-op; every one of the 124 entities gets a `zoneId`)_
-- [ ] **T3** — The assignment mutation (`assignLocation`-style, per domain): validates the DM picked an existing Zone (and optionally a POI within it), sets `zoneId`/`poiId` together, rejects unauthenticated/invalid input _(test: setting a POI sets `zoneId` to that POI's zone; rejects a POI from a different Zone context being passed without the matching zone; auth/validation gates)_
-- [ ] **T4** — The two-step assignment modal (Zone required, POI optional, scoped to the chosen Zone's children) _(test: picking a Zone narrows the POI options to it; clearing back to "Sconosciuta" is possible)_
-- [ ] **T5** — Modal wired into the admin list (a per-row action) and into the map (a new "attach existing NPC/deity here" action, replacing `AddPlaceInput`'s `kind: "npc"`/`"deity"` variants in `MapPOIPanel.tsx`) _(test: both entry points call the same mutation; the map's old create-pin-for-entity path is gone)_
-- [ ] **T6** — `location` `PageMeta` entry, `queryFields`/`listConfig` sort-by-Zone and the two-step Zone→POI filter on the admin list, keyed on the backfilled `zoneId`/`poiId` from T2 _(test: sorting is a real `ORDER BY`; filtering by Zone includes descendants; filtering by POI narrows further; "Sconosciuta" is its own filterable option)_
-- [ ] **T7** — Verification script (T5a/T5's pattern): confirms every entity's `zoneId` still matches its old pin's `parentId`, re-run immediately before T8 _(test: 124/124 lossless, same gate SPEC-004 T5a used)_
-- [ ] **T8** — The destructive migration: reshape the old `poi` table into the new landmark-only `poi` (drop `kind`, `parentId`, `linkedType`, `linkedId`; require `zoneId`), migrate every remaining landmark row, drop the now-redundant navigable-kind rows (superseded by `zone`, populated in T2) and entity pins (superseded by `npc.zoneId`/`poiId`, populated in T2) _(test: T7's verifier green immediately before; every `app/modules/maps/**`/`app/lib/data/maps/**` reader of the old shape updated and passing)_
+- [x] **T1** — `zone` table added to the schema; `npc`/`deities` gain nullable `zoneId`/`poiId`. Purely additive — nothing reads these columns yet _(test: migration applies; every existing row unaffected)_
+- [x] **T2** — Backfill script populates `zone` from today's `poi` navigable-kind rows and `npc.zoneId`/`deities.zoneId` from each entity's current pin, id-preserving, idempotent, run by hand — same discipline as SPEC-004 T3/T4 _(test: re-running is a no-op; every one of the 124 entities gets a `zoneId`)_
+- [x] **T3** — The assignment mutation (`assignLocation`-style, per domain): validates the DM picked an existing Zone (and optionally a POI within it), sets `zoneId`/`poiId` together, rejects unauthenticated/invalid input _(test: setting a POI sets `zoneId` to that POI's zone; rejects a POI from a different Zone context being passed without the matching zone; auth/validation gates)_
+- [x] **T4** — The two-step assignment modal (Zone required, POI optional, scoped to the chosen Zone's children) _(test: picking a Zone narrows the POI options to it; clearing back to "Sconosciuta" is possible)_
+- [x] **T5** — Modal wired into the admin list (a per-row action) and into the map (a new "attach existing NPC/deity here" action, replacing `AddPlaceInput`'s `kind: "npc"`/`"deity"` variants in `MapPOIPanel.tsx`) _(test: both entry points call the same mutation; the map's old create-pin-for-entity path is gone)_
+- [x] **T6** — `location` `PageMeta` entry, `queryFields`/`listConfig` sort-by-Zone and the two-step Zone→POI filter on the admin list, keyed on the backfilled `zoneId`/`poiId` from T2 _(test: sorting is a real `ORDER BY`; filtering by Zone includes descendants; filtering by POI narrows further; "Sconosciuta" is its own filterable option)_
+- [x] **T7** — Verification script (T5a/T5's pattern): confirms every entity's `zoneId` still matches its old pin's `parentId`, re-run immediately before T8 _(test: 124/124 lossless, same gate SPEC-004 T5a used)_
+- [x] **T8** — The destructive migration: reshape the old `poi` table into the new landmark-only `poi` (drop `kind`, `parentId`, `linkedType`, `linkedId`; require `zoneId`), migrate every remaining landmark row, drop the now-redundant navigable-kind rows (superseded by `zone`, populated in T2) and entity pins (superseded by `npc.zoneId`/`poiId`, populated in T2) _(test: T7's verifier green immediately before; every `app/modules/maps/**`/`app/lib/data/maps/**` reader of the old shape updated and passing)_
 - [ ] **T9** — Docs: `docs/ARCHITECTURE.md`'s maps section updated to describe the `zone`/`poi` split; this file's §11 filled in
+
+**Handoff note for T9 (2026-08-08).** T1–T8 are merged to `spec-008-entity-location-reference` (PR #136, CI green — Build/Lint/Unit/E2E). T9 is docs-only, two edits:
+
+1. **`docs/ARCHITECTURE.md`'s maps section** — describe the `zone` (containment tree, self-referential `parentId`, carries its own map) / `poi` (landmark leaf, `zoneId` required, no children) split, replacing whatever it currently says about the old single polymorphic `poi` table (SPEC-004/ADR-0009's shape). Mention that `npc`/`deities` now carry `zoneId`/`poiId` directly rather than being derived from a pin — `deriveEntityAncestry`/`fetchDerivedAncestry` walk that FK chain now, not a `poi.parentId` chain.
+2. **This file's §11 "Outcome"** — record what actually shipped vs. the plan: notably that T8's migration needed no data preservation beyond a `DELETE` (the live database had zero landmark rows at migration time), that TD-14's separate "landmark links to an entity" feature was dropped as part of T8 (confirmed with the maintainer 2026-08-08, not originally called out in this spec's prose — only implied by §6's target schema omitting `linkedType`/`linkedId`), and the `SortableHeader` sort-param bug (`fieldSort` vs. `sortFields`) found and fixed while building T6.
+
+No code changes expected for T9. `/clear` before starting it — nothing here needs the current session's context, and `docs/ARCHITECTURE.md` plus this spec file are enough to pick it up cold.
 
 ## 11. Outcome
 
-_Fill in at close._
+_Fill in at close (T9)._

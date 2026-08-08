@@ -26,6 +26,14 @@ model deities {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  // SPEC-008 T1 — additive, not yet read by any code path. `zoneId`/`poiId`
+  // stay both null until the assignment modal (T3/T4) exists; see ADR-0010
+  // for why they are independent FKs rather than mutually exclusive.
+  zoneId Int?
+  zone   zone? @relation(fields: [zoneId], references: [id], onDelete: Restrict)
+  poiId  Int?
+  poi    poi?  @relation(fields: [poiId], references: [id], onDelete: Restrict)
+
   @@index([name])
 }
 
@@ -58,6 +66,14 @@ model npc {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  // SPEC-008 T1 — additive, not yet read by any code path. `zoneId`/`poiId`
+  // stay both null until the assignment modal (T3/T4) exists; see ADR-0010
+  // for why they are independent FKs rather than mutually exclusive.
+  zoneId Int?
+  zone   zone? @relation(fields: [zoneId], references: [id], onDelete: Restrict)
+  poiId  Int?
+  poi    poi?  @relation(fields: [poiId], references: [id], onDelete: Restrict)
+
   // SPEC-004 T1 — additive, not yet referenced by any code path. `faction`
   // (the scalar Int column above) is untouched on purpose: the metadata
   // layer still reads it and `factions.ts`'s static list directly (SPEC-004
@@ -75,6 +91,32 @@ model faction {
   name String
 
   npc npc[]
+}
+
+// SPEC-008 T1 — the future landmark-only table (§6/ADR-0010). Additive
+// alongside the existing `poi` below; the two coexist, unread, until T8's
+// destructive migration reshapes the old `poi` table into this split.
+model zone {
+  id             Int      @id @default(autoincrement())
+  title          String
+  description    String?
+  kind           String
+  parentId       Int?
+  parent         zone?    @relation("ZoneTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children       zone[]   @relation("ZoneTree")
+  lat            Float?
+  lng            Float?
+  mapImage       String?
+  mapBounds      Json?
+  mapInitialView Json?
+  mapInitialZoom Int?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  npc     npc[]
+  deities deities[]
+
+  @@index([parentId])
 }
 
 model poi {
@@ -109,6 +151,11 @@ model poi {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  // SPEC-008 T1 — additive back-relation for npc.poiId/deities.poiId, both
+  // still null-only until T3/T4. Unrelated to this table's own `PoiTree`.
+  npc     npc[]
+  deities deities[]
 
   // A second pin for the same NPC/deity was silently possible before this —
   // the column pair only had a lookup index, no uniqueness guarantee

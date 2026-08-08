@@ -17,7 +17,7 @@ There is already an unplaced list, and it does not cover this case. `useUnplaced
 
 The information is not completely hidden: the admin list's "Location (map)" column (T4) is blank for such a record. But that column is `sortable: false` and has no filter, so finding the unplaced ones among 119 NPCs means eyeballing every row across every page of the table. In practice the DM will forget, and the record will sit locationless indefinitely — which after T5b means it has no location anywhere in the app, not merely a blank cell.
 
-The only thing that currently reports this reliably is `app/seed/verifyDerivedLocationsT5.ts`, which is a hand-run CLI script written as a migration gate, not a feature.
+The only thing that ever reported this reliably was `app/seed/verifyDerivedLocationsT5.ts`, a hand-run CLI script written as a one-time migration gate, not a feature — deleted once T5b dropped the columns it read, since it can no longer run.
 
 ## 2. Goal
 

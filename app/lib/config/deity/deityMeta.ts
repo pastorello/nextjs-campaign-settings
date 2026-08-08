@@ -14,7 +14,6 @@ import celestialBodies from "../geography/celestialBodies";
 import energyElements from "./energyElements";
 import subclasses from "../spells/subclasses";
 import traditionTypes from "./traditionTypes";
-import celestialPlanes from "../geography/celestialPlanes";
 
 const deitiesMeta = {
   [DeityMetaField.color]: {
@@ -108,15 +107,6 @@ const deitiesMeta = {
     controlType: ControlType.Select,
     validator: optionValueValidator(traditionTypes),
     options: traditionTypes,
-  },
-  [DeityMetaField.residence]: {
-    metaField: "residence",
-    labelKey: "deities.fields.residence.label",
-    defaultValue: firstOptionValue(celestialPlanes),
-    fieldType: FieldType.integer,
-    controlType: ControlType.Select,
-    validator: optionValueValidator(celestialPlanes),
-    options: celestialPlanes,
   },
   [DeityMetaField.meaning]: {
     metaField: "meaning",

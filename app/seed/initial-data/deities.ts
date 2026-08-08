@@ -3,7 +3,6 @@ import DeityRank from "@/app/lib/definitions/enums/deities/DeityRank";
 import DeityType from "@/app/lib/definitions/enums/deities/DeityType";
 import TraditionType from "@/app/lib/definitions/enums/deities/TraditionType";
 import CelestialBody from "@/app/lib/definitions/enums/geography/CelestialBody";
-import PlaneOfExistence from "@/app/lib/definitions/enums/geography/PlaneOfExistence";
 import Subclass from "@/app/lib/definitions/enums/spells/Subclass";
 
 const deities = [
@@ -21,8 +20,6 @@ const deities = [
     tradition: TraditionType.Occulta,
     alignment: 2,
     alignmentDomain: 0,
-    residence: PlaneOfExistence.SelvaOscura,
-    location: 2,
     meaning: "Lussuria (Seduzione)",
   },
   {
@@ -39,8 +36,6 @@ const deities = [
     tradition: TraditionType.Primeva,
     alignment: 2,
     alignmentDomain: 2,
-    residence: PlaneOfExistence.Inferi,
-    location: 4,
     meaning: "Superbia (Castigo)",
   },
   {
@@ -57,8 +52,6 @@ const deities = [
     tradition: TraditionType.Primeva,
     alignment: 0,
     alignmentDomain: 2,
-    residence: PlaneOfExistence.Cieli,
-    location: 1,
     meaning: "Sonno (Sogno)",
   },
   {
@@ -75,8 +68,6 @@ const deities = [
     tradition: TraditionType.Divina,
     alignment: 0,
     alignmentDomain: 0,
-    residence: PlaneOfExistence.Cieli,
-    location: 0,
     meaning: "Chiarezza (Luce)",
   },
   {
@@ -93,8 +84,6 @@ const deities = [
     tradition: TraditionType.Primeva,
     alignment: 1,
     alignmentDomain: 1,
-    residence: PlaneOfExistence.SelvaFatata,
-    location: 9,
     meaning: "Squilibrio (Armonia)",
   },
 ];

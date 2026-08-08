@@ -48,7 +48,6 @@ const queryFields: Record<PageType, MetaConfigKey[]> = {
     NpcMetaField.alignment,
     NpcMetaField.alignmentDomain,
     NpcMetaField.position,
-    NpcMetaField.location,
     NpcMetaField.faction,
     NpcMetaField.appearance,
     NpcMetaField.personality,
@@ -71,8 +70,6 @@ const queryFields: Record<PageType, MetaConfigKey[]> = {
     DeityMetaField.tradition,
     DeityMetaField.alignment,
     DeityMetaField.alignmentDomain,
-    DeityMetaField.residence,
-    DeityMetaField.location,
     DeityMetaField.meaning,
   ],
 

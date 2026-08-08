@@ -46,8 +46,6 @@ describe("DeityForm", () => {
       "deityType",
       "alignment",
       "alignmentDomain",
-      "residence",
-      "location",
       "celestialBody",
       "tarotCard",
       "meaning",

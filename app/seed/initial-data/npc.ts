@@ -7,7 +7,6 @@ const npc = [
     alignment: 0,
     alignmentDomain: 1,
     position: "Lavora a Torrerossa",
-    location: 15,
     faction: 4,
     appearance:
       "classico nano di mezza età, gonfio e robusto, porta sua la barba rossa intrecciata alla maniera nanica ed ha spesso le guance rosse sia per il calore della forgia sia per le bevute.",
@@ -26,7 +25,6 @@ const npc = [
     alignment: 2,
     alignmentDomain: 2,
     position: "Reggenti della congrega di Rivacupa",
-    location: 22,
     faction: 16,
     appearance:
       "Vecchie sgobbate dal naso lungo e pustoloso brutte come la morte",

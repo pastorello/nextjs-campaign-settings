@@ -22,9 +22,9 @@ import MagicItemMetaField from "@/app/lib/definitions/enums/magicitem/MagicItemM
  * that made the old form so easy to get wrong.
  *
  * `id`, `name` and `description` are declared directly in `pageMetaFields`
- * rather than in a domain meta, so they are plain string keys. `alignment`,
- * `alignmentDomain` and `location` are declared in `npcMeta` and shared with
- * deities, which is why the deity list reaches for `NpcMetaField`.
+ * rather than in a domain meta, so they are plain string keys. `alignment`
+ * and `alignmentDomain` are declared in `npcMeta` and shared with deities,
+ * which is why the deity list reaches for `NpcMetaField`.
  */
 const pagesConfig: Record<PageType, MetaConfigKey[]> = {
   [PageType.Spell]: [
@@ -59,7 +59,6 @@ const pagesConfig: Record<PageType, MetaConfigKey[]> = {
     NpcMetaField.alignment,
     NpcMetaField.alignmentDomain,
     NpcMetaField.position,
-    NpcMetaField.location,
     NpcMetaField.faction,
     NpcMetaField.appearance,
     NpcMetaField.personality,
@@ -81,8 +80,6 @@ const pagesConfig: Record<PageType, MetaConfigKey[]> = {
     DeityMetaField.tradition,
     NpcMetaField.alignment,
     NpcMetaField.alignmentDomain,
-    DeityMetaField.residence,
-    NpcMetaField.location,
     DeityMetaField.meaning,
   ],
 };

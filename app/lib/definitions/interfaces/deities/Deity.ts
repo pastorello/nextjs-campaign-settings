@@ -19,8 +19,6 @@ interface Deity {
   [DeityMetaField.tradition]: number;
   [DeityMetaField.alignment]: number;
   [DeityMetaField.alignmentDomain]: number;
-  [DeityMetaField.residence]: number;
-  [DeityMetaField.location]: number;
   [DeityMetaField.meaning]: TarotMeaning;
 }
 

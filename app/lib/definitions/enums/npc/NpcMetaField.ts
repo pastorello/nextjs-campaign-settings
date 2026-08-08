@@ -5,7 +5,6 @@ enum NpcMetaField {
   alignment = "alignment",
   alignmentDomain = "alignmentDomain",
   position = "position",
-  location = "location",
   faction = "faction",
   appearance = "appearance",
   personality = "personality",

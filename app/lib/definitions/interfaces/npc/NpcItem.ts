@@ -8,7 +8,6 @@ interface NpcItem {
   [NpcMetaField.alignment]: number;
   [NpcMetaField.alignmentDomain]: number;
   [NpcMetaField.position]: string;
-  [NpcMetaField.location]: number;
   [NpcMetaField.faction]: number;
   [NpcMetaField.appearance]: string;
   [NpcMetaField.personality]: string;

@@ -12,10 +12,11 @@ import type {
 } from "../../definitions/interfaces/maps/Poi";
 
 /**
- * Creates a POI (TD-14 / SPEC-002). Outside the metadata layer by design —
- * see SPEC-002 §7 — so it validates against `poiSchema.ts` directly rather
- * than `buildEntitySchema`. Returns the new row's id, unlike the other
- * domains' `create*` actions — see `PoiCreateResult`.
+ * Creates a landmark POI (TD-14 / SPEC-002, reshaped by SPEC-008 T8).
+ * Outside the metadata layer by design — see SPEC-002 §7 — so it validates
+ * against `poiSchema.ts` directly rather than `buildEntitySchema`. Returns
+ * the new row's id, unlike the other domains' `create*` actions — see
+ * `PoiCreateResult`.
  */
 export default async function createPoi(
   formData: PoiCreateInput
@@ -27,16 +28,7 @@ export default async function createPoi(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  const {
-    title,
-    lat,
-    lng,
-    category,
-    description,
-    linkedType,
-    linkedId,
-    parentId,
-  } = parsed.data;
+  const { title, lat, lng, category, zoneId, description } = parsed.data;
 
   let created;
   try {
@@ -52,10 +44,8 @@ export default async function createPoi(
         lat,
         lng,
         category,
+        zoneId,
         ...(description !== undefined && { description }),
-        ...(linkedType !== undefined && { linkedType }),
-        ...(linkedId !== undefined && { linkedId }),
-        ...(parentId !== undefined && { parentId }),
       },
     });
   } catch (error) {

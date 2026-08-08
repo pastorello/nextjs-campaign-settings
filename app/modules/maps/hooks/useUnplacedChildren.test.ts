@@ -17,8 +17,6 @@ function row(overrides: Partial<Record<string, unknown>> = {}) {
     lat: null,
     lng: null,
     category: null,
-    linkedType: null,
-    linkedId: null,
     mapImage: null,
     mapBounds: null,
     mapInitialView: null,
@@ -59,18 +57,17 @@ describe("useUnplacedChildren", () => {
     await waitFor(() => expect(fetchPlaceChildren).toHaveBeenCalledTimes(2));
   });
 
-  it("keeps only children missing lat or lng, of any kind", async () => {
+  it("keeps only children missing lat or lng — a landmark poi never is (SPEC-008 T8)", async () => {
     fetchPlaceChildren.mockResolvedValue([
       row({ id: 1, kind: "region", lat: null, lng: null }),
       row({ id: 2, kind: "poi", category: "religion", lat: 1, lng: 2 }),
-      row({ id: 3, kind: "npc", linkedType: "npc", linkedId: 5, lat: null }),
-      row({ id: 4, kind: "deity", linkedType: "deity", linkedId: 6, lng: 3 }),
+      row({ id: 3, kind: "city", lat: null, lng: null }),
     ]);
 
     const { result } = renderHook(() => useUnplacedChildren(42));
 
     await waitFor(() =>
-      expect(result.current.map((child) => child.id)).toEqual([1, 3, 4])
+      expect(result.current.map((child) => child.id)).toEqual([1, 3])
     );
   });
 

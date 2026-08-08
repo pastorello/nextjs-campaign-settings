@@ -10,10 +10,9 @@ import { buildPoiUpdateSchema } from "../validation/poiSchema";
 import type { PoiUpdateInput } from "../../definitions/interfaces/maps/Poi";
 
 /**
- * Updates a POI (TD-14 / SPEC-002). Each field is spread into `data` only
- * when the parsed payload actually carries it: an omitted key leaves the
- * column untouched, an explicit `null` on `linkedType`/`linkedId` clears
- * the link — see `poiSchema.ts`.
+ * Updates a POI (TD-14 / SPEC-002, reshaped by SPEC-008 T8). Each field is
+ * spread into `data` only when the parsed payload actually carries it: an
+ * omitted key leaves the column untouched.
  *
  * Built field-by-field rather than `data: rest` for the same reason as
  * `createPoi`: under `exactOptionalPropertyTypes`, Zod's `.partial()`
@@ -32,8 +31,7 @@ export default async function updatePoi(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  const { id, title, description, lat, lng, category, linkedType, linkedId } =
-    parsed.data;
+  const { id, title, description, lat, lng, category, zoneId } = parsed.data;
 
   try {
     await prisma.poi.update({
@@ -44,8 +42,7 @@ export default async function updatePoi(
         ...(lat !== undefined && { lat }),
         ...(lng !== undefined && { lng }),
         ...(category !== undefined && { category }),
-        ...(linkedType !== undefined && { linkedType }),
-        ...(linkedId !== undefined && { linkedId }),
+        ...(zoneId !== undefined && { zoneId }),
       },
     });
   } catch (error) {

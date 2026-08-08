@@ -26,6 +26,14 @@ model deities {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  // SPEC-008 T1 — additive, not yet read by any code path. `zoneId`/`poiId`
+  // stay both null until the assignment modal (T3/T4) exists; see ADR-0010
+  // for why they are independent FKs rather than mutually exclusive.
+  zoneId Int?
+  zone   zone? @relation(fields: [zoneId], references: [id], onDelete: Restrict)
+  poiId  Int?
+  poi    poi?  @relation(fields: [poiId], references: [id], onDelete: Restrict)
+
   @@index([name])
 }
 
@@ -58,6 +66,14 @@ model npc {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  // SPEC-008 T1 — additive, not yet read by any code path. `zoneId`/`poiId`
+  // stay both null until the assignment modal (T3/T4) exists; see ADR-0010
+  // for why they are independent FKs rather than mutually exclusive.
+  zoneId Int?
+  zone   zone? @relation(fields: [zoneId], references: [id], onDelete: Restrict)
+  poiId  Int?
+  poi    poi?  @relation(fields: [poiId], references: [id], onDelete: Restrict)
+
   // SPEC-004 T1 — additive, not yet referenced by any code path. `faction`
   // (the scalar Int column above) is untouched on purpose: the metadata
   // layer still reads it and `factions.ts`'s static list directly (SPEC-004
@@ -77,46 +93,59 @@ model faction {
   npc npc[]
 }
 
-model poi {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String?
-  // Nullable since SPEC-004 M4: the tree's root `region` has no parent map
-  // to be positioned on and no `category` (that's `kind: "poi"`'s field).
-  // Every row `fetchPois` (SPEC-002's legacy read) serves is still fully
-  // positioned and categorized — it filters out anything that is not.
-  lat         Float?
-  lng         Float?
-  category    String?
-  linkedType  String?
-  linkedId    Int?
-
-  // SPEC-004 M2 — additive, unused until M3+ validates and M4-M7 wire it up.
-  // Existing rows default to `kind: "poi"`, `parentId: null`, keeping their
-  // `category` as the only classification that currently means anything.
-  kind        String   @default("poi")
-  parentId    Int?
-  parent      poi?     @relation("PoiTree", fields: [parentId], references: [id], onDelete: Restrict)
-  children    poi[]    @relation("PoiTree")
-
-  // A place's own map (only meaningful for the navigable kinds — `region`,
-  // `plane`, `city`, `dungeon`; SPEC-004 T2). Null for every other kind,
-  // including all rows that predate M2.
+// The containment tree (§6/ADR-0010) — `region`/`plane`/`city`/`dungeon`,
+// each carrying its own map. Populated from the old `poi` table's
+// navigable-kind rows by SPEC-008 T2's backfill, id-preserving; T8 finished
+// the split by reshaping `poi` itself into the landmark-only leaf below.
+model zone {
+  id             Int      @id @default(autoincrement())
+  title          String
+  description    String?
+  kind           String
+  parentId       Int?
+  parent         zone?    @relation("ZoneTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children       zone[]   @relation("ZoneTree")
+  lat            Float?
+  lng            Float?
   mapImage       String?
   mapBounds      Json?
   mapInitialView Json?
   mapInitialZoom Int?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
+  npc     npc[]
+  deities deities[]
+  poi     poi[]
+
+  @@index([parentId])
+}
+
+// SPEC-008 T8 — reshaped from SPEC-004's single polymorphic table into a
+// landmark-only leaf: a `poi` row can no longer have children even by
+// accident, because the schema no longer gives it a `parentId` to have them
+// with (ADR-0010). Every remaining row is what used to be `kind: "poi"` —
+// the navigable kinds (`region`/`plane`/`city`/`dungeon`) live in `zone`
+// now, and entity pins (`kind: "deity"`/`"npc"`) are gone, superseded by
+// `npc.zoneId`/`poiId` and `deities.zoneId`/`poiId`. The live dev database
+// had zero landmark rows at migration time, so this reshape needed no data
+// migration beyond deleting the superseded rows (see the migration SQL).
+model poi {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  lat         Float
+  lng         Float
+  category    String
+  zoneId      Int
+  zone        zone     @relation(fields: [zoneId], references: [id], onDelete: Restrict)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // A second pin for the same NPC/deity was silently possible before this —
-  // the column pair only had a lookup index, no uniqueness guarantee
-  // (TD-69). NULLs (every unlinked poi) are exempt under Postgres's normal
-  // unique-constraint semantics, so this only rejects an exact duplicate
-  // (linkedType, linkedId) pair.
-  @@unique([linkedType, linkedId])
-  @@index([parentId])
+  npc     npc[]
+  deities deities[]
+
+  @@index([zoneId])
 }
 
 model spells {

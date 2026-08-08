@@ -11,44 +11,30 @@ const validPoi = {
   lat: 300,
   lng: 400,
   category: "religion",
+  zoneId: 5,
 };
 
 describe("buildPoiCreateSchema", () => {
-  it("accepts a POI with no link", () => {
+  it("accepts a valid poi", () => {
     const result = buildPoiCreateSchema().safeParse(validPoi);
     expect(result.success).toBe(true);
   });
 
-  it("accepts a POI linked to exactly one entity", () => {
-    const result = buildPoiCreateSchema().safeParse({
-      ...validPoi,
-      linkedType: "deity",
-      linkedId: 3,
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it("rejects linkedType without linkedId", () => {
-    const result = buildPoiCreateSchema().safeParse({
-      ...validPoi,
-      linkedType: "npc",
-    });
+  it("rejects a poi with no zoneId", () => {
+    const withoutZone = {
+      title: validPoi.title,
+      lat: validPoi.lat,
+      lng: validPoi.lng,
+      category: validPoi.category,
+    };
+    const result = buildPoiCreateSchema().safeParse(withoutZone);
     expect(result.success).toBe(false);
   });
 
-  it("rejects linkedId without linkedType", () => {
+  it("rejects a non-positive zoneId", () => {
     const result = buildPoiCreateSchema().safeParse({
       ...validPoi,
-      linkedId: 7,
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects a linkedType outside LINKABLE_ENTITY_TYPES", () => {
-    const result = buildPoiCreateSchema().safeParse({
-      ...validPoi,
-      linkedType: "dungeon",
-      linkedId: 1,
+      zoneId: -1,
     });
     expect(result.success).toBe(false);
   });
@@ -115,59 +101,22 @@ describe("buildPoiUpdateSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("accepts leaving the link untouched by omitting both fields", () => {
+  it("accepts reassigning zoneId", () => {
+    const result = buildPoiUpdateSchema().safeParse({ id: 1, zoneId: 7 });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.zoneId).toBe(7);
+    }
+  });
+
+  it("leaves zoneId untouched when omitted", () => {
     const result = buildPoiUpdateSchema().safeParse({
       id: 1,
       title: "Renamed shrine",
     });
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.linkedType).toBeUndefined();
-      expect(result.data.linkedId).toBeUndefined();
+      expect(result.data.zoneId).toBeUndefined();
     }
-  });
-
-  it("accepts explicitly clearing the link with null/null", () => {
-    const result = buildPoiUpdateSchema().safeParse({
-      id: 1,
-      linkedType: null,
-      linkedId: null,
-    });
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.linkedType).toBeNull();
-      expect(result.data.linkedId).toBeNull();
-    }
-  });
-
-  it("still rejects a half-link on update", () => {
-    const result = buildPoiUpdateSchema().safeParse({
-      id: 1,
-      linkedType: "npc",
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects null/value and value/null mixes on update", () => {
-    expect(
-      buildPoiUpdateSchema().safeParse({ id: 1, linkedType: null, linkedId: 5 })
-        .success
-    ).toBe(false);
-    expect(
-      buildPoiUpdateSchema().safeParse({
-        id: 1,
-        linkedType: "npc",
-        linkedId: null,
-      }).success
-    ).toBe(false);
-  });
-
-  it("accepts an update linked to exactly one entity", () => {
-    const result = buildPoiUpdateSchema().safeParse({
-      id: 1,
-      linkedType: "npc",
-      linkedId: 5,
-    });
-    expect(result.success).toBe(true);
   });
 });

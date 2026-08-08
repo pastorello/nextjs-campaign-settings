@@ -18,62 +18,36 @@ import {
 import { Drawer } from "vaul";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import type {
-  POI,
-  POICategory,
-  LinkableEntityType,
-  PlaceKind,
-} from "@/app/modules/maps/types/poi";
+import type { POI, POICategory, PlaceKind } from "@/app/modules/maps/types/poi";
 import {
   POI_CATEGORIES,
   getCategoryColor,
   getCategoryBgColor,
 } from "@/app/modules/maps/constants/poi-categories";
-import { LINKABLE_ENTITY_TYPES } from "@/app/modules/maps/constants/linkable-entities";
 import {
   PLACE_KINDS,
   isNavigablePlaceKind,
 } from "@/app/modules/maps/constants/place-kinds";
 import { formatDecimalDegrees } from "@/app/modules/maps/lib/utils/coordinates";
 import { ALLOWED_MAP_IMAGE_CONTENT_TYPES } from "@/app/lib/storage/mapImageUploadRules";
-import fetchLinkableEntities, {
-  type LinkableEntityOption,
-} from "@/app/lib/data/maps/fetchLinkableEntities";
 import type { UnplacedChild } from "@/app/modules/maps/hooks/useUnplacedChildren";
 
 /**
- * A navigable place (`region`, `plane`, `city`, `dungeon`), `deity` or `npc`
- * place under the current parent (SPEC-004 M5, T2). `kind: "poi"` is
- * deliberately not part of this — it keeps going through `onAddPOI`,
- * unchanged. See `createPlace.ts` for why.
+ * A navigable place (`region`, `plane`, `city`, `dungeon`) under the current
+ * parent (SPEC-004 M5, T2). `kind: "poi"` is deliberately not part of this —
+ * it keeps going through `onAddPOI`, unchanged. See `createPlace.ts` for
+ * why. `kind: "deity"`/`"npc"` variants existed here until SPEC-008 T5: the
+ * map no longer creates a new pin for an entity, only attaches an existing
+ * one to a place that already exists (§5) — see `AssignLocationModal`.
  */
-export type AddPlaceInput =
-  | {
-      kind: "region" | "plane" | "city" | "dungeon";
-      title: string;
-      lat: number;
-      lng: number;
-      description?: string;
-      mapImage: string;
-    }
-  | {
-      kind: "deity";
-      title: string;
-      lat: number;
-      lng: number;
-      description?: string;
-      linkedType: "deity";
-      linkedId: number;
-    }
-  | {
-      kind: "npc";
-      title: string;
-      lat: number;
-      lng: number;
-      description?: string;
-      linkedType: "npc";
-      linkedId: number;
-    };
+export type AddPlaceInput = {
+  kind: "region" | "plane" | "city" | "dungeon";
+  title: string;
+  lat: number;
+  lng: number;
+  description?: string;
+  mapImage: string;
+};
 
 interface MapPOIPanelProps {
   isOpen: boolean;
@@ -85,9 +59,7 @@ interface MapPOIPanelProps {
     lat: number,
     lng: number,
     category: POICategory,
-    description?: string,
-    linkedType?: LinkableEntityType | null,
-    linkedId?: number | null
+    description?: string
   ) => void;
   onUpdatePOI: (
     id: string,
@@ -133,8 +105,6 @@ interface POIFormData {
   lat: string;
   lng: string;
   category: POICategory;
-  linkedType: LinkableEntityType | null;
-  linkedId: number | null;
   // Navigable kinds only — the file staged for upload, not yet sent anywhere.
   mapFile: File | null;
 }
@@ -298,86 +268,12 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       lat: initialLatStr,
       lng: initialLngStr,
       category: filterCategory || "food-drink",
-      linkedType: null,
-      linkedId: null,
       mapFile: null,
     }),
     [initialLatStr, initialLngStr, filterCategory]
   );
 
   const [formData, setFormData] = useState<POIFormData>(initialFormData);
-
-  // Options for the entity selector, cached per type for the life of the
-  // panel — small lists (NPCs, deities), cheap to keep rather than refetch
-  // every time the DM flips the type selector back and forth.
-  const linkOptionsCacheRef = useRef<
-    Partial<Record<LinkableEntityType, LinkableEntityOption[]>>
-  >({});
-  const [linkOptions, setLinkOptions] = useState<LinkableEntityOption[]>([]);
-  const [isLoadingLinkOptions, setIsLoadingLinkOptions] = useState(false);
-
-  // Fetch the entity list whenever a link type is chosen. Guarded by a
-  // generation counter for the same reason `usePOIManager.renderMarkers` is:
-  // switching the type twice in quick succession must not let the first,
-  // slower fetch overwrite the second's result. The `setState` calls live
-  // inside `loadOptions`, an async function invoked from the effect rather
-  // than run directly in its body — the same shape `MapSearchBar` already
-  // uses — because a synchronous `setState` at the top of an effect body
-  // triggers `react-hooks/set-state-in-effect`.
-  const linkFetchGenerationRef = useRef(0);
-  useEffect(() => {
-    const type = formData.linkedType;
-
-    const loadOptions = async () => {
-      if (type === null) {
-        setLinkOptions([]);
-        return;
-      }
-
-      const cached = linkOptionsCacheRef.current[type];
-      if (cached) {
-        setLinkOptions(cached);
-        return;
-      }
-
-      linkFetchGenerationRef.current += 1;
-      const generation = linkFetchGenerationRef.current;
-      setIsLoadingLinkOptions(true);
-
-      try {
-        const options = await fetchLinkableEntities(type);
-        if (generation !== linkFetchGenerationRef.current) return;
-        linkOptionsCacheRef.current[type] = options;
-        setLinkOptions(options);
-      } catch (error) {
-        console.error("Failed to load linkable entities:", error);
-        if (generation !== linkFetchGenerationRef.current) return;
-        toast.error("Could not load the list to link to");
-      } finally {
-        if (generation === linkFetchGenerationRef.current) {
-          setIsLoadingLinkOptions(false);
-        }
-      }
-    };
-
-    void loadOptions();
-  }, [formData.linkedType]);
-
-  /**
-   * Handle link type change — resets the chosen entity, since a previously
-   * selected NPC id means nothing once the type switches to deity.
-   */
-  const handleLinkedTypeChange = useCallback((value: string) => {
-    const type = value === "" ? null : (value as LinkableEntityType);
-    setFormData((prev) => ({ ...prev, linkedType: type, linkedId: null }));
-  }, []);
-
-  const handleLinkedIdChange = useCallback((value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      linkedId: value === "" ? null : Number(value),
-    }));
-  }, []);
 
   // Update form coordinates when they change from parent
   // This is a legitimate use of setState in effect for prop synchronization
@@ -416,8 +312,6 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       lat: initialLatStr,
       lng: initialLngStr,
       category: filterCategory || "food-drink",
-      linkedType: null,
-      linkedId: null,
       mapFile: null,
     });
   }, [setViewMode, initialLatStr, initialLngStr, filterCategory]);
@@ -439,8 +333,6 @@ export const MapPOIPanel = memo(function MapPOIPanel({
         lat: poi.lat.toFixed(6),
         lng: poi.lng.toFixed(6),
         category: poi.category,
-        linkedType: poi.linkedType ?? null,
-        linkedId: poi.linkedId ?? null,
         mapFile: null,
       });
     },
@@ -457,8 +349,6 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       lat: "",
       lng: "",
       category: "food-drink",
-      linkedType: null,
-      linkedId: null,
       mapFile: null,
     });
     onClearCoordinates?.();
@@ -467,9 +357,10 @@ export const MapPOIPanel = memo(function MapPOIPanel({
   /**
    * Handle save. `kind: "poi"` (the only kind an edit ever is) keeps the
    * original synchronous, optimistic path through `onAddPOI`/`onUpdatePOI`.
-   * `region`/`deity`/`npc` creation goes through `onAddPlace` instead
-   * (SPEC-004 M5) — a real server round-trip, so the button disables while
-   * it's in flight rather than optimistically closing the form.
+   * `region`/`plane`/`city`/`dungeon` creation goes through `onAddPlace`
+   * instead (SPEC-004 M5) — a real server round-trip, so the button
+   * disables while it's in flight rather than optimistically closing the
+   * form.
    */
   const handleSave = useCallback(async () => {
     const lat = parseFloat(formData.lat);
@@ -487,21 +378,12 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     }
 
     if (viewMode === "edit" && editingPOI) {
-      if (formData.linkedType !== null && formData.linkedId === null) {
-        toast.error(
-          "Please select an entity to link to, or set it back to None"
-        );
-        return;
-      }
-
       onUpdatePOI(editingPOI.id, {
         title,
         description: formData.description.trim() || undefined,
         lat,
         lng,
         category: formData.category,
-        linkedType: formData.linkedType,
-        linkedId: formData.linkedId,
       });
       toast.success("Place updated successfully");
       resetFormAfterSave();
@@ -511,22 +393,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     const description = formData.description.trim() || undefined;
 
     if (formData.kind === "poi") {
-      if (formData.linkedType !== null && formData.linkedId === null) {
-        toast.error(
-          "Please select an entity to link to, or set it back to None"
-        );
-        return;
-      }
-
-      onAddPOI(
-        title,
-        lat,
-        lng,
-        formData.category,
-        description,
-        formData.linkedType,
-        formData.linkedId
-      );
+      onAddPOI(title, lat, lng, formData.category, description);
       toast.success("Place added successfully");
       resetFormAfterSave();
       return;
@@ -574,49 +441,6 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       resetFormAfterSave();
       return;
     }
-
-    // kind is "deity" or "npc" — branched, not a single object built from
-    // `formData.kind`: `formData.kind` is still the two-member union here,
-    // and `AddPlaceInput`'s deity/npc variants are separate types, so a
-    // literal built from the union doesn't structurally match either one.
-    const { kind, linkedId } = formData;
-    if (linkedId === null) {
-      toast.error("Please select an entity to link to");
-      return;
-    }
-
-    setIsSavingPlace(true);
-    let succeeded: boolean;
-    try {
-      succeeded = await (kind === "deity"
-        ? onAddPlace({
-            kind: "deity",
-            title,
-            lat,
-            lng,
-            linkedType: "deity",
-            linkedId,
-            ...(description !== undefined && { description }),
-          })
-        : onAddPlace({
-            kind: "npc",
-            title,
-            lat,
-            lng,
-            linkedType: "npc",
-            linkedId,
-            ...(description !== undefined && { description }),
-          }));
-    } finally {
-      setIsSavingPlace(false);
-    }
-    if (!succeeded) {
-      toast.error("Could not save the place");
-      return;
-    }
-
-    toast.success("Place added successfully");
-    resetFormAfterSave();
   }, [
     formData,
     viewMode,
@@ -710,9 +534,6 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                   setFormData((prev) => ({
                     ...prev,
                     kind,
-                    linkedType:
-                      kind === "deity" || kind === "npc" ? kind : null,
-                    linkedId: null,
                     mapFile: null,
                   }));
                 }}
@@ -834,71 +655,6 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                 }
                 className="block w-full text-sm text-gray-900 dark:text-white"
               />
-            </div>
-          )}
-
-          {/* Linked Entity — kind: "poi" (optional, either type), or
-              kind: "deity"/"npc" (required, type fixed by the kind chosen
-              above, so only the entity itself is picked here). */}
-          {formData.kind === "poi" && (
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Linked entity
-              </label>
-              <div className="flex gap-2">
-                <select
-                  value={formData.linkedType ?? ""}
-                  onChange={(e) => handleLinkedTypeChange(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-                >
-                  <option value="">None</option>
-                  {LINKABLE_ENTITY_TYPES.map((type) => (
-                    <option key={type.id} value={type.id}>
-                      {type.label}
-                    </option>
-                  ))}
-                </select>
-                {formData.linkedType !== null && (
-                  <select
-                    value={formData.linkedId ?? ""}
-                    onChange={(e) => handleLinkedIdChange(e.target.value)}
-                    disabled={isLoadingLinkOptions}
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm disabled:opacity-50"
-                  >
-                    <option value="">
-                      {isLoadingLinkOptions ? "Loading…" : "Select…"}
-                    </option>
-                    {linkOptions.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            </div>
-          )}
-          {(formData.kind === "deity" || formData.kind === "npc") && (
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {LINKABLE_ENTITY_TYPES.find((t) => t.id === formData.kind)
-                  ?.label ?? formData.kind}
-              </label>
-              <select
-                value={formData.linkedId ?? ""}
-                onChange={(e) => handleLinkedIdChange(e.target.value)}
-                disabled={isLoadingLinkOptions}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm disabled:opacity-50"
-              >
-                <option value="">
-                  {isLoadingLinkOptions ? "Loading…" : "Select…"}
-                </option>
-                {linkOptions.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.name}
-                  </option>
-                ))}
-              </select>
             </div>
           )}
 

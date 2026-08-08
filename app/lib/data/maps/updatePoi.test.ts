@@ -31,28 +31,21 @@ describe("updatePoi", () => {
     });
   });
 
-  it("clears an existing link by sending null/null", async () => {
-    await updatePoi({ id: 1, linkedType: null, linkedId: null });
+  it("writes a new zoneId when reassigned to a different one", async () => {
+    await updatePoi({ id: 1, zoneId: 7 });
 
     expect(update).toHaveBeenCalledWith({
       where: { id: 1 },
-      data: { linkedType: null, linkedId: null },
+      data: { zoneId: 7 },
     });
   });
 
-  it("leaves the link untouched when omitted", async () => {
+  it("leaves every field untouched when omitted", async () => {
     await updatePoi({ id: 1, title: "Renamed shrine" });
 
     const call = update.mock.calls[0]?.[0] as { data: object };
-    expect(call.data).not.toHaveProperty("linkedType");
-    expect(call.data).not.toHaveProperty("linkedId");
-  });
-
-  it("rejects a half-link without writing", async () => {
-    const result = await updatePoi({ id: 1, linkedType: "npc" } as never);
-
-    expect(result.ok).toBe(false);
-    expect(update).not.toHaveBeenCalled();
+    expect(call.data).not.toHaveProperty("zoneId");
+    expect(call.data).not.toHaveProperty("category");
   });
 
   it("rejects a non-positive id without writing", async () => {

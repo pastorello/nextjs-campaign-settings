@@ -29,7 +29,7 @@ export default async function createRootPlace(
 
   let existingRoot;
   try {
-    existingRoot = await prisma.poi.findFirst({
+    existingRoot = await prisma.zone.findFirst({
       where: { kind: "region", parentId: null },
       select: { id: true },
     });
@@ -45,7 +45,7 @@ export default async function createRootPlace(
   }
 
   try {
-    await prisma.poi.create({
+    await prisma.zone.create({
       data: {
         title: parsed.data.title,
         mapImage: parsed.data.mapImage,

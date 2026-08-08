@@ -9,6 +9,8 @@ import getQuery from "../getQuery";
 import { SearchParamsInput } from "../validateParams";
 import { Prisma } from "@/generated/prisma/client";
 import { buildResultSchema } from "../validation/buildEntitySchema";
+import buildLocationWhere from "../maps/buildLocationWhere";
+import applyLocationSort from "../maps/applyLocationSort";
 
 export async function fetchFilteredNpc(
   searchParams: SearchParamsInput
@@ -21,7 +23,12 @@ export async function fetchFilteredNpc(
 
   let result;
   try {
-    result = await prisma.npc.findMany(theQuery);
+    result = await prisma.npc.findMany({
+      where: await buildLocationWhere(theQuery.where, theParams),
+      orderBy: applyLocationSort(theQuery.orderBy),
+      skip: theQuery.skip,
+      take: theQuery.take,
+    });
   } catch (error) {
     throw toDatabaseError("fetching NPCs", error);
   }

@@ -1,14 +1,16 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { fetchPlaceChildren, updatePoi } = vi.hoisted(() => ({
+const { fetchPlaceChildren, updateZonePosition } = vi.hoisted(() => ({
   fetchPlaceChildren: vi.fn(),
-  updatePoi: vi.fn(),
+  updateZonePosition: vi.fn(),
 }));
 vi.mock("@/app/lib/data/maps/fetchPlaceChildren", () => ({
   default: fetchPlaceChildren,
 }));
-vi.mock("@/app/lib/data/maps/updatePoi", () => ({ default: updatePoi }));
+vi.mock("@/app/lib/data/maps/updateZonePosition", () => ({
+  default: updateZonePosition,
+}));
 
 const { notifyError } = vi.hoisted(() => ({ notifyError: vi.fn() }));
 vi.mock("@/app/lib/notifications/notify", () => ({
@@ -59,8 +61,6 @@ function row(overrides: Partial<Record<string, unknown>> = {}) {
     lat: 10,
     lng: 20,
     category: null,
-    linkedType: null,
-    linkedId: null,
     mapImage: "kang.png",
     mapBounds: null,
     mapInitialView: null,
@@ -78,7 +78,7 @@ describe("useNavigableChildren", () => {
     vi.clearAllMocks();
     clickHandlers.clear();
     dragendHandlers.clear();
-    updatePoi.mockResolvedValue({ ok: true });
+    updateZonePosition.mockResolvedValue({ ok: true });
   });
 
   it("fetches this place's children scoped by parentId", async () => {
@@ -104,17 +104,10 @@ describe("useNavigableChildren", () => {
     await waitFor(() => expect(fetchPlaceChildren).toHaveBeenCalledTimes(2));
   });
 
-  it("exposes only navigable children — not poi, deity or npc kinds", async () => {
+  it("exposes only navigable children — not poi kinds", async () => {
     fetchPlaceChildren.mockResolvedValue([
       row({ id: 1, kind: "region" }),
       row({ id: 2, kind: "poi", category: "religion", mapImage: null }),
-      row({
-        id: 3,
-        kind: "deity",
-        linkedType: "deity",
-        linkedId: 5,
-        mapImage: null,
-      }),
       row({ id: 4, kind: "region", mapImage: null }), // no map yet, not navigable
       row({ id: 5, kind: "plane" }),
       row({ id: 6, kind: "city" }),
@@ -166,7 +159,7 @@ describe("useNavigableChildren — drag to reposition (TD-71, SPEC-005 §5.B)", 
     vi.clearAllMocks();
     clickHandlers.clear();
     dragendHandlers.clear();
-    updatePoi.mockResolvedValue({ ok: true });
+    updateZonePosition.mockResolvedValue({ ok: true });
   });
 
   it("renders the marker as draggable", async () => {
@@ -191,7 +184,11 @@ describe("useNavigableChildren — drag to reposition (TD-71, SPEC-005 §5.B)", 
     });
 
     await waitFor(() =>
-      expect(updatePoi).toHaveBeenCalledWith({ id: 1, lat: 99, lng: 88 })
+      expect(updateZonePosition).toHaveBeenCalledWith({
+        id: 1,
+        lat: 99,
+        lng: 88,
+      })
     );
   });
 
@@ -224,7 +221,7 @@ describe("useNavigableChildren — drag to reposition (TD-71, SPEC-005 §5.B)", 
   });
 
   it("reverts the position and notifies when the server rejects the drag", async () => {
-    updatePoi.mockResolvedValue({ ok: false });
+    updateZonePosition.mockResolvedValue({ ok: false });
     fetchPlaceChildren.mockResolvedValue([
       row({ id: 1, title: "Kang", lat: 10, lng: 20 }),
     ]);

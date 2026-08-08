@@ -46,7 +46,8 @@
       "name": "Nome",
       "actions": "Azioni",
       "edit": "Modifica",
-      "derivedLocation": "Posizione (mappa)"
+      "location": "Posizione",
+      "assignLocation": "Posizione"
     },
     "form": {
       "cancel": "Annulla",
@@ -55,6 +56,18 @@
       "delete": "Elimina",
       "deleting": "Eliminazione...",
       "errorPrefix": "Errore: {message}"
+    },
+    "location": {
+      "unknown": "Sconosciuta"
+    },
+    "locationModal": {
+      "title": "Assegna posizione",
+      "currentLabel": "Attuale: {location}",
+      "zoneLabel": "Zona",
+      "zonePlaceholder": "Seleziona una zona",
+      "noZonesAvailable": "Nessuna zona disponibile.",
+      "poiLabel": "Luogo specifico (opzionale)",
+      "poiNoneOption": "Nessuno (solo zona)"
     },
     "filters": {
       "all": "Tutti",
@@ -402,6 +415,11 @@
     "up": "Sali",
     "noWorldYet": "Non hai ancora creato il tuo mondo.",
     "createWorldLink": "Crea il tuo mondo",
+    "attachEntity": {
+      "trigger": "Collega un personaggio esistente",
+      "typePlaceholder": "Tipo",
+      "entityPlaceholder": "Seleziona…"
+    },
     "errors": {
       "mapNotConfigured": "La mappa non è configurata correttamente.",
       "importSuccess": "{count, plural, one {Importato con successo # luogo!} other {Importati con successo # luoghi!}}",

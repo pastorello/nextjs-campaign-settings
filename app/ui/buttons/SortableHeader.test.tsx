@@ -69,7 +69,7 @@ describe("SortableHeader", () => {
     expect(screen.queryByRole("button", { name: /ariaLabel/ })).toBeNull();
   });
 
-  it("clicking the sort button writes sort and fieldSort params to the URL", () => {
+  it("clicking the sort button writes sort and sortFields params to the URL", () => {
     searchParams = new URLSearchParams();
     render(
       <SortableHeader label="Classes" fieldKey={SpellMetaField.classes} />
@@ -80,7 +80,10 @@ describe("SortableHeader", () => {
     expect(replace).toHaveBeenCalledWith(expect.stringContaining("sort=desc"));
     expect(replace).toHaveBeenCalledWith(
       expect.stringContaining(
-        `fieldSort=${encodeURIComponent(JSON.stringify({ classes: "desc" }))}`
+        // Regression test: this used to write `fieldSort`, a param name
+        // `getQuery.ts` never read — every per-column named sort was
+        // silently a no-op (found while wiring SPEC-008 T6's location sort).
+        `sortFields=${encodeURIComponent(JSON.stringify({ classes: "desc" }))}`
       )
     );
   });

@@ -30,9 +30,13 @@ export interface POICategoryConfig {
 }
 
 /**
- * Entity kinds a POI can link to (TD-14 / SPEC-002). `linkedType` +
- * `linkedId` together identify one row in one table — a polymorphic pair,
- * not a foreign key — so new kinds slot in here without a schema change.
+ * The entity kinds a location can be assigned to (SPEC-008). Originally
+ * TD-14/SPEC-002's polymorphic `linkedType`/`linkedId` pair on `poi` itself
+ * — a landmark optionally linking to an entity — which SPEC-008 T8 removed
+ * along with the columns (superseded by `npc`/`deities`' own
+ * `zoneId`/`poiId`, the entity pointing at its location rather than the
+ * other way around). The type lives on, repurposed for choosing *which*
+ * entity to attach — `fetchLinkableEntities`, `AttachEntityButton`.
  */
 export type LinkableEntityType = "npc" | "deity";
 
@@ -49,12 +53,14 @@ export interface LinkableEntityTypeConfig {
  * The world tree's place kinds (SPEC-004 §5.1, richer vocabulary added by
  * T2). `region`, `plane`, `city` and `dungeon` are the navigable kinds —
  * each carries its own map, per `NAVIGABLE_PLACE_KINDS` in
- * `constants/place-kinds.ts`; `deity` and `npc` each link to exactly one
- * record; `poi` is a categorized leaf marker like the 14 existing
- * categories.
+ * `constants/place-kinds.ts` — and live in the `zone` table. `poi` is a
+ * categorized landmark leaf, its own table since SPEC-008 T8; `kind: "poi"`
+ * here is a client-side UI discriminator only (which form fields to show,
+ * which action to call), not a stored column the way it once was.
+ * `deity`/`npc` variants existed here until T8 — the map no longer creates
+ * an entity pin at all (T5), so no stored row can carry either kind anymore.
  */
-export type PlaceKind =
-  "region" | "plane" | "city" | "dungeon" | "deity" | "npc" | "poi";
+export type PlaceKind = "region" | "plane" | "city" | "dungeon" | "poi";
 
 export interface POI {
   id: string;
@@ -63,10 +69,6 @@ export interface POI {
   lat: number;
   lng: number;
   category: POICategory;
-  // `null` clears an existing link on update; `undefined` (the default)
-  // leaves it alone. See `poiSchema.ts`'s `hasPairedLink`.
-  linkedType?: LinkableEntityType | null;
-  linkedId?: number | null;
   createdAt: number;
   updatedAt: number;
 }

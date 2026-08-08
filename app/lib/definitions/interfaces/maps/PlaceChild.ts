@@ -1,12 +1,13 @@
-import type { LinkableEntityType } from "@/app/modules/maps/types/poi";
-
 /**
- * A place pinned directly under some parent (SPEC-004 §10 M6) — the tree-
- * aware counterpart to `Poi.ts`, which only ever describes a fully
- * positioned, categorized `kind: "poi"` row. A child can be any kind, so
- * `lat`/`lng`/`category` are nullable here where `Poi`'s are not, and
- * `kind`/`mapImage` are exposed so a caller can tell a navigable `region`
- * (has a map) from a leaf without a second query.
+ * A place directly under some parent — either a navigable `zone` row
+ * (`region`/`plane`/`city`/`dungeon`) or a landmark `poi` row, merged into
+ * one shape (SPEC-004 §10 M6, reshaped by SPEC-008 T8 once the two lived in
+ * separate tables). `lat`/`lng`/`category`/`mapImage` are nullable because
+ * only one variant ever carries each: a landmark always has `lat`/`lng`/
+ * `category` and never a map; a zone may have neither `lat`/`lng` yet
+ * (unplaced) and only a navigable zone has a map. `kind` is `"poi"` for a
+ * landmark row, the zone's own `kind` otherwise — the same discriminator
+ * `PlaceKind` already uses elsewhere.
  */
 interface PlaceChild {
   id: number;
@@ -16,8 +17,6 @@ interface PlaceChild {
   lat: number | null;
   lng: number | null;
   category: string | null;
-  linkedType: LinkableEntityType | null;
-  linkedId: number | null;
   mapImage: string | null;
   // How to frame this place's own map, if it has one (SPEC-004 M7). Raw
   // `unknown`/`Json` — nothing has ever written them yet (no UI sets them),

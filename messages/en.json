@@ -46,7 +46,8 @@
       "name": "Name",
       "actions": "Actions",
       "edit": "Edit",
-      "derivedLocation": "Location (map)"
+      "location": "Location",
+      "assignLocation": "Location"
     },
     "form": {
       "cancel": "Cancel",
@@ -55,6 +56,18 @@
       "delete": "Delete",
       "deleting": "Deleting",
       "errorPrefix": "Error: {message}"
+    },
+    "location": {
+      "unknown": "Unknown"
+    },
+    "locationModal": {
+      "title": "Assign location",
+      "currentLabel": "Current: {location}",
+      "zoneLabel": "Zone",
+      "zonePlaceholder": "Select a zone",
+      "noZonesAvailable": "No zones available.",
+      "poiLabel": "Specific landmark (optional)",
+      "poiNoneOption": "None (zone only)"
     },
     "filters": {
       "all": "All",
@@ -402,6 +415,11 @@
     "up": "Up",
     "noWorldYet": "You haven't created your world yet.",
     "createWorldLink": "Create your world",
+    "attachEntity": {
+      "trigger": "Attach an existing entity",
+      "typePlaceholder": "Type",
+      "entityPlaceholder": "Select…"
+    },
     "errors": {
       "mapNotConfigured": "The map is not configured correctly.",
       "importSuccess": "{count, plural, one {Successfully imported # place!} other {Successfully imported # places!}}",

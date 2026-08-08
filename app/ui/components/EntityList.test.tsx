@@ -26,6 +26,14 @@ vi.mock("../buttons/ModalButton", () => ({
     <button>{buttonLabel}</button>
   ),
 }));
+vi.mock("../buttons/AssignLocationButton", () => ({
+  default: ({ currentLocationLabel }: { currentLocationLabel: string }) => (
+    <button>assign-location:{currentLocationLabel}</button>
+  ),
+}));
+vi.mock("./LocationFilterControl", () => ({
+  default: () => <div data-testid="location-filter-control" />,
+}));
 
 const fetchFilteredSpells = vi.fn<(...args: unknown[]) => unknown>();
 const fetchFilteredNpc = vi.fn<(...args: unknown[]) => unknown>();
@@ -46,20 +54,20 @@ vi.mock("@/app/lib/data/magicitems/fetchFilteredMagicItems", () => ({
     fetchFilteredMagicItems(...args),
 }));
 
-// Npc and Deity both trigger a second, tree-derived read (SPEC-004 T4).
-// Stubbed to an empty map by default so every existing Npc/Deity case below
-// stays about what it already tested; the dedicated derived-location test
-// overrides it.
-const fetchDerivedAncestry = vi.fn<(...args: unknown[]) => unknown>();
-vi.mock("@/app/lib/data/maps/fetchDerivedAncestry", () => ({
-  default: (...args: unknown[]) => fetchDerivedAncestry(...args),
+// Backs both the "Location" column (SPEC-008 T6) and the assignment
+// button's "current location" display (T5) — stubbed to an empty map by
+// default, overridden by the dedicated tests below.
+const fetchEntityLocationSummaries = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/maps/fetchEntityLocationSummaries", () => ({
+  default: (...args: unknown[]) => fetchEntityLocationSummaries(...args),
 }));
 
 import EntityList from "./EntityList";
 
 describe("EntityList", () => {
   beforeEach(() => {
-    fetchDerivedAncestry.mockResolvedValue(new Map());
+    vi.clearAllMocks();
+    fetchEntityLocationSummaries.mockResolvedValue(new Map());
   });
 
   it("dispatches to the fetch function matching its own pageType only", async () => {
@@ -127,7 +135,7 @@ describe("EntityList", () => {
     );
   });
 
-  it("shows an NPC's tree-derived location, not just its stored location field", async () => {
+  it("shows an NPC's assigned location in the Location column", async () => {
     fetchFilteredNpc.mockResolvedValue([
       {
         id: 42,
@@ -136,20 +144,19 @@ describe("EntityList", () => {
         alignment: 1,
         alignmentDomain: 1,
         faction: 1,
-        location: 1,
       },
     ]);
-    fetchDerivedAncestry.mockResolvedValue(
-      new Map([[42, [{ id: 1, title: "Skreebars", kind: "city" }]]])
+    fetchEntityLocationSummaries.mockResolvedValue(
+      new Map([[42, { zoneId: 1, poiId: null, title: "Skreebars" }]])
     );
 
     render(await EntityList({ pageType: PageType.Npc }));
 
-    expect(fetchDerivedAncestry).toHaveBeenCalledWith("npc");
+    expect(fetchEntityLocationSummaries).toHaveBeenCalledWith("npc");
     expect(screen.getByText("Skreebars")).toBeInTheDocument();
   });
 
-  it("leaves the derived-location cell blank for a record with no pin yet", async () => {
+  it("shows Sconosciuta in the Location column for a record with nothing assigned", async () => {
     fetchFilteredDeities.mockResolvedValue([
       {
         id: 7,
@@ -158,15 +165,22 @@ describe("EntityList", () => {
         alignmentDomain: 1,
         deityRank: 1,
         deityType: 1,
-        residence: 1,
       },
     ]);
-    fetchDerivedAncestry.mockResolvedValue(new Map());
+    fetchEntityLocationSummaries.mockResolvedValue(new Map());
 
     render(await EntityList({ pageType: PageType.Deity }));
 
-    expect(fetchDerivedAncestry).toHaveBeenCalledWith("deity");
-    expect(screen.getByText("Helios")).toBeInTheDocument();
+    expect(fetchEntityLocationSummaries).toHaveBeenCalledWith("deity");
+    expect(screen.getByText("common.location.unknown")).toBeInTheDocument();
+  });
+
+  it("renders the Zone/POI filter control for Npc/Deity page types only", async () => {
+    fetchFilteredNpc.mockResolvedValue([]);
+
+    render(await EntityList({ pageType: PageType.Npc }));
+
+    expect(screen.getByTestId("location-filter-control")).toBeInTheDocument();
   });
 
   it("renders a header for every column listConfig declares for the domain", async () => {
@@ -183,6 +197,52 @@ describe("EntityList", () => {
     expect(
       screen.getByText("magicItems.fields.attuned.shortLabel")
     ).toBeInTheDocument();
+  });
+
+  it("renders the assign-location button for an NPC row with its current summary", async () => {
+    fetchFilteredNpc.mockResolvedValue([
+      {
+        id: 42,
+        name: "Dexter Nemrod",
+        title: "",
+        alignment: 1,
+        alignmentDomain: 1,
+        faction: 1,
+        location: 1,
+      },
+    ]);
+    fetchEntityLocationSummaries.mockResolvedValue(
+      new Map([[42, { zoneId: 5, poiId: null, title: "Skreebars" }]])
+    );
+
+    render(await EntityList({ pageType: PageType.Npc }));
+
+    expect(screen.getByText("assign-location:Skreebars")).toBeInTheDocument();
+  });
+
+  it("does not render the assign-location button for a domain with no location", async () => {
+    fetchFilteredSpells.mockResolvedValue([
+      {
+        id: 1,
+        name: "Fireball",
+        level: 3,
+        circle: [],
+        classes: [],
+        castingTime: "1Azione",
+        range: "60",
+        components: "V,S,M",
+        duration: "Istantanea",
+        savingThrow: "Destrezza",
+        ritual: false,
+        concentration: false,
+        upcast: "",
+      },
+    ]);
+
+    render(await EntityList({ pageType: PageType.Spell }));
+
+    expect(fetchEntityLocationSummaries).not.toHaveBeenCalled();
+    expect(screen.queryByText(/assign-location:/)).not.toBeInTheDocument();
   });
 
   it("renders the edit and delete actions for each row", async () => {

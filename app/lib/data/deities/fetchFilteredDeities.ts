@@ -9,6 +9,8 @@ import { SearchParamsInput } from "../validateParams";
 import { Prisma } from "@/generated/prisma/client";
 import Deity from "../../definitions/interfaces/deities/Deity";
 import { buildResultSchema } from "../validation/buildEntitySchema";
+import buildLocationWhere from "../maps/buildLocationWhere";
+import applyLocationSort from "../maps/applyLocationSort";
 
 export async function fetchFilteredDeities(
   searchParams: SearchParamsInput
@@ -21,7 +23,12 @@ export async function fetchFilteredDeities(
 
   let result;
   try {
-    result = await prisma.deities.findMany(theQuery);
+    result = await prisma.deities.findMany({
+      where: await buildLocationWhere(theQuery.where, theParams),
+      orderBy: applyLocationSort(theQuery.orderBy),
+      skip: theQuery.skip,
+      take: theQuery.take,
+    });
   } catch (error) {
     throw toDatabaseError("fetching deities", error);
   }

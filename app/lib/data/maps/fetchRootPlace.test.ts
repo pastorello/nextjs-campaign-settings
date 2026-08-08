@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { findFirst } = vi.hoisted(() => ({ findFirst: vi.fn() }));
 vi.mock("@/app/lib/connections/prisma", () => ({
-  default: { poi: { findFirst } },
+  default: { zone: { findFirst } },
 }));
 
 import fetchRootPlace from "./fetchRootPlace";

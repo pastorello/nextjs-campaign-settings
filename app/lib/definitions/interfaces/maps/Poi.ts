@@ -1,8 +1,10 @@
-import type { LinkableEntityType } from "@/app/modules/maps/types/poi";
-
 /**
- * A POI as persisted (TD-14 / SPEC-002) — matches `prisma.poi`'s row shape
- * exactly, including nullable columns read back as `null`, not `undefined`.
+ * A POI as persisted (TD-14 / SPEC-002, reshaped by SPEC-008 T8) — matches
+ * `prisma.poi`'s row shape exactly. Landmark-only since T8: every row
+ * belongs to exactly one Zone (`zoneId`), and the `linkedType`/`linkedId`
+ * optional link to an NPC/deity (TD-14) was removed along with the columns
+ * — superseded by `npc`/`deities`' own `zoneId`/`poiId` (the entity now
+ * points at its location, not the other way around).
  */
 interface Poi {
   id: number;
@@ -11,11 +13,7 @@ interface Poi {
   lat: number;
   lng: number;
   category: string;
-  linkedType: LinkableEntityType | null;
-  linkedId: number | null;
-  // SPEC-004 M7: which place this pin is a child of. Null for a POI created
-  // before the tree existed, or (in principle) one created outside it.
-  parentId: number | null;
+  zoneId: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,9 +22,8 @@ export default Poi;
 
 /**
  * Payload for `createPoi`: everything but the server-assigned id and
- * timestamps. `linkedType`/`linkedId` are optional — a POI need not link to
- * anything. `parentId` is optional for the same reason: not every caller of
- * `createPoi` is scoped to a tree place.
+ * timestamps. `zoneId` is required — a landmark always belongs to exactly
+ * one zone (§6).
  */
 export interface PoiCreateInput {
   title: string;
@@ -34,16 +31,10 @@ export interface PoiCreateInput {
   lat: number;
   lng: number;
   category: string;
-  linkedType?: LinkableEntityType | null;
-  linkedId?: number | null;
-  parentId?: number | null;
+  zoneId: number;
 }
 
-/**
- * Payload for `updatePoi`: only `id` is required. `linkedType`/`linkedId`
- * carry three states each — omitted (leave the link as-is), `null` (clear
- * it), or a value (set it) — see `poiSchema.ts`'s `hasPairedLink`.
- */
+/** Payload for `updatePoi`: only `id` is required. */
 export interface PoiUpdateInput extends Partial<PoiCreateInput> {
   id: number;
 }

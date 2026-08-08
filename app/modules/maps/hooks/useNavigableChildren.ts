@@ -6,7 +6,7 @@ import type { Marker } from "leaflet";
 
 import { useLeafletMap } from "./useLeafletMap";
 import fetchPlaceChildren from "@/app/lib/data/maps/fetchPlaceChildren";
-import updatePoiAction from "@/app/lib/data/maps/updatePoi";
+import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
 import { notifyError } from "@/app/lib/notifications/notify";
 import { NAVIGABLE_PLACE_KINDS } from "@/app/modules/maps/constants/place-kinds";
 import type PlaceChild from "@/app/lib/definitions/interfaces/maps/PlaceChild";
@@ -96,7 +96,7 @@ export function useNavigableChildren(
       };
 
       try {
-        const result = await updatePoiAction({ id, lat, lng });
+        const result = await updateZonePosition({ id, lat, lng });
         if (!result.ok) revert();
       } catch (error) {
         console.error("Failed to reposition navigable place:", error);

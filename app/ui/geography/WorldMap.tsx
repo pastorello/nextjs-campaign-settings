@@ -18,14 +18,14 @@ import {
   useNavigableChildren,
   type NavigableChild,
 } from "@/app/modules/maps/hooks/useNavigableChildren";
-import { useLinkedEntityMarkers } from "@/app/modules/maps/hooks/useLinkedEntityMarkers";
 import { useUnplacedChildren } from "@/app/modules/maps/hooks/useUnplacedChildren";
 import type { POICategory, POIGeoJSON } from "@/app/modules/maps/types/poi";
 import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import { notifyError } from "@/app/lib/notifications/notify";
 import createPlace from "@/app/lib/data/maps/createPlace";
-import updatePoiAction from "@/app/lib/data/maps/updatePoi";
+import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
+import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
 
 /**
  * WorldMap - the map view backing `/dashboard/geography`.
@@ -38,12 +38,16 @@ import updatePoiAction from "@/app/lib/data/maps/updatePoi";
  * file omits them rather than carrying dead state for a feature nothing
  * triggers. See CLAUDE.md, "unused is not dead", for what's still scaffolding.
  *
- * `parentId` scopes the `kind: "poi"` panel (SPEC-002, via `usePOIManager`),
- * the navigable-kind markers (SPEC-004 M7, via `useNavigableChildren`) and
- * the `deity`/`npc` markers (TD-70, via `useLinkedEntityMarkers`) to the
- * place currently being viewed — the fix for §1's "every POI renders on
- * every map" defect. `onDescend` is called when a navigable marker is
+ * `parentId` scopes the `kind: "poi"` panel (SPEC-002, via `usePOIManager`)
+ * and the navigable-kind markers (SPEC-004 M7, via `useNavigableChildren`)
+ * to the place currently being viewed — the fix for §1's "every POI renders
+ * on every map" defect. `onDescend` is called when a navigable marker is
  * clicked; `GeographyExplorer` owns what happens next.
+ *
+ * `useLinkedEntityMarkers` (TD-70) is gone (SPEC-008 T8): an entity never
+ * carries its own coordinates now, so it never gets an independent marker —
+ * one attached to a landmark POI already renders at that POI's own marker,
+ * one attached to a Zone directly renders nowhere on the map at all (§5).
  */
 function WorldMap({
   parentId,
@@ -103,28 +107,24 @@ function WorldMap({
     exportGeoJSON,
     importGeoJSON,
     flyToPOI,
-    reloadPOIs,
   } = usePOIManager(parentId);
 
-  // Bumped after a successful region/deity/npc create so
-  // `useNavigableChildren` reloads — its own effect only reruns on
-  // `parentId`/`refetchToken` changing, and creating a place changes neither.
+  // Bumped after a successful region create so `useNavigableChildren`
+  // reloads — its own effect only reruns on `parentId`/`refetchToken`
+  // changing, and creating a place changes neither.
   const [placesRefetchToken, setPlacesRefetchToken] = useState(0);
 
   // Navigable `region` children, same scope — clicking one calls `onDescend`
   useNavigableChildren(parentId, onDescend, placesRefetchToken);
 
-  // `deity`/`npc` children with coordinates, same scope and refetch trigger
-  // (TD-70) — leaves, not navigable, so no `onDescend` wiring.
-  useLinkedEntityMarkers(parentId, placesRefetchToken);
-
-  // This place's children with no position yet, any kind (TD-71, SPEC-005
-  // §5.A) — feeds MapPOIPanel's "Unplaced places" section.
+  // This place's children with no position yet — always a Zone now (SPEC-008
+  // T8: a landmark POI's `lat`/`lng` are required at creation) — feeds
+  // MapPOIPanel's "Unplaced places" section (TD-71, SPEC-005 §5.A).
   const unplacedChildren = useUnplacedChildren(parentId, placesRefetchToken);
 
-  // Creates a navigable/deity/npc place under the current parent (SPEC-004
-  // M5, T2). `kind: "poi"` never reaches this — the panel keeps that on the
-  // original `addPOI` path (see createPlace.ts for why).
+  // Creates a navigable place under the current parent (SPEC-004 M5, T2).
+  // `kind: "poi"` never reaches this — the panel keeps that on the original
+  // `addPOI` path (see createPlace.ts for why).
   const handleAddPlace = useCallback(
     async (input: AddPlaceInput): Promise<boolean> => {
       const result = await createPlace({ ...input, parentId });
@@ -210,8 +210,9 @@ function WorldMap({
 
   // Handle map click for POI location selection, and for positioning an
   // existing unplaced place (TD-71, SPEC-005 §5.A) — the two flows share
-  // the crosshair mode, but positioning writes to an existing row via
-  // `updatePoi` instead of seeding the "add" form.
+  // the crosshair mode. Positioning always targets a Zone (SPEC-008 T8: a
+  // landmark POI's `lat`/`lng` are required at creation, so nothing else
+  // can ever be "unplaced").
   const handleMapClick = useCallback(
     (lat: number, lng: number) => {
       if (positioningPlace) {
@@ -220,10 +221,9 @@ function WorldMap({
         setCursorCoords(null);
         void (async () => {
           try {
-            const result = await updatePoiAction({ id, lat, lng });
+            const result = await updateZonePosition({ id, lat, lng });
             if (result.ok) {
               setPlacesRefetchToken((token) => token + 1);
-              void reloadPOIs();
             } else {
               toast.error(t("placePositionFailed", { title }));
             }
@@ -241,7 +241,7 @@ function WorldMap({
         setCursorCoords(null);
       }
     },
-    [positioningPlace, isSelectingPOILocation, reloadPOIs, t]
+    [positioningPlace, isSelectingPOILocation, t]
   );
 
   // Handle map mouse move for cursor tracking
@@ -361,6 +361,14 @@ function WorldMap({
 
       {/* Map Controls */}
       <MapControls />
+
+      {/* Attach an existing NPC/deity to the place currently being viewed
+          (SPEC-008 §5/T5) — the map's own entry point into the assignment
+          modal, alongside the admin list's per-row button. */}
+      <AttachEntityButton
+        zoneId={parentId}
+        onAttached={() => setPlacesRefetchToken((token) => token + 1)}
+      />
 
       {/* Measurement Panel */}
       <MapMeasurementPanel

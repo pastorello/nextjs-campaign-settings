@@ -10,7 +10,7 @@ const { findFirst, create } = vi.hoisted(() => ({
   create: vi.fn(),
 }));
 vi.mock("@/app/lib/connections/prisma", () => ({
-  default: { poi: { findFirst, create } },
+  default: { zone: { findFirst, create } },
 }));
 
 import createRootPlace from "./createRootPlace";

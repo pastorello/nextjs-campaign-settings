@@ -83,8 +83,6 @@ const storedRow: PlaceChild = {
   lat: 10,
   lng: 20,
   category: "food-drink",
-  linkedType: null,
-  linkedId: null,
   mapImage: null,
   mapBounds: null,
   mapInitialView: null,
@@ -141,23 +139,10 @@ describe("usePOIManager — loading from the server (TD-14)", () => {
         lat: 10,
         lng: 20,
         category: "food-drink",
-        linkedType: null,
-        linkedId: null,
         createdAt: 1,
         updatedAt: 1,
       },
     ]);
-  });
-
-  it("carries a POI's link through to the client shape", async () => {
-    fetchPlaceChildren.mockResolvedValue([
-      { ...storedRow, linkedType: "deity", linkedId: 3 },
-    ]);
-
-    const { result } = await renderLoaded();
-
-    expect(result.current.pois[0]?.linkedType).toBe("deity");
-    expect(result.current.pois[0]?.linkedId).toBe(3);
   });
 
   it("discards a row whose category this build does not know", async () => {
@@ -172,7 +157,7 @@ describe("usePOIManager — loading from the server (TD-14)", () => {
     expect(console.warn).toHaveBeenCalled();
   });
 
-  it("ignores a sibling that is a region, deity or npc, not a poi", async () => {
+  it("ignores a sibling that is a region, not a poi", async () => {
     fetchPlaceChildren.mockResolvedValue([
       storedRow,
       {
@@ -183,14 +168,6 @@ describe("usePOIManager — loading from the server (TD-14)", () => {
         lng: null,
         category: null,
         mapImage: "kang.png",
-      },
-      {
-        ...storedRow,
-        id: 10,
-        kind: "deity",
-        category: null,
-        linkedType: "deity",
-        linkedId: 3,
       },
     ]);
 
@@ -259,7 +236,7 @@ describe("usePOIManager — optimistic writes (TD-14)", () => {
     });
 
     expect(createPoi).toHaveBeenCalledWith(
-      expect.objectContaining({ parentId: PARENT_ID })
+      expect.objectContaining({ zoneId: PARENT_ID })
     );
   });
 

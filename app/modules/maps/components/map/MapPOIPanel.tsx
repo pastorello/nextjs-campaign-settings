@@ -42,38 +42,33 @@ import fetchLinkableEntities, {
 import type { UnplacedChild } from "@/app/modules/maps/hooks/useUnplacedChildren";
 
 /**
- * A navigable place (`region`, `plane`, `city`, `dungeon`), `deity` or `npc`
- * place under the current parent (SPEC-004 M5, T2). `kind: "poi"` is
- * deliberately not part of this — it keeps going through `onAddPOI`,
- * unchanged. See `createPlace.ts` for why.
+ * A navigable place (`region`, `plane`, `city`, `dungeon`) under the current
+ * parent (SPEC-004 M5, T2). `kind: "poi"` is deliberately not part of this —
+ * it keeps going through `onAddPOI`, unchanged. See `createPlace.ts` for
+ * why. `kind: "deity"`/`"npc"` variants existed here until SPEC-008 T5: the
+ * map no longer creates a new pin for an entity, only attaches an existing
+ * one to a place that already exists (§5) — see `AssignLocationModal`.
  */
-export type AddPlaceInput =
-  | {
-      kind: "region" | "plane" | "city" | "dungeon";
-      title: string;
-      lat: number;
-      lng: number;
-      description?: string;
-      mapImage: string;
-    }
-  | {
-      kind: "deity";
-      title: string;
-      lat: number;
-      lng: number;
-      description?: string;
-      linkedType: "deity";
-      linkedId: number;
-    }
-  | {
-      kind: "npc";
-      title: string;
-      lat: number;
-      lng: number;
-      description?: string;
-      linkedType: "npc";
-      linkedId: number;
-    };
+export type AddPlaceInput = {
+  kind: "region" | "plane" | "city" | "dungeon";
+  title: string;
+  lat: number;
+  lng: number;
+  description?: string;
+  mapImage: string;
+};
+
+/**
+ * The kinds this panel's "Kind" selector still offers when creating a new
+ * place — every `PlaceKind` except `deity`/`npc` (SPEC-008 T5). Legacy rows
+ * of those kinds may still exist in the database until T8's migration, so
+ * `PlaceKind`/`PLACE_KINDS` themselves are untouched; only the creation UI
+ * narrows.
+ */
+type CreatablePlaceKind = Exclude<PlaceKind, "deity" | "npc">;
+const CREATABLE_PLACE_KINDS = PLACE_KINDS.filter(
+  (kind): kind is CreatablePlaceKind => kind !== "deity" && kind !== "npc"
+);
 
 interface MapPOIPanelProps {
   isOpen: boolean;
@@ -127,7 +122,7 @@ interface MapPOIPanelProps {
 type ViewMode = "list" | "add" | "edit";
 
 interface POIFormData {
-  kind: PlaceKind;
+  kind: CreatablePlaceKind;
   title: string;
   description: string;
   lat: string;
@@ -574,49 +569,6 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       resetFormAfterSave();
       return;
     }
-
-    // kind is "deity" or "npc" — branched, not a single object built from
-    // `formData.kind`: `formData.kind` is still the two-member union here,
-    // and `AddPlaceInput`'s deity/npc variants are separate types, so a
-    // literal built from the union doesn't structurally match either one.
-    const { kind, linkedId } = formData;
-    if (linkedId === null) {
-      toast.error("Please select an entity to link to");
-      return;
-    }
-
-    setIsSavingPlace(true);
-    let succeeded: boolean;
-    try {
-      succeeded = await (kind === "deity"
-        ? onAddPlace({
-            kind: "deity",
-            title,
-            lat,
-            lng,
-            linkedType: "deity",
-            linkedId,
-            ...(description !== undefined && { description }),
-          })
-        : onAddPlace({
-            kind: "npc",
-            title,
-            lat,
-            lng,
-            linkedType: "npc",
-            linkedId,
-            ...(description !== undefined && { description }),
-          }));
-    } finally {
-      setIsSavingPlace(false);
-    }
-    if (!succeeded) {
-      toast.error("Could not save the place");
-      return;
-    }
-
-    toast.success("Place added successfully");
-    resetFormAfterSave();
   }, [
     formData,
     viewMode,
@@ -706,19 +658,18 @@ export const MapPOIPanel = memo(function MapPOIPanel({
               <select
                 value={formData.kind}
                 onChange={(e) => {
-                  const kind = e.target.value as PlaceKind;
+                  const kind = e.target.value as CreatablePlaceKind;
                   setFormData((prev) => ({
                     ...prev,
                     kind,
-                    linkedType:
-                      kind === "deity" || kind === "npc" ? kind : null,
+                    linkedType: null,
                     linkedId: null,
                     mapFile: null,
                   }));
                 }}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
               >
-                {PLACE_KINDS.map((kind) => (
+                {CREATABLE_PLACE_KINDS.map((kind) => (
                   <option key={kind} value={kind}>
                     {kind}
                   </option>
@@ -837,9 +788,9 @@ export const MapPOIPanel = memo(function MapPOIPanel({
             </div>
           )}
 
-          {/* Linked Entity — kind: "poi" (optional, either type), or
-              kind: "deity"/"npc" (required, type fixed by the kind chosen
-              above, so only the entity itself is picked here). */}
+          {/* Linked Entity — kind: "poi" only, optional, either type
+              (SPEC-002/TD-14). The kind: "deity"/"npc" entity-pin variants
+              this used to also serve for were removed by SPEC-008 T5. */}
           {formData.kind === "poi" && (
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -878,30 +829,6 @@ export const MapPOIPanel = memo(function MapPOIPanel({
               </div>
             </div>
           )}
-          {(formData.kind === "deity" || formData.kind === "npc") && (
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {LINKABLE_ENTITY_TYPES.find((t) => t.id === formData.kind)
-                  ?.label ?? formData.kind}
-              </label>
-              <select
-                value={formData.linkedId ?? ""}
-                onChange={(e) => handleLinkedIdChange(e.target.value)}
-                disabled={isLoadingLinkOptions}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm disabled:opacity-50"
-              >
-                <option value="">
-                  {isLoadingLinkOptions ? "Loading…" : "Select…"}
-                </option>
-                {linkOptions.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
           {/* Title Input */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

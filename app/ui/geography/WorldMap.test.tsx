@@ -84,6 +84,12 @@ vi.mock("@/app/lib/data/maps/updatePoi", () => ({
   default: (input: unknown) => updatePoi(input),
 }));
 
+// Has its own suite (SPEC-008 T5) — stubbed here so this file stays about
+// WorldMap's own state, not the assignment modal's entity-picker flow.
+vi.mock("@/app/ui/geography/AttachEntityButton", () => ({
+  default: () => <div data-testid="attach-entity-button" />,
+}));
+
 vi.mock("@/app/modules/maps/hooks/useMapContextMenu", () => ({
   useMapContextMenu: () => ({
     isOpen: false,

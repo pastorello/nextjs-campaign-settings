@@ -61,22 +61,6 @@ const navigableSchema = z.object({
   mapInitialZoom: z.number().int().optional(),
 });
 
-const deitySchema = z.object({
-  ...commonFields,
-  ...noneOfTheOthers,
-  kind: z.literal("deity"),
-  linkedType: z.literal("deity"),
-  linkedId: z.coerce.number().int().positive(),
-});
-
-const npcSchema = z.object({
-  ...commonFields,
-  ...noneOfTheOthers,
-  kind: z.literal("npc"),
-  linkedType: z.literal("npc"),
-  linkedId: z.coerce.number().int().positive(),
-});
-
 const poiSchema = z.object({
   ...commonFields,
   ...noneOfTheOthers,
@@ -86,13 +70,14 @@ const poiSchema = z.object({
 
 /**
  * The discriminated union of SPEC-004 §5.1's table (plus T2's richer
- * vocabulary): `kind` decides which other fields are required, forbidden,
- * or optional.
+ * vocabulary). `kind: "deity"`/`"npc"` variants existed here until SPEC-008
+ * T5 removed them: the map no longer creates a new pin for an entity, only
+ * attaches an existing one to a place that already exists (§5) — `kind`
+ * decides which other fields are required, forbidden, or optional among
+ * what remains.
  */
 export const placeSchema = z.discriminatedUnion("kind", [
   navigableSchema,
-  deitySchema,
-  npcSchema,
   poiSchema,
 ]);
 

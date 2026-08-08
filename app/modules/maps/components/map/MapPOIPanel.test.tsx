@@ -408,15 +408,14 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
     expect(screen.getByText("Map image")).toBeInTheDocument();
   });
 
-  it("switching to deity hides category and requires an entity, no type dropdown", () => {
+  it("no longer offers deity/npc as a creatable kind (SPEC-008 T5)", () => {
     render(<MapPOIPanel {...baseProps()} />);
     fireEvent.click(screen.getByText("Add"));
 
-    fireEvent.change(kindSelect(), { target: { value: "deity" } });
-
-    expect(screen.queryByText("Category")).not.toBeInTheDocument();
-    expect(screen.queryByText("Linked entity")).not.toBeInTheDocument();
-    expect(screen.getByText("Deity")).toBeInTheDocument();
+    const values = [...kindSelect().querySelectorAll("option")].map((o) =>
+      o.getAttribute("value")
+    );
+    expect(values).not.toEqual(expect.arrayContaining(["deity", "npc"]));
   });
 
   it("rejects saving a region with no map image chosen", async () => {
@@ -473,55 +472,6 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
     });
     await waitFor(() =>
       expect(toast.success).toHaveBeenCalledWith("Place added successfully")
-    );
-  });
-
-  it("rejects saving a deity with no entity selected", async () => {
-    const props = baseProps();
-    render(<MapPOIPanel {...props} initialLat={1} initialLng={2} />);
-
-    fireEvent.click(screen.getByText("Add"));
-    fireEvent.change(kindSelect(), { target: { value: "deity" } });
-    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
-      target: { value: "Helios" },
-    });
-    fireEvent.click(screen.getByText("Save"));
-
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith(
-        "Please select an entity to link to"
-      )
-    );
-    expect(props.onAddPlace).not.toHaveBeenCalled();
-  });
-
-  it("creates an npc pin with the reused entity select", async () => {
-    fetchLinkableEntities.mockResolvedValue([{ id: 9, name: "Dexter" }]);
-    const props = baseProps();
-    render(<MapPOIPanel {...props} initialLat={5} initialLng={6} />);
-
-    fireEvent.click(screen.getByText("Add"));
-    fireEvent.change(kindSelect(), { target: { value: "npc" } });
-    await screen.findByText("Dexter");
-
-    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
-      target: { value: "Dexter Nemrod" },
-    });
-    fireEvent.change(
-      screen.getByText("NPC").closest("div")!.querySelector("select")!,
-      { target: { value: "9" } }
-    );
-    fireEvent.click(screen.getByText("Save"));
-
-    await waitFor(() =>
-      expect(props.onAddPlace).toHaveBeenCalledWith({
-        kind: "npc",
-        title: "Dexter Nemrod",
-        lat: 5,
-        lng: 6,
-        linkedType: "npc",
-        linkedId: 9,
-      })
     );
   });
 

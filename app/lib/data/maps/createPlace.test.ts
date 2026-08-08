@@ -64,52 +64,16 @@ describe("createPlace", () => {
     });
   });
 
-  it("creates a deity pin with its link", async () => {
-    create.mockResolvedValue({ id: 7 });
-
+  it("rejects a kind: deity payload, without writing — removed by SPEC-008 T5", async () => {
     const result = await createPlace({
       ...commonFields,
       kind: "deity",
       linkedType: "deity",
       linkedId: 3,
-    });
+    } as never);
 
-    expect(result).toEqual({ ok: true, id: 7 });
-    expect(create).toHaveBeenCalledWith({
-      data: {
-        title: "Somewhere",
-        lat: 10,
-        lng: 20,
-        kind: "deity",
-        parentId: 1,
-        linkedType: "deity",
-        linkedId: 3,
-      },
-    });
-  });
-
-  it("creates an npc pin with its link", async () => {
-    create.mockResolvedValue({ id: 8 });
-
-    const result = await createPlace({
-      ...commonFields,
-      kind: "npc",
-      linkedType: "npc",
-      linkedId: 5,
-    });
-
-    expect(result).toEqual({ ok: true, id: 8 });
-    expect(create).toHaveBeenCalledWith({
-      data: {
-        title: "Somewhere",
-        lat: 10,
-        lng: 20,
-        kind: "npc",
-        parentId: 1,
-        linkedType: "npc",
-        linkedId: 5,
-      },
-    });
+    expect(result.ok).toBe(false);
+    expect(create).not.toHaveBeenCalled();
   });
 
   it("rejects a place with no parent, without writing", async () => {
@@ -129,19 +93,6 @@ describe("createPlace", () => {
     const result = await createPlace({
       ...commonFields,
       kind: "region",
-    } as never);
-
-    expect(result.ok).toBe(false);
-    expect(create).not.toHaveBeenCalled();
-  });
-
-  it("rejects a deity with a map image, without writing", async () => {
-    const result = await createPlace({
-      ...commonFields,
-      kind: "deity",
-      linkedType: "deity",
-      linkedId: 3,
-      mapImage: "kang.png",
     } as never);
 
     expect(result.ok).toBe(false);

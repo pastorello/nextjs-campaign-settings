@@ -12,10 +12,13 @@ import { fetchFilteredMagicItems } from "@/app/lib/data/magicitems/fetchFiltered
 import { fetchFilteredNpc } from "@/app/lib/data/npc/fetchFilteredNpc";
 import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
 import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
+import fetchEntityLocationSummaries from "@/app/lib/data/maps/fetchEntityLocationSummaries";
+import type LocationSummary from "@/app/lib/definitions/interfaces/maps/LocationSummary";
 
 import SortableHeader from "../buttons/SortableHeader";
 import DeleteButton from "../buttons/DeleteButton";
 import ModalButton from "../buttons/ModalButton";
+import AssignLocationButton from "../buttons/AssignLocationButton";
 
 const NAME_FIELD = "name";
 
@@ -67,9 +70,11 @@ export default async function EntityList(props: {
   // schema (`buildResultSchema`, keyed off `pagesConfig`) strips any key it
   // does not declare, and `derivedLocation` deliberately isn't declared
   // there (see `pageMetaFields.ts`) — it is never part of the write schema.
+  let locationSummaries: Map<number, LocationSummary> | null = null;
   if (props.pageType === PageType.Npc || props.pageType === PageType.Deity) {
     const linkedType = props.pageType === PageType.Npc ? "npc" : "deity";
     const ancestry = await fetchDerivedAncestry(linkedType);
+    locationSummaries = await fetchEntityLocationSummaries(linkedType);
     for (const item of items) {
       // The list wants the immediate place only; the plane above it is a
       // card-level concern (`DeityCard`), so the rest of the chain is
@@ -153,6 +158,26 @@ export default async function EntityList(props: {
                   ))}
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex justify-end gap-3">
+                      {locationSummaries &&
+                        (props.pageType === PageType.Npc ||
+                          props.pageType === PageType.Deity) && (
+                          <AssignLocationButton
+                            pageType={props.pageType}
+                            entityId={item.id as number}
+                            currentZoneId={
+                              locationSummaries.get(item.id as number)
+                                ?.zoneId ?? null
+                            }
+                            currentPoiId={
+                              locationSummaries.get(item.id as number)?.poiId ??
+                              null
+                            }
+                            currentLocationLabel={
+                              locationSummaries.get(item.id as number)?.title ??
+                              t("common.location.unknown")
+                            }
+                          />
+                        )}
                       <ModalButton
                         buttonLabel={t("common.table.edit")}
                         modalTitle={t(config.editModalTitleKey)}

@@ -26,6 +26,7 @@ import isValidString from "@/app/lib/utils/validators/isValidString";
 import { notifyError } from "@/app/lib/notifications/notify";
 import createPlace from "@/app/lib/data/maps/createPlace";
 import updatePoiAction from "@/app/lib/data/maps/updatePoi";
+import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
 
 /**
  * WorldMap - the map view backing `/dashboard/geography`.
@@ -361,6 +362,14 @@ function WorldMap({
 
       {/* Map Controls */}
       <MapControls />
+
+      {/* Attach an existing NPC/deity to the place currently being viewed
+          (SPEC-008 §5/T5) — the map's own entry point into the assignment
+          modal, alongside the admin list's per-row button. */}
+      <AttachEntityButton
+        zoneId={parentId}
+        onAttached={() => setPlacesRefetchToken((token) => token + 1)}
+      />
 
       {/* Measurement Panel */}
       <MapMeasurementPanel

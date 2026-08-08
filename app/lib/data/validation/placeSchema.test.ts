@@ -71,80 +71,15 @@ describe("placeSchema", () => {
     });
   });
 
-  describe("deity", () => {
-    it("accepts a deity linked to a record and no map", () => {
-      const result = placeSchema.safeParse({
-        ...commonFields,
-        kind: "deity",
-        linkedType: "deity",
-        linkedId: 3,
-      });
-
-      expect(result.success).toBe(true);
+  it("rejects a kind: deity/npc payload — removed by SPEC-008 T5, the map no longer creates entity pins", () => {
+    const result = placeSchema.safeParse({
+      ...commonFields,
+      kind: "deity",
+      linkedType: "deity",
+      linkedId: 3,
     });
 
-    it("rejects a deity carrying a map", () => {
-      const result = placeSchema.safeParse({
-        ...commonFields,
-        kind: "deity",
-        linkedType: "deity",
-        linkedId: 3,
-        mapImage: "generated-id.png",
-      });
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.flatten().fieldErrors.mapImage).toBeDefined();
-      }
-    });
-
-    it("rejects a deity with no link", () => {
-      const result = placeSchema.safeParse({
-        ...commonFields,
-        kind: "deity",
-      });
-
-      expect(result.success).toBe(false);
-    });
-
-    it("rejects a deity linked as an npc", () => {
-      const result = placeSchema.safeParse({
-        ...commonFields,
-        kind: "deity",
-        linkedType: "npc",
-        linkedId: 3,
-      });
-
-      expect(result.success).toBe(false);
-    });
-  });
-
-  describe("npc", () => {
-    it("accepts an npc linked to a record and no map", () => {
-      const result = placeSchema.safeParse({
-        ...commonFields,
-        kind: "npc",
-        linkedType: "npc",
-        linkedId: 7,
-      });
-
-      expect(result.success).toBe(true);
-    });
-
-    it("rejects an npc carrying a category", () => {
-      const result = placeSchema.safeParse({
-        ...commonFields,
-        kind: "npc",
-        linkedType: "npc",
-        linkedId: 7,
-        category: "religion",
-      });
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.flatten().fieldErrors.category).toBeDefined();
-      }
-    });
+    expect(result.success).toBe(false);
   });
 
   describe("poi", () => {

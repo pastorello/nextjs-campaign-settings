@@ -17,6 +17,10 @@ import type { CreatePlaceResult } from "../../definitions/interfaces/maps/Place"
  * `map-poi-link.spec.ts` still exercises) — a real product change, not
  * something to fold into wiring the kind selector in.
  *
+ * `kind: "deity"`/`"npc"` are gone (SPEC-008 T5) — the map no longer creates
+ * a pin for an entity; attaching an existing one to a place goes through
+ * `assignLocation` instead (§5).
+ *
  * Never creates the root: `parentId` is required here, where `placeSchema`
  * itself allows it to be absent (the root is `createRootPlace`'s job, M4).
  */
@@ -64,10 +68,6 @@ export default async function createPlace(
           ...(data.mapInitialZoom !== undefined && {
             mapInitialZoom: data.mapInitialZoom,
           }),
-        }),
-        ...((data.kind === "deity" || data.kind === "npc") && {
-          linkedType: data.linkedType,
-          linkedId: data.linkedId,
         }),
         ...(data.kind === "poi" && { category: data.category }),
       },

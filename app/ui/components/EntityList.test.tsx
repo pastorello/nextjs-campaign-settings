@@ -26,6 +26,11 @@ vi.mock("../buttons/ModalButton", () => ({
     <button>{buttonLabel}</button>
   ),
 }));
+vi.mock("../buttons/AssignLocationButton", () => ({
+  default: ({ currentLocationLabel }: { currentLocationLabel: string }) => (
+    <button>assign-location:{currentLocationLabel}</button>
+  ),
+}));
 
 const fetchFilteredSpells = vi.fn<(...args: unknown[]) => unknown>();
 const fetchFilteredNpc = vi.fn<(...args: unknown[]) => unknown>();
@@ -55,11 +60,20 @@ vi.mock("@/app/lib/data/maps/fetchDerivedAncestry", () => ({
   default: (...args: unknown[]) => fetchDerivedAncestry(...args),
 }));
 
+// Backs the assignment button's "current location" display (SPEC-008 T5) —
+// stubbed to an empty map by default, overridden by the dedicated test.
+const fetchEntityLocationSummaries = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/maps/fetchEntityLocationSummaries", () => ({
+  default: (...args: unknown[]) => fetchEntityLocationSummaries(...args),
+}));
+
 import EntityList from "./EntityList";
 
 describe("EntityList", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     fetchDerivedAncestry.mockResolvedValue(new Map());
+    fetchEntityLocationSummaries.mockResolvedValue(new Map());
   });
 
   it("dispatches to the fetch function matching its own pageType only", async () => {
@@ -183,6 +197,52 @@ describe("EntityList", () => {
     expect(
       screen.getByText("magicItems.fields.attuned.shortLabel")
     ).toBeInTheDocument();
+  });
+
+  it("renders the assign-location button for an NPC row with its current summary", async () => {
+    fetchFilteredNpc.mockResolvedValue([
+      {
+        id: 42,
+        name: "Dexter Nemrod",
+        title: "",
+        alignment: 1,
+        alignmentDomain: 1,
+        faction: 1,
+        location: 1,
+      },
+    ]);
+    fetchEntityLocationSummaries.mockResolvedValue(
+      new Map([[42, { zoneId: 5, poiId: null, title: "Skreebars" }]])
+    );
+
+    render(await EntityList({ pageType: PageType.Npc }));
+
+    expect(screen.getByText("assign-location:Skreebars")).toBeInTheDocument();
+  });
+
+  it("does not render the assign-location button for a domain with no location", async () => {
+    fetchFilteredSpells.mockResolvedValue([
+      {
+        id: 1,
+        name: "Fireball",
+        level: 3,
+        circle: [],
+        classes: [],
+        castingTime: "1Azione",
+        range: "60",
+        components: "V,S,M",
+        duration: "Istantanea",
+        savingThrow: "Destrezza",
+        ritual: false,
+        concentration: false,
+        upcast: "",
+      },
+    ]);
+
+    render(await EntityList({ pageType: PageType.Spell }));
+
+    expect(fetchEntityLocationSummaries).not.toHaveBeenCalled();
+    expect(screen.queryByText(/assign-location:/)).not.toBeInTheDocument();
   });
 
   it("renders the edit and delete actions for each row", async () => {

@@ -26,6 +26,7 @@ const validPayload = {
   lat: 10,
   lng: 20,
   category: "religion",
+  zoneId: 5,
 };
 
 describe("createPoi", () => {
@@ -43,18 +44,6 @@ describe("createPoi", () => {
     expect(create).toHaveBeenCalledWith({ data: validPayload });
   });
 
-  it("accepts a payload linked to exactly one entity", async () => {
-    create.mockResolvedValue({ id: 1 });
-
-    const result = await createPoi({
-      ...validPayload,
-      linkedType: "npc",
-      linkedId: 5,
-    });
-
-    expect(result).toEqual({ ok: true, id: 1 });
-  });
-
   it("rejects an invalid payload without writing", async () => {
     const result = await createPoi({
       ...validPayload,
@@ -65,10 +54,10 @@ describe("createPoi", () => {
     expect(create).not.toHaveBeenCalled();
   });
 
-  it("rejects a half-link without writing", async () => {
+  it("rejects a payload with no zoneId, without writing", async () => {
     const result = await createPoi({
       ...validPayload,
-      linkedType: "npc",
+      zoneId: undefined,
     } as never);
 
     expect(result.ok).toBe(false);

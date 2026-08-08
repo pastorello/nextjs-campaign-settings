@@ -42,8 +42,8 @@ describe("resolveLocationAssignment", () => {
     expect(result.ok).toBe(false);
   });
 
-  it("resolves zoneId from the poi's own parentId when a poi is chosen", async () => {
-    poiFindUnique.mockResolvedValue({ kind: "poi", parentId: 5 });
+  it("resolves zoneId from the poi's own zoneId when a poi is chosen", async () => {
+    poiFindUnique.mockResolvedValue({ zoneId: 5 });
 
     const result = await resolveLocationAssignment(5, 9);
 
@@ -58,16 +58,8 @@ describe("resolveLocationAssignment", () => {
     expect(result.ok).toBe(false);
   });
 
-  it("rejects a poi id that is not a landmark (kind !== 'poi')", async () => {
-    poiFindUnique.mockResolvedValue({ kind: "city", parentId: 5 });
-
-    const result = await resolveLocationAssignment(5, 9);
-
-    expect(result.ok).toBe(false);
-  });
-
   it("rejects a zoneId that disagrees with the chosen poi's own zone", async () => {
-    poiFindUnique.mockResolvedValue({ kind: "poi", parentId: 5 });
+    poiFindUnique.mockResolvedValue({ zoneId: 5 });
 
     const result = await resolveLocationAssignment(6, 9);
 

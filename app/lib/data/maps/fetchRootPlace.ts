@@ -5,15 +5,16 @@ import type RootPlace from "../../definitions/interfaces/maps/RootPlace";
 /**
  * The tree's root, or `null` on an empty installation (SPEC-004 §10 M4).
  *
- * Not `"use server"` — unlike `fetchPois`, this is only ever called from
- * Server Components the proxy already gates (`world/page.tsx`, and since M7
- * `geography/page.tsx`), the same reasoning `getDeitiesCount` and friends
- * rely on.
+ * Not `"use server"` — this is only ever called from Server Components the
+ * proxy already gates (`world/page.tsx`, and since M7 `geography/page.tsx`),
+ * the same reasoning `getDeitiesCount` and friends rely on. Reads `zone`,
+ * not `poi`, since SPEC-008 T8: the root is always `kind: "region"`, which
+ * lives in the tree table now.
  */
 export default async function fetchRootPlace(): Promise<RootPlace | null> {
   let row;
   try {
-    row = await prisma.poi.findFirst({
+    row = await prisma.zone.findFirst({
       where: { kind: "region", parentId: null },
       select: {
         id: true,

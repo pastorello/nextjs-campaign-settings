@@ -7,13 +7,11 @@ import type {
   POI,
   POIGeoJSON,
   POICategory,
-  LinkableEntityType,
 } from "@/app/modules/maps/types/poi";
 import {
   getCategoryMarkerBgClass,
   isPOICategory,
 } from "@/app/modules/maps/constants/poi-categories";
-import { getLinkableEntityTypeById } from "@/app/modules/maps/constants/linkable-entities";
 import { notifyError } from "@/app/lib/notifications/notify";
 import fetchPlaceChildren from "@/app/lib/data/maps/fetchPlaceChildren";
 import createPoi from "@/app/lib/data/maps/createPoi";
@@ -28,8 +26,8 @@ import type { Marker } from "leaflet";
  * what the panel and the GeoJSON export have always worked in). Takes the
  * narrowed shape `loadPOIs` already filtered `fetchPlaceChildren`'s rows
  * down to — `lat`/`lng`/`category` are nullable on a `PlaceChild` in
- * general (a `region`/`deity`/`npc` child has none of them), but never for
- * one this hook decided is a POI.
+ * general (a navigable `zone` child has none of them), but never for one
+ * this hook decided is a POI.
  */
 function toClientPOI(
   row: PlaceChild & { lat: number; lng: number; category: string },
@@ -43,8 +41,6 @@ function toClientPOI(
     lat: row.lat,
     lng: row.lng,
     category,
-    linkedType: row.linkedType,
-    linkedId: row.linkedId,
     createdAt: row.createdAt.getTime(),
     updatedAt: row.updatedAt.getTime(),
   };
@@ -152,9 +148,9 @@ export function usePOIManager(parentId: number) {
 
   /**
    * Load this place's `kind: "poi"` children from the server (SPEC-004 M7).
-   * `fetchPlaceChildren` can return any kind — `region`/`deity`/`npc`
-   * siblings are this hook's business too, but they have no category (often
-   * no position either) and are rendered elsewhere, not managed here.
+   * `fetchPlaceChildren` can also return navigable `zone` siblings, but
+   * those have no category and are rendered elsewhere (`useNavigableChildren`),
+   * not managed here.
    */
   const loadPOIs = useCallback(async () => {
     try {
@@ -253,14 +249,6 @@ export function usePOIManager(parentId: number) {
             ...(updates.category !== undefined && {
               category: updates.category,
             }),
-            // Sent as a pair or not at all — see `poiSchema.ts`'s
-            // `hasPairedLink`. The panel always submits its link selector's
-            // full current state, never one field alone.
-            ...(updates.linkedType !== undefined &&
-              updates.linkedId !== undefined && {
-                linkedType: updates.linkedType,
-                linkedId: updates.linkedId,
-              }),
           });
 
           if (!result.ok) restore();
@@ -303,10 +291,6 @@ export function usePOIManager(parentId: number) {
         }).addTo(map);
 
         // Add popup
-        const linkedEntityType =
-          poi.linkedType != null
-            ? getLinkableEntityTypeById(poi.linkedType)
-            : undefined;
         const popupContent = `
       <div class="min-w-[150px]">
         <div class="font-semibold mb-1">${poi.title}</div>
@@ -318,11 +302,6 @@ export function usePOIManager(parentId: number) {
         <div class="text-[11px] text-gray-400">${poi.lat.toFixed(
           6
         )}, ${poi.lng.toFixed(6)}</div>
-        ${
-          linkedEntityType && poi.linkedId != null
-            ? `<a href="${linkedEntityType.path}?id=${poi.linkedId}" class="text-xs text-blue-500 underline inline-block mt-1">View ${linkedEntityType.label}</a>`
-            : ""
-        }
       </div>
     `;
         marker.bindPopup(popupContent);
@@ -396,9 +375,7 @@ export function usePOIManager(parentId: number) {
       lat: number,
       lng: number,
       category: POICategory,
-      description?: string,
-      linkedType?: LinkableEntityType | null,
-      linkedId?: number | null
+      description?: string
     ): POI => {
       const now = Date.now();
       const newPOI: POI = {
@@ -408,7 +385,6 @@ export function usePOIManager(parentId: number) {
         lat,
         lng,
         category,
-        ...(linkedType != null && linkedId != null && { linkedType, linkedId }),
         createdAt: now,
         updatedAt: now,
       };
@@ -422,10 +398,8 @@ export function usePOIManager(parentId: number) {
             lat,
             lng,
             category,
-            parentId,
+            zoneId: parentId,
             ...(description !== undefined && { description }),
-            ...(linkedType != null &&
-              linkedId != null && { linkedType, linkedId }),
           });
 
           if (!result.ok) {
@@ -592,7 +566,7 @@ export function usePOIManager(parentId: number) {
                 lat: poi.lat,
                 lng: poi.lng,
                 category: poi.category,
-                parentId,
+                zoneId: parentId,
                 ...(poi.description !== undefined && {
                   description: poi.description,
                 }),

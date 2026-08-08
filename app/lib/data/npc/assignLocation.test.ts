@@ -78,7 +78,7 @@ describe("assignNpcLocation", () => {
   });
 
   it("setting a poi sets zoneId to that poi's own zone", async () => {
-    poiFindUnique.mockResolvedValue({ kind: "poi", parentId: 5 });
+    poiFindUnique.mockResolvedValue({ zoneId: 5 });
     update.mockResolvedValue({});
 
     const result = await assignNpcLocation({ id: 1, zoneId: 5, poiId: 9 });
@@ -91,7 +91,7 @@ describe("assignNpcLocation", () => {
   });
 
   it("rejects a poi from a different zone without writing", async () => {
-    poiFindUnique.mockResolvedValue({ kind: "poi", parentId: 5 });
+    poiFindUnique.mockResolvedValue({ zoneId: 5 });
 
     const result = await assignNpcLocation({ id: 1, zoneId: 6, poiId: 9 });
 

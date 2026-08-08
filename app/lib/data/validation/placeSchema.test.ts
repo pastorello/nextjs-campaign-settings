@@ -10,7 +10,7 @@ const commonFields = {
 
 describe("placeSchema", () => {
   describe("region", () => {
-    it("accepts a region with a map and no category or link", () => {
+    it("accepts a region with a map", () => {
       const result = placeSchema.safeParse({
         ...commonFields,
         kind: "region",
@@ -31,24 +31,10 @@ describe("placeSchema", () => {
         expect(result.error.flatten().fieldErrors.mapImage).toBeDefined();
       }
     });
-
-    it("rejects a region carrying a category", () => {
-      const result = placeSchema.safeParse({
-        ...commonFields,
-        kind: "region",
-        mapImage: "generated-id.png",
-        category: "religion",
-      });
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.flatten().fieldErrors.category).toBeDefined();
-      }
-    });
   });
 
   describe.each(["plane", "city", "dungeon"])("%s (T2)", (kind) => {
-    it(`accepts a ${kind} with a map and no category or link`, () => {
+    it(`accepts a ${kind} with a map`, () => {
       const result = placeSchema.safeParse({
         ...commonFields,
         kind,
@@ -71,81 +57,42 @@ describe("placeSchema", () => {
     });
   });
 
-  it("rejects a kind: deity/npc payload — removed by SPEC-008 T5, the map no longer creates entity pins", () => {
+  it("rejects kind: poi — a landmark never reaches this schema (routed through createPoi instead)", () => {
     const result = placeSchema.safeParse({
       ...commonFields,
-      kind: "deity",
-      linkedType: "deity",
-      linkedId: 3,
+      kind: "poi",
+      category: "religion",
+      mapImage: "generated-id.png",
     });
 
     expect(result.success).toBe(false);
   });
 
-  describe("poi", () => {
-    it("accepts a poi with a category and no link", () => {
-      const result = placeSchema.safeParse({
-        ...commonFields,
-        kind: "poi",
-        category: "religion",
-      });
-
-      expect(result.success).toBe(true);
+  it("rejects kind: deity/npc — removed by SPEC-008 T5, the map no longer creates entity pins", () => {
+    const result = placeSchema.safeParse({
+      ...commonFields,
+      kind: "deity",
+      mapImage: "generated-id.png",
     });
 
-    it("rejects a poi with a link", () => {
-      const result = placeSchema.safeParse({
-        ...commonFields,
-        kind: "poi",
-        category: "religion",
-        linkedType: "npc",
-        linkedId: 7,
-      });
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.flatten().fieldErrors.linkedType).toBeDefined();
-      }
-    });
-
-    it("rejects a poi without a category", () => {
-      const result = placeSchema.safeParse({
-        ...commonFields,
-        kind: "poi",
-      });
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.flatten().fieldErrors.category).toBeDefined();
-      }
-    });
-
-    it("rejects a poi with a category outside the closed list", () => {
-      const result = placeSchema.safeParse({
-        ...commonFields,
-        kind: "poi",
-        category: "not-a-category",
-      });
-
-      expect(result.success).toBe(false);
-    });
+    expect(result.success).toBe(false);
   });
 
   it("rejects an unrecognised kind", () => {
     const result = placeSchema.safeParse({
       ...commonFields,
       kind: "castle",
-      category: "religion",
+      mapImage: "generated-id.png",
     });
 
     expect(result.success).toBe(false);
   });
 
-  it("accepts an optional, coercible parentId shared by every kind", () => {
+  it("accepts an optional, coercible parentId", () => {
     const result = placeSchema.safeParse({
       ...commonFields,
-      kind: "poi",
-      category: "religion",
+      kind: "region",
+      mapImage: "generated-id.png",
       parentId: "5",
     });
 

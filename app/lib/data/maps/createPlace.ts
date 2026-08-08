@@ -9,17 +9,15 @@ import { placeSchema, type PlaceInput } from "../validation/placeSchema";
 import type { CreatePlaceResult } from "../../definitions/interfaces/maps/Place";
 
 /**
- * Creates a place under an existing parent (SPEC-004 §10 M5, T2) —
- * `MapPOIPanel`'s kind selector calls this once a kind other than `poi` is
- * chosen. `kind: "poi"` keeps going through `createPoi`
- * unchanged: `placeSchema`'s `poi` variant forbids a link, which would
- * silently narrow the optional-link feature SPEC-002 shipped (and
- * `map-poi-link.spec.ts` still exercises) — a real product change, not
- * something to fold into wiring the kind selector in.
+ * Creates a navigable place (`region`/`plane`/`city`/`dungeon`) under an
+ * existing parent (SPEC-004 §10 M5, T2) — `MapPOIPanel`'s kind selector
+ * calls this once a kind other than `poi` is chosen. `kind: "poi"` keeps
+ * going through `createPoi` unchanged, writing a landmark, not a zone.
  *
- * `kind: "deity"`/`"npc"` are gone (SPEC-008 T5) — the map no longer creates
- * a pin for an entity; attaching an existing one to a place goes through
- * `assignLocation` instead (§5).
+ * Targets `zone`, not `poi` (SPEC-008 T8): the navigable kinds live in
+ * `zone` now — `placeSchema` no longer accepts anything else (T5 already
+ * removed `kind: "deity"`/`"npc"`, and `kind: "poi"` was always routed
+ * elsewhere in practice, so the schema stopped being a discriminated union).
  *
  * Never creates the root: `parentId` is required here, where `placeSchema`
  * itself allows it to be absent (the root is `createRootPlace`'s job, M4).
@@ -41,35 +39,24 @@ export default async function createPlace(
 
   let created;
   try {
-    created = await prisma.poi.create({
+    created = await prisma.zone.create({
       data: {
         title: data.title,
         lat: data.lat,
         lng: data.lng,
         kind: data.kind,
         parentId: data.parentId,
+        mapImage: data.mapImage,
         ...(data.description !== undefined && {
           description: data.description,
         }),
-        // Spelled out as literal equalities rather than
-        // `isNavigablePlaceKind(data.kind)`: the helper's type predicate
-        // doesn't narrow `data`'s zod-inferred discriminated union here the
-        // way a direct literal comparison does, and the union member this
-        // block depends on (`mapImage` etc.) needs that narrowing.
-        ...((data.kind === "region" ||
-          data.kind === "plane" ||
-          data.kind === "city" ||
-          data.kind === "dungeon") && {
-          mapImage: data.mapImage,
-          ...(data.mapBounds !== undefined && { mapBounds: data.mapBounds }),
-          ...(data.mapInitialView !== undefined && {
-            mapInitialView: data.mapInitialView,
-          }),
-          ...(data.mapInitialZoom !== undefined && {
-            mapInitialZoom: data.mapInitialZoom,
-          }),
+        ...(data.mapBounds !== undefined && { mapBounds: data.mapBounds }),
+        ...(data.mapInitialView !== undefined && {
+          mapInitialView: data.mapInitialView,
         }),
-        ...(data.kind === "poi" && { category: data.category }),
+        ...(data.mapInitialZoom !== undefined && {
+          mapInitialZoom: data.mapInitialZoom,
+        }),
       },
     });
   } catch (error) {

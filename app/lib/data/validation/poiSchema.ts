@@ -1,22 +1,14 @@
 import { z } from "zod";
 
 import { POI_CATEGORIES } from "@/app/modules/maps/constants/poi-categories";
-import { LINKABLE_ENTITY_TYPES } from "@/app/modules/maps/constants/linkable-entities";
-import type {
-  POICategory,
-  LinkableEntityType,
-} from "@/app/modules/maps/types/poi";
+import type { POICategory } from "@/app/modules/maps/types/poi";
 
-// Derived from the runtime lists rather than repeating the unions as string
-// literals, so the two cannot drift apart (same pattern as
-// `poiGeoJSONSchema` in `app/modules/maps/types/poiSchema.ts`).
+// Derived from the runtime list rather than repeating the union as string
+// literals, so the two cannot drift apart — same pattern as
+// `poiGeoJSONSchema` in `app/modules/maps/types/poiSchema.ts`.
 const categoryIds = POI_CATEGORIES.map((c) => c.id) as [
   POICategory,
   ...POICategory[],
-];
-const linkableTypeIds = LINKABLE_ENTITY_TYPES.map((t) => t.id) as [
-  LinkableEntityType,
-  ...LinkableEntityType[],
 ];
 
 const poiFields = {
@@ -34,49 +26,17 @@ const poiFields = {
   lat: z.number().finite(),
   lng: z.number().finite(),
   category: z.enum(categoryIds),
-  linkedType: z.enum(linkableTypeIds).nullable().optional(),
-  linkedId: z.coerce.number().int().positive().nullable().optional(),
-  // SPEC-004 M7: which tree place this POI is a child of. Optional — a POI
-  // created outside the tree (or before it existed) has none.
-  parentId: z.coerce.number().int().positive().nullable().optional(),
-};
-
-/**
- * `linkedType` and `linkedId` are a polymorphic pair (SPEC-002 §6): a POI
- * links to at most one entity, of exactly one type. Neither field alone
- * means anything, so both must be present or both absent — never a
- * half-link naming a type with no id, or an id with no type to resolve it
- * against.
- *
- * Both are `.nullable()`, not just `.optional()`, because Prisma tells
- * "leave this column alone" (`undefined`) apart from "set it to NULL"
- * (`null`) — and only the latter can clear an existing link on update.
- * `absent(x)` treats `undefined` and `null` as the same "no value" for the
- * pairing check; which one a caller sends only matters to Prisma, not to
- * whether the pair is well-formed.
- */
-function absent(value: unknown): boolean {
-  return value === undefined || value === null;
-}
-
-function hasPairedLink(data: {
-  linkedType?: LinkableEntityType | null | undefined;
-  linkedId?: number | null | undefined;
-}) {
-  return absent(data.linkedType) === absent(data.linkedId);
-}
-
-const linkPairIssue = {
-  message:
-    "linkedType and linkedId must both be present or both be absent — a POI links to at most one entity.",
-  path: ["linkedType"],
+  // A landmark always belongs to exactly one zone (SPEC-008 §6/T8) —
+  // required, not optional, unlike the `parentId` this replaces: a poi row
+  // can no longer exist outside the tree the way a pre-M7 one could.
+  zoneId: z.coerce.number().int().positive(),
 };
 
 /**
  * Full-object schema for a create payload (TD-14 / SPEC-002).
  */
 export function buildPoiCreateSchema() {
-  return z.object(poiFields).refine(hasPairedLink, linkPairIssue);
+  return z.object(poiFields);
 }
 
 /**
@@ -89,6 +49,5 @@ export function buildPoiUpdateSchema() {
   return z
     .object(poiFields)
     .partial()
-    .extend({ id: z.coerce.number().int().positive() })
-    .refine(hasPairedLink, linkPairIssue);
+    .extend({ id: z.coerce.number().int().positive() });
 }

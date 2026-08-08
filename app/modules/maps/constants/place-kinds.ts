@@ -11,8 +11,6 @@ export const PLACE_KINDS: PlaceKind[] = [
   "plane",
   "city",
   "dungeon",
-  "deity",
-  "npc",
   "poi",
 ];
 
@@ -41,7 +39,7 @@ export function isNavigablePlaceKind(
 }
 
 /**
- * Narrows a raw string to `PlaceKind`. `poi.kind` has no database-level
+ * Narrows a raw string to `PlaceKind`. `zone.kind` has no database-level
  * enum, so a row read back is only a `string` as far as the type system
  * knows — same reasoning as `isPOICategory` in `poi-categories.ts`.
  */

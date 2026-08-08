@@ -1,73 +1,85 @@
 import type DerivedPlacement from "@/app/lib/definitions/interfaces/maps/DerivedPlacement";
-import type {
-  LinkableEntityType,
-  PlaceKind,
-} from "@/app/modules/maps/types/poi";
+import type { PlaceKind } from "@/app/modules/maps/types/poi";
 
-/** One step up the tree from a record's own pin. */
+/** One step up the tree from where an entity is assigned. */
 export interface PlaceAncestor {
   id: number;
   title: string;
-  /** Raw `poi.kind`; a row read back is only a `string` (see `isPlaceKind`). */
+  /** `"poi"` for a landmark entry, the zone's own `kind` otherwise. */
   kind: string;
 }
 
-interface PlaceIndexRow {
+interface ZoneIndexRow {
   id: number;
   title: string;
   kind: string;
   parentId: number | null;
-  linkedType: string | null;
-  linkedId: number | null;
+}
+
+interface PoiIndexRow {
+  id: number;
+  title: string;
+  zoneId: number;
+}
+
+interface EntityLocationRow {
+  id: number;
+  zoneId: number | null;
+  poiId: number | null;
 }
 
 /**
- * Every ancestor of a record's pin, nearest first (SPEC-004 §5 point 6,
- * T5a) — the tree-native replacement for the stored `npc.location`,
- * `deities.location` and `deities.residence` columns.
+ * Every ancestor of a record's assigned location, nearest first (SPEC-004
+ * §5 point 6, T5a; sourced from `npc.zoneId`/`poiId` since SPEC-008 T8,
+ * rather than walked up from a pin in the old `poi` table).
  *
- * **Why the whole chain and not just the parent.** T4's first cut walked one
- * level, which is all the NPC list needs. `DeityCard` shows two — "Paradiso,
- * Cieli", the place *and* the plane containing it — and the plane is not
- * positionally the second entry: an NPC in Skreebars has Regno di Kang
- * there. The plane is the nearest ancestor whose `kind` says so, which is
- * what `findAncestorOfKind` is for.
+ * **Why the whole chain and not just the immediate place.** `DeityCard`
+ * shows two — "Paradiso, Cieli", the place *and* the plane containing it —
+ * and the plane is not positionally the second entry: an NPC in Skreebars
+ * has Regno di Kang there. The plane is the nearest ancestor whose `kind`
+ * says so, which is what `findAncestorOfKind` is for.
  *
- * Takes the whole `poi` table in one shot rather than one query per record:
- * with everything in memory, resolving N records is N pointer walks, not N
- * round trips.
+ * The immediate entry is the landmark POI's own title when `poiId` is set
+ * (more precise than its zone — the same rule the admin list's Location
+ * column follows, `fetchEntityLocationSummaries`), otherwise the Zone
+ * itself. A record with a `zoneId` but no matching zone row, or a broken
+ * `zone.parentId` chain, stops there rather than throwing — the mutation
+ * boundary prevents a cycle, but a corrupt row must not hang a render.
  *
- * A record present here with an **empty** chain is pinned at the root; a
- * record **absent** from the map has no pin at all. The two are different
- * states and callers can tell them apart.
+ * A record present here with a **single-entry** chain is assigned directly
+ * to the root zone (or its POI); a record **absent** has no `zoneId` at
+ * all. The two are different states and callers can tell them apart.
  */
 export default function deriveEntityAncestry(
-  rows: PlaceIndexRow[],
-  linkedType: LinkableEntityType
+  zones: ZoneIndexRow[],
+  pois: PoiIndexRow[],
+  entities: EntityLocationRow[]
 ): Map<number, PlaceAncestor[]> {
-  const byId = new Map(rows.map((row) => [row.id, row]));
+  const zoneById = new Map(zones.map((zone) => [zone.id, zone]));
+  const poiById = new Map(pois.map((poi) => [poi.id, poi]));
   const ancestry = new Map<number, PlaceAncestor[]>();
 
-  for (const row of rows) {
-    if (row.linkedType !== linkedType || row.linkedId === null) continue;
+  for (const entity of entities) {
+    if (entity.zoneId === null) continue;
 
     const chain: PlaceAncestor[] = [];
-    // Bounded by construction rather than by trusting the data: the mutation
-    // boundary rejects reparenting a place under its own descendant
-    // (SPEC-004 §5), but Postgres permits a cycle in a self-referencing FK,
-    // so a corrupt row must not hang a page render.
-    const seen = new Set<number>([row.id]);
-    let currentId = row.parentId;
 
-    while (currentId !== null && !seen.has(currentId)) {
-      const place = byId.get(currentId);
-      if (place === undefined) break;
-      seen.add(place.id);
-      chain.push({ id: place.id, title: place.title, kind: place.kind });
-      currentId = place.parentId;
+    if (entity.poiId !== null) {
+      const poi = poiById.get(entity.poiId);
+      if (poi) chain.push({ id: poi.id, title: poi.title, kind: "poi" });
     }
 
-    ancestry.set(row.linkedId, chain);
+    const seen = new Set<number>();
+    let currentId: number | null = entity.zoneId;
+    while (currentId !== null && !seen.has(currentId)) {
+      const zone = zoneById.get(currentId);
+      if (zone === undefined) break;
+      seen.add(zone.id);
+      chain.push({ id: zone.id, title: zone.title, kind: zone.kind });
+      currentId = zone.parentId;
+    }
+
+    ancestry.set(entity.id, chain);
   }
 
   return ancestry;

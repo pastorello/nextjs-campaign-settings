@@ -35,7 +35,7 @@ describe("fetchZoneLandmarks", () => {
 
     expect(result).toEqual([{ id: 9, title: "Locanda del Cinghiale" }]);
     expect(findMany).toHaveBeenCalledWith({
-      where: { kind: "poi", parentId: 5 },
+      where: { zoneId: 5 },
       select: { id: true, title: true },
       orderBy: { title: "asc" },
     });

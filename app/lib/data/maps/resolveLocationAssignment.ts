@@ -19,11 +19,8 @@ interface ResolveFailure {
  * (§6, ADR-0010: "the assignment mutation ... always sets zoneId :=
  * poi.zoneId in the same write when a POI is chosen").
  *
- * Reads today's single, kind-discriminated `poi` table directly, not the
- * landmark-only shape T8 introduces later: until that migration runs, a
- * landmark's implied zone is still `parentId`, not a `zoneId` column — and
- * T2's backfill already mirrors every navigable place into `zone` under the
- * same id, so the two id spaces agree and this check is safe to make now.
+ * Reads the landmark-only `poi` shape T8 introduced (`zoneId`, no
+ * `kind`/`parentId` — every remaining row is a landmark by construction).
  */
 export default async function resolveLocationAssignment(
   zoneId: number | null,
@@ -32,15 +29,15 @@ export default async function resolveLocationAssignment(
   if (poiId !== null) {
     const poi = await prisma.poi.findUnique({
       where: { id: poiId },
-      select: { kind: true, parentId: true },
+      select: { zoneId: true },
     });
-    if (!poi || poi.kind !== "poi") {
+    if (!poi) {
       return {
         ok: false,
         errors: { poiId: ["This landmark does not exist."] },
       };
     }
-    if (poi.parentId !== zoneId) {
+    if (poi.zoneId !== zoneId) {
       return {
         ok: false,
         errors: {
@@ -48,7 +45,7 @@ export default async function resolveLocationAssignment(
         },
       };
     }
-    return { ok: true, zoneId: poi.parentId, poiId };
+    return { ok: true, zoneId: poi.zoneId, poiId };
   }
 
   if (zoneId !== null) {

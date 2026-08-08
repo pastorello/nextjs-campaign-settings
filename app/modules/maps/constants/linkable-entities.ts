@@ -1,35 +1,13 @@
 /**
- * Linkable entity type configurations (TD-14 / SPEC-002)
+ * Linkable entity type configurations. Originally TD-14/SPEC-002's for
+ * `poi.linkedType` (a landmark linking to an entity, removed by SPEC-008
+ * T8); now backs `AttachEntityButton`'s type selector — choosing which
+ * domain's entity to attach a location to.
  */
 
-import type {
-  LinkableEntityType,
-  LinkableEntityTypeConfig,
-} from "@/app/modules/maps/types/poi";
+import type { LinkableEntityTypeConfig } from "@/app/modules/maps/types/poi";
 
 export const LINKABLE_ENTITY_TYPES: LinkableEntityTypeConfig[] = [
   { id: "npc", label: "NPC", path: "/dashboard/npc" },
   { id: "deity", label: "Deity", path: "/dashboard/deities" },
 ];
-
-/**
- * Get linkable entity type config by ID
- */
-export function getLinkableEntityTypeById(
-  id: string
-): LinkableEntityTypeConfig | undefined {
-  return LINKABLE_ENTITY_TYPES.find((type) => type.id === id);
-}
-
-/**
- * Narrows a raw string to `LinkableEntityType`. There is no database-level
- * enum for `poi.linkedType` (SPEC-002 §6 — it's a polymorphic pair, not a
- * foreign key), so a value read back from Postgres is only ever a plain
- * `string` as far as the type system knows; this is where it gets checked
- * against reality.
- */
-export function isLinkableEntityType(
-  value: string
-): value is LinkableEntityType {
-  return LINKABLE_ENTITY_TYPES.some((type) => type.id === value);
-}

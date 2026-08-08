@@ -7,7 +7,7 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 const { create } = vi.hoisted(() => ({ create: vi.fn() }));
 vi.mock("@/app/lib/connections/prisma", () => ({
-  default: { poi: { create } },
+  default: { zone: { create } },
 }));
 
 import createPlace from "./createPlace";

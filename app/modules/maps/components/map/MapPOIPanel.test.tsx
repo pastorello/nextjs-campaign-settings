@@ -7,12 +7,6 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-const fetchLinkableEntities =
-  vi.fn<(type: string) => Promise<{ id: number; name: string }[]>>();
-vi.mock("@/app/lib/data/maps/fetchLinkableEntities", () => ({
-  default: (type: string) => fetchLinkableEntities(type),
-}));
-
 import { MapPOIPanel } from "./MapPOIPanel";
 
 const poi: POI = {
@@ -47,7 +41,6 @@ function baseProps() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  fetchLinkableEntities.mockResolvedValue([]);
   // jsdom's default innerWidth (1024) already reads as desktop, but pin it
   // explicitly so the panel doesn't take the mobile Drawer branch.
   window.innerWidth = 1024;
@@ -168,7 +161,7 @@ describe("MapPOIPanel — unplaced places (TD-71, SPEC-005 §5.A)", () => {
         {...baseProps()}
         unplacedChildren={[
           { id: 1, title: "Kingdom of Kang", kind: "region" },
-          { id: 2, title: "Marta the Smith", kind: "npc" },
+          { id: 2, title: "Skreebars", kind: "city" },
         ]}
       />
     );
@@ -176,8 +169,8 @@ describe("MapPOIPanel — unplaced places (TD-71, SPEC-005 §5.A)", () => {
     expect(screen.getByText("Unplaced places (2)")).toBeInTheDocument();
     expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
     expect(screen.getByText("region")).toBeInTheDocument();
-    expect(screen.getByText("Marta the Smith")).toBeInTheDocument();
-    expect(screen.getByText("npc")).toBeInTheDocument();
+    expect(screen.getByText("Skreebars")).toBeInTheDocument();
+    expect(screen.getByText("city")).toBeInTheDocument();
   });
 
   it("calls onPositionPlace with the chosen child's id", () => {
@@ -280,9 +273,7 @@ describe("MapPOIPanel — add/edit form", () => {
       10.123456,
       20.654321,
       "tourism",
-      undefined,
-      null,
-      null
+      undefined
     );
     expect(toast.success).toHaveBeenCalledWith("Place added successfully");
   });
@@ -327,24 +318,6 @@ describe("MapPOIPanel — add/edit form", () => {
     expect(toast.success).toHaveBeenCalledWith("Place updated successfully");
   });
 
-  it("fetches linkable entities once a link type is chosen", async () => {
-    fetchLinkableEntities.mockResolvedValue([{ id: 1, name: "Gorim" }]);
-    const props = baseProps();
-    render(<MapPOIPanel {...props} initialLat={1} initialLng={2} />);
-
-    fireEvent.click(screen.getByText("Add"));
-    const typeSelect = screen
-      .getByText("Linked entity")
-      .closest("div")!
-      .querySelector("select")!;
-    fireEvent.change(typeSelect, { target: { value: "npc" } });
-
-    await waitFor(() =>
-      expect(fetchLinkableEntities).toHaveBeenCalledWith("npc")
-    );
-    expect(await screen.findByText("Gorim")).toBeInTheDocument();
-  });
-
   it("returning Back from the form without saving discards changes", () => {
     const props = baseProps();
     render(<MapPOIPanel {...props} />);
@@ -365,23 +338,21 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
     return screen.getByText("Kind").closest("div")!.querySelector("select")!;
   }
 
-  it("defaults to poi, with category and the optional link visible", () => {
+  it("defaults to poi, with category visible", () => {
     render(<MapPOIPanel {...baseProps()} />);
     fireEvent.click(screen.getByText("Add"));
 
     expect(kindSelect()).toHaveValue("poi");
     expect(screen.getByText("Category")).toBeInTheDocument();
-    expect(screen.getByText("Linked entity")).toBeInTheDocument();
   });
 
-  it("switching to region hides category/link and shows the map image field", () => {
+  it("switching to region hides category and shows the map image field", () => {
     render(<MapPOIPanel {...baseProps()} />);
     fireEvent.click(screen.getByText("Add"));
 
     fireEvent.change(kindSelect(), { target: { value: "region" } });
 
     expect(screen.queryByText("Category")).not.toBeInTheDocument();
-    expect(screen.queryByText("Linked entity")).not.toBeInTheDocument();
     expect(screen.getByText("Map image")).toBeInTheDocument();
   });
 
@@ -397,14 +368,13 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
     );
   });
 
-  it("switching to city (T2) hides category/link and shows the map image field", () => {
+  it("switching to city (T2) hides category and shows the map image field", () => {
     render(<MapPOIPanel {...baseProps()} />);
     fireEvent.click(screen.getByText("Add"));
 
     fireEvent.change(kindSelect(), { target: { value: "city" } });
 
     expect(screen.queryByText("Category")).not.toBeInTheDocument();
-    expect(screen.queryByText("Linked entity")).not.toBeInTheDocument();
     expect(screen.getByText("Map image")).toBeInTheDocument();
   });
 

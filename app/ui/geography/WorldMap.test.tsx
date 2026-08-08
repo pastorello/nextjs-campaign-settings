@@ -78,10 +78,10 @@ vi.mock("@/app/lib/data/maps/createPlace", () => ({
   default: (...args: unknown[]) => createPlace(...args),
 }));
 
-const updatePoi =
+const updateZonePosition =
   vi.fn<(input: unknown) => Promise<{ ok: boolean; errors?: unknown }>>();
-vi.mock("@/app/lib/data/maps/updatePoi", () => ({
-  default: (input: unknown) => updatePoi(input),
+vi.mock("@/app/lib/data/maps/updateZonePosition", () => ({
+  default: (input: unknown) => updateZonePosition(input),
 }));
 
 // Has its own suite (SPEC-008 T5) — stubbed here so this file stays about
@@ -126,14 +126,6 @@ const useNavigableChildren = vi
 vi.mock("@/app/modules/maps/hooks/useNavigableChildren", () => ({
   useNavigableChildren: (...args: unknown[]) => useNavigableChildren(...args),
 }));
-const useLinkedEntityMarkers = vi
-  .fn<(...args: unknown[]) => unknown[]>()
-  .mockReturnValue([]);
-vi.mock("@/app/modules/maps/hooks/useLinkedEntityMarkers", () => ({
-  useLinkedEntityMarkers: (...args: unknown[]) =>
-    useLinkedEntityMarkers(...args),
-}));
-
 const setView = vi.fn();
 const setMinZoom = vi.fn();
 const setMaxZoom = vi.fn();
@@ -192,9 +184,8 @@ async function renderMap(mapUrl = "/maps/test.jpg") {
 beforeEach(() => {
   vi.clearAllMocks();
   createPlace.mockResolvedValue({ ok: true, id: 1 });
-  updatePoi.mockResolvedValue({ ok: true });
+  updateZonePosition.mockResolvedValue({ ok: true });
   useNavigableChildren.mockReturnValue([]);
-  useLinkedEntityMarkers.mockReturnValue([]);
   useUnplacedChildren.mockReturnValue([]);
 });
 
@@ -363,10 +354,9 @@ describe("WorldMap", () => {
     });
   });
 
-  it("bumps useNavigableChildren's and useLinkedEntityMarkers's refetch token after a successful create", async () => {
+  it("bumps useNavigableChildren's refetch token after a successful create", async () => {
     await renderMap();
     const navigableTokenBefore = useNavigableChildren.mock.calls.at(-1)?.[2];
-    const linkedTokenBefore = useLinkedEntityMarkers.mock.calls.at(-1)?.[1];
 
     await onAddPlace?.({
       kind: "region",
@@ -378,9 +368,7 @@ describe("WorldMap", () => {
 
     await waitFor(() => {
       const navigableTokenAfter = useNavigableChildren.mock.calls.at(-1)?.[2];
-      const linkedTokenAfter = useLinkedEntityMarkers.mock.calls.at(-1)?.[1];
       expect(navigableTokenAfter).not.toBe(navigableTokenBefore);
-      expect(linkedTokenAfter).not.toBe(linkedTokenBefore);
     });
   });
 
@@ -441,9 +429,12 @@ describe("WorldMap — positioning an unplaced place (TD-71, SPEC-005 §5.A)", (
     });
 
     await waitFor(() => {
-      expect(updatePoi).toHaveBeenCalledWith({ id: 5, lat: 10, lng: 20 });
+      expect(updateZonePosition).toHaveBeenCalledWith({
+        id: 5,
+        lat: 10,
+        lng: 20,
+      });
     });
-    expect(reloadPOIs).toHaveBeenCalled();
     await waitFor(() => {
       expect(screen.getByTestId("leaflet-map")).toHaveAttribute(
         "data-cursor",
@@ -452,7 +443,7 @@ describe("WorldMap — positioning an unplaced place (TD-71, SPEC-005 §5.A)", (
     });
   });
 
-  it("bumps the navigable/linked refetch token after a successful positioning", async () => {
+  it("bumps the navigable refetch token after a successful positioning", async () => {
     await renderMap();
     const tokenBefore = useNavigableChildren.mock.calls.at(-1)?.[2];
 
@@ -486,11 +477,11 @@ describe("WorldMap — positioning an unplaced place (TD-71, SPEC-005 §5.A)", (
     act(() => {
       onClick?.(10, 20);
     });
-    expect(updatePoi).not.toHaveBeenCalled();
+    expect(updateZonePosition).not.toHaveBeenCalled();
   });
 
   it("toasts and leaves the place unplaced when the update fails", async () => {
-    updatePoi.mockResolvedValue({ ok: false });
+    updateZonePosition.mockResolvedValue({ ok: false });
     await renderMap();
 
     act(() => {
@@ -503,6 +494,5 @@ describe("WorldMap — positioning an unplaced place (TD-71, SPEC-005 §5.A)", (
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith("placePositionFailed");
     });
-    expect(reloadPOIs).not.toHaveBeenCalled();
   });
 });

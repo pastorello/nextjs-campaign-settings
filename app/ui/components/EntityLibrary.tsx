@@ -5,6 +5,8 @@ import { fetchFilteredDeities } from "@/app/lib/data/deities/fetchFilteredDeitie
 import { fetchFilteredMagicItems } from "@/app/lib/data/magicitems/fetchFilteredMagicItems";
 import { fetchFilteredNpc } from "@/app/lib/data/npc/fetchFilteredNpc";
 import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
+import { fetchFilteredFactions } from "@/app/lib/data/faction/fetchFilteredFactions";
+import fetchFactionRosters from "@/app/lib/data/faction/fetchFactionRosters";
 
 import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
 import { toDerivedPlacements } from "@/app/modules/maps/lib/utils/deriveEntityAncestry";
@@ -14,6 +16,7 @@ import DeityLibrary from "../deities/DeityLibrary";
 import MagicItemLibrary from "../magicitems/MagicItemLibrary";
 import NpcLibrary from "../npc/NpcLibrary";
 import SpellLibrary from "../spells/SpellLibrary";
+import FactionLibrary from "../factions/FactionLibrary";
 
 /**
  * Where each record sits in the world tree (SPEC-004 T5a), resolved here
@@ -68,6 +71,13 @@ export default async function EntityLibrary(props: {
     case PageType.MagicItem:
       return (
         <MagicItemLibrary items={await fetchFilteredMagicItems(searchParams)} />
+      );
+    case PageType.Faction:
+      return (
+        <FactionLibrary
+          items={await fetchFilteredFactions(searchParams)}
+          rosters={await fetchFactionRosters()}
+        />
       );
   }
 }

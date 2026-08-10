@@ -11,6 +11,7 @@ import { fetchFilteredDeities } from "@/app/lib/data/deities/fetchFilteredDeitie
 import { fetchFilteredMagicItems } from "@/app/lib/data/magicitems/fetchFilteredMagicItems";
 import { fetchFilteredNpc } from "@/app/lib/data/npc/fetchFilteredNpc";
 import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
+import { fetchFilteredFactions } from "@/app/lib/data/faction/fetchFilteredFactions";
 import fetchEntityLocationSummaries from "@/app/lib/data/maps/fetchEntityLocationSummaries";
 import type LocationSummary from "@/app/lib/definitions/interfaces/maps/LocationSummary";
 
@@ -52,6 +53,8 @@ const fetchItems = (pageType: PageType, searchParams: SearchParamsInput) => {
       return fetchFilteredDeities(searchParams);
     case PageType.MagicItem:
       return fetchFilteredMagicItems(searchParams);
+    case PageType.Faction:
+      return fetchFilteredFactions(searchParams);
   }
 };
 

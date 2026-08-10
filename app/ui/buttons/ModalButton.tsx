@@ -12,6 +12,7 @@ import PageForm from "../forms/PageForm";
 import NpcForm from "../npc/NpcForm";
 import SpellForm from "../spells/SpellForm";
 import DeityForm from "../deities/DeityForm";
+import FactionForm from "../factions/FactionForm";
 
 interface ModalButtonProps {
   onSave?: (item: object) => void;
@@ -93,6 +94,18 @@ const ModalButton = ({
           )}
           {modalContent === "deityform" && (
             <DeityForm
+              {...componentProps}
+              onCancel={closeModal}
+              onSaveFinished={(item: object) => {
+                closeModal();
+                if (onSave) {
+                  onSave(item);
+                }
+              }}
+            />
+          )}
+          {modalContent === "factionform" && (
+            <FactionForm
               {...componentProps}
               onCancel={closeModal}
               onSaveFinished={(item: object) => {

@@ -123,6 +123,22 @@ const listConfig: Record<PageType, ListConfig> = {
     editModalTitleKey: "magicItems.form.editTitle",
     modalContent: "magicitemform",
   },
+
+  [PageType.Faction]: {
+    columns: [
+      {
+        fieldKey: "description",
+        labelKey: "common.fields.description.label",
+        // Free text, not a closed vocabulary — SortableHeader's built-in
+        // filter select needs `PageMeta.options`, which this field has none
+        // of.
+        isFiltrable: false,
+      },
+    ],
+    emptyMessageKey: "factions.page.emptyMessage",
+    editModalTitleKey: "factions.form.editTitle",
+    modalContent: "factionform",
+  },
 };
 
 export default listConfig;

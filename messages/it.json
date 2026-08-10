@@ -10,6 +10,7 @@
       "spells": "Incantesimi",
       "magicItems": "Oggetti magici",
       "npc": "Personaggi conosciuti",
+      "factions": "Fazioni",
       "manage": "Gestisci {section}",
       "signOut": "Esci",
       "language": "Lingua"
@@ -130,16 +131,46 @@
   },
   "spells": {
     "levels": {
-      "cantrip": { "label": "Trucchetto", "short": "0°" },
-      "level1": { "label": "1° Livello", "short": "1°" },
-      "level2": { "label": "2° Livello", "short": "2°" },
-      "level3": { "label": "3° Livello", "short": "3°" },
-      "level4": { "label": "4° Livello", "short": "4°" },
-      "level5": { "label": "5° Livello", "short": "5°" },
-      "level6": { "label": "6° Livello", "short": "6°" },
-      "level7": { "label": "7° Livello", "short": "7°" },
-      "level8": { "label": "8° Livello", "short": "8°" },
-      "level9": { "label": "9° Livello", "short": "9°" }
+      "cantrip": {
+        "label": "Trucchetto",
+        "short": "0°"
+      },
+      "level1": {
+        "label": "1° Livello",
+        "short": "1°"
+      },
+      "level2": {
+        "label": "2° Livello",
+        "short": "2°"
+      },
+      "level3": {
+        "label": "3° Livello",
+        "short": "3°"
+      },
+      "level4": {
+        "label": "4° Livello",
+        "short": "4°"
+      },
+      "level5": {
+        "label": "5° Livello",
+        "short": "5°"
+      },
+      "level6": {
+        "label": "6° Livello",
+        "short": "6°"
+      },
+      "level7": {
+        "label": "7° Livello",
+        "short": "7°"
+      },
+      "level8": {
+        "label": "8° Livello",
+        "short": "8°"
+      },
+      "level9": {
+        "label": "9° Livello",
+        "short": "9°"
+      }
     },
     "classes": {
       "bard": "Bardo",
@@ -261,16 +292,36 @@
       "ritual": "(rituale)"
     },
     "fields": {
-      "level": { "label": "Livello" },
-      "circle": { "label": "Sottoclassi" },
-      "classes": { "label": "Classi" },
-      "castingTime": { "label": "Tempo di lancio" },
-      "range": { "label": "Gittata" },
-      "components": { "label": "Componenti" },
-      "duration": { "label": "Durata" },
-      "savingThrow": { "label": "Tiro salvezza" },
-      "ritual": { "label": "Rituale" },
-      "concentration": { "label": "Richiede concentrazione" },
+      "level": {
+        "label": "Livello"
+      },
+      "circle": {
+        "label": "Sottoclassi"
+      },
+      "classes": {
+        "label": "Classi"
+      },
+      "castingTime": {
+        "label": "Tempo di lancio"
+      },
+      "range": {
+        "label": "Gittata"
+      },
+      "components": {
+        "label": "Componenti"
+      },
+      "duration": {
+        "label": "Durata"
+      },
+      "savingThrow": {
+        "label": "Tiro salvezza"
+      },
+      "ritual": {
+        "label": "Rituale"
+      },
+      "concentration": {
+        "label": "Richiede concentrazione"
+      },
       "upcast": {
         "label": "Ai livelli superiori",
         "placeholder": "Inserisci testo..."
@@ -365,22 +416,38 @@
       "element": "Elemento"
     },
     "fields": {
-      "color": { "label": "Colore magia" },
+      "color": {
+        "label": "Colore magia"
+      },
       "deityTitle": {
         "label": "Titolo",
         "placeholder": "Inserisci il titolo"
       },
-      "deityType": { "label": "Tipo" },
-      "deityRank": { "label": "Grado" },
-      "tarotCard": { "label": "Tarocco" },
-      "celestialBody": { "label": "Astro associato" },
-      "element": { "label": "Elemento" },
-      "deityClass": { "label": "Classe" },
+      "deityType": {
+        "label": "Tipo"
+      },
+      "deityRank": {
+        "label": "Grado"
+      },
+      "tarotCard": {
+        "label": "Tarocco"
+      },
+      "celestialBody": {
+        "label": "Astro associato"
+      },
+      "element": {
+        "label": "Elemento"
+      },
+      "deityClass": {
+        "label": "Classe"
+      },
       "holidays": {
         "label": "Festività",
         "placeholder": "Inserisci le festività"
       },
-      "tradition": { "label": "Tradizione" },
+      "tradition": {
+        "label": "Tradizione"
+      },
       "meaning": {
         "label": "Significato",
         "placeholder": "Inserisci il significato"
@@ -538,11 +605,23 @@
       "editButton": "Modifica PNG"
     },
     "fields": {
-      "title": { "label": "Titolo", "placeholder": "Inserisci titolo" },
-      "alignment": { "label": "Allineamento" },
-      "alignmentDomain": { "label": "Dominio" },
-      "position": { "label": "Mansione", "placeholder": "Inserisci mansione" },
-      "faction": { "label": "Fazione" },
+      "title": {
+        "label": "Titolo",
+        "placeholder": "Inserisci titolo"
+      },
+      "alignment": {
+        "label": "Allineamento"
+      },
+      "alignmentDomain": {
+        "label": "Dominio"
+      },
+      "position": {
+        "label": "Mansione",
+        "placeholder": "Inserisci mansione"
+      },
+      "faction": {
+        "label": "Fazione"
+      },
       "appearance": {
         "label": "Aspetto",
         "placeholder": "Inserisci aspetto"
@@ -555,7 +634,30 @@
         "label": "Motivazioni",
         "placeholder": "Inserisci motivazioni"
       },
-      "secrets": { "label": "Segreti", "placeholder": "Inserisci segreti" }
+      "secrets": {
+        "label": "Segreti",
+        "placeholder": "Inserisci segreti"
+      }
+    }
+  },
+  "factions": {
+    "page": {
+      "title": "Fazioni",
+      "searchPlaceholder": "Cerca fazioni...",
+      "itemSingular": "fazione",
+      "itemPlural": "fazioni",
+      "newItemButton": "Nuova fazione",
+      "emptyMessage": "Nessuna fazione trovata"
+    },
+    "form": {
+      "createTitle": "Crea nuova fazione",
+      "editTitle": "Modifica fazione",
+      "createButton": "Crea fazione",
+      "editButton": "Modifica fazione"
+    },
+    "card": {
+      "rosterTitle": "Membri",
+      "emptyRoster": "Nessun PNG appartiene ancora a questa fazione"
     }
   },
   "magicItems": {
@@ -597,8 +699,12 @@
       "attunementRequired": "Richiede sintonia"
     },
     "fields": {
-      "rarity": { "label": "Rarità" },
-      "type": { "label": "Tipo di oggetto" },
+      "rarity": {
+        "label": "Rarità"
+      },
+      "type": {
+        "label": "Tipo di oggetto"
+      },
       "attuned": {
         "label": "Richiede sintonia",
         "shortLabel": "Sintonia"

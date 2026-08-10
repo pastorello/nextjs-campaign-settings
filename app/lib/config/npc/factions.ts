@@ -3,7 +3,7 @@ import FactionItem from "@/app/lib/definitions/interfaces/npc/FactionItem";
 
 const factions: FactionItem[] = [
   {
-    value: 0,
+    value: 23,
     type: Faction.RegnoBianco,
     labelKey: "npc.factions.regnoBianco",
   },

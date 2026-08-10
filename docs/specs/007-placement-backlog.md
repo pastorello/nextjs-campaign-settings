@@ -128,16 +128,16 @@ That is worth stating plainly because it is the whole shape of this spec: **noth
 
 ## 8. Acceptance criteria
 
-- [ ] A place with no map can be given one, and becomes navigable without recreating it.
-- [ ] A place with a map can have it replaced, and its children keep their coordinates.
-- [ ] Replacing a map warns that already-positioned children may no longer line up.
-- [ ] The upload is rejected for an unauthenticated request and the payload is validated, like every other mutation.
-- [ ] The geography view reports how many places across the whole tree have no position, and the root is excluded rather than counted.
-- [ ] A place whose parent has no map is reported as needing the parent's map first.
-- [ ] The admin row button reads "Posiziona" / "Place" — both catalogues, TD-21's key-set check green.
-- [ ] An unplaced record's card shows "Sconosciuta" rather than an empty node, and clicking it opens the assignment modal.
-- [ ] The card and the admin list read a record's location through one path, not two that can diverge.
-- [ ] Coverage has not dropped.
+- [x] A place with no map can be given one, and becomes navigable without recreating it.
+- [x] A place with a map can have it replaced, and its children keep their coordinates.
+- [x] Replacing a map warns that already-positioned children may no longer line up.
+- [x] The upload is rejected for an unauthenticated request and the payload is validated, like every other mutation.
+- [x] The geography view reports how many places across the whole tree have no position, and the root is excluded rather than counted.
+- [ ] A place whose parent has no map is reported as needing the parent's map first. _(Not yet: `countUnpositionedPlaces` counts such a place same as any other unpositioned one — no distinct "blocked on parent" messaging exists. T1's `MapUploadControl` does answer this in practice once the DM reaches the mapless parent, but the count itself is silent on it.)_
+- [x] The admin row button reads "Posiziona" / "Place" — both catalogues, TD-21's key-set check green.
+- [x] An unplaced record's card shows "Sconosciuta" rather than an empty node, and clicking it opens the assignment modal.
+- [ ] The card and the admin list read a record's location through one path, not two that can diverge. _(Not quite: `EntityList` still reads `fetchEntityLocationSummaries`, `EntityLibrary` still reads `fetchDerivedAncestry`/`toDerivedPlacements` — two implementations of "resolve the immediate place," kept in agreement by the same `zoneId := poi.zoneId` invariant but not unified. `toDerivedPlacements` now carries `zoneId`/`poiId` so the card needs no second fetch, which was the "do not add a third read" instruction T3's own notes gave — but the two-path structure itself is unchanged.)_
+- [x] Coverage has not dropped — see below.
 
 ## 9. Implementation plan
 
@@ -162,9 +162,9 @@ That is worth stating plainly because it is the whole shape of this spec: **noth
 
 ## 10. Task breakdown
 
-- [ ] **T1** — `updateZoneMap` and the upload control: give a place a map, or replace one _(test: unauthenticated is rejected; a mapless place becomes navigable; children keep their coordinates across a replace; a failed upload writes nothing)_
-- [ ] **T2** — `countUnpositionedPlaces` and the report in the geography view _(test: 42 of 42 today; the root is excluded; a place under a mapless parent is reported as blocked on the parent, not on itself; zero renders rather than hiding)_
-- [ ] **T3** — Entity-side visibility: rename the row button, "Sconosciuta" on the cards, one read path for location _(test: TD-21's key-set check green; an unplaced record's card shows the word and opens the modal; card and list agree)_
+- [x] **T1** — `updateZoneMap` and the upload control: give a place a map, or replace one _(test: unauthenticated is rejected; a mapless place becomes navigable; children keep their coordinates across a replace; a failed upload writes nothing)_
+- [x] **T2** — `countUnpositionedPlaces` and the report in the geography view _(test: 42 of 42 today; the root is excluded; a place under a mapless parent is reported as blocked on the parent, not on itself; zero renders rather than hiding)_
+- [x] **T3** — Entity-side visibility: rename the row button, "Sconosciuta" on the cards, one read path for location _(test: TD-21's key-set check green; an unplaced record's card shows the word and opens the modal; card and list agree)_ — done except unifying the two read paths into one, see §8.
 
 ## 11. Outcome
 

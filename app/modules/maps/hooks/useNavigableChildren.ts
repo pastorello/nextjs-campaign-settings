@@ -17,7 +17,10 @@ export interface NavigableChild {
   lat: number;
   lng: number;
   // The child's own map — what `GeographyExplorer` needs to descend into it.
-  mapImage: string;
+  // `null` for a positioned child that has never been given one (SPEC-007
+  // T1): it is still reachable, just empty ground with an upload control on
+  // it once `onDescend` fires, rather than a place to browse.
+  mapImage: string | null;
   mapBounds: unknown;
   mapInitialView: unknown;
   mapInitialZoom: number | null;
@@ -28,6 +31,12 @@ export interface NavigableChild {
  * for the "clicking the material world does nothing" defect in §1; T2 widens
  * "navigable" from `region` alone to `NAVIGABLE_PLACE_KINDS`) as clickable
  * markers, calling `onDescend` when one is clicked.
+ *
+ * A positioned child with no map of its own is included too (SPEC-007 T1) —
+ * excluding it, the earlier behaviour, is exactly the bug SPEC-007 §1
+ * describes: four branches were positioned but permanently unreachable
+ * because nothing could ever click through to give them a map. It renders
+ * with a distinct icon so the DM can tell "not drawn yet" from "drawn".
  *
  * A navigable place is created through `MapPOIPanel`'s kind selector
  * (SPEC-004 M5), which doesn't touch this hook's own list —
@@ -118,10 +127,8 @@ export function useNavigableChildren(
           ): row is PlaceChild & {
             lat: number;
             lng: number;
-            mapImage: string;
           } =>
             (NAVIGABLE_PLACE_KINDS as readonly string[]).includes(row.kind) &&
-            row.mapImage !== null &&
             row.lat !== null &&
             row.lng !== null
         );
@@ -164,14 +171,18 @@ export function useNavigableChildren(
       markersRef.current = [];
 
       for (const child of children) {
+        // SPEC-007 T1 — grey/dashed for "positioned but no map of its own
+        // yet" versus the solid green of an actually-drawn place, so the DM
+        // can tell the two apart before clicking through.
+        const hasMap = child.mapImage !== null;
         const marker = L.marker([child.lat, child.lng], {
           // TD-71, SPEC-005 §5.B — draggable to reposition.
           draggable: true,
           icon: L.divIcon({
             className: "custom-navigable-marker",
             html: `
-          <div class="w-9 h-9 bg-green-600 border-3 border-white rounded-full shadow-[0_3px_8px_rgba(0,0,0,0.3)] flex items-center justify-center cursor-pointer">
-            <div class="text-base">🗺️</div>
+          <div class="w-9 h-9 ${hasMap ? "bg-green-600" : "bg-gray-400 border-dashed"} border-3 border-white rounded-full shadow-[0_3px_8px_rgba(0,0,0,0.3)] flex items-center justify-center cursor-pointer">
+            <div class="text-base">${hasMap ? "🗺️" : "❔"}</div>
           </div>
         `,
             iconSize: [36, 36],

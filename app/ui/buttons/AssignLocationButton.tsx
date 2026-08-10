@@ -30,13 +30,22 @@ interface AssignLocationButtonProps {
   currentZoneId: number | null;
   currentPoiId: number | null;
   currentLocationLabel: string;
+  /**
+   * `"button"` (default) is the admin list's row action, labelled
+   * "Posiziona"/"Place". `"text"` is the card's own trigger (SPEC-007 T3) —
+   * `currentLocationLabel` itself becomes the clickable element, so a card
+   * showing "Sconosciuta" or a place name opens the same modal, the same
+   * action, with no second implementation.
+   */
+  variant?: "button" | "text";
 }
 
 /**
  * The admin list's per-row entry point into the assignment modal (SPEC-008
  * T5) — the other entry point is the map (SPEC-008 §5), which pre-fills the
  * Zone from whatever is currently in view instead of from a fetched
- * summary, but calls the exact same `assignAction`.
+ * summary, but calls the exact same `assignAction`. The card's own entry
+ * point (SPEC-007 T3) is a third, `variant="text"`.
  */
 export default function AssignLocationButton({
   pageType,
@@ -44,6 +53,7 @@ export default function AssignLocationButton({
   currentZoneId,
   currentPoiId,
   currentLocationLabel,
+  variant = "button",
 }: AssignLocationButtonProps) {
   const t = useTranslations("common.table");
   const router = useRouter();
@@ -51,13 +61,23 @@ export default function AssignLocationButton({
 
   return (
     <>
-      <BaseButton
-        onClick={() => setIsOpen(true)}
-        size={ButtonSize.small}
-        variant={ButtonVariant.secondary}
-      >
-        {t("assignLocation")}
-      </BaseButton>
+      {variant === "text" ? (
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="text-left hover:underline"
+        >
+          {currentLocationLabel}
+        </button>
+      ) : (
+        <BaseButton
+          onClick={() => setIsOpen(true)}
+          size={ButtonSize.small}
+          variant={ButtonVariant.secondary}
+        >
+          {t("assignLocation")}
+        </BaseButton>
+      )}
       <AssignLocationModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}

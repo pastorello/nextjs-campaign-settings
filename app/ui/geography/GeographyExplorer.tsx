@@ -23,6 +23,9 @@ import WorldMap from "@/app/ui/geography/WorldMap";
 interface PlaceStackEntry {
   id: number;
   title: string;
+  // Empty for a positioned place with no map of its own yet (SPEC-007 T1) —
+  // `WorldMap` renders empty ground with `MapUploadControl` on it rather
+  // than an image overlay.
   mapUrl: string;
   bounds: L.LatLngBoundsExpression;
   initialView: L.LatLngExpression;
@@ -32,7 +35,7 @@ interface PlaceStackEntry {
 function toStackEntry(place: {
   id: number;
   title: string;
-  mapImage: string;
+  mapImage: string | null;
   mapBounds: unknown;
   mapInitialView: unknown;
   mapInitialZoom: number | null;
@@ -40,7 +43,7 @@ function toStackEntry(place: {
   return {
     id: place.id,
     title: place.title,
-    mapUrl: `/api/maps/${place.mapImage}/image`,
+    mapUrl: place.mapImage ? `/api/maps/${place.mapImage}/image` : "",
     bounds: parsePlaceMapBounds(place.mapBounds),
     initialView: parsePlaceMapInitialView(place.mapInitialView),
     initialZoom: parsePlaceMapInitialZoom(place.mapInitialZoom),
@@ -58,7 +61,16 @@ function toStackEntry(place: {
  * MVP (SPEC-004 §10 M7), so "how did I get here" only needs to be undone one
  * step at a time, which the DM's own navigation already remembers.
  */
-export default function GeographyExplorer({ root }: { root: RootPlace }) {
+export default function GeographyExplorer({
+  root,
+  unpositionedCount,
+}: {
+  root: RootPlace;
+  // Tree-wide, not scoped to the place in view (SPEC-007 T2) — how much of
+  // the world is still undrawn. Rendered even at zero: its absence would be
+  // ambiguous with "not computed" (SPEC-007 §5 edge cases).
+  unpositionedCount: number;
+}) {
   const t = useTranslations("geography");
   const [stack, setStack] = useState<PlaceStackEntry[]>([toStackEntry(root)]);
   const current = stack[stack.length - 1] ?? stack[0];
@@ -69,6 +81,21 @@ export default function GeographyExplorer({ root }: { root: RootPlace }) {
 
   const handleAscend = () => {
     setStack((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
+  };
+
+  // The place currently being viewed just got a map, or had its map
+  // replaced (SPEC-007 T1) — patch the top of the stack in place rather than
+  // re-fetching; `mapBounds`/`mapInitialView`/`mapInitialZoom` are untouched
+  // by design (re-cropping is out of scope, SPEC-007 §3).
+  const handleMapChanged = (mapImage: string) => {
+    setStack((prev) => {
+      const last = prev[prev.length - 1];
+      if (!last) return prev;
+      return [
+        ...prev.slice(0, -1),
+        { ...last, mapUrl: `/api/maps/${mapImage}/image` },
+      ];
+    });
   };
 
   if (!current) return null;
@@ -82,6 +109,9 @@ export default function GeographyExplorer({ root }: { root: RootPlace }) {
           </BaseButton>
         )}
         <PageTitle>{current.title}</PageTitle>
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          {t("unpositionedCount", { count: unpositionedCount })}
+        </span>
       </div>
       <div className="relative w-full h-screen">
         <MapErrorBoundary>
@@ -93,6 +123,7 @@ export default function GeographyExplorer({ root }: { root: RootPlace }) {
               initialView={current.initialView}
               initialZoom={current.initialZoom}
               onDescend={handleDescend}
+              onMapChanged={handleMapChanged}
             />
             <MapLoadingSpinner />
           </MapProvider>

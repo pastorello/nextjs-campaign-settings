@@ -24,11 +24,12 @@ interface CapturedWorldMapProps {
     title: string;
     lat: number;
     lng: number;
-    mapImage: string;
+    mapImage: string | null;
     mapBounds: unknown;
     mapInitialView: unknown;
     mapInitialZoom: number | null;
   }) => void;
+  onMapChanged: (mapImage: string) => void;
 }
 
 let capturedProps: CapturedWorldMapProps | null = null;
@@ -72,7 +73,18 @@ const skreebars = {
   mapInitialZoom: null,
 };
 
-function descend(child: typeof kang) {
+const cieli = {
+  id: 4,
+  title: "Cieli",
+  lat: 5,
+  lng: 5,
+  mapImage: null,
+  mapBounds: null,
+  mapInitialView: null,
+  mapInitialZoom: null,
+};
+
+function descend(child: typeof kang | typeof cieli) {
   act(() => {
     capturedProps?.onDescend(child);
   });
@@ -84,9 +96,23 @@ function ascend() {
   });
 }
 
+describe("GeographyExplorer — unpositioned count (SPEC-007 T2)", () => {
+  it("renders the count beside the title", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={42} />);
+
+    expect(screen.getByText("unpositionedCount")).toBeInTheDocument();
+  });
+
+  it("still renders when every place is positioned, rather than hiding", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={0} />);
+
+    expect(screen.getByText("unpositionedCount")).toBeInTheDocument();
+  });
+});
+
 describe("GeographyExplorer (SPEC-004 M7)", () => {
   it("renders the root's own map and title, no up button", () => {
-    render(<GeographyExplorer root={root} />);
+    render(<GeographyExplorer root={root} unpositionedCount={7} />);
 
     expect(screen.getByTestId("world-map")).toHaveTextContent(
       "/api/maps/aerivel.png/image"
@@ -97,7 +123,7 @@ describe("GeographyExplorer (SPEC-004 M7)", () => {
   });
 
   it("descends into a navigable child, replacing the map and title", () => {
-    render(<GeographyExplorer root={root} />);
+    render(<GeographyExplorer root={root} unpositionedCount={7} />);
 
     descend(kang);
 
@@ -109,7 +135,7 @@ describe("GeographyExplorer (SPEC-004 M7)", () => {
   });
 
   it("shows the up button once descended, and ascends back to the root on click", () => {
-    render(<GeographyExplorer root={root} />);
+    render(<GeographyExplorer root={root} unpositionedCount={7} />);
 
     descend(kang);
     expect(screen.getByText("up")).toBeInTheDocument();
@@ -121,7 +147,7 @@ describe("GeographyExplorer (SPEC-004 M7)", () => {
   });
 
   it("descends two levels and returns to the root one step at a time", () => {
-    render(<GeographyExplorer root={root} />);
+    render(<GeographyExplorer root={root} unpositionedCount={7} />);
 
     descend(kang);
     descend(skreebars);
@@ -137,7 +163,7 @@ describe("GeographyExplorer (SPEC-004 M7)", () => {
   });
 
   it("falls back to the default bounds/view/zoom when the place has none stored", () => {
-    render(<GeographyExplorer root={root} />);
+    render(<GeographyExplorer root={root} unpositionedCount={7} />);
 
     expect(capturedProps?.bounds).toEqual([
       [0, 0],
@@ -145,5 +171,33 @@ describe("GeographyExplorer (SPEC-004 M7)", () => {
     ]);
     expect(capturedProps?.initialView).toEqual([1000, 1000]);
     expect(capturedProps?.initialZoom).toBe(-2);
+  });
+
+  it("descends into a mapless child with a blank mapUrl (SPEC-007 T1)", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={7} />);
+
+    descend(cieli);
+
+    expect(screen.getByTestId("world-map")).toHaveTextContent("");
+    expect(screen.getByText("Cieli")).toBeInTheDocument();
+    expect(capturedProps?.parentId).toBe(4);
+  });
+
+  it("patches the current place's map after WorldMap reports it changed", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={7} />);
+
+    descend(cieli);
+    expect(screen.getByTestId("world-map")).toHaveTextContent("");
+
+    act(() => {
+      capturedProps?.onMapChanged("cieli.png");
+    });
+
+    expect(screen.getByTestId("world-map")).toHaveTextContent(
+      "/api/maps/cieli.png/image"
+    );
+    // Still on the same place, not pushed as a new stack entry.
+    expect(screen.getByText("Cieli")).toBeInTheDocument();
+    expect(screen.queryByText("up")).toBeInTheDocument();
   });
 });

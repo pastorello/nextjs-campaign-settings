@@ -22,10 +22,10 @@ import { useUnplacedChildren } from "@/app/modules/maps/hooks/useUnplacedChildre
 import type { POICategory, POIGeoJSON } from "@/app/modules/maps/types/poi";
 import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
 import isValidString from "@/app/lib/utils/validators/isValidString";
-import { notifyError } from "@/app/lib/notifications/notify";
 import createPlace from "@/app/lib/data/maps/createPlace";
 import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
 import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
+import MapUploadControl from "@/app/ui/geography/MapUploadControl";
 
 /**
  * WorldMap - the map view backing `/dashboard/geography`.
@@ -56,6 +56,7 @@ function WorldMap({
   initialView,
   initialZoom,
   onDescend,
+  onMapChanged,
 }: {
   parentId: number;
   mapUrl: string;
@@ -63,6 +64,11 @@ function WorldMap({
   initialView: L.LatLngExpression;
   initialZoom: number;
   onDescend: (child: NavigableChild) => void;
+  // The place currently being viewed just got a map, or had its map
+  // replaced (SPEC-007 T1) — `GeographyExplorer` owns the stack of places
+  // being viewed, so it patches the current entry rather than this
+  // component re-fetching anything.
+  onMapChanged: (mapImage: string) => void;
 }) {
   const t = useTranslations("geography.errors");
   const [isMeasurementOpen, setIsMeasurementOpen] = useState(false);
@@ -298,10 +304,10 @@ function WorldMap({
   );
 
   useEffect(() => {
-    if (!isValidString(mapUrl)) {
-      notifyError(t("mapNotConfigured"));
-      return;
-    }
+    // A blank `mapUrl` is a legitimate state now (SPEC-007 T1) — a
+    // positioned place that has never been given a map of its own renders
+    // as empty ground with `MapUploadControl` on it, not an error.
+    if (!isValidString(mapUrl)) return;
 
     let cancelled = false;
 
@@ -368,6 +374,14 @@ function WorldMap({
       <AttachEntityButton
         zoneId={parentId}
         onAttached={() => setPlacesRefetchToken((token) => token + 1)}
+      />
+
+      {/* Give the place currently being viewed a map, or replace it
+          (SPEC-007 T1). */}
+      <MapUploadControl
+        placeId={parentId}
+        hasMap={isValidString(mapUrl)}
+        onMapChanged={onMapChanged}
       />
 
       {/* Measurement Panel */}

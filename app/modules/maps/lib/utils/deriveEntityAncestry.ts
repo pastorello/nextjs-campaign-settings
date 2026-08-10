@@ -94,14 +94,22 @@ export function findAncestorOfKind(
 }
 
 /**
- * The two titles the cards actually display, keyed by record id — the
- * derived replacements for `location` (the place) and `residence` (the
- * plane containing it).
+ * What the cards actually display, plus what re-assigning a record needs,
+ * keyed by record id — the derived replacements for `location` (the place)
+ * and `residence` (the plane containing it), and `zoneId`/`poiId` for
+ * `AssignLocationButton` (SPEC-007 T3).
  *
- * A plain object of plain strings rather than the `PlaceAncestor[]` chain
- * itself: these cross into client components (`NpcCard`, `DeityCard`), and
- * *which* ancestor counts as the plane is a tree question that belongs on
- * the server beside the walk that answered it, not restated per card.
+ * A plain object of plain strings and ids rather than the `PlaceAncestor[]`
+ * chain itself: these cross into client components (`NpcCard`,
+ * `DeityCard`), and *which* ancestor counts as the plane — or is the
+ * landmark versus the zone — is a tree question that belongs on the server
+ * beside the walk that answered it, not restated per card.
+ *
+ * `zoneId`/`poiId` are read off `chain` rather than a second query
+ * (SPEC-007 §7: "do not add a third read") — the nearest entry is either
+ * the landmark (`kind: "poi"`, in which case the entry right after it is
+ * always its own zone, per `resolveLocationAssignment`'s invariant that
+ * `zoneId := poi.zoneId`) or the zone itself.
  */
 export function toDerivedPlacements(
   ancestry: Map<number, PlaceAncestor[]>
@@ -109,9 +117,14 @@ export function toDerivedPlacements(
   const placements: Record<number, DerivedPlacement> = {};
 
   for (const [recordId, chain] of ancestry) {
+    const immediate = chain[0];
+    const isPoi = immediate?.kind === "poi";
+
     placements[recordId] = {
-      place: chain[0]?.title ?? null,
+      place: immediate?.title ?? null,
       plane: findAncestorOfKind(chain, "plane")?.title ?? null,
+      zoneId: (isPoi ? chain[1]?.id : immediate?.id) ?? null,
+      poiId: isPoi ? immediate.id : null,
     };
   }
 

@@ -75,6 +75,8 @@ const formFields: Record<PageType, MetaConfigKey[]> = {
     DeityMetaField.alignmentDomain,
     DeityMetaField.meaning,
   ],
+
+  [PageType.Faction]: ["name", "description"],
 };
 
 export default formFields;

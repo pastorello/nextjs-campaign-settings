@@ -81,6 +81,10 @@ const queryFields: Record<PageType, MetaConfigKey[]> = {
     MagicItemMetaField.type,
     MagicItemMetaField.attuned,
   ],
+
+  // A faction's name is its only searchable content — description is prose,
+  // not a filter target, same reasoning as magic items excluding theirs.
+  [PageType.Faction]: ["name"],
 };
 
 export default queryFields;

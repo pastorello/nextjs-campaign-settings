@@ -114,8 +114,8 @@ Every record is checked against the same Zod validators the app's own mutations 
 
 ```
 app/
-├── api/            route handlers — 4 DELETE endpoints + read-only GeoJSON
-├── dashboard/      authenticated pages, one route per domain
+├── api/            route handlers — 4 DELETE, 2 read-only GeoJSON, 2 map image
+├── [locale]/       authenticated pages under dashboard/, one route per domain
 ├── lib/
 │   ├── config/     ← field metadata: start here
 │   ├── data/       data access, one function per file

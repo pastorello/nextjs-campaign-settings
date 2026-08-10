@@ -98,9 +98,14 @@ Everything below needs a spec before implementation.
 
 - **✅ Map POIs in the database.** POIs moved out of `localStorage` into Postgres, each optionally linked to exactly one entity — `npc` or `deities` today, extensible to locations, dungeons and treasure without a migration per type. Clicking a marker opens the linked entity. Done 2026-08-01. _(TD-14; specified in [SPEC-002](./specs/002-map-poi-persistence.md).)_
 - **Campaigns as stories, not as scoping.** _(Reframed 2026-08-06 — this entry previously read "Multi-campaign support: a `Campaign` model with `campaignId` on every entity".)_ A campaign is **a storyline that plays out inside the universe**, not a boundary around every record. Each DM authors exactly one universe — that is the root of everything, per [SPEC-004](./specs/004-world-model.md) — and may run several campaigns within it. What exists today are the raw materials: spells, magic items, NPCs, deities and the map. Plot, sessions and encounters are the part not yet designed, and no `campaignId` belongs on any entity until they are.
-- **Factions the DM can author.** SPEC-004 T1 shipped the `faction` table and its foreign key, and **nothing reads either** — the UI still renders the hardcoded `factions.ts` list beside them. Unblocking that means solving the problem SPEC-003 §7 raised and SPEC-004 §7 inherited: letting a `PageMeta` field say "my options are rows in a table" without making the other twenty option-backed fields async or forking the metadata layer into two code paths. Specified in [SPEC-006](./specs/006-table-backed-options.md) (Draft, 2026-08-08), which finds the existing foreign key can take over the membership check `optionValueValidator` does today — which is what keeps `buildEntitySchema` synchronous and stops the change cascading into every mutation. _(Related: TD-61, TD-74.)_
-- **Finding records nobody has placed.** Now that SPEC-004 T5b has landed, a record's location comes only from its map pin, and a record created through the form has no pin — invisible to the geography page, and findable in the admin list only by eyeballing a blank column across 119 rows. Specified in [SPEC-007](./specs/007-placement-backlog.md) (Draft, 2026-08-08); deliberately small.
-- **Cross-entity search.** One search box across spells, items, NPCs and deities.
+- **Factions the DM can author.** SPEC-004 T1 shipped the `faction` table and its foreign key, and **nothing reads either** — the UI still renders the hardcoded `factions.ts` list beside them. Specified in [SPEC-006](./specs/006-factions.md) (Draft, rewritten 2026-08-10). The rewrite reframed the item: a faction is an **entity**, not an option list — it has a description now and an emblem later, and it earns a page of its own alongside the other four domains. The table-backed-options mechanism is still needed for the NPC form's dropdown and is still designed the way the first draft argued (the existing foreign key takes over the membership check `optionValueValidator` does today, which is what keeps `buildEntitySchema` synchronous), but it is the last task rather than the point. Two decisions worth knowing before reading it: faction names stop being translated (they are content, like `zone.title`), and a faction has **no** place in the world tree — an emissary of Kang may stand in the orc kingdom. _(Related: TD-61, TD-74.)_
+- **Finding records nobody has placed.** Specified in [SPEC-007](./specs/007-placement-backlog.md) (Agreed, rewritten 2026-08-10). **The rewrite shrank it to three tasks**, because SPEC-008 shipped both halves the original draft set out to build — the "Sconosciuta" filter and a per-row placement button — a week after that draft was written. What is left is that none of it is findable: an unplaced record's card renders an empty region, the row button is labelled with a noun, and nothing counts. The DM, asked directly, did not know the button existed.
+- **Making the world drawable — SPEC-007, SPEC-009 and SPEC-010, in that order.** A 2026-08-10 audit against the live database found the thing none of the specs had noticed: **the world is fully described and entirely undrawn.** Forty-two places sit in a correct tree and not one has ever been given coordinates; four of the seven places that have children have no map, and a map can only be set at creation, so those branches are permanently undrawable. Three specs came out of it, and they are a sequence:
+  - [SPEC-007](./specs/007-placement-backlog.md) — give a place a map after creation (the unblocker), count what is undrawn, and make an unplaced record say so. No schema change.
+  - [SPEC-009](./specs/009-zones-as-areas.md) — a place can be drawn as a rectangle rather than a dot, and containment becomes spatially true: a pin and an area never share ground, so anything inside an area belongs on that area's map, one level down.
+  - [SPEC-010](./specs/010-deleting-a-place.md) — **there is no way to remove a place from the tree, none, anywhere in the app.** Creating a branch is irreversible through the UI. This is a prerequisite rather than a nicety: the DM intends to rebuild the tree's structure from scratch once the other two land, and today that cannot start.
+
+- **Cross-entity search.** One search box across spells, items, NPCs and deities. **Deliberately still unspecced as of 2026-08-10**, though it is the last Phase 3 item without a spec: it is the least defined of the three, it blocks nothing, and writing it after SPEC-006 ships will produce a better document than writing it now. The DM does want it — see "What the DM actually asks for" below.
 
 ---
 
@@ -140,6 +145,33 @@ Recording these prevents rediscussing them:
 - **Public multi-tenant hosting.** Self-hosted by design; changing that brings GDPR, billing and abuse concerns that dwarf the app.
 - **A mobile app.** Responsive web is sufficient. _(See [ADR-0004](./adr/0004-server-actions-over-rest-api.md) on when an API layer would become justified.)_
 - **AI-generated content in-app.** Tempting and easy to bolt on; adds a paid dependency and a moderation surface for a feature the target user (one DM, their own world) mostly does not want.
+
+---
+
+## What the DM actually asks for
+
+**This list is not the phase order, and it is not meant to be.** The phases order
+work by what the codebase needs; this records what the person using the app says
+they miss, asked directly on **2026-08-10**. Where the two disagree, that is worth
+knowing rather than smoothing over — a Phase 5 item the DM names unprompted is
+better evidence of value than a Phase 3 item nobody has asked for.
+
+Named, in the same breath:
+
+- **Formatted text in descriptions.** Today a description is one block of plain
+  text; formatting it means hand-writing HTML. Phase 5's "Rich text in
+  descriptions", and the same work as **TD-76** — see that item for why the two
+  should be scheduled together rather than one after the other.
+- **Images.** NPC portraits, item illustrations, faction emblems. Phase 5's "Image
+  uploads". The upload machinery already exists for maps (ADR-0008), so the cost
+  is mostly deciding where images live and how they are served, not building a
+  store. SPEC-006 §3 defers the faction emblem to its own spec for this reason.
+- **Cross-entity search.** Phase 3, above.
+
+None of these displaces SPEC-006 and SPEC-007, which are agreed and next. They are
+recorded here so the question "what should Phase 4 actually contain?" has evidence
+behind it when it comes up, instead of being answered from the 2026-07-22 list
+alone.
 
 ---
 

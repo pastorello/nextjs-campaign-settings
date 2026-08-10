@@ -2085,7 +2085,7 @@ This was correct purely by accident of the colliding fields being identical: `al
 
 **What made it debt rather than a design** is that nothing distinguished deliberate sharing from an accidental collision. If someone added a `deities.title` while `npcMeta` already declared `title` — plausible, both domains have one, and they mean different things — the deity form and list would have silently rendered the NPC field's label, placeholder, options and validator. No compiler error, no test failure unless one happened to assert that exact label. SPEC-003 §1 spotted this and recorded it as "worth recording for a future reader, though not this spec's business"; it was true and unguarded from then until this fix.
 
-The risk was rising with [SPEC-006](./specs/006-table-backed-options.md): once a field can declare `optionTable`, a collision would silently swap not just a label but _where a field's options come from_ — this guard is now in place before SPEC-006 T6 switches `npcMeta.faction` to a table source.
+The risk was rising with [SPEC-006](./specs/006-factions.md): once a field can declare `optionTable`, a collision would silently swap not just a label but _where a field's options come from_ — this guard is now in place before SPEC-006 T6 switches `npcMeta.faction` to a table source.
 
 ---
 

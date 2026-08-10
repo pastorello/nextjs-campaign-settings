@@ -1,9 +1,9 @@
 # Technical Debt Register
 
-**Last updated:** 2026-08-08
+**Last updated:** 2026-08-10
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: none.** Everything in the summary table is closed.
+**Open items: TD-76.** Everything else in the summary table is closed.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -97,6 +97,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-73 | ✅ `.env.test.example`'s documented e2e setup (`prisma db push`) leaves a fresh DB unable to seed           | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-74 | ✅ `pageMetaFields` spread four domain metas into one flat object — a name collision silently discarded one | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-75 | ✅ `pnpm test` fails on a clean checkout — one suite needs a `DATABASE_URL` that only CI provides           | ~~🟡 Medium~~ done   | S      | 3     |
+| TD-76 | `renderRichText` injects stored text as raw HTML with no sanitisation                                       | 🟡 Medium            | S      | 3     |
 
 ---
 
@@ -112,4 +113,41 @@ Everything the 2026-07-22 audit found, plus everything found while doing the wor
 
 ## Open items
 
-None.
+### TD-76 — `renderRichText` injects stored text as raw HTML
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-08-10, while auditing the specs
+
+`app/lib/utils/data/renderRichText.tsx` is four lines:
+
+```tsx
+const renderRichText = (datum: string): ReactNode => (
+  <div dangerouslySetInnerHTML={{ __html: datum }} />
+);
+```
+
+It is the `getDatum` of every `description` field, so **every description in the
+database is rendered as unsanitised HTML** on the card and list pages.
+
+**Why this is Medium and not Critical.** The app is self-hosted, single-user, and
+the only author of that text is the DM writing about their own world. There is no
+untrusted submitter today, and non-negotiable rule #2 (validate at the boundary)
+is satisfied for _shape_ — `z.string()` accepts the text, which is correct; it is
+the _rendering_ that trusts it.
+
+**Why it is not Low either.** Two of the boundaries are already wider than "the DM
+types it":
+
+- **`pnpm db:import`** loads a JSON file from disk through the same Zod
+  validators. A library exported from somewhere else, or edited by hand, reaches
+  `renderRichText` unchanged.
+- **The player-facing read-only view** (`ROADMAP.md` Phase 5) is the point at
+  which a second reader exists, and it is the wrong moment to discover this.
+
+**The fix is small** — sanitise on the way out, or keep the field plain text and
+render Markdown instead. That second option is not a workaround: `ROADMAP.md`
+Phase 5 already lists "Rich text in descriptions — `renderRichText` exists as a
+stub; make it real", and the DM named formatted descriptions as one of the three
+things they miss most (2026-08-10). **So this item and that feature are the same
+piece of work, and doing them together is cheaper than doing either alone.**
+Decide the direction when it is scheduled; do not sanitise HTML now and then
+replace it with Markdown next month.

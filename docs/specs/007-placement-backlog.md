@@ -1,109 +1,170 @@
-# SPEC-007: Finding the records nobody has placed yet
+# SPEC-007: The world is described but not drawn
 
-- **Status:** Draft — not agreed, not started. **Small**; sized deliberately, see §3.
-- **Date:** 2026-08-08
+- **Status:** Agreed 2026-08-10 — third draft. The first two aimed at the wrong problem; §0 says how, because the reason matters more than the correction.
+- **Date:** 2026-08-08, rewritten twice on 2026-08-10
 - **Phase:** 3
-- **Related:** created by [SPEC-004](./004-world-model.md) T5b (dropping the location columns makes the pin the only source); consumes T4/T5a's derived location; adjacent to [SPEC-005](./005-place-repositioning.md) (positioning a place that already has a parent) and TD-71's `useUnplacedChildren`
+- **Related:** completes the half of [SPEC-004](./004-world-model.md) M4 that only ever ran once (a place gets its map at creation and never again); consumes [SPEC-005](./005-place-repositioning.md)'s repositioning flow and TD-71's `useUnplacedChildren`; hands the area-selection half to [SPEC-009](./009-zones-as-areas.md)
 
 ---
 
+## 0. Why this spec was wrong twice
+
+Worth recording, because both mistakes were the same mistake and neither was visible from the prose.
+
+**The 2026-08-08 draft** asked how to find records with no pin and spent its §7 on a design question — teach the metadata layer a derived predicate, or resolve an id list — because "unplaced" was not a column. SPEC-008 landed the same week and made it one (`npc.zoneId`), shipped the filter that uses it (`LocationFilterControl`'s "Sconosciuta", T6) **and** the per-row placement button (`AssignLocationButton`, T5). The question was withdrawn, not answered.
+
+**The first 2026-08-10 rewrite** then aimed at the entities: a count of NPCs and deities with no zone. **That backlog is empty.** Checked against the live database the same afternoon: 119 of 119 NPCs and 5 of 5 deities have a `zoneId`. The badge would have read zero on every page it was added to.
+
+**What the database actually says** — the numbers that should have been read first, before either draft:
+
+| Table             | Rows | Positioned | With a map of their own |
+| ----------------- | ---- | ---------- | ----------------------- |
+| `zone` (places)   | 42   | **0**      | 4                       |
+| `poi` (landmarks) | 0    | —          | —                       |
+| `npc` + `deities` | 124  | 124        | —                       |
+
+**The world is fully described and entirely undrawn.** Forty-two places exist in a correct parent/child tree, and not one has ever been given coordinates on its parent's map. The entities all point at zones; the zones point nowhere.
+
+> **The habit this should install.** Two drafts in a row reasoned from a spec's description of the data instead of the data. Both were wrong within the week. **Read the schema and count the rows before planning against a spec that has been sitting in Draft** — five minutes of `psql` would have caught both.
+
 ## 1. Problem
 
-Once SPEC-004 T5b lands, **an NPC's location comes only from where their pin sits in the world tree**, and the creation form no longer has a location field. The DM creates Dexter Nemrod, saves, and Dexter exists nowhere in the world until someone goes to the Skreebars map and pins him. That much is by design (SPEC-004 §5.6).
+Three things stand between the tree as it exists and a world the DM can actually navigate.
 
-**What is not by design is that nothing tells the DM which records are waiting.**
+**1. Four branches cannot be drawn at all.** Positioning a child requires its parent to have a map. Of the seven places that have children, **four have no map**: _Cieli_ (2 children, 5 NPCs beneath it), _Selva Fatata_ (1 child, 4 NPCs), _Selva Oscura_ (1 child), _Inferi_ (1 child). And **a place's map can only be set when the place is created** — `createRootPlace` and `createPlace` accept `mapImage`, and no code path ever updates it. There is no `updateZoneMap`; the only place mutation that exists is `updateZonePosition`, which writes `lat`/`lng`.
 
-There is already an unplaced list, and it does not cover this case. `useUnplacedChildren` (TD-71) shows the children _of the place you are currently looking at_ that have no coordinates — a record that has a parent but has not been dragged onto the map yet. A record created through the form has **no pin at all**, so it is not a child of anything, and it appears in that list nowhere, on any map. It is invisible to the entire geography page.
+Recreating those four is not an escape route: **the app has no way to delete a place.** `deletePoi` deletes landmarks, not zones, and `onDelete: Restrict` would in any case require moving nine NPCs and deleting five children first.
 
-The information is not completely hidden: the admin list's "Location (map)" column (T4) is blank for such a record. But that column is `sortable: false` and has no filter, so finding the unplaced ones among 119 NPCs means eyeballing every row across every page of the table. In practice the DM will forget, and the record will sit locationless indefinitely — which after T5b means it has no location anywhere in the app, not merely a blank cell.
+**2. Nothing says how much is unplaced.** `useUnplacedChildren` (TD-71) lists the unplaced children _of the place currently in view_, inside `MapPOIPanel`. With every one of 42 places unplaced, the DM has no way to see the size of the job, or which branch to start with, without walking the tree by hand.
 
-The only thing that ever reported this reliably was `app/seed/verifyDerivedLocationsT5.ts`, a hand-run CLI script written as a one-time migration gate, not a feature — deleted once T5b dropped the columns it read, since it can no longer run.
+**3. The placement flow for entities is invisible.** Verified separately, and kept in scope because it is small and was found the same day:
+
+- On the consultation card, an unplaced record renders `props.placement?.place ?? ""` — an empty region where every other record shows a place name, indistinguishable from a rendering failure, with nothing to click.
+- The admin row's entry point is labelled **"Posizione"** — a noun, between "Modifica" and "Elimina", which are verbs. Asked directly whether they could assign a location from a row, the DM's answer was _"non lo sapevo."_
+
+This third strand affects zero records today and every record created from tomorrow: an NPC made through the form has no zone, and nothing about the UI would say so.
+
+### Two backlogs, not one
+
+Stated by the DM on 2026-08-10 and worth being precise about, because this spec's first two drafts confused them:
+
+- **A place without coordinates** is a place that exists, belongs to its parent, and has never been drawn on the parent's map. Forty-two of forty-two today.
+- **An entity without a place** is an NPC or deity whose `zoneId` is null. Zero today.
+
+**An entity inside an unpositioned place is not in either backlog.** It has a place; that place simply is not drawn yet. An NPC belongs to a _location_, never to coordinates — so a place losing its position does not detach anything from it. Only deleting the place itself leaves an entity with nowhere to be.
+
+The two counts are therefore separate numbers answering separate questions, and neither substitutes for the other.
+
+**Both backlogs will grow, and that is the argument for building the counts now rather than when they hurt.** [SPEC-010](./010-deleting-a-place.md) sends a deleted place's children — and its landmarks, once their coordinates become nullable — into the first backlog, and its entities into the second. The DM's plan to rebuild the tree from scratch will therefore fill both at once. A count that reads zero today is the instrument that makes that day survivable.
 
 ## 2. Goal
 
-The DM can see at a glance which NPCs and deities have no pin, and get from that list to placing one.
+Every place in the tree can be given a map and a position, the DM can see how much of the world is still undrawn, and a record that has no place says so where they will see it.
 
 ## 3. Non-goals
 
-**This spec is deliberately small, and the temptation it must resist is becoming a workflow feature.** It is a findability gap created by a sequencing decision, not a new capability.
-
-- **No bulk placement.** Placing records one at a time is fine; the count is small and each one needs the DM to decide where it goes.
-- **No new placement mechanism.** `MapPOIPanel` already creates an `npc`/`deity` pin under the current place with the cascading entity select (SPEC-004 M5). This spec routes the DM to that, it does not replace it.
-- **No "assign a default location on create".** That reintroduces exactly the stored-location second source of truth SPEC-004 §6 removed, one indirection further away.
-- **No notification, reminder or nag.** A list the DM chooses to look at, nothing that interrupts them.
-- **Not a general saved-filter or query-builder feature** on the admin lists. If a filter is the chosen shape, it is one filter for one condition.
+- **Zones as areas.** Drawing a zone as a rectangle rather than a pin is [SPEC-009](./009-zones-as-areas.md). This spec positions places with the mechanism that exists — a point — and does not pre-empt that decision.
+- **Deleting places.** A real gap (there is no way to remove a place, ever) but a separate one, with its own `onDelete: Restrict` consequences to think through. Filed as a ROADMAP item, not smuggled in here.
+- **Bulk or automatic placement.** No "scatter the unplaced children across the parent map". Where a place sits is the DM's decision and the whole point of drawing it.
+- **A new placement mechanism.** SPEC-005 already positions a place by dragging it onto its parent's map, and `AssignLocationModal` already assigns an entity. This spec adds a map where one is missing, a count, and an entry point — it does not touch either flow.
+- **Editing a map's bounds, initial view or zoom.** Those columns exist and default sensibly. Re-cropping a map is a separate need nobody has yet expressed.
+- **No notification or nag.** A number on a page the DM already opens.
 
 ## 4. User stories
 
-- As a DM, I want to **see which NPCs and deities I have not placed yet**, so none of them silently ends up with no location in my world.
-- As a DM looking at that list, I want to **get to the map and place one**, without hunting for the right map first.
+- As a DM, I want to **give a map to a place I already created**, so a branch I set up before I had the artwork is not permanently undrawable.
+- As a DM, I want to **replace a map** with a better version later, without recreating the place and everything under it.
+- As a DM, I want to **see how many places are still unpositioned**, so I know how much of my world is drawn.
+- As a DM, I want an unplaced record to **say it is unplaced**, so I do not read a blank space as a bug.
+- As a DM, I want to **place a record from wherever I noticed it was missing**.
 
 ## 5. Behaviour
 
-**Main flow**
+**Giving a place a map**
 
-1. The DM opens the NPC (or deities) admin list.
-2. A control filters the list to records with no pin. The count is visible without applying it — "3 not placed" is the useful signal; opening the list is the action.
-3. Filtering shows those records, each identifiable by name as usual.
-4. From a row, the DM reaches the geography page to place that record.
+1. Viewing a place, the DM can upload a map for it — the same upload the create-world flow uses.
+2. A place that had no map becomes navigable: its children can now be positioned on it, and clicking it descends into it.
+3. Uploading over an existing map replaces it. Children keep their coordinates.
+4. **Removing a map without replacing it is allowed, and destroys nothing.** The place renders as empty ground with the upload control on it, and its children keep their coordinates — invisible, not lost. Uploading any new map brings them all back exactly where they were. This is the DM's own description of what removing an image should mean, and it is the reason removal is not a destructive action: coordinates belong to the child, not to the image.
+
+**Seeing the backlog**
+
+1. The geography view reports how many places have no position, across the whole tree — not only under the place in view.
+2. From that report the DM reaches a place's parent, where SPEC-005's existing flow positions it.
+
+**Entities**
+
+1. The admin row's button reads **"Posiziona"** (EN: "Place").
+2. An unplaced record's card shows **"Sconosciuta"** rather than nothing, and clicking it opens the assignment modal.
 
 **Edge cases**
 
-| Situation                                           | Expected behaviour                                                                                                                                                                         |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Every record is placed                              | The control reports zero and applying it shows the ordinary empty state. Not hidden — "zero unplaced" is information the DM wants.                                                         |
-| No world tree exists yet (empty installation)       | Every record is unplaced, and that is correct rather than alarming. The list should not imply something is broken before a world exists.                                                   |
-| A record is pinned, then its place is deleted       | Cannot happen — `onDelete: Restrict` refuses to delete a place with children (SPEC-004 §6).                                                                                                |
-| A record is pinned at the root with no ancestors    | It **is** placed. "Unplaced" means no pin, not an empty ancestor chain — the distinction `deriveEntityAncestry` already draws between an absent map entry and an empty one (SPEC-004 T5a). |
-| The DM places a record and returns to the list      | It is gone from the filtered view on the next request. No optimistic state.                                                                                                                |
-| Filtering by "unplaced" combined with other filters | Composes with them like any other filter — it is not a mode.                                                                                                                               |
+| Situation                                              | Expected behaviour                                                                                                                                               |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Replacing the map of a place whose children are placed | Children keep their `lat`/`lng`. **They will be in the wrong spot if the new map is not aligned with the old one** — say so before replacing rather than after.  |
+| Uploading a map to a leaf place                        | Allowed. A place with a map becomes navigable whether or not it has children yet — that is how you build downward.                                               |
+| Replacing a map while a child is being repositioned    | The reposition targets an id, not a map, so it still writes. The DM sees the new map on the next render.                                                         |
+| Every place is positioned                              | The count reads zero and stays visible. Its absence would be ambiguous.                                                                                          |
+| Empty installation, no root                            | The existing "create your world" flow answers; the count is not rendered because there is no tree to count.                                                      |
+| The root itself                                        | Has no parent, so it is never "unpositioned". It has a map by construction (M4 requires one). It is excluded from the count, not counted as placed.              |
+| A place whose parent has no map                        | Counted as unpositioned, and the report says the parent needs a map first — that is the actionable instruction, not "position me".                               |
+| An upload that fails midway                            | No `mapImage` is written. The place keeps whatever it had, including nothing. The existing create-world flow already handles this shape (`errors.uploadFailed`). |
 
 ## 6. Data model changes
 
-**None.** "Has no pin" is `poi.linkedType`/`linkedId` having no row for this record, which SPEC-004's `@@unique([linkedType, linkedId])` already indexes.
+**None.** `zone.mapImage`, `mapBounds`, `mapInitialView` and `mapInitialZoom` all exist and are nullable — SPEC-004 M1/M4 put them there. What is missing is a mutation that writes `mapImage` on a row that already exists, not a column to write it to.
 
-## 7. Metadata changes
+That is worth stating plainly because it is the whole shape of this spec: **nothing here is a schema problem.** The world is undrawable because one server action was never written.
 
-**This is the design question the spec exists to settle, and it is not obvious.**
+## 7. Implementation notes
 
-"Unplaced" is not a column, so it is not a `PageMeta` field, and the metadata layer's filter path (`queryFields` → `getQuery` → a Prisma `where`) cannot express it as a declaration. This is the same shape of problem that made SPEC-004 T5b drop the location filter rather than rebuild it — and the reason that decision was acceptable there does **not** apply here: the map cannot answer "who is unplaced", because an unplaced record is precisely the thing the map cannot show.
+**`updateZoneMap` is the whole of task 1.** `POST /api/maps/upload` is already generic — `CreateWorldForm` posts to it and hands the returned id to `createRootPlace`. Attaching that id to an existing row is a guarded, validated `prisma.zone.update({ data: { mapImage } })`, and it needs neither bounds nor an initial view: `createRootPlace` does not set them either, and `parsePlaceMapBounds`/`parsePlaceMapInitialView`/`parsePlaceMapInitialZoom` supply defaults for null.
 
-Two candidate shapes, to be decided before implementation:
+**The count is a tree-wide read, not a per-parent one.** `useUnplacedChildren` answers "which children of _this_ place lack coordinates" and stays as it is. The new count is `prisma.zone.count({ where: { lat: null, parentId: { not: null } } })` — every place except the root. One query, on a table of 42 rows.
 
-**A. Resolve to an id list, then filter normally.** Read the pinned `linkedId`s for the domain (one query — the same read `fetchDerivedAncestry` already performs), then pass `where: { id: { notIn: [...] } }` into the existing query path. Pagination and the count stay correct because `getQuery` still builds them, and TD-12's "rows and count cannot disagree" guarantee is preserved. Costs one extra query per request and keeps the filter outside the metadata layer, as a special case the layer does not have to learn about.
+**The entity-side fixes reuse what exists.** `AssignLocationButton` gains a text-trigger shape for card use — a prop or a thin wrapper on the same component, not a second implementation. The failure mode this project has paid for twice (TD-09's quartets, the metadata layer's near-forks) is two things doing one job and drifting.
 
-**B. Teach the metadata layer about derived predicates.** More general, and the wrong trade at this size: it would be a new concept in the project's core abstraction bought for exactly one condition. Rejected unless a second derived filter appears — at which point this decision should be revisited, not extended by accident.
-
-**A is the recommendation**, on the same reasoning ADR-0009 used for keeping `navigable` derived: prefer a special case that is honest over a generalisation nothing else needs. Either way the control itself is not a `SelectButtonery` over `PageMeta.options` — it is a boolean toggle, and where it renders (beside the search box, or as a count badge above the table) is a UI decision, not a metadata one.
+**Two reads of an entity's location will need reconciling.** `EntityLibrary` uses `fetchDerivedAncestry` → `toDerivedPlacements`; `EntityList` uses `fetchEntityLocationSummaries`. Only the second carries the `zoneId`/`poiId` the modal needs. Either the card reads summaries too, or `toDerivedPlacements` starts carrying the ids — **do not add a third read.**
 
 ## 8. Acceptance criteria
 
-- [ ] The NPC and deities admin lists show how many records have no pin, without the DM applying anything.
-- [ ] Applying the filter lists exactly those records, and the header count agrees with the rows shown (TD-12's invariant).
-- [ ] A record pinned at the tree root counts as placed, not unplaced.
-- [ ] The filter composes with the existing filters and with pagination.
-- [ ] Placing a record removes it from the filtered view on the next request.
-- [ ] On an installation with no world tree, the list reports every record as unplaced without presenting it as an error.
+- [ ] A place with no map can be given one, and becomes navigable without recreating it.
+- [ ] A place with a map can have it replaced, and its children keep their coordinates.
+- [ ] Replacing a map warns that already-positioned children may no longer line up.
+- [ ] The upload is rejected for an unauthenticated request and the payload is validated, like every other mutation.
+- [ ] The geography view reports how many places across the whole tree have no position, and the root is excluded rather than counted.
+- [ ] A place whose parent has no map is reported as needing the parent's map first.
+- [ ] The admin row button reads "Posiziona" / "Place" — both catalogues, TD-21's key-set check green.
+- [ ] An unplaced record's card shows "Sconosciuta" rather than an empty node, and clicking it opens the assignment modal.
+- [ ] The card and the admin list read a record's location through one path, not two that can diverge.
 - [ ] Coverage has not dropped.
 
 ## 9. Implementation plan
 
-_Fill in once §7's A-versus-B question is settled._
+**Files touched, in order**
+
+| #   | File                                                | Change                                                                   |
+| --- | --------------------------------------------------- | ------------------------------------------------------------------------ |
+| 1   | `app/lib/data/maps/updateZoneMap.ts`                | new — guarded, validated write of `mapImage` on an existing zone         |
+| 2   | `app/ui/geography/` (a map-upload control)          | reuses `POST /api/maps/upload`, then calls the above; confirm on replace |
+| 3   | `app/lib/data/maps/countUnpositionedPlaces.ts`      | new — `lat: null, parentId: { not: null }`                               |
+| 4   | `app/ui/geography/GeographyExplorer.tsx`            | render the count beside the title                                        |
+| 5   | `messages/{it,en}.json`                             | `common.table.assignLocation` → "Posiziona" / "Place", plus the new copy |
+| 6   | `app/ui/buttons/AssignLocationButton.tsx`           | a text-trigger variant, same modal, same action                          |
+| 7   | `EntityLibrary.tsx`, `NpcCard.tsx`, `DeityCard.tsx` | "Sconosciuta" instead of `""`, wired to the trigger; reconcile the reads |
 
 **Risks**
 
-- **Scope creep into a placement workflow.** §3 is the guard. If this starts growing a queue, bulk actions or a wizard, stop and re-scope it as its own feature.
-- **The extra query is on the list path**, which TD-30 made stream deliberately. It should ride along with the existing `fetchDerivedAncestry` read rather than becoming a second round trip — they want the same rows.
-
-**Open questions**
-
-1. §7's A versus B.
-2. Where the control lives: a toggle beside the search box, or a count badge above the table that filters when clicked. The second is fewer clicks and surfaces the number without interaction; the first is more conventional.
-3. Does the row link straight to the correct map, or just to the geography page? Straight to the map requires knowing where the record _should_ go, which is the DM's decision and not knowable — so the honest answer is probably the geography page, with the record preselected in the placement panel if that is cheap.
+- **Replacing a map silently misaligns children.** The coordinates are stored against the map's bounds, not against the image, so a differently-framed replacement moves every child relative to the terrain without changing a single number. The confirmation in task 1 is the mitigation, and it is the reason replace is a distinct action from upload rather than the same button behaving differently.
+- **`SPEC-009` may change what a position is.** If a zone becomes a rectangle, `lat`/`lng` stops being the whole answer and `countUnpositionedPlaces` has to follow. Written as one small function for exactly that reason — keep the predicate in one place.
+- **Renaming a label touches the e2e specs.** TD-35 made them read the catalogue rather than hardcode Italian copy, so they should follow automatically — verify rather than assume.
+- **Scope creep into a placement workflow.** §3 is the guard. A queue, bulk actions or a wizard means stop and re-scope.
 
 ## 10. Task breakdown
 
-_Fill in once §7 and the open questions are settled — the tasks depend on which shape is chosen._
+- [ ] **T1** — `updateZoneMap` and the upload control: give a place a map, or replace one _(test: unauthenticated is rejected; a mapless place becomes navigable; children keep their coordinates across a replace; a failed upload writes nothing)_
+- [ ] **T2** — `countUnpositionedPlaces` and the report in the geography view _(test: 42 of 42 today; the root is excluded; a place under a mapless parent is reported as blocked on the parent, not on itself; zero renders rather than hiding)_
+- [ ] **T3** — Entity-side visibility: rename the row button, "Sconosciuta" on the cards, one read path for location _(test: TD-21's key-set check green; an unplaced record's card shows the word and opens the modal; card and list agree)_
 
 ## 11. Outcome
 

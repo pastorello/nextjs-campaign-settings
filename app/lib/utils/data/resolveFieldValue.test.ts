@@ -24,4 +24,32 @@ describe("resolveFieldValue", () => {
 
     expect(resolveFieldValue(meta, 42, t)).toBe("42");
   });
+
+  describe("optionTable (SPEC-006 T6)", () => {
+    const tableMeta = {
+      metaField: "faction",
+      controlType: ControlType.Select,
+      fieldType: FieldType.integer,
+      defaultValue: null,
+      optionTable: "faction",
+    } as PageMeta;
+
+    it("resolves the label from the matching bundle entry", () => {
+      const bundle = {
+        faction: [{ value: 23, label: "Regno di Kang" }],
+      };
+
+      expect(resolveFieldValue(tableMeta, 23, t, false, bundle)).toBe(
+        "Regno di Kang"
+      );
+    });
+
+    it("degrades to a blank label rather than throwing when no bundle is passed", () => {
+      expect(resolveFieldValue(tableMeta, 23, t)).toBe("");
+    });
+
+    it("degrades to a blank label when the bundle doesn't carry this table", () => {
+      expect(resolveFieldValue(tableMeta, 23, t, false, {})).toBe("");
+    });
+  });
 });

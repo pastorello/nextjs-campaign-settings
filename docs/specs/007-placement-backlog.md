@@ -168,4 +168,14 @@ That is worth stating plainly because it is the whole shape of this spec: **noth
 
 ## 11. Outcome
 
-_Fill in at close._
+Shipped 2026-08-10, [PR #142](https://github.com/pastorello/nextjs-campaign-settings/pull/142). T1 and T2 landed complete; T3 landed with one gap called out below.
+
+**T1 — `updateZoneMap`.** A place can be given a map after creation, or have its map replaced, without recreating it or its children. Replacing warns that already-positioned children may no longer line up, matching §5's edge case. Unauthenticated and invalid requests are rejected like every other mutation.
+
+**T2 — `countUnpositionedPlaces`.** The geography view reports the tree-wide count (`lat: null, parentId: { not: null }`), the root is excluded, and zero renders rather than being hidden. Not delivered: a distinct "blocked on the parent" message for a place whose parent has no map — the count treats it the same as any other unpositioned place. `MapUploadControl` (T1) does resolve this in practice once the DM reaches the mapless parent, so the gap is in the report's wording, not in the workflow.
+
+**T3 — entity-side visibility.** The admin row button reads "Posiziona"/"Place", both catalogues pass TD-21's key-set check, and an unplaced card shows "Sconosciuta" instead of an empty node and opens the assignment modal. `toDerivedPlacements` now carries `zoneId`/`poiId`, so the card needed no new fetch — the "do not add a third read" instruction in §7 was honoured.
+
+**The known gap: two read paths for an entity's location, not unified.** `EntityList` still resolves via `fetchEntityLocationSummaries`; `EntityLibrary` still resolves via `fetchDerivedAncestry` → `toDerivedPlacements`. Both correctly agree today — they are kept in step by the same `zoneId := poi.zoneId` invariant — but that agreement is not enforced by the code, only by the invariant holding. §9's implementation plan asked to "reconcile" these into one path; what shipped instead was the minimum that unblocked T3 (carrying the ids on the second path) without collapsing the two. This is the same failure shape §7 named in advance — "two things doing one job and drifting" — not yet acted on for this pair. Left open rather than filed as a TD, because closing it means picking a direction (`EntityList` reads `toDerivedPlacements` too, or `EntityLibrary` switches to summaries) that is a small design call, not a mechanical fix.
+
+**Acceptance criteria:** 8 of 10 checked at close (§8). The two open are the "blocked on parent" message and the unified read path, both described above.

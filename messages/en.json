@@ -47,7 +47,10 @@
       "actions": "Actions",
       "edit": "Edit",
       "location": "Location",
-      "assignLocation": "Location"
+      "assignLocation": "Place"
+    },
+    "card": {
+      "toggleDetails": "Show details"
     },
     "form": {
       "cancel": "Cancel",
@@ -413,6 +416,7 @@
       "title": "Geography"
     },
     "up": "Up",
+    "unpositionedCount": "{count, plural, =0 {Every place is positioned} one {# place not yet positioned} other {# places not yet positioned}}",
     "noWorldYet": "You haven't created your world yet.",
     "createWorldLink": "Create your world",
     "attachEntity": {
@@ -420,8 +424,22 @@
       "typePlaceholder": "Type",
       "entityPlaceholder": "Select…"
     },
+    "mapUpload": {
+      "uploadLabel": "This place doesn't have a map yet.",
+      "replaceLabel": "Replace this place's map.",
+      "uploadSubmit": "Upload map",
+      "replaceSubmit": "Replace map",
+      "success": "Map saved.",
+      "confirmReplaceTitle": "Replace the map?",
+      "confirmReplaceDescription": "Already-positioned places keep their coordinates, but if the new map isn't aligned with the old one they may end up in the wrong spot.",
+      "confirmReplaceCancel": "Cancel",
+      "confirmReplaceConfirm": "Replace",
+      "errors": {
+        "uploadFailed": "Failed to upload the map. Try again.",
+        "saveFailed": "Could not save the map. Try again."
+      }
+    },
     "errors": {
-      "mapNotConfigured": "The map is not configured correctly.",
       "importSuccess": "{count, plural, one {Successfully imported # place!} other {Successfully imported # places!}}",
       "importFailed": "Failed to import file. Please check the format.",
       "poiLoadFailed": "Could not load your places. Reload the page to try again.",

@@ -86,3 +86,38 @@ describe("AssignLocationButton", () => {
     expect(refresh).toHaveBeenCalled();
   });
 });
+
+describe("AssignLocationButton — text variant (SPEC-007 T3)", () => {
+  it("renders the current location label as the trigger, not the button copy", () => {
+    render(
+      <AssignLocationButton
+        pageType={PageType.Npc}
+        entityId={1}
+        currentZoneId={null}
+        currentPoiId={null}
+        currentLocationLabel="Sconosciuta"
+        variant="text"
+      />
+    );
+
+    expect(screen.getByText("Sconosciuta")).toBeInTheDocument();
+    expect(screen.queryByText("assignLocation")).not.toBeInTheDocument();
+  });
+
+  it("opens the same modal, with the same current location, on click", () => {
+    render(
+      <AssignLocationButton
+        pageType={PageType.Deity}
+        entityId={7}
+        currentZoneId={5}
+        currentPoiId={null}
+        currentLocationLabel="Skreebars"
+        variant="text"
+      />
+    );
+
+    fireEvent.click(screen.getByText("Skreebars"));
+
+    expect(screen.getByText("modal:Skreebars")).toBeInTheDocument();
+  });
+});

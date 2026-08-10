@@ -90,6 +90,14 @@ vi.mock("@/app/ui/geography/AttachEntityButton", () => ({
   default: () => <div data-testid="attach-entity-button" />,
 }));
 
+// Has its own suite (SPEC-007 T1) — stubbed here so this file stays about
+// WorldMap's own state, not the upload/confirm flow.
+vi.mock("@/app/ui/geography/MapUploadControl", () => ({
+  default: (props: { hasMap: boolean }) => (
+    <div data-testid="map-upload-control" data-has-map={props.hasMap} />
+  ),
+}));
+
 vi.mock("@/app/modules/maps/hooks/useMapContextMenu", () => ({
   useMapContextMenu: () => ({
     isOpen: false,
@@ -174,6 +182,7 @@ async function renderMap(mapUrl = "/maps/test.jpg") {
       initialView={[500, 500]}
       initialZoom={1}
       onDescend={vi.fn()}
+      onMapChanged={vi.fn()}
     />
   );
   await waitFor(() => {
@@ -199,7 +208,7 @@ describe("WorldMap", () => {
     expect(setView).toHaveBeenCalledWith([500, 500], 1);
   });
 
-  it("notifies instead of loading an overlay when mapUrl is blank", async () => {
+  it("renders empty ground with the upload control when mapUrl is blank (SPEC-007 T1)", async () => {
     render(
       <WorldMap
         parentId={1}
@@ -208,13 +217,18 @@ describe("WorldMap", () => {
         initialView={[500, 500]}
         initialZoom={1}
         onDescend={vi.fn()}
+        onMapChanged={vi.fn()}
       />
     );
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("mapNotConfigured");
+      expect(screen.getByTestId("map-upload-control")).toHaveAttribute(
+        "data-has-map",
+        "false"
+      );
     });
     expect(imageOverlay).not.toHaveBeenCalled();
+    expect(toast.error).not.toHaveBeenCalled();
   });
 
   it("starts with a grab cursor and switches to crosshair once location selection is requested", async () => {

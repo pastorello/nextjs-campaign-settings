@@ -143,7 +143,7 @@ describe("toDerivedPlacements", () => {
     ]);
 
     expect(toDerivedPlacements(ancestry)).toEqual({
-      7: { place: "Paradiso", plane: "Cieli" },
+      7: { place: "Paradiso", plane: "Cieli", zoneId: 3, poiId: null },
     });
   });
 
@@ -153,7 +153,7 @@ describe("toDerivedPlacements", () => {
     ]);
 
     expect(toDerivedPlacements(ancestry)).toEqual({
-      42: { place: "Skreebars", plane: "Terra" },
+      42: { place: "Skreebars", plane: "Terra", zoneId: 6, poiId: null },
     });
   });
 
@@ -163,7 +163,7 @@ describe("toDerivedPlacements", () => {
     ]);
 
     expect(toDerivedPlacements(ancestry)).toEqual({
-      42: { place: "Universo", plane: null },
+      42: { place: "Universo", plane: null, zoneId: 1, poiId: null },
     });
   });
 
@@ -173,5 +173,30 @@ describe("toDerivedPlacements", () => {
     ]);
 
     expect(toDerivedPlacements(ancestry)).toEqual({});
+  });
+
+  it("carries the landmark's id as poiId, and its own zone as zoneId, when pinned to a POI (SPEC-007 T3)", () => {
+    const ancestry = deriveEntityAncestry(zones, pois, [
+      { id: 42, zoneId: 6, poiId: 100 },
+    ]);
+
+    expect(toDerivedPlacements(ancestry)).toEqual({
+      42: {
+        place: "Locanda del Cinghiale Rosso",
+        plane: "Terra",
+        zoneId: 6,
+        poiId: 100,
+      },
+    });
+  });
+
+  it("gives a null zoneId, not a throw, when the walk stopped before reaching a zone", () => {
+    const ancestry = deriveEntityAncestry(zones, pois, [
+      { id: 42, zoneId: 999, poiId: null },
+    ]);
+
+    expect(toDerivedPlacements(ancestry)).toEqual({
+      42: { place: null, plane: null, zoneId: null, poiId: null },
+    });
   });
 });

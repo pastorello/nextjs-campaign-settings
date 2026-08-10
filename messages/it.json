@@ -47,7 +47,10 @@
       "actions": "Azioni",
       "edit": "Modifica",
       "location": "Posizione",
-      "assignLocation": "Posizione"
+      "assignLocation": "Posiziona"
+    },
+    "card": {
+      "toggleDetails": "Mostra dettagli"
     },
     "form": {
       "cancel": "Annulla",
@@ -413,6 +416,7 @@
       "title": "Geografia"
     },
     "up": "Sali",
+    "unpositionedCount": "{count, plural, =0 {Tutti i luoghi sono posizionati} one {# luogo non ancora posizionato} other {# luoghi non ancora posizionati}}",
     "noWorldYet": "Non hai ancora creato il tuo mondo.",
     "createWorldLink": "Crea il tuo mondo",
     "attachEntity": {
@@ -420,8 +424,22 @@
       "typePlaceholder": "Tipo",
       "entityPlaceholder": "Seleziona…"
     },
+    "mapUpload": {
+      "uploadLabel": "Questo luogo non ha ancora una mappa.",
+      "replaceLabel": "Sostituisci la mappa di questo luogo.",
+      "uploadSubmit": "Carica la mappa",
+      "replaceSubmit": "Sostituisci la mappa",
+      "success": "Mappa salvata.",
+      "confirmReplaceTitle": "Sostituire la mappa?",
+      "confirmReplaceDescription": "I luoghi già posizionati manterranno le loro coordinate, ma se la nuova mappa non è allineata con la vecchia potrebbero risultare fuori posto.",
+      "confirmReplaceCancel": "Annulla",
+      "confirmReplaceConfirm": "Sostituisci",
+      "errors": {
+        "uploadFailed": "Caricamento della mappa non riuscito. Riprova.",
+        "saveFailed": "Impossibile salvare la mappa. Riprova."
+      }
+    },
     "errors": {
-      "mapNotConfigured": "La mappa non è configurata correttamente.",
       "importSuccess": "{count, plural, one {Importato con successo # luogo!} other {Importati con successo # luoghi!}}",
       "importFailed": "Importazione del file non riuscita. Controlla il formato.",
       "poiLoadFailed": "Impossibile caricare i luoghi. Ricarica la pagina per riprovare.",

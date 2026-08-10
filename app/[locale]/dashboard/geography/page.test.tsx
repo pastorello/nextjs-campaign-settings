@@ -26,9 +26,22 @@ vi.mock("@/app/lib/data/maps/fetchRootPlace", () => ({
   default: () => fetchRootPlace(),
 }));
 
+const countUnpositionedPlaces = vi.fn<() => unknown>();
+vi.mock("@/app/lib/data/maps/countUnpositionedPlaces", () => ({
+  default: () => countUnpositionedPlaces(),
+}));
+
 vi.mock("@/app/ui/geography/GeographyExplorer", () => ({
-  default: ({ root }: { root: { title: string } }) => (
-    <div data-testid="geography-explorer">{root.title}</div>
+  default: ({
+    root,
+    unpositionedCount,
+  }: {
+    root: { title: string };
+    unpositionedCount: number;
+  }) => (
+    <div data-testid="geography-explorer" data-unpositioned={unpositionedCount}>
+      {root.title}
+    </div>
   ),
 }));
 
@@ -52,9 +65,11 @@ describe("dashboard geography Page (SPEC-004 M7)", () => {
       "href",
       "/dashboard/world"
     );
+    // No tree to count on an empty installation (SPEC-007 §5 edge cases).
+    expect(countUnpositionedPlaces).not.toHaveBeenCalled();
   });
 
-  it("renders the tree explorer once a root exists", async () => {
+  it("renders the tree explorer once a root exists, with the unpositioned count", async () => {
     fetchRootPlace.mockResolvedValue({
       id: 1,
       title: "Aerivel",
@@ -63,11 +78,16 @@ describe("dashboard geography Page (SPEC-004 M7)", () => {
       mapInitialView: null,
       mapInitialZoom: null,
     });
+    countUnpositionedPlaces.mockResolvedValue(42);
 
     render(await GeographyPage());
 
     expect(screen.getByTestId("geography-explorer")).toHaveTextContent(
       "Aerivel"
+    );
+    expect(screen.getByTestId("geography-explorer")).toHaveAttribute(
+      "data-unpositioned",
+      "42"
     );
   });
 });

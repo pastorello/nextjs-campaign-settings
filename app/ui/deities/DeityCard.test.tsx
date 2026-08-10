@@ -10,6 +10,20 @@ vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }));
 
+// Has its own suite (SPEC-008 T5, SPEC-007 T3) — stubbed here so this file
+// stays about DeityCard's own rendering, not the assignment modal's flow.
+vi.mock(
+  "../buttons/AssignLocationButton",
+  () =>
+    ({
+      default: (props: { currentLocationLabel: string }) => (
+        <button data-testid="assign-location-trigger">
+          {props.currentLocationLabel}
+        </button>
+      ),
+    }) as never
+);
+
 import DeityCard from "./DeityCard";
 
 const item: Deity = {
@@ -35,7 +49,12 @@ describe("DeityCard", () => {
     render(
       <DeityCard
         cardItem={item}
-        placement={{ place: "Paradiso", plane: "Cieli" }}
+        placement={{
+          place: "Paradiso",
+          plane: "Cieli",
+          zoneId: 3,
+          poiId: null,
+        }}
       />
     );
     fireEvent.click(screen.getByRole("button"));
@@ -47,7 +66,7 @@ describe("DeityCard", () => {
     render(
       <DeityCard
         cardItem={item}
-        placement={{ place: "Paradiso", plane: null }}
+        placement={{ place: "Paradiso", plane: null, zoneId: 3, poiId: null }}
       />
     );
     fireEvent.click(screen.getByRole("button"));
@@ -57,11 +76,12 @@ describe("DeityCard", () => {
     expect(screen.getByText("Paradiso")).toBeInTheDocument();
   });
 
-  it("shows nothing for a deity nobody has pinned yet", () => {
+  it("shows 'Sconosciuta' rather than nothing for a deity nobody has pinned yet (SPEC-007 T3)", () => {
     render(<DeityCard cardItem={item} />);
     fireEvent.click(screen.getByRole("button"));
 
-    expect(screen.queryByText(/Paradiso/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Cieli/)).not.toBeInTheDocument();
+    expect(screen.getByTestId("assign-location-trigger")).toHaveTextContent(
+      "common.location.unknown"
+    );
   });
 });

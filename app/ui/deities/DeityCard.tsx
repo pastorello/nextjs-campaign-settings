@@ -9,11 +9,13 @@ import { useTranslations } from "next-intl";
 import Icon from "../components/Icon";
 import IconType from "../buttons/BaseButton/IconType";
 import ItemMeta from "../components/ItemMeta";
+import AssignLocationButton from "../buttons/AssignLocationButton";
 import Deity from "@/app/lib/definitions/interfaces/deities/Deity";
 import pageMetaFields from "@/app/lib/config/pageMetaFields";
 import DeityMetaField from "@/app/lib/definitions/enums/deities/DeityMetaField";
 import DerivedPlacement from "@/app/lib/definitions/interfaces/maps/DerivedPlacement";
 import DeityRank from "@/app/lib/definitions/enums/deities/DeityRank";
+import PageType from "@/app/lib/definitions/types/PageType";
 import magicColors from "@/app/lib/config/deity/magicColors";
 import getOptionColorClass from "@/app/lib/utils/data/getOptionColorClass";
 import resolveFieldValue from "@/app/lib/utils/data/resolveFieldValue";
@@ -24,6 +26,13 @@ const DeityCard = (props: {
   placement?: DerivedPlacement | undefined;
 }) => {
   const t = useTranslations();
+  // "Paradiso, Cieli" when both are known, "Sconosciuta" when nobody has
+  // pinned this deity yet (SPEC-007 T3) — the clickable trigger for the
+  // residence line below, not just its display text.
+  const residenceLabel =
+    [props.placement?.place, props.placement?.plane]
+      .filter(Boolean)
+      .join(", ") || t("common.location.unknown");
   return (
     <Disclosure>
       <div
@@ -116,9 +125,16 @@ const DeityCard = (props: {
                   one pin makes unrepresentable. */}
               <ItemMeta
                 label={t("deities.card.residence")}
-                value={[props.placement?.place, props.placement?.plane]
-                  .filter(Boolean)
-                  .join(", ")}
+                value={
+                  <AssignLocationButton
+                    pageType={PageType.Deity}
+                    entityId={props.cardItem.id}
+                    currentZoneId={props.placement?.zoneId ?? null}
+                    currentPoiId={props.placement?.poiId ?? null}
+                    currentLocationLabel={residenceLabel}
+                    variant="text"
+                  />
+                }
               />
               <ItemMeta
                 label={t("deities.card.celestialBody")}

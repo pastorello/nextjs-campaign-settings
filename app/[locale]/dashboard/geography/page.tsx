@@ -3,6 +3,7 @@ import { Metadata } from "next";
 
 import { Link } from "@/i18n/navigation";
 import fetchRootPlace from "@/app/lib/data/maps/fetchRootPlace";
+import countUnpositionedPlaces from "@/app/lib/data/maps/countUnpositionedPlaces";
 import GeographyExplorer from "@/app/ui/geography/GeographyExplorer";
 import PageTitle from "@/app/ui/typography/PageTitle";
 
@@ -34,5 +35,11 @@ export default async function GeographyPage() {
     );
   }
 
-  return <GeographyExplorer root={root} />;
+  // No tree to count on an empty installation (SPEC-007 §5 edge cases) — the
+  // branch above already returns before this runs.
+  const unpositionedCount = await countUnpositionedPlaces();
+
+  return (
+    <GeographyExplorer root={root} unpositionedCount={unpositionedCount} />
+  );
 }

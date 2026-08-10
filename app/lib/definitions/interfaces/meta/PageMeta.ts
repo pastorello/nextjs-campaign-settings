@@ -13,6 +13,37 @@ import FieldType from "@/app/lib/definitions/types/FieldType";
  */
 type MetaDisplayValue = string | number | boolean | number[] | string[];
 
+/**
+ * Tables whose rows can back a field's options — closed, like `PlaceKind`.
+ * A union of one until a second field genuinely needs this (SPEC-006 §9's
+ * open question 1); collapse it if nothing joins `faction` within a couple
+ * of features rather than keeping the indirection for symmetry.
+ */
+type OptionTableName = "faction";
+
+/**
+ * A field's options are either a static list or rows in a table — never
+ * both. Declaring both is a compile error rather than a state some
+ * consumer has to arbitrate (the same "make the wrong state unrepresentable"
+ * argument ADR-0009 used for deriving `navigable` from `kind`).
+ *
+ * Kept as an intersection with `PageMetaBase` rather than folded into it:
+ * rewriting `options` into `{ source: "static", values } | { source: "table",
+ * table }` would touch all twenty static declarations for zero behavioural
+ * gain (SPEC-006 §7).
+ */
+interface StaticOptionsMeta {
+  options?: SelectOption[];
+  optionTable?: never;
+}
+
+interface TableOptionsMeta {
+  options?: never;
+  optionTable: OptionTableName;
+}
+
+type OptionsDeclaration = StaticOptionsMeta | TableOptionsMeta;
+
 interface PageMetaBase {
   /** The field's key: lowercase, and identical to the payload key and DB column. */
   metaField: string;
@@ -21,7 +52,6 @@ interface PageMetaBase {
   labelKey?: string;
   /** Message key, read only for `ControlType.Text` / `ControlType.Textarea`. */
   placeholderKey?: string;
-  options?: SelectOption[];
 
   /**
    * Value → display label, for fields that genuinely format (rich text,
@@ -42,11 +72,17 @@ interface PageMetaBase {
   getDatum?(rawValue: MetaDisplayValue, useShortLabel?: boolean): ReactNode;
 }
 
-/** A whole-number field. `options` present when rendered as a select. */
+/**
+ * A whole-number field. `options`/`optionTable` present when rendered as a
+ * select. `defaultValue` and `validator` admit `null` for the table-backed
+ * case only: `firstOptionValue` has no list to read from a table, so "no
+ * selection" is the honest default, and the FK — not a module-scope
+ * `Set` — is what checks membership (SPEC-006 §7).
+ */
 interface IntegerFieldMeta extends PageMetaBase {
   fieldType: FieldType.integer;
-  defaultValue: number;
-  validator: ZodType<number | undefined>;
+  defaultValue: number | null;
+  validator: ZodType<number | null | undefined>;
 }
 
 interface StringFieldMeta extends PageMetaBase {
@@ -74,8 +110,10 @@ interface ArrayFieldMeta extends PageMetaBase {
  * `fieldType: FieldType.array` with `validator: z.string()` type-checked
  * happily — the metadata layer's central invariant was unenforced.
  */
-type PageMeta =
-  IntegerFieldMeta | StringFieldMeta | BooleanFieldMeta | ArrayFieldMeta;
+type PageMeta = (
+  IntegerFieldMeta | StringFieldMeta | BooleanFieldMeta | ArrayFieldMeta
+) &
+  OptionsDeclaration;
 
 export default PageMeta;
-export type { MetaDisplayValue };
+export type { MetaDisplayValue, OptionTableName };

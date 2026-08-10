@@ -66,7 +66,10 @@ const NpcCard = (props: {
               variant="text"
             />
           </div>
-          <DisclosureButton className="w-[40px] group-data-open:rotate-180">
+          <DisclosureButton
+            className="w-[40px] group-data-open:rotate-180"
+            aria-label={t("common.card.toggleDetails")}
+          >
             <Icon iconType={IconType.chevronDown} />
           </DisclosureButton>
         </div>

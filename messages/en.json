@@ -49,6 +49,9 @@
       "location": "Location",
       "assignLocation": "Place"
     },
+    "card": {
+      "toggleDetails": "Show details"
+    },
     "form": {
       "cancel": "Cancel",
       "save": "Save",

@@ -65,11 +65,19 @@ vi.mock("@/app/lib/data/maps/fetchDerivedAncestry", () => ({
   default: (...args: unknown[]) => fetchDerivedAncestry(...args),
 }));
 
+// The NPC library's faction option bundle (SPEC-006 T7) — same reasoning as
+// fetchDerivedAncestry above.
+const fetchFieldOptions = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/options/fetchFieldOptions", () => ({
+  default: (...args: unknown[]) => fetchFieldOptions(...args),
+}));
+
 import EntityLibrary from "./EntityLibrary";
 
 describe("EntityLibrary", () => {
   beforeEach(() => {
     fetchDerivedAncestry.mockResolvedValue(new Map());
+    fetchFieldOptions.mockResolvedValue([]);
   });
 
   it("fetches spells and renders SpellLibrary for PageType.Spell", async () => {

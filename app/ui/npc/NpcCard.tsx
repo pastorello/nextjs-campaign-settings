@@ -3,6 +3,7 @@ import {
   DisclosureButton,
   DisclosurePanel,
 } from "@headlessui/react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 import Icon from "../components/Icon";
@@ -13,15 +14,24 @@ import NpcItem from "@/app/lib/definitions/interfaces/npc/NpcItem";
 import NpcMetaField from "@/app/lib/definitions/enums/npc/NpcMetaField";
 import DerivedPlacement from "@/app/lib/definitions/interfaces/maps/DerivedPlacement";
 import PageType from "@/app/lib/definitions/types/PageType";
+import OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
 const NpcCard = (props: {
   cardItem: NpcItem;
   /** Absent while nobody has pinned this NPC anywhere (SPEC-004 T5a). */
   placement?: DerivedPlacement | undefined;
+  /** Resolves the faction name below — absent renders an em dash. */
+  optionBundle?: OptionBundle | undefined;
 }) => {
   const t = useTranslations();
   const markup = { __html: props.cardItem.description };
   const locationLabel = props.placement?.place ?? t("common.location.unknown");
+  // Resolved directly from the bundle rather than through `resolveFieldValue`:
+  // the link needs the same name the label displays, and building both from
+  // one lookup is simpler than deriving the href from a rendered ReactNode.
+  const faction = props.optionBundle?.faction?.find(
+    (option) => option.value === props.cardItem[NpcMetaField.faction]
+  );
 
   return (
     <Disclosure>
@@ -51,6 +61,23 @@ const NpcCard = (props: {
               )}
             </div>
           </DisclosureButton>
+          {/* A link, so — like `AssignLocationButton` below it — a sibling of
+              `DisclosureButton` rather than nested inside it: an `<a>` inside
+              a `<button>` is invalid HTML, and its click would also toggle
+              the disclosure (SPEC-006 T8). An em dash for no faction
+              (decision 8), not a link to nowhere. */}
+          <div className="w-[150px] self-center text-base">
+            {faction ? (
+              <Link
+                href={`/dashboard/factions?query=${encodeURIComponent(faction.label)}`}
+                className="text-blue-300 hover:underline"
+              >
+                {faction.label}
+              </Link>
+            ) : (
+              "—"
+            )}
+          </div>
           {/* Derived from the NPC's pin in the world tree, not from the
               `location` column beside it — see SPEC-004 §5 point 6.
               "Sconosciuta" and clickable rather than blank when nobody has

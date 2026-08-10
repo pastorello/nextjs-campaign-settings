@@ -7,6 +7,7 @@ import { fetchFilteredNpc } from "@/app/lib/data/npc/fetchFilteredNpc";
 import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
 import { fetchFilteredFactions } from "@/app/lib/data/faction/fetchFilteredFactions";
 import fetchFactionRosters from "@/app/lib/data/faction/fetchFactionRosters";
+import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
 
 import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
 import { toDerivedPlacements } from "@/app/modules/maps/lib/utils/deriveEntityAncestry";
@@ -59,6 +60,7 @@ export default async function EntityLibrary(props: {
         <NpcLibrary
           items={await fetchFilteredNpc(searchParams)}
           placements={await placementsFor("npc")}
+          optionBundle={{ faction: await fetchFieldOptions("faction") }}
         />
       );
     case PageType.Deity:

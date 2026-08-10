@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-10
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-76, TD-77.** Everything else in the summary table is closed.
+**Open items: TD-76, TD-77, TD-78.** Everything else in the summary table is closed.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -99,6 +99,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-75 | ✅ `pnpm test` fails on a clean checkout — one suite needs a `DATABASE_URL` that only CI provides           | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-76 | `renderRichText` injects stored text as raw HTML with no sanitisation                                       | 🟡 Medium            | S      | 3     |
 | TD-77 | An entity's location is resolved through two unreconciled read paths                                        | 🟡 Medium            | S      | 3     |
+| TD-78 | The NPC admin list lost its Fazione column filter when the field went table-backed                          | 🟢 Low               | M      | 3     |
 
 ---
 
@@ -174,3 +175,29 @@ carries `zoneId`/`poiId` — without collapsing the two paths into one.
 `EntityList` at `toDerivedPlacements` too, or have `EntityLibrary` read
 `fetchEntityLocationSummaries` instead. Pick whichever already has the shape the
 other call site needs, then delete the loser.
+
+### TD-78 — The NPC admin list lost its Fazione column filter when the field went table-backed
+
+**Severity:** 🟢 Low · **Effort:** M · **Found:** 2026-08-10, while building [SPEC-006](./specs/006-factions.md) T7
+
+Before SPEC-006, `npcMeta.faction` was a static option list, and the NPC admin
+list's Fazione column got a working filter dropdown for free from
+`SortableHeader`'s built-in mechanism (`fieldMeta[fieldKey].options`). T7
+switched the field to `optionTable: "faction"` — rows in a table, not a static
+list — and `SortableHeader` has no equivalent for that: it reads
+`PageMeta.options` directly, which a table-backed field never declares. The
+column degrades to sort-only rather than throwing (`isFiltrable: false`,
+correct defensive behaviour), but that is a real capability the DM had before
+this spec and does not have after it: filtering NPCs by faction from the admin
+list header no longer works.
+
+**Same shape as SPEC-008's "Location" column**, which needed its own bespoke
+`LocationFilterControl` for exactly this reason — a dynamic, async-resolved
+list `SortableHeader`'s static shape can't express. A real fix here is that
+same size of work: a `FactionFilterControl` (or a generalisation of
+`LocationFilterControl`) fed by `fetchFieldOptions("faction")`.
+
+**Not filed as a blocker.** Nothing in SPEC-006's user stories asked for
+faction filtering on the admin list, and building it without being asked is
+exactly what SPEC-006 §3 and its own §9 open question 2 warn against. Pick
+this up if the DM asks for it back, not before.

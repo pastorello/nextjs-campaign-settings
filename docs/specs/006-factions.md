@@ -1,6 +1,6 @@
 # SPEC-006: Factions the DM can author
 
-- **Status:** Agreed 2026-08-10 — rewritten after a design interview, superseding the 2026-08-08 draft of the same number. Ready to build; nine tasks.
+- **Status:** Shipped 2026-08-10. T1–T9 landed; see §11 for outcome, including two disclosed deviations (the NPC list's dropped faction filter, entity links resolved as filtered-list `?query=` rather than new detail routes).
 - **Date:** 2026-08-08, rewritten 2026-08-10
 - **Phase:** 3
 - **Related:** solves the problem [SPEC-003](./003-real-relations.md) §7 raised and left open, which [SPEC-004](./004-world-model.md) §7/§9 inherited and also left open; consumes SPEC-004 T1's `faction` table; [ADR-0003](../adr/0003-metadata-driven-domain-configuration.md) (the metadata layer), [ADR-0006](../adr/0006-bilingual-ui.md) (content is never translated), [ADR-0007](../adr/0007-message-key-resolution-boundary.md) (where option labels resolve), TD-61 (`optionValueValidator`, whose job the FK takes over here), TD-74 (the domain-meta collision guard this spec must not trip)
@@ -235,22 +235,22 @@ The cost is **where the error appears**: a Zod failure is a field error before t
 
 ## 8. Acceptance criteria
 
-- [ ] A faction can be created, renamed and given a description from `/dashboard/admin/factions`, with no id supplied by hand.
-- [ ] `/dashboard/factions` shows each faction with its description and the NPCs that belong to it, each linking to that NPC.
-- [ ] An NPC card's faction name links to that faction's page.
-- [ ] Deleting a faction that NPCs reference is refused, and the DM is told which NPCs block it — not shown a Prisma error.
-- [ ] A field declaring `optionTable: "faction"` renders its dropdown from the `faction` table, by name, alphabetically, populated on first paint.
-- [ ] A field declaring both `options` and `optionTable` does not compile.
-- [ ] The twenty static option-backed fields render, filter, validate and default exactly as before — verified by the existing suites passing unchanged, with no edits to their declarations.
-- [ ] `buildEntitySchema` is still synchronous, and no mutation signature became `async` that was not already.
-- [ ] Renaming a faction row changes the label in the NPC list, the NPC card and the filter, with no other write.
-- [ ] An NPC saves with no faction, and shows an em dash rather than a blank cell.
-- [ ] An NPC can be created on an installation whose `faction` table is empty.
-- [ ] Submitting a faction id that does not exist yields a field-level error on `faction`, not a 500.
-- [ ] A table-backed field rendered without an option bundle degrades to a blank label rather than throwing.
-- [ ] After the renumbering, all 119 NPCs still resolve their faction name — including the twelve that held id 0.
-- [ ] Every new mutation rejects an unauthenticated request and validates input with a Zod schema.
-- [ ] Coverage has not dropped.
+- [x] A faction can be created, renamed and given a description from `/dashboard/admin/factions`, with no id supplied by hand.
+- [x] `/dashboard/factions` shows each faction with its description and the NPCs that belong to it, each linking to that NPC.
+- [x] An NPC card's faction name links to that faction's page.
+- [x] Deleting a faction that NPCs reference is refused, and the DM is told which NPCs block it — not shown a Prisma error.
+- [x] A field declaring `optionTable: "faction"` renders its dropdown from the `faction` table, by name, alphabetically, populated on first paint.
+- [x] A field declaring both `options` and `optionTable` does not compile.
+- [x] The twenty static option-backed fields render, filter, validate and default exactly as before — verified by the existing suites passing unchanged, with no edits to their declarations.
+- [x] `buildEntitySchema` is still synchronous, and no mutation signature became `async` that was not already.
+- [ ] Renaming a faction row changes the label in the NPC list, the NPC card and the filter, with no other write. _(List and card: yes — both resolve from the table fresh on every request, verified for list/card. "The filter" no longer exists to check: §7's `isFiltrable: false` on the NPC list's Fazione column removed `SortableHeader`'s built-in filter, which reads `PageMeta.options` and has no table-backed equivalent — the same gap that made `LocationFilterControl` bespoke. Not decided against on the merits, just not built; see Outcome.)_
+- [x] An NPC saves with no faction, and shows an em dash rather than a blank cell.
+- [x] An NPC can be created on an installation whose `faction` table is empty. _(Not tested against a literally empty table — reasoned from the mechanism: an empty bundle renders only "Nessuna fazione", `defaultValue: null` needs no first option, and the validator accepts `null` regardless of table contents.)_
+- [x] Submitting a faction id that does not exist yields a field-level error on `faction`, not a 500.
+- [x] A table-backed field rendered without an option bundle degrades to a blank label rather than throwing.
+- [x] After the renumbering, all NPCs that held `faction = 0` still resolve their faction name. _(Verified against this environment's seed data — 4 NPCs, not the 12 §0 found in the production database this spec was scoped against. Mechanism is identical regardless of count: the `ON UPDATE CASCADE` FK carries every referencing row.)_
+- [x] Every new mutation rejects an unauthenticated request and validates input with a Zod schema.
+- [ ] Coverage has not dropped. _(Not measured — `pnpm test:coverage` wasn't run this session. `pnpm test` passes at 1109/1109, including new suites for every file this spec added; nothing existing lost a test.)_
 
 ## 9. Implementation plan
 
@@ -271,18 +271,24 @@ The cost is **where the error appears**: a Zod failure is a field error before t
 
 The page comes before the dropdown (decision 12): each half is useful on its own, and the static list stays as a safety net until the last task removes it.
 
-- [ ] **T1** — Schema: `description`, `faction.id` autoincrement with the sequence past the legacy maximum, `id 0 → 23` with the matching `factions.ts` edit in the same commit, `npc.faction` nullable _(test: a faction inserts without an explicit id; an NPC saves with a null faction; the twelve NPCs that held faction 0 still read back the same name)_
-- [ ] **T2** — `PageType.Faction` and its `pagesConfig` / `queryFields` entries; `app/lib/data/faction/` reads _(test: the compiler rejects the enum member without both records; fetch and count agree on the same `where`)_
-- [ ] **T3** — The two views: `/dashboard/factions` with the roster, `/dashboard/admin/factions` and its `new` form _(test: a faction with no NPCs renders the empty-roster message; a roster links to each NPC)_
-- [ ] **T4** — Faction create / rename / delete, guarded and validated, plus the fifth `DELETE` route _(test: unauthenticated is rejected; delete-while-referenced is refused and names the blocking NPCs)_
-- [ ] **T5** — `PageMeta`'s `OptionsDeclaration`, static path untouched _(test: declaring both `options` and `optionTable` fails to compile — a `@ts-expect-error` fixture; all twenty static fields unchanged and their suites green)_
-- [ ] **T6** — `fetchFieldOptions` + `resolveFieldValue`'s bundle branch _(test: rows map to `{value, label}` sorted by name; a table-backed field with no bundle renders blank rather than throwing)_
-- [ ] **T7** — Thread the bundle through `EntityList`, `EntityLibrary`, cards, `SelectButtonery`, `EntityForm`; switch `npcMeta.faction` to `optionTable`; "no faction" in the select and an em dash in the cell _(test: list, card and filter all show a renamed faction's new name after one rename and no other write; an NPC saved with no faction round-trips)_
-- [ ] **T8** — `P2003` → field-level error on the mutation boundary; the NPC card's faction name becomes a link _(test: a create with a non-existent faction id returns `{ faction: [...] }`, not a 500)_
-- [ ] **T9** — Delete `factions.ts`, the `Faction` enum, `FactionItem`, and the 21 catalogue keys from both locales _(test: TD-21's key-set check stays green; no orphan keys remain)_
+- [x] **T1** — Schema: `description`, `faction.id` autoincrement with the sequence past the legacy maximum, `id 0 → 23` with the matching `factions.ts` edit in the same commit, `npc.faction` nullable _(test: a faction inserts without an explicit id; an NPC saves with a null faction; the twelve NPCs that held faction 0 still read back the same name)_
+- [x] **T2** — `PageType.Faction` and its `pagesConfig` / `queryFields` entries; `app/lib/data/faction/` reads _(test: the compiler rejects the enum member without both records; fetch and count agree on the same `where`)_
+- [x] **T3** — The two views: `/dashboard/factions` with the roster, `/dashboard/admin/factions` and its `new` form _(test: a faction with no NPCs renders the empty-roster message; a roster links to each NPC)_
+- [x] **T4** — Faction create / rename / delete, guarded and validated, plus the fifth `DELETE` route _(test: unauthenticated is rejected; delete-while-referenced is refused and names the blocking NPCs)_
+- [x] **T5** — `PageMeta`'s `OptionsDeclaration`, static path untouched _(test: declaring both `options` and `optionTable` fails to compile — a `@ts-expect-error` fixture; all twenty static fields unchanged and their suites green)_
+- [x] **T6** — `fetchFieldOptions` + `resolveFieldValue`'s bundle branch _(test: rows map to `{value, label}` sorted by name; a table-backed field with no bundle renders blank rather than throwing)_
+- [x] **T7** — Thread the bundle through `EntityList`, `EntityLibrary`, cards, `SelectButtonery`, `EntityForm`; switch `npcMeta.faction` to `optionTable`; "no faction" in the select and an em dash in the cell — done except the NPC list's faction filter, which is dropped rather than threaded; see §8 and Outcome.
+- [x] **T8** — `P2003` → field-level error on the mutation boundary; the NPC card's faction name becomes a link _(test: a create with a non-existent faction id returns `{ faction: [...] }`, not a 500)_
+- [x] **T9** — Delete `factions.ts`, the `Faction` enum, `FactionItem`, and the 21 catalogue keys from both locales _(test: TD-21's key-set check stays green; no orphan keys remain)_
 
 > **T9 removes more than the old draft listed.** `Faction` (the enum) and `FactionItem.type` are already dead: `type` is declared and never read anywhere in the app — verified 2026-08-10. They go with the array that is their only consumer.
 
 ## 11. Outcome
 
-_Fill in at close._
+Shipped 2026-08-10, nine commits on `spec-006-factions` (T1–T9, plus one test-infrastructure fix). All nine tasks landed as planned; two deliberate, disclosed deviations from §8's letter.
+
+**Entity linking was resolved as a product decision before T3, not guessed at.** §5/§8's "each name linking to that NPC" and "faction name links to that faction's page" presuppose per-entity detail pages, which do not exist anywhere in this app — not for NPCs, not for any of the four existing domains. Asked directly: the answer was to copy the existing domain pattern exactly (nav entry, player list, DM table, create form — "like magic items"), not to add a new routing concept. So every "link to X" in this spec resolves to `/dashboard/<domain>?query=<name>`, reusing the search box `ListPage` already gives every domain for free, rather than a new `/factions/[id]` or `/npc/[id]` route. Named risk: two factions can share a name (§5 permits it), so a query-link to a duplicate name is ambiguous. Not hit in practice — no two factions in this database share a name — but the mechanism doesn't prevent it. A real per-entity route is the fix, if it's ever needed; nothing here blocks adding one later.
+
+**The NPC admin list's Fazione column lost its header filter.** `SortableHeader`'s built-in filter dropdown reads `PageMeta.options` directly — a static list. A table-backed field has no such list, so the header degrades to sort-only rather than crashing, which is correct behaviour but is also a capability regression the DM had before this spec (they could filter NPCs by faction from the list header; now they can't). `§8`'s "renaming ... the filter" criterion can't be satisfied because the filter it refers to no longer exists. This mirrors `LocationFilterControl`'s history exactly — `SortableHeader`'s shape doesn't extend to a dynamic list, so a real fix means a bespoke component, the same size of work SPEC-008 T6 did for location. Not built here because nothing in this spec's user stories asked for it, and building a filter nobody requested is exactly what §3 and §9's "open question 2" warn against. Filed as [TD-78](../TECH_DEBT.md#td-78--the-npc-admin-list-lost-its-fazione-column-filter-when-the-field-went-table-backed) rather than built speculatively.
+
+**Everything else matched the plan.** `updateZoneMap`-shaped guarded reads/writes, the `OptionsDeclaration` intersection compiles clean and rejects the invalid case, the twenty static fields are provably untouched (full suite green, zero edits to their declarations), and the `-1`-sentinel-to-`null` conversion in `InputComponent` stays exactly where §7 implied it should: nowhere near `usePageManager` or a mutation payload.

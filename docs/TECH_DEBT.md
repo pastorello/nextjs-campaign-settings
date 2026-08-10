@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-10
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-76.** Everything else in the summary table is closed.
+**Open items: TD-76, TD-77.** Everything else in the summary table is closed.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -98,6 +98,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-74 | ✅ `pageMetaFields` spread four domain metas into one flat object — a name collision silently discarded one | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-75 | ✅ `pnpm test` fails on a clean checkout — one suite needs a `DATABASE_URL` that only CI provides           | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-76 | `renderRichText` injects stored text as raw HTML with no sanitisation                                       | 🟡 Medium            | S      | 3     |
+| TD-77 | An entity's location is resolved through two unreconciled read paths                                        | 🟡 Medium            | S      | 3     |
 
 ---
 
@@ -151,3 +152,25 @@ things they miss most (2026-08-10). **So this item and that feature are the same
 piece of work, and doing them together is cheaper than doing either alone.**
 Decide the direction when it is scheduled; do not sanitise HTML now and then
 replace it with Markdown next month.
+
+### TD-77 — An entity's location is resolved through two unreconciled read paths
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-08-10, closing [SPEC-007](./specs/007-placement-backlog.md)
+
+`EntityList` resolves an NPC/deity's location via `fetchEntityLocationSummaries`.
+`EntityLibrary` resolves the same thing via `fetchDerivedAncestry` →
+`toDerivedPlacements`. Both are correct today, and agree, but only because both
+independently rely on the same `zoneId := poi.zoneId` invariant — nothing in the
+code enforces that they stay in step if that invariant ever changes.
+
+This is exactly the failure shape [SPEC-007](./specs/007-placement-backlog.md)
+§7 named in advance ("two things doing one job and drifting", after TD-09's
+quartets and the metadata layer's near-forks) and asked to reconcile in its
+implementation plan. What shipped instead (T3, PR #142) was the minimum that
+unblocked the card's "Sconosciuta" state — `toDerivedPlacements` now also
+carries `zoneId`/`poiId` — without collapsing the two paths into one.
+
+**The fix is a direction choice, not a mechanical one:** either point
+`EntityList` at `toDerivedPlacements` too, or have `EntityLibrary` read
+`fetchEntityLocationSummaries` instead. Pick whichever already has the shape the
+other call site needs, then delete the loser.

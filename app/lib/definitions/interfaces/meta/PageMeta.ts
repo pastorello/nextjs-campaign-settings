@@ -10,8 +10,10 @@ import FieldType from "@/app/lib/definitions/types/FieldType";
  * included because `getDataLabel` genuinely accepts them — a multiselect
  * renders all of its chosen labels joined, so `circolo.getDatum` is handed the
  * whole array, not one element, despite what its narrowed declaration says.
+ * `null` is included for a table-backed field with no selection (SPEC-006 §7,
+ * decision 8) — a real, legitimate value, not a rendering failure.
  */
-type MetaDisplayValue = string | number | boolean | number[] | string[];
+type MetaDisplayValue = string | number | boolean | number[] | string[] | null;
 
 /**
  * Tables whose rows can back a field's options — closed, like `PlaceKind`.

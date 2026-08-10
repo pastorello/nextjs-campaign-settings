@@ -53,6 +53,10 @@ vi.mock("@/app/lib/data/magicitems/fetchFilteredMagicItems", () => ({
   fetchFilteredMagicItems: (...args: unknown[]) =>
     fetchFilteredMagicItems(...args),
 }));
+const fetchFilteredFactions = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/faction/fetchFilteredFactions", () => ({
+  fetchFilteredFactions: (...args: unknown[]) => fetchFilteredFactions(...args),
+}));
 
 // Backs both the "Location" column (SPEC-008 T6) and the assignment
 // button's "current location" display (T5) — stubbed to an empty map by
@@ -62,12 +66,20 @@ vi.mock("@/app/lib/data/maps/fetchEntityLocationSummaries", () => ({
   default: (...args: unknown[]) => fetchEntityLocationSummaries(...args),
 }));
 
+// The NPC "Fazione" column's option bundle (SPEC-006 T7) — stubbed empty by
+// default; none of this suite's assertions read a resolved faction label.
+const fetchFieldOptions = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/options/fetchFieldOptions", () => ({
+  default: (...args: unknown[]) => fetchFieldOptions(...args),
+}));
+
 import EntityList from "./EntityList";
 
 describe("EntityList", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     fetchEntityLocationSummaries.mockResolvedValue(new Map());
+    fetchFieldOptions.mockResolvedValue([]);
   });
 
   it("dispatches to the fetch function matching its own pageType only", async () => {

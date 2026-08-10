@@ -60,7 +60,15 @@ const listConfig: Record<PageType, ListConfig> = {
         fieldKey: NpcMetaField.alignmentDomain,
         labelKey: "npc.fields.alignmentDomain.label",
       },
-      { fieldKey: NpcMetaField.faction, labelKey: "npc.fields.faction.label" },
+      {
+        fieldKey: NpcMetaField.faction,
+        labelKey: "npc.fields.faction.label",
+        // Table-backed (SPEC-006 T7) — `SortableHeader`'s built-in filter
+        // reads `PageMeta.options`, the same shape gap that made "location"
+        // bespoke. A faction filter would need its own component the way
+        // `LocationFilterControl` is one; nobody has asked for it yet.
+        isFiltrable: false,
+      },
       {
         fieldKey: "location",
         labelKey: "common.table.location",

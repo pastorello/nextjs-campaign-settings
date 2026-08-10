@@ -13,6 +13,7 @@ import NpcForm from "../npc/NpcForm";
 import SpellForm from "../spells/SpellForm";
 import DeityForm from "../deities/DeityForm";
 import FactionForm from "../factions/FactionForm";
+import OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
 interface ModalButtonProps {
   onSave?: (item: object) => void;
@@ -23,6 +24,8 @@ interface ModalButtonProps {
   modalDescription?: string;
   modalSize?: string;
   componentProps?: ListItem;
+  /** Only `npcform` reads this today — every other variant ignores it. */
+  optionBundle?: OptionBundle | undefined;
 }
 
 const ModalButton = ({
@@ -34,6 +37,7 @@ const ModalButton = ({
   modalDescription = "",
   modalSize = "medium",
   componentProps,
+  optionBundle,
 }: ModalButtonProps) => {
   const [isOpen, setOpen] = useState(false);
   const openModal = () => setOpen(true);
@@ -71,6 +75,7 @@ const ModalButton = ({
           {modalContent === "npcform" && (
             <NpcForm
               {...componentProps}
+              optionBundle={optionBundle}
               onCancel={closeModal}
               onSaveFinished={(item: object) => {
                 closeModal();

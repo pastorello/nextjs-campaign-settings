@@ -35,6 +35,11 @@ const resolveFieldValue = (
   bundle?: OptionBundle
 ): ReactNode => {
   if (meta.optionTable !== undefined) {
+    // No selection is a legitimate value (SPEC-006 decision 8) — an em dash
+    // says "none", distinguishable from "" (a rendering gap, below).
+    if (value === null) {
+      return "—";
+    }
     // No bundle, or the table it names wasn't resolved for this request:
     // degrade to a blank label, the same fallback an unmatched static option
     // already gets from `getDataLabel` — never throw for a rendering gap.

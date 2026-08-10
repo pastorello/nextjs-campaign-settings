@@ -39,6 +39,11 @@ export function describePageMetaInvariants(
       ) {
         return;
       }
+      // Table-backed (SPEC-006): membership is the FK's job, not a static
+      // list's — there is no `options` array to be non-empty.
+      if (field.optionTable !== undefined) {
+        return;
+      }
       expect(field.options?.length ?? 0).toBeGreaterThan(0);
     });
 

@@ -620,7 +620,8 @@
         "placeholder": "Enter position"
       },
       "faction": {
-        "label": "Faction"
+        "label": "Faction",
+        "noneOption": "No faction"
       },
       "appearance": {
         "label": "Appearance",

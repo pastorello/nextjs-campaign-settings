@@ -9,17 +9,21 @@ import updateNpc from "@/app/lib/data/npc/updateNpc";
 import PageType from "@/app/lib/definitions/types/PageType";
 import NpcItem from "@/app/lib/definitions/interfaces/npc/NpcItem";
 import NpcMetaField from "@/app/lib/definitions/enums/npc/NpcMetaField";
+import OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
 interface NpcFormProps {
   formData?: NpcItem;
   onCancel: () => void;
   onSaveFinished: (page: NpcItem) => void;
+  /** Resolves `NpcMetaField.faction`'s select — absent renders it empty. */
+  optionBundle?: OptionBundle | undefined;
 }
 
 export default function NpcForm({
   formData,
   onCancel,
   onSaveFinished,
+  optionBundle,
 }: NpcFormProps) {
   const t = useTranslations("npc.form");
 
@@ -36,6 +40,7 @@ export default function NpcForm({
       }}
       onCancel={onCancel}
       onSaveFinished={onSaveFinished}
+      optionBundle={optionBundle}
     >
       {(field) => (
         <Fieldset className="flex w-full flex-col">

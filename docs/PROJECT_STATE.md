@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-08
 **Status:** Working prototype, not production-ready
 **Phase:** 3 (data model and relations) — Phases 1 and 2 are complete; see [`ROADMAP.md`](./ROADMAP.md)
-**Goal of the current phase:** entities reference each other instead of being isolated lists — the world tree, real relations, locations and factions the DM authors rather than edits into source. See [SPEC-004](./specs/004-world-model.md) and [SPEC-006](./specs/006-table-backed-options.md).
+**Goal of the current phase:** entities reference each other instead of being isolated lists — the world tree, real relations, locations and factions the DM authors rather than edits into source. See [SPEC-004](./specs/004-world-model.md) and [SPEC-006](./specs/006-factions.md).
 
 **The standing goal underneath every phase** is unchanged: keep the project sustainable to work on — no bugs, no dead code, tested, documented, CI-verified, organised so a future session (human or agent) picks it up cheaply. Phases 1 and 2 established that; Phase 3 builds on it without regressing it (see `ROADMAP.md`, "Phases close; they do not stay closed").
 
@@ -114,7 +114,7 @@ Observations:
 
 - ✅ `createdAt` / `updatedAt` on the four domain models (TD-11); `@@index([name])` on each (`users` is indexed by its unique `email`).
 - **Relations exist now, in two places, and the rest is still bare `Int`s.** `poi.parentId` is a self-relation with `onDelete: Restrict` — the world tree ([ADR-0009](./adr/0009-world-tree-as-one-polymorphic-table.md)) — and `npc.faction` has a real foreign key to `faction`. Every other option-backed column (`alignment`, `rarity`, `class`, …) is still an `Int` indexing a hardcoded TypeScript array. Since TD-61 those are membership-validated at the Zod boundary, so a value outside the list is rejected rather than silently rendering as a blank cell; renumbering an array still repoints existing rows, and that has not changed.
-- **`faction` is a table nothing reads.** SPEC-004 T1 shipped it and its foreign key; the UI still renders `factions.ts`'s static list beside it. Consuming it is [SPEC-006](./specs/006-table-backed-options.md).
+- **`faction` is a table nothing reads.** SPEC-004 T1 shipped it and its foreign key; the UI still renders `factions.ts`'s static list beside it. Consuming it is [SPEC-006](./specs/006-factions.md), which after its 2026-08-10 rewrite makes `faction` a fifth domain with its own pages rather than only a table-backed option source.
 - **No ownership**, and per [SPEC-004](./specs/004-world-model.md) §3 that is now a decision rather than a gap: a campaign is a story told inside the one universe, not a scoping boundary, so **no `campaignId` belongs on any entity**. (This section previously said multi-campaign support "requires a schema change" — it does not, because it is not being built that way.) What is genuinely still open is authorisation; see §5.
 - Migrations: nine, listed by `ls prisma/migrations`. Two are worth knowing about — `20260730020000_rename_png_table_to_npc` (TD-19: `@map` retargets a field, but renaming a _model_ renames the table, so this was hand-written to avoid dropping 119 rows) and `20260806220000_add_faction_table_and_fk` (seeds `faction` with raw SQL, which is why `db push` cannot substitute for `migrate deploy` — TD-73).
 - **The local dev database's migration history is broken**, and has been since before this file was written: two migrations are unapplied and `migrate dev`/`migrate deploy` both fail against it, so every schema change is hand-applied. Tracked as **TD-63**, still open.

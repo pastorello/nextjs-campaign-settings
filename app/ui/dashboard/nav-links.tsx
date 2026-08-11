@@ -8,6 +8,7 @@ import {
   BuildingLibraryIcon,
   MapIcon,
   PencilSquareIcon,
+  FlagIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Link from "next/link";
@@ -44,6 +45,12 @@ const links = [
     href: "/dashboard/npc",
     admin: "/dashboard/admin/npc",
     icon: UserGroupIcon,
+  },
+  {
+    key: "factions",
+    href: "/dashboard/factions",
+    admin: "/dashboard/admin/factions",
+    icon: FlagIcon,
   },
 ];
 

@@ -8,7 +8,6 @@ import z from "zod";
 
 import alignmentDomains from "./alignmentDomains";
 import alignments from "./alignments";
-import factions from "./factions";
 import renderRichText from "../../utils/data/renderRichText";
 
 const npcMeta = {
@@ -50,14 +49,18 @@ const npcMeta = {
     validator: z.string().optional(),
     getDatum: (datum: string) => datum,
   },
+  // Table-backed (SPEC-006 T7) — the FK does the membership check, so this
+  // stays a plain nullable integer rather than an optionValueValidator
+  // built from a static list. No default: on a fresh installation there is
+  // genuinely no first faction, and an NPC may keep it that way (decision 8).
   [NpcMetaField.faction]: {
     labelKey: "npc.fields.faction.label",
-    defaultValue: firstOptionValue(factions),
+    defaultValue: null,
     metaField: NpcMetaField.faction,
     fieldType: FieldType.integer,
-    options: factions,
+    optionTable: "faction",
     controlType: ControlType.Select,
-    validator: optionValueValidator(factions),
+    validator: z.number().int().nullable(),
   },
   [NpcMetaField.appearance]: {
     labelKey: "npc.fields.appearance.label",

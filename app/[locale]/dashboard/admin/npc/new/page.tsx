@@ -1,16 +1,11 @@
-"use client";
+import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
+import NewNpcForm from "./NewNpcForm";
 
-import NpcForm from "@/app/ui/npc/NpcForm";
-import { useRouter } from "@/i18n/navigation";
+// Server component so the faction select is populated on first paint
+// (SPEC-006 §7, decision 10) — this route has no other server ancestor to
+// resolve the bundle from, unlike the admin list's edit modal.
+export default async function Page() {
+  const optionBundle = { faction: await fetchFieldOptions("faction") };
 
-export default function Page() {
-  const router = useRouter();
-  const onCancel = () => {
-    router.push("/dashboard/admin/npc");
-  };
-  const onSaveFinished = () => {
-    router.push("/dashboard/admin/npc");
-  };
-
-  return <NpcForm onCancel={onCancel} onSaveFinished={onSaveFinished} />;
+  return <NewNpcForm optionBundle={optionBundle} />;
 }

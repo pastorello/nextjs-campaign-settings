@@ -15,6 +15,7 @@ import usePageManager from "@/app/lib/hooks/usePageManager";
 import MetaConfigKey from "@/app/lib/definitions/types/MetaConfigKey";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import PageType from "@/app/lib/definitions/types/PageType";
+import OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
 /** The four strings a domain form shows. Kept together so TD-21 can lift them. */
 interface EntityFormCopy {
@@ -60,6 +61,13 @@ interface EntityFormProps<T extends object> {
    */
   disableUntilEdited?: boolean | undefined;
 
+  /**
+   * Every table-backed field's resolved options, for whichever fields this
+   * form renders (SPEC-006 §7). Only a form with a table-backed field reads
+   * this; the other three pass nothing.
+   */
+  optionBundle?: OptionBundle | undefined;
+
   /** The domain's field layout — the one part that genuinely differs. */
   children: (field: FieldRenderer) => ReactNode;
 }
@@ -84,6 +92,7 @@ export default function EntityForm<T extends object>({
   onCancel,
   onSaveFinished,
   disableUntilEdited = true,
+  optionBundle,
   children,
 }: EntityFormProps<T>) {
   const t = useTranslations("common.form");
@@ -102,6 +111,7 @@ export default function EntityForm<T extends object>({
       fieldName={fieldName}
       setField={setField}
       value={getField(fieldName)}
+      optionBundle={optionBundle}
     />
   );
 

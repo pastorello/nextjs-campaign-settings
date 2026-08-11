@@ -11,8 +11,11 @@ import { fetchFilteredDeities } from "@/app/lib/data/deities/fetchFilteredDeitie
 import { fetchFilteredMagicItems } from "@/app/lib/data/magicitems/fetchFilteredMagicItems";
 import { fetchFilteredNpc } from "@/app/lib/data/npc/fetchFilteredNpc";
 import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
+import { fetchFilteredFactions } from "@/app/lib/data/faction/fetchFilteredFactions";
+import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
 import fetchEntityLocationSummaries from "@/app/lib/data/maps/fetchEntityLocationSummaries";
 import type LocationSummary from "@/app/lib/definitions/interfaces/maps/LocationSummary";
+import type OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
 import SortableHeader from "../buttons/SortableHeader";
 import DeleteButton from "../buttons/DeleteButton";
@@ -52,6 +55,8 @@ const fetchItems = (pageType: PageType, searchParams: SearchParamsInput) => {
       return fetchFilteredDeities(searchParams);
     case PageType.MagicItem:
       return fetchFilteredMagicItems(searchParams);
+    case PageType.Faction:
+      return fetchFilteredFactions(searchParams);
   }
 };
 
@@ -80,6 +85,13 @@ export default async function EntityList(props: {
         t("common.location.unknown");
     }
   }
+
+  // Resolved once per request and passed down as a prop (SPEC-006 §7,
+  // decision 10) — only the NPC list has a table-backed field today.
+  const optionBundle: OptionBundle | undefined =
+    props.pageType === PageType.Npc
+      ? { faction: await fetchFieldOptions("faction") }
+      : undefined;
 
   return (
     <div className="mt-6 flow-root">
@@ -152,7 +164,8 @@ export default async function EntityList(props: {
                       {renderFieldValue(
                         column.fieldKey,
                         item[column.fieldKey],
-                        t
+                        t,
+                        optionBundle
                       )}
                     </td>
                   ))}
@@ -183,6 +196,7 @@ export default async function EntityList(props: {
                         modalTitle={t(config.editModalTitleKey)}
                         modalContent={config.modalContent}
                         componentProps={{ formData: item }}
+                        optionBundle={optionBundle}
                       />
                       <DeleteButton
                         pageName={item.name as string}

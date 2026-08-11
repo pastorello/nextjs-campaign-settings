@@ -60,7 +60,15 @@ const listConfig: Record<PageType, ListConfig> = {
         fieldKey: NpcMetaField.alignmentDomain,
         labelKey: "npc.fields.alignmentDomain.label",
       },
-      { fieldKey: NpcMetaField.faction, labelKey: "npc.fields.faction.label" },
+      {
+        fieldKey: NpcMetaField.faction,
+        labelKey: "npc.fields.faction.label",
+        // Table-backed (SPEC-006 T7) — `SortableHeader`'s built-in filter
+        // reads `PageMeta.options`, the same shape gap that made "location"
+        // bespoke. A faction filter would need its own component the way
+        // `LocationFilterControl` is one; nobody has asked for it yet.
+        isFiltrable: false,
+      },
       {
         fieldKey: "location",
         labelKey: "common.table.location",
@@ -122,6 +130,22 @@ const listConfig: Record<PageType, ListConfig> = {
     emptyMessageKey: "magicItems.page.emptyMessage",
     editModalTitleKey: "magicItems.form.editTitle",
     modalContent: "magicitemform",
+  },
+
+  [PageType.Faction]: {
+    columns: [
+      {
+        fieldKey: "description",
+        labelKey: "common.fields.description.label",
+        // Free text, not a closed vocabulary — SortableHeader's built-in
+        // filter select needs `PageMeta.options`, which this field has none
+        // of.
+        isFiltrable: false,
+      },
+    ],
+    emptyMessageKey: "factions.page.emptyMessage",
+    editModalTitleKey: "factions.form.editTitle",
+    modalContent: "factionform",
   },
 };
 

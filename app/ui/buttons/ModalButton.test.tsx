@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-// Modal and the five form variants it can render each have their own
+// Modal and the six form variants it can render each have their own
 // suites. ModalButton's own job is the open/close state and picking the
 // right variant by `modalContent` — stubbed here to isolate exactly that.
 vi.mock("../components/Modal", () => ({
@@ -47,6 +47,11 @@ vi.mock("../forms/PageForm", () => ({
     <button onClick={() => onSaveFinished()}>save-delete</button>
   ),
 }));
+vi.mock("../factions/FactionForm", () => ({
+  default: ({ onSaveFinished }: { onSaveFinished: (i: object) => void }) => (
+    <button onClick={() => onSaveFinished({ id: 1 })}>save-faction</button>
+  ),
+}));
 
 import ModalButton from "./ModalButton";
 
@@ -83,6 +88,7 @@ describe("ModalButton", () => {
     ["npcform", "save-npc"],
     ["deityform", "save-deity"],
     ["deleteform", "save-delete"],
+    ["factionform", "save-faction"],
   ])("renders the %s variant", (modalContent, expectedText) => {
     render(
       <ModalButton

@@ -10,6 +10,7 @@
       "spells": "Spells",
       "magicItems": "Magic Items",
       "npc": "NPCs",
+      "factions": "Factions",
       "manage": "Manage {section}",
       "signOut": "Sign Out",
       "language": "Language"
@@ -130,16 +131,46 @@
   },
   "spells": {
     "levels": {
-      "cantrip": { "label": "Cantrip", "short": "0" },
-      "level1": { "label": "Level 1", "short": "1" },
-      "level2": { "label": "Level 2", "short": "2" },
-      "level3": { "label": "Level 3", "short": "3" },
-      "level4": { "label": "Level 4", "short": "4" },
-      "level5": { "label": "Level 5", "short": "5" },
-      "level6": { "label": "Level 6", "short": "6" },
-      "level7": { "label": "Level 7", "short": "7" },
-      "level8": { "label": "Level 8", "short": "8" },
-      "level9": { "label": "Level 9", "short": "9" }
+      "cantrip": {
+        "label": "Cantrip",
+        "short": "0"
+      },
+      "level1": {
+        "label": "Level 1",
+        "short": "1"
+      },
+      "level2": {
+        "label": "Level 2",
+        "short": "2"
+      },
+      "level3": {
+        "label": "Level 3",
+        "short": "3"
+      },
+      "level4": {
+        "label": "Level 4",
+        "short": "4"
+      },
+      "level5": {
+        "label": "Level 5",
+        "short": "5"
+      },
+      "level6": {
+        "label": "Level 6",
+        "short": "6"
+      },
+      "level7": {
+        "label": "Level 7",
+        "short": "7"
+      },
+      "level8": {
+        "label": "Level 8",
+        "short": "8"
+      },
+      "level9": {
+        "label": "Level 9",
+        "short": "9"
+      }
     },
     "classes": {
       "bard": "Bard",
@@ -261,16 +292,36 @@
       "ritual": "(ritual)"
     },
     "fields": {
-      "level": { "label": "Level" },
-      "circle": { "label": "Subclasses" },
-      "classes": { "label": "Classes" },
-      "castingTime": { "label": "Casting Time" },
-      "range": { "label": "Range" },
-      "components": { "label": "Components" },
-      "duration": { "label": "Duration" },
-      "savingThrow": { "label": "Saving Throw" },
-      "ritual": { "label": "Ritual" },
-      "concentration": { "label": "Requires Concentration" },
+      "level": {
+        "label": "Level"
+      },
+      "circle": {
+        "label": "Subclasses"
+      },
+      "classes": {
+        "label": "Classes"
+      },
+      "castingTime": {
+        "label": "Casting Time"
+      },
+      "range": {
+        "label": "Range"
+      },
+      "components": {
+        "label": "Components"
+      },
+      "duration": {
+        "label": "Duration"
+      },
+      "savingThrow": {
+        "label": "Saving Throw"
+      },
+      "ritual": {
+        "label": "Ritual"
+      },
+      "concentration": {
+        "label": "Requires Concentration"
+      },
       "upcast": {
         "label": "At Higher Levels",
         "placeholder": "Enter text..."
@@ -365,22 +416,38 @@
       "element": "Element"
     },
     "fields": {
-      "color": { "label": "Magic Color" },
+      "color": {
+        "label": "Magic Color"
+      },
       "deityTitle": {
         "label": "Title",
         "placeholder": "Enter the title"
       },
-      "deityType": { "label": "Type" },
-      "deityRank": { "label": "Rank" },
-      "tarotCard": { "label": "Tarot Card" },
-      "celestialBody": { "label": "Celestial Body" },
-      "element": { "label": "Element" },
-      "deityClass": { "label": "Class" },
+      "deityType": {
+        "label": "Type"
+      },
+      "deityRank": {
+        "label": "Rank"
+      },
+      "tarotCard": {
+        "label": "Tarot Card"
+      },
+      "celestialBody": {
+        "label": "Celestial Body"
+      },
+      "element": {
+        "label": "Element"
+      },
+      "deityClass": {
+        "label": "Class"
+      },
       "holidays": {
         "label": "Holidays",
         "placeholder": "Enter the holidays"
       },
-      "tradition": { "label": "Tradition" },
+      "tradition": {
+        "label": "Tradition"
+      },
       "meaning": {
         "label": "Meaning",
         "placeholder": "Enter the meaning"
@@ -499,29 +566,6 @@
       "neutrality": "Neutrality",
       "chaos": "Chaos"
     },
-    "factions": {
-      "regnoBianco": "Kingdom of Kang",
-      "regnoRosso": "Horde of the Greenskins",
-      "regnoGrigio": "Sultans of Solenero",
-      "regnoVerde": "Moon Elves",
-      "regnoGiallo": "Dwarves of Butwhag",
-      "regnoAzzurro": "Barbarian Hordes",
-      "regnoNero": "Kingdom of Blackthorne",
-      "valleferro": "County of Valleferro",
-      "skreebars": "Duchy of Skreebars",
-      "raminghi": "Wanderers",
-      "custodiBianchi": "Keepers of the Flame",
-      "custodiVerdi": "Keepers of the Sacred Tree",
-      "custodiNeri": "Keepers of the Runes",
-      "maghiBianchi": "Academy of the Illuminated",
-      "maghiGrigi": "School of the Invisible",
-      "maghiNeri": "Coven of the Hags",
-      "paladiniBianchi": "Knights of the Order of the Rose",
-      "demoniRossi": "Red Demons",
-      "annunaki": "Annunaki",
-      "folletti": "Sprites",
-      "manoNera": "Black Hand"
-    },
     "page": {
       "title": "Known Characters",
       "adminTitle": "NPCs",
@@ -538,11 +582,24 @@
       "editButton": "Edit NPC"
     },
     "fields": {
-      "title": { "label": "Title", "placeholder": "Enter title" },
-      "alignment": { "label": "Alignment" },
-      "alignmentDomain": { "label": "Domain" },
-      "position": { "label": "Position", "placeholder": "Enter position" },
-      "faction": { "label": "Faction" },
+      "title": {
+        "label": "Title",
+        "placeholder": "Enter title"
+      },
+      "alignment": {
+        "label": "Alignment"
+      },
+      "alignmentDomain": {
+        "label": "Domain"
+      },
+      "position": {
+        "label": "Position",
+        "placeholder": "Enter position"
+      },
+      "faction": {
+        "label": "Faction",
+        "noneOption": "No faction"
+      },
       "appearance": {
         "label": "Appearance",
         "placeholder": "Enter appearance"
@@ -555,7 +612,30 @@
         "label": "Motivations",
         "placeholder": "Enter motivations"
       },
-      "secrets": { "label": "Secrets", "placeholder": "Enter secrets" }
+      "secrets": {
+        "label": "Secrets",
+        "placeholder": "Enter secrets"
+      }
+    }
+  },
+  "factions": {
+    "page": {
+      "title": "Factions",
+      "searchPlaceholder": "Search factions...",
+      "itemSingular": "faction",
+      "itemPlural": "factions",
+      "newItemButton": "New Faction",
+      "emptyMessage": "No factions found"
+    },
+    "form": {
+      "createTitle": "Create New Faction",
+      "editTitle": "Edit Faction",
+      "createButton": "Create Faction",
+      "editButton": "Edit Faction"
+    },
+    "card": {
+      "rosterTitle": "Members",
+      "emptyRoster": "No NPC belongs to this faction yet"
     }
   },
   "magicItems": {
@@ -597,8 +677,12 @@
       "attunementRequired": "Attunement required"
     },
     "fields": {
-      "rarity": { "label": "Rarity" },
-      "type": { "label": "Item Type" },
+      "rarity": {
+        "label": "Rarity"
+      },
+      "type": {
+        "label": "Item Type"
+      },
       "attuned": {
         "label": "Attunement Required",
         "shortLabel": "Attunement"

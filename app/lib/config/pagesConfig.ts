@@ -82,6 +82,9 @@ const pagesConfig: Record<PageType, MetaConfigKey[]> = {
     NpcMetaField.alignmentDomain,
     DeityMetaField.meaning,
   ],
+  // No domain meta: `id`, `name` and `description` are declared directly in
+  // `pageMetaFields`, and a faction has no field beyond them (SPEC-006 §7).
+  [PageType.Faction]: ["id", "name", "description"],
 };
 
 export default pagesConfig;

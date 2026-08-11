@@ -70,7 +70,13 @@ const usePageManager = <T extends object>(
       fields.map((field) => [
         field,
         isCreateMode
-          ? pageMetaFields[field].defaultValue
+          ? // A table-backed field's default is `null` (SPEC-006 §7,
+            // decision 8 — "no faction" must be a real, submittable choice,
+            // not coerced to "" the way `readField`'s fallback below would).
+            // `MetaValue` has no `null`; the cast is this hook's one
+            // documented exception, same shape as `InputComponent`'s
+            // sentinel-to-null conversion on the way back.
+            (pageMetaFields[field].defaultValue as MetaValue)
           : readField(pageItem, field),
       ])
     );

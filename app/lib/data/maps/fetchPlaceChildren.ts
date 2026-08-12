@@ -50,6 +50,7 @@ export default async function fetchPlaceChildren(
     mapBounds: row.mapBounds,
     mapInitialView: row.mapInitialView,
     mapInitialZoom: row.mapInitialZoom,
+    footprint: row.footprint,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   }));
@@ -66,6 +67,7 @@ export default async function fetchPlaceChildren(
     mapBounds: null,
     mapInitialView: null,
     mapInitialZoom: null,
+    footprint: null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   }));

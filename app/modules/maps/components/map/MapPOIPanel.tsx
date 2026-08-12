@@ -26,9 +26,14 @@ import {
 } from "@/app/modules/maps/constants/poi-categories";
 import {
   PLACE_KINDS,
+  NAVIGABLE_PLACE_KINDS,
   isNavigablePlaceKind,
 } from "@/app/modules/maps/constants/place-kinds";
 import { formatDecimalDegrees } from "@/app/modules/maps/lib/utils/coordinates";
+import {
+  footprintCentre,
+  type Footprint,
+} from "@/app/modules/maps/lib/utils/footprint";
 import { ALLOWED_MAP_IMAGE_CONTENT_TYPES } from "@/app/lib/storage/mapImageUploadRules";
 import type { UnplacedChild } from "@/app/modules/maps/hooks/useUnplacedChildren";
 
@@ -47,6 +52,10 @@ export type AddPlaceInput = {
   lng: number;
   description?: string;
   mapImage: string;
+  // The rectangle this place casts on the parent's map (SPEC-009 T2),
+  // present only when it was created by drawing an area rather than
+  // clicking a point.
+  footprint?: Footprint;
 };
 
 interface MapPOIPanelProps {
@@ -80,10 +89,14 @@ interface MapPOIPanelProps {
   cursorLng?: number | undefined;
   mode?: "list" | "add"; // Control view mode from parent
   // Creates a navigable/deity/npc place under the current parent, returning
-  // whether it succeeded. Not optional: every consumer of this panel is now
-  // scoped to a place (SPEC-004 M7), so there is always a parent to attach
-  // to.
-  onAddPlace: (input: AddPlaceInput) => Promise<boolean>;
+  // whether it succeeded and, on failure, the server's own refusal message
+  // (SPEC-009 T2) — `createPlace` already names exactly what went wrong, so
+  // this shows that instead of a generic fallback. Not optional: every
+  // consumer of this panel is now scoped to a place (SPEC-004 M7), so there
+  // is always a parent to attach to.
+  onAddPlace: (
+    input: AddPlaceInput
+  ) => Promise<{ ok: boolean; error?: string }>;
   // This place's children still missing a position, any kind (TD-71,
   // SPEC-005 §5.A) — the "Unplaced places" section above the POI list.
   // Required like `onAddPlace`: every consumer is scoped to a place, so
@@ -94,6 +107,16 @@ interface MapPOIPanelProps {
   // the target. `null` means nothing is being positioned right now.
   onPositionPlace: (id: number) => void;
   positioningPlaceId: number | null;
+  // A rectangle just finished drawing on the map (SPEC-009 T2) and is
+  // waiting for this form: the kind selector narrows to the navigable
+  // kinds, coordinate-picking is replaced by a read-only centre readout,
+  // and `handleSave` derives `lat`/`lng` from the footprint itself.
+  pendingFootprint?: Footprint | null;
+  // The footprint above is no longer needed by the form — a successful
+  // save, backing out to the list, or starting a fresh non-area add — so
+  // the caller can drop it before it might otherwise attach itself to an
+  // unrelated place.
+  onFootprintConsumed?: () => void;
 }
 
 type ViewMode = "list" | "add" | "edit";
@@ -220,6 +243,8 @@ export const MapPOIPanel = memo(function MapPOIPanel({
   unplacedChildren,
   onPositionPlace,
   positioningPlaceId,
+  pendingFootprint = null,
+  onFootprintConsumed,
 }: MapPOIPanelProps) {
   const t = useTranslations();
   const [isMobile, setIsMobile] = useState(false);
@@ -287,6 +312,22 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     }
   }, [initialLatStr, initialLngStr]);
 
+  // A rectangle just finished drawing (SPEC-009 T2) — seed the form for an
+  // area rather than a point: default to the first navigable kind (an area
+  // is never a landmark), and clear the fields a fresh draw shouldn't
+  // inherit from whatever was in the form before.
+  useEffect(() => {
+    if (pendingFootprint) {
+      setFormData((prev) => ({
+        ...prev,
+        kind: NAVIGABLE_PLACE_KINDS[0],
+        title: "",
+        description: "",
+        mapFile: null,
+      }));
+    }
+  }, [pendingFootprint]);
+
   // Filter POIs by category if specified
   const displayPOIs = filterCategory
     ? pois.filter((poi) => poi.category === filterCategory)
@@ -300,7 +341,10 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     : "My Places";
 
   /**
-   * Handle add POI mode
+   * Handle add POI mode. Also drops any pending footprint (SPEC-009 T2):
+   * this is the plain "Add" entry, not the draw-an-area one, so a rectangle
+   * left over from a drawn-then-abandoned area must not silently attach
+   * itself to whatever gets created here.
    */
   const handleAddMode = useCallback(() => {
     setViewMode("add");
@@ -314,7 +358,14 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       category: filterCategory || "food-drink",
       mapFile: null,
     });
-  }, [setViewMode, initialLatStr, initialLngStr, filterCategory]);
+    onFootprintConsumed?.();
+  }, [
+    setViewMode,
+    initialLatStr,
+    initialLngStr,
+    filterCategory,
+    onFootprintConsumed,
+  ]);
 
   /**
    * Handle edit POI mode. Editing is always `kind: "poi"` — `pois` (and so
@@ -352,7 +403,8 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       mapFile: null,
     });
     onClearCoordinates?.();
-  }, [setViewMode, onClearCoordinates]);
+    onFootprintConsumed?.();
+  }, [setViewMode, onClearCoordinates, onFootprintConsumed]);
 
   /**
    * Handle save. `kind: "poi"` (the only kind an edit ever is) keeps the
@@ -363,8 +415,6 @@ export const MapPOIPanel = memo(function MapPOIPanel({
    * form.
    */
   const handleSave = useCallback(async () => {
-    const lat = parseFloat(formData.lat);
-    const lng = parseFloat(formData.lng);
     const title = formData.title.trim();
 
     if (!title) {
@@ -372,9 +422,20 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       return;
     }
 
-    if (isNaN(lat) || isNaN(lng)) {
-      toast.error("Please enter valid coordinates");
-      return;
+    // SPEC-009 T2 — a pending footprint already fixes the position; the
+    // coordinate fields are hidden for that flow and never populated, so
+    // parsing them as typed input would always fail.
+    let lat: number;
+    let lng: number;
+    if (pendingFootprint) {
+      [lat, lng] = footprintCentre(pendingFootprint);
+    } else {
+      lat = parseFloat(formData.lat);
+      lng = parseFloat(formData.lng);
+      if (isNaN(lat) || isNaN(lng)) {
+        toast.error("Please enter valid coordinates");
+        return;
+      }
     }
 
     if (viewMode === "edit" && editingPOI) {
@@ -421,16 +482,17 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           id: string;
         };
 
-        const succeeded = await onAddPlace({
+        const result = await onAddPlace({
           kind: formData.kind,
           title,
           lat,
           lng,
           mapImage,
           ...(description !== undefined && { description }),
+          ...(pendingFootprint && { footprint: pendingFootprint }),
         });
-        if (!succeeded) {
-          toast.error("Could not save the place");
+        if (!result.ok) {
+          toast.error(result.error ?? "Could not save the place");
           return;
         }
       } finally {
@@ -445,6 +507,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     formData,
     viewMode,
     editingPOI,
+    pendingFootprint,
     onAddPOI,
     onUpdatePOI,
     onAddPlace,
@@ -539,11 +602,16 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                 }}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
               >
-                {PLACE_KINDS.map((kind) => (
-                  <option key={kind} value={kind}>
-                    {kind}
-                  </option>
-                ))}
+                {/* SPEC-009 T2 — a drawn area is always a navigable kind
+                    (rule 1: a rectangle always means a map); a landmark
+                    point isn't one of the options in that flow. */}
+                {(pendingFootprint ? NAVIGABLE_PLACE_KINDS : PLACE_KINDS).map(
+                  (kind) => (
+                    <option key={kind} value={kind}>
+                      {kind}
+                    </option>
+                  )
+                )}
               </select>
             </div>
           )}
@@ -553,7 +621,14 @@ export const MapPOIPanel = memo(function MapPOIPanel({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Coordinates
             </label>
-            {formData.lat && formData.lng && !isSelectingLocationProp ? (
+            {pendingFootprint ? (
+              // SPEC-009 T2 — the footprint already fixes the position;
+              // there is nothing to pick or type, just the derived centre
+              // for confirmation.
+              <div className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm font-mono text-gray-600 dark:text-gray-400">
+                {formatDecimalDegrees(footprintCentre(pendingFootprint), 4)}
+              </div>
+            ) : formData.lat && formData.lng && !isSelectingLocationProp ? (
               <div className="flex gap-2">
                 <div className="flex-1 grid grid-cols-2 gap-3">
                   <input
@@ -879,6 +954,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           <button
             onClick={() => {
               setViewMode("list");
+              onFootprintConsumed?.();
             }}
             className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
           >

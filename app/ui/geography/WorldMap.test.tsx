@@ -43,7 +43,8 @@ const exportGeoJSON = vi.fn(() => ({
   features: [],
 }));
 const importGeoJSON = vi.fn(() => 2);
-let onAddPlace: ((input: unknown) => Promise<boolean>) | undefined;
+let onAddPlace:
+  ((input: unknown) => Promise<{ ok: boolean; error?: string }>) | undefined;
 let onPositionPlace: ((id: number) => void) | undefined;
 vi.mock("@/app/modules/maps/components/map/MapPOIPanel", () => ({
   MapPOIPanel: (props: {
@@ -51,10 +52,12 @@ vi.mock("@/app/modules/maps/components/map/MapPOIPanel", () => ({
     onImport: (file: File) => void | Promise<void>;
     initialLat?: number;
     initialLng?: number;
-    onAddPlace: (input: unknown) => Promise<boolean>;
+    onAddPlace: (input: unknown) => Promise<{ ok: boolean; error?: string }>;
     unplacedChildren: { id: number; title: string; kind: string }[];
     onPositionPlace: (id: number) => void;
     positioningPlaceId: number | null;
+    mode?: string;
+    pendingFootprint?: unknown;
   }) => {
     onRequestLocation = props.onRequestLocation;
     onImport = props.onImport;
@@ -67,13 +70,41 @@ vi.mock("@/app/modules/maps/components/map/MapPOIPanel", () => ({
         data-initial-lng={props.initialLng}
         data-unplaced-count={props.unplacedChildren.length}
         data-positioning-id={props.positioningPlaceId ?? undefined}
+        data-mode={props.mode}
+        data-pending-footprint={
+          props.pendingFootprint
+            ? JSON.stringify(props.pendingFootprint)
+            : undefined
+        }
       />
     );
   },
 }));
 
-const createPlace =
-  vi.fn<(...args: unknown[]) => Promise<{ ok: boolean; id?: number }>>();
+let drawAreaOptions:
+  | {
+      enabled: boolean;
+      onComplete: (footprint: unknown) => void;
+      onCancel: () => void;
+    }
+  | undefined;
+vi.mock("@/app/modules/maps/hooks/useDrawArea", () => ({
+  useDrawArea: (options: {
+    enabled: boolean;
+    onComplete: (footprint: unknown) => void;
+    onCancel: () => void;
+  }) => {
+    drawAreaOptions = options;
+  },
+}));
+
+const createPlace = vi.fn<
+  (...args: unknown[]) => Promise<{
+    ok: boolean;
+    id?: number;
+    errors?: Record<string, string[] | undefined>;
+  }>
+>();
 vi.mock("@/app/lib/data/maps/createPlace", () => ({
   default: (...args: unknown[]) => createPlace(...args),
 }));
@@ -327,7 +358,7 @@ describe("WorldMap", () => {
   it("creates a place under the current parent (SPEC-004 M5)", async () => {
     await renderMap();
 
-    const succeeded = await onAddPlace?.({
+    const result = await onAddPlace?.({
       kind: "region",
       title: "Kingdom of Kang",
       lat: 1,
@@ -335,7 +366,7 @@ describe("WorldMap", () => {
       mapImage: "kang.png",
     });
 
-    expect(succeeded).toBe(true);
+    expect(result).toEqual({ ok: true });
     expect(createPlace).toHaveBeenCalledWith({
       kind: "region",
       title: "Kingdom of Kang",
@@ -349,7 +380,7 @@ describe("WorldMap", () => {
   it("creates a place of a T2 navigable kind (e.g. city) under the current parent", async () => {
     await renderMap();
 
-    const succeeded = await onAddPlace?.({
+    const result = await onAddPlace?.({
       kind: "city",
       title: "Skreebars",
       lat: 3,
@@ -357,7 +388,7 @@ describe("WorldMap", () => {
       mapImage: "skreebars.png",
     });
 
-    expect(succeeded).toBe(true);
+    expect(result).toEqual({ ok: true });
     expect(createPlace).toHaveBeenCalledWith({
       kind: "city",
       title: "Skreebars",
@@ -391,7 +422,7 @@ describe("WorldMap", () => {
     await renderMap();
     const callsBefore = useNavigableChildren.mock.calls.length;
 
-    const succeeded = await onAddPlace?.({
+    const result = await onAddPlace?.({
       kind: "region",
       title: "Kingdom of Kang",
       lat: 1,
@@ -399,10 +430,31 @@ describe("WorldMap", () => {
       mapImage: "kang.png",
     });
 
-    expect(succeeded).toBe(false);
+    expect(result).toEqual({ ok: false });
     // Give a re-render a chance to happen; asserting equal counts, not a
     // change, so no waitFor to await.
     expect(useNavigableChildren.mock.calls.length).toBe(callsBefore);
+  });
+
+  it("surfaces the server's own refusal message on failure", async () => {
+    createPlace.mockResolvedValue({
+      ok: false,
+      errors: { footprint: ["Overlaps an existing area: Kang."] },
+    });
+    await renderMap();
+
+    const result = await onAddPlace?.({
+      kind: "region",
+      title: "Kingdom of Kang",
+      lat: 1,
+      lng: 2,
+      mapImage: "kang.png",
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      error: "Overlaps an existing area: Kang.",
+    });
   });
 });
 
@@ -508,5 +560,98 @@ describe("WorldMap — positioning an unplaced place (TD-71, SPEC-005 §5.A)", (
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith("placePositionFailed");
     });
+  });
+});
+
+describe("WorldMap — draw-an-area (SPEC-009 T2)", () => {
+  it("arms drawing mode and switches to a crosshair cursor", async () => {
+    await renderMap();
+
+    act(() => {
+      screen.getByRole("button", { name: "trigger" }).click();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("leaflet-map")).toHaveAttribute(
+        "data-cursor",
+        "crosshair"
+      );
+    });
+    expect(drawAreaOptions?.enabled).toBe(true);
+    expect(screen.getByRole("button", { name: "active" })).toBeInTheDocument();
+  });
+
+  it("opens the panel in add mode with the footprint once a rectangle is drawn, and disarms", async () => {
+    await renderMap();
+
+    act(() => {
+      screen.getByRole("button", { name: "trigger" }).click();
+    });
+    const footprint = [
+      [0, 0],
+      [10, 20],
+    ];
+    act(() => {
+      drawAreaOptions?.onComplete(footprint);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("map-poi-panel")).toHaveAttribute(
+        "data-mode",
+        "add"
+      );
+    });
+    expect(screen.getByTestId("map-poi-panel")).toHaveAttribute(
+      "data-pending-footprint",
+      JSON.stringify(footprint)
+    );
+    expect(screen.getByRole("button", { name: "trigger" })).toBeInTheDocument();
+  });
+
+  it("cancels an in-progress POI location selection when armed", async () => {
+    await renderMap();
+
+    act(() => {
+      onRequestLocation?.();
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId("leaflet-map")).toHaveAttribute(
+        "data-cursor",
+        "crosshair"
+      );
+    });
+
+    act(() => {
+      screen.getByRole("button", { name: "trigger" }).click();
+    });
+
+    expect(drawAreaOptions?.enabled).toBe(true);
+    // Toggling draw mode on cancels the other crosshair mode rather than
+    // stacking with it — a later click should not still be interpreted as
+    // a POI-location pick.
+    act(() => {
+      onClick?.(12, 34);
+    });
+    expect(screen.getByTestId("map-poi-panel")).not.toHaveAttribute(
+      "data-initial-lat"
+    );
+  });
+
+  it("is cancelled when positioning an unplaced place starts", async () => {
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    ]);
+    await renderMap();
+
+    act(() => {
+      screen.getByRole("button", { name: "trigger" }).click();
+    });
+    expect(drawAreaOptions?.enabled).toBe(true);
+
+    act(() => {
+      onPositionPlace?.(5);
+    });
+
+    expect(drawAreaOptions?.enabled).toBe(false);
   });
 });

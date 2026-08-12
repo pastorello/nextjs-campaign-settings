@@ -491,6 +491,10 @@
       "typePlaceholder": "Tipo",
       "entityPlaceholder": "Seleziona…"
     },
+    "drawArea": {
+      "trigger": "Disegna area",
+      "active": "Trascina sulla mappa — Esc per annullare"
+    },
     "mapUpload": {
       "uploadLabel": "Questo luogo non ha ancora una mappa.",
       "replaceLabel": "Sostituisci la mappa di questo luogo.",

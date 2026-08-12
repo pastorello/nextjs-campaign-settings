@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { toast } from "sonner";
 import type { POI } from "@/app/modules/maps/types/poi";
+import type { Footprint } from "@/app/modules/maps/lib/utils/footprint";
 
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
@@ -32,10 +33,12 @@ function baseProps() {
     onExport: vi.fn(),
     onImport: vi.fn(),
     onFlyTo: vi.fn(),
-    onAddPlace: vi.fn().mockResolvedValue(true),
+    onAddPlace: vi.fn().mockResolvedValue({ ok: true }),
     unplacedChildren: [],
     onPositionPlace: vi.fn(),
     positioningPlaceId: null,
+    pendingFootprint: null,
+    onFootprintConsumed: vi.fn(),
   };
 }
 
@@ -445,6 +448,40 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
     );
   });
 
+  it("shows the server's own refusal message on failure", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ id: "kang.png" }),
+      })
+    );
+    const props = baseProps();
+    props.onAddPlace.mockResolvedValue({
+      ok: false,
+      error: "Overlaps an existing area: Kingdom of Kang.",
+    });
+    render(<MapPOIPanel {...props} initialLat={1} initialLng={2} />);
+
+    fireEvent.click(screen.getByText("Add"));
+    fireEvent.change(kindSelect(), { target: { value: "region" } });
+    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
+      target: { value: "Nod" },
+    });
+    const file = new File(["bytes"], "nod.png", { type: "image/png" });
+    fireEvent.change(
+      screen.getByText("Map image").closest("div")!.querySelector("input")!,
+      { target: { files: [file] } }
+    );
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        "Overlaps an existing area: Kingdom of Kang."
+      )
+    );
+  });
+
   it("does not show the kind selector while editing", () => {
     render(<MapPOIPanel {...baseProps()} pois={[poi]} />);
 
@@ -455,5 +492,143 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
     fireEvent.click(screen.getByTitle("Edit"));
 
     expect(screen.queryByText("Kind")).not.toBeInTheDocument();
+  });
+});
+
+describe("MapPOIPanel — draw-an-area flow (SPEC-009 T2)", () => {
+  const footprint: Footprint = [
+    [0, 0],
+    [10, 20],
+  ];
+
+  function kindSelect() {
+    return screen.getByText("Kind").closest("div")!.querySelector("select")!;
+  }
+
+  it("restricts the kind selector to the navigable kinds", () => {
+    render(
+      <MapPOIPanel
+        {...baseProps()}
+        mode="add"
+        onModeChange={vi.fn()}
+        pendingFootprint={footprint}
+      />
+    );
+
+    const values = [...kindSelect().querySelectorAll("option")].map((o) =>
+      o.getAttribute("value")
+    );
+    expect(values).toEqual(["region", "plane", "city", "dungeon"]);
+  });
+
+  it("replaces the coordinate picker with a read-only centre readout", () => {
+    render(
+      <MapPOIPanel
+        {...baseProps()}
+        mode="add"
+        onModeChange={vi.fn()}
+        pendingFootprint={footprint}
+      />
+    );
+
+    expect(screen.getByText("5.0000, 10.0000")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Click to select location on map")
+    ).not.toBeInTheDocument();
+  });
+
+  it("saves with the footprint and its derived centre, not typed coordinates", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ id: "kang.png" }),
+      })
+    );
+    const props = baseProps();
+    render(
+      <MapPOIPanel
+        {...props}
+        mode="add"
+        onModeChange={vi.fn()}
+        pendingFootprint={footprint}
+      />
+    );
+
+    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
+      target: { value: "Kingdom of Kang" },
+    });
+    const file = new File(["bytes"], "kang.png", { type: "image/png" });
+    fireEvent.change(
+      screen.getByText("Map image").closest("div")!.querySelector("input")!,
+      { target: { files: [file] } }
+    );
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() => expect(props.onAddPlace).toHaveBeenCalled());
+    expect(props.onAddPlace).toHaveBeenCalledWith({
+      kind: "region",
+      title: "Kingdom of Kang",
+      lat: 5,
+      lng: 10,
+      mapImage: "kang.png",
+      footprint,
+    });
+  });
+
+  it("consumes the footprint after a successful save", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ id: "kang.png" }),
+      })
+    );
+    const props = baseProps();
+    render(
+      <MapPOIPanel
+        {...props}
+        mode="add"
+        onModeChange={vi.fn()}
+        pendingFootprint={footprint}
+      />
+    );
+
+    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
+      target: { value: "Kingdom of Kang" },
+    });
+    const file = new File(["bytes"], "kang.png", { type: "image/png" });
+    fireEvent.change(
+      screen.getByText("Map image").closest("div")!.querySelector("input")!,
+      { target: { files: [file] } }
+    );
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() => expect(props.onFootprintConsumed).toHaveBeenCalled());
+  });
+
+  it("consumes the footprint when the Back button is used to abandon the draw", () => {
+    const props = baseProps();
+    render(
+      <MapPOIPanel
+        {...props}
+        mode="add"
+        onModeChange={vi.fn()}
+        pendingFootprint={footprint}
+      />
+    );
+
+    fireEvent.click(screen.getByText("Back"));
+
+    expect(props.onFootprintConsumed).toHaveBeenCalled();
+  });
+
+  it("consumes a stale footprint when starting a fresh, non-area add", () => {
+    const props = baseProps();
+    render(<MapPOIPanel {...props} pendingFootprint={footprint} />);
+
+    fireEvent.click(screen.getByText("Add"));
+
+    expect(props.onFootprintConsumed).toHaveBeenCalled();
   });
 });

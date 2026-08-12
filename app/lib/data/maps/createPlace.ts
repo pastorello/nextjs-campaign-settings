@@ -11,15 +11,12 @@ import {
   findSwallowedPins,
   footprintCentre,
   isDegenerateFootprint,
+  isFootprint,
   type Footprint,
 } from "@/app/modules/maps/lib/utils/footprint";
 import { parsePlaceMapBounds } from "@/app/modules/maps/lib/utils/placeMapView";
 import { placeSchema, type PlaceInput } from "../validation/placeSchema";
 import type { CreatePlaceResult } from "../../definitions/interfaces/maps/Place";
-
-function isFootprint(value: unknown): value is Footprint {
-  return Array.isArray(value) && value.length === 2;
-}
 
 /**
  * Creates a navigable place (`region`/`plane`/`city`/`dungeon`) under an

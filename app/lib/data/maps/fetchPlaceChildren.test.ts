@@ -31,6 +31,7 @@ function zoneRow(overrides: Partial<Record<string, unknown>>) {
     mapBounds: null,
     mapInitialView: null,
     mapInitialZoom: null,
+    footprint: null,
     createdAt: new Date("2026-01-01"),
     updatedAt: new Date("2026-01-01"),
     ...overrides,
@@ -116,6 +117,30 @@ describe("fetchPlaceChildren", () => {
       mapInitialView: [250, 250],
       mapInitialZoom: 2,
     });
+  });
+
+  it("exposes a zone child's footprint (SPEC-009), null for a point", async () => {
+    const footprint = [
+      [0, 0],
+      [10, 10],
+    ];
+    zoneFindMany.mockResolvedValue([
+      zoneRow({ id: 5, title: "Kingdom of Kang", footprint }),
+      zoneRow({ id: 6, title: "A village" }),
+    ]);
+
+    const children = await fetchPlaceChildren(1);
+
+    expect(children[0]).toMatchObject({ footprint });
+    expect(children[1]).toMatchObject({ footprint: null });
+  });
+
+  it("exposes null footprint for a landmark child", async () => {
+    poiFindMany.mockResolvedValue([poiRow({ id: 9, title: "Kang Market" })]);
+
+    const [child] = await fetchPlaceChildren(1);
+
+    expect(child).toMatchObject({ footprint: null });
   });
 
   it("exposes a landmark child's category, position, and null map fields", async () => {

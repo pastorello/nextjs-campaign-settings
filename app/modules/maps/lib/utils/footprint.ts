@@ -4,8 +4,8 @@
  * bounds come from uploaded map images and can exceed lat ±90 / lng ±180.
  */
 
-type Footprint = [[number, number], [number, number]];
-type Point = [number, number];
+export type Footprint = [[number, number], [number, number]];
+export type Point = [number, number];
 
 function orderedBounds(footprint: Footprint) {
   const [[lat1, lng1], [lat2, lng2]] = footprint;
@@ -74,4 +74,43 @@ export function isDegenerateFootprint(
 export function footprintCentre(footprint: Footprint): Point {
   const { minLat, maxLat, minLng, maxLng } = orderedBounds(footprint);
   return [(minLat + maxLat) / 2, (minLng + maxLng) / 2];
+}
+
+/**
+ * The first sibling area a dragged footprint overlaps, or `undefined` — used
+ * by `createPlace` to refuse and name the collision (SPEC-009 §7).
+ */
+export function findOverlappingSibling<T extends { footprint: Footprint }>(
+  footprint: Footprint,
+  siblings: T[]
+): T | undefined {
+  return siblings.find((sibling) =>
+    footprintsOverlap(footprint, sibling.footprint)
+  );
+}
+
+/**
+ * The first sibling area containing a point, or `undefined` — used by
+ * `createPlace`/`createPoi` to refuse placing a pin inside an existing area
+ * (SPEC-009 §7).
+ */
+export function findContainingSibling<T extends { footprint: Footprint }>(
+  point: Point,
+  siblings: T[]
+): T | undefined {
+  return siblings.find((sibling) =>
+    footprintContains(sibling.footprint, point)
+  );
+}
+
+/**
+ * Every pin a dragged footprint would cover — used by `createPlace` to
+ * refuse drawing an area over existing pins and name every one of them
+ * (SPEC-009 §5, §9: the app never absorbs a pin).
+ */
+export function findSwallowedPins<T extends { lat: number; lng: number }>(
+  footprint: Footprint,
+  pins: T[]
+): T[] {
+  return pins.filter((pin) => footprintContains(footprint, [pin.lat, pin.lng]));
 }

@@ -14,9 +14,12 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 // `unbound-method` outside `__test__/**`, where the rule is off (TD-22) —
 // see `fetchFilteredSpells.test.ts` for the same avoidance, there via a
 // dynamic import instead.
-const { create } = vi.hoisted(() => ({ create: vi.fn() }));
+const { create, findMany } = vi.hoisted(() => ({
+  create: vi.fn(),
+  findMany: vi.fn(),
+}));
 vi.mock("@/app/lib/connections/prisma", () => ({
-  default: { poi: { create } },
+  default: { poi: { create }, zone: { findMany } },
 }));
 
 import createPoi from "./createPoi";
@@ -33,6 +36,7 @@ describe("createPoi", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    findMany.mockResolvedValue([]);
   });
 
   it("writes a valid payload and returns the new id", async () => {
@@ -62,5 +66,25 @@ describe("createPoi", () => {
 
     expect(result.ok).toBe(false);
     expect(create).not.toHaveBeenCalled();
+  });
+
+  it("rejects a landmark falling inside a sibling area, naming it (SPEC-009)", async () => {
+    findMany.mockResolvedValue([
+      {
+        title: "Kang",
+        footprint: [
+          [0, 0],
+          [15, 25],
+        ],
+      },
+    ]);
+
+    const result = await createPoi(validPayload);
+
+    expect(result.ok).toBe(false);
+    expect(create).not.toHaveBeenCalled();
+    if (!result.ok) {
+      expect(result.errors.lat?.[0]).toContain("Kang");
+    }
   });
 });

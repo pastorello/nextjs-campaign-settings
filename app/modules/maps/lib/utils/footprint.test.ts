@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  findContainingSibling,
+  findOverlappingSibling,
+  findSwallowedPins,
   footprintCentre,
   footprintContains,
   footprintsOverlap,
@@ -114,6 +117,79 @@ describe("isDegenerateFootprint", () => {
       [50, 50],
     ];
     expect(isDegenerateFootprint(roomy, parentMapBounds)).toBe(false);
+  });
+});
+
+describe("findOverlappingSibling", () => {
+  const siblings = [
+    { title: "Kang", footprint: footprint },
+    {
+      title: "Neighbour",
+      footprint: [
+        [0, 20],
+        [10, 30],
+      ] as [[number, number], [number, number]],
+    },
+  ];
+
+  it("returns the first sibling whose footprint overlaps", () => {
+    const dragged: [[number, number], [number, number]] = [
+      [2, 2],
+      [8, 8],
+    ];
+    expect(findOverlappingSibling(dragged, siblings)).toBe(siblings[0]);
+  });
+
+  it("does not flag a sibling that only touches at an edge", () => {
+    const dragged: [[number, number], [number, number]] = [
+      [20, 20],
+      [30, 30],
+    ];
+    expect(findOverlappingSibling(dragged, siblings)).toBeUndefined();
+  });
+
+  it("returns undefined when nothing overlaps", () => {
+    const dragged: [[number, number], [number, number]] = [
+      [200, 200],
+      [210, 210],
+    ];
+    expect(findOverlappingSibling(dragged, siblings)).toBeUndefined();
+  });
+});
+
+describe("findContainingSibling", () => {
+  const siblings = [{ title: "Kang", footprint: footprint }];
+
+  it("returns the sibling area containing the point", () => {
+    expect(findContainingSibling([5, 10], siblings)).toBe(siblings[0]);
+  });
+
+  it("returns the sibling when the point sits exactly on its edge", () => {
+    expect(findContainingSibling([0, 10], siblings)).toBe(siblings[0]);
+  });
+
+  it("returns undefined when no sibling contains the point", () => {
+    expect(findContainingSibling([50, 50], siblings)).toBeUndefined();
+  });
+});
+
+describe("findSwallowedPins", () => {
+  const pins = [
+    { title: "Village", lat: 5, lng: 10 },
+    { title: "Watchtower", lat: 0, lng: 20 },
+    { title: "Far away", lat: 500, lng: 500 },
+  ];
+
+  it("returns every pin the footprint covers, including one exactly on the edge", () => {
+    expect(findSwallowedPins(footprint, pins)).toEqual([pins[0], pins[1]]);
+  });
+
+  it("returns an empty array when no pin is covered", () => {
+    const empty: [[number, number], [number, number]] = [
+      [900, 900],
+      [910, 910],
+    ];
+    expect(findSwallowedPins(empty, pins)).toEqual([]);
   });
 });
 

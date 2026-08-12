@@ -27,6 +27,9 @@ export const placeSchema = z.object({
   mapBounds: z.tuple([coordinatePair, coordinatePair]).optional(),
   mapInitialView: coordinatePair.optional(),
   mapInitialZoom: z.number().int().optional(),
+  // The rectangle this place casts on its parent's map (SPEC-009). Present
+  // only when the place is being created as an area rather than a point.
+  footprint: z.tuple([coordinatePair, coordinatePair]).optional(),
 });
 
 export type PlaceInput = z.infer<typeof placeSchema>;

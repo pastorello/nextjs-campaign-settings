@@ -108,6 +108,12 @@ model zone {
   mapBounds      Json?
   mapInitialView Json?
   mapInitialZoom Int?
+  // The rectangle this place casts on its PARENT's map (SPEC-009). Not
+  // `areaBounds`: `mapBounds` above already means something different, the
+  // extent of this place's OWN map image. A place with a footprint is an
+  // area; a place without one is a point. `lat`/`lng` still hold the
+  // rectangle's derived centre so every existing consumer keeps working.
+  footprint      Json?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

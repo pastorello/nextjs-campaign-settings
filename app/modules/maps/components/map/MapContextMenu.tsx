@@ -12,6 +12,12 @@ interface MapContextMenuProps {
   onAddMarker: (lat: number, lng: number) => void;
   onStartMeasurement: () => void;
   onAddPOI?: (lat: number, lng: number) => void;
+  // The right-clicked point falls inside an existing area (SPEC-009 T4) —
+  // that ground belongs to the area's own map, one level down, so "Add
+  // Place" is withheld here. Other entries (Copy Coordinates, Measure, the
+  // client-only "Add Marker") stay: they don't write a domain pin, so the
+  // containment rule doesn't apply to them.
+  hideAddPlace?: boolean;
 }
 
 interface MenuItemProps {
@@ -79,6 +85,7 @@ export const MapContextMenu = memo(function MapContextMenu({
   onAddMarker,
   onStartMeasurement,
   onAddPOI,
+  hideAddPlace = false,
 }: MapContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   // Track which position was copied (null means not copied)
@@ -254,7 +261,7 @@ export const MapContextMenu = memo(function MapContextMenu({
           kind (region, plane, city, dungeon, deity, npc, poi), not just
           POIs; label/sublabel match MapPOIPanel's own "Add Place" heading
           rather than the POI-specific copy this predates (TD-67). */}
-      {onAddPOI && (
+      {onAddPOI && !hideAddPlace && (
         <>
           {/* Divider */}
           <div className="my-1.5 border-t border-gray-200 dark:border-gray-700" />

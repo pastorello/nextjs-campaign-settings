@@ -28,7 +28,10 @@ import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
 import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
 import MapUploadControl from "@/app/ui/geography/MapUploadControl";
 import DrawAreaButton from "@/app/ui/geography/DrawAreaButton";
-import type { Footprint } from "@/app/modules/maps/lib/utils/footprint";
+import {
+  findContainingSibling,
+  type Footprint,
+} from "@/app/modules/maps/lib/utils/footprint";
 
 /**
  * WorldMap - the map view backing `/dashboard/geography`.
@@ -133,7 +136,29 @@ function WorldMap({
   const [placesRefetchToken, setPlacesRefetchToken] = useState(0);
 
   // Navigable `region` children, same scope — clicking one calls `onDescend`
-  useNavigableChildren(parentId, onDescend, placesRefetchToken);
+  const navigableChildren = useNavigableChildren(
+    parentId,
+    onDescend,
+    placesRefetchToken
+  );
+
+  // The subset drawn as areas rather than points (SPEC-009 T2) — the only
+  // ones a coordinate can fall "inside" of. Used by T4 to withhold the
+  // point-placing flows over ground that already belongs to a child area.
+  const areaChildren = navigableChildren.filter(
+    (child): child is NavigableChild & { footprint: Footprint } =>
+      child.footprint !== null
+  );
+
+  // The right-clicked point falls inside an existing area (SPEC-009 T4) — the
+  // context menu keeps "Copy Coordinates"/"Measure" there but withholds "Add
+  // Place", since that ground belongs to the area's own map, one level down.
+  const contextMenuOverArea = contextMenuPosition
+    ? findContainingSibling(
+        [contextMenuPosition.latlng.lat, contextMenuPosition.latlng.lng],
+        areaChildren
+      )
+    : undefined;
 
   // This place's children with no position yet — always a Zone now (SPEC-008
   // T8: a landmark POI's `lat`/`lng` are required at creation) — feeds
@@ -298,6 +323,17 @@ function WorldMap({
   const handleMapClick = useCallback(
     (lat: number, lng: number) => {
       if (positioningPlace) {
+        // Clicking inside an existing area descends into it instead of
+        // repositioning the place there (SPEC-009 T4/§3 rule 3) — the pin
+        // belongs on the area's own map, one level down, not at this one.
+        const containingArea = findContainingSibling([lat, lng], areaChildren);
+        if (containingArea) {
+          setPositioningPlace(null);
+          setCursorCoords(null);
+          onDescend(containingArea);
+          return;
+        }
+
         const { id, title } = positioningPlace;
         setPositioningPlace(null);
         setCursorCoords(null);
@@ -318,12 +354,23 @@ function WorldMap({
       }
 
       if (isSelectingPOILocation) {
+        // Same rule as above — the "Add Place" panel stays open (this
+        // component doesn't remount on descend), so whatever the DM already
+        // typed survives and the same click can be made one level down.
+        const containingArea = findContainingSibling([lat, lng], areaChildren);
+        if (containingArea) {
+          setIsSelectingPOILocation(false);
+          setCursorCoords(null);
+          onDescend(containingArea);
+          return;
+        }
+
         setPOIInitialCoords({ lat, lng });
         setIsSelectingPOILocation(false);
         setCursorCoords(null);
       }
     },
-    [positioningPlace, isSelectingPOILocation, t]
+    [positioningPlace, isSelectingPOILocation, areaChildren, onDescend, t]
   );
 
   // Handle map mouse move for cursor tracking
@@ -482,6 +529,7 @@ function WorldMap({
         onAddMarker={handleAddMarker}
         onStartMeasurement={handleContextMenuMeasurement}
         onAddPOI={handleContextMenuAddPOI}
+        hideAddPlace={!!contextMenuOverArea}
       />
 
       {/* POI Panel */}

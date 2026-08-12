@@ -122,7 +122,7 @@ This is the same instinct as `onDelete: Restrict` throughout the schema: **refus
 - [ ] **T1** — `footprint` column, the containment predicate as a pure function, and both server-side checks _(test: a point inside/outside/on the edge; overlapping and merely touching rectangles; a degenerate rectangle)_
 - [x] **T2** — Draw a rectangle on the map, name/kind/map form, area rendered with its label, click to descend _(test: an area created with its map is navigable; the derived centre matches the rectangle)_
 - [ ] **T3** — The refusal: drawing over pins names every one of them and creates nothing _(test: one pin, several pins, a pin exactly on the edge; nothing is written and no pin is reparented)_
-- [ ] **T4** — Clicking inside an area descends instead of offering the point flows _(test: the add-place and add-landmark entries are absent inside an area and present outside it)_
+- [x] **T4** — Clicking inside an area descends instead of offering the point flows _(test: the add-place and add-landmark entries are absent inside an area and present outside it)_
 - [ ] **T5** — Resizing and moving an existing area, re-running both checks _(test: a resize that would swallow a pin is refused; one that would overlap a sibling is refused)_
 
 ## 11. Outcome

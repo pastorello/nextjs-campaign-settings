@@ -30,9 +30,19 @@ vi.mock("@/app/modules/maps/components/map/MapMeasurementPanel", () => ({
 
 let onAddPOI: ((lat: number, lng: number) => void) | undefined;
 vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
-  MapContextMenu: (props: { onAddPOI: (lat: number, lng: number) => void }) => {
+  MapContextMenu: (props: {
+    onAddPOI: (lat: number, lng: number) => void;
+    isOpen: boolean;
+    hideAddPlace?: boolean;
+  }) => {
     onAddPOI = props.onAddPOI;
-    return <div data-testid="map-context-menu" />;
+    return (
+      <div
+        data-testid="map-context-menu"
+        data-open={props.isOpen}
+        data-hide-add-place={props.hideAddPlace ?? false}
+      />
+    );
   },
 }));
 
@@ -129,12 +139,17 @@ vi.mock("@/app/ui/geography/MapUploadControl", () => ({
   ),
 }));
 
+const useMapContextMenu = vi.fn(() => ({
+  isOpen: false,
+  position: null as {
+    x: number;
+    y: number;
+    latlng: { lat: number; lng: number };
+  } | null,
+  close: vi.fn(),
+}));
 vi.mock("@/app/modules/maps/hooks/useMapContextMenu", () => ({
-  useMapContextMenu: () => ({
-    isOpen: false,
-    position: null,
-    close: vi.fn(),
-  }),
+  useMapContextMenu: () => useMapContextMenu(),
 }));
 vi.mock("@/app/modules/maps/hooks/useMapMarkers", () => ({
   useMapMarkers: () => ({ addMarker: vi.fn() }),
@@ -203,6 +218,8 @@ const bounds: L.LatLngBoundsExpression = [
   [1000, 1000],
 ];
 
+const onDescend = vi.fn();
+
 /** Renders WorldMap and waits for its image-overlay bootstrap effect to settle. */
 async function renderMap(mapUrl = "/maps/test.jpg") {
   render(
@@ -212,7 +229,7 @@ async function renderMap(mapUrl = "/maps/test.jpg") {
       bounds={bounds}
       initialView={[500, 500]}
       initialZoom={1}
-      onDescend={vi.fn()}
+      onDescend={onDescend}
       onMapChanged={vi.fn()}
     />
   );
@@ -227,6 +244,11 @@ beforeEach(() => {
   updateZonePosition.mockResolvedValue({ ok: true });
   useNavigableChildren.mockReturnValue([]);
   useUnplacedChildren.mockReturnValue([]);
+  useMapContextMenu.mockReturnValue({
+    isOpen: false,
+    position: null,
+    close: vi.fn(),
+  });
 });
 
 describe("WorldMap", () => {
@@ -653,5 +675,121 @@ describe("WorldMap — draw-an-area (SPEC-009 T2)", () => {
     });
 
     expect(drawAreaOptions?.enabled).toBe(false);
+  });
+});
+
+describe("WorldMap — descending into an area instead of placing a point (SPEC-009 T4)", () => {
+  const area = {
+    id: 9,
+    title: "Kingdom of Kang",
+    lat: 5,
+    lng: 5,
+    mapImage: "kang.png",
+    mapBounds: null,
+    mapInitialView: null,
+    mapInitialZoom: null,
+    footprint: [
+      [0, 0],
+      [10, 10],
+    ],
+  };
+
+  beforeEach(() => {
+    useNavigableChildren.mockReturnValue([area]);
+  });
+
+  it("hides Add Place in the context menu when the right-click point is inside an area", async () => {
+    useMapContextMenu.mockReturnValue({
+      isOpen: true,
+      position: { x: 1, y: 2, latlng: { lat: 5, lng: 5 } },
+      close: vi.fn(),
+    });
+    await renderMap();
+
+    expect(screen.getByTestId("map-context-menu")).toHaveAttribute(
+      "data-hide-add-place",
+      "true"
+    );
+  });
+
+  it("shows Add Place in the context menu when the right-click point is outside every area", async () => {
+    useMapContextMenu.mockReturnValue({
+      isOpen: true,
+      position: { x: 1, y: 2, latlng: { lat: 50, lng: 50 } },
+      close: vi.fn(),
+    });
+    await renderMap();
+
+    expect(screen.getByTestId("map-context-menu")).toHaveAttribute(
+      "data-hide-add-place",
+      "false"
+    );
+  });
+
+  it("descends into the area and cancels location-selection when the click lands inside it", async () => {
+    await renderMap();
+
+    act(() => {
+      onRequestLocation?.();
+    });
+    act(() => {
+      onClick?.(5, 5);
+    });
+
+    expect(onDescend).toHaveBeenCalledWith(area);
+    expect(screen.getByTestId("map-poi-panel")).not.toHaveAttribute(
+      "data-initial-lat"
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId("leaflet-map")).toHaveAttribute(
+        "data-cursor",
+        "grab"
+      );
+    });
+  });
+
+  it("still records coordinates for a click outside every area while selecting", async () => {
+    await renderMap();
+
+    act(() => {
+      onRequestLocation?.();
+    });
+    act(() => {
+      onClick?.(50, 50);
+    });
+
+    expect(onDescend).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.getByTestId("map-poi-panel")).toHaveAttribute(
+        "data-initial-lat",
+        "50"
+      );
+    });
+  });
+
+  it("descends into the area and cancels positioning when the click lands inside it", async () => {
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Skreebars", kind: "city" },
+    ]);
+    await renderMap();
+
+    act(() => {
+      onPositionPlace?.(5);
+    });
+    act(() => {
+      onClick?.(5, 5);
+    });
+
+    expect(onDescend).toHaveBeenCalledWith(area);
+    expect(updateZonePosition).not.toHaveBeenCalled();
+    expect(screen.getByTestId("map-poi-panel")).not.toHaveAttribute(
+      "data-positioning-id"
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId("leaflet-map")).toHaveAttribute(
+        "data-cursor",
+        "grab"
+      );
+    });
   });
 });

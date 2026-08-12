@@ -90,6 +90,15 @@ describe("MapContextMenu", () => {
     expect(screen.getByText("Add Place")).toBeInTheDocument();
   });
 
+  it("hides Add Place when hideAddPlace is true, even with onAddPOI provided (SPEC-009 T4)", () => {
+    renderMenu({ hideAddPlace: true });
+    expect(screen.queryByText("Add Place")).not.toBeInTheDocument();
+    // Unaffected entries stay.
+    expect(screen.getByText("Add Marker")).toBeInTheDocument();
+    expect(screen.getByText("Measure")).toBeInTheDocument();
+    expect(screen.getByText("Copy Coordinates")).toBeInTheDocument();
+  });
+
   it("calls onAddMarker with the clicked coordinates, then closes", () => {
     const { onAddMarker, onClose } = renderMenu();
 

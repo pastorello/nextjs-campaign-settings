@@ -491,6 +491,10 @@
       "typePlaceholder": "Type",
       "entityPlaceholder": "Select…"
     },
+    "drawArea": {
+      "trigger": "Draw Area",
+      "active": "Drag on the map — Esc to cancel"
+    },
     "mapUpload": {
       "uploadLabel": "This place doesn't have a map yet.",
       "replaceLabel": "Replace this place's map.",

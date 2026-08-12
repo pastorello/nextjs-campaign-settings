@@ -7,6 +7,11 @@
 export type Footprint = [[number, number], [number, number]];
 export type Point = [number, number];
 
+/** Narrows a raw `zone.footprint` Json value read back from Prisma. */
+export function isFootprint(value: unknown): value is Footprint {
+  return Array.isArray(value) && value.length === 2;
+}
+
 function orderedBounds(footprint: Footprint) {
   const [[lat1, lng1], [lat2, lng2]] = footprint;
   return {

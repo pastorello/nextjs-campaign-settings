@@ -25,6 +25,10 @@ interface PlaceChild {
   mapBounds: unknown;
   mapInitialView: unknown;
   mapInitialZoom: number | null;
+  // The rectangle this place casts on its parent's map (SPEC-009), if it is
+  // an area rather than a point. Raw `unknown`/`Json`, like `mapBounds` —
+  // parsed with `isFootprint` at the point of use.
+  footprint: unknown;
   createdAt: Date;
   updatedAt: Date;
 }

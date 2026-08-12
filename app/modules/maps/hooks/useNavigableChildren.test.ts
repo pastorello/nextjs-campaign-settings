@@ -47,8 +47,24 @@ const marker = vi.fn((..._args: unknown[]) => {
   markerAddTo.mockReturnValue(instance);
   return instance;
 });
+
+const rectangleClickHandlers = new Map<unknown, () => void>();
+const rectangleAddTo = vi.fn();
+const rectangleBindTooltip = vi.fn();
+const rectangle = vi.fn((..._args: unknown[]) => {
+  const instance = {
+    addTo: rectangleAddTo,
+    bindTooltip: rectangleBindTooltip,
+    on: vi.fn((event: string, handler: () => void) => {
+      if (event === "click") rectangleClickHandlers.set(instance, handler);
+    }),
+  };
+  rectangleAddTo.mockReturnValue(instance);
+  return instance;
+});
 vi.mock("leaflet", () => ({
   marker: (...args: unknown[]) => marker(...args),
+  rectangle: (...args: unknown[]) => rectangle(...args),
   divIcon: vi.fn(() => ({})),
 }));
 
@@ -65,6 +81,7 @@ function row(overrides: Partial<Record<string, unknown>> = {}) {
     mapBounds: null,
     mapInitialView: null,
     mapInitialZoom: null,
+    footprint: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
@@ -175,7 +192,98 @@ describe("useNavigableChildren", () => {
       mapBounds: null,
       mapInitialView: null,
       mapInitialZoom: null,
+      footprint: null,
     });
+  });
+});
+
+describe("useNavigableChildren — areas (SPEC-009 T2)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    clickHandlers.clear();
+    dragendHandlers.clear();
+    rectangleClickHandlers.clear();
+    updateZonePosition.mockResolvedValue({ ok: true });
+  });
+
+  it("renders a child with a footprint as a rectangle, not a marker", async () => {
+    fetchPlaceChildren.mockResolvedValue([
+      row({
+        id: 3,
+        title: "Kingdom of Kang",
+        footprint: [
+          [0, 0],
+          [10, 20],
+        ],
+      }),
+    ]);
+
+    renderHook(() => useNavigableChildren(1, vi.fn()));
+
+    await waitFor(() =>
+      expect(rectangle).toHaveBeenCalledWith(
+        [
+          [0, 0],
+          [10, 20],
+        ],
+        expect.any(Object)
+      )
+    );
+    expect(rectangleAddTo).toHaveBeenCalledWith(fakeMap);
+    expect(marker).not.toHaveBeenCalled();
+  });
+
+  it("binds a permanent, centered tooltip with the area's title", async () => {
+    fetchPlaceChildren.mockResolvedValue([
+      row({
+        id: 3,
+        title: "Kingdom of Kang",
+        footprint: [
+          [0, 0],
+          [10, 20],
+        ],
+      }),
+    ]);
+
+    renderHook(() => useNavigableChildren(1, vi.fn()));
+
+    await waitFor(() => expect(rectangleBindTooltip).toHaveBeenCalled());
+    expect(rectangleBindTooltip).toHaveBeenCalledWith(
+      "Kingdom of Kang",
+      expect.objectContaining({ permanent: true, direction: "center" })
+    );
+  });
+
+  it("calls onDescend with the child when the area is clicked", async () => {
+    fetchPlaceChildren.mockResolvedValue([
+      row({
+        id: 3,
+        title: "Kingdom of Kang",
+        footprint: [
+          [0, 0],
+          [10, 20],
+        ],
+      }),
+    ]);
+    const onDescend = vi.fn();
+
+    renderHook(() => useNavigableChildren(1, onDescend));
+
+    await waitFor(() => expect(rectangleClickHandlers.size).toBe(1));
+    rectangleClickHandlers.values().next().value?.();
+
+    expect(onDescend).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 3, title: "Kingdom of Kang" })
+    );
+  });
+
+  it("still renders a point child (no footprint) as a marker", async () => {
+    fetchPlaceChildren.mockResolvedValue([row({ id: 1, footprint: null })]);
+
+    renderHook(() => useNavigableChildren(1, vi.fn()));
+
+    await waitFor(() => expect(marker).toHaveBeenCalled());
+    expect(rectangle).not.toHaveBeenCalled();
   });
 });
 

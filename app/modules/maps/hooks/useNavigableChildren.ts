@@ -2,13 +2,17 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import type { Marker } from "leaflet";
+import type { Layer } from "leaflet";
 
 import { useLeafletMap } from "./useLeafletMap";
 import fetchPlaceChildren from "@/app/lib/data/maps/fetchPlaceChildren";
 import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
 import { notifyError } from "@/app/lib/notifications/notify";
 import { NAVIGABLE_PLACE_KINDS } from "@/app/modules/maps/constants/place-kinds";
+import {
+  isFootprint,
+  type Footprint,
+} from "@/app/modules/maps/lib/utils/footprint";
 import type PlaceChild from "@/app/lib/definitions/interfaces/maps/PlaceChild";
 
 export interface NavigableChild {
@@ -24,6 +28,10 @@ export interface NavigableChild {
   mapBounds: unknown;
   mapInitialView: unknown;
   mapInitialZoom: number | null;
+  // The rectangle this child casts on the current map (SPEC-009 T2), or
+  // `null` for a point. An area always has a map (rule 1), so unlike
+  // `mapImage` this never needs the "positioned but undrawn" distinction.
+  footprint: Footprint | null;
 }
 
 /**
@@ -52,7 +60,9 @@ export function useNavigableChildren(
   const map = useLeafletMap();
   const t = useTranslations("geography.errors");
   const [children, setChildren] = useState<NavigableChild[]>([]);
-  const markersRef = useRef<Marker[]>([]);
+  // Holds either a point child's `Marker` or an area child's `Rectangle`
+  // (SPEC-009 T2) — both satisfy `Layer`, which is all cleanup here needs.
+  const markersRef = useRef<Layer[]>([]);
   const onDescendRef = useRef(onDescend);
   useEffect(() => {
     onDescendRef.current = onDescend;
@@ -143,6 +153,7 @@ export function useNavigableChildren(
             mapBounds: row.mapBounds,
             mapInitialView: row.mapInitialView,
             mapInitialZoom: row.mapInitialZoom,
+            footprint: isFootprint(row.footprint) ? row.footprint : null,
           }))
         );
       } catch (error) {
@@ -171,6 +182,35 @@ export function useNavigableChildren(
       markersRef.current = [];
 
       for (const child of children) {
+        // SPEC-009 T2 — an area renders as the rectangle it was drawn as,
+        // with its label always visible, rather than a pin. It is never
+        // draggable: resizing/moving an existing area is T5, not this.
+        if (child.footprint) {
+          const [[lat1, lng1], [lat2, lng2]] = child.footprint;
+          const rectangle = L.rectangle(
+            [
+              [lat1, lng1],
+              [lat2, lng2],
+            ],
+            {
+              color: "#16a34a",
+              weight: 2,
+              fillColor: "#16a34a",
+              fillOpacity: 0.15,
+            }
+          ).addTo(map);
+          rectangle.bindTooltip(child.title, {
+            permanent: true,
+            direction: "center",
+            className: "font-medium",
+          });
+          rectangle.on("click", () => {
+            onDescendRef.current(child);
+          });
+          markersRef.current.push(rectangle);
+          continue;
+        }
+
         // SPEC-007 T1 — grey/dashed for "positioned but no map of its own
         // yet" versus the solid green of an actually-drawn place, so the DM
         // can tell the two apart before clicking through.

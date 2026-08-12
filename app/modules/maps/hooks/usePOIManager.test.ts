@@ -87,6 +87,7 @@ const storedRow: PlaceChild = {
   mapBounds: null,
   mapInitialView: null,
   mapInitialZoom: null,
+  footprint: null,
   createdAt: new Date(1),
   updatedAt: new Date(1),
 };

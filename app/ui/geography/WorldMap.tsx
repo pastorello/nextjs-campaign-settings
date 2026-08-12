@@ -19,6 +19,7 @@ import {
   type NavigableChild,
 } from "@/app/modules/maps/hooks/useNavigableChildren";
 import { useUnplacedChildren } from "@/app/modules/maps/hooks/useUnplacedChildren";
+import { useDrawArea } from "@/app/modules/maps/hooks/useDrawArea";
 import type { POICategory, POIGeoJSON } from "@/app/modules/maps/types/poi";
 import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
 import isValidString from "@/app/lib/utils/validators/isValidString";
@@ -26,6 +27,8 @@ import createPlace from "@/app/lib/data/maps/createPlace";
 import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
 import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
 import MapUploadControl from "@/app/ui/geography/MapUploadControl";
+import DrawAreaButton from "@/app/ui/geography/DrawAreaButton";
+import type { Footprint } from "@/app/modules/maps/lib/utils/footprint";
 
 /**
  * WorldMap - the map view backing `/dashboard/geography`.
@@ -92,6 +95,15 @@ function WorldMap({
     id: number;
     title: string;
   } | null>(null);
+  // Draw-an-area mode (SPEC-009 T2) — armed by `DrawAreaButton`, consumed by
+  // `useDrawArea`. `pendingFootprint` is the completed rectangle waiting for
+  // the create form; mutually exclusive with `isSelectingPOILocation`/
+  // `positioningPlace` (see their handlers below), the same way those two
+  // already exclude each other implicitly by being distinct crosshair modes.
+  const [isDrawingArea, setIsDrawingArea] = useState(false);
+  const [pendingFootprint, setPendingFootprint] = useState<Footprint | null>(
+    null
+  );
 
   // Context menu hook
   const {
@@ -130,14 +142,29 @@ function WorldMap({
 
   // Creates a navigable place under the current parent (SPEC-004 M5, T2).
   // `kind: "poi"` never reaches this — the panel keeps that on the original
-  // `addPOI` path (see createPlace.ts for why).
+  // `addPOI` path (see createPlace.ts for why). `input.footprint`, when
+  // present (SPEC-009 T2), rides straight through to `createPlace` — it
+  // already validates and derives the centre (T1).
+  //
+  // Returns the server's own refusal message on failure rather than a bare
+  // boolean: `createPlace` already names exactly what went wrong ("Overlaps
+  // an existing area: Kang.", "This area is too small to draw.") — without
+  // threading it through, `MapPOIPanel` could only show a generic "could
+  // not save," which makes a drawn-and-refused area look unexplained.
   const handleAddPlace = useCallback(
-    async (input: AddPlaceInput): Promise<boolean> => {
+    async (input: AddPlaceInput): Promise<{ ok: boolean; error?: string }> => {
       const result = await createPlace({ ...input, parentId });
       if (result.ok) {
         setPlacesRefetchToken((token) => token + 1);
+        return { ok: true };
       }
-      return result.ok;
+      const firstError = Object.values(result.errors ?? {})
+        .flat()
+        .find((message): message is string => typeof message === "string");
+      return {
+        ok: false,
+        ...(firstError !== undefined && { error: firstError }),
+      };
     },
     [parentId]
   );
@@ -176,6 +203,7 @@ function WorldMap({
     setIsSelectingPOILocation(false);
     setPositioningPlace(null);
     setPOIPanelMode("list");
+    setPendingFootprint(null);
     // Reset coordinates and category after a brief delay to allow panel to close smoothly
     setTimeout(() => {
       setPOIFilterCategory(null);
@@ -183,11 +211,21 @@ function WorldMap({
     }, 100);
   }, []);
 
+  // A drawn rectangle is "spent" once the create form no longer needs it —
+  // a successful save, backing out to the list, or starting a fresh
+  // (non-area) add (SPEC-009 T2). Without this, a stale footprint could
+  // otherwise attach itself to an unrelated point-based place.
+  const handleFootprintConsumed = useCallback(() => {
+    setPendingFootprint(null);
+  }, []);
+
   // Toggles positioning mode for an unplaced child (TD-71, SPEC-005 §5.A):
   // choosing the one already being positioned cancels it, choosing a
-  // different one switches the target.
+  // different one switches the target. Also cancels draw-area mode
+  // (SPEC-009 T2) — the crosshair-mode toggles are mutually exclusive.
   const handlePositionPlace = useCallback(
     (id: number) => {
+      setIsDrawingArea(false);
       setPositioningPlace((prev) => {
         if (prev?.id === id) return null;
         const child = unplacedChildren.find((candidate) => candidate.id === id);
@@ -197,10 +235,48 @@ function WorldMap({
     [unplacedChildren]
   );
 
-  // Handle POI location selection request
+  // Handle POI location selection request. Also cancels draw-area mode
+  // (SPEC-009 T2) — see `handlePositionPlace`.
   const handleRequestPOILocation = useCallback(() => {
+    setIsDrawingArea(false);
     setIsSelectingPOILocation((prev) => !prev);
   }, []);
+
+  // Arms/disarms draw-area mode (SPEC-009 T2), cancelling the other two
+  // crosshair modes the same way they cancel this one.
+  const handleToggleDrawArea = useCallback(() => {
+    setIsSelectingPOILocation(false);
+    setPositioningPlace(null);
+    setCursorCoords(null);
+    setIsDrawingArea((prev) => !prev);
+  }, []);
+
+  // A rectangle finished drawing (SPEC-009 T2) — opens the create form with
+  // the footprint attached, the same shape `handleContextMenuAddPOI` uses
+  // for a point.
+  const handleAreaDrawn = useCallback((footprint: Footprint) => {
+    setPendingFootprint(footprint);
+    setIsDrawingArea(false);
+    setPOIFilterCategory(null);
+    setPOIPanelMode("add");
+    setIsPOIPanelOpen(true);
+  }, []);
+
+  // The hook aborted the gesture itself (Escape, a too-small drag) and
+  // wants the button disarmed (SPEC-009 T2).
+  const handleDrawAreaCancelled = useCallback(() => {
+    setIsDrawingArea(false);
+  }, []);
+
+  // Drag-to-draw an area on the current map (SPEC-009 T2) — armed by
+  // `isDrawingArea`, disarmed by `handleAreaDrawn` on a completed rectangle
+  // or by `handleDrawAreaCancelled`.
+  useDrawArea({
+    enabled: isDrawingArea,
+    bounds,
+    onComplete: handleAreaDrawn,
+    onCancel: handleDrawAreaCancelled,
+  });
 
   // Handle clear POI coordinates
   const handleClearPOICoordinates = useCallback(() => {
@@ -361,7 +437,9 @@ function WorldMap({
         onClick={handleMapClick}
         onMouseMove={handleMapMouseMove}
         cursorStyle={
-          isSelectingPOILocation || positioningPlace ? "crosshair" : "grab"
+          isSelectingPOILocation || positioningPlace || isDrawingArea
+            ? "crosshair"
+            : "grab"
         }
       ></LeafletMap>
 
@@ -374,6 +452,12 @@ function WorldMap({
       <AttachEntityButton
         zoneId={parentId}
         onAttached={() => setPlacesRefetchToken((token) => token + 1)}
+      />
+
+      {/* Draw a child place as an area rather than a point (SPEC-009 T2). */}
+      <DrawAreaButton
+        isDrawing={isDrawingArea}
+        onToggle={handleToggleDrawArea}
       />
 
       {/* Give the place currently being viewed a map, or replace it
@@ -426,6 +510,8 @@ function WorldMap({
         unplacedChildren={unplacedChildren}
         onPositionPlace={handlePositionPlace}
         positioningPlaceId={positioningPlace?.id ?? null}
+        pendingFootprint={pendingFootprint}
+        onFootprintConsumed={handleFootprintConsumed}
       />
     </div>
   );

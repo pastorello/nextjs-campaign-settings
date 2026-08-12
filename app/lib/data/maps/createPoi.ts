@@ -7,6 +7,7 @@ import requireSession from "@/app/lib/auth/requireSession";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import {
   findContainingSibling,
+  isFootprint,
   type Footprint,
 } from "@/app/modules/maps/lib/utils/footprint";
 import { buildPoiCreateSchema } from "../validation/poiSchema";
@@ -14,10 +15,6 @@ import type {
   PoiCreateInput,
   PoiCreateResult,
 } from "../../definitions/interfaces/maps/Poi";
-
-function isFootprint(value: unknown): value is Footprint {
-  return Array.isArray(value) && value.length === 2;
-}
 
 /**
  * Creates a landmark POI (TD-14 / SPEC-002, reshaped by SPEC-008 T8).

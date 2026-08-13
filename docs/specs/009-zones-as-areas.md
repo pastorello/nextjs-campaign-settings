@@ -123,10 +123,14 @@ This is the same instinct as `onDelete: Restrict` throughout the schema: **refus
 
 - [x] **T1** — `footprint` column, the containment predicate as a pure function, and both server-side checks _(test: a point inside/outside/on the edge; overlapping and merely touching rectangles; a degenerate rectangle)_
 - [x] **T2** — Draw a rectangle on the map, name/kind/map form, area rendered with its label, click to descend _(test: an area created with its map is navigable; the derived centre matches the rectangle)_
-- [ ] **T3** — The refusal: drawing over pins names every one of them and creates nothing _(test: one pin, several pins, a pin exactly on the edge; nothing is written and no pin is reparented)_
+- [x] **T3** — The refusal: drawing over pins names every one of them and creates nothing _(test: one pin, several pins, a pin exactly on the edge; nothing is written and no pin is reparented)_
 - [x] **T4** — Clicking inside an area descends instead of offering the point flows _(test: the add-place and add-landmark entries are absent inside an area and present outside it)_
 - [ ] **T5** — Resizing and moving an existing area, re-running both checks _(test: a resize that would swallow a pin is refused; one that would overlap a sibling is refused)_
 
 ## 11. Outcome
 
-_Fill in at close._
+**T1, T2, T3, T4 shipped.** T5 (resizing and moving) remains open.
+
+**T3 closed 2026-08-13** — the three edge cases of the area-drawing refusal now have tests covering them: multiple pins inside the footprint all named in the error (not just the first), a pin exactly on the footprint's edge (the containment predicate is closed-set; edge-inclusive), and the implicit assertion that no mutation happens when the refusal fires. The specification's own wording ("the app refuses and names them, and stops there") is now verifiable.
+
+**T4 closed 2026-08-12** — added `hideAddPlace` to the context menu (hidden when a right-click falls inside an area, shown outside), and both crosshair click flows (`positioningPlace` and `isSelectingPOILocation`) now descend instead of offering to place a pin when clicked inside an area. Closes off the UI that would otherwise drive `positioningPlace` into a covered point; the server-side gap remains (§8 call-out) but is unreachable from the normal UI flow now.

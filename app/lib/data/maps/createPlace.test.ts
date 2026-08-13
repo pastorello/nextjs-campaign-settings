@@ -262,5 +262,35 @@ describe("createPlace", () => {
         expect(result.errors.footprint?.[0]).toContain("Shrine");
       }
     });
+
+    it("rejects an area swallowing multiple pins, naming all of them", async () => {
+      findMany.mockResolvedValue([
+        { title: "Village A", lat: 2, lng: 5, footprint: null },
+        { title: "Village B", lat: 8, lng: 18, footprint: null },
+      ]);
+
+      const result = await createPlace(areaFields);
+
+      expect(result.ok).toBe(false);
+      expect(create).not.toHaveBeenCalled();
+      if (!result.ok) {
+        expect(result.errors.footprint?.[0]).toContain("Village A");
+        expect(result.errors.footprint?.[0]).toContain("Village B");
+      }
+    });
+
+    it("rejects an area with a pin exactly on its edge", async () => {
+      findMany.mockResolvedValue([
+        { title: "Border Post", lat: 10, lng: 10, footprint: null },
+      ]);
+
+      const result = await createPlace(areaFields);
+
+      expect(result.ok).toBe(false);
+      expect(create).not.toHaveBeenCalled();
+      if (!result.ok) {
+        expect(result.errors.footprint?.[0]).toContain("Border Post");
+      }
+    });
   });
 });

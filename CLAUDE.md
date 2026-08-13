@@ -67,7 +67,7 @@ docker-compose up       # Postgres on :5432
 
 ## Architecture in one screen
 
-- **Next.js App Router.** Server Components read from Postgres via Prisma. Server Actions write. No REST layer for domain data; the route handlers are four DELETE endpoints, two read-only GeoJSON endpoints, and two for map images — an authenticated `GET` that streams an uploaded map and the upload endpoint itself ([ADR-0008](./docs/adr/0008-map-image-storage.md)). `find app/api -name route.ts` is the current list.
+- **Next.js App Router.** Server Components read from Postgres via Prisma. Server Actions write. No REST layer for domain data; the route handlers are one DELETE endpoint per domain (five today), two read-only GeoJSON endpoints, and two for map images — an authenticated `GET` that streams an uploaded map and the upload endpoint itself ([ADR-0008](./docs/adr/0008-map-image-storage.md)). `find app/api -name route.ts` is the current list.
 - **The metadata layer is the core abstraction.** Each field is declared once in `app/lib/config/<domain>/<domain>Meta.ts` as a `PageMeta`, composed into `pageMetaFields.ts` and ordered per page in `pagesConfig.ts`. That single declaration drives form rendering, list columns, filters and Prisma query construction. **Never bypass it** by hardcoding a field in a component — extend the metadata instead.
 - **One concept per file** in `app/lib/definitions/` (enums, interfaces, types) and `app/lib/data/` (one function per file). Follow this.
 - **`app/modules/maps/` is the quality bar.** Self-contained, typed, with an error boundary and defensive hooks. When refactoring elsewhere, aim for that structure.

@@ -11,8 +11,11 @@
 
 **This app is a tool for one specific campaign, and the campaign is written into the source code.**
 
-- The 33 places of the setting are a TypeScript enum, [`Location.ts`](../../app/lib/definitions/enums/geography/Location.ts).
-- The 21 factions are another, [`Faction.ts`](../../app/lib/definitions/enums/npc/Faction.ts).
+- The 33 places of the setting are a TypeScript enum, `app/lib/definitions/enums/geography/Location.ts`.
+- The 21 factions are another, `app/lib/definitions/enums/npc/Faction.ts`.
+
+> _Both files are gone — this section describes the problem as it stood on 2026-08-06, and the two enums were exactly what the work removed: `Location.ts` with T5b (2026-08-08), `Faction.ts` with [SPEC-006](./006-factions.md) (2026-08-10). They were links until 2026-08-13, by then pointing at nothing; unlinked rather than rewritten, because the problem statement is still an accurate record of why this spec exists._
+
 - The four maps are an array literal in [`geography/page.tsx`](../../app/[locale]/dashboard/geography/page.tsx), pointing at four files committed to `public/maps/`. The DM has roughly sixty more maps in Inkarnate with nowhere to put them.
 
 Adding a place, a faction or a map means editing source and redeploying. The DM cannot build a world; they can only use the one that was compiled in.

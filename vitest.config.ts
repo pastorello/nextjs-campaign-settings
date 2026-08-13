@@ -67,11 +67,26 @@ export default defineConfig({
       // wired into WorldMap.tsx or deleted — the suite now measures
       // 70.09/71.57/69.66/69.87. This crosses docs/ROADMAP.md's Phase 2
       // exit criterion (coverage above 70%).
+      // Ratcheted 2026-08-13, after an audit found the gate had not moved
+      // since the line above set it while the suite kept growing: the run
+      // measured 74.26/75.34/74.04/73.91 against thresholds of 70/71/69/69,
+      // roughly 4–5 points of slack in every dimension. That much headroom
+      // is a gate that has stopped gating — coverage could fall by a twentieth
+      // of the codebase before CI said anything. No test was written for this
+      // change; it only freezes ground already held (SPEC-009's three tasks
+      // and the TD-45/TD-46 sweeps are what actually earned it).
+      //
+      // Floored to the integer below each measurement, as every previous
+      // raise here did — except `branches`. Flooring 74.04 would leave a
+      // margin of 0.04%, under one branch out of 2269, so an unrelated PR
+      // adding a single uncovered `if` would fail CI on noise. A ratchet that
+      // cries wolf gets lowered by the next person in a hurry, which is worse
+      // than one point of slack; it takes 73.
       thresholds: {
-        lines: 70,
-        functions: 71,
-        branches: 69,
-        statements: 69,
+        lines: 74,
+        functions: 75,
+        branches: 73,
+        statements: 73,
       },
     },
   },

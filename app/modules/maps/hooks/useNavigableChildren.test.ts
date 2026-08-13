@@ -334,7 +334,18 @@ describe("useNavigableChildren — areas (SPEC-009 T2)", () => {
       ({ editingId }) => useNavigableChildren(1, vi.fn(), 0, editingId),
       { initialProps: { editingId: 3 } }
     );
-    await waitFor(() => expect(rectangle).not.toHaveBeenCalled());
+    await waitFor(() => expect(fetchPlaceChildren).toHaveBeenCalledTimes(1));
+    // The only child is excluded by `editingChildId`, so there is no
+    // positive call to synchronize on the way the other tests in this file
+    // do (wait for `marker`/`rectangle`, then assert the other one wasn't
+    // called). Flushing microtasks here lets the draw effect's dynamic
+    // `import("leaflet")` and its skip-pass actually settle before the
+    // rerender below starts a second, overlapping effect instance — without
+    // this the assertion above passed vacuously before the first draw had
+    // run, and the two instances raced (source of an intermittent CI
+    // failure, 2026-08-13).
+    await act(async () => {});
+    expect(rectangle).not.toHaveBeenCalled();
 
     rerender({ editingId: null });
 

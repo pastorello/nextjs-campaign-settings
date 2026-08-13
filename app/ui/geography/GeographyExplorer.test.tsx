@@ -15,6 +15,9 @@ vi.mock("@/app/modules/maps/contexts/MapContext", () => ({
 
 interface CapturedWorldMapProps {
   parentId: number;
+  placeTitle: string;
+  parentTitle: string;
+  isRoot: boolean;
   mapUrl: string;
   bounds: unknown;
   initialView: unknown;
@@ -30,6 +33,7 @@ interface CapturedWorldMapProps {
     mapInitialZoom: number | null;
   }) => void;
   onMapChanged: (mapImage: string) => void;
+  onDeleted: () => void;
 }
 
 let capturedProps: CapturedWorldMapProps | null = null;
@@ -158,6 +162,46 @@ describe("GeographyExplorer (SPEC-004 M7)", () => {
     expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
 
     ascend();
+    expect(screen.getByText("Aerivel")).toBeInTheDocument();
+    expect(screen.queryByText("up")).not.toBeInTheDocument();
+  });
+
+  it("marks the root as root, with no parent to name", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={7} />);
+
+    expect(capturedProps?.isRoot).toBe(true);
+    expect(capturedProps?.parentTitle).toBe("");
+  });
+
+  it("marks a descended place as not-root, naming its parent (SPEC-010 T3)", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={7} />);
+
+    descend(kang);
+
+    expect(capturedProps?.isRoot).toBe(false);
+    expect(capturedProps?.placeTitle).toBe("Kingdom of Kang");
+    expect(capturedProps?.parentTitle).toBe("Aerivel");
+  });
+
+  it("names the grandparent, not the immediate parent's own parent, two levels down", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={7} />);
+
+    descend(kang);
+    descend(skreebars);
+
+    expect(capturedProps?.parentTitle).toBe("Kingdom of Kang");
+  });
+
+  it("pops the stack like ascend when WorldMap reports the place was deleted", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={7} />);
+
+    descend(kang);
+    expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
+
+    act(() => {
+      capturedProps?.onDeleted();
+    });
+
     expect(screen.getByText("Aerivel")).toBeInTheDocument();
     expect(screen.queryByText("up")).not.toBeInTheDocument();
   });

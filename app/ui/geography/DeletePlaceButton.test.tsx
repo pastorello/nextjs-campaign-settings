@@ -1,0 +1,136 @@
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { fetchPlaceDeletionImpact, deletePlace } = vi.hoisted(() => ({
+  fetchPlaceDeletionImpact: vi.fn(),
+  deletePlace: vi.fn(),
+}));
+vi.mock("@/app/lib/data/maps/fetchPlaceDeletionImpact", () => ({
+  default: fetchPlaceDeletionImpact,
+}));
+vi.mock("@/app/lib/data/maps/deletePlace", () => ({
+  default: deletePlace,
+}));
+
+const { notifyError, notifySuccess } = vi.hoisted(() => ({
+  notifyError: vi.fn(),
+  notifySuccess: vi.fn(),
+}));
+vi.mock("@/app/lib/notifications/notify", () => ({
+  notifyError,
+  notifySuccess,
+}));
+
+import DeletePlaceButton from "./DeletePlaceButton";
+
+describe("DeletePlaceButton (SPEC-010 T3)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    fetchPlaceDeletionImpact.mockResolvedValue({
+      placeCount: 28,
+      npcCount: 43,
+      deityCount: 2,
+    });
+    deletePlace.mockResolvedValue(undefined);
+  });
+
+  it("is not rendered for the root", () => {
+    const { container } = render(
+      <DeletePlaceButton
+        placeId={1}
+        placeTitle="Universo"
+        parentTitle=""
+        isRoot={true}
+        onDeleted={vi.fn()}
+      />
+    );
+
+    expect(container).toBeEmptyDOMElement();
+    expect(fetchPlaceDeletionImpact).not.toHaveBeenCalled();
+  });
+
+  it("fetches real counts for the place when the dialog is opened", async () => {
+    render(
+      <DeletePlaceButton
+        placeId={5}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        onDeleted={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByText("trigger"));
+
+    await waitFor(() =>
+      expect(fetchPlaceDeletionImpact).toHaveBeenCalledWith(5)
+    );
+  });
+
+  it("cancelling writes nothing", async () => {
+    const onDeleted = vi.fn();
+    render(
+      <DeletePlaceButton
+        placeId={5}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        onDeleted={onDeleted}
+      />
+    );
+
+    fireEvent.click(screen.getByText("trigger"));
+    await waitFor(() => expect(fetchPlaceDeletionImpact).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByText("cancel"));
+
+    expect(deletePlace).not.toHaveBeenCalled();
+    expect(onDeleted).not.toHaveBeenCalled();
+  });
+
+  it("confirming calls deletePlace and reports the place gone", async () => {
+    const onDeleted = vi.fn();
+    render(
+      <DeletePlaceButton
+        placeId={5}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        onDeleted={onDeleted}
+      />
+    );
+
+    fireEvent.click(screen.getByText("trigger"));
+    await waitFor(() => expect(fetchPlaceDeletionImpact).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByText("confirm"));
+
+    await waitFor(() => expect(deletePlace).toHaveBeenCalledWith(5));
+    expect(onDeleted).toHaveBeenCalled();
+    expect(notifySuccess).toHaveBeenCalledWith("success");
+  });
+
+  it("notifies and does not report the place gone when deletePlace fails", async () => {
+    deletePlace.mockRejectedValue(new Error("conflict"));
+    const onDeleted = vi.fn();
+    render(
+      <DeletePlaceButton
+        placeId={5}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        onDeleted={onDeleted}
+      />
+    );
+
+    fireEvent.click(screen.getByText("trigger"));
+    await waitFor(() => expect(fetchPlaceDeletionImpact).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByText("confirm"));
+
+    await waitFor(() =>
+      expect(notifyError).toHaveBeenCalledWith("errors.deleteFailed")
+    );
+    expect(onDeleted).not.toHaveBeenCalled();
+  });
+});

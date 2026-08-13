@@ -83,6 +83,12 @@ export default function GeographyExplorer({
     setStack((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
   };
 
+  // The place currently being viewed was just deleted (SPEC-010 T3) — same
+  // as "up," since a deleted place can no longer be viewed and its
+  // reparented children now belong on the parent's map, which is what
+  // popping the stack already lands the DM on (§5 step 4).
+  const handleDeleted = handleAscend;
+
   // The place currently being viewed just got a map, or had its map
   // replaced (SPEC-007 T1) — patch the top of the stack in place rather than
   // re-fetching; `mapBounds`/`mapInitialView`/`mapInitialZoom` are untouched
@@ -118,12 +124,18 @@ export default function GeographyExplorer({
           <MapProvider>
             <WorldMap
               parentId={current.id}
+              placeTitle={current.title}
+              parentTitle={
+                stack.length > 1 ? stack[stack.length - 2]!.title : ""
+              }
+              isRoot={stack.length === 1}
               mapUrl={current.mapUrl}
               bounds={current.bounds}
               initialView={current.initialView}
               initialZoom={current.initialZoom}
               onDescend={handleDescend}
               onMapChanged={handleMapChanged}
+              onDeleted={handleDeleted}
             />
             <MapLoadingSpinner />
           </MapProvider>

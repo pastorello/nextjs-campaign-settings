@@ -117,7 +117,7 @@ An unpositioned landmark belongs in SPEC-007's first backlog beside unpositioned
 
 - [x] **T1** — `poi.lat`/`lng` nullable, and every consumer handling an unpositioned landmark _(test: a landmark with no position is readable, is excluded from the marker layer rather than crashing it, and appears in the unpositioned list)_
 - [x] **T2** — `deletePlace`: reparent children and landmarks, clear their coordinates, detach entities, delete, all in one transaction; the root refused _(test: children and landmarks move up unpositioned; grandchildren untouched; entities detached; the root cannot be deleted; a mid-transaction failure leaves nothing changed)_
-- [ ] **T3** — The confirmation dialog with real counts, and the entry point on a place _(test: counts match the database; the control is absent for the root; cancelling writes nothing)_
+- [x] **T3** — The confirmation dialog with real counts, and the entry point on a place _(test: counts match the database; the control is absent for the root; cancelling writes nothing)_
 
 ## 11. Outcome
 
@@ -156,3 +156,48 @@ a generic `DatabaseError`, matching §5's "two deletes racing" row.
 call site needed touching. 10 unit tests cover every acceptance-criteria
 row in §8 except the confirmation dialog's counts, which is T3. No route
 handler or UI entry point yet — T3 wires those up.
+
+**T3 — 2026-08-13.** `fetchPlaceDeletionImpact` (`app/lib/data/maps/`) is a
+new read-only Server Action that counts, for a given place: direct child
+zones plus direct child landmarks as one `placeCount` (both move up
+identically per rule 4/§9, so the dialog names them as one figure), and
+`npcCount`/`deityCount` scoped to `poiId: null` only — the entities that
+actually lose their location (rule 3); a `poiId`-set entity keeps its
+landmark and stays located, so it's deliberately excluded from these
+counts. `DeletePlaceButton` (`app/ui/geography/`) is the entry point: a
+floating map control alongside `MapUploadControl`/`AttachEntityButton`/
+`DrawAreaButton`, built directly on the generic `Modal` shell rather than
+`ModalButton`/`DeleteButton` — `deletePlace` is a Server Action called
+directly, the same pattern `createPlace`/`updateZonePosition`/
+`updateZoneMap` already use from this file tree, and SPEC-006's faction
+delete (the "same dialog vocabulary" reference) computes nothing until
+the delete attempt itself fails, which doesn't fit a mutation that
+proceeds rather than refuses. Counts are fetched fresh the moment the
+dialog opens (§7's "at the moment of asking"), not baked into the trigger
+button. `GeographyExplorer` threads `isRoot` (`stack.length === 1`) and
+`parentTitle` (the previous stack entry's title) down through `WorldMap`
+so the control can be withheld for the root entirely — not rendered and
+then refused — and can name where children reparent to; on a successful
+delete it pops the stack the same way "up" does, since a deleted place's
+reparented children now belong on the parent's map, which is exactly
+where popping already lands.
+
+Browser verification (not just unit tests) surfaced a real, pre-existing
+defect: `Modal.tsx` used `z-50`, while the maps module's floating
+controls go up to `z-[1100]` (`MapContextMenu`). Any `Modal` opened over
+the map — this dialog, and `MapUploadControl`'s existing replace-confirm
+dialog — rendered fully in the DOM but visually underneath those
+controls, invisible in a real browser though invisible to jsdom-based
+unit tests, which don't render stacking contexts. Fixed by raising
+`Modal`'s dialog to `z-[1200]`, above every map z-index in the codebase;
+this is a one-line, generic fix that also corrects `MapUploadControl`'s
+dialog, which shipped with the same latent bug.
+
+10 new unit tests (5 for the counts function, 5 for the dialog component)
+plus new coverage in `WorldMap.test.tsx` and `GeographyExplorer.test.tsx`
+for the prop wiring and stack-pop-on-delete behaviour. The full golden
+path — descend into a place, open the dialog, see real counts (including
+the "nothing will be affected" zero case), cancel without writing, then
+confirm and land back on the parent's map with the deleted place's
+footprint gone — was clicked through in a real browser against the dev
+database. SPEC-010 is complete: all three tasks shipped.

@@ -34,7 +34,7 @@ const Modal = ({
           static
           open={isOpen}
           onClose={() => setIsOpen(false)}
-          className={clsx("relative z-50", {
+          className={clsx("relative z-[1200]", {
             "w-[900px]": size === "medium",
             "w-[400px]": size === "small",
           })}

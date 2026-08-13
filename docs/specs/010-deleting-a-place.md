@@ -82,17 +82,17 @@ The dialog is the only safeguard, so it carries real weight rather than boilerpl
 
 ## 8. Acceptance criteria
 
-- [ ] A place with no children and no entities can be deleted.
-- [ ] Deleting a place reparents its direct children to the grandparent and clears their coordinates.
-- [ ] Grandchildren are untouched and keep their coordinates.
-- [ ] Entities assigned to the deleted place have their `zoneId` cleared and appear in SPEC-007's entity backlog.
-- [ ] Entities assigned to a landmark inside it keep that landmark, and their `zoneId` follows it to the grandparent — `zoneId` and `poi.zoneId` still agree afterwards (ADR-0010).
-- [ ] Entities assigned to a surviving child are untouched.
-- [ ] The root cannot be deleted, and the control is not offered for it.
-- [ ] The confirmation states real counts for that place before anything is written.
-- [ ] All of it happens in one transaction: a failure partway leaves the tree exactly as it was.
-- [ ] The mutation rejects an unauthenticated request and validates its input.
-- [ ] Coverage has not dropped.
+- [x] A place with no children and no entities can be deleted. _(No dedicated unit test — `updateMany`/`deleteMany` against zero matching rows is standard Prisma behaviour, not a special code path — but verified directly: deleting "Test Area SPEC-009", a real leaf place, in a real browser against the dev database.)_
+- [x] Deleting a place reparents its direct children to the grandparent and clears their coordinates.
+- [x] Grandchildren are untouched and keep their coordinates. _(Every write scopes on `parentId`/`zoneId` equal to the deleted place's own id, which is what keeps grandchildren untouched by construction, per T2's outcome note.)_
+- [x] Entities assigned to the deleted place have their `zoneId` cleared and appear in SPEC-007's entity backlog.
+- [x] Entities assigned to a landmark inside it keep that landmark, and their `zoneId` follows it to the grandparent — `zoneId` and `poi.zoneId` still agree afterwards (ADR-0010).
+- [x] Entities assigned to a surviving child are untouched. _(Same scoping argument as grandchildren: their `zoneId` never matches the deleted place's id, so no write ever touches them.)_
+- [x] The root cannot be deleted, and the control is not offered for it.
+- [x] The confirmation states real counts for that place before anything is written.
+- [x] All of it happens in one transaction: a failure partway leaves the tree exactly as it was.
+- [x] The mutation rejects an unauthenticated request and validates its input. _("Validates its input" is thin here: `deletePlace(id: number)` takes a compiler-checked number from a component that only ever passes an already-fetched place's own id — there is no raw string boundary to Zod-parse, unlike a route handler's `:id` segment.)_
+- [x] Coverage has not dropped.
 
 ## 9. Landmarks follow the same rule as places
 

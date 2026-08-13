@@ -216,7 +216,7 @@ Login: `app/login/page.tsx` → `login-form.tsx` → `authenticate()` server act
 The proxy matcher excludes `/api`, so it cannot cover route handlers or Server Actions. Rather than widen the matcher, TD-01 guards each write path where it lives:
 
 1. **Route handlers** — every DELETE handler calls `requireApiSession()` (`app/lib/auth/requireApiSession.ts`), which returns a 401 `NextResponse` when there is no session. `app/api/countries/**` stays open: it is read-only GeoJSON.
-2. **Server Actions** — the eight `create*` / `update*` mutations call `requireSession()` (`app/lib/auth/requireSession.ts`), which throws `UnauthorizedError`. The `delete*ById` helpers are internal to the guarded route handlers and are not guarded again.
+2. **Server Actions** — every `create*`/`update*`/`assign*` mutation calls `requireSession()` (`app/lib/auth/requireSession.ts`), which throws `UnauthorizedError`. _(Deliberately not counted here: this line said "the eight create\*/update\* mutations" until 2026-08-13 — `PROJECT_STATE.md` §5 already corrected the same claim in itself and explains why a hardcoded count on a growing list is the wrong fix; `grep -rl "requireSession()" app/lib/data` is the current list.)_ The five domains' `delete*ById` helpers are internal to their guarded route handlers and are not guarded again — but the maps domain's own deletes (`deletePlace`, `deletePoi`) are Server Actions, not route-handler-internal helpers, and call `requireSession()` directly themselves, the same as a `create*`/`update*` mutation.
 3. **`authorized`** stays `!!auth?.user` — it gates the proxy-matched dashboard on login, which is all it needs to do now that the API boundary guards itself. No per-route branching.
 
 ### [GAP] Still open: authorisation, not authentication

@@ -140,6 +140,46 @@ describe("MapContextMenu", () => {
     expect(await screen.findByText("Copied!")).toBeInTheDocument();
   });
 
+  it("does not show Edit Area without onEditArea or showEditArea (SPEC-009 T5)", () => {
+    renderMenu();
+    expect(screen.queryByText("Edit Area")).not.toBeInTheDocument();
+  });
+
+  it("does not show Edit Area when onEditArea is provided but showEditArea is false", () => {
+    renderMenu({ onEditArea: vi.fn(), showEditArea: false });
+    expect(screen.queryByText("Edit Area")).not.toBeInTheDocument();
+  });
+
+  it("shows Edit Area with translated copy when armed over an area", () => {
+    renderMenu({
+      onEditArea: vi.fn(),
+      showEditArea: true,
+      editAreaLabel: "Modifica area",
+      editAreaSublabel: "Ridimensiona o sposta",
+    });
+    expect(screen.getByText("Modifica area")).toBeInTheDocument();
+    expect(screen.getByText("Ridimensiona o sposta")).toBeInTheDocument();
+  });
+
+  it("falls back to an English default label when none is provided", () => {
+    renderMenu({ onEditArea: vi.fn(), showEditArea: true });
+    expect(screen.getByText("Edit Area")).toBeInTheDocument();
+  });
+
+  it("calls onEditArea then closes when Edit Area is clicked", () => {
+    const onEditArea = vi.fn();
+    const { onClose } = renderMenu({
+      onEditArea,
+      showEditArea: true,
+      editAreaLabel: "Edit Area",
+    });
+
+    fireEvent.click(screen.getByText("Edit Area"));
+
+    expect(onEditArea).toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalled();
+  });
+
   it("closes on outside click but not on a click inside the menu", async () => {
     const { onClose } = renderMenu();
 

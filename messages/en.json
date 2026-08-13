@@ -495,6 +495,10 @@
       "trigger": "Draw Area",
       "active": "Drag on the map — Esc to cancel"
     },
+    "editArea": {
+      "trigger": "Edit Area",
+      "sublabel": "Resize or move"
+    },
     "mapUpload": {
       "uploadLabel": "This place doesn't have a map yet.",
       "replaceLabel": "Replace this place's map.",

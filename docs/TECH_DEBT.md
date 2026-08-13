@@ -1,9 +1,9 @@
 # Technical Debt Register
 
-**Last updated:** 2026-08-10
+**Last updated:** 2026-08-13
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-76, TD-77, TD-78.** Everything else in the summary table is closed.
+**Open items: TD-77, TD-78.** Everything else in the summary table is closed.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -97,7 +97,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-73 | ✅ `.env.test.example`'s documented e2e setup (`prisma db push`) leaves a fresh DB unable to seed           | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-74 | ✅ `pageMetaFields` spread four domain metas into one flat object — a name collision silently discarded one | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-75 | ✅ `pnpm test` fails on a clean checkout — one suite needs a `DATABASE_URL` that only CI provides           | ~~🟡 Medium~~ done   | S      | 3     |
-| TD-76 | `renderRichText` injects stored text as raw HTML with no sanitisation                                       | 🟡 Medium            | S      | 3     |
+| TD-76 | ✅ `renderRichText` injects stored text as raw HTML with no sanitisation                                    | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-77 | An entity's location is resolved through two unreconciled read paths                                        | 🟡 Medium            | S      | 3     |
 | TD-78 | The NPC admin list lost its Fazione column filter when the field went table-backed                          | 🟢 Low               | M      | 3     |
 
@@ -105,54 +105,15 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ---
 
-## Closed items — TD-01 through TD-75
+## Closed items — TD-01 through TD-76
 
-Everything the 2026-07-22 audit found, plus everything found while doing the work through 2026-08-08, is closed: correctness, security, dead code, formatting, CI, accessibility, the metadata-layer types, the identifier rename, the bilingual UI, the migration drift, the E2E harness, the coverage sweep that crossed Phase 2's 70% gate, the whole SPEC-004 map/world-tree run, the clean-checkout `pnpm test` gap, and the metadata layer's unguarded field-name collision. The summary table above is the current status of each.
+Everything the 2026-07-22 audit found, plus everything found while doing the work through 2026-08-13, is closed: correctness, security, dead code, formatting, CI, accessibility, the metadata-layer types, the identifier rename, the bilingual UI, the migration drift, the E2E harness, the coverage sweep that crossed Phase 2's 70% gate, the whole SPEC-004 map/world-tree run, the clean-checkout `pnpm test` gap, the metadata layer's unguarded field-name collision, and description fields rendering as unsanitised HTML. The summary table above is the current status of each.
 
-**Each item's full write-up — what was found, why, the fix — is in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)**, moved there in two passes (TD-01–TD-36 on 2026-08-01, the rest on 2026-08-08). Nothing was deleted; the archive keeps every "(original)" problem framing exactly as recorded, per the policy in [`docs/README.md`](./README.md#keeping-them-honest).
+**Each item's full write-up — what was found, why, the fix — is in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)**, moved there in three passes (TD-01–TD-36 on 2026-08-01, TD-37–TD-75 on 2026-08-08, TD-76 on 2026-08-13). Nothing was deleted; the archive keeps every "(original)" problem framing exactly as recorded, per the policy in [`docs/README.md`](./README.md#keeping-them-honest).
 
 ---
 
 ## Open items
-
-### TD-76 — `renderRichText` injects stored text as raw HTML
-
-**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-08-10, while auditing the specs
-
-`app/lib/utils/data/renderRichText.tsx` is four lines:
-
-```tsx
-const renderRichText = (datum: string): ReactNode => (
-  <div dangerouslySetInnerHTML={{ __html: datum }} />
-);
-```
-
-It is the `getDatum` of every `description` field, so **every description in the
-database is rendered as unsanitised HTML** on the card and list pages.
-
-**Why this is Medium and not Critical.** The app is self-hosted, single-user, and
-the only author of that text is the DM writing about their own world. There is no
-untrusted submitter today, and non-negotiable rule #2 (validate at the boundary)
-is satisfied for _shape_ — `z.string()` accepts the text, which is correct; it is
-the _rendering_ that trusts it.
-
-**Why it is not Low either.** Two of the boundaries are already wider than "the DM
-types it":
-
-- **`pnpm db:import`** loads a JSON file from disk through the same Zod
-  validators. A library exported from somewhere else, or edited by hand, reaches
-  `renderRichText` unchanged.
-- **The player-facing read-only view** (`ROADMAP.md` Phase 5) is the point at
-  which a second reader exists, and it is the wrong moment to discover this.
-
-**The fix is small** — sanitise on the way out, or keep the field plain text and
-render Markdown instead. That second option is not a workaround: `ROADMAP.md`
-Phase 5 already lists "Rich text in descriptions — `renderRichText` exists as a
-stub; make it real", and the DM named formatted descriptions as one of the three
-things they miss most (2026-08-10). **So this item and that feature are the same
-piece of work, and doing them together is cheaper than doing either alone.**
-Decide the direction when it is scheduled; do not sanitise HTML now and then
-replace it with Markdown next month.
 
 ### TD-77 — An entity's location is resolved through two unreconciled read paths
 

@@ -116,7 +116,7 @@ An unpositioned landmark belongs in SPEC-007's first backlog beside unpositioned
 ## 10. Task breakdown
 
 - [x] **T1** — `poi.lat`/`lng` nullable, and every consumer handling an unpositioned landmark _(test: a landmark with no position is readable, is excluded from the marker layer rather than crashing it, and appears in the unpositioned list)_
-- [ ] **T2** — `deletePlace`: reparent children and landmarks, clear their coordinates, detach entities, delete, all in one transaction; the root refused _(test: children and landmarks move up unpositioned; grandchildren untouched; entities detached; the root cannot be deleted; a mid-transaction failure leaves nothing changed)_
+- [x] **T2** — `deletePlace`: reparent children and landmarks, clear their coordinates, detach entities, delete, all in one transaction; the root refused _(test: children and landmarks move up unpositioned; grandchildren untouched; entities detached; the root cannot be deleted; a mid-transaction failure leaves nothing changed)_
 - [ ] **T3** — The confirmation dialog with real counts, and the entry point on a place _(test: counts match the database; the control is absent for the root; cancelling writes nothing)_
 
 ## 11. Outcome
@@ -137,3 +137,22 @@ unpositioned landmark is excluded from the marker layer and included in the
 unplaced list, and a stale test asserting "a landmark poi never is
 unplaced" corrected. T2 (`deletePlace`, which actually produces an
 unpositioned landmark) is next.
+
+**T2 — 2026-08-13.** `deletePlace` (`app/lib/data/maps/deletePlace.ts`)
+lands as a `"use server"` action mirroring `deletePoi`'s auth-then-lookup
+shape: `requireSession`, look up the place, refuse a missing row with
+`NotFoundError` and the root (the one zone with `parentId: null`) with
+`ConflictError`, otherwise run seven writes in one `prisma.$transaction`
+array — reparent direct child zones and landmarks to the grandparent with
+their coordinates cleared, split entities on `poiId` (`null` → `zoneId`
+cleared; set → `zoneId` moved to the grandparent, `poiId` left alone, per
+ADR-0010) for both `npc` and `deities`, then delete the place row. Every
+write is scoped to `parentId`/`zoneId` equal to the place's own id, which
+is what keeps grandchildren untouched — there is no recursive query to
+accidentally reach them. A `P2025` from the final delete (lost a race to
+another delete of the same row) is reported as `NotFoundError` rather than
+a generic `DatabaseError`, matching §5's "two deletes racing" row.
+`checkAreaPlacement`'s null-safe `lat`/`lng` filtering (T1) meant no other
+call site needed touching. 10 unit tests cover every acceptance-criteria
+row in §8 except the confirmation dialog's counts, which is T3. No route
+handler or UI entry point yet — T3 wires those up.

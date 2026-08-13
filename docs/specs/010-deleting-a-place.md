@@ -115,10 +115,25 @@ An unpositioned landmark belongs in SPEC-007's first backlog beside unpositioned
 
 ## 10. Task breakdown
 
-- [ ] **T1** — `poi.lat`/`lng` nullable, and every consumer handling an unpositioned landmark _(test: a landmark with no position is readable, is excluded from the marker layer rather than crashing it, and appears in the unpositioned list)_
+- [x] **T1** — `poi.lat`/`lng` nullable, and every consumer handling an unpositioned landmark _(test: a landmark with no position is readable, is excluded from the marker layer rather than crashing it, and appears in the unpositioned list)_
 - [ ] **T2** — `deletePlace`: reparent children and landmarks, clear their coordinates, detach entities, delete, all in one transaction; the root refused _(test: children and landmarks move up unpositioned; grandchildren untouched; entities detached; the root cannot be deleted; a mid-transaction failure leaves nothing changed)_
 - [ ] **T3** — The confirmation dialog with real counts, and the entry point on a place _(test: counts match the database; the control is absent for the root; cancelling writes nothing)_
 
 ## 11. Outcome
 
-_Fill in at close._
+**T1 — 2026-08-13.** `poi.lat`/`lng` are now `Float?` (migration
+`20260813150844_spec010_poi_position_nullable`, applied against a table with
+zero rows — a free change). No form-facing behaviour changed: `createPoi`
+still requires a point, since nothing yet creates a landmark without one.
+What changed is every reader: `Poi`'s interface, `fetchPlaceChildren`'s stale
+comment claiming landmarks were always positioned, and one real compile-time
+gap `checkAreaPlacement` had — `siblingPois` was spread straight into the
+swallowed-pins check assuming non-null `lat`/`lng`, which would have broken
+the moment any row went null. Fixed with the same non-null filter the zone
+side already had. `useUnplacedChildren` and `usePOIManager`'s loader already
+filtered on `lat !== null && lng !== null` defensively, ahead of the schema
+allowing it — no logic changes there, only new test cases proving an
+unpositioned landmark is excluded from the marker layer and included in the
+unplaced list, and a stale test asserting "a landmark poi never is
+unplaced" corrected. T2 (`deletePlace`, which actually produces an
+unpositioned landmark) is next.

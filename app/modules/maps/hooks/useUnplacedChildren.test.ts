@@ -57,7 +57,7 @@ describe("useUnplacedChildren", () => {
     await waitFor(() => expect(fetchPlaceChildren).toHaveBeenCalledTimes(2));
   });
 
-  it("keeps only children missing lat or lng — a landmark poi never is (SPEC-008 T8)", async () => {
+  it("keeps only children missing lat or lng", async () => {
     fetchPlaceChildren.mockResolvedValue([
       row({ id: 1, kind: "region", lat: null, lng: null }),
       row({ id: 2, kind: "poi", category: "religion", lat: 1, lng: 2 }),
@@ -68,6 +68,20 @@ describe("useUnplacedChildren", () => {
 
     await waitFor(() =>
       expect(result.current.map((child) => child.id)).toEqual([1, 3])
+    );
+  });
+
+  it("includes an unpositioned landmark, same as an unpositioned place (SPEC-010 T1)", async () => {
+    fetchPlaceChildren.mockResolvedValue([
+      row({ id: 1, kind: "poi", category: "religion", lat: null, lng: null }),
+    ]);
+
+    const { result } = renderHook(() => useUnplacedChildren(42));
+
+    await waitFor(() =>
+      expect(result.current).toEqual([
+        { id: 1, title: "Kingdom of Kang", kind: "poi" },
+      ])
     );
   });
 

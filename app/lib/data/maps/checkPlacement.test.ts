@@ -147,6 +147,23 @@ describe("checkAreaPlacement", () => {
     });
   });
 
+  it("ignores an unpositioned landmark rather than crashing (SPEC-010 T1)", async () => {
+    findMany.mockResolvedValue([]);
+    poiFindMany.mockResolvedValue([
+      { title: "Adrift Shrine", lat: null, lng: null },
+    ]);
+
+    const result = await checkAreaPlacement({
+      parentId: 1,
+      footprint: [
+        [10, 10],
+        [60, 60],
+      ],
+    });
+
+    expect(result).toBeNull();
+  });
+
   it("refuses a degenerate footprint", async () => {
     findMany.mockResolvedValue([]);
 

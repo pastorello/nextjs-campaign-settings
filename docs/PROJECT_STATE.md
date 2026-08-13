@@ -1,6 +1,6 @@
 # Project State — Campaign Settings
 
-**Last updated:** 2026-08-08
+**Last updated:** 2026-08-13
 **Status:** Working prototype, not production-ready
 **Phase:** 3 (data model and relations) — Phases 1 and 2 are complete; see [`ROADMAP.md`](./ROADMAP.md)
 **Goal of the current phase:** entities reference each other instead of being isolated lists — the world tree, real relations, locations and factions the DM authors rather than edits into source. See [SPEC-004](./specs/004-world-model.md) and [SPEC-006](./specs/006-factions.md).
@@ -39,19 +39,21 @@ A self-hosted web app for a Dungeon Master to manage a D&D 5e campaign setting: 
 
 ## 2. Stack
 
-| Layer         | Technology                                                            | Version                                        |
+| Layer         | Technology                                                            | Pinning                                        |
 | ------------- | --------------------------------------------------------------------- | ---------------------------------------------- |
-| Framework     | Next.js (App Router, RSC, Server Actions)                             | 16.2.12 — pinned exactly (TD-07)               |
-| Runtime       | React                                                                 | 19.2.8 — pinned exactly (TD-07)                |
-| Language      | TypeScript (`strict: true`)                                           | 5.9.3                                          |
-| Database      | PostgreSQL via Docker Compose                                         | 5432                                           |
-| ORM           | Prisma with `@prisma/adapter-pg` driver adapter                       | 7.1.0                                          |
-| Auth          | NextAuth v5 (beta) — Credentials provider + bcrypt                    | 5.0.0-beta.30                                  |
-| Styling       | Tailwind CSS v4 + `@tailwindcss/forms`                                | 4.1.18                                         |
+| Framework     | Next.js (App Router, RSC, Server Actions)                             | pinned exactly (TD-07)                         |
+| Runtime       | React                                                                 | pinned exactly (TD-07)                         |
+| Language      | TypeScript (`strict: true`)                                           | pinned exactly                                 |
+| Database      | PostgreSQL via Docker Compose                                         | port 5432                                      |
+| ORM           | Prisma with `@prisma/adapter-pg` driver adapter                       | caret; CLI and client bump together (TD-59)    |
+| Auth          | NextAuth v5 (beta) — Credentials provider + bcrypt                    | beta, pinned exactly                           |
+| Styling       | Tailwind CSS v4 + `@tailwindcss/forms`                                | caret                                          |
 | UI primitives | Radix UI, Headless UI, Heroicons, Lucide, Framer Motion, Vaul, Sonner | —                                              |
-| Maps          | Leaflet + custom hook layer                                           | 1.9.4                                          |
-| Validation    | Zod                                                                   | 4.2.0                                          |
+| Maps          | Leaflet + custom hook layer                                           | caret                                          |
+| Validation    | Zod                                                                   | caret                                          |
 | Tests         | Vitest + Testing Library · Playwright                                 | see §6 — counts are derived, not recorded here |
+
+> **Version numbers deliberately left out of this table, 2026-08-13.** It used to carry one per row, and four of them had rotted (Next.js, Prisma, Zod, and the Tailwind/Leaflet patches) — the same failure `docs/README.md` §Keeping them honest describes and this file's §6 already fixed for test counts. `package.json` is the source of truth; `pnpm ls next react prisma zod` shows what is actually installed. What is worth recording is the _pinning policy_, which is a decision and does not rot: `next`/`react`/`react-dom` are pinned exactly (TD-07), and Prisma's CLI and client are grouped so they cannot bump independently (TD-59).
 
 pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageManager` and `engines` are declared, and CI derives its pnpm version from that field rather than pinning its own.
 
@@ -62,7 +64,7 @@ pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageM
 ```
 .
 ├── app/
-│   ├── api/                 # Route handlers: 4 DELETE, 2 countries GeoJSON, 2 map-image (ADR-0008)
+│   ├── api/                 # Route handlers: 5 DELETE, 2 countries GeoJSON, 2 map-image (ADR-0008)
 │   ├── [locale]/dashboard/  # Authenticated area (locale segment added by TD-21)
 │   │   ├── (overview)/      # Landing cards
 │   │   ├── admin/           # Create pages for each domain
@@ -106,17 +108,19 @@ This is a genuinely good pattern, and since TD-08 it is type-safe: `PageMeta` is
 
 ## 4. Data model
 
-Seven Prisma models — the four domains plus `users`, and two added by the SPEC-004 map work: `poi` (the world tree) and `faction`. `grep "^model" prisma/schema.prisma` is the current list.
+Eight Prisma models — the four domains plus `users`, `faction`, and the two the world-tree work left behind: **`zone`** (the places: the tree itself) and **`poi`** (the landmarks sitting on a place's map). `grep "^model" prisma/schema.prisma` is the current list.
+
+> **`poi` was the whole tree and is not any more.** SPEC-004 built one polymorphic `poi` table holding places and pins alike ([ADR-0009](./adr/0009-world-tree-as-one-polymorphic-table.md)); [SPEC-008](./specs/008-entity-location-reference.md) T8 split it in two, and `zone` is the tree today — `zone.parentId` is the self-relation, `poi.zoneId` says which place a landmark sits on. Docs written between those two dates say `poi` where they now mean `zone`.
 
 Seed data is four to six demo records per domain. A real library — 361 spells, 119 NPCs, 62 magic items — is loaded with `pnpm db:import <export.json>`; those exports are gitignored, because campaign content is the DM's and the spell prose is rulebook text.
 
 Observations:
 
 - ✅ `createdAt` / `updatedAt` on the four domain models (TD-11); `@@index([name])` on each (`users` is indexed by its unique `email`).
-- **Relations exist now, in two places, and the rest is still bare `Int`s.** `poi.parentId` is a self-relation with `onDelete: Restrict` — the world tree ([ADR-0009](./adr/0009-world-tree-as-one-polymorphic-table.md)) — and `npc.faction` has a real foreign key to `faction`. Every other option-backed column (`alignment`, `rarity`, `class`, …) is still an `Int` indexing a hardcoded TypeScript array. Since TD-61 those are membership-validated at the Zod boundary, so a value outside the list is rejected rather than silently rendering as a blank cell; renumbering an array still repoints existing rows, and that has not changed.
-- **`faction` is a table nothing reads.** SPEC-004 T1 shipped it and its foreign key; the UI still renders `factions.ts`'s static list beside it. Consuming it is [SPEC-006](./specs/006-factions.md), which after its 2026-08-10 rewrite makes `faction` a fifth domain with its own pages rather than only a table-backed option source.
+- **Relations exist now, in several places, and the rest is still bare `Int`s.** `zone.parentId` is a self-relation with `onDelete: Restrict` — the world tree ([ADR-0009](./adr/0009-world-tree-as-one-polymorphic-table.md)) — `poi.zoneId` puts each landmark on a place, `npc`/`deities` carry nullable `zoneId`/`poiId` FKs ([ADR-0010](./adr/0010-entity-location-as-stored-reference.md), SPEC-008), and `npc.faction` has a real foreign key to `faction`. Every other option-backed column (`alignment`, `rarity`, `class`, …) is still an `Int` indexing a hardcoded TypeScript array. Since TD-61 those are membership-validated at the Zod boundary, so a value outside the list is rejected rather than silently rendering as a blank cell; renumbering an array still repoints existing rows, and that has not changed.
+- **✅ `faction` is a fifth domain now.** SPEC-004 T1 shipped the table and its foreign key and nothing read either; [SPEC-006](./specs/006-factions.md) (shipped 2026-08-10) made it a domain with its own pages, a roster read from `npc.faction`, and the `PageMeta.optionTable` mechanism driving the NPC form's dropdown from rows rather than a static list. _(This entry said "a table nothing reads" until 2026-08-13, three days after that shipped.)_
 - **No ownership**, and per [SPEC-004](./specs/004-world-model.md) §3 that is now a decision rather than a gap: a campaign is a story told inside the one universe, not a scoping boundary, so **no `campaignId` belongs on any entity**. (This section previously said multi-campaign support "requires a schema change" — it does not, because it is not being built that way.) What is genuinely still open is authorisation; see §5.
-- Migrations: nine, listed by `ls prisma/migrations`. Two are worth knowing about — `20260730020000_rename_png_table_to_npc` (TD-19: `@map` retargets a field, but renaming a _model_ renames the table, so this was hand-written to avoid dropping 119 rows) and `20260806220000_add_faction_table_and_fk` (seeds `faction` with raw SQL, which is why `db push` cannot substitute for `migrate deploy` — TD-73).
+- Migrations: `ls prisma/migrations` is the list — fifteen as of 2026-08-13, the newest being `20260812205856_spec009_zone_footprint`. Two are worth knowing about — `20260730020000_rename_png_table_to_npc` (TD-19: `@map` retargets a field, but renaming a _model_ renames the table, so this was hand-written to avoid dropping 119 rows) and `20260806220000_add_faction_table_and_fk` (seeds `faction` with raw SQL, which is why `db push` cannot substitute for `migrate deploy` — TD-73).
 - **The local dev database's migration history is broken**, and has been since before this file was written: two migrations are unapplied and `migrate dev`/`migrate deploy` both fail against it, so every schema change is hand-applied. Tracked as **TD-63**, still open.
 
 ---
@@ -127,7 +131,7 @@ Observations:
 - `proxy.ts` (Next.js 16's renamed middleware) matches everything except `api`, `_next/static`, `_next/image`, `favicon.ico` and `.png`/`.jpg`/`.jpeg` files. The image exclusion is TD-36's fix — the gate was blocking Leaflet's own tile requests — and [ADR-0008](./adr/0008-map-image-storage.md) is why uploaded maps are served through an authenticated route handler instead of from `public/`: anything under `public/` would be readable by anyone with the URL, which is exactly what the DM does not want for a map of secret locations.
 - The `authorized` callback returns `true` if logged in, `false` otherwise, for **every** matched route.
 
-The matcher excludes `/api`, so the proxy cannot protect the route handlers or Server Actions. TD-01 closed that gap at the boundary instead: the four DELETE handlers call `requireApiSession()` (401 without a session) and the eight `create*` / `update*` mutations call `requireSession()` (throws `UnauthorizedError`), each with tests. What remains open is **authorisation**, not authentication: every logged-in user can still edit everything, with no per-record or per-campaign ownership. Acceptable for a single-DM tool; a prerequisite for multi-campaign.
+The matcher excludes `/api`, so the proxy cannot protect the route handlers or Server Actions. TD-01 closed that gap at the boundary instead: every DELETE handler calls `requireApiSession()` (401 without a session) and every `create*` / `update*` / `assign*` mutation calls `requireSession()` (throws `UnauthorizedError`), each with tests. _(Counts deliberately not written here: this line said "four DELETE handlers" and "the eight `create*`/`update*` mutations" until 2026-08-13, when the real figures were five and nineteen — the domains and the map work had both grown. `grep -rl "requireSession()" app/lib/data` and `grep -rl requireApiSession app/api` are the current lists.)_ What remains open is **authorisation**, not authentication: every logged-in user can still edit everything, with no per-record or per-campaign ownership. Acceptable for a single-DM tool; a prerequisite for multi-campaign.
 
 ---
 
@@ -151,9 +155,11 @@ The matcher excludes `/api`, so the proxy cannot protect the route handlers or S
 >
 > ```bash
 > pnpm test 2>&1 | tail -4          # unit test and file counts
-> pnpm test:e2e --list | tail -1    # E2E count, no database needed
+> pnpm test:e2e --list | tail -1    # E2E count — needs .env.test to exist (see below)
 > pnpm test:coverage                # current coverage against the ratchet
 > ```
+>
+> **`--list` needs `.env.test`, despite listing nothing that touches a database.** This line used to promise "no database needed", and that was true until TD-65 added the guard: `playwright.config.ts` refuses to load at all — `--list` included — unless `.env.test` exists with a `DATABASE_URL` distinct from `.env`'s, because the CRUD specs write real rows. `.env.test` is gitignored, so on a fresh checkout this command fails with TD-65's message rather than printing a count. Copy `.env.test.example` first (`docs/TESTING.md` §E2E). Corrected 2026-08-13 — the irony of the anti-drift advice having drifted is the point.
 
 `typecheck` must run `next typegen` first: route-handler signatures live in generated types a fresh checkout does not have, so a bare `tsc --noEmit` passes vacuously. That is why the script is `next typegen && tsc --noEmit` and not just the latter.
 

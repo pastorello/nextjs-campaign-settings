@@ -6,7 +6,9 @@ One spec per feature, written **before** implementation. The spec is the artefac
 
 Because the failure mode of AI-assisted development is not bad code — it is confidently-built _wrong_ code. An agent given "add tagging to spells" will produce something plausible and complete in twenty minutes, and you will discover it modelled tags as a comma-separated string in an existing column only once you try to filter by them. A spec forces the twenty seconds of thought that prevents that, and it moves the expensive conversation from code review to before any code exists.
 
-It also produces, as a by-product, a written record of product reasoning — which is exactly what a portfolio reviewer cannot otherwise see.
+It also produces, as a by-product, a written record of product reasoning — the reasoning that is otherwise lost the moment the session ends, and that the next session (yours or an agent's) would have to reconstruct from the code.
+
+> _This line used to end "…which is exactly what a portfolio reviewer cannot otherwise see." `CLAUDE.md`'s 2026-08-01 decision retired the portfolio framing project-wide and asks explicitly that it not be reintroduced; this was a surviving instance, corrected 2026-08-13._
 
 ## Workflow
 
@@ -38,17 +40,17 @@ Steps 1–3 are cheap and go in one file. Do not skip straight to 4 for anything
 
 ## Index
 
-| #   | Feature                                                            | Status                       | Phase |
-| --- | ------------------------------------------------------------------ | ---------------------------- | ----- |
-| 001 | [Combat tracker](./001-combat-tracker.md)                          | Draft — skeleton, not agreed | 4     |
-| 002 | [Map POI persistence](./002-map-poi-persistence.md)                | Shipped 2026-08-01           | 3     |
-| 003 | [Real relations](./003-real-relations.md)                          | Superseded by 004            | 3     |
-| 004 | [World model](./004-world-model.md)                                | Shipped 2026-08-08           | 3     |
-| 005 | [Place repositioning](./005-place-repositioning.md)                | Shipped 2026-08-07           | 3     |
-| 006 | [Factions the DM can author](./006-factions.md)                    | Agreed 2026-08-10 — next     | 3     |
-| 007 | [The world is described but not drawn](./007-placement-backlog.md) | Agreed 2026-08-10            | 3     |
-| 008 | [Entity location reference](./008-entity-location-reference.md)    | Shipped 2026-08-08           | 3     |
-| 009 | [Zones as areas](./009-zones-as-areas.md)                          | Agreed 2026-08-10            | 3     |
-| 010 | [Deleting a place](./010-deleting-a-place.md)                      | Agreed 2026-08-10            | 3     |
+| #   | Feature                                                            | Status                          | Phase |
+| --- | ------------------------------------------------------------------ | ------------------------------- | ----- |
+| 001 | [Combat tracker](./001-combat-tracker.md)                          | Draft — skeleton, not agreed    | 4     |
+| 002 | [Map POI persistence](./002-map-poi-persistence.md)                | Shipped 2026-08-01              | 3     |
+| 003 | [Real relations](./003-real-relations.md)                          | Superseded by 004               | 3     |
+| 004 | [World model](./004-world-model.md)                                | Shipped 2026-08-08              | 3     |
+| 005 | [Place repositioning](./005-place-repositioning.md)                | Shipped 2026-08-07              | 3     |
+| 006 | [Factions the DM can author](./006-factions.md)                    | Shipped 2026-08-10              | 3     |
+| 007 | [The world is described but not drawn](./007-placement-backlog.md) | Shipped 2026-08-10 — 2 gaps     | 3     |
+| 008 | [Entity location reference](./008-entity-location-reference.md)    | Shipped 2026-08-08              | 3     |
+| 009 | [Zones as areas](./009-zones-as-areas.md)                          | In progress — T3, T5 left       | 3     |
+| 010 | [Deleting a place](./010-deleting-a-place.md)                      | Agreed 2026-08-10 — not started | 3     |
 
 Feature ideas live in [`../ROADMAP.md`](../ROADMAP.md) until they are ready for a spec.

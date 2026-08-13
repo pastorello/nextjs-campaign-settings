@@ -40,7 +40,7 @@ Documentation that drifts is worse than none, because it is believed. Concretely
 - `PROJECT_STATE.md` §6 (health table) is stale the moment CI turns green — update it as items land.
 - Tick items off `TECH_DEBT.md` as they ship, **in the summary table _and_ the execution order at the bottom**, and move the item's full write-up into `TECH_DEBT_ARCHIVE.md` (2026-08-01 split — see that file's header). Keeping the write-up is deliberate and good — the archive is the only record of what was tried and rejected — but the _live_ register should only carry what's still open, so it stays short enough to actually be read before starting work.
 - If an implementation deviates from its spec, amend the spec's Outcome section. Do not leave the spec describing something that was not built.
-- **A completion note is a claim, not a fact.** State how a thing was verified, and prefer a claim the reader can re-run (`pnpm test:e2e --list` says 40) to a number typed once and never rechecked.
+- **A completion note is a claim, not a fact.** State how a thing was verified, and prefer a claim the reader can re-run to a number typed once and never rechecked. **State the command's prerequisites too** — this rule used to illustrate itself with "(`pnpm test:e2e --list` says 40)", and by 2026-08-13 that had rotted twice over: the count was stale _and_ the command no longer runs on a fresh checkout, because TD-65 made `playwright.config.ts` refuse to load without a gitignored `.env.test`. A command the reader cannot run is no better than a number they cannot check.
 
 > **These rules were audited against reality on 2026-07-30, and had been broken.**
 > Every doc above had drifted: `PROJECT_STATE.md` claimed 117 tests and 89 lint
@@ -80,3 +80,34 @@ Documentation that drifts is worse than none, because it is believed. Concretely
 > produces them — because correcting a number resets the clock on exactly the same
 > failure. If you find yourself typing a test count, a coverage percentage or a PR
 > number into a document, write the command instead.
+
+> **Audited a third time on 2026-08-13, and the shape of the drift had changed.**
+> The counts held up this time — `TESTING.md` and `PROJECT_STATE.md` §6 had genuinely
+> stopped recording them, and the 2026-08-08 lesson worked. What rotted instead was
+> **status**: documents describing work as upcoming that had already shipped.
+>
+> - `ARCHITECTURE.md` said `npc.location`/`deities.location`/`deities.residence`
+>   "still exist as columns today (removing them is SPEC-004's T5)" — five days
+>   after T5b dropped them, and in direct contradiction of `ROADMAP.md`, which
+>   recorded that drop as closing the spec.
+> - `PROJECT_STATE.md` called `faction` "a table nothing reads" three days after
+>   SPEC-006 shipped it as a fifth domain, counted seven Prisma models against
+>   eight, and still described `poi` as the world tree — which it stopped being
+>   when SPEC-008 T8 split it into `zone` and `poi`.
+> - `specs/README.md`'s index called SPEC-006 "Agreed — next" when it was shipped,
+>   and SPEC-007 "Agreed" when its own §11 said "Shipped 2026-08-10" — the header
+>   and the outcome section of the same file disagreeing.
+> - SPEC-009's T1 checkbox was unticked with the work merged in two commits.
+> - **The one that would have cost real time:** SPEC-010 §3 justified its central
+>   rule by citing a SPEC-007 capability (removing a place's map image) that was
+>   never specified and never built. An agent implementing SPEC-010 would have
+>   built on it.
+>
+> **The lesson this time is narrower than "counts rot".** A number is obviously
+> volatile and this project now treats it as such. A _status_ reads as settled
+> prose — "removing them is SPEC-004's T5" is a sentence, not a figure — which is
+> exactly why nobody re-checks it. **When a spec ships, grep the docs for its
+> number and for the thing it changed**, not just the spec file's own checkboxes.
+> And a cross-reference between documents is a claim like any other: SPEC-010's
+> citation of SPEC-007 was wrong from the day it was written and nothing caught it,
+> because no one followed the link.

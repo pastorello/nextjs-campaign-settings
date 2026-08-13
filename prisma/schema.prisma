@@ -26,9 +26,12 @@ model deities {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  // SPEC-008 T1 — additive, not yet read by any code path. `zoneId`/`poiId`
-  // stay both null until the assignment modal (T3/T4) exists; see ADR-0010
-  // for why they are independent FKs rather than mutually exclusive.
+  // SPEC-008 — where this record is. Both null means unplaced, which is a
+  // legitimate state the UI reports rather than an error ("Sconosciuta",
+  // SPEC-007 T3). Written by the two-step assignment modal (T3/T4, shipped);
+  // see ADR-0010 for why they are independent FKs rather than mutually
+  // exclusive, and for the `zoneId := poi.zoneId` invariant that keeps them
+  // in agreement.
   zoneId Int?
   zone   zone? @relation(fields: [zoneId], references: [id], onDelete: Restrict)
   poiId  Int?
@@ -66,9 +69,12 @@ model npc {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  // SPEC-008 T1 — additive, not yet read by any code path. `zoneId`/`poiId`
-  // stay both null until the assignment modal (T3/T4) exists; see ADR-0010
-  // for why they are independent FKs rather than mutually exclusive.
+  // SPEC-008 — where this record is. Both null means unplaced, which is a
+  // legitimate state the UI reports rather than an error ("Sconosciuta",
+  // SPEC-007 T3). Written by the two-step assignment modal (T3/T4, shipped);
+  // see ADR-0010 for why they are independent FKs rather than mutually
+  // exclusive, and for the `zoneId := poi.zoneId` invariant that keeps them
+  // in agreement.
   zoneId Int?
   zone   zone? @relation(fields: [zoneId], references: [id], onDelete: Restrict)
   poiId  Int?

@@ -1,6 +1,6 @@
 # SPEC-009: Zones as areas, and containment that is spatially true
 
-- **Status:** Agreed 2026-08-10 — from a design interview; every open question closed. Five tasks.
+- **Status:** In progress — agreed 2026-08-10 from a design interview, every open question closed. Five tasks; **T1, T2 and T4 shipped** (PRs #144, #146, #147), T3 and T5 open.
 - **Date:** 2026-08-10
 - **Phase:** 3
 - **Related:** extends [SPEC-004](./004-world-model.md)'s tree ([ADR-0009](../adr/0009-world-tree-as-one-polymorphic-table.md)) from a tree of points to a tree of areas; depends on [SPEC-007](./007-placement-backlog.md) T1 (a place can be given a map after creation); reshapes what SPEC-005 repositions
@@ -75,6 +75,8 @@ model zone {
 
 **One nullable column.** A place with a `footprint` is an area; a place without one is a point. Both keep `lat`/`lng` — for an area those are the rectangle's **derived centre**, written at creation so that every existing consumer (the label, the click target, `countUnpositionedPlaces`, `useUnplacedChildren`) keeps working unchanged. That is a computed convenience, not a second authored position: the DM draws a rectangle and never types a centre.
 
+**The root never has a footprint, and cannot be given one.** A footprint is by definition the rectangle a place casts on its _parent's_ map, and the root is the one row with `parentId: null` (`fetchRootPlace`/`createRootPlace` both key on exactly that). With no parent there is no surface to cast a shape onto, so the root's extent is not a rectangle anyone can draw or shrink — it is simply its own `mapBounds`, the whole map. This falls out of the model rather than needing a guard, and it is the other half of the `footprint` / `mapBounds` distinction below: every place can have a `mapBounds` (the map inside it), every place _except the root_ can have a `footprint` (its shape outside). Stated here because it was load-bearing in conversation twice and written down nowhere (2026-08-13).
+
 **Named `footprint`, deliberately not `areaBounds`.** `zone.mapBounds` already exists and means something different — the extent of the place's _own_ map image. Two `*Bounds` Json columns on one model, one describing the map inside and one the shape outside, is a confusion this project would pay for later. `footprint` says "the shape this place casts on its parent" and cannot be misread as the other.
 
 **Json rather than four float columns.** The only query is "which of this parent's children contain this point", and a parent has a handful of children — the containment test runs in JS over rows `fetchPlaceChildren` already loads. Four indexed floats would buy a SQL-side filter nothing needs, at the cost of four columns and an all-or-nothing invariant the type system would not enforce. Revisit if the tree ever gets wide enough for that to matter; today the whole table is 42 rows.
@@ -94,16 +96,16 @@ They are the same predicate read in two directions, so they share one pure, unit
 
 ## 8. Acceptance criteria
 
-- [ ] Dragging a rectangle on a place's map creates a child area with its own uploaded map.
-- [ ] Clicking an area descends into its map; clicking empty ground still offers the point flows.
-- [ ] Drawing an area over an existing pin is refused, and the refusal names the pins.
-- [ ] Drawing an area overlapping a sibling area is refused, naming the sibling.
-- [ ] Placing a point inside an existing area is impossible from the UI and refused by the server if attempted directly.
-- [ ] A degenerate or out-of-bounds rectangle is refused.
-- [ ] An area's stored centre matches its rectangle, and every existing consumer of `lat`/`lng` works unchanged.
-- [ ] The containment predicate is a pure function with its own unit tests, used by both mutations.
-- [ ] Every new mutation rejects an unauthenticated request and validates its input.
-- [ ] Coverage has not dropped.
+- [x] Dragging a rectangle on a place's map creates a child area with its own uploaded map. _(T2)_
+- [x] Clicking an area descends into its map; clicking empty ground still offers the point flows. _(T2 for the rectangle itself, T4 for the surrounding ground.)_
+- [x] Drawing an area over an existing pin is refused, and the refusal names the pins. _(T1: `createPlace` returns "Would cover existing place(s): …", and T2 threads that message to the toast. T3 is a richer presentation of this same refusal, not the refusal itself.)_
+- [x] Drawing an area overlapping a sibling area is refused, naming the sibling. _(T1: "Overlaps an existing area: …".)_
+- [x] Placing a point inside an existing area is impossible from the UI and refused by the server if attempted directly. _(Server: T1, in `createPlace`/`createPoi`. UI: T4. **One documented gap** — `updateZonePosition` has no such check, so dragging an already-placed pin into an area is still possible; see §10 T5, which has to re-run both checks anyway.)_
+- [x] A degenerate or out-of-bounds rectangle is refused. _(Degenerate: T1's `isDegenerateFootprint`. Out-of-bounds: `useDrawArea` clamps the drag to the map's own bounds, T2.)_
+- [x] An area's stored centre matches its rectangle, and every existing consumer of `lat`/`lng` works unchanged. _(T1's `footprintCentre`, written at creation.)_
+- [x] The containment predicate is a pure function with its own unit tests, used by both mutations. _(`app/modules/maps/lib/utils/footprint.ts`; T4 reuses the same `findContainingSibling` client-side rather than reimplementing it.)_
+- [x] Every new mutation rejects an unauthenticated request and validates its input. _(No new mutation was needed: the footprint rides through the existing `createPlace`, which already calls `requireSession` and validates.)_
+- [x] Coverage has not dropped. _(Enforced as a CI ratchet with thresholds in `vitest.config.ts` — the three PRs above all passed it.)_
 
 ## 9. Decided: the app never absorbs a pin
 
@@ -119,7 +121,7 @@ This is the same instinct as `onDelete: Restrict` throughout the schema: **refus
 
 ## 10. Task breakdown
 
-- [ ] **T1** — `footprint` column, the containment predicate as a pure function, and both server-side checks _(test: a point inside/outside/on the edge; overlapping and merely touching rectangles; a degenerate rectangle)_
+- [x] **T1** — `footprint` column, the containment predicate as a pure function, and both server-side checks _(test: a point inside/outside/on the edge; overlapping and merely touching rectangles; a degenerate rectangle)_
 - [x] **T2** — Draw a rectangle on the map, name/kind/map form, area rendered with its label, click to descend _(test: an area created with its map is navigable; the derived centre matches the rectangle)_
 - [ ] **T3** — The refusal: drawing over pins names every one of them and creates nothing _(test: one pin, several pins, a pin exactly on the edge; nothing is written and no pin is reparented)_
 - [x] **T4** — Clicking inside an area descends instead of offering the point flows _(test: the add-place and add-landmark entries are absent inside an area and present outside it)_

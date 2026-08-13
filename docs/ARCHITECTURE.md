@@ -1,6 +1,6 @@
 # Architecture
 
-**Last updated:** 2026-08-08
+**Last updated:** 2026-08-13
 
 This document describes how Campaign Settings is put together today, and marks the places where the intended design and the current implementation diverge. Divergences are tagged **[GAP]** and tracked in [`TECH_DEBT.md`](./TECH_DEBT.md).
 
@@ -8,7 +8,7 @@ This document describes how Campaign Settings is put together today, and marks t
 
 ## 1. High-level shape
 
-Campaign Settings is a Next.js App Router application with no separate backend. Server Components read directly from Postgres through Prisma; Server Actions write to it. There is no REST API layer for domain data. The route handlers are four DELETE endpoints, two read-only GeoJSON endpoints for the map, and — since [ADR-0008](./adr/0008-map-image-storage.md) — two for map images: an authenticated `GET` that streams an uploaded map, and the upload endpoint itself. `find app/api -name route.ts` is the current list.
+Campaign Settings is a Next.js App Router application with no separate backend. Server Components read directly from Postgres through Prisma; Server Actions write to it. There is no REST API layer for domain data. The route handlers are one DELETE endpoint per domain (spells, magic items, NPCs, deities and — since SPEC-006 — factions), two read-only GeoJSON endpoints for the map, and — since [ADR-0008](./adr/0008-map-image-storage.md) — two for map images: an authenticated `GET` that streams an uploaded map, and the upload endpoint itself. `find app/api -name route.ts` is the current list.
 
 ```
 Browser
@@ -188,7 +188,7 @@ This is the best-structured area of the codebase — error boundary, defensive h
 
 POIs are persisted in Postgres, not `localStorage` — `usePOIManager.ts` writes through `createPoi` / `updatePoi` / `deletePoi` / `fetchPois` (`app/lib/data/maps/`) with optimistic client state.
 
-**A record's location is stored, not derived.** `npc`/`deities` carry `zoneId`/`poiId` directly (nullable FKs, independent rather than mutually exclusive — see ADR-0010), set by a two-step assignment modal (Zone required, POI optional, scoped to the chosen Zone) reachable from both the admin list and the map. `npc.location`/`deities.location`/`deities.residence` still exist as columns today (removing them is SPEC-004's T5, sequenced after the DM confirms the migrated tree), but the current answer to "where is this NPC" walks the FK chain instead of a `poi.parentId` pin: `deriveEntityAncestry` (`app/modules/maps/lib/utils/`) takes each entity's `zoneId`/`poiId`, and `fetchDerivedAncestry` (`app/lib/data/maps/`) supplies the `zone`/`poi` rows it walks — the landmark POI's own title first if `poiId` is set, then every `zone` ancestor up to the root, nearest first. `EntityList` merges the result into the NPC/deity admin lists as a `derivedLocation` column: declared in `pageMetaFields` so the existing list-rendering machinery can render it, but deliberately absent from every `pagesConfig` entry, so `buildEntitySchema` never treats it as part of the writable payload — read-only by construction, not convention. The admin list's `location` field also sorts (`ORDER BY zone.title`) and filters (two-step Zone→POI, "Sconosciuta" as its own option) on the same `zoneId`/`poiId`.
+**A record's location is stored, not derived.** `npc`/`deities` carry `zoneId`/`poiId` directly (nullable FKs, independent rather than mutually exclusive — see ADR-0010), set by a two-step assignment modal (Zone required, POI optional, scoped to the chosen Zone) reachable from both the admin list and the map. `npc.location`/`deities.location`/`deities.residence` are **gone** — SPEC-004's T5b dropped them and their enum vocabularies on 2026-08-08 (migration `20260808160000_drop_legacy_npc_deity_location_columns`), so the FK pair is the only stored answer now. _(This paragraph said those columns "still exist as columns today, removing them is SPEC-004's T5" until 2026-08-13, five days after the drop and in direct contradiction of `ROADMAP.md`, which recorded T5b as closing the spec.)_ The current answer to "where is this NPC" walks the FK chain rather than a `zone.parentId` pin: `deriveEntityAncestry` (`app/modules/maps/lib/utils/`) takes each entity's `zoneId`/`poiId`, and `fetchDerivedAncestry` (`app/lib/data/maps/`) supplies the `zone`/`poi` rows it walks — the landmark POI's own title first if `poiId` is set, then every `zone` ancestor up to the root, nearest first. `EntityList` merges the result into the NPC/deity admin lists as a `derivedLocation` column: declared in `pageMetaFields` so the existing list-rendering machinery can render it, but deliberately absent from every `pagesConfig` entry, so `buildEntitySchema` never treats it as part of the writable payload — read-only by construction, not convention. The admin list's `location` field also sorts (`ORDER BY zone.title`) and filters (two-step Zone→POI, "Sconosciuta" as its own option) on the same `zoneId`/`poiId`.
 
 Places themselves — including the tree's navigable nodes — are **deliberately outside the metadata layer** (`pagesConfig`/`formFields`/`listConfig`): a place is a map annotation edited from a panel, not a browsable, filterable catalogue page.
 
@@ -215,7 +215,7 @@ Login: `app/login/page.tsx` → `login-form.tsx` → `authenticate()` server act
 
 The proxy matcher excludes `/api`, so it cannot cover route handlers or Server Actions. Rather than widen the matcher, TD-01 guards each write path where it lives:
 
-1. **Route handlers** — the four DELETE handlers call `requireApiSession()` (`app/lib/auth/requireApiSession.ts`), which returns a 401 `NextResponse` when there is no session. `app/api/countries/**` stays open: it is read-only GeoJSON.
+1. **Route handlers** — every DELETE handler calls `requireApiSession()` (`app/lib/auth/requireApiSession.ts`), which returns a 401 `NextResponse` when there is no session. `app/api/countries/**` stays open: it is read-only GeoJSON.
 2. **Server Actions** — the eight `create*` / `update*` mutations call `requireSession()` (`app/lib/auth/requireSession.ts`), which throws `UnauthorizedError`. The `delete*ById` helpers are internal to the guarded route handlers and are not guarded again.
 3. **`authorized`** stays `!!auth?.user` — it gates the proxy-matched dashboard on login, which is all it needs to do now that the API boundary guards itself. No per-route branching.
 

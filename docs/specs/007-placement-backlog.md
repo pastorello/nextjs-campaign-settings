@@ -1,6 +1,6 @@
 # SPEC-007: The world is described but not drawn
 
-- **Status:** Agreed 2026-08-10 — third draft. The first two aimed at the wrong problem; §0 says how, because the reason matters more than the correction.
+- **Status:** Shipped 2026-08-10 ([PR #142](https://github.com/pastorello/nextjs-campaign-settings/pull/142)) — all three tasks landed; 8 of 10 acceptance criteria met, the two open ones carried as [TD-77](../TECH_DEBT.md) and a wording gap in the count. See §11. _(Was still marked "Agreed" until 2026-08-13, three days after §11 recorded the spec as shipped — the header and the outcome section contradicted each other.)_ Written as a third draft; the first two aimed at the wrong problem, and §0 says how, because the reason matters more than the correction.
 - **Date:** 2026-08-08, rewritten twice on 2026-08-10
 - **Phase:** 3
 - **Related:** completes the half of [SPEC-004](./004-world-model.md) M4 that only ever ran once (a place gets its map at creation and never again); consumes [SPEC-005](./005-place-repositioning.md)'s repositioning flow and TD-71's `useUnplacedChildren`; hands the area-selection half to [SPEC-009](./009-zones-as-areas.md)

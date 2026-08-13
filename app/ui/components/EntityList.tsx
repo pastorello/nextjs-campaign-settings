@@ -13,8 +13,9 @@ import { fetchFilteredNpc } from "@/app/lib/data/npc/fetchFilteredNpc";
 import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
 import { fetchFilteredFactions } from "@/app/lib/data/faction/fetchFilteredFactions";
 import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
-import fetchEntityLocationSummaries from "@/app/lib/data/maps/fetchEntityLocationSummaries";
-import type LocationSummary from "@/app/lib/definitions/interfaces/maps/LocationSummary";
+import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
+import { toDerivedPlacements } from "@/app/modules/maps/lib/utils/deriveEntityAncestry";
+import type DerivedPlacement from "@/app/lib/definitions/interfaces/maps/DerivedPlacement";
 import type OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
 import SortableHeader from "../buttons/SortableHeader";
@@ -75,14 +76,20 @@ export default async function EntityList(props: {
   // schema (`buildResultSchema`, keyed off `pagesConfig`) strips any key it
   // does not declare, and `location` deliberately isn't declared there (see
   // `pageMetaFields.ts`) — it is never part of the write schema.
-  let locationSummaries: Map<number, LocationSummary> | null = null;
+  //
+  // Reads the same `fetchDerivedAncestry` → `toDerivedPlacements` path
+  // `EntityLibrary` uses for its public cards (TD-77) — the admin list used
+  // to run its own `fetchEntityLocationSummaries`, agreeing with the public
+  // path only because both independently relied on the same
+  // `zoneId := poi.zoneId` invariant (ADR-0010). One path now, with the
+  // admin list simply ignoring the `plane` field it has no column for.
+  let placements: Record<number, DerivedPlacement> | null = null;
   if (props.pageType === PageType.Npc || props.pageType === PageType.Deity) {
     const linkedType = props.pageType === PageType.Npc ? "npc" : "deity";
-    locationSummaries = await fetchEntityLocationSummaries(linkedType);
+    placements = toDerivedPlacements(await fetchDerivedAncestry(linkedType));
     for (const item of items) {
       item.location =
-        locationSummaries.get(item.id as number)?.title ??
-        t("common.location.unknown");
+        placements[item.id as number]?.place ?? t("common.location.unknown");
     }
   }
 
@@ -95,7 +102,7 @@ export default async function EntityList(props: {
 
   return (
     <div className="mt-6 flow-root">
-      {locationSummaries && <LocationFilterControl />}
+      {placements && <LocationFilterControl />}
       <div className="inline-block min-w-full align-middle">
         <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
           {isArrayEmpty(items) && <p>{t(config.emptyMessageKey)}</p>}
@@ -171,22 +178,20 @@ export default async function EntityList(props: {
                   ))}
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex justify-end gap-3">
-                      {locationSummaries &&
+                      {placements &&
                         (props.pageType === PageType.Npc ||
                           props.pageType === PageType.Deity) && (
                           <AssignLocationButton
                             pageType={props.pageType}
                             entityId={item.id as number}
                             currentZoneId={
-                              locationSummaries.get(item.id as number)
-                                ?.zoneId ?? null
+                              placements[item.id as number]?.zoneId ?? null
                             }
                             currentPoiId={
-                              locationSummaries.get(item.id as number)?.poiId ??
-                              null
+                              placements[item.id as number]?.poiId ?? null
                             }
                             currentLocationLabel={
-                              locationSummaries.get(item.id as number)?.title ??
+                              placements[item.id as number]?.place ??
                               t("common.location.unknown")
                             }
                           />

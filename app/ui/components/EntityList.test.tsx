@@ -60,10 +60,12 @@ vi.mock("@/app/lib/data/faction/fetchFilteredFactions", () => ({
 
 // Backs both the "Location" column (SPEC-008 T6) and the assignment
 // button's "current location" display (T5) — stubbed to an empty map by
-// default, overridden by the dedicated tests below.
-const fetchEntityLocationSummaries = vi.fn<(...args: unknown[]) => unknown>();
-vi.mock("@/app/lib/data/maps/fetchEntityLocationSummaries", () => ({
-  default: (...args: unknown[]) => fetchEntityLocationSummaries(...args),
+// default, overridden by the dedicated tests below. Same fetch and shape
+// EntityLibrary reads (TD-77): a Map of each record's ancestor chain,
+// reduced through the real (unmocked) `toDerivedPlacements`.
+const fetchDerivedAncestry = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/maps/fetchDerivedAncestry", () => ({
+  default: (...args: unknown[]) => fetchDerivedAncestry(...args),
 }));
 
 // The NPC "Fazione" column's option bundle (SPEC-006 T7) — stubbed empty by
@@ -78,7 +80,7 @@ import EntityList from "./EntityList";
 describe("EntityList", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    fetchEntityLocationSummaries.mockResolvedValue(new Map());
+    fetchDerivedAncestry.mockResolvedValue(new Map());
     fetchFieldOptions.mockResolvedValue([]);
   });
 
@@ -158,13 +160,13 @@ describe("EntityList", () => {
         faction: 1,
       },
     ]);
-    fetchEntityLocationSummaries.mockResolvedValue(
-      new Map([[42, { zoneId: 1, poiId: null, title: "Skreebars" }]])
+    fetchDerivedAncestry.mockResolvedValue(
+      new Map([[42, [{ id: 1, title: "Skreebars", kind: "city" }]]])
     );
 
     render(await EntityList({ pageType: PageType.Npc }));
 
-    expect(fetchEntityLocationSummaries).toHaveBeenCalledWith("npc");
+    expect(fetchDerivedAncestry).toHaveBeenCalledWith("npc");
     expect(screen.getByText("Skreebars")).toBeInTheDocument();
   });
 
@@ -179,11 +181,11 @@ describe("EntityList", () => {
         deityType: 1,
       },
     ]);
-    fetchEntityLocationSummaries.mockResolvedValue(new Map());
+    fetchDerivedAncestry.mockResolvedValue(new Map());
 
     render(await EntityList({ pageType: PageType.Deity }));
 
-    expect(fetchEntityLocationSummaries).toHaveBeenCalledWith("deity");
+    expect(fetchDerivedAncestry).toHaveBeenCalledWith("deity");
     expect(screen.getByText("common.location.unknown")).toBeInTheDocument();
   });
 
@@ -223,8 +225,8 @@ describe("EntityList", () => {
         location: 1,
       },
     ]);
-    fetchEntityLocationSummaries.mockResolvedValue(
-      new Map([[42, { zoneId: 5, poiId: null, title: "Skreebars" }]])
+    fetchDerivedAncestry.mockResolvedValue(
+      new Map([[42, [{ id: 5, title: "Skreebars", kind: "city" }]]])
     );
 
     render(await EntityList({ pageType: PageType.Npc }));
@@ -253,7 +255,7 @@ describe("EntityList", () => {
 
     render(await EntityList({ pageType: PageType.Spell }));
 
-    expect(fetchEntityLocationSummaries).not.toHaveBeenCalled();
+    expect(fetchDerivedAncestry).not.toHaveBeenCalled();
     expect(screen.queryByText(/assign-location:/)).not.toBeInTheDocument();
   });
 

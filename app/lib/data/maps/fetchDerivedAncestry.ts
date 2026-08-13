@@ -12,6 +12,12 @@ import type { LinkableEntityType } from "@/app/modules/maps/types/poi";
  *
  * Three queries regardless of how many records the caller resolves against
  * them: the list views call this once per render, not once per row.
+ *
+ * The single read path for both `EntityLibrary` (public cards, via
+ * `toDerivedPlacements`) and `EntityList` (the admin table) as of TD-77 —
+ * they used to resolve a record's location through two independent
+ * functions that only agreed by coincidence, both relying on the same
+ * `zoneId := poi.zoneId` invariant (ADR-0010) without anything enforcing it.
  */
 export default async function fetchDerivedAncestry(
   linkedType: LinkableEntityType

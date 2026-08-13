@@ -41,8 +41,9 @@ interface EntityLocationRow {
  *
  * The immediate entry is the landmark POI's own title when `poiId` is set
  * (more precise than its zone — the same rule the admin list's Location
- * column follows, `fetchEntityLocationSummaries`), otherwise the Zone
- * itself. A record with a `zoneId` but no matching zone row, or a broken
+ * column follows, through this same function, since TD-77 reconciled the
+ * two read paths), otherwise the Zone itself. A record with a `zoneId` but
+ * no matching zone row, or a broken
  * `zone.parentId` chain, stops there rather than throwing — the mutation
  * boundary prevents a cycle, but a corrupt row must not hang a render.
  *

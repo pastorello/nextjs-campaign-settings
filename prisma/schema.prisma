@@ -143,8 +143,8 @@ model poi {
   id          Int      @id @default(autoincrement())
   title       String
   description String?
-  lat         Float
-  lng         Float
+  lat         Float?
+  lng         Float?
   category    String
   zoneId      Int
   zone        zone     @relation(fields: [zoneId], references: [id], onDelete: Restrict)

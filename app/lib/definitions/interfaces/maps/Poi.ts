@@ -10,8 +10,10 @@ interface Poi {
   id: number;
   title: string;
   description: string | null;
-  lat: number;
-  lng: number;
+  // SPEC-010 T1 — nullable so a landmark can survive its zone's deletion
+  // unpositioned, the same state a place has always been able to be in.
+  lat: number | null;
+  lng: number | null;
   category: string;
   zoneId: number;
   createdAt: Date;

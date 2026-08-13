@@ -14,8 +14,8 @@ import type PlaceChild from "../../definitions/interfaces/maps/PlaceChild";
  * Reads two tables and merges them (SPEC-008 T8): navigable children
  * (`zone` rows with `parentId`) and landmark children (`poi` rows with
  * `zoneId`) used to be one polymorphic table before the split. A landmark
- * is never "unplaced" the way a zone can be — `poi.lat`/`lng` are required
- * columns now — so every `poi` row this returns already has a position.
+ * can be unplaced the same way a zone can (SPEC-010 T1, §9): deleting its
+ * zone reparents it to the grandparent and clears its position.
  */
 export default async function fetchPlaceChildren(
   parentId: number

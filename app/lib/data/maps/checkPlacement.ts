@@ -81,7 +81,12 @@ export async function checkAreaPlacement({
           !isFootprint(zone.footprint) && zone.lat !== null && zone.lng !== null
       )
       .map((zone) => ({ title: zone.title, lat: zone.lat, lng: zone.lng })),
-    ...siblingPois,
+    // A landmark can be unpositioned (SPEC-010 T1) — nothing to swallow if
+    // it has no point yet.
+    ...siblingPois.filter(
+      (poi): poi is typeof poi & { lat: number; lng: number } =>
+        poi.lat !== null && poi.lng !== null
+    ),
   ];
   const swallowed = findSwallowedPins(footprint, pins);
   if (swallowed.length > 0) {

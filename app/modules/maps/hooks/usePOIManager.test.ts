@@ -158,6 +158,17 @@ describe("usePOIManager — loading from the server (TD-14)", () => {
     expect(console.warn).toHaveBeenCalled();
   });
 
+  it("excludes an unpositioned landmark rather than crashing (SPEC-010 T1)", async () => {
+    fetchPlaceChildren.mockResolvedValue([
+      storedRow,
+      { ...storedRow, id: 9, lat: null, lng: null },
+    ]);
+
+    const { result } = await renderLoaded();
+
+    expect(result.current.pois).toEqual([expect.objectContaining({ id: "7" })]);
+  });
+
   it("ignores a sibling that is a region, not a poi", async () => {
     fetchPlaceChildren.mockResolvedValue([
       storedRow,

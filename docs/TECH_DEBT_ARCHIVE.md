@@ -2144,6 +2144,24 @@ replace it with Markdown next month.
 
 ---
 
+## TD-77 ✅ An entity's location is resolved through two unreconciled read paths — **DONE (2026-08-13)**
+
+**Outcome:** read both functions and every call site before picking a direction, per the item's own instruction not to guess. `fetchEntityLocationSummaries` (`EntityList`) and `fetchDerivedAncestry` → `toDerivedPlacements` (`EntityLibrary`) turned out not to be a coin flip: `toDerivedPlacements`'s `DerivedPlacement` (`place`, `plane`, `zoneId`, `poiId`) is already a strict superset of what `LocationSummary` (`zoneId`, `poiId`, `title`) gave `EntityList` — same precedence (the POI's title over the Zone's, `null` when nothing is assigned), same ids, plus a `plane` field the admin list simply has no column for and ignores. Pointing `EntityList` at the same path `EntityLibrary` already used was therefore the cheaper direction with no adapter needed, exactly the "pick whichever already has the shape the other call site needs" instruction the item gave.
+
+One asymmetry surfaced only by reading, not guessable from the two functions' names alone: `fetchEntityLocationSummaries.ts` opened with `"use server"`, making it an independently POST-reachable Server Action, which is why it called `requireSession()` — per `requireSession`'s own docstring, "Server Actions are POST endpoints any client can reach, and the proxy does not cover them." `fetchDerivedAncestry.ts` carries no such directive; it is a plain server-only function only reachable from other server code during render (the dashboard's own auth gate, `auth.config.ts`'s `authorized` callback, already covers the page it renders inside), the same pattern `fetchFilteredNpc`/`fetchFilteredDeities` already use for both the admin list and the public library. Losing the `requireSession()` call is therefore not an auth regression — it brings `EntityList`'s location read in line with every other read it already makes, not an exception to non-negotiable rule #1.
+
+Changed `app/ui/components/EntityList.tsx` to call `fetchDerivedAncestry` + `toDerivedPlacements` instead, reading `place`/`zoneId`/`poiId` off the resulting `Record<number, DerivedPlacement>` in place of the old `Map<number, LocationSummary>`. Deleted `fetchEntityLocationSummaries.ts`, `fetchEntityLocationSummaries.test.ts`, and the now-unused `LocationSummary` interface. No coverage was lost in the deletion: the precedence and null-fallback tests were re-derived as `EntityList.test.tsx` assertions against the real (unmocked) `toDerivedPlacements`, the same pattern `EntityLibrary.test.tsx` already used to keep its own suite honest about the real reduction logic; the deities-vs-npc dispatch and DB-error-wrapping cases were already independently covered in `fetchDerivedAncestry.test.ts`. The one test with no equivalent — "rejects an unauthenticated request" — was dropped deliberately, not folded in: it was asserting the now-removed `requireSession()` call, which the paragraph above explains was never actually protecting anything the page's own auth gate didn't already cover.
+
+Updated the two doc comments (`pageMetaFields.ts`'s `location` field, `deriveEntityAncestry.ts`'s module docstring) and `fetchDerivedAncestry.ts`'s own docstring to describe the single path, rather than leaving them to reference a function that no longer exists.
+
+**(original) Where:** `EntityList` resolved an NPC/deity's location via `fetchEntityLocationSummaries`. `EntityLibrary` resolved the same thing via `fetchDerivedAncestry` → `toDerivedPlacements`. Both were correct, and agreed, but only because both independently relied on the same `zoneId := poi.zoneId` invariant — nothing in the code enforced that they stayed in step if that invariant ever changed.
+
+**(original) Why this shape.** This was exactly the failure shape [SPEC-007](./specs/007-placement-backlog.md) §7 named in advance ("two things doing one job and drifting", after TD-09's quartets and the metadata layer's near-forks) and asked to reconcile in its implementation plan. What shipped instead (T3, PR #142) was the minimum that unblocked the card's "Sconosciuta" state — `toDerivedPlacements` also carried `zoneId`/`poiId` — without collapsing the two paths into one.
+
+**(original) The fix is a direction choice, not a mechanical one:** either point `EntityList` at `toDerivedPlacements` too, or have `EntityLibrary` read `fetchEntityLocationSummaries` instead. Pick whichever already has the shape the other call site needs, then delete the loser.
+
+---
+
 ## Recommended execution order
 
 ```

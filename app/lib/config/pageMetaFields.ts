@@ -106,10 +106,11 @@ const pageMetaFields = {
    * — and shared here rather than duplicated per domain because it means
    * exactly the same thing for both. `getDatum` is a pure passthrough:
    * `EntityList` resolves the actual title (the POI's if `poiId` is set,
-   * else the Zone's, else "Sconosciuta") from `fetchEntityLocationSummaries`
-   * before this ever sees the value. Sorting/filtering key on the raw
-   * `zoneId` column, not this display string — see
-   * `buildLocationWhere.ts`/`applyLocationSort.ts`.
+   * else the Zone's, else "Sconosciuta") from `fetchDerivedAncestry` →
+   * `toDerivedPlacements` — the same path `EntityLibrary` reads for the
+   * public cards (TD-77) — before this ever sees the value. Sorting/
+   * filtering key on the raw `zoneId` column, not this display string —
+   * see `buildLocationWhere.ts`/`applyLocationSort.ts`.
    */
   location: {
     metaField: "location",

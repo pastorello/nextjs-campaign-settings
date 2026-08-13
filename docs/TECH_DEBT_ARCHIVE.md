@@ -2101,6 +2101,49 @@ The risk was rising with [SPEC-006](./specs/006-factions.md): once a field can d
 
 ---
 
+## TD-76 ✅ `renderRichText` injects stored text as raw HTML with no sanitisation — **DONE (2026-08-13)**
+
+**Outcome:** the fix was neither of the two options the item originally weighed. Checking the actual call sites first (`ControlType.Textarea` on every field this touches, no sanitiser library anywhere in `package.json`, no WYSIWYG control in the app) showed the DM has never authored real HTML — every description is plain text typed into a `<textarea>`. So `dangerouslySetInnerHTML` was not "unsanitised rich text," it was **plain text being misrendered as HTML that happened not to have broken yet.** That reframes the fix: not "sanitise the HTML" (implies HTML is legitimately authored) and not "switch to Markdown" (Phase 5's separate, bigger feature, with its own spec, later) — the correct minimal fix is to stop treating the string as HTML. `renderRichText` now renders `{datum}` as JSX text (React escapes it — an `<img onerror=...>` typed into a field renders as literal characters, never as a real element) inside a `whitespace-pre-wrap` div, which preserves the DM's line breaks without injecting `<br>` markup. Zero new dependencies, no input-control change, and it does not foreclose Phase 5 Markdown — that will replace this function's body entirely when it is built, unblocked either way. Three new tests replace the one that asserted the old (defective) behaviour: HTML-looking text renders literally rather than as markup, a script/event-handler payload never executes, line breaks survive via CSS rather than `<br>` injection. Verified in a real browser against seeded spell descriptions — multi-line text renders correctly, no visual regression.
+
+**(original) Where:** `app/lib/utils/data/renderRichText.tsx` was four lines:
+
+```tsx
+const renderRichText = (datum: string): ReactNode => (
+  <div dangerouslySetInnerHTML={{ __html: datum }} />
+);
+```
+
+It is the `getDatum` of every `description` field, so **every description in the
+database is rendered as unsanitised HTML** on the card and list pages.
+
+**(original) Why this is Medium and not Critical.** The app is self-hosted, single-user, and
+the only author of that text is the DM writing about their own world. There is no
+untrusted submitter today, and non-negotiable rule #2 (validate at the boundary)
+is satisfied for _shape_ — `z.string()` accepts the text, which is correct; it is
+the _rendering_ that trusts it.
+
+**(original) Why it is not Low either.** Two of the boundaries are already wider than "the DM
+types it":
+
+- **`pnpm db:import`** loads a JSON file from disk through the same Zod
+  validators. A library exported from somewhere else, or edited by hand, reaches
+  `renderRichText` unchanged.
+- **The player-facing read-only view** (`ROADMAP.md` Phase 5) is the point at
+  which a second reader exists, and it is the wrong moment to discover this.
+
+**(original) The fix is small** — sanitise on the way out, or keep the field plain text and
+render Markdown instead. That second option is not a workaround: `ROADMAP.md`
+Phase 5 already lists "Rich text in descriptions — `renderRichText` exists as a
+stub; make it real", and the DM named formatted descriptions as one of the three
+things they miss most (2026-08-10). **So this item and that feature are the same
+piece of work, and doing them together is cheaper than doing either alone.**
+Decide the direction when it is scheduled; do not sanitise HTML now and then
+replace it with Markdown next month.
+
+**Why the original framing's two options were both wrong, and a third existed.** The item asked to decide between sanitising HTML and switching to Markdown — both assume the field legitimately carries markup today. Neither is true. The actual defect was narrower and cheaper than either option it was framed against, which is why "decide the direction when scheduled" turned out to be the wrong question: there was no direction to decide, only a bug to fix. Phase 5's Markdown feature remains exactly as open as it was — this item closing does not touch it.
+
+---
+
 ## Recommended execution order
 
 ```

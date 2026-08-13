@@ -150,6 +150,14 @@ vi.mock("@/app/ui/geography/MapUploadControl", () => ({
   ),
 }));
 
+// Has its own suite (SPEC-010 T3) — stubbed here so this file stays about
+// WorldMap's own state, not the delete-confirmation flow.
+vi.mock("@/app/ui/geography/DeletePlaceButton", () => ({
+  default: (props: { isRoot: boolean }) => (
+    <div data-testid="delete-place-button" data-is-root={props.isRoot} />
+  ),
+}));
+
 const useMapContextMenu = vi.fn(() => ({
   isOpen: false,
   position: null as {
@@ -236,12 +244,16 @@ async function renderMap(mapUrl = "/maps/test.jpg") {
   render(
     <WorldMap
       parentId={1}
+      placeTitle="Terra"
+      parentTitle="Piani di Esistenza"
+      isRoot={false}
       mapUrl={mapUrl}
       bounds={bounds}
       initialView={[500, 500]}
       initialZoom={1}
       onDescend={onDescend}
       onMapChanged={vi.fn()}
+      onDeleted={vi.fn()}
     />
   );
   await waitFor(() => {
@@ -279,12 +291,16 @@ describe("WorldMap", () => {
     render(
       <WorldMap
         parentId={1}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
         mapUrl=""
         bounds={bounds}
         initialView={[500, 500]}
         initialZoom={1}
         onDescend={vi.fn()}
         onMapChanged={vi.fn()}
+        onDeleted={vi.fn()}
       />
     );
 

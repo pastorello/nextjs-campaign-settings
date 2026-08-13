@@ -28,6 +28,7 @@ import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
 import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
 import MapUploadControl from "@/app/ui/geography/MapUploadControl";
 import DrawAreaButton from "@/app/ui/geography/DrawAreaButton";
+import DeletePlaceButton from "@/app/ui/geography/DeletePlaceButton";
 import {
   findContainingSibling,
   type Footprint,
@@ -57,14 +58,28 @@ import {
  */
 function WorldMap({
   parentId,
+  placeTitle,
+  parentTitle,
+  isRoot,
   mapUrl,
   bounds,
   initialView,
   initialZoom,
   onDescend,
   onMapChanged,
+  onDeleted,
 }: {
   parentId: number;
+  /** The place currently being viewed — named in the delete confirmation. */
+  placeTitle: string;
+  // Where this place's children/landmarks reparent to on delete (SPEC-010
+  // T3) — the previous entry in `GeographyExplorer`'s navigation stack.
+  // Meaningless (and unused) when `isRoot` is true, since the control isn't
+  // rendered then.
+  parentTitle: string;
+  // The one zone with `parentId: null` (SPEC-010 rule 1) — withholds
+  // `DeletePlaceButton` entirely rather than rendering it disabled.
+  isRoot: boolean;
   mapUrl: string;
   bounds: L.LatLngBoundsExpression;
   initialView: L.LatLngExpression;
@@ -75,6 +90,9 @@ function WorldMap({
   // being viewed, so it patches the current entry rather than this
   // component re-fetching anything.
   onMapChanged: (mapImage: string) => void;
+  // The place currently being viewed was just deleted (SPEC-010 T3) —
+  // `GeographyExplorer` pops it off the navigation stack.
+  onDeleted: () => void;
 }) {
   const t = useTranslations("geography.errors");
   const tEditArea = useTranslations("geography.editArea");
@@ -596,6 +614,16 @@ function WorldMap({
         placeId={parentId}
         hasMap={isValidString(mapUrl)}
         onMapChanged={onMapChanged}
+      />
+
+      {/* Delete the place currently being viewed (SPEC-010 T3) — absent for
+          the root (rule 1). */}
+      <DeletePlaceButton
+        placeId={parentId}
+        placeTitle={placeTitle}
+        parentTitle={parentTitle}
+        isRoot={isRoot}
+        onDeleted={onDeleted}
       />
 
       {/* Measurement Panel */}

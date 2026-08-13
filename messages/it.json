@@ -499,6 +499,22 @@
       "trigger": "Modifica area",
       "sublabel": "Ridimensiona o sposta"
     },
+    "deletePlace": {
+      "trigger": "Elimina questo luogo",
+      "confirmTitle": "Eliminare «{title}»?",
+      "loading": "Calcolo delle conseguenze…",
+      "noImpact": "Nessuna conseguenza: questo luogo non ha figli né personaggi assegnati.",
+      "placesImpact": "{count, plural, one {# luogo passerà sotto «{parentTitle}» e perderà la sua posizione} other {# luoghi passeranno sotto «{parentTitle}» e perderanno la loro posizione}}",
+      "npcsImpact": "{count, plural, one {# PNG non avrà più una posizione} other {# PNG non avranno più una posizione}}",
+      "deitiesImpact": "{count, plural, one {# divinità non avrà più una posizione} other {# divinità non avranno più una posizione}}",
+      "cancel": "Annulla",
+      "confirm": "Elimina",
+      "success": "«{title}» eliminato.",
+      "errors": {
+        "loadImpactFailed": "Impossibile calcolare le conseguenze. Riprova.",
+        "deleteFailed": "Impossibile eliminare il luogo. Riprova."
+      }
+    },
     "mapUpload": {
       "uploadLabel": "Questo luogo non ha ancora una mappa.",
       "replaceLabel": "Sostituisci la mappa di questo luogo.",

@@ -499,6 +499,22 @@
       "trigger": "Edit Area",
       "sublabel": "Resize or move"
     },
+    "deletePlace": {
+      "trigger": "Delete this place",
+      "confirmTitle": "Delete \"{title}\"?",
+      "loading": "Working out the consequences…",
+      "noImpact": "No consequences: this place has no children and no entities assigned.",
+      "placesImpact": "{count, plural, one {# place will move up to \"{parentTitle}\" and lose its position} other {# places will move up to \"{parentTitle}\" and lose their position}}",
+      "npcsImpact": "{count, plural, one {# NPC will have no location} other {# NPCs will have no location}}",
+      "deitiesImpact": "{count, plural, one {# deity will have no location} other {# deities will have no location}}",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "success": "\"{title}\" deleted.",
+      "errors": {
+        "loadImpactFailed": "Could not work out the consequences. Try again.",
+        "deleteFailed": "Could not delete the place. Try again."
+      }
+    },
     "mapUpload": {
       "uploadLabel": "This place doesn't have a map yet.",
       "replaceLabel": "Replace this place's map.",

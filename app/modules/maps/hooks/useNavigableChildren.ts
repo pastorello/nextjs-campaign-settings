@@ -51,11 +51,17 @@ export interface NavigableChild {
  * `refetchToken` is how the panel's caller asks for a reload after a
  * successful create, the same way `parentId` changing already triggers one
  * when the DM descends.
+ *
+ * `editingChildId` (SPEC-009 T5) hides one area's rectangle while `WorldMap`
+ * has a redraw-to-replace gesture armed on it — the temporary rectangle
+ * `useDrawArea` draws over the same ground is the only one visible during
+ * that gesture, rather than two overlapping rectangles.
  */
 export function useNavigableChildren(
   parentId: number,
   onDescend: (child: NavigableChild) => void,
-  refetchToken: number = 0
+  refetchToken: number = 0,
+  editingChildId: number | null = null
 ): NavigableChild[] {
   const map = useLeafletMap();
   const t = useTranslations("geography.errors");
@@ -182,9 +188,14 @@ export function useNavigableChildren(
       markersRef.current = [];
 
       for (const child of children) {
+        // SPEC-009 T5 — hidden while its own redraw gesture is armed; the
+        // temporary rectangle `useDrawArea` draws stands in for it.
+        if (child.id === editingChildId) continue;
+
         // SPEC-009 T2 — an area renders as the rectangle it was drawn as,
-        // with its label always visible, rather than a pin. It is never
-        // draggable: resizing/moving an existing area is T5, not this.
+        // with its label always visible, rather than a pin. Resizing/moving
+        // an existing area (T5) is a separate armed gesture, not a drag on
+        // this rectangle — it is never draggable itself.
         if (child.footprint) {
           const [[lat1, lng1], [lat2, lng2]] = child.footprint;
           const rectangle = L.rectangle(
@@ -266,7 +277,7 @@ export function useNavigableChildren(
       });
       markersRef.current = [];
     };
-  }, [map, children, repositionChild]);
+  }, [map, children, repositionChild, editingChildId]);
 
   return children;
 }

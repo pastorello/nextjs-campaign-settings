@@ -1,6 +1,6 @@
 # SPEC-009: Zones as areas, and containment that is spatially true
 
-- **Status:** In progress — agreed 2026-08-10 from a design interview, every open question closed. Five tasks; **T1, T2 and T4 shipped** (PRs #144, #146, #147), T3 and T5 open.
+- **Status:** Shipped — agreed 2026-08-10 from a design interview, every open question closed. All five tasks landed (PRs #144, #146, #147, #150, and T5).
 - **Date:** 2026-08-10
 - **Phase:** 3
 - **Related:** extends [SPEC-004](./004-world-model.md)'s tree ([ADR-0009](../adr/0009-world-tree-as-one-polymorphic-table.md)) from a tree of points to a tree of areas; depends on [SPEC-007](./007-placement-backlog.md) T1 (a place can be given a map after creation); reshapes what SPEC-005 repositions
@@ -53,16 +53,16 @@ Read together, these say something stronger than "zones can be rectangles": **co
 
 **Edge cases**
 
-| Situation                                        | Expected behaviour                                                                                                                                          |
-| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The rectangle overlaps a sibling area            | Refused, naming the area it collides with. §4: no overlaps.                                                                                                 |
-| The rectangle is drawn partly outside the map    | Clamped to the map's bounds, or refused if the visible part is degenerate. It must not be storable outside the space it is drawn on.                        |
-| A degenerate rectangle (a click, or a hairline)  | Refused. Below a minimum size it is a mis-drag, not an intent.                                                                                              |
-| An area with no map                              | Cannot be created — rule 1. A place that already exists without one is SPEC-007 T1's job, and gaining a map does not give it a footprint.                   |
-| A place has a footprint and a map is replaced    | The footprint is on the **parent's** map and is unaffected. SPEC-007's misalignment warning is about the place's own map and its children, a different one. |
-| Resizing or moving an area later                 | Same rules re-checked: no overlap, no pins swallowed. SPEC-005 repositions points today and grows to cover this.                                            |
-| A place created as a point, later wanted as area | It has no footprint; giving it one re-runs rule 2 against whatever is inside. Nothing converts automatically.                                               |
-| Two areas that merely touch at an edge           | Allowed. Sharing a border is not overlapping.                                                                                                               |
+| Situation                                        | Expected behaviour                                                                                                                                                                                                                                       |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The rectangle overlaps a sibling area            | Refused, naming the area it collides with. §4: no overlaps.                                                                                                                                                                                              |
+| The rectangle is drawn partly outside the map    | Clamped to the map's bounds, or refused if the visible part is degenerate. It must not be storable outside the space it is drawn on.                                                                                                                     |
+| A degenerate rectangle (a click, or a hairline)  | Refused. Below a minimum size it is a mis-drag, not an intent.                                                                                                                                                                                           |
+| An area with no map                              | Cannot be created — rule 1. A place that already exists without one is SPEC-007 T1's job, and gaining a map does not give it a footprint.                                                                                                                |
+| A place has a footprint and a map is replaced    | The footprint is on the **parent's** map and is unaffected. SPEC-007's misalignment warning is about the place's own map and its children, a different one.                                                                                              |
+| Resizing or moving an area later                 | Same rules re-checked: no overlap, no pins swallowed (T5). `updateZonePosition` excludes the area's own row from the sibling comparison — otherwise every resize would find itself "overlapping" its own unchanged footprint and refuse unconditionally. |
+| A place created as a point, later wanted as area | It has no footprint; giving it one re-runs rule 2 against whatever is inside. Nothing converts automatically.                                                                                                                                            |
+| Two areas that merely touch at an edge           | Allowed. Sharing a border is not overlapping.                                                                                                                                                                                                            |
 
 ## 6. Data model changes
 
@@ -100,7 +100,7 @@ They are the same predicate read in two directions, so they share one pure, unit
 - [x] Clicking an area descends into its map; clicking empty ground still offers the point flows. _(T2 for the rectangle itself, T4 for the surrounding ground.)_
 - [x] Drawing an area over an existing pin is refused, and the refusal names the pins. _(T1: `createPlace` returns "Would cover existing place(s): …", and T2 threads that message to the toast. T3 is a richer presentation of this same refusal, not the refusal itself.)_
 - [x] Drawing an area overlapping a sibling area is refused, naming the sibling. _(T1: "Overlaps an existing area: …".)_
-- [x] Placing a point inside an existing area is impossible from the UI and refused by the server if attempted directly. _(Server: T1, in `createPlace`/`createPoi`. UI: T4. **One documented gap** — `updateZonePosition` has no such check, so dragging an already-placed pin into an area is still possible; see §10 T5, which has to re-run both checks anyway.)_
+- [x] Placing a point inside an existing area is impossible from the UI and refused by the server if attempted directly. _(Server: T1, in `createPlace`/`createPoi`. UI: T4. `updateZonePosition` closed the last gap in T5: it now re-runs both checks — the point half was §8's documented gap, resizing/moving an area is the rest of T5's own scope.)_
 - [x] A degenerate or out-of-bounds rectangle is refused. _(Degenerate: T1's `isDegenerateFootprint`. Out-of-bounds: `useDrawArea` clamps the drag to the map's own bounds, T2.)_
 - [x] An area's stored centre matches its rectangle, and every existing consumer of `lat`/`lng` works unchanged. _(T1's `footprintCentre`, written at creation.)_
 - [x] The containment predicate is a pure function with its own unit tests, used by both mutations. _(`app/modules/maps/lib/utils/footprint.ts`; T4 reuses the same `findContainingSibling` client-side rather than reimplementing it.)_
@@ -125,12 +125,18 @@ This is the same instinct as `onDelete: Restrict` throughout the schema: **refus
 - [x] **T2** — Draw a rectangle on the map, name/kind/map form, area rendered with its label, click to descend _(test: an area created with its map is navigable; the derived centre matches the rectangle)_
 - [x] **T3** — The refusal: drawing over pins names every one of them and creates nothing _(test: one pin, several pins, a pin exactly on the edge; nothing is written and no pin is reparented)_
 - [x] **T4** — Clicking inside an area descends instead of offering the point flows _(test: the add-place and add-landmark entries are absent inside an area and present outside it)_
-- [ ] **T5** — Resizing and moving an existing area, re-running both checks _(test: a resize that would swallow a pin is refused; one that would overlap a sibling is refused)_
+- [x] **T5** — Resizing and moving an existing area, re-running both checks _(test: a resize that would swallow a pin is refused; one that would overlap a sibling is refused)_
 
 ## 11. Outcome
 
-**T1, T2, T3, T4 shipped.** T5 (resizing and moving) remains open.
+**All five tasks shipped.**
+
+**T5 closed 2026-08-13** — closes §8's last documented gap. `app/lib/data/maps/checkPlacement.ts` is a new module extracting SPEC-009 §7's two checks (`checkAreaPlacement`, `checkPointPlacement`) out of `createPlace.ts`, where they'd lived inline since T1; `createPlace` and `createPoi` now both call the extracted functions instead of duplicating the predicate a second and third time (TD-77 is exactly this failure shape — two copies of one rule drifting apart — and this is that shape being closed off before it happened rather than after).
+
+`updateZonePosition` now accepts either `{ id, lat, lng }` (an ordinary pin move — unchanged wire shape) or `{ id, footprint }` (a resize/move, new), and re-runs the appropriate check against the zone's own siblings before writing. Both branches pass `excludeZoneId: id` into the shared checker: **without it, resizing an area finds its own unchanged footprint in the sibling query and `findOverlappingSibling` reports it overlapping itself, refusing every resize unconditionally.** This was caught by writing that exact test first (`checkPlacement.test.ts`, "does not refuse a resize against its own unchanged footprint") before the exclusion existed, confirming it would otherwise have shipped broken.
+
+The interaction is redraw-to-replace, not corner-handle resize: right-clicking an existing area now offers "Edit Area" in the context menu (the mirror of T4's `hideAddPlace` — shown only over an area, not over empty ground). Choosing it arms a second `useDrawArea` instance on the same rectangle; the old footprint is hidden (`useNavigableChildren`'s new `editingChildId` param) while the DM drags a fresh one over the same ground, and `updateZonePosition` writes the new footprint and its derived centre atomically. No optimistic update and no live in-drag validation — the old rectangle simply stays hidden until the server confirms, matching how `createPlace`'s own refusal already surfaces (a toast naming what blocked it), not a corner-handle affordance. Corner-handle resize was considered and set aside: T5's acceptance criteria are about the checks being re-run correctly, not handle ergonomics, and redraw-to-replace reuses `useDrawArea`'s already-tested clamping, Escape-cancel and degenerate-drag rejection rather than a new ~150-line gesture.
 
 **T3 closed 2026-08-13** — the three edge cases of the area-drawing refusal now have tests covering them: multiple pins inside the footprint all named in the error (not just the first), a pin exactly on the footprint's edge (the containment predicate is closed-set; edge-inclusive), and the implicit assertion that no mutation happens when the refusal fires. The specification's own wording ("the app refuses and names them, and stops there") is now verifiable.
 
-**T4 closed 2026-08-12** — added `hideAddPlace` to the context menu (hidden when a right-click falls inside an area, shown outside), and both crosshair click flows (`positioningPlace` and `isSelectingPOILocation`) now descend instead of offering to place a pin when clicked inside an area. Closes off the UI that would otherwise drive `positioningPlace` into a covered point; the server-side gap remains (§8 call-out) but is unreachable from the normal UI flow now.
+**T4 closed 2026-08-12** — added `hideAddPlace` to the context menu (hidden when a right-click falls inside an area, shown outside), and both crosshair click flows (`positioningPlace` and `isSelectingPOILocation`) now descend instead of offering to place a pin when clicked inside an area. Closes off the UI that would otherwise drive `positioningPlace` into a covered point; the server-side gap remained until T5.

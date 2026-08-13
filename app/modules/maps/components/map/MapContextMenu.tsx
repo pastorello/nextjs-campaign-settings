@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useCallback, useEffect, useRef, useState, useMemo } from "react";
-import { Copy, MapPin, Ruler, Check, Star } from "lucide-react";
+import { Copy, MapPin, Ruler, Check, Star, Scaling } from "lucide-react";
 import { formatDecimalDegrees } from "@/app/modules/maps/lib/utils/coordinates";
 import type { ContextMenuPosition } from "@/app/modules/maps/hooks/useMapContextMenu";
 
@@ -18,6 +18,17 @@ interface MapContextMenuProps {
   // client-only "Add Marker") stay: they don't write a domain pin, so the
   // containment rule doesn't apply to them.
   hideAddPlace?: boolean;
+  // Arms `WorldMap`'s redraw-to-replace gesture on the area the right-click
+  // landed inside (SPEC-009 T5). Shown only when `showEditArea` is set —
+  // the mirror image of `hideAddPlace`, an area rather than empty ground.
+  onEditArea?: () => void;
+  showEditArea?: boolean;
+  // Resolved at the render boundary by `WorldMap` (ADR-0007) and passed down
+  // as plain strings — this file's other labels are pre-existing hardcoded
+  // English (not introduced by this change, and out of scope to fix here),
+  // but new copy follows CLAUDE.md's bilingual-catalogue rule regardless.
+  editAreaLabel?: string;
+  editAreaSublabel?: string;
 }
 
 interface MenuItemProps {
@@ -86,6 +97,10 @@ export const MapContextMenu = memo(function MapContextMenu({
   onStartMeasurement,
   onAddPOI,
   hideAddPlace = false,
+  onEditArea,
+  showEditArea = false,
+  editAreaLabel,
+  editAreaSublabel,
 }: MapContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   // Track which position was copied (null means not copied)
@@ -192,6 +207,16 @@ export const MapContextMenu = memo(function MapContextMenu({
   }, [position, onAddPOI, onClose]);
 
   /**
+   * Arms the resize/move gesture on the area under the right-click
+   * (SPEC-009 T5).
+   */
+  const handleEditArea = useCallback(() => {
+    if (!onEditArea) return;
+    onEditArea();
+    onClose();
+  }, [onEditArea, onClose]);
+
+  /**
    * Handle click outside to close
    */
   useEffect(() => {
@@ -271,6 +296,24 @@ export const MapContextMenu = memo(function MapContextMenu({
             label="Add Place"
             sublabel="Create a place here"
             onClick={handleAddPOI}
+          />
+        </>
+      )}
+
+      {/* Edit Area — arms the redraw-to-replace gesture on the area the
+          right-click landed inside (SPEC-009 T5). The mirror of "Add Place"
+          above: shown only over an area, never over empty ground. */}
+      {onEditArea && showEditArea && (
+        <>
+          <div className="my-1.5 border-t border-gray-200 dark:border-gray-700" />
+
+          <MenuItem
+            icon={<Scaling className="h-4 w-4" />}
+            label={editAreaLabel ?? "Edit Area"}
+            {...(editAreaSublabel !== undefined && {
+              sublabel: editAreaSublabel,
+            })}
+            onClick={handleEditArea}
           />
         </>
       )}

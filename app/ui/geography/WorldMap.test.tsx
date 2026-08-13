@@ -29,18 +29,23 @@ vi.mock("@/app/modules/maps/components/map/MapMeasurementPanel", () => ({
 }));
 
 let onAddPOI: ((lat: number, lng: number) => void) | undefined;
+let onEditArea: (() => void) | undefined;
 vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
   MapContextMenu: (props: {
     onAddPOI: (lat: number, lng: number) => void;
     isOpen: boolean;
     hideAddPlace?: boolean;
+    onEditArea?: () => void;
+    showEditArea?: boolean;
   }) => {
     onAddPOI = props.onAddPOI;
+    onEditArea = props.onEditArea;
     return (
       <div
         data-testid="map-context-menu"
         data-open={props.isOpen}
         data-hide-add-place={props.hideAddPlace ?? false}
+        data-show-edit-area={props.showEditArea ?? false}
       />
     );
   },
@@ -91,20 +96,26 @@ vi.mock("@/app/modules/maps/components/map/MapPOIPanel", () => ({
   },
 }));
 
-let drawAreaOptions:
-  | {
-      enabled: boolean;
-      onComplete: (footprint: unknown) => void;
-      onCancel: () => void;
-    }
-  | undefined;
+type DrawAreaOptions = {
+  enabled: boolean;
+  onComplete: (footprint: unknown) => void;
+  onCancel: () => void;
+};
+// WorldMap calls `useDrawArea` twice per render (SPEC-009 T5): the
+// draw-a-new-area instance, then the redraw-to-replace-an-existing-area
+// instance, always in that order — so the mock tells them apart by call
+// parity within a render rather than by identity.
+let drawAreaCallCount = 0;
+let drawAreaOptions: DrawAreaOptions | undefined;
+let editAreaOptions: DrawAreaOptions | undefined;
 vi.mock("@/app/modules/maps/hooks/useDrawArea", () => ({
-  useDrawArea: (options: {
-    enabled: boolean;
-    onComplete: (footprint: unknown) => void;
-    onCancel: () => void;
-  }) => {
-    drawAreaOptions = options;
+  useDrawArea: (options: DrawAreaOptions) => {
+    if (drawAreaCallCount % 2 === 0) {
+      drawAreaOptions = options;
+    } else {
+      editAreaOptions = options;
+    }
+    drawAreaCallCount++;
   },
 }));
 
@@ -240,6 +251,9 @@ async function renderMap(mapUrl = "/maps/test.jpg") {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  drawAreaCallCount = 0;
+  drawAreaOptions = undefined;
+  editAreaOptions = undefined;
   createPlace.mockResolvedValue({ ok: true, id: 1 });
   updateZonePosition.mockResolvedValue({ ok: true });
   useNavigableChildren.mockReturnValue([]);
@@ -785,6 +799,150 @@ describe("WorldMap — descending into an area instead of placing a point (SPEC-
     expect(screen.getByTestId("map-poi-panel")).not.toHaveAttribute(
       "data-positioning-id"
     );
+    await waitFor(() => {
+      expect(screen.getByTestId("leaflet-map")).toHaveAttribute(
+        "data-cursor",
+        "grab"
+      );
+    });
+  });
+});
+
+describe("WorldMap — resizing and moving an existing area (SPEC-009 T5)", () => {
+  const area = {
+    id: 9,
+    title: "Kingdom of Kang",
+    lat: 5,
+    lng: 5,
+    mapImage: "kang.png",
+    mapBounds: null,
+    mapInitialView: null,
+    mapInitialZoom: null,
+    footprint: [
+      [0, 0],
+      [10, 10],
+    ],
+  };
+
+  beforeEach(() => {
+    useNavigableChildren.mockReturnValue([area]);
+    useMapContextMenu.mockReturnValue({
+      isOpen: true,
+      position: { x: 1, y: 2, latlng: { lat: 5, lng: 5 } },
+      close: vi.fn(),
+    });
+  });
+
+  it("offers Edit Area only when the context menu is over an area", async () => {
+    await renderMap();
+    expect(screen.getByTestId("map-context-menu")).toHaveAttribute(
+      "data-show-edit-area",
+      "true"
+    );
+  });
+
+  it("arms the redraw gesture, switches to a crosshair cursor, and cancels other crosshair modes", async () => {
+    await renderMap();
+
+    act(() => {
+      onRequestLocation?.();
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId("leaflet-map")).toHaveAttribute(
+        "data-cursor",
+        "crosshair"
+      );
+    });
+
+    act(() => {
+      onEditArea?.();
+    });
+
+    expect(editAreaOptions?.enabled).toBe(true);
+    // Arming edit mode cancelled the other crosshair mode — a later click
+    // must not still be interpreted as a POI-location pick.
+    act(() => {
+      onClick?.(50, 50);
+    });
+    expect(screen.getByTestId("map-poi-panel")).not.toHaveAttribute(
+      "data-initial-lat"
+    );
+  });
+
+  it("calls updateZonePosition with the new footprint and refetches on success", async () => {
+    await renderMap();
+
+    act(() => {
+      onEditArea?.();
+    });
+    const footprint = [
+      [1, 1],
+      [20, 20],
+    ];
+    act(() => {
+      editAreaOptions?.onComplete(footprint);
+    });
+
+    await waitFor(() => {
+      expect(updateZonePosition).toHaveBeenCalledWith({ id: 9, footprint });
+    });
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("shows the server's own refusal message on failure, without writing", async () => {
+    updateZonePosition.mockResolvedValue({
+      ok: false,
+      errors: { footprint: ["Overlaps an existing area: Orc Kingdom."] },
+    });
+    await renderMap();
+
+    act(() => {
+      onEditArea?.();
+    });
+    act(() => {
+      editAreaOptions?.onComplete([
+        [1, 1],
+        [20, 20],
+      ]);
+    });
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        "Overlaps an existing area: Orc Kingdom."
+      );
+    });
+  });
+
+  it("falls back to the generic failure toast when the server returns no message", async () => {
+    updateZonePosition.mockResolvedValue({ ok: false, errors: {} });
+    await renderMap();
+
+    act(() => {
+      onEditArea?.();
+    });
+    act(() => {
+      editAreaOptions?.onComplete([
+        [1, 1],
+        [20, 20],
+      ]);
+    });
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("placePositionFailed");
+    });
+  });
+
+  it("disarms without writing when the gesture is cancelled", async () => {
+    await renderMap();
+
+    act(() => {
+      onEditArea?.();
+    });
+    act(() => {
+      editAreaOptions?.onCancel();
+    });
+
+    expect(updateZonePosition).not.toHaveBeenCalled();
     await waitFor(() => {
       expect(screen.getByTestId("leaflet-map")).toHaveAttribute(
         "data-cursor",

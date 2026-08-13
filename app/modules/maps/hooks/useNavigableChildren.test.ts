@@ -285,6 +285,61 @@ describe("useNavigableChildren — areas (SPEC-009 T2)", () => {
     await waitFor(() => expect(marker).toHaveBeenCalled());
     expect(rectangle).not.toHaveBeenCalled();
   });
+
+  it("hides the area matching editingChildId while its redraw gesture is armed (SPEC-009 T5)", async () => {
+    fetchPlaceChildren.mockResolvedValue([
+      row({
+        id: 3,
+        title: "Kingdom of Kang",
+        footprint: [
+          [0, 0],
+          [10, 20],
+        ],
+      }),
+      row({
+        id: 4,
+        title: "Orc Kingdom",
+        footprint: [
+          [30, 30],
+          [40, 40],
+        ],
+      }),
+    ]);
+
+    renderHook(() => useNavigableChildren(1, vi.fn(), 0, 3));
+
+    await waitFor(() => expect(rectangle).toHaveBeenCalledTimes(1));
+    expect(rectangle).toHaveBeenCalledWith(
+      [
+        [30, 30],
+        [40, 40],
+      ],
+      expect.any(Object)
+    );
+  });
+
+  it("shows the area again once editingChildId no longer matches it", async () => {
+    fetchPlaceChildren.mockResolvedValue([
+      row({
+        id: 3,
+        title: "Kingdom of Kang",
+        footprint: [
+          [0, 0],
+          [10, 20],
+        ],
+      }),
+    ]);
+
+    const { rerender } = renderHook<void, { editingId: number | null }>(
+      ({ editingId }) => useNavigableChildren(1, vi.fn(), 0, editingId),
+      { initialProps: { editingId: 3 } }
+    );
+    await waitFor(() => expect(rectangle).not.toHaveBeenCalled());
+
+    rerender({ editingId: null });
+
+    await waitFor(() => expect(rectangle).toHaveBeenCalledTimes(1));
+  });
 });
 
 describe("useNavigableChildren — drag to reposition (TD-71, SPEC-005 §5.B)", () => {

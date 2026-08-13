@@ -77,6 +77,7 @@ function WorldMap({
   onMapChanged: (mapImage: string) => void;
 }) {
   const t = useTranslations("geography.errors");
+  const tEditArea = useTranslations("geography.editArea");
   const [isMeasurementOpen, setIsMeasurementOpen] = useState(false);
   const [isPOIPanelOpen, setIsPOIPanelOpen] = useState(false);
   const [poiFilterCategory, setPOIFilterCategory] =
@@ -107,6 +108,15 @@ function WorldMap({
   const [pendingFootprint, setPendingFootprint] = useState<Footprint | null>(
     null
   );
+  // The area currently armed for a redraw-to-replace resize/move (SPEC-009
+  // T5) — title is captured at arm time, the same reason `positioningPlace`
+  // captures it, so a failure toast can name the area without re-reading
+  // `areaChildren`. A fourth crosshair mode, mutually exclusive with the
+  // other three the same way they already exclude each other.
+  const [editingArea, setEditingArea] = useState<{
+    id: number;
+    title: string;
+  } | null>(null);
 
   // Context menu hook
   const {
@@ -139,7 +149,8 @@ function WorldMap({
   const navigableChildren = useNavigableChildren(
     parentId,
     onDescend,
-    placesRefetchToken
+    placesRefetchToken,
+    editingArea?.id ?? null
   );
 
   // The subset drawn as areas rather than points (SPEC-009 T2) — the only
@@ -251,6 +262,7 @@ function WorldMap({
   const handlePositionPlace = useCallback(
     (id: number) => {
       setIsDrawingArea(false);
+      setEditingArea(null);
       setPositioningPlace((prev) => {
         if (prev?.id === id) return null;
         const child = unplacedChildren.find((candidate) => candidate.id === id);
@@ -264,17 +276,70 @@ function WorldMap({
   // (SPEC-009 T2) — see `handlePositionPlace`.
   const handleRequestPOILocation = useCallback(() => {
     setIsDrawingArea(false);
+    setEditingArea(null);
     setIsSelectingPOILocation((prev) => !prev);
   }, []);
 
-  // Arms/disarms draw-area mode (SPEC-009 T2), cancelling the other two
+  // Arms/disarms draw-area mode (SPEC-009 T2), cancelling the other
   // crosshair modes the same way they cancel this one.
   const handleToggleDrawArea = useCallback(() => {
     setIsSelectingPOILocation(false);
     setPositioningPlace(null);
+    setEditingArea(null);
     setCursorCoords(null);
     setIsDrawingArea((prev) => !prev);
   }, []);
+
+  // Arms the redraw-to-replace gesture on the area the context menu was
+  // opened over (SPEC-009 T5) — the mirror of `handleToggleDrawArea`,
+  // cancelling the other crosshair modes for the same reason.
+  const handleEditArea = useCallback(() => {
+    if (!contextMenuOverArea) return;
+    setIsDrawingArea(false);
+    setIsSelectingPOILocation(false);
+    setPositioningPlace(null);
+    setCursorCoords(null);
+    setEditingArea({
+      id: contextMenuOverArea.id,
+      title: contextMenuOverArea.title,
+    });
+  }, [contextMenuOverArea]);
+
+  // The hook aborted the redraw gesture itself (Escape, a too-small drag)
+  // and wants editing disarmed — the edit-mode counterpart of
+  // `handleDrawAreaCancelled`.
+  const handleAreaEditCancelled = useCallback(() => {
+    setEditingArea(null);
+  }, []);
+
+  // A replacement rectangle finished drawing over the area being edited
+  // (SPEC-009 T5) — re-runs both §7 checks server-side via
+  // `updateZonePosition`, excluding the area's own row from its sibling
+  // comparison. No optimistic update: the old rectangle stays hidden
+  // (`editingArea`'s id passed to `useNavigableChildren`) until the server
+  // confirms, then a refetch renders the new one.
+  const handleAreaEditDrawn = useCallback(
+    async (footprint: Footprint) => {
+      if (!editingArea) return;
+      const { id, title } = editingArea;
+      setEditingArea(null);
+      try {
+        const result = await updateZonePosition({ id, footprint });
+        if (result.ok) {
+          setPlacesRefetchToken((token) => token + 1);
+        } else {
+          const firstError = Object.values(result.errors ?? {})
+            .flat()
+            .find((message): message is string => typeof message === "string");
+          toast.error(firstError ?? t("placePositionFailed", { title }));
+        }
+      } catch (error) {
+        console.error("Failed to resize/move area:", error);
+        toast.error(t("placePositionFailed", { title }));
+      }
+    },
+    [editingArea, t]
+  );
 
   // A rectangle finished drawing (SPEC-009 T2) — opens the create form with
   // the footprint attached, the same shape `handleContextMenuAddPOI` uses
@@ -301,6 +366,20 @@ function WorldMap({
     bounds,
     onComplete: handleAreaDrawn,
     onCancel: handleDrawAreaCancelled,
+  });
+
+  // Redraw-to-replace an existing area's rectangle (SPEC-009 T5) — armed by
+  // `editingArea` (via the context menu's "Edit Area"), disarmed by
+  // `handleAreaEditDrawn` on a completed rectangle or by
+  // `handleAreaEditCancelled`. A second, independent `useDrawArea` instance
+  // rather than a mode flag on the one above: the two are mutually
+  // exclusive by construction (every handler that sets one clears the
+  // other), so only one is ever actually enabled.
+  useDrawArea({
+    enabled: editingArea !== null,
+    bounds,
+    onComplete: (footprint) => void handleAreaEditDrawn(footprint),
+    onCancel: handleAreaEditCancelled,
   });
 
   // Handle clear POI coordinates
@@ -396,6 +475,7 @@ function WorldMap({
     setPrevParentId(parentId);
     setPositioningPlace(null);
     setCursorCoords(null);
+    setEditingArea(null);
   }
 
   const handlePOIExport = useCallback(() => {
@@ -484,7 +564,10 @@ function WorldMap({
         onClick={handleMapClick}
         onMouseMove={handleMapMouseMove}
         cursorStyle={
-          isSelectingPOILocation || positioningPlace || isDrawingArea
+          isSelectingPOILocation ||
+          positioningPlace ||
+          isDrawingArea ||
+          editingArea
             ? "crosshair"
             : "grab"
         }
@@ -530,6 +613,10 @@ function WorldMap({
         onStartMeasurement={handleContextMenuMeasurement}
         onAddPOI={handleContextMenuAddPOI}
         hideAddPlace={!!contextMenuOverArea}
+        onEditArea={handleEditArea}
+        showEditArea={!!contextMenuOverArea}
+        editAreaLabel={tEditArea("trigger")}
+        editAreaSublabel={tEditArea("sublabel")}
       />
 
       {/* POI Panel */}

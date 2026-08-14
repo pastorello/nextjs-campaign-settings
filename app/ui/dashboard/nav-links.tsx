@@ -9,6 +9,7 @@ import {
   MapIcon,
   PencilSquareIcon,
   FlagIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Link from "next/link";
@@ -16,6 +17,9 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 const links = [
+  // First, above "home" — the first thing a DM reaches for when they know a
+  // name but not which of the six catalogues holds it (SPEC-011 §5).
+  { key: "search", href: "/dashboard/search", icon: MagnifyingGlassIcon },
   { key: "home", href: "/dashboard", icon: HomeIcon },
   {
     key: "deities",

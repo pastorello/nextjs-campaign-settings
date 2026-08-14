@@ -32,4 +32,8 @@ describe("proxy matcher", () => {
   it("still gates a real page route", () => {
     expect(matcher.test("/dashboard/geography")).toBe(true);
   });
+
+  it("gates the cross-entity search page like any other dashboard route (SPEC-011 T3)", () => {
+    expect(matcher.test("/dashboard/search")).toBe(true);
+  });
 });

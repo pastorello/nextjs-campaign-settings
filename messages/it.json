@@ -5,6 +5,7 @@
     },
     "nav": {
       "home": "Home",
+      "search": "Cerca",
       "deities": "Religione",
       "geography": "Geografia",
       "spells": "Incantesimi",
@@ -710,6 +711,18 @@
       "attuned": {
         "label": "Richiede sintonia",
         "shortLabel": "Sintonia"
+      }
+    }
+  },
+  "search": {
+    "page": {
+      "title": "Cerca",
+      "searchPlaceholder": "Cerca incantesimi, oggetti, PNG, divinità, fazioni, luoghi...",
+      "prompt": "Digita un nome per cercare tra incantesimi, oggetti magici, PNG, divinità, fazioni e luoghi.",
+      "noMatches": "Nessun risultato per \"{term}\".",
+      "seeAll": "Vedi tutti i {count} risultati in {domain}",
+      "groups": {
+        "places": "Luoghi"
       }
     }
   }

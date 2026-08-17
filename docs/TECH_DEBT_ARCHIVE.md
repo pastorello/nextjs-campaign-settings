@@ -2162,6 +2162,20 @@ Updated the two doc comments (`pageMetaFields.ts`'s `location` field, `deriveEnt
 
 ---
 
+## TD-80 ✅ Deity, magic-item, and faction create/update Server Actions lack unit and e2e test coverage — **DONE (2026-08-17)**
+
+**Outcome:** followed the two templates the item pointed at, one per mutation shape. Unit tests (`createDeity.test.ts`, `updateDeity.test.ts`, `createMagicItem.test.ts`, `updateMagicItem.test.ts`, `createFaction.test.ts`, `updateFaction.test.ts`) follow `createNpc.test.ts`/`updateNpc.test.ts` — the closest existing pattern, since all six share the same `requireSession()` + `buildCreateSchema`/`buildUpdateSchema` shape npc's mutations use, unlike the maps mutations' `toDatabaseError`-wrapped try/catch. None of the six wraps its Prisma call in a try/catch, so unlike `createNpc`/`updateNpc` there is no foreign-key or `DatabaseError`-wrapping case to assert — each suite covers only what the code actually does: unauthenticated rejection (no write), a successful create/update with the exact `data` payload asserted, a non-positive id rejected on update without a write, and one out-of-range-value rejection per domain (an `optionValueValidator` field — `deityType`/`rarity` — for deities and magic items; a missing `name` for factions, whose only two fields are unconstrained `z.string()`s with no option list to violate). Valid test payloads pull real option values via `firstOptionValue` from each domain's own option-list files rather than hardcoding numbers, the same source the production defaults use. 20 new unit tests, all passing; `pnpm typecheck` caught two payloads using bare strings for `Deity.holidays`/`Deity.meaning`, which are string enums (`Holidays`, `TarotMeaning`) — fixed by importing the actual enum members instead of loosening the interface.
+
+e2e specs (`deities-crud.spec.ts`, `magicitems-crud.spec.ts`, `factions-crud.spec.ts`) follow `spells-crud.spec.ts`/`npc-crud.spec.ts`: create → find via `?query=` → edit → delete, filling only the Nome field and leaving every select at its form default, the same scope `npc-crud.spec.ts` uses for the domain with the next-most fields. One thing worth recording since it isn't obvious from `queryFields.ts` alone: that file excludes `name` from magic items' per-field filter list ("No `nome` or `descrizione` here… that is how both magic item queries already were"), but the free-text `?query=` search in `getQuery.ts` always matches on `name` regardless of domain — it is a separate code path from the per-field filters `queryFields.ts` governs — so the same `gotoX(page, name)` helper works unchanged across all four CRUD specs. Verified against a real Postgres e2e database (`my_database_e2e`, already provisioned from an earlier session but missing its `.env.test` — recreated from `.env.test.example` and brought current with `prisma migrate deploy`, which applied three pending SPEC-006/009/010 migrations). All 5 tests pass (`auth.setup`, `world.setup`, the three new specs).
+
+Deities' pre-existing `deities-list.spec.ts` is unchanged and untouched — it still covers list rendering against seeded rows; the new `deities-crud.spec.ts` is the create/update/delete flow that was genuinely missing.
+
+**(original) Where:** Six Server Actions had no test coverage at all — `createDeity.ts`/`updateDeity.ts`, `createMagicItem.ts`/`updateMagicItem.ts`, `createFaction.ts`/`updateFaction.ts`. All six had `requireSession()` guards and Zod validation via `PageMeta` in place — the audit confirmed no auth or correctness bugs, purely a coverage gap. Spells and NPC had e2e CRUD coverage (`spells-crud.spec.ts`, `npc-crud.spec.ts`) and all maps mutations had unit coverage (`app/lib/data/maps/*.test.ts`); deities' e2e was list-only, and magic items/factions had no e2e CRUD spec at all.
+
+**(original) The fix:** unit tests following the maps mutation-test pattern (mock Prisma, auth, and cache revalidation; assert the write payload's shape); e2e CRUD specs following `spells-crud.spec.ts`/`npc-crud.spec.ts`, covering create, update, and delete.
+
+---
+
 ## Recommended execution order
 
 ```

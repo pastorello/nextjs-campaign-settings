@@ -1,6 +1,6 @@
 # ADR-0009: Model the world as one polymorphic `poi` tree, not a table per place type
 
-- **Status:** Accepted. **Partially proposed for amendment** by [ADR-0010](./0010-entity-location-as-stored-reference.md) (2026-08-08, not yet agreed) — specifically the "never stored on the record" clause for NPCs/deities and the single-table shape; the closed, code-declared `kind` tree for places is unaffected either way.
+- **Status:** Accepted. **Amended** by [ADR-0010](./0010-entity-location-as-stored-reference.md), accepted 2026-08-08 and implemented the same day as [SPEC-008](../specs/008-entity-location-reference.md) — specifically the "never stored on the record" clause for NPCs/deities and the single-table shape; the closed, code-declared `kind` tree for places is unaffected either way. _(Said "not yet agreed" until the 2026-08-17 Phase 3 closure audit — ADR-0010's own status line had the identical staleness, corrected in the same pass.)_
 - **Date:** 2026-08-07
 - **Deciders:** the maintainer (DM), with Claude Code
 - **Related:** [SPEC-004](../specs/004-world-model.md) (the design this records), supersedes the schema direction in [SPEC-003](../specs/003-real-relations.md) (analysis kept, plan dropped), builds on [SPEC-002](../specs/002-map-poi-persistence.md)'s `poi` table, [ADR-0008](./0008-map-image-storage.md) (map image storage this model depends on), TD-61 (option-membership validation, shipped independently)

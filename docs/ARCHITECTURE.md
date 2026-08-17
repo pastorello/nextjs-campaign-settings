@@ -171,15 +171,22 @@ Each domain used to carry a near-identical `XxxCard` / `XxxList` / `XxxLibrary` 
 
 ```
 modules/maps/
-├── components/map/       LeafletMap, LeafletMarker, LeafletGeoJSON, LeafletTileLayer,
-│                         MapControls, MapSearchBar, MapPOIPanel, MapDetailsPanel,
-│                         MapMeasurementPanel, MapContextMenu, MapErrorBoundary
-├── components/ui/        drawer, dropdown-menu, sonner
+├── components/
+│   ├── map/              LeafletMap, LeafletMarker, LeafletGeoJSON, LeafletTileLayer,
+│   │                     MapControls, MapSearchBar, MapPOIPanel, MapDetailsPanel,
+│   │                     MapMeasurementPanel, MapContextMenu, MapErrorBoundary, MapMain,
+│   │                     MapLoadingSpinner, MapThemeSwitcher, MapTileSwitcher, MapTopBar, MapUser
+│   ├── providers/        ThemeProviderWrapper
+│   └── ui/               drawer, dropdown-menu, sonner
+├── constants/            map-config, place-kinds, poi-categories, tile-providers, linkable-entities
 ├── contexts/             MapContext, ThemeContext
-├── hooks/                useLeafletMap, useMapMarkers, useMapControls, useMeasurement,
-│                         usePOIManager, useGeolocation, useSafeMapOperations, useTheme
-├── constants/            map-config, poi-categories, tile-providers, linkable-entities
-└── types/                map, poi, theme, components
+├── hooks/                useLeafletMap, useMapMarkers, useMapControls, useMeasurement, usePOIManager,
+│                         useGeolocation, useSafeMapOperations, useTheme, useDrawArea,
+│                         useMapContextMenu, useMapTileProvider, useNavigableChildren, useUnplacedChildren
+├── lib/
+│   └── utils/            deriveEntityAncestry, toStackEntry, coordinates, footprint, placeMapView,
+│                         validation, maps
+└── types/                map, poi, theme, components, poiSchema
 ```
 
 This is the best-structured area of the codebase — error boundary, defensive hook wrapper, typed constants, clean separation. **Use it as the reference standard when refactoring the other domains.**
@@ -200,7 +207,7 @@ Places themselves — including the tree's navigable nodes — are **deliberatel
 Request
   │
   ▼
-proxy.ts  matcher: everything except /api, /_next/static, /_next/image, favicon.ico, *.png
+proxy.ts  matcher: everything except /api, /_next/static, /_next/image, favicon.ico, *.png, *.jpg, *.jpeg
   │
   ▼
 authConfig.callbacks.authorized  →  !!auth?.user  (true / false)

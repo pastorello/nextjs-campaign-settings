@@ -63,13 +63,13 @@ docker-compose up -d
 
 ```bash
 pnpm prisma generate
-pnpm prisma db push
+pnpm prisma migrate deploy
 pnpm db:seed
 ```
 
 Two things worth knowing here:
 
-- **`db push` or `prisma migrate deploy` — both work.** The committed migrations reproduce the schema exactly (`prisma migrate diff` reports no difference), so either path gives a correct database. `db push` stays the quickstart default because it needs no migration history; CI uses `migrate deploy`. If you switch an existing `db push` database over to migrations, baseline it first with `prisma migrate resolve --applied`, or `deploy` will try to re-create tables that already exist.
+- **Use `prisma migrate deploy` — not `db push`.** Some migrations embed data (the `faction` table is seeded by `20260806220000_add_faction_table_and_fk` via raw SQL), which `db push` skips. The seed script then fails on foreign key constraints. `prisma migrate deploy` applies both schema and migration-embedded data correctly.
 - **The seed is safe to re-run.** It matches existing records by name (and users by email) before creating, so a second run creates nothing rather than duplicating. It does _not_ insert explicit ids — the database assigns them, exactly as it does for a record created through the UI.
 
 ### 5. Run it

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import messages from "@/messages/it.json";
 
 /**
  * The Leaflet map. Per docs/TESTING.md §"Explicitly out of scope" this does not
@@ -40,10 +41,14 @@ test.describe("world map", () => {
 
     await map.click({ button: "right", position: { x: 300, y: 200 } });
 
-    const menu = page.getByLabel("Map context menu");
+    const menu = page.getByLabel(messages.geography.contextMenu.ariaLabel);
     await expect(menu).toBeVisible();
-    await expect(menu.getByText("Add Marker")).toBeVisible();
-    await expect(menu.getByText("Copy Coordinates")).toBeVisible();
+    await expect(
+      menu.getByText(messages.geography.contextMenu.addMarker.trigger)
+    ).toBeVisible();
+    await expect(
+      menu.getByText(messages.geography.contextMenu.copyCoordinates)
+    ).toBeVisible();
   });
 
   // TD-68: MapPOIPanel's desktop Close button and the hero-image gradient
@@ -60,7 +65,11 @@ test.describe("world map", () => {
     await expect(map).toBeVisible();
 
     await map.click({ button: "right", position: { x: 400, y: 250 } });
-    await page.getByRole("button", { name: /Add Place/ }).click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.contextMenu.addPlace.trigger,
+      })
+      .click();
 
     const closeButton = page.getByRole("button", { name: "Close" });
     await expect(closeButton).toBeVisible();

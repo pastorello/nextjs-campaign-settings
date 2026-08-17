@@ -1,10 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars -- vendored maps module: useGeolocation outputs are scaffolding for a locate-me control not yet wired. See CLAUDE.md. */
 "use client";
 
-import { memo, useState, useEffect } from "react";
+import { memo, useState, useEffect, type ReactNode } from "react";
 import { Plus, Minus, Maximize2, Minimize2 } from "lucide-react";
 import { useMapControls } from "@/app/modules/maps/hooks/useMapControls";
 import { useGeolocation } from "@/app/modules/maps/hooks/useGeolocation";
+
+interface MapControlsProps {
+  // A slot for domain-specific controls (e.g. `MapOptionsButton`) that
+  // want to sit in the same bottom-right stack, stacked above the generic
+  // zoom/reset/fullscreen buttons — kept out of this file to keep it
+  // generic (`app/modules/maps/**` is domain-agnostic), sized to match its
+  // siblings (`h-9 w-9`) by the caller.
+  extraControls?: ReactNode;
+}
 
 /**
  * MapControls - Map control buttons at bottom right
@@ -13,7 +22,9 @@ import { useGeolocation } from "@/app/modules/maps/hooks/useGeolocation";
  * Uses project's useMapControls hook for map interactions
  * Memoized to prevent unnecessary re-renders
  */
-export const MapControls = memo(function MapControls() {
+export const MapControls = memo(function MapControls({
+  extraControls,
+}: MapControlsProps) {
   const { map, zoomIn, zoomOut, toggleFullscreen, resetView } =
     useMapControls();
   const { locateUser, isLocating, isAvailable } = useGeolocation();
@@ -33,6 +44,8 @@ export const MapControls = memo(function MapControls() {
 
   return (
     <div className="absolute bottom-24 sm:bottom-8 right-4 flex flex-col items-center gap-2 z-[1000]">
+      {extraControls}
+
       {/* Zoom Controls */}
       <div className="flex flex-col overflow-hidden rounded-lg bg-white dark:bg-slate-700 shadow-lg">
         <button

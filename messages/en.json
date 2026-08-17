@@ -493,15 +493,35 @@
       "entityPlaceholder": "Select…"
     },
     "drawArea": {
-      "trigger": "Draw Area",
+      "trigger": "Add sub-map",
       "active": "Drag on the map — Esc to cancel"
     },
     "editArea": {
       "trigger": "Edit Area",
       "sublabel": "Resize or move"
     },
+    "mapOptions": {
+      "trigger": "Map options"
+    },
+    "contextMenu": {
+      "ariaLabel": "Map context menu",
+      "copyCoordinates": "Copy Coordinates",
+      "copiedLabel": "Copied!",
+      "addMarker": {
+        "trigger": "Add Marker",
+        "sublabel": "Place a marker here"
+      },
+      "measure": {
+        "trigger": "Measure",
+        "sublabel": "Start distance measurement"
+      },
+      "addPlace": {
+        "trigger": "Add Place",
+        "sublabel": "Create a place here"
+      }
+    },
     "deletePlace": {
-      "trigger": "Delete this place",
+      "trigger": "Delete this map",
       "confirmTitle": "Delete \"{title}\"?",
       "loading": "Working out the consequences…",
       "noImpact": "No consequences: this place has no children and no entities assigned.",

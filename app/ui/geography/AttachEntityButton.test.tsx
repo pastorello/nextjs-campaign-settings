@@ -33,23 +33,35 @@ vi.mock("@/app/lib/data/maps/fetchLinkableEntities", () => ({
 
 import AttachEntityButton from "./AttachEntityButton";
 
-describe("AttachEntityButton", () => {
+describe("AttachEntityButton (usability fix, 2026-08-17: externally controlled)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     fetchLinkableEntities.mockResolvedValue([{ id: 9, name: "Dexter" }]);
   });
 
-  it("does not show the picker before the trigger is clicked", () => {
-    render(<AttachEntityButton zoneId={5} />);
+  it("shows nothing when closed", () => {
+    render(<AttachEntityButton zoneId={5} isOpen={false} onClose={vi.fn()} />);
 
     expect(screen.queryByText("typePlaceholder")).not.toBeInTheDocument();
   });
 
+  it("shows the picker when open", () => {
+    render(<AttachEntityButton zoneId={5} isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText("typePlaceholder")).toBeInTheDocument();
+  });
+
   it("opens the modal for the chosen entity, pre-filled to the current zone", async () => {
     const onAttached = vi.fn();
-    render(<AttachEntityButton zoneId={5} onAttached={onAttached} />);
+    render(
+      <AttachEntityButton
+        zoneId={5}
+        isOpen
+        onClose={vi.fn()}
+        onAttached={onAttached}
+      />
+    );
 
-    fireEvent.click(screen.getByText("trigger"));
     const selects = screen.getAllByRole("combobox");
     fireEvent.change(selects[0]!, {
       target: { value: "npc" },
@@ -70,13 +82,13 @@ describe("AttachEntityButton", () => {
     expect(onAttached).toHaveBeenCalled();
   });
 
-  it("cancelling the picker resets it without opening the modal", () => {
-    render(<AttachEntityButton zoneId={5} />);
+  it("cancelling the picker calls onClose without opening the modal", () => {
+    const onClose = vi.fn();
+    render(<AttachEntityButton zoneId={5} isOpen onClose={onClose} />);
 
-    fireEvent.click(screen.getByText("trigger"));
     fireEvent.click(screen.getByText("cancel"));
 
-    expect(screen.queryByText("typePlaceholder")).not.toBeInTheDocument();
+    expect(onClose).toHaveBeenCalled();
     expect(screen.queryByText(/modal:/)).not.toBeInTheDocument();
   });
 });

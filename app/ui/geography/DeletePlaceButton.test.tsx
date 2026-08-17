@@ -23,7 +23,7 @@ vi.mock("@/app/lib/notifications/notify", () => ({
 
 import DeletePlaceButton from "./DeletePlaceButton";
 
-describe("DeletePlaceButton (SPEC-010 T3)", () => {
+describe("DeletePlaceButton (SPEC-010 T3; externally controlled since the 2026-08-17 usability fix)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     fetchPlaceDeletionImpact.mockResolvedValue({
@@ -34,13 +34,15 @@ describe("DeletePlaceButton (SPEC-010 T3)", () => {
     deletePlace.mockResolvedValue(undefined);
   });
 
-  it("is not rendered for the root", () => {
+  it("is not rendered for the root, even when open", () => {
     const { container } = render(
       <DeletePlaceButton
         placeId={1}
         placeTitle="Universo"
         parentTitle=""
         isRoot={true}
+        isOpen
+        onClose={vi.fn()}
         onDeleted={vi.fn()}
       />
     );
@@ -49,18 +51,35 @@ describe("DeletePlaceButton (SPEC-010 T3)", () => {
     expect(fetchPlaceDeletionImpact).not.toHaveBeenCalled();
   });
 
-  it("fetches real counts for the place when the dialog is opened", async () => {
+  it("shows nothing when closed", () => {
+    const { container } = render(
+      <DeletePlaceButton
+        placeId={5}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        isOpen={false}
+        onClose={vi.fn()}
+        onDeleted={vi.fn()}
+      />
+    );
+
+    expect(container).toBeEmptyDOMElement();
+    expect(fetchPlaceDeletionImpact).not.toHaveBeenCalled();
+  });
+
+  it("fetches real counts for the place the moment it opens", async () => {
     render(
       <DeletePlaceButton
         placeId={5}
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
         isRoot={false}
+        isOpen
+        onClose={vi.fn()}
         onDeleted={vi.fn()}
       />
     );
-
-    fireEvent.click(screen.getByText("trigger"));
 
     await waitFor(() =>
       expect(fetchPlaceDeletionImpact).toHaveBeenCalledWith(5)
@@ -68,6 +87,7 @@ describe("DeletePlaceButton (SPEC-010 T3)", () => {
   });
 
   it("cancelling writes nothing", async () => {
+    const onClose = vi.fn();
     const onDeleted = vi.fn();
     render(
       <DeletePlaceButton
@@ -75,17 +95,19 @@ describe("DeletePlaceButton (SPEC-010 T3)", () => {
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
         isRoot={false}
+        isOpen
+        onClose={onClose}
         onDeleted={onDeleted}
       />
     );
 
-    fireEvent.click(screen.getByText("trigger"));
     await waitFor(() => expect(fetchPlaceDeletionImpact).toHaveBeenCalled());
 
     fireEvent.click(screen.getByText("cancel"));
 
     expect(deletePlace).not.toHaveBeenCalled();
     expect(onDeleted).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalled();
   });
 
   it("confirming calls deletePlace and reports the place gone", async () => {
@@ -96,11 +118,12 @@ describe("DeletePlaceButton (SPEC-010 T3)", () => {
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
         isRoot={false}
+        isOpen
+        onClose={vi.fn()}
         onDeleted={onDeleted}
       />
     );
 
-    fireEvent.click(screen.getByText("trigger"));
     await waitFor(() => expect(fetchPlaceDeletionImpact).toHaveBeenCalled());
 
     fireEvent.click(screen.getByText("confirm"));
@@ -119,11 +142,12 @@ describe("DeletePlaceButton (SPEC-010 T3)", () => {
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
         isRoot={false}
+        isOpen
+        onClose={vi.fn()}
         onDeleted={onDeleted}
       />
     );
 
-    fireEvent.click(screen.getByText("trigger"));
     await waitFor(() => expect(fetchPlaceDeletionImpact).toHaveBeenCalled());
 
     fireEvent.click(screen.getByText("confirm"));

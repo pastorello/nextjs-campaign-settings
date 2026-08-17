@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import messages from "@/messages/it.json";
 
 /**
  * TD-71 / SPEC-005 §5.B: a DM can drag an already-placed marker to a new
@@ -42,7 +43,11 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
     await expect(map).toBeVisible();
 
     await map.click({ button: "right", position: { x: 300, y: 200 } });
-    await page.getByRole("button", { name: /Add Place/ }).click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.contextMenu.addPlace.trigger,
+      })
+      .click();
     await page.getByPlaceholder("Enter place name").fill(title);
     await page.getByRole("button", { name: "Save" }).click();
 
@@ -107,7 +112,11 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
     // somewhere away from the marker's post-drag position and its still-open
     // popup, which would otherwise swallow the click instead of the map.
     await map.click({ button: "right", position: { x: 700, y: 450 } });
-    await page.getByRole("button", { name: /Add Place/ }).click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.contextMenu.addPlace.trigger,
+      })
+      .click();
     await page.getByRole("button", { name: "Back" }).click();
 
     const listItem = page.locator("button", { hasText: title }).first();

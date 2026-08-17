@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import fetchPlaceDeletionImpact from "@/app/lib/data/maps/fetchPlaceDeletionImpact";
@@ -23,14 +23,22 @@ interface DeletePlaceButtonProps {
    * rendered and then refusing (§5 edge cases).
    */
   isRoot: boolean;
+  /**
+   * Externally controlled (usability fix, 2026-08-17): this used to be a
+   * floating trigger button in its own map corner; the trigger now lives
+   * in `MapOptionsButton`'s menu, and this component renders only the
+   * confirmation dialog.
+   */
+  isOpen: boolean;
+  onClose: () => void;
   /** The place was deleted; the caller should navigate off it. */
   onDeleted: () => void;
 }
 
 /**
- * Deletes the place currently being viewed (SPEC-010 T3). Sits on `WorldMap`
- * alongside `MapUploadControl`/`AttachEntityButton`/`DrawAreaButton` — the
- * map's own entry point for an action on the current place itself.
+ * Deletes the place currently being viewed (SPEC-010 T3) — reachable via
+ * `MapOptionsButton`'s menu, the map's own entry point for an action on the
+ * current place itself.
  *
  * Counts are fetched fresh the moment the dialog opens (§7: "at the moment
  * of asking"), not baked into a generic confirm — a place delete does not
@@ -43,36 +51,57 @@ export default function DeletePlaceButton({
   placeTitle,
   parentTitle,
   isRoot,
+  isOpen,
+  onClose,
   onDeleted,
 }: DeletePlaceButtonProps) {
   const t = useTranslations("geography.deletePlace");
-  const [isOpen, setIsOpen] = useState(false);
   const [impact, setImpact] = useState<PlaceDeletionImpact | null>(null);
   const [isLoadingImpact, setIsLoadingImpact] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetches fresh the moment the dialog opens (§7: "at the moment of
+  // asking") — previously triggered by this component's own click handler
+  // on its floating button; now the button lives elsewhere, so the fetch is
+  // keyed on the `isOpen` prop transitioning to true instead. The `setState`
+  // calls live inside `loadImpact`, an async function invoked from the
+  // effect rather than run directly in its body — same shape
+  // `AttachEntityButton`'s own entity-type effect uses, since a synchronous
+  // `setState` at the top of an effect body trips `react-hooks/set-state-in-effect`.
+  useEffect(() => {
+    if (!isOpen || isRoot) return;
+
+    let cancelled = false;
+
+    const loadImpact = async () => {
+      setIsLoadingImpact(true);
+      try {
+        const result = await fetchPlaceDeletionImpact(placeId);
+        if (!cancelled) setImpact(result);
+      } catch (error) {
+        if (cancelled) return;
+        console.error("Failed to load the place's deletion impact:", error);
+        notifyError(t("errors.loadImpactFailed"));
+        onClose();
+      } finally {
+        if (!cancelled) setIsLoadingImpact(false);
+      }
+    };
+
+    void loadImpact();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `t`/`onClose`/`placeId` intentionally excluded: this effect must run exactly once per open, not re-run because a parent re-render gave it a new function reference.
+  }, [isOpen, isRoot]);
 
   if (isRoot) {
     return null;
   }
 
-  const openDialog = () => {
-    setIsOpen(true);
-    setIsLoadingImpact(true);
-    void (async () => {
-      try {
-        setImpact(await fetchPlaceDeletionImpact(placeId));
-      } catch (error) {
-        console.error("Failed to load the place's deletion impact:", error);
-        notifyError(t("errors.loadImpactFailed"));
-        setIsOpen(false);
-      } finally {
-        setIsLoadingImpact(false);
-      }
-    })();
-  };
-
   const closeDialog = () => {
-    setIsOpen(false);
+    onClose();
     setImpact(null);
   };
 
@@ -96,63 +125,56 @@ export default function DeletePlaceButton({
     (impact.placeCount > 0 || impact.npcCount > 0 || impact.deityCount > 0);
 
   return (
-    <div className="absolute bottom-4 right-4 z-[1000]">
-      <button
-        onClick={openDialog}
-        className="rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 shadow-md hover:bg-red-50 dark:hover:bg-red-900/30"
-      >
-        {t("trigger")}
-      </button>
+    <Modal
+      isOpen={isOpen}
+      setIsOpen={(open) => {
+        if (!open) closeDialog();
+      }}
+      title={t("confirmTitle", { title: placeTitle })}
+      size="small"
+    >
+      {isLoadingImpact ? (
+        <p className="text-sm text-gray-600 dark:text-gray-300">
+          {t("loading")}
+        </p>
+      ) : (
+        impact !== null && (
+          <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+            {!hasImpact && <p>{t("noImpact")}</p>}
+            {impact.placeCount > 0 && (
+              <p>
+                {t("placesImpact", {
+                  count: impact.placeCount,
+                  parentTitle,
+                })}
+              </p>
+            )}
+            {impact.npcCount > 0 && (
+              <p>{t("npcsImpact", { count: impact.npcCount })}</p>
+            )}
+            {impact.deityCount > 0 && (
+              <p>{t("deitiesImpact", { count: impact.deityCount })}</p>
+            )}
+          </div>
+        )
+      )}
 
-      <Modal
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-        title={t("confirmTitle", { title: placeTitle })}
-        size="small"
-      >
-        {isLoadingImpact ? (
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            {t("loading")}
-          </p>
-        ) : (
-          impact !== null && (
-            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-              {!hasImpact && <p>{t("noImpact")}</p>}
-              {impact.placeCount > 0 && (
-                <p>
-                  {t("placesImpact", {
-                    count: impact.placeCount,
-                    parentTitle,
-                  })}
-                </p>
-              )}
-              {impact.npcCount > 0 && (
-                <p>{t("npcsImpact", { count: impact.npcCount })}</p>
-              )}
-              {impact.deityCount > 0 && (
-                <p>{t("deitiesImpact", { count: impact.deityCount })}</p>
-              )}
-            </div>
-          )
-        )}
-
-        <div className="flex justify-end gap-2 pt-2">
-          <BaseButton variant={ButtonVariant.neutral} onClick={closeDialog}>
-            {t("cancel")}
-          </BaseButton>
-          <BaseButton
-            variant={ButtonVariant.danger}
-            buttonState={
-              isSubmitting || isLoadingImpact
-                ? ButtonState.Loading
-                : ButtonState.Default
-            }
-            onClick={() => void handleConfirm()}
-          >
-            {t("confirm")}
-          </BaseButton>
-        </div>
-      </Modal>
-    </div>
+      <div className="flex justify-end gap-2 pt-2">
+        <BaseButton variant={ButtonVariant.neutral} onClick={closeDialog}>
+          {t("cancel")}
+        </BaseButton>
+        <BaseButton
+          variant={ButtonVariant.danger}
+          buttonState={
+            isSubmitting || isLoadingImpact
+              ? ButtonState.Loading
+              : ButtonState.Default
+          }
+          onClick={() => void handleConfirm()}
+        >
+          {t("confirm")}
+        </BaseButton>
+      </div>
+    </Modal>
   );
 }

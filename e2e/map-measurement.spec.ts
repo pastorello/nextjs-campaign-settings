@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import messages from "@/messages/it.json";
 
 /**
  * TD-46 (see docs/TECH_DEBT.md): `MapMeasurementPanel`, reachable from the
@@ -22,7 +23,11 @@ test.describe("map measurement", () => {
   }) => {
     const map = page.locator(".leaflet-container");
     await map.click({ button: "right", position: { x: 300, y: 200 } });
-    await page.getByRole("button", { name: /Measure/ }).click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.contextMenu.measure.trigger,
+      })
+      .click();
 
     await expect(page.getByText("Select a measurement mode")).toBeVisible();
 

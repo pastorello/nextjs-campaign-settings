@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
+import Modal from "@/app/ui/components/Modal";
 import AssignLocationModal from "@/app/ui/components/AssignLocationModal";
 import fetchLinkableEntities, {
   type LinkableEntityOption,
@@ -25,6 +26,14 @@ const ASSIGN_ACTIONS: Record<
 interface AttachEntityButtonProps {
   /** The zone currently being viewed — pre-fills the modal's Zone step. */
   zoneId: number;
+  /**
+   * Externally controlled (usability fix, 2026-08-17): this used to be a
+   * floating trigger button in its own map corner; the trigger now lives
+   * in `MapContextMenu`'s "Collega un personaggio esistente" entry, and
+   * this component renders only the picker/modal flow itself.
+   */
+  isOpen: boolean;
+  onClose: () => void;
   onAttached?: () => void;
 }
 
@@ -38,11 +47,12 @@ interface AttachEntityButtonProps {
  */
 export default function AttachEntityButton({
   zoneId,
+  isOpen,
+  onClose,
   onAttached,
 }: AttachEntityButtonProps) {
   const t = useTranslations("geography.attachEntity");
   const tForm = useTranslations("common.form");
-  const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [entityType, setEntityType] = useState<LinkableEntityType | null>(null);
   const [options, setOptions] = useState<LinkableEntityOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -68,23 +78,23 @@ export default function AttachEntityButton({
   }, [entityType]);
 
   const reset = () => {
-    setIsPickerOpen(false);
     setEntityType(null);
     setOptions([]);
     setSelected(null);
+    onClose();
   };
 
   return (
-    <div className="absolute top-4 left-4 z-[1000]">
-      <button
-        onClick={() => setIsPickerOpen(true)}
-        className="rounded-lg bg-white dark:bg-gray-800 px-3 py-2 text-sm font-medium text-gray-900 dark:text-white shadow-md hover:bg-gray-50 dark:hover:bg-gray-700"
+    <>
+      <Modal
+        isOpen={isOpen && selected === null}
+        setIsOpen={(open) => {
+          if (!open) reset();
+        }}
+        title={t("trigger")}
+        size="small"
       >
-        {t("trigger")}
-      </button>
-
-      {isPickerOpen && selected === null && (
-        <div className="mt-2 flex flex-col gap-2 rounded-lg bg-white dark:bg-gray-800 p-3 shadow-md w-64">
+        <div className="flex flex-col gap-2">
           <select
             value={entityType ?? ""}
             onChange={(e) => {
@@ -132,7 +142,7 @@ export default function AttachEntityButton({
             {tForm("cancel")}
           </button>
         </div>
-      )}
+      </Modal>
 
       {selected !== null && entityType !== null && (
         <AssignLocationModal
@@ -149,6 +159,6 @@ export default function AttachEntityButton({
           }}
         />
       )}
-    </div>
+    </>
   );
 }

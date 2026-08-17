@@ -115,6 +115,31 @@ describe("GeographyExplorer — unpositioned count (SPEC-007 T2)", () => {
   });
 });
 
+describe("GeographyExplorer — layout never scrolls the header out of view (usability fix)", () => {
+  it("sizes itself to its parent's height and lets the map take the remaining space, not its own full viewport", () => {
+    const { container } = render(
+      <GeographyExplorer root={root} unpositionedCount={7} />
+    );
+
+    // The old bug: this wrapper's map child was `h-screen` (100% of the
+    // *whole* viewport) stacked underneath the header, so header height +
+    // a full 100vh map always exceeded the dashboard's own scrollable
+    // content pane — pushing the header (and the "up" button on it, once
+    // descended) above the fold. `h-full` here means "fill whatever
+    // height the parent actually has," so header + map together can never
+    // exceed it.
+    const outer = container.firstElementChild;
+    expect(outer).toHaveClass("flex", "h-full", "flex-col");
+
+    const header = screen.getByText("Aerivel").closest("div.mb-4");
+    expect(header).toHaveClass("flex-none");
+
+    const mapWrapper = container.querySelector(".relative.w-full");
+    expect(mapWrapper).toHaveClass("flex-1", "min-h-0");
+    expect(mapWrapper).not.toHaveClass("h-screen");
+  });
+});
+
 describe("GeographyExplorer (SPEC-004 M7)", () => {
   it("renders the root's own map and title, no up button", () => {
     render(<GeographyExplorer root={root} unpositionedCount={7} />);

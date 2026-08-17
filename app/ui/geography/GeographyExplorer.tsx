@@ -86,8 +86,8 @@ export default function GeographyExplorer({
   if (!current) return null;
 
   return (
-    <div>
-      <div className="mb-4 flex items-center gap-4">
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="mb-4 flex flex-none items-center gap-4">
         {stack.length > 1 && (
           <BaseButton icon={IconType.chevronUp} onClick={handleAscend}>
             {t("up")}
@@ -98,7 +98,7 @@ export default function GeographyExplorer({
           {t("unpositionedCount", { count: unpositionedCount })}
         </span>
       </div>
-      <div className="relative w-full h-screen">
+      <div className="relative w-full flex-1 min-h-0">
         <MapErrorBoundary>
           <MapProvider>
             <WorldMap

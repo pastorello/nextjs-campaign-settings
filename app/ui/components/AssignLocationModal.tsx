@@ -82,7 +82,7 @@ function AssignLocationModalBody({
       });
     // Loads once per mount (i.e. once per time the modal opens) — no
     // dependency on anything that changes while it stays open.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally run only once on mount
   }, []);
 
   // Re-scope the POI options to whichever Zone is currently selected —

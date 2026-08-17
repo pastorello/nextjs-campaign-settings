@@ -39,7 +39,7 @@ const PageForm = ({
     >
       {!isDeletingMode && children}
       {lastError ? (
-        <div className="text-red-600" style={{ marginBottom: "20px" }}>
+        <div className="text-red-600 mb-5">
           {t("errorPrefix", { message: lastError.message })}
         </div>
       ) : (

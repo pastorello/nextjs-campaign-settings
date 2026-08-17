@@ -51,25 +51,8 @@ export function useMapMarkers() {
           icon: L.divIcon({
             className: "custom-user-marker",
             html: `
-          <div style="
-            width: 24px;
-            height: 24px;
-            background: #ef4444;
-            border: 3px solid white;
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-          ">
-            <div style="
-              width: 8px;
-              height: 8px;
-              background: white;
-              border-radius: 50%;
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-            "></div>
+          <div class="w-6 h-6 bg-red-500 border-3 border-white rounded-[50%_50%_50%_0] -rotate-45 shadow-[0_2px_6px_rgba(0,0,0,0.3)] relative">
+            <div class="absolute w-2 h-2 bg-white rounded-full top-1/2 left-1/2 translate-[-50%_-50%]"></div>
           </div>
         `,
             iconSize: [24, 24],

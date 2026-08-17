@@ -583,7 +583,7 @@ function WorldMap({
     // effect; adding it to the dependency list would re-run the effect every
     // time it sets that state, reloading the same map image in an infinite
     // loop.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- currentImage intentionally omitted to prevent infinite loop
   }, [map, mapUrl]);
 
   return (

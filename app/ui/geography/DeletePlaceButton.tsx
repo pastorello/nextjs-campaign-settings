@@ -63,13 +63,18 @@ export default function DeletePlaceButton({
   // Fetches fresh the moment the dialog opens (§7: "at the moment of
   // asking") — previously triggered by this component's own click handler
   // on its floating button; now the button lives elsewhere, so the fetch is
-  // keyed on the `isOpen` prop transitioning to true instead.
+  // keyed on the `isOpen` prop transitioning to true instead. The `setState`
+  // calls live inside `loadImpact`, an async function invoked from the
+  // effect rather than run directly in its body — same shape
+  // `AttachEntityButton`'s own entity-type effect uses, since a synchronous
+  // `setState` at the top of an effect body trips `react-hooks/set-state-in-effect`.
   useEffect(() => {
     if (!isOpen || isRoot) return;
 
     let cancelled = false;
-    setIsLoadingImpact(true);
-    void (async () => {
+
+    const loadImpact = async () => {
+      setIsLoadingImpact(true);
       try {
         const result = await fetchPlaceDeletionImpact(placeId);
         if (!cancelled) setImpact(result);
@@ -81,7 +86,9 @@ export default function DeletePlaceButton({
       } finally {
         if (!cancelled) setIsLoadingImpact(false);
       }
-    })();
+    };
+
+    void loadImpact();
 
     return () => {
       cancelled = true;

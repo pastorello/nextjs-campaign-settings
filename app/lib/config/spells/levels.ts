@@ -1,6 +1,6 @@
-import Livello from "../../definitions/interfaces/spells/Livello";
+import Level from "../../definitions/interfaces/spells/Level";
 
-const levels: Livello[] = [
+const levels: Level[] = [
   {
     value: 0,
     labelKey: "spells.levels.cantrip.label",

@@ -1,6 +1,6 @@
-import Gittata from "@/app/lib/definitions/interfaces/spells/Gittata";
+import Range from "@/app/lib/definitions/interfaces/spells/Range";
 
-const gittate: Gittata[] = [
+const ranges: Range[] = [
   { value: "personal", labelKey: "spells.ranges.personal" },
   { value: "touch", labelKey: "spells.ranges.touch" },
   { value: "5", labelKey: "spells.ranges.m5" },
@@ -19,4 +19,4 @@ const gittate: Gittata[] = [
   { value: "unlimited", labelKey: "spells.ranges.unlimited" },
 ];
 
-export default gittate;
+export default ranges;

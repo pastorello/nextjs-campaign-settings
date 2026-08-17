@@ -1,6 +1,6 @@
-import TempoDiLancio from "@/app/lib//definitions/interfaces/spells/TempoDiLancio";
+import CastingTime from "@/app/lib/definitions/interfaces/spells/CastingTime";
 
-const tempiDiLancio: TempoDiLancio[] = [
+const castingTimes: CastingTime[] = [
   { value: "1Azione", labelKey: "spells.castingTimes.1Azione" },
   { value: "1AzioneBonus", labelKey: "spells.castingTimes.1AzioneBonus" },
   { value: "1Reazione", labelKey: "spells.castingTimes.1Reazione" },
@@ -12,4 +12,4 @@ const tempiDiLancio: TempoDiLancio[] = [
   { value: "24Ore", labelKey: "spells.castingTimes.24Ore" },
 ];
 
-export default tempiDiLancio;
+export default castingTimes;

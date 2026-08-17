@@ -7,12 +7,12 @@ import optionArrayValidator from "../../utils/validators/optionArrayValidator";
 import optionValueValidator from "../../utils/validators/optionValueValidator";
 import z from "zod";
 import classes from "./classes";
-import durate from "./durate";
-import gittate from "./gittate";
+import durations from "./durations";
+import ranges from "./ranges";
 import levels from "./levels";
 import subclasses from "./subclasses";
-import tempiDiLancio from "./tempiDiLancio";
-import tiriSalvezza from "./tiriSalvezza";
+import castingTimes from "./castingTimes";
+import savingThrows from "./savingThrows";
 import renderRichText from "../../utils/data/renderRichText";
 
 const spellsMeta = {
@@ -49,18 +49,18 @@ const spellsMeta = {
   [SpellMetaField.castingTime]: {
     metaField: "castingTime",
     labelKey: "spells.fields.castingTime.label",
-    defaultValue: firstOptionValue(tempiDiLancio),
+    defaultValue: firstOptionValue(castingTimes),
     fieldType: FieldType.string,
-    options: tempiDiLancio,
+    options: castingTimes,
     controlType: ControlType.Select,
     validator: z.string().min(1),
   },
   [SpellMetaField.range]: {
     metaField: "range",
     labelKey: "spells.fields.range.label",
-    defaultValue: firstOptionValue(gittate),
+    defaultValue: firstOptionValue(ranges),
     fieldType: FieldType.string,
-    options: gittate,
+    options: ranges,
     controlType: ControlType.Select,
     validator: z.string().min(1),
   },
@@ -76,18 +76,18 @@ const spellsMeta = {
   [SpellMetaField.duration]: {
     metaField: "duration",
     labelKey: "spells.fields.duration.label",
-    defaultValue: firstOptionValue(durate),
+    defaultValue: firstOptionValue(durations),
     fieldType: FieldType.string,
-    options: durate,
+    options: durations,
     controlType: ControlType.Select,
     validator: z.string().min(1),
   },
   [SpellMetaField.savingThrow]: {
     metaField: "savingThrow",
     labelKey: "spells.fields.savingThrow.label",
-    defaultValue: firstOptionValue(tiriSalvezza),
+    defaultValue: firstOptionValue(savingThrows),
     fieldType: FieldType.string,
-    options: tiriSalvezza,
+    options: savingThrows,
     controlType: ControlType.Select,
     validator: z.string().optional(),
   },

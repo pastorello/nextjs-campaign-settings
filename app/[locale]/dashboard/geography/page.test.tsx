@@ -36,11 +36,14 @@ vi.mock("@/app/lib/data/maps/fetchPlaceAncestryChain", () => ({
   default: (id: number) => fetchPlaceAncestryChain(id),
 }));
 
-vi.mock("@/app/ui/geography/GeographyExplorer", () => ({
-  toStackEntry: (place: { id: number; title: string }) => ({
+vi.mock("@/app/modules/maps/lib/utils/toStackEntry", () => ({
+  default: (place: { id: number; title: string }) => ({
     id: place.id,
     title: place.title,
   }),
+}));
+
+vi.mock("@/app/ui/geography/GeographyExplorer", () => ({
   default: ({
     root,
     unpositionedCount,

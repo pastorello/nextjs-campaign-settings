@@ -8,54 +8,17 @@ import {
   MapLoadingSpinner,
 } from "@/app/modules/maps/components/map";
 import { MapProvider } from "@/app/modules/maps/contexts/MapContext";
-import {
-  parsePlaceMapBounds,
-  parsePlaceMapInitialView,
-  parsePlaceMapInitialZoom,
-} from "@/app/modules/maps/lib/utils/placeMapView";
 import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildren";
 import type RootPlace from "@/app/lib/definitions/interfaces/maps/RootPlace";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import IconType from "@/app/ui/buttons/BaseButton/IconType";
 import PageTitle from "@/app/ui/typography/PageTitle";
 import WorldMap from "@/app/ui/geography/WorldMap";
+import toStackEntry, {
+  type PlaceStackEntry,
+} from "@/app/modules/maps/lib/utils/toStackEntry";
 
-export interface PlaceStackEntry {
-  id: number;
-  title: string;
-  // Empty for a positioned place with no map of its own yet (SPEC-007 T1) —
-  // `WorldMap` renders empty ground with `MapUploadControl` on it rather
-  // than an image overlay.
-  mapUrl: string;
-  bounds: L.LatLngBoundsExpression;
-  initialView: L.LatLngExpression;
-  initialZoom: number;
-}
-
-/**
- * Shared with `fetchPlaceAncestryChain` (SPEC-011 T4): a cross-entity place
- * search result resolves an ancestor chain of plain zone rows server-side,
- * then maps each one through this same function rather than duplicating
- * its field mapping, so a stack seeded from a search result and one built
- * by descending the tree normally are shaped identically.
- */
-export function toStackEntry(place: {
-  id: number;
-  title: string;
-  mapImage: string | null;
-  mapBounds: unknown;
-  mapInitialView: unknown;
-  mapInitialZoom: number | null;
-}): PlaceStackEntry {
-  return {
-    id: place.id,
-    title: place.title,
-    mapUrl: place.mapImage ? `/api/maps/${place.mapImage}/image` : "",
-    bounds: parsePlaceMapBounds(place.mapBounds),
-    initialView: parsePlaceMapInitialView(place.mapInitialView),
-    initialZoom: parsePlaceMapInitialZoom(place.mapInitialZoom),
-  };
-}
+export type { PlaceStackEntry };
 
 /**
  * The tree-navigation view backing `/dashboard/geography` (SPEC-004 §10 M7),

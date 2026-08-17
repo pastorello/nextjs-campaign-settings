@@ -44,7 +44,8 @@ vi.mock("@/app/ui/geography/WorldMap", () => ({
   },
 }));
 
-import GeographyExplorer, { toStackEntry } from "./GeographyExplorer";
+import GeographyExplorer from "./GeographyExplorer";
+import toStackEntry from "@/app/modules/maps/lib/utils/toStackEntry";
 
 const root = {
   id: 1,

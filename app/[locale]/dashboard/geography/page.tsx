@@ -6,10 +6,10 @@ import SearchParams from "@/app/lib/definitions/interfaces/pages/SearchParams";
 import fetchRootPlace from "@/app/lib/data/maps/fetchRootPlace";
 import fetchPlaceAncestryChain from "@/app/lib/data/maps/fetchPlaceAncestryChain";
 import countUnpositionedPlaces from "@/app/lib/data/maps/countUnpositionedPlaces";
-import GeographyExplorer, {
-  toStackEntry,
+import GeographyExplorer from "@/app/ui/geography/GeographyExplorer";
+import toStackEntry, {
   type PlaceStackEntry,
-} from "@/app/ui/geography/GeographyExplorer";
+} from "@/app/modules/maps/lib/utils/toStackEntry";
 import PageTitle from "@/app/ui/typography/PageTitle";
 
 export async function generateMetadata(): Promise<Metadata> {

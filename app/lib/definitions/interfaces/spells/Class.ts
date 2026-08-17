@@ -1,10 +1,10 @@
 import TraditionType from "@/app/lib/definitions/enums/deities/TraditionType";
 
-interface Classe {
+interface Class {
   value: number;
-  scuola: TraditionType;
+  school: TraditionType;
   labelKey: string;
   subGroups: number[];
 }
 
-export default Classe;
+export default Class;

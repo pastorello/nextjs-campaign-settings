@@ -1,6 +1,6 @@
-import Durata from "@/app/lib/definitions/interfaces/spells/Durata";
+import Duration from "@/app/lib/definitions/interfaces/spells/Duration";
 
-const durate: Durata[] = [
+const durations: Duration[] = [
   { value: "Istantanea", labelKey: "spells.durations.instantaneous" },
   {
     value: "Concentrazione01",
@@ -51,4 +51,4 @@ const durate: Durata[] = [
   { value: "Speciale", labelKey: "spells.durations.special" },
 ];
 
-export default durate;
+export default durations;

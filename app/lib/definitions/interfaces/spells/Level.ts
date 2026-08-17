@@ -1,7 +1,7 @@
-interface Livello {
+interface Level {
   value: number;
   labelKey: string;
   shortLabelKey: string;
 }
 
-export default Livello;
+export default Level;

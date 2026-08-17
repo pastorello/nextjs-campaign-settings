@@ -500,6 +500,23 @@
       "trigger": "Edit Area",
       "sublabel": "Resize or move"
     },
+    "contextMenu": {
+      "ariaLabel": "Map context menu",
+      "copyCoordinates": "Copy Coordinates",
+      "copiedLabel": "Copied!",
+      "addMarker": {
+        "trigger": "Add Marker",
+        "sublabel": "Place a marker here"
+      },
+      "measure": {
+        "trigger": "Measure",
+        "sublabel": "Start distance measurement"
+      },
+      "addPlace": {
+        "trigger": "Add Place",
+        "sublabel": "Create a place here"
+      }
+    },
     "deletePlace": {
       "trigger": "Delete this place",
       "confirmTitle": "Delete \"{title}\"?",

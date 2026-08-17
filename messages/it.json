@@ -500,6 +500,23 @@
       "trigger": "Modifica area",
       "sublabel": "Ridimensiona o sposta"
     },
+    "contextMenu": {
+      "ariaLabel": "Menu contestuale della mappa",
+      "copyCoordinates": "Copia coordinate",
+      "copiedLabel": "Copiato!",
+      "addMarker": {
+        "trigger": "Aggiungi marker",
+        "sublabel": "Posiziona un marker qui"
+      },
+      "measure": {
+        "trigger": "Misura",
+        "sublabel": "Avvia la misurazione della distanza"
+      },
+      "addPlace": {
+        "trigger": "Aggiungi luogo",
+        "sublabel": "Crea un luogo qui"
+      }
+    },
     "deletePlace": {
       "trigger": "Elimina questo luogo",
       "confirmTitle": "Eliminare «{title}»?",

@@ -96,6 +96,7 @@ function WorldMap({
 }) {
   const t = useTranslations("geography.errors");
   const tEditArea = useTranslations("geography.editArea");
+  const tContextMenu = useTranslations("geography.contextMenu");
   const [isMeasurementOpen, setIsMeasurementOpen] = useState(false);
   const [isPOIPanelOpen, setIsPOIPanelOpen] = useState(false);
   const [poiFilterCategory, setPOIFilterCategory] =
@@ -645,6 +646,15 @@ function WorldMap({
         showEditArea={!!contextMenuOverArea}
         editAreaLabel={tEditArea("trigger")}
         editAreaSublabel={tEditArea("sublabel")}
+        ariaLabel={tContextMenu("ariaLabel")}
+        copyCoordinatesLabel={tContextMenu("copyCoordinates")}
+        copiedLabel={tContextMenu("copiedLabel")}
+        addMarkerLabel={tContextMenu("addMarker.trigger")}
+        addMarkerSublabel={tContextMenu("addMarker.sublabel")}
+        measureLabel={tContextMenu("measure.trigger")}
+        measureSublabel={tContextMenu("measure.sublabel")}
+        addPlaceLabel={tContextMenu("addPlace.trigger")}
+        addPlaceSublabel={tContextMenu("addPlace.sublabel")}
       />
 
       {/* POI Panel */}

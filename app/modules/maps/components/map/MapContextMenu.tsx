@@ -24,11 +24,24 @@ interface MapContextMenuProps {
   onEditArea?: () => void;
   showEditArea?: boolean;
   // Resolved at the render boundary by `WorldMap` (ADR-0007) and passed down
-  // as plain strings — this file's other labels are pre-existing hardcoded
-  // English (not introduced by this change, and out of scope to fix here),
-  // but new copy follows CLAUDE.md's bilingual-catalogue rule regardless.
+  // as plain strings, same as every label below — each optional with an
+  // English fallback so a caller that doesn't need translated copy (most
+  // unit tests) isn't forced to supply it.
   editAreaLabel?: string;
   editAreaSublabel?: string;
+  // Translated copy for the menu items that were still hardcoded English
+  // until this pass (usability fix, 2026-08-17) — `ariaLabel` and the
+  // always-shown Copy Coordinates/Add Marker/Measure entries, plus Add
+  // Place's label/sublabel.
+  ariaLabel?: string;
+  copyCoordinatesLabel?: string;
+  copiedLabel?: string;
+  addMarkerLabel?: string;
+  addMarkerSublabel?: string;
+  measureLabel?: string;
+  measureSublabel?: string;
+  addPlaceLabel?: string;
+  addPlaceSublabel?: string;
 }
 
 interface MenuItemProps {
@@ -37,6 +50,7 @@ interface MenuItemProps {
   sublabel?: string;
   onClick: () => void;
   showCopied?: boolean;
+  copiedLabel?: string;
 }
 
 /**
@@ -48,6 +62,7 @@ const MenuItem = memo(function MenuItem({
   sublabel,
   onClick,
   showCopied,
+  copiedLabel = "Copied!",
 }: MenuItemProps) {
   return (
     <button
@@ -59,7 +74,7 @@ const MenuItem = memo(function MenuItem({
       </span>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-gray-700 dark:text-gray-200">
-          {showCopied ? "Copied!" : label}
+          {showCopied ? copiedLabel : label}
         </div>
         {sublabel && !showCopied && (
           <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
@@ -101,6 +116,15 @@ export const MapContextMenu = memo(function MapContextMenu({
   showEditArea = false,
   editAreaLabel,
   editAreaSublabel,
+  ariaLabel = "Map context menu",
+  copyCoordinatesLabel = "Copy Coordinates",
+  copiedLabel = "Copied!",
+  addMarkerLabel = "Add Marker",
+  addMarkerSublabel = "Place a marker here",
+  measureLabel = "Measure",
+  measureSublabel = "Start distance measurement",
+  addPlaceLabel = "Add Place",
+  addPlaceSublabel = "Create a place here",
 }: MapContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   // Track which position was copied (null means not copied)
@@ -252,15 +276,16 @@ export const MapContextMenu = memo(function MapContextMenu({
         top: displayPosition.y,
       }}
       role="menu"
-      aria-label="Map context menu"
+      aria-label={ariaLabel}
     >
       {/* Coordinates */}
       <MenuItem
         icon={<Copy className="h-4 w-4" />}
-        label="Copy Coordinates"
+        label={copyCoordinatesLabel}
         sublabel={coordsText}
         onClick={() => void handleCopyCoordinates()}
         showCopied={copied}
+        copiedLabel={copiedLabel}
       />
 
       {/* Divider */}
@@ -269,16 +294,16 @@ export const MapContextMenu = memo(function MapContextMenu({
       {/* Add Marker */}
       <MenuItem
         icon={<MapPin className="h-4 w-4" />}
-        label="Add Marker"
-        sublabel="Place a marker here"
+        label={addMarkerLabel}
+        sublabel={addMarkerSublabel}
         onClick={handleAddMarker}
       />
 
       {/* Measurement */}
       <MenuItem
         icon={<Ruler className="h-4 w-4" />}
-        label="Measure"
-        sublabel="Start distance measurement"
+        label={measureLabel}
+        sublabel={measureSublabel}
         onClick={handleStartMeasurement}
       />
 
@@ -293,8 +318,8 @@ export const MapContextMenu = memo(function MapContextMenu({
 
           <MenuItem
             icon={<Star className="h-4 w-4" />}
-            label="Add Place"
-            sublabel="Create a place here"
+            label={addPlaceLabel}
+            sublabel={addPlaceSublabel}
             onClick={handleAddPOI}
           />
         </>

@@ -493,12 +493,15 @@
       "entityPlaceholder": "Seleziona…"
     },
     "drawArea": {
-      "trigger": "Disegna area",
+      "trigger": "Aggiungi sottomappa",
       "active": "Trascina sulla mappa — Esc per annullare"
     },
     "editArea": {
       "trigger": "Modifica area",
       "sublabel": "Ridimensiona o sposta"
+    },
+    "mapOptions": {
+      "trigger": "Opzioni mappa"
     },
     "contextMenu": {
       "ariaLabel": "Menu contestuale della mappa",
@@ -518,7 +521,7 @@
       }
     },
     "deletePlace": {
-      "trigger": "Elimina questo luogo",
+      "trigger": "Elimina questa mappa",
       "confirmTitle": "Eliminare «{title}»?",
       "loading": "Calcolo delle conseguenze…",
       "noImpact": "Nessuna conseguenza: questo luogo non ha figli né personaggi assegnati.",

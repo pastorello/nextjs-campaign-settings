@@ -27,8 +27,8 @@ import createPlace from "@/app/lib/data/maps/createPlace";
 import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
 import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
 import MapUploadControl from "@/app/ui/geography/MapUploadControl";
-import DrawAreaButton from "@/app/ui/geography/DrawAreaButton";
 import DeletePlaceButton from "@/app/ui/geography/DeletePlaceButton";
+import MapOptionsButton from "@/app/ui/geography/MapOptionsButton";
 import {
   findContainingSibling,
   type Footprint,
@@ -97,7 +97,17 @@ function WorldMap({
   const t = useTranslations("geography.errors");
   const tEditArea = useTranslations("geography.editArea");
   const tContextMenu = useTranslations("geography.contextMenu");
+  const tDrawArea = useTranslations("geography.drawArea");
+  const tAttachEntity = useTranslations("geography.attachEntity");
   const [isMeasurementOpen, setIsMeasurementOpen] = useState(false);
+  // Consolidated map controls (usability fix, 2026-08-17): these three used
+  // to be always-visible floating buttons of their own; now each is a
+  // controlled dialog/picker, opened either from `MapOptionsButton`'s menu
+  // (replace/delete this map) or `MapContextMenu`'s right-click menu
+  // (attach an entity).
+  const [isAttachEntityOpen, setIsAttachEntityOpen] = useState(false);
+  const [isMapUploadOpen, setIsMapUploadOpen] = useState(false);
+  const [isDeleteMapOpen, setIsDeleteMapOpen] = useState(false);
   const [isPOIPanelOpen, setIsPOIPanelOpen] = useState(false);
   const [poiFilterCategory, setPOIFilterCategory] =
     useState<POICategory | null>(null);
@@ -118,8 +128,9 @@ function WorldMap({
     id: number;
     title: string;
   } | null>(null);
-  // Draw-an-area mode (SPEC-009 T2) — armed by `DrawAreaButton`, consumed by
-  // `useDrawArea`. `pendingFootprint` is the completed rectangle waiting for
+  // Draw-an-area mode (SPEC-009 T2) — armed by `MapContextMenu`'s "Add
+  // sub-map" entry (ex-`DrawAreaButton`, consolidated 2026-08-17), consumed
+  // by `useDrawArea`. `pendingFootprint` is the completed rectangle waiting for
   // the create form; mutually exclusive with `isSelectingPOILocation`/
   // `positioningPlace` (see their handlers below), the same way those two
   // already exclude each other implicitly by being distinct crosshair modes.
@@ -592,38 +603,53 @@ function WorldMap({
         }
       ></LeafletMap>
 
-      {/* Map Controls */}
-      <MapControls />
+      {/* Map Controls, plus the "administer this map" entry point
+          (usability fix, 2026-08-17): replace/delete this map, stacked
+          above zoom/reset/fullscreen via MapControls' extraControls slot. */}
+      <MapControls
+        extraControls={
+          <MapOptionsButton
+            hasMap={isValidString(mapUrl)}
+            isRoot={isRoot}
+            onReplaceMap={() => setIsMapUploadOpen(true)}
+            onDeleteMap={() => setIsDeleteMapOpen(true)}
+          />
+        }
+      />
 
       {/* Attach an existing NPC/deity to the place currently being viewed
           (SPEC-008 §5/T5) — the map's own entry point into the assignment
-          modal, alongside the admin list's per-row button. */}
+          modal, alongside the admin list's per-row button. Externally
+          controlled, opened from `MapContextMenu`'s right-click menu
+          (usability fix, 2026-08-17). */}
       <AttachEntityButton
         zoneId={parentId}
+        isOpen={isAttachEntityOpen}
+        onClose={() => setIsAttachEntityOpen(false)}
         onAttached={() => setPlacesRefetchToken((token) => token + 1)}
       />
 
-      {/* Draw a child place as an area rather than a point (SPEC-009 T2). */}
-      <DrawAreaButton
-        isDrawing={isDrawingArea}
-        onToggle={handleToggleDrawArea}
-      />
-
       {/* Give the place currently being viewed a map, or replace it
-          (SPEC-007 T1). */}
+          (SPEC-007 T1). Externally controlled, opened from
+          `MapOptionsButton`'s menu (usability fix, 2026-08-17). */}
       <MapUploadControl
         placeId={parentId}
         hasMap={isValidString(mapUrl)}
+        isOpen={isMapUploadOpen}
+        onClose={() => setIsMapUploadOpen(false)}
         onMapChanged={onMapChanged}
       />
 
       {/* Delete the place currently being viewed (SPEC-010 T3) — absent for
-          the root (rule 1). */}
+          the root (rule 1). Externally controlled, opened from
+          `MapOptionsButton`'s menu (usability fix, 2026-08-17). */}
       <DeletePlaceButton
         placeId={parentId}
         placeTitle={placeTitle}
         parentTitle={parentTitle}
         isRoot={isRoot}
+        isOpen={isDeleteMapOpen}
+        onClose={() => setIsDeleteMapOpen(false)}
         onDeleted={onDeleted}
       />
 
@@ -655,6 +681,10 @@ function WorldMap({
         measureSublabel={tContextMenu("measure.sublabel")}
         addPlaceLabel={tContextMenu("addPlace.trigger")}
         addPlaceSublabel={tContextMenu("addPlace.sublabel")}
+        onAddSubMap={handleToggleDrawArea}
+        addSubMapLabel={tDrawArea("trigger")}
+        onAttachEntity={() => setIsAttachEntityOpen(true)}
+        attachEntityLabel={tAttachEntity("trigger")}
       />
 
       {/* POI Panel */}

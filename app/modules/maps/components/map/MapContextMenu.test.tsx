@@ -140,6 +140,54 @@ describe("MapContextMenu", () => {
     expect(await screen.findByText("Copied!")).toBeInTheDocument();
   });
 
+  it("does not show Add sub-map or Attach entity without their handlers (usability fix, 2026-08-17)", () => {
+    renderMenu();
+    expect(screen.queryByText("Add sub-map")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Attach an existing entity")
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows Add sub-map when onAddSubMap is provided", () => {
+    renderMenu({ onAddSubMap: vi.fn() });
+    expect(screen.getByText("Add sub-map")).toBeInTheDocument();
+  });
+
+  it("hides Add sub-map inside an existing area, the same containment rule as Add Place", () => {
+    renderMenu({ onAddSubMap: vi.fn(), hideAddPlace: true });
+    expect(screen.queryByText("Add sub-map")).not.toBeInTheDocument();
+  });
+
+  it("calls onAddSubMap then closes when Add sub-map is clicked", () => {
+    const onAddSubMap = vi.fn();
+    const { onClose } = renderMenu({ onAddSubMap });
+
+    fireEvent.click(screen.getByText("Add sub-map"));
+
+    expect(onAddSubMap).toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("shows Attach entity when onAttachEntity is provided, translated when given", () => {
+    renderMenu({
+      onAttachEntity: vi.fn(),
+      attachEntityLabel: "Collega un personaggio esistente",
+    });
+    expect(
+      screen.getByText("Collega un personaggio esistente")
+    ).toBeInTheDocument();
+  });
+
+  it("calls onAttachEntity then closes when Attach entity is clicked", () => {
+    const onAttachEntity = vi.fn();
+    const { onClose } = renderMenu({ onAttachEntity });
+
+    fireEvent.click(screen.getByText("Attach an existing entity"));
+
+    expect(onAttachEntity).toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalled();
+  });
+
   it("does not show Edit Area without onEditArea or showEditArea (SPEC-009 T5)", () => {
     renderMenu();
     expect(screen.queryByText("Edit Area")).not.toBeInTheDocument();

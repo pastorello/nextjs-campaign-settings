@@ -1,7 +1,16 @@
 "use client";
 
 import { memo, useCallback, useEffect, useRef, useState, useMemo } from "react";
-import { Copy, MapPin, Ruler, Check, Star, Scaling } from "lucide-react";
+import {
+  Copy,
+  MapPin,
+  Ruler,
+  Check,
+  Star,
+  Scaling,
+  Layers,
+  UserPlus,
+} from "lucide-react";
 import { formatDecimalDegrees } from "@/app/modules/maps/lib/utils/coordinates";
 import type { ContextMenuPosition } from "@/app/modules/maps/hooks/useMapContextMenu";
 
@@ -42,6 +51,20 @@ interface MapContextMenuProps {
   measureSublabel?: string;
   addPlaceLabel?: string;
   addPlaceSublabel?: string;
+  // Two entries consolidated here from their own floating map corners
+  // (usability fix, 2026-08-17): both add *content* to the map (a new
+  // sub-map, an attached entity), so they belong alongside Add
+  // Marker/Add Place rather than in `MapOptionsButton`'s "administer this
+  // map" menu. `onAddSubMap` (ex-`DrawAreaButton`) is coordinate-agnostic
+  // like `onAddPOI` — it arms drag-to-draw, it doesn't draw at the
+  // right-clicked point itself — so it's gated by the same `hideAddPlace`
+  // containment rule (SPEC-009 T4): ground already inside an area belongs
+  // to that area's own map. `onAttachEntity` is place-level, not
+  // point-dependent at all, and always shown.
+  onAddSubMap?: () => void;
+  addSubMapLabel?: string;
+  onAttachEntity?: () => void;
+  attachEntityLabel?: string;
 }
 
 interface MenuItemProps {
@@ -125,6 +148,10 @@ export const MapContextMenu = memo(function MapContextMenu({
   measureSublabel = "Start distance measurement",
   addPlaceLabel = "Add Place",
   addPlaceSublabel = "Create a place here",
+  onAddSubMap,
+  addSubMapLabel = "Add sub-map",
+  onAttachEntity,
+  attachEntityLabel = "Attach an existing entity",
 }: MapContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   // Track which position was copied (null means not copied)
@@ -241,6 +268,25 @@ export const MapContextMenu = memo(function MapContextMenu({
   }, [onEditArea, onClose]);
 
   /**
+   * Arms drag-to-draw a sub-map area (ex-`DrawAreaButton`, SPEC-009 T2).
+   */
+  const handleAddSubMap = useCallback(() => {
+    if (!onAddSubMap) return;
+    onAddSubMap();
+    onClose();
+  }, [onAddSubMap, onClose]);
+
+  /**
+   * Opens the attach-existing-entity picker (ex-`AttachEntityButton`,
+   * SPEC-008 §5/T5).
+   */
+  const handleAttachEntity = useCallback(() => {
+    if (!onAttachEntity) return;
+    onAttachEntity();
+    onClose();
+  }, [onAttachEntity, onClose]);
+
+  /**
    * Handle click outside to close
    */
   useEffect(() => {
@@ -321,6 +367,35 @@ export const MapContextMenu = memo(function MapContextMenu({
             label={addPlaceLabel}
             sublabel={addPlaceSublabel}
             onClick={handleAddPOI}
+          />
+        </>
+      )}
+
+      {/* Add sub-map (ex-"Disegna area"/DrawAreaButton) — arms drag-to-draw,
+          same containment rule as Add Place: ground already inside an
+          area belongs to that area's own map. */}
+      {onAddSubMap && !hideAddPlace && (
+        <>
+          <div className="my-1.5 border-t border-gray-200 dark:border-gray-700" />
+
+          <MenuItem
+            icon={<Layers className="h-4 w-4" />}
+            label={addSubMapLabel}
+            onClick={handleAddSubMap}
+          />
+        </>
+      )}
+
+      {/* Attach an existing entity (ex-AttachEntityButton) — place-level,
+          not point-dependent, so unaffected by hideAddPlace. */}
+      {onAttachEntity && (
+        <>
+          <div className="my-1.5 border-t border-gray-200 dark:border-gray-700" />
+
+          <MenuItem
+            icon={<UserPlus className="h-4 w-4" />}
+            label={attachEntityLabel}
+            onClick={handleAttachEntity}
           />
         </>
       )}

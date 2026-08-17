@@ -19,7 +19,7 @@ vi.mock("@/app/lib/notifications/notify", () => ({
 
 import MapUploadControl from "./MapUploadControl";
 
-describe("MapUploadControl (SPEC-007 T1)", () => {
+describe("MapUploadControl (SPEC-007 T1; externally controlled since the 2026-08-17 usability fix)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal(
@@ -32,12 +32,29 @@ describe("MapUploadControl (SPEC-007 T1)", () => {
     updateZoneMap.mockResolvedValue({ ok: true });
   });
 
-  it("uploads and saves a map for a place that has none, then reports the new id", async () => {
-    const onMapChanged = vi.fn();
+  it("shows nothing when closed", () => {
     render(
       <MapUploadControl
         placeId={4}
         hasMap={false}
+        isOpen={false}
+        onClose={vi.fn()}
+        onMapChanged={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByText("uploadSubmit")).not.toBeInTheDocument();
+  });
+
+  it("uploads and saves a map for a place that has none, then closes and reports the new id", async () => {
+    const onMapChanged = vi.fn();
+    const onClose = vi.fn();
+    render(
+      <MapUploadControl
+        placeId={4}
+        hasMap={false}
+        isOpen
+        onClose={onClose}
         onMapChanged={onMapChanged}
       />
     );
@@ -57,11 +74,18 @@ describe("MapUploadControl (SPEC-007 T1)", () => {
     );
     expect(onMapChanged).toHaveBeenCalledWith("cieli.png");
     expect(notifySuccess).toHaveBeenCalledWith("success");
+    expect(onClose).toHaveBeenCalled();
   });
 
   it("does not upload when no file has been chosen", () => {
     render(
-      <MapUploadControl placeId={4} hasMap={false} onMapChanged={vi.fn()} />
+      <MapUploadControl
+        placeId={4}
+        hasMap={false}
+        isOpen
+        onClose={vi.fn()}
+        onMapChanged={vi.fn()}
+      />
     );
 
     fireEvent.click(screen.getByText("uploadSubmit"));
@@ -71,7 +95,13 @@ describe("MapUploadControl (SPEC-007 T1)", () => {
 
   it("asks for confirmation before replacing an existing map, and does not upload until confirmed", async () => {
     render(
-      <MapUploadControl placeId={4} hasMap={true} onMapChanged={vi.fn()} />
+      <MapUploadControl
+        placeId={4}
+        hasMap={true}
+        isOpen
+        onClose={vi.fn()}
+        onMapChanged={vi.fn()}
+      />
     );
     fireEvent.change(screen.getByLabelText("replaceLabel"), {
       target: {
@@ -91,7 +121,13 @@ describe("MapUploadControl (SPEC-007 T1)", () => {
 
   it("cancelling the confirmation does not upload", () => {
     render(
-      <MapUploadControl placeId={4} hasMap={true} onMapChanged={vi.fn()} />
+      <MapUploadControl
+        placeId={4}
+        hasMap={true}
+        isOpen
+        onClose={vi.fn()}
+        onMapChanged={vi.fn()}
+      />
     );
     fireEvent.change(screen.getByLabelText("replaceLabel"), {
       target: {
@@ -112,6 +148,8 @@ describe("MapUploadControl (SPEC-007 T1)", () => {
       <MapUploadControl
         placeId={4}
         hasMap={false}
+        isOpen
+        onClose={vi.fn()}
         onMapChanged={onMapChanged}
       />
     );
@@ -137,6 +175,8 @@ describe("MapUploadControl (SPEC-007 T1)", () => {
       <MapUploadControl
         placeId={4}
         hasMap={false}
+        isOpen
+        onClose={vi.fn()}
         onMapChanged={onMapChanged}
       />
     );

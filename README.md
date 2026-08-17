@@ -114,7 +114,7 @@ Every record is checked against the same Zod validators the app's own mutations 
 
 ```
 app/
-├── api/            route handlers — 4 DELETE, 2 read-only GeoJSON, 2 map image
+├── api/            route handlers — 5 DELETE, 2 read-only GeoJSON, 2 map image
 ├── [locale]/       authenticated pages under dashboard/, one route per domain
 ├── lib/
 │   ├── config/     ← field metadata: start here

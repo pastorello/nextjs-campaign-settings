@@ -8,7 +8,7 @@ Guidance for AI agents (Claude Code, Cowork) working in this repository. Read th
 
 **Campaign Settings** — a self-hosted Next.js app for managing a D&D 5e homebrew campaign setting: spells, magic items, NPCs, deities, and an interactive world map.
 
-Current phase: **3 — data model and relations** (`docs/ROADMAP.md`). Phases 1 and 2 (correctness, then quality) are complete, and the standards they established are permanent: correctness, tests and code quality still take priority over new features — not to impress a reader, but because a correct, well-documented, low-drift base is what keeps this project cheap to pick back up, for the maintainer and for whichever agent opens it next.
+Current phase: **Phase 3 — complete; Phase 4 beginning** (see `docs/ROADMAP.md`). Phases 1 and 2 (correctness, then quality) are complete, and the standards they established are permanent: correctness, tests and code quality still take priority over new features — not to impress a reader, but because a correct, well-documented, low-drift base is what keeps this project cheap to pick back up, for the maintainer and for whichever agent opens it next.
 
 **Feature work now happens, but only through a spec.** Do not add a feature unless it is explicitly asked for or already specified in `docs/specs/` — if you spot one worth building, note it in `docs/ROADMAP.md` instead.
 

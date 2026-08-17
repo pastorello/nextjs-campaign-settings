@@ -14,7 +14,7 @@
 >
 > ```bash
 > pnpm test 2>&1 | tail -4          # unit tests and files
-> pnpm test:e2e --list | tail -1    # E2E tests and files, no database needed
+> pnpm test:e2e --list | tail -1    # E2E tests and files (needs .env.test, see §2)
 > ```
 >
 > This is [`docs/README.md`](./README.md#keeping-them-honest)'s rule applied to the file that had broken it worst: _counts and statuses rot; prose about why does not._
@@ -33,7 +33,7 @@ Reach for these before rediscovering them. All are in use in the suites named.
 - **Repeated page shapes** — cover each shape once, not once per domain. `spells/page.tsx` stands in for `deities`/`magicitems`/`npc`; the same for the admin list and "new item" patterns. TD-45's ten files.
 - **A component whose children each have their own suite** — stub the children and test only this component's own logic. `WorldMap.test.tsx`.
 - **A hoisted mock reference, not `vi.mocked(prisma.x.y)`** — the latter trips `unbound-method` outside `__test__/**`, where the rule is off. `createPoi.test.ts` documents why; `fetchDerivedAncestry.test.ts` follows it.
-  **Playwright landed 2026-07-25 (TD-24).** `pnpm test:e2e` runs against a real database and a dev server it starts itself — a couple of minutes in CI, quicker locally once the dev server is warm. Nothing is skipped. The suite has grown steadily with the SPEC-004 map work; `pnpm test:e2e --list` is the honest way to see its current size, and needs no database.
+  **Playwright landed 2026-07-25 (TD-24).** `pnpm test:e2e` runs against a real database and a dev server it starts itself — a couple of minutes in CI, quicker locally once the dev server is warm. Nothing is skipped. The suite has grown steadily with the SPEC-004 map work; `pnpm test:e2e --list` is the honest way to see its current size (requires `.env.test`, see §2).
 
 > **Two warnings before you run either suite.**
 >
@@ -52,19 +52,19 @@ Reach for these before rediscovering them. All are in use in the suites named.
 
 **The load-bearing suites**, listed because they are the ones §2 says must be right — not as an inventory, which would rot. Counts are omitted for the same reason; run the suite:
 
-| Suite                                               | Tests | Notes                                                                      |
-| --------------------------------------------------- | ----- | -------------------------------------------------------------------------- |
-| `app/lib/data/getQuery.test.ts`                     | 18    | Query construction — the highest-value unit tests in the project, per §3   |
-| `__test__/api/deleteEndpoints.test.ts`              | 32    | TD-01/TD-02 — 401, malformed `:id` → 400, and the authed path              |
-| `__test__/data/mutationValidation.test.ts`          | 20    | TD-02 — valid writes, invalid rejected, field-keyed errors, partial update |
-| `app/lib/data/validation/buildEntitySchema.test.ts` | 19    | TD-02 — every declared default passes its domain's schema                  |
-| `__test__/data/mutationGuards.test.ts`              | 8     | TD-01 — each mutation throws and never writes without a session            |
-| `__test__/auth/session-guards.test.ts`              | 5     | TD-01 — the `requireSession` / `requireApiSession` helpers directly        |
-| `__test__/utils/generatePwdHash.test.ts`            | 4     | Rewritten; the old version could never pass                                |
-| `app/lib/utils/data/sortByField/index.test.ts`      | 2     | Carried over                                                               |
-| `__test__/utils/parseSerializedArray.test.ts`       | 1     | Carried over                                                               |
-| `__test__/utils/createEmptyArray.test.ts`           | 1     | Carried over — was never collected before, the filename was malformed      |
-| `app/ui/forms/inputs/Select/Select.test.tsx`        | 2     | Carried over                                                               |
+| Suite                                               | Notes                                                                      |
+| --------------------------------------------------- | -------------------------------------------------------------------------- |
+| `app/lib/data/getQuery.test.ts`                     | Query construction — the highest-value unit tests in the project, per §3   |
+| `__test__/api/deleteEndpoints.test.ts`              | TD-01/TD-02 — 401, malformed `:id` → 400, and the authed path              |
+| `__test__/data/mutationValidation.test.ts`          | TD-02 — valid writes, invalid rejected, field-keyed errors, partial update |
+| `app/lib/data/validation/buildEntitySchema.test.ts` | TD-02 — every declared default passes its domain's schema                  |
+| `__test__/data/mutationGuards.test.ts`              | TD-01 — each mutation throws and never writes without a session            |
+| `__test__/auth/session-guards.test.ts`              | TD-01 — the `requireSession` / `requireApiSession` helpers directly        |
+| `__test__/utils/generatePwdHash.test.ts`            | Rewritten; the old version could never pass                                |
+| `app/lib/utils/data/sortByField/index.test.ts`      | Carried over                                                               |
+| `__test__/utils/parseSerializedArray.test.ts`       | Carried over                                                               |
+| `__test__/utils/createEmptyArray.test.ts`           | Carried over — was never collected before, the filename was malformed      |
+| `app/ui/forms/inputs/Select/Select.test.tsx`        | Carried over                                                               |
 
 The E2E specs are listed in §3.
 
@@ -114,7 +114,7 @@ Everything else is supporting cast.
 
 Set the CI threshold to whatever you actually achieve at the end of Phase 1, then never let it drop. A threshold you have to disable to merge is worse than no threshold.
 
-**Current thresholds are 70/71/69/69 (lines/functions/branches/statements)**, raised 2026-08-04 (TD-46 Tier 2) to match what the suite actually achieves — what the suite achieves today, not the targets above. They are a ratchet: raise them whenever a change adds real coverage, never lower them. The table stays the destination.
+**Current thresholds are 74/75/73/73 (lines/functions/branches/statements)**, raised 2026-08-13 after an audit found the gate had grown slack relative to the suite's actual coverage. They are a ratchet: raise them whenever a change adds real coverage, never lower them. The table stays the destination.
 
 ---
 

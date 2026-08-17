@@ -1,9 +1,9 @@
 # Project State — Campaign Settings
 
-**Last updated:** 2026-08-13
+**Last updated:** 2026-08-17
 **Status:** Working prototype, not production-ready
-**Phase:** 3 (data model and relations) — Phases 1 and 2 are complete; see [`ROADMAP.md`](./ROADMAP.md)
-**Goal of the current phase:** entities reference each other instead of being isolated lists — the world tree, real relations, locations and factions the DM authors rather than edits into source. See [SPEC-004](./specs/004-world-model.md) and [SPEC-006](./specs/006-factions.md).
+**Phase:** 4 (session tooling) — Phases 1–3 are complete; see [`ROADMAP.md`](./ROADMAP.md)
+**Goal of the current phase:** move from reference material to something used _during_ a session — encounter builder, initiative tracker, session notes, quick-reference panel, dice roller, random generators. See [`ROADMAP.md`](./ROADMAP.md) for the full list.
 
 **The standing goal underneath every phase** is unchanged: keep the project sustainable to work on — no bugs, no dead code, tested, documented, CI-verified, organised so a future session (human or agent) picks it up cheaply. Phases 1 and 2 established that; Phase 3 builds on it without regressing it (see `ROADMAP.md`, "Phases close; they do not stay closed").
 
@@ -11,7 +11,7 @@
 
 ## 1. What this project is
 
-A self-hosted web app for a Dungeon Master to manage a D&D 5e campaign setting: the reference material of a homebrew world. It is a CRUD dashboard over five domains:
+A self-hosted web app for a Dungeon Master to manage a D&D 5e campaign setting: the reference material of a homebrew world. It is a CRUD dashboard over six domains:
 
 | Domain      | Name in code | Description                                                                                    |
 | ----------- | ------------ | ---------------------------------------------------------------------------------------------- |
@@ -19,6 +19,7 @@ A self-hosted web app for a Dungeon Master to manage a D&D 5e campaign setting: 
 | Magic items | `magicitems` | Items with rarity, type, attunement flag                                                       |
 | NPCs        | `npc`        | Name, title, role, alignment, faction, location, appearance, personality, motivations, secrets |
 | Deities     | `deities`    | Patrons with rank, tarot card, celestial body, element, tradition, alignment, divine residence |
+| Factions    | `faction`    | Organizations and groups with descriptions, rosters of NPCs                                    |
 | Geography   | `geography`  | Interactive world map (Leaflet) with POIs, measurement, tile switching                         |
 
 **Identifiers are English; the UI ships bilingual (Italian + English).** See [ADR-0005](./adr/0005-english-identifiers.md), implemented as TD-19 on 2026-07-30, and [ADR-0006](./adr/0006-bilingual-ui.md), implemented as TD-21 — copy lives in `messages/{it,en}.json`, not in JSX. Postgres columns keep their Italian names, decoupled from the code by Prisma `@map` (`name @map("nome")`) — so raw SQL and `psql` still show `nome`, `descrizione`, `livello`.
@@ -139,17 +140,17 @@ The matcher excludes `/api`, so the proxy cannot protect the route handlers or S
 
 **Every gate is green, and none of them is green by exception** — no skipped test, no disabled rule, no lowered threshold.
 
-| Check               | State                                                                                                           |
-| ------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `pnpm typecheck`    | ✅ clean (19 errors before TD-06)                                                                               |
-| `pnpm build`        | ✅ passes on Turbopack — same bundler as `dev` (TD-18)                                                          |
-| `pnpm test`         | ✅ all passing, nothing skipped                                                                                 |
-| `pnpm lint`         | ✅ 0 errors, 0 warnings (was 293) — TD-22; every rule back to `error`, including `no-explicit-any`              |
-| `pnpm format:check` | ✅ clean — Prettier repo-wide (TD-05/TD-16)                                                                     |
-| `pnpm test:e2e`     | ✅ all passing, nothing skipped (TD-24, then TD-15's zero-violation axe gate)                                   |
-| CI                  | ✅ five blocking gates: `static` / `test` / `build` / `e2e` (TD-23 made the last one blocking)                  |
-| Coverage            | ✅ above the Phase 2 exit criterion; enforced as a CI ratchet, thresholds in `vitest.config.ts` — never lowered |
-| `.env`              | ✅ gitignored                                                                                                   |
+| Check               | State                                                                                                             |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `pnpm typecheck`    | ✅ clean (19 errors before TD-06)                                                                                 |
+| `pnpm build`        | ✅ passes on Turbopack — same bundler as `dev` (TD-18)                                                            |
+| `pnpm test`         | ✅ all passing, nothing skipped                                                                                   |
+| `pnpm lint`         | ✅ 0 errors, 0 warnings (was 293) — TD-22; every rule back to `error`, including `no-explicit-any`                |
+| `pnpm format:check` | ✅ clean — Prettier repo-wide (TD-05/TD-16)                                                                       |
+| `pnpm test:e2e`     | ✅ all passing, nothing skipped (TD-24, then TD-15's zero-violation axe gate)                                     |
+| CI                  | ✅ four blocking gates: `static` (typecheck + lint) / `test` / `build` / `e2e` (TD-23 made the last one blocking) |
+| Coverage            | ✅ above the Phase 2 exit criterion; enforced as a CI ratchet, thresholds in `vitest.config.ts` — never lowered   |
+| `.env`              | ✅ gitignored                                                                                                     |
 
 > **Counts deliberately are not written here.** This table used to carry "267 tests", "40 E2E", "27.6% lines" and "PRs #1–#61", every one of which was wrong within days — and a 2026-07-30 audit had already caught this same table claiming 117 tests against an actual 173. [`docs/README.md`](./README.md#keeping-them-honest) drew the conclusion: _counts and statuses rot; prose about why does not._ So the numbers now come from the commands that produce them:
 >

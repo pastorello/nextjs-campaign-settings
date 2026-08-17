@@ -30,6 +30,8 @@ vi.mock("@/app/modules/maps/components/map/MapMeasurementPanel", () => ({
 
 let onAddPOI: ((lat: number, lng: number) => void) | undefined;
 let onEditArea: (() => void) | undefined;
+let onAddSubMap: (() => void) | undefined;
+let onAttachEntity: (() => void) | undefined;
 vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
   MapContextMenu: (props: {
     onAddPOI: (lat: number, lng: number) => void;
@@ -37,9 +39,13 @@ vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
     hideAddPlace?: boolean;
     onEditArea?: () => void;
     showEditArea?: boolean;
+    onAddSubMap?: () => void;
+    onAttachEntity?: () => void;
   }) => {
     onAddPOI = props.onAddPOI;
     onEditArea = props.onEditArea;
+    onAddSubMap = props.onAddSubMap;
+    onAttachEntity = props.onAttachEntity;
     return (
       <div
         data-testid="map-context-menu"
@@ -139,7 +145,9 @@ vi.mock("@/app/lib/data/maps/updateZonePosition", () => ({
 // Has its own suite (SPEC-008 T5) — stubbed here so this file stays about
 // WorldMap's own state, not the assignment modal's entity-picker flow.
 vi.mock("@/app/ui/geography/AttachEntityButton", () => ({
-  default: () => <div data-testid="attach-entity-button" />,
+  default: (props: { isOpen: boolean }) => (
+    <div data-testid="attach-entity-button" data-open={props.isOpen} />
+  ),
 }));
 
 // Has its own suite (SPEC-007 T1) — stubbed here so this file stays about
@@ -510,6 +518,26 @@ describe("WorldMap", () => {
   });
 });
 
+describe("WorldMap — attach an existing entity from the context menu (usability fix, 2026-08-17)", () => {
+  it("opens AttachEntityButton when the context menu's Attach entity entry is used", async () => {
+    await renderMap();
+
+    expect(screen.getByTestId("attach-entity-button")).toHaveAttribute(
+      "data-open",
+      "false"
+    );
+
+    act(() => {
+      onAttachEntity?.();
+    });
+
+    expect(screen.getByTestId("attach-entity-button")).toHaveAttribute(
+      "data-open",
+      "true"
+    );
+  });
+});
+
 describe("WorldMap — positioning an unplaced place (TD-71, SPEC-005 §5.A)", () => {
   beforeEach(() => {
     useUnplacedChildren.mockReturnValue([
@@ -615,12 +643,12 @@ describe("WorldMap — positioning an unplaced place (TD-71, SPEC-005 §5.A)", (
   });
 });
 
-describe("WorldMap — draw-an-area (SPEC-009 T2)", () => {
+describe("WorldMap — draw-an-area (SPEC-009 T2; armed from the context menu since the 2026-08-17 usability fix)", () => {
   it("arms drawing mode and switches to a crosshair cursor", async () => {
     await renderMap();
 
     act(() => {
-      screen.getByRole("button", { name: "trigger" }).click();
+      onAddSubMap?.();
     });
 
     await waitFor(() => {
@@ -630,14 +658,13 @@ describe("WorldMap — draw-an-area (SPEC-009 T2)", () => {
       );
     });
     expect(drawAreaOptions?.enabled).toBe(true);
-    expect(screen.getByRole("button", { name: "active" })).toBeInTheDocument();
   });
 
   it("opens the panel in add mode with the footprint once a rectangle is drawn, and disarms", async () => {
     await renderMap();
 
     act(() => {
-      screen.getByRole("button", { name: "trigger" }).click();
+      onAddSubMap?.();
     });
     const footprint = [
       [0, 0],
@@ -657,7 +684,13 @@ describe("WorldMap — draw-an-area (SPEC-009 T2)", () => {
       "data-pending-footprint",
       JSON.stringify(footprint)
     );
-    expect(screen.getByRole("button", { name: "trigger" })).toBeInTheDocument();
+    // Disarmed after a completed draw — a further onComplete call would be
+    // stale, so nothing should still be listening for this render's cursor
+    // to stay crosshair.
+    expect(screen.getByTestId("leaflet-map")).toHaveAttribute(
+      "data-cursor",
+      "grab"
+    );
   });
 
   it("cancels an in-progress POI location selection when armed", async () => {
@@ -674,7 +707,7 @@ describe("WorldMap — draw-an-area (SPEC-009 T2)", () => {
     });
 
     act(() => {
-      screen.getByRole("button", { name: "trigger" }).click();
+      onAddSubMap?.();
     });
 
     expect(drawAreaOptions?.enabled).toBe(true);
@@ -696,7 +729,7 @@ describe("WorldMap — draw-an-area (SPEC-009 T2)", () => {
     await renderMap();
 
     act(() => {
-      screen.getByRole("button", { name: "trigger" }).click();
+      onAddSubMap?.();
     });
     expect(drawAreaOptions?.enabled).toBe(true);
 

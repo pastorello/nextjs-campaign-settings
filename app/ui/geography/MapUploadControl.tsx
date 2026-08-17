@@ -17,15 +17,22 @@ interface MapUploadControlProps {
   placeId: number;
   /** Whether the place currently being viewed already has a map. */
   hasMap: boolean;
+  /**
+   * Externally controlled (usability fix, 2026-08-17): this used to render
+   * as an always-open inline form in its own map corner; the trigger now
+   * lives in `MapOptionsButton`'s menu, and this component renders the
+   * form inside a `Modal` that opens on demand instead.
+   */
+  isOpen: boolean;
+  onClose: () => void;
   onMapChanged: (mapImage: string) => void;
 }
 
 /**
  * Gives the place currently being viewed a map, or replaces the one it has
- * (SPEC-007 T1). Sits on `WorldMap` next to `AttachEntityButton` — the map's
- * own entry point, since a mapless place is otherwise only reachable by
- * clicking through to it (SPEC-007's grey/"❔" marker in
- * `useNavigableChildren`).
+ * (SPEC-007 T1) — reachable via `MapOptionsButton`'s menu, since a mapless
+ * place is otherwise only reachable by clicking through to it (SPEC-007's
+ * grey/"❔" marker in `useNavigableChildren`).
  *
  * Replacing an existing map goes through a confirmation first: children keep
  * their `lat`/`lng`, but those are stored against the map's bounds, not the
@@ -35,6 +42,8 @@ interface MapUploadControlProps {
 export default function MapUploadControl({
   placeId,
   hasMap,
+  isOpen,
+  onClose,
   onMapChanged,
 }: MapUploadControlProps) {
   const t = useTranslations("geography.mapUpload");
@@ -45,6 +54,7 @@ export default function MapUploadControl({
   const reset = () => {
     setFile(null);
     setIsConfirmOpen(false);
+    onClose();
   };
 
   const submit = async () => {
@@ -93,23 +103,42 @@ export default function MapUploadControl({
   };
 
   return (
-    <div className="absolute bottom-4 left-4 z-[1000] flex flex-col gap-2 rounded-lg bg-white dark:bg-gray-800 p-3 shadow-md w-72">
-      <Field>
-        <FormLabel label={hasMap ? t("replaceLabel") : t("uploadLabel")} />
-        <Input
-          type="file"
-          accept={ALLOWED_MAP_IMAGE_CONTENT_TYPES.join(",")}
-          onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-          className="block w-full text-sm text-gray-900 dark:text-white"
-        />
-      </Field>
-      <BaseButton
-        onClick={handleSubmitClick}
-        buttonState={isSubmitting ? ButtonState.Loading : ButtonState.Default}
-        variant={hasMap ? ButtonVariant.secondary : ButtonVariant.primary}
+    <>
+      <Modal
+        isOpen={isOpen}
+        setIsOpen={(open) => {
+          if (!open) reset();
+        }}
+        // No `title` here on purpose: `FormLabel` below already gives the
+        // file input its own accessible name via `Field`/`Label`
+        // association. A Modal title would duplicate it — Headless UI's
+        // `Dialog` sets `aria-labelledby` on itself from the title, and an
+        // identical accessible name on two elements (the dialog and the
+        // input) makes `getByLabelText`-style lookups ambiguous.
+        title=""
+        size="small"
       >
-        {hasMap ? t("replaceSubmit") : t("uploadSubmit")}
-      </BaseButton>
+        <div className="flex flex-col gap-2">
+          <Field>
+            <FormLabel label={hasMap ? t("replaceLabel") : t("uploadLabel")} />
+            <Input
+              type="file"
+              accept={ALLOWED_MAP_IMAGE_CONTENT_TYPES.join(",")}
+              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+              className="block w-full text-sm text-gray-900 dark:text-white"
+            />
+          </Field>
+          <BaseButton
+            onClick={handleSubmitClick}
+            buttonState={
+              isSubmitting ? ButtonState.Loading : ButtonState.Default
+            }
+            variant={hasMap ? ButtonVariant.secondary : ButtonVariant.primary}
+          >
+            {hasMap ? t("replaceSubmit") : t("uploadSubmit")}
+          </BaseButton>
+        </div>
+      </Modal>
 
       <Modal
         isOpen={isConfirmOpen}
@@ -139,6 +168,6 @@ export default function MapUploadControl({
           </BaseButton>
         </div>
       </Modal>
-    </div>
+    </>
   );
 }

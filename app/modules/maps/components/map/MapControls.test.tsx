@@ -88,4 +88,16 @@ describe("MapControls", () => {
 
     expect(toggleFullscreen).toHaveBeenCalled();
   });
+
+  it("renders nothing extra by default", () => {
+    const { queryByTestId } = render(<MapControls />);
+
+    expect(queryByTestId("extra-control")).not.toBeInTheDocument();
+  });
+
+  it("renders extraControls in the same stack as the generic buttons (usability fix, 2026-08-17)", () => {
+    render(<MapControls extraControls={<div data-testid="extra-control" />} />);
+
+    expect(screen.getByTestId("extra-control")).toBeInTheDocument();
+  });
 });

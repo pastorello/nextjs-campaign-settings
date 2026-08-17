@@ -21,6 +21,17 @@ describe("NavLinks", () => {
     expect(screen.getByText("home")).toBeInTheDocument();
     expect(screen.getByText("deities")).toBeInTheDocument();
     expect(screen.getByText("spells")).toBeInTheDocument();
+    expect(screen.getByText("search")).toBeInTheDocument();
+  });
+
+  it("links the search entry to /dashboard/search, reachable from any dashboard page (SPEC-011 T3)", () => {
+    pathname = "/dashboard/admin/spells";
+    render(<NavLinks />);
+
+    expect(screen.getByText("search").closest("a")).toHaveAttribute(
+      "href",
+      "/dashboard/search"
+    );
   });
 
   it("renders a named admin link only for domains that declare one", () => {

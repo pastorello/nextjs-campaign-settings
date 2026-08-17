@@ -45,6 +45,7 @@ vi.mock("@/app/ui/geography/WorldMap", () => ({
 }));
 
 import GeographyExplorer from "./GeographyExplorer";
+import toStackEntry from "@/app/modules/maps/lib/utils/toStackEntry";
 
 const root = {
   id: 1,
@@ -111,6 +112,31 @@ describe("GeographyExplorer — unpositioned count (SPEC-007 T2)", () => {
     render(<GeographyExplorer root={root} unpositionedCount={0} />);
 
     expect(screen.getByText("unpositionedCount")).toBeInTheDocument();
+  });
+});
+
+describe("GeographyExplorer — layout never scrolls the header out of view (usability fix)", () => {
+  it("sizes itself to its parent's height and lets the map take the remaining space, not its own full viewport", () => {
+    const { container } = render(
+      <GeographyExplorer root={root} unpositionedCount={7} />
+    );
+
+    // The old bug: this wrapper's map child was `h-screen` (100% of the
+    // *whole* viewport) stacked underneath the header, so header height +
+    // a full 100vh map always exceeded the dashboard's own scrollable
+    // content pane — pushing the header (and the "up" button on it, once
+    // descended) above the fold. `h-full` here means "fill whatever
+    // height the parent actually has," so header + map together can never
+    // exceed it.
+    const outer = container.firstElementChild;
+    expect(outer).toHaveClass("flex", "h-full", "flex-col");
+
+    const header = screen.getByText("Aerivel").closest("div.mb-4");
+    expect(header).toHaveClass("flex-none");
+
+    const mapWrapper = container.querySelector(".relative.w-full");
+    expect(mapWrapper).toHaveClass("flex-1", "min-h-0");
+    expect(mapWrapper).not.toHaveClass("h-screen");
   });
 });
 
@@ -243,5 +269,78 @@ describe("GeographyExplorer (SPEC-004 M7)", () => {
     // Still on the same place, not pushed as a new stack entry.
     expect(screen.getByText("Cieli")).toBeInTheDocument();
     expect(screen.queryByText("up")).toBeInTheDocument();
+  });
+});
+
+describe("GeographyExplorer — initial stack (SPEC-011 T4)", () => {
+  it("behaves exactly as today when no initial stack is given: starts at the root, no up button", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={7} />);
+
+    expect(screen.getByText("Aerivel")).toBeInTheDocument();
+    expect(capturedProps?.parentId).toBe(1);
+    expect(capturedProps?.isRoot).toBe(true);
+    expect(screen.queryByText("up")).not.toBeInTheDocument();
+  });
+
+  it("starts on the given place's map, with the up button available", () => {
+    const initialStack = [toStackEntry(root), toStackEntry(kang)];
+
+    render(
+      <GeographyExplorer
+        root={root}
+        unpositionedCount={7}
+        initialStack={initialStack}
+      />
+    );
+
+    expect(screen.getByTestId("world-map")).toHaveTextContent(
+      "/api/maps/kang.png/image"
+    );
+    expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
+    expect(capturedProps?.parentId).toBe(2);
+    expect(capturedProps?.isRoot).toBe(false);
+    expect(capturedProps?.parentTitle).toBe("Aerivel");
+    expect(screen.getByText("up")).toBeInTheDocument();
+  });
+
+  it("ascends the given trail one step at a time, back to the chain's root", () => {
+    const initialStack = [
+      toStackEntry(root),
+      toStackEntry(kang),
+      toStackEntry(skreebars),
+    ];
+
+    render(
+      <GeographyExplorer
+        root={root}
+        unpositionedCount={7}
+        initialStack={initialStack}
+      />
+    );
+
+    expect(screen.getByText("Skreebars")).toBeInTheDocument();
+
+    ascend();
+    expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
+
+    ascend();
+    expect(screen.getByText("Aerivel")).toBeInTheDocument();
+    expect(screen.queryByText("up")).not.toBeInTheDocument();
+  });
+
+  it("lands directly on the root with a single-entry initial stack, no up button", () => {
+    const initialStack = [toStackEntry(root)];
+
+    render(
+      <GeographyExplorer
+        root={root}
+        unpositionedCount={7}
+        initialStack={initialStack}
+      />
+    );
+
+    expect(screen.getByText("Aerivel")).toBeInTheDocument();
+    expect(capturedProps?.isRoot).toBe(true);
+    expect(screen.queryByText("up")).not.toBeInTheDocument();
   });
 });

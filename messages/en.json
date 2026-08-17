@@ -5,6 +5,7 @@
     },
     "nav": {
       "home": "Home",
+      "search": "Search",
       "deities": "Religion",
       "geography": "Geography",
       "spells": "Spells",
@@ -492,15 +493,35 @@
       "entityPlaceholder": "Select…"
     },
     "drawArea": {
-      "trigger": "Draw Area",
+      "trigger": "Add sub-map",
       "active": "Drag on the map — Esc to cancel"
     },
     "editArea": {
       "trigger": "Edit Area",
       "sublabel": "Resize or move"
     },
+    "mapOptions": {
+      "trigger": "Map options"
+    },
+    "contextMenu": {
+      "ariaLabel": "Map context menu",
+      "copyCoordinates": "Copy Coordinates",
+      "copiedLabel": "Copied!",
+      "addMarker": {
+        "trigger": "Add Marker",
+        "sublabel": "Place a marker here"
+      },
+      "measure": {
+        "trigger": "Measure",
+        "sublabel": "Start distance measurement"
+      },
+      "addPlace": {
+        "trigger": "Add Place",
+        "sublabel": "Create a place here"
+      }
+    },
     "deletePlace": {
-      "trigger": "Delete this place",
+      "trigger": "Delete this map",
       "confirmTitle": "Delete \"{title}\"?",
       "loading": "Working out the consequences…",
       "noImpact": "No consequences: this place has no children and no entities assigned.",
@@ -710,6 +731,18 @@
       "attuned": {
         "label": "Attunement Required",
         "shortLabel": "Attunement"
+      }
+    }
+  },
+  "search": {
+    "page": {
+      "title": "Search",
+      "searchPlaceholder": "Search spells, items, NPCs, deities, factions, places...",
+      "prompt": "Type a name to search across spells, magic items, NPCs, deities, factions and places.",
+      "noMatches": "No matches for \"{term}\".",
+      "seeAll": "See all {count} results in {domain}",
+      "groups": {
+        "places": "Places"
       }
     }
   }

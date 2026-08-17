@@ -140,6 +140,54 @@ describe("MapContextMenu", () => {
     expect(await screen.findByText("Copied!")).toBeInTheDocument();
   });
 
+  it("does not show Add sub-map or Attach entity without their handlers (usability fix, 2026-08-17)", () => {
+    renderMenu();
+    expect(screen.queryByText("Add sub-map")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Attach an existing entity")
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows Add sub-map when onAddSubMap is provided", () => {
+    renderMenu({ onAddSubMap: vi.fn() });
+    expect(screen.getByText("Add sub-map")).toBeInTheDocument();
+  });
+
+  it("hides Add sub-map inside an existing area, the same containment rule as Add Place", () => {
+    renderMenu({ onAddSubMap: vi.fn(), hideAddPlace: true });
+    expect(screen.queryByText("Add sub-map")).not.toBeInTheDocument();
+  });
+
+  it("calls onAddSubMap then closes when Add sub-map is clicked", () => {
+    const onAddSubMap = vi.fn();
+    const { onClose } = renderMenu({ onAddSubMap });
+
+    fireEvent.click(screen.getByText("Add sub-map"));
+
+    expect(onAddSubMap).toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("shows Attach entity when onAttachEntity is provided, translated when given", () => {
+    renderMenu({
+      onAttachEntity: vi.fn(),
+      attachEntityLabel: "Collega un personaggio esistente",
+    });
+    expect(
+      screen.getByText("Collega un personaggio esistente")
+    ).toBeInTheDocument();
+  });
+
+  it("calls onAttachEntity then closes when Attach entity is clicked", () => {
+    const onAttachEntity = vi.fn();
+    const { onClose } = renderMenu({ onAttachEntity });
+
+    fireEvent.click(screen.getByText("Attach an existing entity"));
+
+    expect(onAttachEntity).toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalled();
+  });
+
   it("does not show Edit Area without onEditArea or showEditArea (SPEC-009 T5)", () => {
     renderMenu();
     expect(screen.queryByText("Edit Area")).not.toBeInTheDocument();
@@ -178,6 +226,56 @@ describe("MapContextMenu", () => {
 
     expect(onEditArea).toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it("renders translated copy for the always-shown items when provided, in place of the English defaults", () => {
+    renderMenu({
+      copyCoordinatesLabel: "Copia coordinate",
+      copiedLabel: "Copiato!",
+      addMarkerLabel: "Aggiungi marker",
+      addMarkerSublabel: "Posiziona un marker qui",
+      measureLabel: "Misura",
+      measureSublabel: "Avvia la misurazione della distanza",
+      addPlaceLabel: "Aggiungi luogo",
+      addPlaceSublabel: "Crea un luogo qui",
+      ariaLabel: "Menu contestuale della mappa",
+    });
+
+    expect(screen.getByText("Copia coordinate")).toBeInTheDocument();
+    expect(screen.getByText("Aggiungi marker")).toBeInTheDocument();
+    expect(screen.getByText("Posiziona un marker qui")).toBeInTheDocument();
+    expect(screen.getByText("Misura")).toBeInTheDocument();
+    expect(
+      screen.getByText("Avvia la misurazione della distanza")
+    ).toBeInTheDocument();
+    expect(screen.getByText("Aggiungi luogo")).toBeInTheDocument();
+    expect(screen.getByText("Crea un luogo qui")).toBeInTheDocument();
+    expect(
+      screen.getByRole("menu", { name: "Menu contestuale della mappa" })
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Copy Coordinates")).not.toBeInTheDocument();
+    expect(screen.queryByText("Add Marker")).not.toBeInTheDocument();
+    expect(screen.queryByText("Measure")).not.toBeInTheDocument();
+    expect(screen.queryByText("Add Place")).not.toBeInTheDocument();
+  });
+
+  it("shows translated 'copied' feedback when copiedLabel is provided", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+
+    renderMenu({ copiedLabel: "Copiato!" });
+
+    fireEvent.click(screen.getByText("Copy Coordinates"));
+
+    expect(await screen.findByText("Copiato!")).toBeInTheDocument();
+  });
+
+  it("falls back to the English defaults when no translated copy is provided", () => {
+    renderMenu();
+
+    expect(
+      screen.getByRole("menu", { name: "Map context menu" })
+    ).toBeInTheDocument();
   });
 
   it("closes on outside click but not on a click inside the menu", async () => {

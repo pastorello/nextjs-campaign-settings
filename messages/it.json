@@ -5,6 +5,7 @@
     },
     "nav": {
       "home": "Home",
+      "search": "Cerca",
       "deities": "Religione",
       "geography": "Geografia",
       "spells": "Incantesimi",
@@ -492,15 +493,35 @@
       "entityPlaceholder": "Seleziona…"
     },
     "drawArea": {
-      "trigger": "Disegna area",
+      "trigger": "Aggiungi sottomappa",
       "active": "Trascina sulla mappa — Esc per annullare"
     },
     "editArea": {
       "trigger": "Modifica area",
       "sublabel": "Ridimensiona o sposta"
     },
+    "mapOptions": {
+      "trigger": "Opzioni mappa"
+    },
+    "contextMenu": {
+      "ariaLabel": "Menu contestuale della mappa",
+      "copyCoordinates": "Copia coordinate",
+      "copiedLabel": "Copiato!",
+      "addMarker": {
+        "trigger": "Aggiungi marker",
+        "sublabel": "Posiziona un marker qui"
+      },
+      "measure": {
+        "trigger": "Misura",
+        "sublabel": "Avvia la misurazione della distanza"
+      },
+      "addPlace": {
+        "trigger": "Aggiungi luogo",
+        "sublabel": "Crea un luogo qui"
+      }
+    },
     "deletePlace": {
-      "trigger": "Elimina questo luogo",
+      "trigger": "Elimina questa mappa",
       "confirmTitle": "Eliminare «{title}»?",
       "loading": "Calcolo delle conseguenze…",
       "noImpact": "Nessuna conseguenza: questo luogo non ha figli né personaggi assegnati.",
@@ -710,6 +731,18 @@
       "attuned": {
         "label": "Richiede sintonia",
         "shortLabel": "Sintonia"
+      }
+    }
+  },
+  "search": {
+    "page": {
+      "title": "Cerca",
+      "searchPlaceholder": "Cerca incantesimi, oggetti, PNG, divinità, fazioni, luoghi...",
+      "prompt": "Digita un nome per cercare tra incantesimi, oggetti magici, PNG, divinità, fazioni e luoghi.",
+      "noMatches": "Nessun risultato per \"{term}\".",
+      "seeAll": "Vedi tutti i {count} risultati in {domain}",
+      "groups": {
+        "places": "Luoghi"
       }
     }
   }

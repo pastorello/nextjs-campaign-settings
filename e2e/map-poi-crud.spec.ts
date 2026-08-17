@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import messages from "@/messages/it.json";
 
 /**
  * TD-46 (first sub-slice, see docs/TECH_DEBT.md): the "My Places" POI panel's
@@ -24,7 +25,11 @@ test.describe("POI panel CRUD", () => {
 
     // Add
     await map.click({ button: "right", position: { x: 400, y: 250 } });
-    await page.getByRole("button", { name: /Add Place/ }).click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.contextMenu.addPlace.trigger,
+      })
+      .click();
     await page.getByPlaceholder("Enter place name").fill(title);
     await page.getByRole("button", { name: "Save" }).click();
 

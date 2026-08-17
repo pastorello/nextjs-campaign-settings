@@ -76,16 +76,16 @@ One further new data-layer file for the other five: `app/lib/data/search/searchA
 
 ## 8. Acceptance criteria
 
-- [ ] Searching a name that exists in exactly one domain shows one group with that result.
-- [ ] Searching a name that exists in two domains shows both groups, both including it.
-- [ ] Searching a name that matches nothing shows a single "no matches" message, not six empty groups.
-- [ ] A domain with more results than the per-group cap shows the cap and a "see all" link to that domain's own list page, pre-filtered to the same term.
-- [ ] Clicking a spell/item/NPC/deity/faction result navigates to that domain's list page with `?query=<name>` applied.
-- [ ] Clicking a place result navigates to `/dashboard/geography` and lands on that place's own map, with every ancestor from the root down pre-loaded into the navigation stack (no manual "up" clicks needed to see how it got there).
-- [ ] Searching the root's own title returns it as a valid, clickable place result.
-- [ ] The nav entry point is present on every `/dashboard/**` page and reachable without leaving the existing auth boundary.
-- [ ] All new UI copy (nav label, group headings, "no matches", "see all N results in X") exists in both `messages/it.json` and `messages/en.json`, resolved through `next-intl` — none hardcoded in JSX, per `CLAUDE.md`'s bilingual rule and [ADR-0006](../adr/0006-bilingual-ui.md).
-- [ ] Coverage has not dropped.
+- [x] Searching a name that exists in exactly one domain shows one group with that result.
+- [x] Searching a name that exists in two domains shows both groups, both including it.
+- [x] Searching a name that matches nothing shows a single "no matches" message, not six empty groups.
+- [x] A domain with more results than the per-group cap shows the cap and a "see all" link to that domain's own list page, pre-filtered to the same term.
+- [x] Clicking a spell/item/NPC/deity/faction result navigates to that domain's list page with `?query=<name>` applied.
+- [x] Clicking a place result navigates to `/dashboard/geography` and lands on that place's own map, with every ancestor from the root down pre-loaded into the navigation stack (no manual "up" clicks needed to see how it got there).
+- [x] Searching the root's own title returns it as a valid, clickable place result.
+- [x] The nav entry point is present on every `/dashboard/**` page and reachable without leaving the existing auth boundary.
+- [x] All new UI copy (nav label, group headings, "no matches", "see all N results in X") exists in both `messages/it.json` and `messages/en.json`, resolved through `next-intl` — none hardcoded in JSX, per `CLAUDE.md`'s bilingual rule and [ADR-0006](../adr/0006-bilingual-ui.md).
+- [x] Coverage has not dropped.
 
 ## 9. Implementation plan
 
@@ -118,15 +118,15 @@ One further new data-layer file for the other five: `app/lib/data/search/searchA
 
 ## 10. Task breakdown
 
-- [ ] **T1** — `searchAllDomains`: parallel reads across all six domains (five existing `fetchFiltered*` plus the new `searchPlacesByTitle`), capped per group _(test: a term matching two domains returns both groups; a term matching one domain over the cap returns exactly the cap plus a total count; a term matching nothing returns all-empty; an empty query returns all-empty without issuing any query; a term matching a place title returns it in the Places group)_
-- [ ] **T2** — `/dashboard/search` page and results rendering: grouped output (six possible groups), zero-groups "no matches" state, empty-query prompt state, "see all" links for the five capped domains, result links to `?query=<name>` for spells/items/NPCs/deities/factions and `?place=<id>` for places _(test: renders one/two/zero/six groups correctly; "see all" link only appears over the cap and points at the right domain and term; every string resolves from the message catalogues, none hardcoded)_
-- [ ] **T3** — Nav entry point: new sidenav item, bilingual label, reachable from every dashboard page within the existing auth boundary _(test: the nav item renders on an arbitrary dashboard page and its link resolves to `/dashboard/search`; an unauthenticated request to `/dashboard/search` is redirected the same way any other `/dashboard/**` page is)_
-- [ ] **T4** — Place search landing: `fetchPlaceAncestryChain` (walk `zone.parentId` to root) plus `GeographyExplorer` accepting an optional pre-built initial stack, wired through the geography page's new `?place=<id>` param _(test: `fetchPlaceAncestryChain` returns the full root-to-place chain, nearest-last, for a nested place, and a chain of one for the root itself; a broken/cyclic `parentId` chain stops rather than hanging, the same defensive rule `deriveEntityAncestry` already follows; `GeographyExplorer` with no initial stack behaves exactly as it does today; with one, it renders starting on that place's map with the correct "up" trail)_
+- [x] **T1** — `searchAllDomains`: parallel reads across all six domains (five existing `fetchFiltered*` plus the new `searchPlacesByTitle`), capped per group _(test: a term matching two domains returns both groups; a term matching one domain over the cap returns exactly the cap plus a total count; a term matching nothing returns all-empty; an empty query returns all-empty without issuing any query; a term matching a place title returns it in the Places group)_
+- [x] **T2** — `/dashboard/search` page and results rendering: grouped output (six possible groups), zero-groups "no matches" state, empty-query prompt state, "see all" links for the five capped domains, result links to `?query=<name>` for spells/items/NPCs/deities/factions and `?place=<id>` for places _(test: renders one/two/zero/six groups correctly; "see all" link only appears over the cap and points at the right domain and term; every string resolves from the message catalogues, none hardcoded)_
+- [x] **T3** — Nav entry point: new sidenav item, bilingual label, reachable from every dashboard page within the existing auth boundary _(test: the nav item renders on an arbitrary dashboard page and its link resolves to `/dashboard/search`; an unauthenticated request to `/dashboard/search` is redirected the same way any other `/dashboard/**` page is)_
+- [x] **T4** — Place search landing: `fetchPlaceAncestryChain` (walk `zone.parentId` to root) plus `GeographyExplorer` accepting an optional pre-built initial stack, wired through the geography page's new `?place=<id>` param _(test: `fetchPlaceAncestryChain` returns the full root-to-place chain, nearest-last, for a nested place, and a chain of one for the root itself; a broken/cyclic `parentId` chain stops rather than hanging, the same defensive rule `deriveEntityAncestry` already follows; `GeographyExplorer` with no initial stack behaves exactly as it does today; with one, it renders starting on that place's map with the correct "up" trail)_
 
 ## 11. Outcome
 
-_Fill in at close._
-
-- Shipped: YYYY-MM-DD
-- Deviations from spec and why: …
-- Follow-up debt created: …
+- **Shipped:** 2026-08-17 (T1-T3 and T4 built in parallel by two independent sessions, both merged 2026-08-17; one integration fix landed the same day once both halves were live together — see below).
+- **Deviations from spec and why:** none of substance in either half. T2 reused the existing `ZoneOption` `{id, title}` interface for place results rather than inventing a new type; group headings reuse existing `common.cards.*`/`common.nav.*` keys where they already existed, per §9's explicit instruction to check first.
+- **A real integration bug surfaced only once both halves were live together, not by either half's own unit tests.** `GeographyExplorer.tsx` is a `"use client"` component; `toStackEntry` (and the `PlaceStackEntry` type) were originally defined and exported from that same file. The geography page — a Server Component — imported `toStackEntry` from `GeographyExplorer` to build the initial stack for a `?place=<id>` request, per T4's own design. That is invalid: every export of a `"use client"` file becomes a client reference, even a plain, side-effect-free function, and Next.js throws at request time if server code calls one directly ("Attempted to call toStackEntry() from the server but toStackEntry is on the client"). Neither `pnpm typecheck` nor `pnpm lint` catches this — it is a Next.js server/client boundary rule, not a type error — and both PRs' own unit tests passed anyway, because `vi.mock("@/app/ui/geography/GeographyExplorer", ...)` substitutes the whole module and never exercises the real one. It was only caught by an actual browser request against the merged result: clicking a place search result 500'd with "Qualcosa è andato storto."
+- **Fix:** moved `toStackEntry`/`PlaceStackEntry` out of `GeographyExplorer.tsx` into a new plain module, `app/modules/maps/lib/utils/toStackEntry.ts` (no directive, safe from either side of the boundary) — the same "read once, index in memory" neighbourhood as `deriveEntityAncestry.ts`, which this function is conceptually a sibling of. `GeographyExplorer.tsx` and the geography page both now import from there directly. Added `toStackEntry.test.ts` (this function had no isolated unit test before — only indirect coverage through `GeographyExplorer.test.tsx`'s mocks, which is exactly what let the boundary violation slip through). Full DoD re-verified green after the fix (175 files / 1268 tests), and the fix was confirmed against a real browser session: searching, clicking a three-levels-deep place, landing directly on its own map, and walking "up" through the full ancestor trail (Barak Thor → Terra → Piani di Esistenza) back to the root.
+- **Follow-up debt created:** none filed. The fix is structural (the function moved to where it always should have lived) rather than a workaround, so there is nothing left to track. Worth remembering as a pattern, not a debt item: a value exported from a `"use client"` file is never safely callable from a Server Component, and this class of bug is invisible to `pnpm typecheck`/`pnpm lint`/mocked unit tests alike — only a real request (dev server or `pnpm build`) surfaces it.

@@ -8,47 +8,17 @@ import {
   MapLoadingSpinner,
 } from "@/app/modules/maps/components/map";
 import { MapProvider } from "@/app/modules/maps/contexts/MapContext";
-import {
-  parsePlaceMapBounds,
-  parsePlaceMapInitialView,
-  parsePlaceMapInitialZoom,
-} from "@/app/modules/maps/lib/utils/placeMapView";
 import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildren";
 import type RootPlace from "@/app/lib/definitions/interfaces/maps/RootPlace";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import IconType from "@/app/ui/buttons/BaseButton/IconType";
 import PageTitle from "@/app/ui/typography/PageTitle";
 import WorldMap from "@/app/ui/geography/WorldMap";
+import toStackEntry, {
+  type PlaceStackEntry,
+} from "@/app/modules/maps/lib/utils/toStackEntry";
 
-interface PlaceStackEntry {
-  id: number;
-  title: string;
-  // Empty for a positioned place with no map of its own yet (SPEC-007 T1) —
-  // `WorldMap` renders empty ground with `MapUploadControl` on it rather
-  // than an image overlay.
-  mapUrl: string;
-  bounds: L.LatLngBoundsExpression;
-  initialView: L.LatLngExpression;
-  initialZoom: number;
-}
-
-function toStackEntry(place: {
-  id: number;
-  title: string;
-  mapImage: string | null;
-  mapBounds: unknown;
-  mapInitialView: unknown;
-  mapInitialZoom: number | null;
-}): PlaceStackEntry {
-  return {
-    id: place.id,
-    title: place.title,
-    mapUrl: place.mapImage ? `/api/maps/${place.mapImage}/image` : "",
-    bounds: parsePlaceMapBounds(place.mapBounds),
-    initialView: parsePlaceMapInitialView(place.mapInitialView),
-    initialZoom: parsePlaceMapInitialZoom(place.mapInitialZoom),
-  };
-}
+export type { PlaceStackEntry };
 
 /**
  * The tree-navigation view backing `/dashboard/geography` (SPEC-004 §10 M7),
@@ -64,15 +34,24 @@ function toStackEntry(place: {
 export default function GeographyExplorer({
   root,
   unpositionedCount,
+  initialStack,
 }: {
   root: RootPlace;
   // Tree-wide, not scoped to the place in view (SPEC-007 T2) — how much of
   // the world is still undrawn. Rendered even at zero: its absence would be
   // ambiguous with "not computed" (SPEC-007 §5 edge cases).
   unpositionedCount: number;
+  // A pre-built root-to-place chain (SPEC-011 T4), from a cross-entity
+  // place search result — landing the DM directly on that place's own map
+  // with the full "up" trail already in place, rather than at the root.
+  // Absent (the default) preserves today's behaviour exactly: start at
+  // `[root]`.
+  initialStack?: PlaceStackEntry[];
 }) {
   const t = useTranslations("geography");
-  const [stack, setStack] = useState<PlaceStackEntry[]>([toStackEntry(root)]);
+  const [stack, setStack] = useState<PlaceStackEntry[]>(
+    initialStack ?? [toStackEntry(root)]
+  );
   const current = stack[stack.length - 1] ?? stack[0];
 
   const handleDescend = (child: NavigableChild) => {
@@ -107,8 +86,8 @@ export default function GeographyExplorer({
   if (!current) return null;
 
   return (
-    <div>
-      <div className="mb-4 flex items-center gap-4">
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="mb-4 flex flex-none items-center gap-4">
         {stack.length > 1 && (
           <BaseButton icon={IconType.chevronUp} onClick={handleAscend}>
             {t("up")}
@@ -119,7 +98,7 @@ export default function GeographyExplorer({
           {t("unpositionedCount", { count: unpositionedCount })}
         </span>
       </div>
-      <div className="relative w-full h-screen">
+      <div className="relative w-full flex-1 min-h-0">
         <MapErrorBoundary>
           <MapProvider>
             <WorldMap

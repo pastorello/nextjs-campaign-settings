@@ -1,6 +1,6 @@
 # ADR-0010: Store an entity's location as a direct reference, not derive it from a pin
 
-- **Status:** Proposed
+- **Status:** Accepted. _(Marked Proposed from 2026-08-08, this ADR's own date, until the 2026-08-17 Phase 3 closure audit noticed the status line had simply never been updated — the decision it records was implemented as [SPEC-008](../specs/008-entity-location-reference.md), shipped and closed the same day it was drafted, and every spec/ADR built since (SPEC-009, SPEC-010, SPEC-011) treats the `zoneId`/`poiId` model as settled fact, not a live proposal.)_
 - **Date:** 2026-08-08
 - **Deciders:** the maintainer (DM), with Claude Code
 - **Related:** partially supersedes [ADR-0009](./0009-world-tree-as-one-polymorphic-table.md); records the decision behind [SPEC-008](../specs/008-entity-location-reference.md); SPEC-004 (the tree this still builds on), SPEC-002 (`poi.category` markers, which become the `poi`/landmark half of this split)

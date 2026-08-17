@@ -1,9 +1,9 @@
 # Technical Debt Register
 
-**Last updated:** 2026-08-13
+**Last updated:** 2026-08-17
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-78.** Everything else in the summary table is closed.
+**Open items: TD-78, TD-79.** Everything else in the summary table is closed.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -100,6 +100,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-76 | ✅ `renderRichText` injects stored text as raw HTML with no sanitisation                                    | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-77 | ✅ An entity's location is resolved through two unreconciled read paths                                     | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-78 | The NPC admin list lost its Fazione column filter when the field went table-backed                          | 🟢 Low               | M      | 3     |
+| TD-79 | The unpositioned-places count doesn't distinguish "blocked on the parent's map" from any other cause        | 🟢 Low               | S      | 3     |
 
 ---
 
@@ -140,3 +141,27 @@ same size of work: a `FactionFilterControl` (or a generalisation of
 faction filtering on the admin list, and building it without being asked is
 exactly what SPEC-006 §3 and its own §9 open question 2 warn against. Pick
 this up if the DM asks for it back, not before.
+
+### TD-79 — The unpositioned-places count doesn't distinguish "blocked on the parent's map" from any other cause
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-08-10, [SPEC-007](./specs/007-placement-backlog.md) T2 — filed 2026-08-17 during the Phase 3 closure audit, since it had only ever been recorded as prose in `ROADMAP.md`, with no number of its own
+
+`countUnpositionedPlaces` (`app/lib/data/maps/countUnpositionedPlaces.ts`) reports
+one tree-wide number: every place with `lat: null` and a non-null `parentId`. A
+place whose own parent has no map yet — so it structurally cannot be
+positioned until the DM uploads a map one level up — counts identically to a
+place whose parent already has a map and simply hasn't been drawn on it yet.
+The two situations have different fixes (upload a map vs. draw a pin), and
+the count cannot tell the DM which one they're looking at.
+
+**Why this is Low, not Medium.** `MapUploadControl` (SPEC-007 T1) already
+surfaces the fix in practice: the moment the DM reaches the mapless parent,
+the upload control is right there. The gap is in the report's wording, not
+in the workflow — the number is honest, just less specific than it could be.
+
+**The fix, sketched in SPEC-007 §10 T2's own note:** split the count (or add
+a second one) that distinguishes "blocked on an ancestor's missing map" from
+"map exists, not yet drawn." Doing this precisely means walking each
+unpositioned place's `parentId` chain to check whether any ancestor also
+lacks a map — not a single-query `WHERE` clause — so it is a real, if small,
+piece of work, not a one-line change.

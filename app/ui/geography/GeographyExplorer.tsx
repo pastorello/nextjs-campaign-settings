@@ -20,7 +20,7 @@ import IconType from "@/app/ui/buttons/BaseButton/IconType";
 import PageTitle from "@/app/ui/typography/PageTitle";
 import WorldMap from "@/app/ui/geography/WorldMap";
 
-interface PlaceStackEntry {
+export interface PlaceStackEntry {
   id: number;
   title: string;
   // Empty for a positioned place with no map of its own yet (SPEC-007 T1) —
@@ -32,7 +32,14 @@ interface PlaceStackEntry {
   initialZoom: number;
 }
 
-function toStackEntry(place: {
+/**
+ * Shared with `fetchPlaceAncestryChain` (SPEC-011 T4): a cross-entity place
+ * search result resolves an ancestor chain of plain zone rows server-side,
+ * then maps each one through this same function rather than duplicating
+ * its field mapping, so a stack seeded from a search result and one built
+ * by descending the tree normally are shaped identically.
+ */
+export function toStackEntry(place: {
   id: number;
   title: string;
   mapImage: string | null;
@@ -64,15 +71,24 @@ function toStackEntry(place: {
 export default function GeographyExplorer({
   root,
   unpositionedCount,
+  initialStack,
 }: {
   root: RootPlace;
   // Tree-wide, not scoped to the place in view (SPEC-007 T2) — how much of
   // the world is still undrawn. Rendered even at zero: its absence would be
   // ambiguous with "not computed" (SPEC-007 §5 edge cases).
   unpositionedCount: number;
+  // A pre-built root-to-place chain (SPEC-011 T4), from a cross-entity
+  // place search result — landing the DM directly on that place's own map
+  // with the full "up" trail already in place, rather than at the root.
+  // Absent (the default) preserves today's behaviour exactly: start at
+  // `[root]`.
+  initialStack?: PlaceStackEntry[];
 }) {
   const t = useTranslations("geography");
-  const [stack, setStack] = useState<PlaceStackEntry[]>([toStackEntry(root)]);
+  const [stack, setStack] = useState<PlaceStackEntry[]>(
+    initialStack ?? [toStackEntry(root)]
+  );
   const current = stack[stack.length - 1] ?? stack[0];
 
   const handleDescend = (child: NavigableChild) => {

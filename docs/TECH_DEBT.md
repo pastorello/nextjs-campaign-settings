@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-17
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-78, TD-79.** Everything else in the summary table is closed.
+**Open items: TD-78, TD-79, TD-80.** Everything else in the summary table is closed.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -101,6 +101,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-77 | ✅ An entity's location is resolved through two unreconciled read paths                                     | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-78 | The NPC admin list lost its Fazione column filter when the field went table-backed                          | 🟢 Low               | M      | 3     |
 | TD-79 | The unpositioned-places count doesn't distinguish "blocked on the parent's map" from any other cause        | 🟢 Low               | S      | 3     |
+| TD-80 | Deity, magic-item, and faction create/update Server Actions lack unit and e2e test coverage                 | 🟡 Medium            | M      | 2     |
 
 ---
 
@@ -165,3 +166,30 @@ a second one) that distinguishes "blocked on an ancestor's missing map" from
 unpositioned place's `parentId` chain to check whether any ancestor also
 lacks a map — not a single-query `WHERE` clause — so it is a real, if small,
 piece of work, not a one-line change.
+
+### TD-80 — Deity, magic-item, and faction create/update Server Actions lack unit and e2e test coverage
+
+**Severity:** 🟡 Medium · **Effort:** M · **Found:** 2026-08-17, during a coverage audit
+
+Six Server Actions have no test coverage at all:
+
+- `app/lib/data/deities/createDeity.ts`, `updateDeity.ts`
+- `app/lib/data/magicitems/createMagicItem.ts`, `updateMagicItem.ts`
+- `app/lib/data/faction/createFaction.ts`, `updateFaction.ts`
+
+All six have `requireSession()` guards in place and input validation via Zod
+validators from `PageMeta` — the audit confirmed no auth or correctness bugs.
+This is purely a **coverage debt**, not a security issue. By contrast, spells
+and NPC domains have e2e CRUD coverage (`e2e/spells-crud.spec.ts`,
+`e2e/npc-crud.spec.ts`), and all maps mutations have unit test coverage
+(patterns visible in `app/lib/data/maps/*.test.ts` — e.g. `updatePoi.test.ts`,
+`createRootPlace.test.ts`).
+
+Deities e2e is list-only (no create/update/delete flow); magic-items and
+factions have no e2e CRUD spec at all.
+
+**The fix:** write unit tests following the pattern in `app/lib/data/maps/`
+mutation tests (mock Prisma, auth, and cache revalidation; test the shape of
+the write payload); then write e2e CRUD specs following
+`e2e/spells-crud.spec.ts` or `e2e/npc-crud.spec.ts` as the template, covering
+create, update, and delete flows.

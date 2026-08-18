@@ -7,7 +7,7 @@
 
 ## Context
 
-What forces are at play? What problem needs deciding? Include the constraints that matter — team size, existing stack, time budget, the fact that this is a portfolio project. State facts, not conclusions.
+What forces are at play? What problem needs deciding? Include the constraints that matter — team size, existing stack, time budget, the fact that this is maintained by one person and has to stay cheap to pick back up months later. State facts, not conclusions.
 
 ## Decision
 

@@ -157,6 +157,7 @@ function WorldMap({
     isOpen: isContextMenuOpen,
     position: contextMenuPosition,
     close: closeContextMenu,
+    runWithoutClosing,
   } = useMapContextMenu();
 
   // User markers hook
@@ -598,15 +599,24 @@ function WorldMap({
           // a previous render's own computed floor on any later one), so
           // the floor is loosened first or the "fit" would just echo the
           // old floor back unchanged.
-          map.setMinZoom(-Infinity);
-          const minZoom = computeMinZoom(
-            map.getBoundsZoom(bounds),
-            initialZoom
-          );
-          map.setMinZoom(minZoom);
-          map.setMaxZoom(10);
-          map.setMaxBounds(bounds);
-          map.setView(initialView, initialZoom);
+          //
+          // `setView` fires Leaflet's `movestart` — wrapped in
+          // `runWithoutClosing` so it can never be mistaken for the user
+          // dragging/scrolling the map and close a context menu that
+          // happens to be open (unlikely for this interim call, which runs
+          // at mount, but the corrective re-fit below is exactly this
+          // situation and the two are kept consistent).
+          runWithoutClosing(() => {
+            map.setMinZoom(-Infinity);
+            const minZoom = computeMinZoom(
+              map.getBoundsZoom(bounds),
+              initialZoom
+            );
+            map.setMinZoom(minZoom);
+            map.setMaxZoom(10);
+            map.setMaxBounds(bounds);
+            map.setView(initialView, initialZoom);
+          });
 
           image.once("load", () => {
             if (cancelled) return;
@@ -644,11 +654,22 @@ function WorldMap({
             // fit rather than the floor just set above. `fitBounds` below
             // is what the map is about to open at, so it doubles as its
             // own `openZoom`.
-            map.setMinZoom(-Infinity);
-            const fitZoom = map.getBoundsZoom(fittedBounds);
-            map.setMinZoom(computeMinZoom(fitZoom, fitZoom));
-            map.setMaxBounds(fittedBounds);
-            map.fitBounds(fittedBounds);
+            //
+            // This whole re-fit is wrapped in `runWithoutClosing`: it fires
+            // whenever the browser finishes loading the image, which is
+            // asynchronous and can land well after mount — including while
+            // a DM has the right-click context menu open. `fitBounds` fires
+            // Leaflet's `movestart` exactly as a user drag/scroll would,
+            // and unwrapped that closed the menu (and detached its
+            // "Aggiungi luogo" button) mid-click in CI, a real regression
+            // this fixes rather than a flaky test.
+            runWithoutClosing(() => {
+              map.setMinZoom(-Infinity);
+              const fitZoom = map.getBoundsZoom(fittedBounds);
+              map.setMinZoom(computeMinZoom(fitZoom, fitZoom));
+              map.setMaxBounds(fittedBounds);
+              map.fitBounds(fittedBounds);
+            });
           });
         }
       })

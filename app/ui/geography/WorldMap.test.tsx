@@ -166,6 +166,11 @@ vi.mock("@/app/ui/geography/DeletePlaceButton", () => ({
   ),
 }));
 
+// A real pass-through — tests that care whether WorldMap actually routes
+// its camera moves through this wrapper (rather than calling `map.setView`/
+// `fitBounds` directly, bypassing it) assert on this mock's own call log,
+// not just on `setView`/`fitBounds` themselves.
+const runWithoutClosing = vi.fn((fn: () => void) => fn());
 const useMapContextMenu = vi.fn(() => ({
   isOpen: false,
   position: null as {
@@ -174,6 +179,7 @@ const useMapContextMenu = vi.fn(() => ({
     latlng: { lat: number; lng: number };
   } | null,
   close: vi.fn(),
+  runWithoutClosing,
 }));
 vi.mock("@/app/modules/maps/hooks/useMapContextMenu", () => ({
   useMapContextMenu: () => useMapContextMenu(),
@@ -341,6 +347,7 @@ beforeEach(() => {
     isOpen: false,
     position: null,
     close: vi.fn(),
+    runWithoutClosing,
   });
 });
 
@@ -417,6 +424,53 @@ describe("WorldMap", () => {
     // (aspect-correct) bounds — not the stored/default square passed at
     // mount, before the image's real size was known.
     expect(fitBounds).toHaveBeenLastCalledWith(fittedBounds);
+  });
+
+  // Regression (CI flake traced to a real bug, not test flake): the image
+  // `load` event this effect waits on fires asynchronously and, in CI,
+  // sometimes lands while a DM has just opened the right-click context
+  // menu. `fitBounds`/`setView` fire Leaflet's `movestart`, which
+  // `useMapContextMenu` treats as "the user is navigating away" and closes
+  // the menu — detaching its "Add Place" button out from under a
+  // Playwright click mid-action. Both camera moves this effect makes must
+  // go through `runWithoutClosing` so that hook can tell this apart from an
+  // actual user drag/scroll instead of closing every open menu it lands on.
+  it("routes both camera moves (the interim framing and the TD-81 corrective re-fit) through runWithoutClosing, not straight to the map (regression)", async () => {
+    render(
+      <WorldMap
+        parentId={1}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        mapUrl="/maps/test.jpg"
+        bounds={bounds}
+        initialView={[500, 500]}
+        initialZoom={1}
+        onDescend={onDescend}
+        onMapChanged={vi.fn()}
+        onDeleted={vi.fn()}
+      />
+    );
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
+
+    // The interim `setView`, called at mount, already went through
+    // `runWithoutClosing` — before the image has even reported it loaded.
+    expect(runWithoutClosing).toHaveBeenCalledTimes(1);
+    expect(setView).toHaveBeenCalledWith([500, 500], 1);
+
+    act(() => {
+      imageOnLoad?.();
+    });
+
+    // The corrective re-fit, once the image "loads," is the second call —
+    // and `fitBounds` only having fired at all proves it happened *inside*
+    // one of `runWithoutClosing`'s calls, since the mock's pass-through
+    // implementation is the only thing that ever invokes the wrapped
+    // callback.
+    expect(runWithoutClosing).toHaveBeenCalledTimes(2);
+    expect(fitBounds).toHaveBeenCalled();
   });
 
   it("falls back to the stored bounds if the loaded image reports no natural size", async () => {
@@ -899,6 +953,7 @@ describe("WorldMap — descending into an area instead of placing a point (SPEC-
       isOpen: true,
       position: { x: 1, y: 2, latlng: { lat: 5, lng: 5 } },
       close: vi.fn(),
+      runWithoutClosing,
     });
     await renderMap();
 
@@ -913,6 +968,7 @@ describe("WorldMap — descending into an area instead of placing a point (SPEC-
       isOpen: true,
       position: { x: 1, y: 2, latlng: { lat: 50, lng: 50 } },
       close: vi.fn(),
+      runWithoutClosing,
     });
     await renderMap();
 
@@ -1012,6 +1068,7 @@ describe("WorldMap — resizing and moving an existing area (SPEC-009 T5)", () =
       isOpen: true,
       position: { x: 1, y: 2, latlng: { lat: 5, lng: 5 } },
       close: vi.fn(),
+      runWithoutClosing,
     });
   });
 

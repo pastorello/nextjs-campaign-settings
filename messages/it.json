@@ -734,6 +734,14 @@
       }
     }
   },
+  "treasure": {
+    "categories": {
+      "coins": "Monete",
+      "artObjects": "Oggetti d'arte",
+      "gems": "Gemme",
+      "tradeGoods": "Beni di scambio"
+    }
+  },
   "search": {
     "page": {
       "title": "Cerca",

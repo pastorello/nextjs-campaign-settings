@@ -734,6 +734,14 @@
       }
     }
   },
+  "treasure": {
+    "categories": {
+      "coins": "Coins",
+      "artObjects": "Art Objects",
+      "gems": "Gems",
+      "tradeGoods": "Trade Goods"
+    }
+  },
   "search": {
     "page": {
       "title": "Search",

@@ -10,7 +10,7 @@ export default async function SideNav() {
   const t = await getTranslations("common.nav");
 
   return (
-    <div className="flex h-full flex-col py-4 px-2">
+    <div className="flex h-full flex-col py-4 px-2 md:overflow-y-auto">
       <Link
         className="mb-2 flex h-26 items-end justify-start rounded-md bg-blue-600 p-4 py-4"
         href="/"

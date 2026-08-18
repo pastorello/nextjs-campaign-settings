@@ -511,8 +511,8 @@
       "copyCoordinates": "Copia coordinate",
       "copiedLabel": "Copiato!",
       "addMarker": {
-        "trigger": "Aggiungi marker",
-        "sublabel": "Posiziona un marker qui"
+        "trigger": "Aggiungi un marker temporaneo",
+        "sublabel": "Scompare al ricaricamento della pagina"
       },
       "measure": {
         "trigger": "Misura",
@@ -522,6 +522,9 @@
         "trigger": "Aggiungi luogo",
         "sublabel": "Crea un luogo qui"
       }
+    },
+    "temporaryMarkers": {
+      "clear": "{count, plural, one {Rimuovi il marker temporaneo} other {Rimuovi # marker temporanei}}"
     },
     "deletePlace": {
       "trigger": "Elimina questa mappa",

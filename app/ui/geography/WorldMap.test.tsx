@@ -1,4 +1,10 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { toast } from "sonner";
 
@@ -178,8 +184,13 @@ const useMapContextMenu = vi.fn(() => ({
 vi.mock("@/app/modules/maps/hooks/useMapContextMenu", () => ({
   useMapContextMenu: () => useMapContextMenu(),
 }));
+const useMapMarkers = vi.fn(() => ({
+  markers: [] as { id: string; lat: number; lng: number }[],
+  addMarker: vi.fn(),
+  clearMarkers: vi.fn(),
+}));
 vi.mock("@/app/modules/maps/hooks/useMapMarkers", () => ({
-  useMapMarkers: () => ({ addMarker: vi.fn() }),
+  useMapMarkers: () => useMapMarkers(),
 }));
 const reloadPOIs = vi.fn();
 vi.mock("@/app/modules/maps/hooks/usePOIManager", () => ({
@@ -282,6 +293,11 @@ beforeEach(() => {
     isOpen: false,
     position: null,
     close: vi.fn(),
+  });
+  useMapMarkers.mockReturnValue({
+    markers: [],
+    addMarker: vi.fn(),
+    clearMarkers: vi.fn(),
   });
 });
 
@@ -998,5 +1014,41 @@ describe("WorldMap — resizing and moving an existing area (SPEC-009 T5)", () =
         "grab"
       );
     });
+  });
+});
+
+describe("WorldMap — dismissing temporary markers (TD-86)", () => {
+  it("shows no clear control when there are no temporary markers", async () => {
+    await renderMap();
+    expect(
+      screen.queryByText("clear")
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows a clear control once a temporary marker exists, for every viewer (not DM-gated)", async () => {
+    useMapMarkers.mockReturnValue({
+      markers: [{ id: "marker-1", lat: 1, lng: 2 }],
+      addMarker: vi.fn(),
+      clearMarkers: vi.fn(),
+    });
+    await renderMap();
+
+    expect(
+      screen.getByText("clear")
+    ).toBeInTheDocument();
+  });
+
+  it("calls clearMarkers when the clear control is clicked", async () => {
+    const clearMarkers = vi.fn();
+    useMapMarkers.mockReturnValue({
+      markers: [{ id: "marker-1", lat: 1, lng: 2 }],
+      addMarker: vi.fn(),
+      clearMarkers,
+    });
+    await renderMap();
+
+    fireEvent.click(screen.getByText("clear"));
+
+    expect(clearMarkers).toHaveBeenCalled();
   });
 });

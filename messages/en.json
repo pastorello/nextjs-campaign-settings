@@ -511,8 +511,8 @@
       "copyCoordinates": "Copy Coordinates",
       "copiedLabel": "Copied!",
       "addMarker": {
-        "trigger": "Add Marker",
-        "sublabel": "Place a marker here"
+        "trigger": "Add a temporary marker",
+        "sublabel": "Disappears on reload"
       },
       "measure": {
         "trigger": "Measure",
@@ -522,6 +522,9 @@
         "trigger": "Add Place",
         "sublabel": "Create a place here"
       }
+    },
+    "temporaryMarkers": {
+      "clear": "{count, plural, one {Remove the temporary marker} other {Remove # temporary markers}}"
     },
     "deletePlace": {
       "trigger": "Delete this map",

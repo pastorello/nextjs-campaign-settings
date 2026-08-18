@@ -99,6 +99,7 @@ function WorldMap({
   const tContextMenu = useTranslations("geography.contextMenu");
   const tDrawArea = useTranslations("geography.drawArea");
   const tAttachEntity = useTranslations("geography.attachEntity");
+  const tTemporaryMarkers = useTranslations("geography.temporaryMarkers");
   const [isMeasurementOpen, setIsMeasurementOpen] = useState(false);
   // Consolidated map controls (usability fix, 2026-08-17): these three used
   // to be always-visible floating buttons of their own; now each is a
@@ -155,8 +156,13 @@ function WorldMap({
     close: closeContextMenu,
   } = useMapContextMenu();
 
-  // User markers hook
-  const { addMarker } = useMapMarkers();
+  // User markers hook — ephemeral, table-talk scratch pins (TD-86): no
+  // persistence anywhere by design, so `clearMarkers` is this component's
+  // only way to let the DM (or a player — this control isn't DM-gated) get
+  // rid of them before a reload does it automatically. `removeMarker`
+  // (per-marker) stays unused here; a bulk "clear temporary markers" control
+  // was the simpler of the two dismiss shapes TD-86 proposed.
+  const { markers, addMarker, clearMarkers } = useMapMarkers();
 
   // POI Manager hook, scoped to the place currently being viewed
   const {
@@ -616,6 +622,20 @@ function WorldMap({
           />
         }
       />
+
+      {/* Dismiss the temporary markers (TD-86) — a scratch pin for table
+          talk, not a record of anything, so its only UI besides "add" is
+          "clear them all." Visible to every viewer, not just the DM
+          (TD-86: "this one is for players too"). */}
+      {markers.length > 0 && (
+        <button
+          type="button"
+          onClick={clearMarkers}
+          className="absolute top-4 right-4 z-[1000] flex items-center gap-2 rounded-lg bg-white dark:bg-slate-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-100 shadow-lg hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
+        >
+          {tTemporaryMarkers("clear", { count: markers.length })}
+        </button>
+      )}
 
       {/* Attach an existing NPC/deity to the place currently being viewed
           (SPEC-008 §5/T5) — the map's own entry point into the assignment

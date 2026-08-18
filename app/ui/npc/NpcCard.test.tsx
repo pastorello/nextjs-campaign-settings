@@ -91,4 +91,22 @@ describe("NpcCard", () => {
     expect(screen.getByText("Wise and mischievous")).toBeInTheDocument();
     expect(screen.getByText("A meddling wizard.")).toBeInTheDocument();
   });
+
+  it("marks the chevron button as a `group` and rotates the icon, not the button (TD-89)", () => {
+    render(<NpcCard cardItem={item} />);
+
+    // The chevron lives in its own DisclosureButton, separate from the one
+    // wrapping the name/title/position (SPEC-006 T8) — found by the
+    // aria-label rather than role, since the card has several buttons.
+    const toggleButton = screen.getByLabelText("common.card.toggleDetails");
+
+    // TD-89: a `group-data-open:*` variant on a descendant only matches
+    // when this button itself carries `group` — it did not before the fix.
+    expect(toggleButton).toHaveClass("group");
+
+    // The rotation belongs on the icon, not the button.
+    const icon = toggleButton.querySelector("svg");
+    expect(icon).toHaveClass("group-data-open:rotate-180");
+    expect(toggleButton).not.toHaveClass("group-data-open:rotate-180");
+  });
 });

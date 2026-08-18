@@ -35,3 +35,27 @@ export function parsePlaceMapInitialView(value: unknown): L.LatLngExpression {
 export function parsePlaceMapInitialZoom(value: number | null): number {
   return value ?? DEFAULT_MAP_INITIAL_ZOOM;
 }
+
+/**
+ * TD-81: once a map's image has actually loaded, its natural pixel
+ * dimensions are the only trustworthy source for framing — nothing writes
+ * `mapBounds` correctly yet (see the module doc comment above), so the
+ * stored/default bounds above only serve as an interim placeholder until
+ * the image reports its own size. `WorldMap` applies this once the image's
+ * `load` event fires.
+ */
+
+/**
+ * The bounds that render an image of these pixel dimensions at 1:1 on every
+ * axis — no stretch — in Leaflet's `L.CRS.Simple` `[y, x]` convention (the
+ * same one `DEFAULT_MAP_BOUNDS` above uses: `[[0,0],[height,width]]`).
+ */
+export function computeImageBounds(
+  naturalWidth: number,
+  naturalHeight: number
+): L.LatLngBoundsExpression {
+  return [
+    [0, 0],
+    [naturalHeight, naturalWidth],
+  ];
+}

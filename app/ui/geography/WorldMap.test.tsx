@@ -226,12 +226,47 @@ vi.mock("@/app/modules/maps/hooks/useLeafletMap", () => ({
 }));
 
 const imageAddTo = vi.fn();
-const imageOverlay = vi.fn((_url: string, _bounds: unknown) => ({
-  addTo: imageAddTo,
-  remove: vi.fn(),
-}));
+const imageRemove = vi.fn();
+const imageSetBounds = vi.fn();
+const imageSetOpacity = vi.fn();
+// The image-overlay bootstrap effect (TD-81/TD-87) waits for the loaded
+// image's own `load` event before trusting its natural size, rather than
+// firing on every render — `once("load", cb)` records that callback here
+// instead of invoking it, so tests can choose whether/when the image has
+// "finished loading."
+let imageOnLoad: (() => void) | undefined;
+// Matches the default `bounds` fixture below (a 1000x1000 square) so tests
+// that don't care about TD-81's aspect-ratio correction see the same
+// numbers before and after the image "loads." Tests that do care override
+// these before rendering.
+let imageNaturalWidth: number | undefined = 1000;
+let imageNaturalHeight: number | undefined = 1000;
+const imageOverlay = vi.fn(
+  (_url: string, _bounds: unknown, _options?: unknown) => ({
+    addTo: imageAddTo,
+    remove: imageRemove,
+    setBounds: imageSetBounds,
+    setOpacity: imageSetOpacity,
+    getElement: () => ({
+      naturalWidth: imageNaturalWidth,
+      naturalHeight: imageNaturalHeight,
+    }),
+    once: (event: string, cb: () => void) => {
+      if (event === "load") imageOnLoad = cb;
+    },
+  })
+);
 vi.mock("leaflet", () => ({
-  imageOverlay: (url: string, bounds: unknown) => imageOverlay(url, bounds),
+  imageOverlay: (url: string, bounds: unknown, options?: unknown) =>
+    imageOverlay(url, bounds, options),
+  // Real Leaflet's `ImageOverlay.setBounds` requires an actual
+  // `L.LatLngBounds` instance, not a plain tuple — reassembling the two
+  // corners into a tuple is enough here since the mocked `image.setBounds`
+  // below only records what it was called with.
+  latLngBounds: (southWest: unknown, northEast: unknown) => [
+    southWest,
+    northEast,
+  ],
 }));
 
 vi.mock("sonner", () => ({
@@ -247,7 +282,13 @@ const bounds: L.LatLngBoundsExpression = [
 
 const onDescend = vi.fn();
 
-/** Renders WorldMap and waits for its image-overlay bootstrap effect to settle. */
+/**
+ * Renders WorldMap, waits for its image-overlay bootstrap effect to settle,
+ * then simulates the image finishing its load — the state most tests care
+ * about, since that's what a DM actually sees. Tests specifically about the
+ * interim (pre-load) or the load-triggered reframing call `render` directly
+ * instead and drive `imageOnLoad` themselves.
+ */
 async function renderMap(mapUrl = "/maps/test.jpg") {
   render(
     <WorldMap
@@ -267,6 +308,9 @@ async function renderMap(mapUrl = "/maps/test.jpg") {
   await waitFor(() => {
     expect(imageAddTo).toHaveBeenCalled();
   });
+  act(() => {
+    imageOnLoad?.();
+  });
 }
 
 beforeEach(() => {
@@ -274,6 +318,9 @@ beforeEach(() => {
   drawAreaCallCount = 0;
   drawAreaOptions = undefined;
   editAreaOptions = undefined;
+  imageOnLoad = undefined;
+  imageNaturalWidth = 1000;
+  imageNaturalHeight = 1000;
   createPlace.mockResolvedValue({ ok: true, id: 1 });
   updateZonePosition.mockResolvedValue({ ok: true });
   useNavigableChildren.mockReturnValue([]);
@@ -286,13 +333,87 @@ beforeEach(() => {
 });
 
 describe("WorldMap", () => {
-  it("loads the image overlay onto the map on mount", async () => {
-    await renderMap();
+  it("loads the image overlay onto the map on mount, hidden until it reports its own size (TD-81)", async () => {
+    render(
+      <WorldMap
+        parentId={1}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        mapUrl="/maps/test.jpg"
+        bounds={bounds}
+        initialView={[500, 500]}
+        initialZoom={1}
+        onDescend={onDescend}
+        onMapChanged={vi.fn()}
+        onDeleted={vi.fn()}
+      />
+    );
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
 
-    expect(imageOverlay).toHaveBeenCalledWith("/maps/test.jpg", bounds);
+    // Interim framing, before the image's `load` event fires — the same
+    // stored/default view this component has always opened with, but
+    // painted invisible (opacity 0) so a wrong-aspect-ratio square is never
+    // actually shown while the real dimensions are still unknown.
+    expect(imageOverlay).toHaveBeenCalledWith("/maps/test.jpg", bounds, {
+      opacity: 0,
+    });
     expect(imageAddTo).toHaveBeenCalledWith(fakeMap);
     expect(setMaxBounds).toHaveBeenCalledWith(bounds);
     expect(setView).toHaveBeenCalledWith([500, 500], 1);
+    expect(imageSetOpacity).not.toHaveBeenCalled();
+  });
+
+  it("reframes to the image's own aspect ratio once it reports its natural size, instead of the stored square (TD-81)", async () => {
+    // A 16:9 image — distinct from the 1:1 `bounds` fixture, so a bug that
+    // never corrects past the square default is caught.
+    imageNaturalWidth = 1600;
+    imageNaturalHeight = 900;
+    render(
+      <WorldMap
+        parentId={1}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        mapUrl="/maps/test.jpg"
+        bounds={bounds}
+        initialView={[500, 500]}
+        initialZoom={1}
+        onDescend={onDescend}
+        onMapChanged={vi.fn()}
+        onDeleted={vi.fn()}
+      />
+    );
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
+
+    act(() => {
+      imageOnLoad?.();
+    });
+
+    const fittedBounds = [
+      [0, 0],
+      [900, 1600],
+    ];
+    expect(imageSetBounds).toHaveBeenCalledWith(fittedBounds);
+    expect(imageSetOpacity).toHaveBeenCalledWith(1);
+    expect(setMaxBounds).toHaveBeenLastCalledWith(fittedBounds);
+    // Leaflet's own `fitBounds` reframes the view against the corrected
+    // (aspect-correct) bounds — not the stored/default square passed at
+    // mount, before the image's real size was known.
+    expect(fitBounds).toHaveBeenLastCalledWith(fittedBounds);
+  });
+
+  it("falls back to the stored bounds if the loaded image reports no natural size", async () => {
+    imageNaturalWidth = 0;
+    imageNaturalHeight = 0;
+
+    await renderMap();
+
+    expect(imageSetBounds).toHaveBeenCalledWith(bounds);
   });
 
   it("renders empty ground with the upload control when mapUrl is blank (SPEC-007 T1)", async () => {

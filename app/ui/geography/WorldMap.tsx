@@ -33,6 +33,7 @@ import {
   findContainingSibling,
   type Footprint,
 } from "@/app/modules/maps/lib/utils/footprint";
+import { computeImageBounds } from "@/app/modules/maps/lib/utils/placeMapView";
 
 /**
  * WorldMap - the map view backing `/dashboard/geography`.
@@ -237,6 +238,15 @@ function WorldMap({
 
   const map = useLeafletMap();
   const [currentImage, setCurrentImage] = useState<L.ImageOverlay | null>(null);
+  // The bounds actually framing the map right now — starts as the
+  // stored/default `bounds` prop and is corrected once the loaded image
+  // reports its real pixel dimensions (TD-81/TD-87). Kept in state, not
+  // derived inline, because both `useDrawArea` instances below need the
+  // corrected value too: clamping a drawn rectangle to the old default
+  // square while the visible image is a different aspect ratio would let
+  // the DM draw outside what the map actually shows.
+  const [effectiveBounds, setEffectiveBounds] =
+    useState<L.LatLngBoundsExpression>(bounds);
 
   // Memoized callbacks to prevent unnecessary re-renders
   const handleMeasurementClose = useCallback(() => {
@@ -393,7 +403,7 @@ function WorldMap({
   // or by `handleDrawAreaCancelled`.
   useDrawArea({
     enabled: isDrawingArea,
-    bounds,
+    bounds: effectiveBounds,
     onComplete: handleAreaDrawn,
     onCancel: handleDrawAreaCancelled,
   });
@@ -407,7 +417,7 @@ function WorldMap({
   // other), so only one is ever actually enabled.
   useDrawArea({
     enabled: editingArea !== null,
-    bounds,
+    bounds: effectiveBounds,
     onComplete: (footprint) => void handleAreaEditDrawn(footprint),
     onCancel: handleAreaEditCancelled,
   });
@@ -559,17 +569,58 @@ function WorldMap({
           setCurrentImage(null);
         }
 
-        const image = L.imageOverlay(mapUrl, bounds);
+        // Framed with the stored/default bounds and hidden (opacity 0)
+        // until the image itself reports its real pixel dimensions
+        // (TD-81) — the stored `mapBounds` is a hardcoded square today
+        // (nothing writes it yet, see the module doc comment in
+        // `placeMapView.ts`), so painting it before correction would
+        // stretch a non-square image on one axis for however long the
+        // fetch takes.
+        const image = L.imageOverlay(mapUrl, bounds, { opacity: 0 });
 
         if (map) {
           image.addTo(map);
+          setCurrentImage(image);
+          setEffectiveBounds(bounds);
+
+          // Interim framing before the image's own dimensions are known —
+          // the same stored/default view this component has always opened
+          // with. Corrected below once the image reports its real size.
           map.setMinZoom(0);
-          map.setZoom(0);
           map.setMaxZoom(10);
           map.setMaxBounds(bounds);
-          map.fitBounds(bounds);
           map.setView(initialView, initialZoom);
-          setCurrentImage(image);
+
+          image.once("load", () => {
+            if (cancelled) return;
+
+            const element = image.getElement();
+            const naturalWidth = element?.naturalWidth;
+            const naturalHeight = element?.naturalHeight;
+            // A broken/undecodable image has no natural size to frame
+            // against — fall back to the stored/default bounds rather than
+            // computing nonsense from zeros.
+            const fittedBounds =
+              naturalWidth && naturalHeight
+                ? computeImageBounds(naturalWidth, naturalHeight)
+                : bounds;
+
+            // `ImageOverlay.setBounds` requires an actual `L.LatLngBounds`
+            // instance, unlike the constructor and `Map.fitBounds`/
+            // `setMaxBounds`, which accept the plain tuple form directly —
+            // `fittedBounds` is always that plain 2-corner tuple in
+            // practice (from `computeImageBounds` or the stored/default
+            // `bounds` prop, never an existing `LatLngBounds` instance).
+            const [southWest, northEast] = fittedBounds as [
+              L.LatLngTuple,
+              L.LatLngTuple,
+            ];
+            image.setBounds(L.latLngBounds(southWest, northEast));
+            image.setOpacity(1);
+            setEffectiveBounds(fittedBounds);
+            map.setMaxBounds(fittedBounds);
+            map.fitBounds(fittedBounds);
+          });
         }
       })
       .catch((error: unknown) => {

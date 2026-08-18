@@ -24,7 +24,9 @@
       "magicItems": "Magic Items",
       "npc": "NPCs",
       "spells": "Spells",
-      "deities": "Deities"
+      "deities": "Deities",
+      "places": "Places",
+      "factions": "Factions"
     },
     "auth": {
       "loginPrompt": "Please log in to continue.",

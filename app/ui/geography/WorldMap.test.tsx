@@ -1121,3 +1121,35 @@ describe("WorldMap — resizing and moving an existing area (SPEC-009 T5)", () =
     });
   });
 });
+
+describe("WorldMap — sized to its container, not the viewport (TD-84)", () => {
+  it("fills the height its parent gives it instead of declaring its own full-viewport height", async () => {
+    const { container } = render(
+      <WorldMap
+        parentId={1}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        mapUrl="/maps/test.jpg"
+        bounds={bounds}
+        initialView={[500, 500]}
+        initialZoom={1}
+        onDescend={onDescend}
+        onMapChanged={vi.fn()}
+        onDeleted={vi.fn()}
+      />
+    );
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
+
+    // The old bug: this root element was `h-screen` (100% of the whole
+    // viewport) while mounted inside `GeographyExplorer`'s
+    // `flex-1 min-h-0` slot, itself offset by page chrome above it — so it
+    // was always taller than the space actually available, clipping every
+    // `absolute bottom-*` control anchored to it below the fold.
+    const root = container.firstElementChild;
+    expect(root).toHaveClass("h-full");
+    expect(root).not.toHaveClass("h-screen");
+  });
+});

@@ -638,7 +638,17 @@ function WorldMap({
   }, [map, mapUrl]);
 
   return (
-    <div className="relative h-screen w-full overflow-hidden">
+    // `h-full`, not `h-screen` (TD-84) — this fills whatever height
+    // `GeographyExplorer`'s `flex-1 min-h-0` slot actually has, rather than
+    // declaring its own full-viewport height inside an already-offset,
+    // padded column. A viewport-sized box there pushed every
+    // `absolute bottom-*`/`top-*` control anchored to it (the zoom/reset/
+    // fullscreen stack, the tile switcher, the "up" button, the POI
+    // panel's lower half) below the fold. `toggleFullscreen`
+    // (`useMapControls.ts`) calls `document.documentElement.requestFullscreen()`,
+    // not this element, so it does not depend on this box being
+    // viewport-sized either.
+    <div className="relative h-full w-full overflow-hidden">
       {/* Map */}
       <LeafletMap
         className="w-full h-full"

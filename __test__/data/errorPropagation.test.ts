@@ -11,6 +11,11 @@ vi.mock("@/app/lib/connections/prisma", () => ({
     magicitems: { count: vi.fn() },
     npc: { count: vi.fn() },
     deities: { count: vi.fn() },
+    // fetchCardData added these two counts for TD-91 (places and factions);
+    // the array passed to $transaction is built eagerly, so a missing stub
+    // here throws before the mocked rejection below is ever reached.
+    zone: { count: vi.fn() },
+    faction: { count: vi.fn() },
   },
 }));
 

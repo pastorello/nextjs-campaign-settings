@@ -23,7 +23,9 @@
       "magicItems": "Oggetti magici",
       "npc": "PNG",
       "spells": "Incantesimi",
-      "deities": "Divinità"
+      "deities": "Divinità",
+      "places": "Luoghi",
+      "factions": "Fazioni"
     },
     "auth": {
       "loginPrompt": "Accedi per continuare.",

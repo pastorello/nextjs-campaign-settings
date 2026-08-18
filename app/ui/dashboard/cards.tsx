@@ -3,22 +3,35 @@ import {
   BuildingLibraryIcon,
   BookOpenIcon,
   TrophyIcon,
+  MapIcon,
+  FlagIcon,
 } from "@heroicons/react/24/outline";
 import { getTranslations } from "next-intl/server";
 import { lusitana } from "@/app/ui/fonts";
 import fetchCardData from "@/app/lib/data/fetchCardData";
 
-const iconMap = {
+type CardType =
+  "magicitems" | "npc" | "spells" | "deities" | "places" | "factions";
+
+const iconMap: Record<CardType, typeof TrophyIcon> = {
   magicitems: TrophyIcon,
   npc: UserGroupIcon,
   spells: BookOpenIcon,
   deities: BuildingLibraryIcon,
+  places: MapIcon,
+  factions: FlagIcon,
 };
 
 export default async function CardWrapper() {
   const t = await getTranslations("common.cards");
-  const { numberOfmagicItems, numberOfNpc, numberOfSpells, numberOfDeities } =
-    await fetchCardData();
+  const {
+    numberOfmagicItems,
+    numberOfNpc,
+    numberOfSpells,
+    numberOfDeities,
+    numberOfPlaces,
+    numberOfFactions,
+  } = await fetchCardData();
 
   return (
     <>
@@ -30,6 +43,8 @@ export default async function CardWrapper() {
       <Card title={t("npc")} value={numberOfNpc} type="npc" />
       <Card title={t("spells")} value={numberOfSpells} type="spells" />
       <Card title={t("deities")} value={numberOfDeities} type="deities" />
+      <Card title={t("places")} value={numberOfPlaces} type="places" />
+      <Card title={t("factions")} value={numberOfFactions} type="factions" />
     </>
   );
 }
@@ -41,7 +56,7 @@ export function Card({
 }: {
   title: string;
   value: number | string;
-  type: "magicitems" | "npc" | "spells" | "deities";
+  type: CardType;
 }) {
   const Icon = iconMap[type];
 

@@ -39,8 +39,11 @@ const SpellCard = (props: { cardItem: Spell }) => {
                 t("spells.card.ritual")}
             </div>
           </div>
-          <div className="w-[40px] group-data-open:rotate-180">
-            <Icon iconType={IconType.chevronDown} />
+          <div className="flex h-10 w-10 items-center justify-center">
+            <Icon
+              iconType={IconType.chevronDown}
+              className="transition-transform group-data-open:rotate-180"
+            />
           </div>
         </DisclosureButton>
         <DisclosurePanel>

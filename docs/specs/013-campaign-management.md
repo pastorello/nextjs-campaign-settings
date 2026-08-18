@@ -1,6 +1,6 @@
 # SPEC-013: Campaign management
 
-- **Status:** **Agreed 2026-08-18.** Amended the same day after the DM's review of the first draft (§6's counting rule reversed, treasure catalogue added, per-scene table renamed), and §7's fork settled by [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md). Nothing is left open; T2 can start.
+- **Status:** **Agreed 2026-08-18.** Amended the same day after the DM's review of the first draft (§6's counting rule reversed, treasure catalogue added, per-scene table renamed), and §7's fork settled by [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md). **Amended again 2026-08-18** during T2/T3, for three things the document got wrong rather than left open: §6's Prisma block did not validate, §9 named the wrong directory for the mutations, and §3 was missing a non-goal the DM stated. Each is marked below.
 - **Date:** 2026-08-18
 - **Phase:** ROADMAP Phase 4 (Session tooling)
 - **Related:** [`docs/domain/campaign-design-method.md`](../domain/campaign-design-method.md) · [SPEC-004](./004-world-model.md) (world tree) · [SPEC-010](./010-deleting-a-place.md) (place deletion) · [SPEC-011](./011-cross-entity-search.md) · [SPEC-001](./001-combat-tracker.md) (successor, not prerequisite) · SPEC-014 (calendar and timeline — planned, not yet written) · [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md) (decides §7) · ADR-0009/0010 · ROADMAP Phase 3, "Campaigns as stories, not as scoping"
@@ -57,6 +57,14 @@ keeps totalled.
 - **Not campaign scoping.** No `campaignId` goes on `spells`, `npc`, `deities`,
   `magicitems` or `zone`. The Phase 3 decision stands: a campaign is a storyline
   inside the one universe, not a boundary around every record.
+- **Not searchable from the cross-entity search page.** _(Added 2026-08-18, from the DM.)_ Campaigns, adventures, scenes, creatures and loot are never added to
+  [SPEC-011](./011-cross-entity-search.md)'s `/dashboard/search`. A campaign is the DM's
+  private working material; what the DM shares out of one is its NPCs, magic items and
+  deities, and those are already their own domains, searchable there. This costs nothing
+  to honour — `app/lib/data/search/searchAllDomains.ts` queries a hand-written list of six
+  domains and does not enumerate `PageType`, so a new domain is opt-in. Registering
+  `campaign` and `adventure` as `PageType` members does not pull them in; only editing
+  that list would. Do not edit it.
 - **Not multi-user and not player-facing.** Single DM, single screen, same as the
   rest of the app. No sharing, no player view, no print/PDF export.
 - **Not branching.** Adventures are a sequence and scenes are a list. No
@@ -207,7 +215,7 @@ model scene {
   updatedAt DateTime @updatedAt
 
   creatures sceneCreature[]
-  treasures treasure[]
+  loot      loot[]
 
   @@index([adventureId])
   @@index([zoneId])
@@ -282,8 +290,35 @@ model magicitems {
 }
 ```
 
+**Three back-relations on existing models, which the block above omits:**
+
+```prisma
+model magicitems {
+  loot loot[]           // NEW — opposite side of loot.magicitem
+}
+
+model npc {
+  sceneCreatures sceneCreature[]  // NEW — opposite side of sceneCreature.npc
+}
+
+model zone {
+  scenes scene[]        // NEW — opposite side of scene.zone
+}
+```
+
+Prisma requires the opposite side of every relation, so without these `prisma validate`
+fails outright. `zone` already carries `npc`, `deities` and `poi` back-relations, so a
+fourth is unambiguous and needs no named relation.
+
+_(Corrected 2026-08-18 during T2. The first version of this section declared
+`treasures treasure[]` on `scene` — a leftover from the rename this same section
+describes, since `treasure` is the catalogue and has no `sceneId`. A scene's rows are
+`loot`. That line plus these three omissions meant the block as published did not
+validate; it does now.)_
+
 `magicitems.type` already distinguishes scroll and potion from the other seven
-types, and that is _nearly_ the same thing — but only nearly: a wand with charges
+types — `6` and `7` respectively, per `app/lib/config/magicitem/item-types.ts`, against
+the Postgres column `tipo` — and that is _nearly_ the same thing — but only nearly: a wand with charges
 is permanent, and a wondrous item can be single-use. Deriving the answer from
 `type` would be wrong on real items, so it is its own field. Backfill: `true` for
 scroll and potion, `false` for the rest, which the DM then corrects by hand where
@@ -433,7 +468,7 @@ reopening, that happens in a new ADR.
 | 3   | `app/lib/definitions/**`                                                                           | `SceneKind`, `AdventureStatus`, `TreasureCategory`, interfaces                            |
 | 4   | `app/lib/config/campaigns/**`, `app/lib/config/treasure/**`, `pageMetaFields.ts`, `pagesConfig.ts` | Metadata for campaign, adventure, the treasure catalogue and `magicitems.consumable`      |
 | 5   | `app/lib/data/campaigns/**`                                                                        | One function per file: fetch campaign, adventure with scenes, budget totals               |
-| 6   | `app/lib/actions/**`                                                                               | Create/update/delete/reorder + the check-off toggles, each auth-guarded and Zod-validated |
+| 6   | `app/lib/data/campaigns/**`                                                                        | Create/update/delete/reorder + the check-off toggles, each auth-guarded and Zod-validated |
 | 7   | `app/[locale]/dashboard/campaign/**`                                                               | Campaign page, adventure page                                                             |
 | 8   | `app/ui/campaigns/**`                                                                              | Ladder, scene list, scene editor, budget panel, check controls                            |
 | 9   | `messages/{it,en}.json`                                                                            | Both catalogues, same key set                                                             |

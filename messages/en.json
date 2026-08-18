@@ -508,8 +508,6 @@
     },
     "contextMenu": {
       "ariaLabel": "Map context menu",
-      "copyCoordinates": "Copy Coordinates",
-      "copiedLabel": "Copied!",
       "addMarker": {
         "trigger": "Add a temporary marker",
         "sublabel": "Disappears on reload"

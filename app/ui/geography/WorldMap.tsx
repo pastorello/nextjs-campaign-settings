@@ -198,8 +198,8 @@ function WorldMap({
   );
 
   // The right-clicked point falls inside an existing area (SPEC-009 T4) — the
-  // context menu keeps "Copy Coordinates"/"Measure" there but withholds "Add
-  // Place", since that ground belongs to the area's own map, one level down.
+  // context menu keeps "Measure" there but withholds "Add Place", since that
+  // ground belongs to the area's own map, one level down.
   const contextMenuOverArea = contextMenuPosition
     ? findContainingSibling(
         [contextMenuPosition.latlng.lat, contextMenuPosition.latlng.lng],
@@ -693,8 +693,6 @@ function WorldMap({
         editAreaLabel={tEditArea("trigger")}
         editAreaSublabel={tEditArea("sublabel")}
         ariaLabel={tContextMenu("ariaLabel")}
-        copyCoordinatesLabel={tContextMenu("copyCoordinates")}
-        copiedLabel={tContextMenu("copiedLabel")}
         addMarkerLabel={tContextMenu("addMarker.trigger")}
         addMarkerSublabel={tContextMenu("addMarker.sublabel")}
         measureLabel={tContextMenu("measure.trigger")}

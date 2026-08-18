@@ -508,8 +508,6 @@
     },
     "contextMenu": {
       "ariaLabel": "Menu contestuale della mappa",
-      "copyCoordinates": "Copia coordinate",
-      "copiedLabel": "Copiato!",
       "addMarker": {
         "trigger": "Aggiungi un marker temporaneo",
         "sublabel": "Scompare al ricaricamento della pagina"

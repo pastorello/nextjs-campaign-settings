@@ -1,17 +1,7 @@
 "use client";
 
-import { memo, useCallback, useEffect, useRef, useState, useMemo } from "react";
-import {
-  Copy,
-  MapPin,
-  Ruler,
-  Check,
-  Star,
-  Scaling,
-  Layers,
-  UserPlus,
-} from "lucide-react";
-import { formatDecimalDegrees } from "@/app/modules/maps/lib/utils/coordinates";
+import { memo, useCallback, useEffect, useRef, useMemo } from "react";
+import { MapPin, Ruler, Star, Scaling, Layers, UserPlus } from "lucide-react";
 import type { ContextMenuPosition } from "@/app/modules/maps/hooks/useMapContextMenu";
 
 interface MapContextMenuProps {
@@ -23,9 +13,9 @@ interface MapContextMenuProps {
   onAddPOI?: (lat: number, lng: number) => void;
   // The right-clicked point falls inside an existing area (SPEC-009 T4) —
   // that ground belongs to the area's own map, one level down, so "Add
-  // Place" is withheld here. Other entries (Copy Coordinates, Measure, the
-  // client-only "Add Marker") stay: they don't write a domain pin, so the
-  // containment rule doesn't apply to them.
+  // Place" is withheld here. Other entries (Measure, the client-only "Add
+  // Marker") stay: they don't write a domain pin, so the containment rule
+  // doesn't apply to them.
   hideAddPlace?: boolean;
   // Arms `WorldMap`'s redraw-to-replace gesture on the area the right-click
   // landed inside (SPEC-009 T5). Shown only when `showEditArea` is set —
@@ -40,11 +30,9 @@ interface MapContextMenuProps {
   editAreaSublabel?: string;
   // Translated copy for the menu items that were still hardcoded English
   // until this pass (usability fix, 2026-08-17) — `ariaLabel` and the
-  // always-shown Copy Coordinates/Add Marker/Measure entries, plus Add
-  // Place's label/sublabel.
+  // always-shown Add Marker/Measure entries, plus Add Place's
+  // label/sublabel.
   ariaLabel?: string;
-  copyCoordinatesLabel?: string;
-  copiedLabel?: string;
   addMarkerLabel?: string;
   addMarkerSublabel?: string;
   measureLabel?: string;
@@ -72,8 +60,6 @@ interface MenuItemProps {
   label: string;
   sublabel?: string;
   onClick: () => void;
-  showCopied?: boolean;
-  copiedLabel?: string;
 }
 
 /**
@@ -84,8 +70,6 @@ const MenuItem = memo(function MenuItem({
   label,
   sublabel,
   onClick,
-  showCopied,
-  copiedLabel = "Copied!",
 }: MenuItemProps) {
   return (
     <button
@@ -93,13 +77,13 @@ const MenuItem = memo(function MenuItem({
       className="flex items-center gap-3 w-full px-2 py-1 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-lg group"
     >
       <span className="flex-shrink-0 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200">
-        {showCopied ? <Check className="h-4 w-4 text-green-500" /> : icon}
+        {icon}
       </span>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-gray-700 dark:text-gray-200">
-          {showCopied ? copiedLabel : label}
+          {label}
         </div>
-        {sublabel && !showCopied && (
+        {sublabel && (
           <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
             {sublabel}
           </div>
@@ -120,7 +104,6 @@ const MENU_PADDING = 8;
  * MapContextMenu - Right-click context menu for map interactions
  *
  * Features:
- * - Copy coordinates to clipboard
  * - Add marker at clicked location
  * - Start measurement from clicked location
  * - Keyboard accessible (Escape to close)
@@ -140,8 +123,6 @@ export const MapContextMenu = memo(function MapContextMenu({
   editAreaLabel,
   editAreaSublabel,
   ariaLabel = "Map context menu",
-  copyCoordinatesLabel = "Copy Coordinates",
-  copiedLabel = "Copied!",
   addMarkerLabel = "Add Marker",
   addMarkerSublabel = "Place a marker here",
   measureLabel = "Measure",
@@ -154,18 +135,6 @@ export const MapContextMenu = memo(function MapContextMenu({
   attachEntityLabel = "Attach an existing entity",
 }: MapContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
-  // Track which position was copied (null means not copied)
-  const [copiedPosition, setCopiedPosition] = useState<string | null>(null);
-
-  // Format coordinates for display
-  const coordsText = useMemo(() => {
-    if (!position) return "";
-    return formatDecimalDegrees([position.latlng.lat, position.latlng.lng], 6);
-  }, [position]);
-
-  // Derive copied state from position comparison
-  const positionKey = position ? `${position.x}-${position.y}` : null;
-  const copied = copiedPosition === positionKey;
 
   // Calculate adjusted position using useMemo instead of useEffect + setState
   const displayPosition = useMemo(() => {
@@ -193,43 +162,6 @@ export const MapContextMenu = memo(function MapContextMenu({
 
     return { x, y };
   }, [position]);
-
-  /**
-   * Copy coordinates to clipboard
-   */
-  const handleCopyCoordinates = useCallback(async () => {
-    if (!position || !positionKey) return;
-
-    try {
-      await navigator.clipboard.writeText(coordsText);
-      setCopiedPosition(positionKey);
-      setTimeout(() => {
-        setCopiedPosition(null);
-        onClose();
-      }, 1000);
-    } catch (error) {
-      console.error("Failed to copy coordinates:", error);
-      // Fallback: create a temporary input element
-      try {
-        const input = document.createElement("input");
-        input.value = coordsText;
-        input.style.position = "fixed";
-        input.style.opacity = "0";
-        document.body.appendChild(input);
-        input.select();
-        input.setSelectionRange(0, 99999);
-        document.execCommand("copy");
-        document.body.removeChild(input);
-        setCopiedPosition(positionKey);
-        setTimeout(() => {
-          setCopiedPosition(null);
-          onClose();
-        }, 1000);
-      } catch {
-        console.error("Fallback copy also failed");
-      }
-    }
-  }, [position, positionKey, coordsText, onClose]);
 
   /**
    * Handle add marker
@@ -324,19 +256,6 @@ export const MapContextMenu = memo(function MapContextMenu({
       role="menu"
       aria-label={ariaLabel}
     >
-      {/* Coordinates */}
-      <MenuItem
-        icon={<Copy className="h-4 w-4" />}
-        label={copyCoordinatesLabel}
-        sublabel={coordsText}
-        onClick={() => void handleCopyCoordinates()}
-        showCopied={copied}
-        copiedLabel={copiedLabel}
-      />
-
-      {/* Divider */}
-      <div className="my-1.5 border-t border-gray-200 dark:border-gray-700" />
-
       {/* Add Marker */}
       <MenuItem
         icon={<MapPin className="h-4 w-4" />}

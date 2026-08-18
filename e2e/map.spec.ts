@@ -46,8 +46,10 @@ test.describe("world map", () => {
     await expect(
       menu.getByText(messages.geography.contextMenu.addMarker.trigger)
     ).toBeVisible();
+    // "Copia coordinate" is gone (TD-96) — the DM saw no purpose for a raw
+    // pixel pair under CRS.Simple. Measure is the entry that survives it.
     await expect(
-      menu.getByText(messages.geography.contextMenu.copyCoordinates)
+      menu.getByText(messages.geography.contextMenu.measure.trigger)
     ).toBeVisible();
   });
 

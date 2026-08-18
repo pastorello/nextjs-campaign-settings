@@ -171,33 +171,37 @@ place whose parent already has a map and simply hasn't been drawn on it yet.
 The two situations have different fixes (upload a map vs. draw a pin), and
 the count cannot tell the DM which one they're looking at.
 
-**Re-scoped 2026-08-18, and it got more important rather than less.** Two
-decisions landed the same day: the tree-wide count leaves the geography header,
-and positioning happens only through the map's "Posiziona luogo" right-click
-entry (TD-85). That entry can only ever offer **the unpositioned children of the
-map currently open**, since positioning a place means drawing it on its parent's
-map and that is the map in view.
+**Re-scoped 2026-08-18 — and the alarming version of this entry was wrong.**
 
-**Follow that through and a whole category of place becomes invisible.** Take
-Skreebars, which has no map of its own yet. Any place created inside it — say a
-tavern — cannot be positioned: there is no map to draw it on. It will not appear
-in the dropdown on Kang's map (it is not Kang's child), and it cannot appear in
-its own parent's dropdown (Skreebars has no map to right-click). With the
-tree-wide count gone, **nothing in the app mentions it at all.** It is not lost —
-the row is fine and it reappears the moment Skreebars gets a map — but until then
-the DM has no way to learn it is waiting, or that uploading a map to Skreebars is
-what would release it.
+An earlier draft of this note argued that removing the header count would strand
+places whose parent has no map: nothing would list them, because the
+"Posiziona luogo" dropdown can only offer the children of the map currently open.
+**The DM refuted it, and checking the code confirms the refutation.** A place can
+only be created by right-clicking a map — `createPlace`'s only callers are
+`WorldMap` and `MapPOIPanel`, there is no admin CRUD for places, and there is no
+seed — and a place with no `mapImage` is not navigable
+(`useNavigableChildren.ts:228`), so there is no map to right-click _inside_ a
+mapless place. A map also cannot be removed once uploaded: `updateZoneMap` only
+ever writes a non-empty `mapImage`, never null. **So a child of a mapless parent
+is not reachable through today's UI, and the category this item was created to
+distinguish is currently empty.**
 
-The original framing of this item — "the count cannot say _why_ a place is
-unpositioned" — was about the precision of a number. What is left is sharper:
-**there is no surface at all for places blocked on a mapless ancestor**, and the
-two decisions above are what removed the last one. The likely answer is a small
-"places waiting on a map" affordance on the mapless place itself, next to
-`MapUploadControl`, which is already exactly where the DM must go to fix it. That
-is a different, smaller feature than the split count this item originally
-proposed, and it needs the DM's agreement before it is built.
+Recorded at this length because the mistake is instructive and this register has
+made it before (SPEC-007 §0 documents two consecutive drafts that reasoned from a
+spec's description of the data instead of the data): **the reasoning was sound
+and the premise was never checked.**
 
-**Do not close this as moot.**
+**What the DM asked for instead, and it is the whole of it:** the count belongs
+next to the "Posiziona luogo" entry in the right-click menu — how many places
+are still waiting, shown at the exact moment the DM can act on it — and nowhere
+else. That is a line of TD-85's work, not a separate item.
+
+**Keep this entry open anyway, narrowed to a guard.** The empty category stops
+being empty the moment anything lets a map be deleted or a place be created away
+from a map — both plausible (the map options menu already offers "replace", and
+an admin list for places would be a natural addition). If either ships, the
+distinction this item is about becomes real and invisible at the same time.
+Whoever builds one should read this first.
 
 **Why this is Low, not Medium.** `MapUploadControl` (SPEC-007 T1) already
 surfaces the fix in practice: the moment the DM reaches the mapless parent,
@@ -398,7 +402,10 @@ list view needs is already passed from `WorldMap` — `pois`, `unplacedChildren`
   counter-proposal, now rejected).
 - **Positioning gets its own right-click entry, "Posiziona luogo."** Clicking it
   opens a dropdown of the places that are still unpositioned; picking one arms
-  the existing positioning flow at the clicked point. **When every place is
+  the existing positioning flow at the clicked point. **The count goes here**
+  (DM, 2026-08-18) — beside the entry, as "how many are waiting", shown where the
+  DM can act on it and nowhere else. That is the whole of what the removed header
+  label was for; see TD-79. **When every place is
   already positioned the entry stays visible but disabled** — the DM asked for
   this explicitly, so that the absence of work is legible rather than the menu
   item silently disappearing.

@@ -326,7 +326,12 @@ as work, not as a wish: `README.md`'s quickstart and `docker-compose.yml` are th
 whole deployment story today, and every doc that says "self-hosted" means "on the
 DM's machine".
 
-**Not started, and deliberately not started before the decisions below are made.**
+**Now specified: [SPEC-012](./specs/012-publishing-and-internet-exposure.md)**,
+written 2026-08-18 at the DM's request, carrying a ten-finding security audit
+verified against the repo, a recommended stack with costs, and the ordering that
+makes roles a prerequisite of publication rather than a follow-up.
+
+**Not started, and deliberately not started before the decisions in that spec are made.**
 The DM asked to be walked through what to buy when the time comes; this entry
 exists so that conversation begins from a written list rather than from scratch.
 

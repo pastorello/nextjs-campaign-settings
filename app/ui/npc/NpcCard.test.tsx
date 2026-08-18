@@ -92,7 +92,7 @@ describe("NpcCard", () => {
     expect(screen.getByText("A meddling wizard.")).toBeInTheDocument();
   });
 
-  it("marks the chevron button as a `group` and rotates the icon, not the button (TD-89)", () => {
+  it("marks the chevron button as a `group` and rotates the icon in a square box (TD-89, TD-90)", () => {
     render(<NpcCard cardItem={item} />);
 
     // The chevron lives in its own DisclosureButton, separate from the one
@@ -104,9 +104,23 @@ describe("NpcCard", () => {
     // when this button itself carries `group` — it did not before the fix.
     expect(toggleButton).toHaveClass("group");
 
-    // The rotation belongs on the icon, not the button.
+    // TD-90: the box is square and centred, not a bare `w-[40px]` that
+    // takes its height from the icon.
+    expect(toggleButton).toHaveClass(
+      "flex",
+      "h-10",
+      "w-10",
+      "items-center",
+      "justify-center"
+    );
+    expect(toggleButton).not.toHaveClass("w-[40px]");
+
+    // The rotation (and the transition) belongs on the icon, not the button.
     const icon = toggleButton.querySelector("svg");
-    expect(icon).toHaveClass("group-data-open:rotate-180");
+    expect(icon).toHaveClass(
+      "group-data-open:rotate-180",
+      "transition-transform"
+    );
     expect(toggleButton).not.toHaveClass("group-data-open:rotate-180");
   });
 });

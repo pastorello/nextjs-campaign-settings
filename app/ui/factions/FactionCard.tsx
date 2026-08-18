@@ -22,8 +22,11 @@ const FactionCard = (props: { cardItem: Faction; roster: RosterMember[] }) => {
           <div className="flex-1 text-left">
             <h3 className="text-xl">{props.cardItem.name}</h3>
           </div>
-          <div className="w-[40px] group-data-open:rotate-180">
-            <Icon iconType={IconType.chevronDown} />
+          <div className="flex h-10 w-10 items-center justify-center">
+            <Icon
+              iconType={IconType.chevronDown}
+              className="transition-transform group-data-open:rotate-180"
+            />
           </div>
         </DisclosureButton>
         <DisclosurePanel>

@@ -84,4 +84,32 @@ describe("DeityCard", () => {
       "common.location.unknown"
     );
   });
+
+  it("rotates the chevron icon in a square box, not the wrapper itself (TD-90)", () => {
+    render(<DeityCard cardItem={item} />);
+
+    const toggleButton = screen.getByRole("button");
+    expect(toggleButton).toHaveClass("group");
+
+    const icon = toggleButton.querySelector("svg");
+    const box = icon?.parentElement;
+
+    // The box is square and centred, not the old bare `w-[40px]` that took
+    // its height from the icon and pivoted off-centre.
+    expect(box).toHaveClass(
+      "flex",
+      "h-10",
+      "w-10",
+      "items-center",
+      "justify-center"
+    );
+    expect(box).not.toHaveClass("w-[40px]");
+    expect(box).not.toHaveClass("group-data-open:rotate-180");
+
+    // The rotation (and the transition) belongs on the icon, not the box.
+    expect(icon).toHaveClass(
+      "group-data-open:rotate-180",
+      "transition-transform"
+    );
+  });
 });

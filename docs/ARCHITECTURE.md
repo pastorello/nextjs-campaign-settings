@@ -83,6 +83,26 @@ app/lib/config/pagesConfig.ts           Record<PageType, MetaConfigKey[]>
 | Filtering              | `app/lib/hooks/useFilterController.ts`                    | `fieldType`, `options`                                           |
 | Query building         | `app/lib/data/getQuery.ts`                                | `fieldType` → `hasSome` for arrays, equality otherwise           |
 
+### The boundary: what the layer does not cover (ADR-0011)
+
+Those four consumers are also the layer's limit. A `PageMeta` describes one scalar field of one flat record, and `fieldType: array` means an array of scalars — an incantesimo's classes — not an array of rows. No variant's value is a collection of records.
+
+So **ordered collections of rows, edited inline inside a parent's page, stay outside the metadata layer** and are rendered by dedicated components. SPEC-013's `scene`, `sceneCreature` and `loot` are the first of them, under `app/ui/campaigns/`. [ADR-0011](./adr/0011-inline-collections-outside-the-metadata-layer.md) carries the reasoning, the alternative it rejected (a fifth `PageMeta` variant that three of the four consumers above would have to special-case as inapplicable) and the condition that reopens the question.
+
+The test to apply to something new, so the case is checked rather than the argument re-run:
+
+| Question about the thing being added                  | Metadata layer | Dedicated components |
+| ----------------------------------------------------- | -------------- | -------------------- |
+| Has a list page, a form and header filters of its own | yes            | no                   |
+| Exists only inside a parent's page                    | no             | yes                  |
+| A Prisma `where` clause is built from it              | yes            | no                   |
+
+SPEC-013's `campaign`, `adventure` and `treasure` catalogue are flat domains and sit on the left; its `scene`, `sceneCreature` and `loot` sit on the right.
+
+**Shared either way:** the Zod `validator` and the label key of every scalar field. A bespoke editor consumes those declarations; it may not invent its own. Nothing in the compiler enforces that half — a label or a validator restated by hand inside a component is exactly the drift ADR-0011 says to watch for, and it is the signal to revisit the decision.
+
+This is the one exception to `CLAUDE.md`'s "never bypass the metadata layer", not a general licence: a field hand-written into a component of a domain that _does_ fit the layer is still the regression the rule exists to prevent.
+
 ### The `validator` is executed (TD-02)
 
 Every `PageMeta` carries a Zod schema, and since TD-02 those schemas actually run. `app/lib/data/validation/buildEntitySchema.ts` composes them per entity:

@@ -1,9 +1,9 @@
 # SPEC-013: Campaign management
 
-- **Status:** Draft — awaiting agreement
+- **Status:** Draft — amended 2026-08-18 after the DM's review of the first draft. §7 is the one thing still open.
 - **Date:** 2026-08-18
 - **Phase:** ROADMAP Phase 4 (Session tooling)
-- **Related:** [`docs/domain/campaign-design-method.md`](../domain/campaign-design-method.md) · [SPEC-004](./004-world-model.md) (world tree) · [SPEC-010](./010-deleting-a-place.md) (place deletion) · [SPEC-011](./011-cross-entity-search.md) · [SPEC-001](./001-combat-tracker.md) (successor, not prerequisite) · ADR-0009/0010 · ROADMAP Phase 3, "Campaigns as stories, not as scoping"
+- **Related:** [`docs/domain/campaign-design-method.md`](../domain/campaign-design-method.md) · [SPEC-004](./004-world-model.md) (world tree) · [SPEC-010](./010-deleting-a-place.md) (place deletion) · [SPEC-011](./011-cross-entity-search.md) · [SPEC-001](./001-combat-tracker.md) (successor, not prerequisite) · SPEC-014 (calendar and timeline — planned, not yet written) · ADR-0009/0010 · ROADMAP Phase 3, "Campaigns as stories, not as scoping"
 
 ---
 
@@ -46,9 +46,14 @@ keeps totalled.
 - **Not the combat tracker.** Running a fight round by round is [SPEC-001](./001-combat-tracker.md),
   which this spec is a prerequisite for, not a part of. A scene with its creatures
   is what SPEC-001 will eventually be handed.
-- **Not a session diary.** Recording what actually happened, after play, is a
-  separate feature the DM has asked to discuss later. This spec covers _planned_
-  events only, and does so as free text (§5).
+- **Not the calendar, and not a session diary.** Three things keep getting
+  confused and are deliberately separated here. The **calendar** — the planned
+  sequence of dated events, what the antagonists do while the party does
+  something else — is SPEC-014, its own feature. The **diary** — what actually
+  happened, written after play — is a third feature, not yet specified. This spec
+  gives an adventure one free-text `timeline` field and nothing more: it costs
+  almost nothing, it is what the DM does by hand today, and SPEC-014 will
+  supersede it. Do not grow it into a calendar here.
 - **Not campaign scoping.** No `campaignId` goes on `spells`, `npc`, `deities`,
   `magicitems` or `zone`. The Phase 3 decision stands: a campaign is a storyline
   inside the one universe, not a boundary around every record.
@@ -56,10 +61,12 @@ keeps totalled.
   rest of the app. No sharing, no player view, no print/PDF export.
 - **Not branching.** Adventures are a sequence and scenes are a list. No
   alternate paths, no conditional unlocks.
-- **Not a migration of the existing spreadsheet.** The DM has stated the
-  spreadsheet is an example of the method, not data to carry over; the app starts
-  empty and the DM authors into it. Importing the twenty sheets' _content_ is a
-  candidate follow-up, not part of this spec — see §9, Open questions.
+- **Not a migration of the existing spreadsheet.** The spreadsheet is the source
+  of the method, not data to carry over; the app starts empty and the DM authors
+  into it. Confirmed with the DM 2026-08-18, with the intent to revisit importing
+  the twenty sheets' _content_ **after this ships** — deferred deliberately, not
+  dropped. It is its own spec when it comes, and it will have to reconcile the
+  `01A`-style map codes against the places already in the tree.
 
 ## 4. User stories
 
@@ -93,42 +100,53 @@ keeps totalled.
    `dungeon` · `break`), a title, a description, an optional XP award, an
    optional hero-point flag, and an optional **place** chosen from the world tree.
 5. Within a scene the DM adds creatures (name, level, XP each, quantity,
-   optionally linked to an existing NPC) and treasure (description, kind, value,
-   quantity, optionally linked to an existing magic item).
+   optionally linked to an existing NPC) and **loot** rows (description, quantity,
+   value, optionally linked to an existing magic item _or_ to an entry in the new
+   treasure catalogue).
 6. A budget panel on the adventure shows, for each of experience, currency,
    permanent items and consumables, three figures: **target · assegnato ·
    trovato**, with the two differences named — what is left to place, and what the
-   party missed.
+   party missed. Which budget a loot row falls into is **derived from what it
+   links to**, never asked of the DM again (§6).
 
 **Main flow — running**
 
 7. During a session the DM works down the adventure's scenes. Each scene, each
-   creature and each treasure row carries a check control. One click marks
-   experience awarded (scene, creature) or loot taken (treasure); the budget panel
-   updates without a page reload.
+   creature and each loot row carries a check control. One click — or the keyboard
+   alone, since the DM runs the app from a laptop at the table, never a tablet
+   (§9) — marks experience awarded (scene, creature) or loot taken; the budget
+   panel updates without a page reload.
 8. A scene's place, where set, is a link that opens that place's map.
 
 **Edge cases**
 
-| Situation                                | Expected behaviour                                                                                                                                 |
-| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| No campaign yet                          | Empty state with a single call to action; no empty ladder, no zero-filled budget panel.                                                            |
-| Adventure with no scenes                 | Empty state inviting the first scene; budgets show target and `0` assigned, not blanks.                                                            |
-| Budget target not set                    | The row reads `—`, not `0`. An unset target is not a target of zero.                                                                               |
-| Scene with no place                      | Renders as "Luogo non assegnato" with a control to pick one — the same treatment SPEC-007 gave unplaced records.                                   |
-| Scene's place is deleted                 | `scene.zoneId` is set to null, never cascading the scene away. SPEC-010 reparents children; a scene is not a child of a place and must survive it. |
-| Creature links to an NPC that is deleted | Same: the link nulls, the authored name and numbers stay.                                                                                          |
-| Two adventures at the same target level  | Allowed. Position, not level, orders the ladder — the DM intends standalone adventures later (§9).                                                 |
-| Reordering scenes / adventures           | Explicit integer position, editable; not derived from creation order.                                                                              |
-| Rapid repeat clicks on a check control   | Idempotent — the control sets a state, it does not toggle a counter.                                                                               |
-| Very long adventure (50+ scenes)         | The scene list is the page's main content and paginates nothing; the budget panel stays visible while scrolling.                                   |
-| Unauthenticated request to any mutation  | Rejected, as everywhere else.                                                                                                                      |
+| Situation                                                     | Expected behaviour                                                                                                                                                            |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No campaign yet                                               | Empty state with a single call to action; no empty ladder, no zero-filled budget panel.                                                                                       |
+| Adventure with no scenes                                      | Empty state inviting the first scene; budgets show target and `0` assigned, not blanks.                                                                                       |
+| Budget target not set                                         | The row reads `—`, not `0`. An unset target is not a target of zero.                                                                                                          |
+| Scene with no place                                           | Renders as "Luogo non assegnato" with a control to pick one — the same treatment SPEC-007 gave unplaced records.                                                              |
+| Scene's place is deleted                                      | `scene.zoneId` is set to null, never cascading the scene away. SPEC-010 reparents children; a scene is not a child of a place and must survive it.                            |
+| Creature links to an NPC that is deleted                      | Same: the link nulls, the authored name and numbers stay.                                                                                                                     |
+| Two adventures at the same target level                       | Allowed. Position, not level, orders the ladder — the DM intends standalone adventures later (§9).                                                                            |
+| Reordering scenes / adventures                                | Explicit integer position, editable; not derived from creation order.                                                                                                         |
+| Rapid repeat clicks on a check control                        | Idempotent — the control sets a state, it does not toggle a counter.                                                                                                          |
+| Very long adventure (50+ scenes)                              | The scene list is the page's main content and paginates nothing; the budget panel stays visible while scrolling.                                                              |
+| Loot row linked to nothing, with no value                     | Counts toward no budget. The row is legitimate (a plot item, a letter) and the panel must not silently swallow it — it renders in the scene and is excluded from every total. |
+| Loot row linked to both a magic item and a catalogue treasure | Rejected by the validator. At most one link; a mixed haul is two rows, as the DM's own sheet writes it.                                                                       |
+| Linked magic item or catalogue treasure is deleted            | The link nulls; the authored description, quantity and value stay. The row then counts as unlinked.                                                                           |
+| Adventure's currency unit is changed                          | Nothing is rewritten. Values are stored in silver and rendered in the adventure's unit (§6).                                                                                  |
+| Unauthenticated request to any mutation                       | Rejected, as everywhere else.                                                                                                                                                 |
 
 ## 6. Data model changes
 
-Six new tables, no change to any existing one. New tables use English column
-names — the Italian columns elsewhere are legacy decoupled by `@map`, not a
-convention to extend (`CLAUDE.md`, _Language conventions_).
+Six new tables and **one new column on an existing one**. New tables use English
+column names — the Italian columns elsewhere are legacy decoupled by `@map`, not
+a convention to extend (`CLAUDE.md`, _Language conventions_).
+
+_(The first draft said "six new tables, no change to any existing one" and then
+declared five. Both halves were wrong: it is six now that the treasure catalogue
+is one of them, and `magicitems` does change — see the counting rule below.)_
 
 ```prisma
 // proposed
@@ -156,8 +174,8 @@ model adventure {
   status      String   // planned | active | completed — closed vocabulary in code
 
   xpTarget            Int?
-  currencyTarget      Int?
-  currencyUnit        String? // "argento" / "oro" — campaign content, never translated
+  currencyTarget      Int? // stored in silver, like every value in this spec
+  currencyUnit        String? // silver | gold — DISPLAY only, see the counting rule
   permanentItemTarget Int?
   consumableTarget    Int?
 
@@ -214,29 +232,68 @@ model sceneCreature {
   @@index([sceneId])
 }
 
-model treasure {
+// What a scene gives up. Named `loot`, not `treasure`: `treasure` is now the
+// catalogue below, the page the DM browses. A scene has loot; loot points at
+// the catalogue.
+model loot {
   id      Int   @id @default(autoincrement())
   sceneId Int
   scene   scene @relation(fields: [sceneId], references: [id], onDelete: Cascade)
 
   position    Int
   description String
-  kind        String  // currency | permanent | consumable — closed vocabulary in code
-  value       Int?    // in the adventure's currency unit
   quantity    Int     @default(1)
+  value       Int? // in silver; supplies or overrides the catalogue's value
   taken       Boolean @default(false)
 
+  // At most one link, enforced by the validator, never both.
   magicItemId Int?
   magicitem   magicitems? @relation(fields: [magicItemId], references: [id], onDelete: SetNull)
+  treasureId  Int?
+  treasure    treasure?   @relation(fields: [treasureId], references: [id], onDelete: SetNull)
 
   @@index([sceneId])
 }
+
+// The seventh domain: non-magical valuables. Same shape as `magicitems` — a
+// library the DM authors once and draws on from any adventure. Coins, art
+// objects, gems, trade goods.
+model treasure {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  category    Int // static options, like magicitems.type
+  value       Int? // in silver
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  loot loot[]
+
+  @@index([name])
+}
 ```
 
-- **Backfill needed?** No. Every table is new and starts empty.
-- **Reversible?** Yes — dropping the six tables restores the previous schema
-  exactly, since nothing existing is altered. The three new nullable foreign keys
-  live on the _new_ side of each relation.
+**The one change to an existing table:**
+
+```prisma
+model magicitems {
+  // …unchanged…
+  consumable Boolean @default(false) // NEW
+}
+```
+
+`magicitems.type` already distinguishes scroll and potion from the other seven
+types, and that is _nearly_ the same thing — but only nearly: a wand with charges
+is permanent, and a wondrous item can be single-use. Deriving the answer from
+`type` would be wrong on real items, so it is its own field. Backfill: `true` for
+scroll and potion, `false` for the rest, which the DM then corrects by hand where
+the derivation guessed wrong.
+
+- **Backfill needed?** Only for `magicitems.consumable`, from `type`, as above.
+  Every new table starts empty.
+- **Reversible?** Yes — dropping the six tables and the one column restores the
+  previous schema exactly. Every new foreign key is nullable and lives on the
+  _new_ side of its relation.
 - **`campaignId` is nullable from the start.** Not speculation: the DM has stated
   the intent to author standalone adventures (five at level 6, played in any
   order) alongside campaigns. A nullable column now costs nothing; adding one to a
@@ -245,15 +302,66 @@ model treasure {
   experience, currency, permanent and consumable counts, and the hero-point
   count. Storing them is what let the spreadsheet drift.
 
-**Currency counting rule:** an item's `value` counts toward the currency total
-regardless of its `kind`, matching how the DM's own sheet totals a jade pendant's
-worth into the silver column. Its `quantity` additionally counts toward the
-permanent or consumable target. To confirm before T2 (§9).
+### The counting rule
+
+The first draft got this backwards and said so as an assumption to confirm. It is
+now settled, from the DM's own sheet rather than by asking:
+
+| Row in the spreadsheet                                 | Argento | Ogg | Poz |
+| ------------------------------------------------------ | ------- | --- | --- |
+| Pendaglio di Giada della Mano Nera 8mo                 | 80      | —   | —   |
+| Ghiandole di ragno gigante 4mo                         | 40      | —   | —   |
+| Polvere di Strega\* x 1                                | —       | —   | 1   |
+| Arma di qualità eccezionale\* x 2 · Nettare Elfico x 4 | —       | 2   | 4   |
+| Mezza Armatura Barbarica\* · 1 Tharun d'argento        | 20      | 1   | —   |
+
+The asterisk marks a magic item, and the pattern holds across every row: **a
+magic item counts toward the permanent or consumable target and its worth does
+_not_ enter the currency total; a non-magical valuable counts toward the currency
+total and nothing else.** In the last row the 20 is the coin, not the armour.
+
+The three budgets are therefore **three disjoint inventories**, not three views of
+one number — which is exactly why the treasure catalogue is structurally
+necessary rather than a convenience. So:
+
+- **currency** = Σ `value × quantity` over loot rows **not** linked to a magic item;
+- **permanent items** = Σ `quantity` over loot rows linked to a magic item with
+  `consumable = false`;
+- **consumables** = Σ `quantity` over loot rows linked to a magic item with
+  `consumable = true`.
+
+A loot row's budget is thus **derived from its link**, never a classification the
+DM re-enters per row. A mixed haul — an enchanted armour and a silver coin found
+together — is two rows, which is how the sheet already writes it.
+
+### Currency: one stored unit, two displayed
+
+The DM reasons in **silver** through the early levels, where the campaign is poor
+and silver is the people's coin, and switches to **gold** from level 8. That is a
+deliberate texture of the setting and worth keeping; it is also not a modelling
+problem, because the two are not different scales of measurement, only different
+labels on one.
+
+**Every monetary value in this spec is stored as an integer number of silver** —
+`loot.value`, `treasure.value`, `adventure.currencyTarget`. `adventure.currencyUnit`
+is a **display** choice (`silver` | `gold`, 1 gold = 10 silver, in both the system
+this campaign came from and the one the app targets). Amounts are entered and
+rendered in the adventure's unit and converted at the render boundary; changing an
+adventure's unit rewrites nothing.
+
+This costs one conversion helper and its test, and buys three things: the
+campaign keeps its flavour, totals across adventures of different eras are
+comparable, and an amount typed at level 9 cannot silently be a hundredth of what
+was meant.
 
 ## 7. Metadata changes
 
-`campaign` and `adventure` are ordinary flat entities and fit the metadata layer
-as it stands: a `PageMeta` per field in `app/lib/config/campaigns/`, composed into
+`campaign`, `adventure` and the new `treasure` catalogue are ordinary flat
+entities and fit the metadata layer as it stands. The catalogue in particular is
+the seventh domain and looks exactly like the six that exist — a list, a form,
+filters — with `category` an option-backed integer field, the same shape
+`magicitems.type` already has. So is the new `magicitems.consumable`: one boolean
+`PageMeta` alongside the existing ones. For all of these: a `PageMeta` per field in `app/lib/config/campaigns/`, composed into
 `pageMetaFields.ts` and ordered in `pagesConfig.ts`, driving form, list and
 validation exactly as the other six domains do.
 
@@ -284,14 +392,27 @@ to drive — but the ADR is where that gets argued, not this spec.
       place's map.
 - [ ] A scene with no place renders an explicit "not assigned" state, not a blank.
 - [ ] Deleting a linked place leaves the scene intact with its place unset.
-- [ ] Creatures and treasure can be added to a scene, and the creature's XP total
-      is `xpEach × quantity`.
+- [ ] Creatures and loot can be added to a scene, and the creature's XP total is
+      `xpEach × quantity`.
+- [ ] A treasure catalogue entry can be created, listed, filtered and linked from
+      a loot row, like any other domain.
+- [ ] A magic item declares whether it is consumable, and the backfill set scroll
+      and potion to consumable and everything else to permanent.
+- [ ] A loot row linked to a magic item counts toward the permanent or consumable
+      target and **not** toward the currency total; a loot row not linked to one
+      counts toward the currency total and nothing else.
+- [ ] A loot row rejects being linked to a magic item and a catalogue treasure at
+      once.
+- [ ] An amount entered while the adventure displays gold is stored as ten times
+      that many silver, and changing the adventure's unit rewrites no stored value.
 - [ ] The budget panel shows target, assigned and found for experience, currency,
       permanent items and consumables, and an unset target renders as `—`.
-- [ ] Marking a scene, creature or treasure updates the budget panel without a
+- [ ] Marking a scene, creature or loot row updates the budget panel without a
       full page reload, and the state survives a reload.
+- [ ] Every check control can be operated from the keyboard alone, without a
+      pointer.
 - [ ] Assigned and found are independent: marking a fight awarded does not mark
-      its treasure taken.
+      its loot taken.
 - [ ] The hero-point count is derived from the scenes that grant one.
 - [ ] Every new mutation rejects an unauthenticated request.
 - [ ] Every new mutation rejects invalid input with field-level errors.
@@ -305,61 +426,71 @@ to drive — but the ADR is where that gets argued, not this spec.
 
 **Files touched, in order**
 
-| #   | File                                                                 | Change                                                                                    |
-| --- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| 1   | `docs/adr/0011-nested-collections-and-the-metadata-layer.md`         | New — decides §7                                                                          |
-| 2   | `prisma/schema.prisma` + migration                                   | The six tables                                                                            |
-| 3   | `app/lib/definitions/**`                                             | `SceneKind`, `TreasureKind`, `AdventureStatus`, interfaces                                |
-| 4   | `app/lib/config/campaigns/**`, `pageMetaFields.ts`, `pagesConfig.ts` | Metadata for campaign/adventure                                                           |
-| 5   | `app/lib/data/campaigns/**`                                          | One function per file: fetch campaign, adventure with scenes, budget totals               |
-| 6   | `app/lib/actions/**`                                                 | Create/update/delete/reorder + the check-off toggles, each auth-guarded and Zod-validated |
-| 7   | `app/[locale]/dashboard/campaign/**`                                 | Campaign page, adventure page                                                             |
-| 8   | `app/ui/campaigns/**`                                                | Ladder, scene list, scene editor, budget panel, check controls                            |
-| 9   | `messages/{it,en}.json`                                              | Both catalogues, same key set                                                             |
-| 10  | `docs/PROJECT_STATE.md`, `docs/ROADMAP.md`, `docs/ARCHITECTURE.md`   | Inventory, Phase 4, and the metadata-layer boundary the ADR sets                          |
+| #   | File                                                                                               | Change                                                                                    |
+| --- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| 1   | `docs/adr/0011-nested-collections-and-the-metadata-layer.md`                                       | New — decides §7                                                                          |
+| 2   | `prisma/schema.prisma` + migration                                                                 | The six tables, plus `magicitems.consumable` and its backfill                             |
+| 3   | `app/lib/definitions/**`                                                                           | `SceneKind`, `AdventureStatus`, `TreasureCategory`, interfaces                            |
+| 4   | `app/lib/config/campaigns/**`, `app/lib/config/treasure/**`, `pageMetaFields.ts`, `pagesConfig.ts` | Metadata for campaign, adventure, the treasure catalogue and `magicitems.consumable`      |
+| 5   | `app/lib/data/campaigns/**`                                                                        | One function per file: fetch campaign, adventure with scenes, budget totals               |
+| 6   | `app/lib/actions/**`                                                                               | Create/update/delete/reorder + the check-off toggles, each auth-guarded and Zod-validated |
+| 7   | `app/[locale]/dashboard/campaign/**`                                                               | Campaign page, adventure page                                                             |
+| 8   | `app/ui/campaigns/**`                                                                              | Ladder, scene list, scene editor, budget panel, check controls                            |
+| 9   | `messages/{it,en}.json`                                                                            | Both catalogues, same key set                                                             |
+| 10  | `docs/PROJECT_STATE.md`, `docs/ROADMAP.md`, `docs/ARCHITECTURE.md`                                 | Inventory, Phase 4, and the metadata-layer boundary the ADR sets                          |
 
 **Risks**
 
 - **The ADR is on the critical path.** Getting §7 wrong means either a bespoke
   editor that quietly bypasses the app's core abstraction, or a speculative
   generalisation of `PageMeta` that serves exactly one caller.
-- **The at-the-table interaction is the part tests will not catch.** One-click
-  marking has to be fast and unambiguous on whatever device the DM actually uses
-  mid-session, and that is a real-browser check, not a unit test.
+- **The at-the-table interaction is the part tests will not catch.** Marking has
+  to be fast and unambiguous mid-session on a laptop — pointer or keyboard, never
+  touch — and that is a real-browser check, not a unit test.
 - **The adventure page is the largest single view in the app** — a nested,
   reorderable, inline-editable list. It is the task most likely to need splitting.
 - **Empty app, no seed data.** With no import (§3), every screen is built against
   hand-made fixtures until the DM authors real content, so the "50-scene
   adventure" case is easy to leave untested. It is named in §5 for that reason.
 
-**Open questions**
+**Answered since the first draft** _(2026-08-18, kept rather than deleted — the
+reasoning is the useful part)_
 
-- **Import.** The twenty sheets hold roughly seven hundred authored rows across
-  ~60 mapped locations. This spec assumes none of it is imported. If the _content_
-  (not the progress) is wanted after all, it is its own spec and its own task,
-  including reconciling the `01A`-style map codes against the 42 places already in
-  the tree.
-- **Does an item's value count toward the currency target?** §6 assumes yes,
-  matching the spreadsheet. Cheap to confirm, expensive to discover late.
-- **Which device runs the app at the table?** Decides whether the check controls
-  are designed for a pointer or a thumb.
-- **Currency unit per adventure or per campaign?** Modelled per adventure above,
-  because the DM's own campaign switches from silver to gold at level 8.
+- **Import** — deferred to after this ships, not dropped. See §3.
+- **Does an item's value count toward the currency target?** No, and the first
+  draft assumed the opposite. Settled from the spreadsheet itself; see §6's
+  counting rule for the evidence.
+- **Which device runs the app at the table?** A laptop, Windows or Mac. Never a
+  tablet. So the check controls are designed for pointer and keyboard, and
+  keyboard operation is an acceptance criterion rather than an accessibility
+  afterthought.
+- **Currency unit per adventure or per campaign?** Per adventure, and the DM's
+  reason for it — silver is the people's coin while the campaign is poor, gold
+  from level 8 — is worth keeping. Resolved by storing one unit and displaying
+  two; see §6.
+
+**Still open**
+
+- **§7's fork.** The one thing that still needs a decision before T4 and T8. The
+  recommendation is (b); the ADR is T1.
 
 ## 10. Task breakdown
 
 - [ ] **T1** — ADR-0011: nested collections and the metadata layer. _(no test; decision artefact, blocks T4/T8)_
-- [ ] **T2** — Schema + migration for the six tables. _(test: migration applies to an empty database; relations null rather than cascade where §6 says so)_
+- [ ] **T2** — Schema + migration: the six tables, `magicitems.consumable`, and its backfill from `type`. _(test: migration applies to an empty database; relations null rather than cascade where §6 says so; the backfill sets scroll and potion consumable and nothing else)_
 - [ ] **T3** — Definitions: the three closed vocabularies and their interfaces. _(test: vocabulary membership validators)_
-- [ ] **T4** — Metadata for `campaign` and `adventure`. _(test: each field declares `fieldType`, `controlType`, `validator`, `getDatum`, as the existing domain metadata tests assert)_
-- [ ] **T5** — Data layer: campaign, adventure-with-scenes, and the budget totals. _(test: totals against a fixture with unmarked, awarded and taken rows; unset target is not zero)_
+- [ ] **T4** — Metadata for `campaign`, `adventure` and `magicitems.consumable`. _(test: each field declares `fieldType`, `controlType`, `validator`, `getDatum`, as the existing domain metadata tests assert)_
+- [ ] **T4b** — The treasure catalogue as the seventh domain: metadata, list, form, filters. _(test: the same suite shape the other six domains have — CRUD, validation, unauthenticated rejection)_
+- [ ] **T5** — Data layer: campaign, adventure-with-scenes, the budget totals and the silver/gold conversion. _(test: the three disjoint inventories against a fixture mixing magic, catalogue and unlinked loot; unset target is not zero; a gold-displayed amount round-trips)_
 - [ ] **T6** — Server actions: CRUD and reorder, auth-guarded and validated. _(test: unauthenticated rejection and invalid-input rejection for each)_
 - [ ] **T7** — Campaign page: creation, ladder, status. _(test: empty state, position ordering)_
-- [ ] **T8** — Adventure page: scene list, scene editor, creatures and treasure. _(test: the six kinds render; place link, and unset place state)_
-- [ ] **T9** — Budget panel + check-off controls. _(test: independence of awarded and taken; state survives reload)_
+- [ ] **T8** — Adventure page: scene list, scene editor, creatures and loot. _(test: the six kinds render; place link, and unset place state; a loot row rejects two links)_
+- [ ] **T9** — Budget panel + check-off controls. _(test: independence of awarded and taken; state survives reload; every control reachable and operable by keyboard)_
 - [ ] **T10** — i18n both catalogues, a11y pass, docs update. _(test: catalogue key-set check in CI, axe at zero)_
 
-T7–T9 are the ones most likely to want splitting once T4's shape is known.
+T7–T9 are the ones most likely to want splitting once T4's shape is known. T4b is
+independent of the fork in §7 and could ship first — it is an ordinary domain,
+and it is the one piece the DM can start filling with real content immediately.
 
 ## 11. Outcome
 

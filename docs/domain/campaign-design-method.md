@@ -61,7 +61,7 @@ while writing it:
 | Budget          | What it counts                                                           |
 | --------------- | ------------------------------------------------------------------------ |
 | Experience      | Total XP the adventure hands out.                                        |
-| Currency        | Total coin value to be found (silver early, gold later).                 |
+| Currency        | Total value of non-magical wealth to be found.                           |
 | Permanent items | How many lasting magic items the party should come away with.            |
 | Consumables     | How many single-use items (potions, scrolls) they should come away with. |
 
@@ -79,6 +79,21 @@ running comparison, and it has three terms, not two:
 to place. `assigned − found` is a _play_ question, answered afterwards: what they
 missed, and therefore what has to reach them another way. Collapsing the two into
 one number loses the reason the DM tracks them at all.
+
+**The last three budgets are disjoint inventories, not three views of one
+number.** A magic item counts against the permanent or consumable target and its
+worth never enters the currency total; a non-magical valuable — a coin, an art
+object, a gem — counts against the currency total and nothing else. The DM's
+spreadsheet is consistent on this across every adventure: a jade pendant worth 80
+sits in the silver column with no item count beside it, while a magic powder sits
+in the consumable column with no value beside it. A haul containing both is two
+rows.
+
+**Currency has one scale and two names.** The DM reasons in silver through the
+early levels — the campaign is poor and silver is the people's coin — and in gold
+from level 8. Ten silver to the gold, in both the system the campaign came from
+and the one the app targets, so this is a label on a single scale rather than two
+units to reconcile.
 
 A fifth budget is narrative rather than material: roughly a dozen beats per
 adventure award a **hero point** (a metacurrency the party spends to reroll).

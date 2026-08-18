@@ -208,11 +208,17 @@ vi.mock("@/app/modules/maps/hooks/useNavigableChildren", () => ({
   useNavigableChildren: (...args: unknown[]) => useNavigableChildren(...args),
 }));
 const setView = vi.fn();
-const setMinZoom = vi.fn();
+const setMinZoom = vi.fn<(zoom: number) => void>();
 const setMaxZoom = vi.fn();
 const setMaxBounds = vi.fn();
 const setZoom = vi.fn();
 const fitBounds = vi.fn();
+// TD-87: defaults to a fit well below every fixture's `initialZoom` (1, or
+// -2 where a test overrides it to match the real per-place default) so
+// existing tests — none of which assert on `setMinZoom`'s value — keep
+// seeing genuine headroom without having to know about this mock. Tests
+// that care about the actual computation override this per-case.
+const getBoundsZoom = vi.fn(() => -4);
 const fakeMap = {
   setView,
   setMinZoom,
@@ -220,6 +226,7 @@ const fakeMap = {
   setMaxBounds,
   setZoom,
   fitBounds,
+  getBoundsZoom,
 };
 vi.mock("@/app/modules/maps/hooks/useLeafletMap", () => ({
   useLeafletMap: () => fakeMap,
@@ -321,6 +328,11 @@ beforeEach(() => {
   imageOnLoad = undefined;
   imageNaturalWidth = 1000;
   imageNaturalHeight = 1000;
+  // `clearAllMocks` clears call history, not the return value a previous
+  // test may have overridden with `mockReturnValue` (as opposed to
+  // `mockReturnValueOnce`) — reset explicitly so tests can't leak a custom
+  // fit zoom into whichever test happens to run after them.
+  getBoundsZoom.mockReturnValue(-4);
   createPlace.mockResolvedValue({ ok: true, id: 1 });
   updateZonePosition.mockResolvedValue({ ok: true });
   useNavigableChildren.mockReturnValue([]);
@@ -1151,5 +1163,95 @@ describe("WorldMap — sized to its container, not the viewport (TD-84)", () => 
     const root = container.firstElementChild;
     expect(root).toHaveClass("h-full");
     expect(root).not.toHaveClass("h-screen");
+  });
+});
+
+describe("WorldMap — the zoom floor leaves room to zoom out (TD-87)", () => {
+  it("opens strictly above its computed minimum zoom, not pinned exactly on it", async () => {
+    // Mirrors the real bug: every place opens at `DEFAULT_MAP_INITIAL_ZOOM`
+    // (-2, since nothing writes `mapInitialZoom`), and the image's own fit
+    // for these bounds is a floor of -4 — well below that opening zoom.
+    // Pre-fix, `setMinZoom` was hardcoded to 0 regardless of `getBoundsZoom`,
+    // so the opening view (clamped to 0, since -2 < 0) landed exactly on
+    // the floor and "zoom out" had nowhere to go.
+    getBoundsZoom.mockReturnValue(-4);
+    render(
+      <WorldMap
+        parentId={1}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        mapUrl="/maps/test.jpg"
+        bounds={bounds}
+        initialView={[500, 500]}
+        initialZoom={-2}
+        onDescend={onDescend}
+        onMapChanged={vi.fn()}
+        onDeleted={vi.fn()}
+      />
+    );
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
+
+    expect(setView).toHaveBeenCalledWith([500, 500], -2);
+    const openZoom = -2;
+    // Not merely "not equal" — genuinely below, i.e. there is at least one
+    // full step of zoom-out headroom below wherever the map opens.
+    const minZoomArg = setMinZoom.mock.calls.at(-1)?.[0];
+    expect(minZoomArg).toBeLessThan(openZoom);
+  });
+
+  it("re-measures the floor against the corrected bounds once the image loads, rather than leaving it stale", async () => {
+    // A different fit for the corrected (post-load) bounds than for the
+    // interim stored/default ones, so a fix that only recomputes the floor
+    // once (at mount) rather than again on load would be caught: the last
+    // `setMinZoom` call would still reflect the interim fit instead of this
+    // one.
+    getBoundsZoom.mockReturnValueOnce(-4).mockReturnValueOnce(-6);
+    imageNaturalWidth = 1600;
+    imageNaturalHeight = 900;
+
+    await renderMap();
+
+    const fittedBounds = [
+      [0, 0],
+      [900, 1600],
+    ];
+    expect(fitBounds).toHaveBeenLastCalledWith(fittedBounds);
+    const lastMinZoom = setMinZoom.mock.calls.at(-1)?.[0];
+    // `computeMinZoom(-6, -6)` — the second, post-load `getBoundsZoom` call
+    // doubling as both the fit and the opening zoom, since `fitBounds`
+    // targets exactly that fit.
+    expect(lastMinZoom).toBe(-7);
+  });
+
+  it("does not let a fit at or above the opening zoom leave the floor pinned on it (the original bug's exact shape)", async () => {
+    // The image's own fit (0) is not looser than the opening zoom (0) —
+    // naively using the fit alone as the floor reproduces TD-87 exactly:
+    // floor equals opening zoom, so zoom out has nothing to do.
+    getBoundsZoom.mockReturnValue(0);
+
+    render(
+      <WorldMap
+        parentId={1}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        mapUrl="/maps/test.jpg"
+        bounds={bounds}
+        initialView={[500, 500]}
+        initialZoom={0}
+        onDescend={onDescend}
+        onMapChanged={vi.fn()}
+        onDeleted={vi.fn()}
+      />
+    );
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
+
+    const minZoomArg = setMinZoom.mock.calls.at(-1)?.[0];
+    expect(minZoomArg).toBeLessThan(0);
   });
 });

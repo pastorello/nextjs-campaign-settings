@@ -33,7 +33,10 @@ import {
   findContainingSibling,
   type Footprint,
 } from "@/app/modules/maps/lib/utils/footprint";
-import { computeImageBounds } from "@/app/modules/maps/lib/utils/placeMapView";
+import {
+  computeImageBounds,
+  computeMinZoom,
+} from "@/app/modules/maps/lib/utils/placeMapView";
 
 /**
  * WorldMap - the map view backing `/dashboard/geography`.
@@ -586,7 +589,21 @@ function WorldMap({
           // Interim framing before the image's own dimensions are known —
           // the same stored/default view this component has always opened
           // with. Corrected below once the image reports its real size.
-          map.setMinZoom(0);
+          //
+          // TD-87: the floor must be measured, not pinned to a constant —
+          // `getBoundsZoom` reports the zoom at which the image fills the
+          // container, but it clamps its own answer to whatever
+          // minZoom/maxZoom the map *currently* has (`LeafletMap`'s
+          // tile-map default of 3 the very first time this effect runs, or
+          // a previous render's own computed floor on any later one), so
+          // the floor is loosened first or the "fit" would just echo the
+          // old floor back unchanged.
+          map.setMinZoom(-Infinity);
+          const minZoom = computeMinZoom(
+            map.getBoundsZoom(bounds),
+            initialZoom
+          );
+          map.setMinZoom(minZoom);
           map.setMaxZoom(10);
           map.setMaxBounds(bounds);
           map.setView(initialView, initialZoom);
@@ -618,6 +635,18 @@ function WorldMap({
             image.setBounds(L.latLngBounds(southWest, northEast));
             image.setOpacity(1);
             setEffectiveBounds(fittedBounds);
+
+            // TD-87, same reasoning as the interim framing above: the
+            // floor is re-measured against the corrected bounds (fixing
+            // bounds without re-fitting the floor to match would leave the
+            // floor stale, still measured against the stored/default
+            // square) — loosened first so `getBoundsZoom` reports the real
+            // fit rather than the floor just set above. `fitBounds` below
+            // is what the map is about to open at, so it doubles as its
+            // own `openZoom`.
+            map.setMinZoom(-Infinity);
+            const fitZoom = map.getBoundsZoom(fittedBounds);
+            map.setMinZoom(computeMinZoom(fitZoom, fitZoom));
             map.setMaxBounds(fittedBounds);
             map.fitBounds(fittedBounds);
           });

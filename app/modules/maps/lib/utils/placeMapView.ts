@@ -59,3 +59,23 @@ export function computeImageBounds(
     [naturalHeight, naturalWidth],
   ];
 }
+
+/**
+ * TD-87: every map used to open with `setMinZoom(0)` then a view clamped up
+ * to that same `0` — pinning the map exactly at its own floor, so "zoom out"
+ * had nothing to do. The floor a map opens with has to sit strictly below
+ * the zoom it is about to be shown at, or Leaflet's own `setView`/
+ * `fitBounds` silently clamps that opening zoom *up* to the floor and
+ * reproduces the same bug with a different number.
+ *
+ * `fitZoom` is `Map.getBoundsZoom(bounds)` — the zoom at which the whole
+ * image exactly fills the container, i.e. the real floor: below it there is
+ * nothing left to see, only blank canvas. `openZoom` is whatever zoom the
+ * map is about to display. Taking the lower of "one step below the opening
+ * zoom" and the real fit guarantees genuine headroom to zoom out from
+ * wherever the map opens, while never raising the floor above the point
+ * where the whole image is visible.
+ */
+export function computeMinZoom(fitZoom: number, openZoom: number): number {
+  return Math.min(fitZoom, openZoom - 1);
+}

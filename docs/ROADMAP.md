@@ -323,11 +323,13 @@ they should, which makes the change additive rather than a break.
 
 - **A breadcrumb trail in the geography header** — `Piani di Esistenza / Piano
 Materiale / Regno di Kang / Skreebars` instead of the bare current title.
-  **Note this reverses a decision:** SPEC-004 M7 excluded breadcrumbs from the
-  MVP on purpose, and `GeographyExplorer` keeps a navigation _stack_ rather than
-  a fetched ancestor chain for that reason. The stack already holds exactly the
-  titles a breadcrumb needs, so the change is small — but do it as a deliberate
-  reversal, recorded, not as a bug fix.
+  **Note what this does and does not reverse.** SPEC-004 §2 already named
+  breadcrumbs as part of the goal ("breadcrumbs show the path back to the
+  universe"); it was M7's MVP scoping that cut them, and `GeographyExplorer`
+  keeps a navigation _stack_ rather than a fetched ancestor chain for that
+  reason. The stack already holds exactly the titles a breadcrumb needs, so the
+  change is small — and it restores the spec's stated intent rather than
+  overturning it, a narrower move than SPEC-009's rectangles needed.
 - **Magic-item filters as dropdowns.** Replace the `SelectButtonery` for rarity
   and type with two dropdowns, same height as today's buttons, both on one row.
   A contained UI change to one domain's filter bar.

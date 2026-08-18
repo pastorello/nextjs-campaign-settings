@@ -1,6 +1,6 @@
 # Roadmap
 
-**Last updated:** 2026-08-17
+**Last updated:** 2026-08-18
 
 Two rules govern this document:
 
@@ -144,7 +144,7 @@ Recording these prevents rediscussing them:
 
 - **Real-time collaboration.** Websockets, presence, conflict resolution — enormous complexity for a single-DM tool.
 - **A full VTT.** Roll20 and Foundry exist. This is a campaign _bible_, not a virtual tabletop.
-- **Public multi-tenant hosting.** Self-hosted by design; changing that brings GDPR, billing and abuse concerns that dwarf the app.
+- **Public multi-tenant hosting.** Self-hosted by design; changing that brings GDPR, billing and abuse concerns that dwarf the app. **Partly retracted 2026-08-18** — the DM has explained that "self-hosted by design" recorded a constraint, not a preference: at the time there were no means to publish anywhere. The intent now is to put this app on a domain, and that is planned work (see "Publishing this app", below). **The rest of the entry stands:** one deployed instance for one DM's campaign is not multi-tenancy, and nothing here plans to host other people's campaigns.
 - **A mobile app.** Responsive web is sufficient. _(See [ADR-0004](./adr/0004-server-actions-over-rest-api.md) on when an API layer would become justified.)_
 - **AI-generated content in-app.** Tempting and easy to bolt on; adds a paid dependency and a moderation surface for a feature the target user (one DM, their own world) mostly does not want.
 
@@ -169,6 +169,240 @@ Named, in the same breath:
   is mostly deciding where images live and how they are served, not building a
   store. SPEC-006 §3 defers the faction emblem to its own spec for this reason.
 - **Cross-entity search.** Phase 3, above.
+
+### Asked for on 2026-08-18, in one batch — accounts, roles and party visibility
+
+The DM walked the app and reported 29 things in one sitting. The bugs went to the
+register (TD-81 – TD-93). What is left is six requests that arrived as six but are
+**one system**, and building them in the order they were said would mean building
+the same authorisation check three times:
+
+1. **A DM role, distinct from a normal account** — only a DM reaches the edit
+   pages and the mutations behind them (maps, spells, NPCs, factions, items); a
+   normal account keeps the read pages it has today.
+2. **Self-service DM sign-up** from the logged-out screen, with the DM activating
+   the account by hand afterwards.
+3. **An account-management page** for a logged-in DM.
+4. **Password reset** from the logged-out screen.
+5. **Party accounts** — the DM creates and manages an adventurer's account (name,
+   email, password) for a group of players.
+6. **Per-entity visibility to the party** — places, NPCs, deities, magic items and
+   factions are each secret or public, toggled from the admin list rows (e.g.
+   `/dashboard/admin/factions`).
+
+**The order that actually works is 1 → (2, 3, 4 in any order) → 5 → 6.** Roles
+first, because everything else is a rule about who may do what and there is
+currently no "who". Party accounts before visibility, because "visible to the
+party" has no meaning until a party exists.
+
+**Three things worth knowing before any of this is scheduled:**
+
+- **Item 6 is much larger than it looks, and is the reason this belongs in specs
+  rather than in the debt register.** A visibility flag is one column and one
+  toggle; _honouring_ it is every read path in the app — each domain's list and
+  card, the map's markers, cross-entity search, the dashboard counts — filtering
+  by who is asking. Those paths run through the metadata layer, which is
+  string-keyed: a read path that forgets to filter keeps working and quietly
+  leaks. `CLAUDE.md` records this exact failure mode from TD-19, where a missed
+  string key turned into a filter that silently stopped filtering. This spec
+  needs an explicit inventory of read paths as part of its acceptance criteria,
+  not a general instruction to be careful.
+- **Item 6 is also Phase 5's "player-facing read-only view", already on this
+  roadmap, already annotated "requires the authorisation model that does not
+  exist today."** That prediction is now the request. Treat the two as the same
+  work rather than filing a second one.
+- **Item 4 has no plumbing.** There is no mail transport in this repo — no
+  `nodemailer`, no transactional-mail service, nothing in `package.json`. A
+  password reset that emails a link means choosing and configuring one, on a
+  self-hosted app whose whole deployment story is `docker-compose`. That choice
+  is an ADR, and it is most of the cost of item 4. Worth asking the DM whether a
+  reset performed by hand (they already activate accounts by hand, per item 2)
+  is enough for now.
+
+**One thing the role model must not sweep up:** temporary scratch markers on the
+map (TD-86) are for players too, the DM was explicit. The natural default when
+splitting DM from player is "the map is read-only for players", and that default
+is wrong here. Whatever shape item 1 takes needs a place for actions that are
+neither reads nor campaign edits.
+
+Authentication itself is not from scratch: `next-auth` 5 and `bcrypt` are already
+in use, `auth.ts`/`auth.config.ts` exist, and every mutation already checks a
+session (`app/lib/auth/requireSession.ts`, TD-01). What changes is that the check
+stops being "is anyone logged in" and becomes "is this person allowed" — and it
+has to keep living in the Server Action and the route handler, never in the
+component that renders the button.
+
+### Decided on 2026-08-18 — the place popover, and making the map measurable
+
+Two feature threads came out of the DM's second pass. Both are recorded here
+rather than in the register because both change what the app does, not whether it
+does it correctly.
+
+**The place popover.** Clicking a place opens a popover carrying its description
+and its actions: "rimuovi definitivamente" and "sposta nei luoghi non
+posizionati"; the list of NPCs and deities currently at that place, each with an
+X that returns it to the unattached pool; and a control to attach an entity here.
+
+This one surface answers four separate reports — attaching an entity from the
+place instead of the map's right-click menu, seeing what lives somewhere,
+un-placing without deleting, and the "create la Taverna del Gallo Robin in
+Skreebars, then link a character to it" workflow. **It is also the precondition
+for TD-93's placement invariant**: blocking a second placement is only reasonable
+once un-placing is one click away, and for TD-96, which removes the right-click
+entry this popover replaces.
+
+Worth the spec template specifically for its edge cases: what "rimuovi
+definitivamente" does to a place that has children (SPEC-010 already decided
+reparenting for deletion — this must match it, not invent a second rule), and
+what an entity's X means when the entity is attached to a landmark POI rather
+than to the zone itself (SPEC-008 T8's two cases).
+
+**Making the map measurable** — three requests that are one feature, in
+dependency order:
+
+1. **A scale per map** ("50 pixel = 4.5 km"), set from the map's own edit menu.
+   This is the missing piece: the maps are `CRS.Simple`, so the app knows pixel
+   distances and nothing else. A stored scale is what turns those into leagues.
+   It is a new field on the place alongside `mapBounds`, so it lands naturally
+   with **TD-81**, which is already going to touch how a map is framed.
+2. **A working measurement tool** on top of it — **TD-94** is the bug (haversine
+   metres on a pixel map), but the DM also proposed the interaction: click to
+   start, the track draws in red while the mouse moves, a second click ends it
+   and drops a marker with the distance. Adopt that; it is clearer than the
+   current panel-driven flow.
+3. **A grid overlay toggle** next to zoom in / zoom out, so distances can be
+   eyeballed without measuring at all. Cheap once the scale exists, and close to
+   useless before it — a grid whose squares mean nothing is decoration.
+
+Do them in that order. Each is small; built in the wrong order, the first two are
+guesses.
+
+### Reversed on 2026-08-18 — area footprints become polygons
+
+**SPEC-009 shipped rectangles only, and said to revisit "only if rectangles prove
+genuinely unusable in practice." They have.** The DM's evidence, drawing the real
+campaign map: on the root map the material plane is the upper part of a
+hemisphere, and any rectangle over it takes in ground that is not the material
+plane; one level down, Kang's realm cannot be boxed without also claiming a piece
+of the dwarven kingdom and a piece of Quel'Thalas. The damage is deferred rather
+than immediate — it surfaces when those neighbours get their own maps and their
+borders contradict the boxes already drawn.
+
+**Why this outranks a normal feature request:** SPEC-009's whole point was that
+"containment becomes spatially true." A rectangle that covers a neighbour's
+ground makes it spatially _false_, so the current shape does not merely look
+wrong, it breaks the guarantee the rest of the map model is built on — including
+the refusal rules that stop pins and areas from sharing ground.
+
+**Sized L, and the cost is concentrated in three predicates** that are currently
+trivial arithmetic in `app/modules/maps/lib/utils/footprint.ts`:
+
+- **Containment** goes from point-in-rectangle to point-in-polygon. Routine.
+- **The derived centre** goes from a midpoint to a centroid — and a concave
+  polygon's centroid can fall _outside_ the polygon, which would put a
+  horseshoe-shaped region's pin in the empty middle. SPEC-009 writes that centre
+  into `lat`/`lng` at creation so every existing consumer keeps working, so this
+  needs a real answer (pole of inaccessibility, or an author-placed label point),
+  not a formula picked for being short.
+- **Overlap** goes from comparing two intervals to polygon-polygon intersection.
+  This is the expensive one, and it is load-bearing: "an area may not overlap a
+  sibling" is what makes the model coherent.
+
+Plus drawing (drag-to-draw becomes click-per-vertex with a closing gesture, undo
+of the last vertex, and a minimum-vertex rule where SPEC-009 had a minimum-size
+one), clamping to the map's bounds, and SPEC-009 T5's move/resize editing, which
+re-runs both checks on every edit and is where a naive polygon implementation
+will hurt most.
+
+**Decide in the spec, not before:** whether to take on a geometry library
+(polygon intersection written by hand is a classic source of subtle, data-
+dependent bugs) and whether existing rectangles migrate as four-point polygons —
+they should, which makes the change additive rather than a break.
+
+### Publishing this app — asked for on 2026-08-18, to be planned
+
+The DM intends to put this app on a domain rather than run it locally. Recorded
+as work, not as a wish: `README.md`'s quickstart and `docker-compose.yml` are the
+whole deployment story today, and every doc that says "self-hosted" means "on the
+DM's machine".
+
+**Now specified: [SPEC-012](./specs/012-publishing-and-internet-exposure.md)**,
+written 2026-08-18 at the DM's request, carrying a ten-finding security audit
+verified against the repo, a recommended stack with costs, and the ordering that
+makes roles a prerequisite of publication rather than a follow-up.
+
+**Not started, and deliberately not started before the decisions in that spec are made.**
+The DM asked to be walked through what to buy when the time comes; this entry
+exists so that conversation begins from a written list rather than from scratch.
+
+**The one architectural fact that constrains the hosting choice, and it is easy to
+miss:** [ADR-0008](./adr/0008-map-image-storage.md) stores uploaded map images on
+a **local filesystem volume** at `UPLOAD_DIR`, served through an authenticated
+route. That rules out any platform with an ephemeral filesystem — on Vercel and
+most PaaS free tiers, uploaded maps would vanish on the next deploy, silently,
+with the database still holding rows that point at them. Publishing therefore
+means either a host with a persistent volume (a small VPS running the existing
+`docker-compose`) or revisiting ADR-0008 for object storage. **That is a real
+decision with a real cost either way, and it should be made before anything is
+bought.**
+
+What the planning conversation has to cover, roughly in order:
+
+- **Where it runs.** VPS with persistent disk versus a PaaS plus object storage —
+  see above. This choice drives everything below.
+- **The domain**, and TLS (certificates are free; the renewal has to be automatic
+  or it becomes a yearly outage).
+- **The database.** The `docker-compose` Postgres is a development convenience.
+  Deployed, it needs backups that are actually restored at least once, because an
+  untested backup is not a backup — this campaign is years of the DM's writing.
+- **Secrets.** `.env` is gitignored and must stay out of the image; the host needs
+  its own secret mechanism.
+- **What being reachable from the internet changes.** Today the app's only
+  exposure is the DM's own network. Published, it inherits everything that
+  implies — which is also what makes the account work below non-optional rather
+  than a convenience.
+
+**Three items already on this roadmap stop being optional the day this ships**,
+and this is the reason to plan them together rather than in the order they were
+asked for:
+
+- **Roles and authorisation** (the accounts block above). Every logged-in user
+  can currently edit everything.
+- **ADR-0008's access check.** It equates "authenticated" with "the DM" — see the
+  note in that ADR.
+- **Self-service sign-up** (item 2 of the accounts block). On a machine reachable
+  only from the DM's own network, an open registration form is a convenience.
+  On a public domain it is a way for anyone who finds the URL to create accounts,
+  even with manual activation behind it. **The DM confirmed on 2026-08-18 that
+  public is the intent**, so the sign-up form has to ship with rate limiting and
+  a deliberate answer to "who may even see this page", not as a plain form.
+
+Write an ADR when the hosting shape is chosen. The choice determines whether
+ADR-0008 survives, which is exactly the kind of consequence an ADR exists to
+record.
+
+### Also asked for on 2026-08-18, and much smaller
+
+- **A breadcrumb trail in the geography header** — `Piani di Esistenza / Piano
+Materiale / Regno di Kang / Skreebars` instead of the bare current title.
+  **Note what this does and does not reverse.** SPEC-004 §2 already named
+  breadcrumbs as part of the goal ("breadcrumbs show the path back to the
+  universe"); it was M7's MVP scoping that cut them, and `GeographyExplorer`
+  keeps a navigation _stack_ rather than a fetched ancestor chain for that
+  reason. The stack already holds exactly the titles a breadcrumb needs, so the
+  change is small — and it restores the spec's stated intent rather than
+  overturning it, a narrower move than SPEC-009's rectangles needed.
+- **Magic-item filters as dropdowns.** Replace the `SelectButtonery` for rarity
+  and type with two dropdowns, same height as today's buttons, both on one row.
+  A contained UI change to one domain's filter bar.
+- **Create a place, then attach entities to it.** The DM's example: create "la
+  Taverna del Gallo Robin" inside Skreebars, and link a character there — rather
+  than attaching an NPC or deity straight from the map's right-click menu. This
+  is the model SPEC-008 T8 already chose (an entity has no coordinates of its
+  own; it lives at a place), so the gap is workflow, not data: creating the
+  intermediate place has to be quick, and an entity attached to a place has to be
+  visible from that place. Relates to TD-85, which is what currently makes the
+  place-creation flow hard to reach at all.
 
 None of these displaces SPEC-006 and SPEC-007, both shipped 2026-08-10. They are
 recorded here so the question "what should Phase 4 actually contain?" has evidence

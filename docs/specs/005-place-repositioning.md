@@ -20,6 +20,16 @@ A DM can select any existing place — any kind — and give it a position or ch
 ## 3. Non-goals
 
 - **No tree/breadcrumb UI.** `GeographyExplorer` already navigates by descending into map markers, not a list; this spec does not build a general-purpose place tree. It adds only the minimum picker needed to reach an _unplaced_ child (see §5) — an unplaced place currently has no marker to click, so a list is the only way to reach it.
+
+  > **The picker is superseded, 2026-08-18.** "A list is the only way to reach
+  > it" was true when this spec shipped; TD-85 gives the same job to a
+  > "Posiziona luogo" entry on the map's right-click menu, opening a dropdown of
+  > the unpositioned places, disabled when there are none. The DM chose that as
+  > the **single** method — the panel's unplaced-children list is withdrawn with
+  > it, not kept alongside. Everything else this spec decided about
+  > repositioning (the mechanism, the checks, `useUnplacedChildren` as the query
+  > behind it) is untouched.
+
 - **No reparenting.** Moving a place to a different parent (changing `parentId`) is out of scope. This spec only ever changes `lat`/`lng` within the place's existing parent's map.
 - **No bulk/multi-select repositioning.**
 - **No change to creation-time placement** (right-click → Add Place). That flow is unaffected.

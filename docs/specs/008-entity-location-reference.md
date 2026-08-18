@@ -41,6 +41,18 @@ An NPC or deity's location is a stored reference to an existing Zone — optiona
 
 - **`NpcForm`/`DeityForm` gain no location field at all.** Every entity is created with `zoneId`/`poiId` both `null` ("Sconosciuta" — see below), and location is never part of what those forms edit.
 - **Assignment happens through a dedicated modal**, not the entity form. The DM reaches it from two places: a button on the admin list (per row — "assign/change location" for that specific NPC or deity) and a button on the map itself (contextual — pick an existing NPC/deity and attach it to the zone or landmark currently in view). Both open the same modal and call the same mutation; the map entry point differs only in pre-filling the target zone/POI from what the DM is currently looking at.
+
+  > **The map entry point is superseded, 2026-08-18.** The DM found that
+  > attaching an entity from a right-click on empty map space asks them to file
+  > something into a location whose current contents they cannot see. It is
+  > replaced by the same operation inside the place's own popover, which lists
+  > what is already there and offers a per-entity removal — recorded in
+  > `ROADMAP.md`, with the menu entry's removal tracked as TD-96 and explicitly
+  > blocked on the popover shipping, so the operation is never unreachable in
+  > between. **The admin-list entry point and the modal itself are unaffected**,
+  > as is everything this spec decided about where an entity's location is
+  > stored (ADR-0010).
+
 - This is a new, bespoke flow — distinct from `MapPOIPanel.tsx`'s existing "create a new place/landmark here" actions and from SPEC-005's repositioning (which moves a Zone/POI itself, not what points at it).
 
 **Confirmed with the DM 2026-08-08: the order is always place-first, entity-second.** A Zone or landmark POI is created (from the map, as today — `MapPOIPanel.tsx`'s existing flow, updated to write `zone`/`poi` instead of the old single `poi` table), and only afterward can an NPC or deity be attached to it, since entities never carry their own coordinates. This retires one specific piece of today's map UI: `AddPlaceInput`'s `kind: "npc"`/`"deity"` variants (`app/modules/maps/components/map/MapPOIPanel.tsx`), which today let a DM click a spot on the map and create a brand-new pin linked to an existing NPC/deity, complete with its own `lat`/`lng`. That variant is removed entirely — creating a new _entity_ is never something the map does, and attaching an _existing_ one to a place goes through the assignment modal instead, which takes no coordinate. The "create a new Zone/landmark here" variants of `AddPlaceInput` are unaffected.

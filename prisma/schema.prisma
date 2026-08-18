@@ -50,6 +50,16 @@ model magicitems {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // SPEC-013 T2 — a magic item that is consumed on use (scroll, potion) rather
+  // than worn or wielded. Distinct from `type`: a wand with charges is
+  // permanent and a wondrous item can be single-use, so this cannot be
+  // derived from `type` alone. Backfilled from `type` as a starting point —
+  // see the migration SQL — then corrected by hand where the derivation
+  // guessed wrong.
+  consumable Boolean @default(false)
+
+  loot loot[]
+
   @@index([name])
 }
 
@@ -84,6 +94,9 @@ model npc {
   // avoid colliding with the sibling scalar field `faction` on this same
   // model, not because the `faction` table needs a different name.
   factionRef faction? @relation(fields: [faction], references: [id], onDelete: Restrict)
+
+  // SPEC-013 T2 — back-relation required by sceneCreature.npc.
+  sceneCreatures sceneCreature[]
 
   @@index([name])
 }
@@ -126,6 +139,8 @@ model zone {
   npc     npc[]
   deities deities[]
   poi     poi[]
+  // SPEC-013 T2 — back-relation required by scene.zone.
+  scenes  scene[]
 
   @@index([parentId])
 }
@@ -185,4 +200,134 @@ model users {
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// SPEC-013 T2 — campaign management. Six tables: a campaign groups
+// adventures; an adventure is a sequence of scenes; a scene may fight
+// creatures and give up loot. New tables use English column names, no
+// `@map` — the Italian columns elsewhere are legacy decoupled by `@map`,
+// not a convention to extend (CLAUDE.md, Language conventions).
+model campaign {
+  id        Int      @id @default(autoincrement())
+  title     String
+  synopsis  String?
+  partySize Int      @default(4)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  adventures adventure[]
+}
+
+model adventure {
+  id         Int       @id @default(autoincrement())
+  campaignId Int?
+  campaign   campaign? @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+
+  position    Int
+  targetLevel Int
+  title       String
+  synopsis    String?
+  timeline    String? // the planned calendar of §5, free text
+  status      String // planned | active | completed — closed vocabulary in code
+
+  xpTarget            Int?
+  currencyTarget      Int? // stored in silver, like every value in this spec
+  currencyUnit        String? // silver | gold — DISPLAY only, see the counting rule
+  permanentItemTarget Int?
+  consumableTarget    Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  scenes scene[]
+
+  @@index([campaignId])
+}
+
+model scene {
+  id          Int       @id @default(autoincrement())
+  adventureId Int
+  adventure   adventure @relation(fields: [adventureId], references: [id], onDelete: Cascade)
+
+  position        Int
+  kind            String // fight | explore | clue | goal | dungeon | break
+  title           String
+  description     String?
+  xpAward         Int?
+  grantsHeroPoint Boolean @default(false)
+  awarded         Boolean @default(false)
+
+  zoneId Int?
+  zone   zone? @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Corrected from §6's draft, which named this `treasures treasure[]`: a
+  // scene's rows are `loot`, which is what carries `sceneId`; `treasure` is
+  // the catalogue and has no back-relation to `scene` (see the PR body).
+  creatures sceneCreature[]
+  loot      loot[]
+
+  @@index([adventureId])
+  @@index([zoneId])
+}
+
+model sceneCreature {
+  id      Int   @id @default(autoincrement())
+  sceneId Int
+  scene   scene @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+
+  position Int
+  name     String
+  level    Int?
+  xpEach   Int?
+  quantity Int     @default(1)
+  note     String?
+  awarded  Boolean @default(false)
+
+  npcId Int?
+  npc   npc? @relation(fields: [npcId], references: [id], onDelete: SetNull)
+
+  @@index([sceneId])
+}
+
+// What a scene gives up. Named `loot`, not `treasure`: `treasure` is now the
+// catalogue below, the page the DM browses. A scene has loot; loot points at
+// the catalogue.
+model loot {
+  id      Int   @id @default(autoincrement())
+  sceneId Int
+  scene   scene @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+
+  position    Int
+  description String
+  quantity    Int     @default(1)
+  value       Int? // in silver; supplies or overrides the catalogue's value
+  taken       Boolean @default(false)
+
+  // At most one link, enforced by the validator, never both.
+  magicItemId Int?
+  magicitem   magicitems? @relation(fields: [magicItemId], references: [id], onDelete: SetNull)
+  treasureId  Int?
+  treasure    treasure?   @relation(fields: [treasureId], references: [id], onDelete: SetNull)
+
+  @@index([sceneId])
+}
+
+// The seventh domain: non-magical valuables. Same shape as `magicitems` — a
+// library the DM authors once and draws on from any adventure. Coins, art
+// objects, gems, trade goods.
+model treasure {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  category    Int // static options, like magicitems.type
+  value       Int? // in silver
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  loot loot[]
+
+  @@index([name])
 }

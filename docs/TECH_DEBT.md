@@ -115,7 +115,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-91 | The dashboard counts four domains of six — places and factions were never added                              | 🟡 Medium            | S      | 4     |
 | TD-92 | The dashboard's cards are not clickable, so the counts lead nowhere                                          | 🟢 Low               | S      | 4     |
 | TD-93 | An already-positioned place or attached entity can be positioned again elsewhere                             | 🟠 High              | M      | 4     |
-| TD-94 | The measurement tool reports haversine metres on a pixel-space map, so every distance is meaningless         | 🟠 High              | M      | 4     |
+| TD-94 | Measurement reports haversine metres on a pixel-space map — superseded by SPEC-015, do not patch alone       | 🟠 High              | M      | 4     |
 | TD-95 | The place panel is half-untranslated, with English strings hardcoded in the component                        | 🟡 Medium            | S      | 4     |
 | TD-96 | The map's right-click menu carries two entries the model has outgrown                                        | 🟢 Low               | S      | 4     |
 
@@ -635,6 +635,14 @@ the constraint needs the un-place action to exist, or it turns a recoverable
 mistake into a dead end.
 
 ### TD-94 — The measurement tool reports haversine metres on a pixel-space map, so every distance it gives is meaningless
+
+> **Superseded 2026-08-18 by [SPEC-015](../specs/015-map-grid-and-scale.md) — do not
+> patch this in isolation.** The bug is real and the diagnosis below stands, but the
+> fix is not "swap haversine for a pixel distance": a pixel distance is still not a
+> distance until the map carries a scale. SPEC-015 gives every map a grid and four
+> named scales, and rebuilds measurement on top of that (its T7 carries this
+> regression test). Fixing the formula alone would produce a confident number in
+> pixels, which is the same class of wrong.
 
 **Severity:** 🟠 High · **Effort:** M · **Found:** 2026-08-18, reported by the DM as "Misura seems not to work, or I have not understood it"
 

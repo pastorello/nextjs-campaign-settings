@@ -38,7 +38,19 @@ Other constraints that matter:
 Three parts:
 
 1. **Storage.** Files land under `UPLOAD_DIR` — must be an absolute path, defaulting to a fixed location under the home directory if unset (TD-66: a relative default resolved against `process.cwd()` silently split map images across checkouts of this repo sharing one `DATABASE_URL`); production points the same variable at a named Docker volume once the app is containerised. Because the path comes from the environment, dev and production run the same code.
-2. **Access.** A route handler at `app/api/maps/[id]/image/route.ts` calls `requireApiSession()` — the guard TD-01 established for every route handler — then streams the file. No unauthenticated path to a map exists. The existing four maps move out of `public/maps/` in the same change, which closes the current exposure.
+2. **Access.** A route handler at `app/api/maps/[id]/image/route.ts` calls `requireApiSession()` — the guard TD-01 established for every route handler — then streams the file. No unauthenticated path to a map exists.
+
+   > **This guarantee weakens the moment players get accounts (flagged 2026-08-18).**
+   > The decision above equates "authenticated" with "the DM", which held while the
+   > DM was the only account. The DM has since asked for player accounts and for
+   > per-entity secret/public visibility (`ROADMAP.md`). A logged-in player would
+   > then satisfy `requireApiSession()` and could fetch **any** map image by URL —
+   > including the secret ones this ADR exists to protect. Nothing is broken today;
+   > it breaks silently on the day party accounts ship, with no error and no test
+   > failure to announce it. **The visibility spec must carry this route handler in
+   > its inventory of read paths**, and the guard has to become an authorisation
+   > check, not a session check. The existing four maps move out of `public/maps/` in the same change, which closes the current exposure.
+
 3. **An interface, not a hard-coded `fs` call.** A small `MapImageStore` (`put`, `get`, `delete`) with a filesystem implementation. Swapping to S3, MinIO or a rented host later replaces one file and an env var, not the call sites.
 
 Leaflet needs no changes: `imageOverlay` fetches the image with an ordinary same-origin `<img>` request, so the session cookie is sent automatically.

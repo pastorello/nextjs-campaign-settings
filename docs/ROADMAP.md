@@ -144,7 +144,7 @@ Recording these prevents rediscussing them:
 
 - **Real-time collaboration.** Websockets, presence, conflict resolution — enormous complexity for a single-DM tool.
 - **A full VTT.** Roll20 and Foundry exist. This is a campaign _bible_, not a virtual tabletop.
-- **Public multi-tenant hosting.** Self-hosted by design; changing that brings GDPR, billing and abuse concerns that dwarf the app.
+- **Public multi-tenant hosting.** Self-hosted by design; changing that brings GDPR, billing and abuse concerns that dwarf the app. **Partly retracted 2026-08-18** — the DM has explained that "self-hosted by design" recorded a constraint, not a preference: at the time there were no means to publish anywhere. The intent now is to put this app on a domain, and that is planned work (see "Publishing this app", below). **The rest of the entry stands:** one deployed instance for one DM's campaign is not multi-tenancy, and nothing here plans to host other people's campaigns.
 - **A mobile app.** Responsive web is sufficient. _(See [ADR-0004](./adr/0004-server-actions-over-rest-api.md) on when an API layer would become justified.)_
 - **AI-generated content in-app.** Tempting and easy to bolt on; adds a paid dependency and a moderation surface for a feature the target user (one DM, their own world) mostly does not want.
 
@@ -318,6 +318,63 @@ will hurt most.
 (polygon intersection written by hand is a classic source of subtle, data-
 dependent bugs) and whether existing rectangles migrate as four-point polygons —
 they should, which makes the change additive rather than a break.
+
+### Publishing this app — asked for on 2026-08-18, to be planned
+
+The DM intends to put this app on a domain rather than run it locally. Recorded
+as work, not as a wish: `README.md`'s quickstart and `docker-compose.yml` are the
+whole deployment story today, and every doc that says "self-hosted" means "on the
+DM's machine".
+
+**Not started, and deliberately not started before the decisions below are made.**
+The DM asked to be walked through what to buy when the time comes; this entry
+exists so that conversation begins from a written list rather than from scratch.
+
+**The one architectural fact that constrains the hosting choice, and it is easy to
+miss:** [ADR-0008](./adr/0008-map-image-storage.md) stores uploaded map images on
+a **local filesystem volume** at `UPLOAD_DIR`, served through an authenticated
+route. That rules out any platform with an ephemeral filesystem — on Vercel and
+most PaaS free tiers, uploaded maps would vanish on the next deploy, silently,
+with the database still holding rows that point at them. Publishing therefore
+means either a host with a persistent volume (a small VPS running the existing
+`docker-compose`) or revisiting ADR-0008 for object storage. **That is a real
+decision with a real cost either way, and it should be made before anything is
+bought.**
+
+What the planning conversation has to cover, roughly in order:
+
+- **Where it runs.** VPS with persistent disk versus a PaaS plus object storage —
+  see above. This choice drives everything below.
+- **The domain**, and TLS (certificates are free; the renewal has to be automatic
+  or it becomes a yearly outage).
+- **The database.** The `docker-compose` Postgres is a development convenience.
+  Deployed, it needs backups that are actually restored at least once, because an
+  untested backup is not a backup — this campaign is years of the DM's writing.
+- **Secrets.** `.env` is gitignored and must stay out of the image; the host needs
+  its own secret mechanism.
+- **What being reachable from the internet changes.** Today the app's only
+  exposure is the DM's own network. Published, it inherits everything that
+  implies — which is also what makes the account work below non-optional rather
+  than a convenience.
+
+**Three items already on this roadmap stop being optional the day this ships**,
+and this is the reason to plan them together rather than in the order they were
+asked for:
+
+- **Roles and authorisation** (the accounts block above). Every logged-in user
+  can currently edit everything.
+- **ADR-0008's access check.** It equates "authenticated" with "the DM" — see the
+  note in that ADR.
+- **Self-service sign-up** (item 2 of the accounts block). On a machine reachable
+  only from the DM's own network, an open registration form is a convenience.
+  On a public domain it is a way for anyone who finds the URL to create accounts,
+  even with manual activation behind it. **The DM confirmed on 2026-08-18 that
+  public is the intent**, so the sign-up form has to ship with rate limiting and
+  a deliberate answer to "who may even see this page", not as a plain form.
+
+Write an ADR when the hosting shape is chosen. The choice determines whether
+ADR-0008 survives, which is exactly the kind of consequence an ADR exists to
+record.
 
 ### Also asked for on 2026-08-18, and much smaller
 

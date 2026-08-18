@@ -171,12 +171,33 @@ place whose parent already has a map and simply hasn't been drawn on it yet.
 The two situations have different fixes (upload a map vs. draw a pin), and
 the count cannot tell the DM which one they're looking at.
 
-**Possibly moot as of 2026-08-18.** The DM asked for the unpositioned-places
-count to be removed from the geography header entirely (see TD-85), on the
-grounds that a number with no action attached is noise. If it ships removed,
-this item is about the precision of a figure nobody is shown — reassess then
-rather than closing it now: `countUnpositionedPlaces` still exists, and a future
-surface may well want it.
+**Re-scoped 2026-08-18, and it got more important rather than less.** Two
+decisions landed the same day: the tree-wide count leaves the geography header,
+and positioning happens only through the map's "Posiziona luogo" right-click
+entry (TD-85). That entry can only ever offer **the unpositioned children of the
+map currently open**, since positioning a place means drawing it on its parent's
+map and that is the map in view.
+
+**Follow that through and a whole category of place becomes invisible.** Take
+Skreebars, which has no map of its own yet. Any place created inside it — say a
+tavern — cannot be positioned: there is no map to draw it on. It will not appear
+in the dropdown on Kang's map (it is not Kang's child), and it cannot appear in
+its own parent's dropdown (Skreebars has no map to right-click). With the
+tree-wide count gone, **nothing in the app mentions it at all.** It is not lost —
+the row is fine and it reappears the moment Skreebars gets a map — but until then
+the DM has no way to learn it is waiting, or that uploading a map to Skreebars is
+what would release it.
+
+The original framing of this item — "the count cannot say _why_ a place is
+unpositioned" — was about the precision of a number. What is left is sharper:
+**there is no surface at all for places blocked on a mapless ancestor**, and the
+two decisions above are what removed the last one. The likely answer is a small
+"places waiting on a map" affordance on the mapless place itself, next to
+`MapUploadControl`, which is already exactly where the DM must go to fix it. That
+is a different, smaller feature than the split count this item originally
+proposed, and it needs the DM's agreement before it is built.
+
+**Do not close this as moot.**
 
 **Why this is Low, not Medium.** `MapUploadControl` (SPEC-007 T1) already
 surfaces the fix in practice: the moment the DM reaches the mapless parent,
@@ -384,9 +405,11 @@ list view needs is already passed from `WorldMap` — `pois`, `unplacedChildren`
 
 That puts the action where the DM already is (right-clicking the spot they want
 to fill), instead of behind a panel they have to open, read and then aim from.
-The unplaced-children list inside `MapPOIPanel` becomes redundant for this
-purpose and should be reviewed once the menu entry works — do not delete it in
-the same change.
+**The DM confirmed on 2026-08-18 that this is the _single_ method.** The
+unplaced-children list inside `MapPOIPanel` is therefore withdrawn with it, not
+kept alongside — SPEC-005 §4 carries the matching note. Remove it in a follow-up
+commit once the menu entry demonstrably works, not in the same one, so the
+deletion is separable if the new path disappoints.
 
 **POI edit and delete are a separate answer, and it is TD-93's popover** — the
 DM's decision that clicking a place opens a popover carrying its description and

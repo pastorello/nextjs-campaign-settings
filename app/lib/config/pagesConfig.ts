@@ -5,6 +5,7 @@ import SpellMetaField from "@/app/lib/definitions/enums/spells/SpellMetaField";
 import NpcMetaField from "@/app/lib/definitions/enums/npc/NpcMetaField";
 import DeityMetaField from "@/app/lib/definitions/enums/deities/DeityMetaField";
 import MagicItemMetaField from "@/app/lib/definitions/enums/magicitem/MagicItemMetaField";
+import TreasureMetaField from "@/app/lib/definitions/enums/treasure/TreasureMetaField";
 
 /**
  * Which fields make up each page, in order.
@@ -85,6 +86,14 @@ const pagesConfig: Record<PageType, MetaConfigKey[]> = {
   // No domain meta: `id`, `name` and `description` are declared directly in
   // `pageMetaFields`, and a faction has no field beyond them (SPEC-006 §7).
   [PageType.Faction]: ["id", "name", "description"],
+  // The seventh domain (SPEC-013 §6/§7) — same shape as magic items.
+  [PageType.Treasure]: [
+    "id",
+    "name",
+    "description",
+    TreasureMetaField.category,
+    TreasureMetaField.value,
+  ],
 };
 
 export default pagesConfig;

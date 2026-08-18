@@ -1,4 +1,5 @@
 import MagicItemMetaField from "../definitions/enums/magicitem/MagicItemMetaField";
+import TreasureMetaField from "../definitions/enums/treasure/TreasureMetaField";
 import MetaConfigKey from "../definitions/types/MetaConfigKey";
 import PageType from "../definitions/types/PageType";
 import DeityMetaField from "../definitions/enums/deities/DeityMetaField";
@@ -85,6 +86,10 @@ const queryFields: Record<PageType, MetaConfigKey[]> = {
   // A faction's name is its only searchable content — description is prose,
   // not a filter target, same reasoning as magic items excluding theirs.
   [PageType.Faction]: ["name"],
+
+  // Same reasoning as magic items: name/description search is `getQuery`'s
+  // free-text `name` match, not an equality filter here.
+  [PageType.Treasure]: [TreasureMetaField.category, TreasureMetaField.value],
 };
 
 export default queryFields;

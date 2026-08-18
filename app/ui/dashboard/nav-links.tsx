@@ -10,6 +10,7 @@ import {
   PencilSquareIcon,
   FlagIcon,
   MagnifyingGlassIcon,
+  BanknotesIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Link from "next/link";
@@ -55,6 +56,12 @@ const links = [
     href: "/dashboard/factions",
     admin: "/dashboard/admin/factions",
     icon: FlagIcon,
+  },
+  {
+    key: "treasure",
+    href: "/dashboard/treasures",
+    admin: "/dashboard/admin/treasures",
+    icon: BanknotesIcon,
   },
 ];
 

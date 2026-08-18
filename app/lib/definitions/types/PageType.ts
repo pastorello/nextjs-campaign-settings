@@ -4,6 +4,7 @@ enum PageType {
   Npc = "npc",
   Deity = "deities",
   Faction = "factions",
+  Treasure = "treasures",
 }
 
 export default PageType;

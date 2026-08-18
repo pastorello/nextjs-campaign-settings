@@ -8,6 +8,7 @@ import npcMeta from "./npc/npcMeta";
 import spellsMeta from "./spells/SpellsMeta";
 import magicItemsMeta from "./magicitem/magicItemMeta";
 import deitiesMeta from "./deity/deityMeta";
+import treasureMeta from "./treasure/treasureMeta";
 import renderRichText from "../utils/data/renderRichText";
 
 /**
@@ -57,6 +58,10 @@ type DomainMetaPairs = {
   spellsMagicItems: CollidingKeys<typeof spellsMeta, typeof magicItemsMeta>;
   spellsNpc: CollidingKeys<typeof spellsMeta, typeof npcMeta>;
   magicItemsNpc: CollidingKeys<typeof magicItemsMeta, typeof npcMeta>;
+  deitiesTreasure: CollidingKeys<typeof deitiesMeta, typeof treasureMeta>;
+  spellsTreasure: CollidingKeys<typeof spellsMeta, typeof treasureMeta>;
+  magicItemsTreasure: CollidingKeys<typeof magicItemsMeta, typeof treasureMeta>;
+  npcTreasure: CollidingKeys<typeof npcMeta, typeof treasureMeta>;
 };
 type AssertAllDisjoint<T extends Record<keyof DomainMetaPairs, never>> = T;
 export type DomainMetaFieldsAreDisjoint = AssertAllDisjoint<DomainMetaPairs>;
@@ -125,6 +130,7 @@ const pageMetaFields = {
   ...spellsMeta,
   ...magicItemsMeta,
   ...npcMeta,
+  ...treasureMeta,
 } satisfies Record<string, PageMeta>;
 
 /**

@@ -14,7 +14,8 @@
       "factions": "Factions",
       "manage": "Manage {section}",
       "signOut": "Sign Out",
-      "language": "Language"
+      "language": "Language",
+      "treasure": "Treasure"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -740,6 +741,29 @@
       "artObjects": "Art Objects",
       "gems": "Gems",
       "tradeGoods": "Trade Goods"
+    },
+    "page": {
+      "title": "Treasure",
+      "searchPlaceholder": "Search treasure...",
+      "itemSingular": "treasure",
+      "itemPlural": "treasures",
+      "newItemButton": "New Treasure",
+      "emptyMessage": "No treasure found"
+    },
+    "form": {
+      "createTitle": "Create New Treasure",
+      "editTitle": "Edit Treasure",
+      "createButton": "Create Treasure",
+      "editButton": "Edit Treasure"
+    },
+    "fields": {
+      "category": {
+        "label": "Category"
+      },
+      "value": {
+        "label": "Value (in silver)",
+        "placeholder": "Value in silver pieces"
+      }
     }
   },
   "search": {

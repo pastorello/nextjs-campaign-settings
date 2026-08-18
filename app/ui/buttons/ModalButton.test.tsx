@@ -52,6 +52,11 @@ vi.mock("../factions/FactionForm", () => ({
     <button onClick={() => onSaveFinished({ id: 1 })}>save-faction</button>
   ),
 }));
+vi.mock("../treasures/TreasureForm", () => ({
+  default: ({ onSaveFinished }: { onSaveFinished: (i: object) => void }) => (
+    <button onClick={() => onSaveFinished({ id: 1 })}>save-treasure</button>
+  ),
+}));
 
 import ModalButton from "./ModalButton";
 
@@ -89,6 +94,7 @@ describe("ModalButton", () => {
     ["deityform", "save-deity"],
     ["deleteform", "save-delete"],
     ["factionform", "save-faction"],
+    ["treasureform", "save-treasure"],
   ])("renders the %s variant", (modalContent, expectedText) => {
     render(
       <ModalButton

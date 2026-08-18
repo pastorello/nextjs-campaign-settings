@@ -279,6 +279,18 @@ dependency order:
 Do them in that order. Each is small; built in the wrong order, the first two are
 guesses.
 
+> **Superseded 2026-08-18 — item 1's free-form scale is replaced by a grid model.**
+> The DM's own design, given the same day: a map is configured with **how many
+> squares across its width** (the height derived from the image's aspect ratio)
+> plus one of **four named scales** — dungeon/tactical 1,5 m, provincial 1,5 km,
+> regional 9 km, continental 90 km per square. Not "50 pixel = 4.5 km" typed by
+> hand. Better on three counts: the DM already thinks in squares, four named
+> scales cannot be mistyped the way a pixel ratio can, and a visible grid is
+> self-checking in a way a stored ratio is not. Items 2 and 3 stand as written and
+> their dependency order still holds. The whole thread is now
+> [SPEC-015](./specs/015-map-grid-and-scale.md); the original text above is kept
+> deliberately, as the reasoning it replaced.
+
 ### Reversed on 2026-08-18 — area footprints become polygons
 
 **SPEC-009 shipped rectangles only, and said to revisit "only if rectangles prove

@@ -1,6 +1,6 @@
 # Roadmap
 
-**Last updated:** 2026-08-17
+**Last updated:** 2026-08-18
 
 Two rules govern this document:
 
@@ -169,6 +169,83 @@ Named, in the same breath:
   is mostly deciding where images live and how they are served, not building a
   store. SPEC-006 §3 defers the faction emblem to its own spec for this reason.
 - **Cross-entity search.** Phase 3, above.
+
+### Asked for on 2026-08-18, in one batch — accounts, roles and party visibility
+
+The DM walked the app and reported 29 things in one sitting. The bugs went to the
+register (TD-81 – TD-93). What is left is six requests that arrived as six but are
+**one system**, and building them in the order they were said would mean building
+the same authorisation check three times:
+
+1. **A DM role, distinct from a normal account** — only a DM reaches the edit
+   pages and the mutations behind them (maps, spells, NPCs, factions, items); a
+   normal account keeps the read pages it has today.
+2. **Self-service DM sign-up** from the logged-out screen, with the DM activating
+   the account by hand afterwards.
+3. **An account-management page** for a logged-in DM.
+4. **Password reset** from the logged-out screen.
+5. **Party accounts** — the DM creates and manages an adventurer's account (name,
+   email, password) for a group of players.
+6. **Per-entity visibility to the party** — places, NPCs, deities, magic items and
+   factions are each secret or public, toggled from the admin list rows (e.g.
+   `/dashboard/admin/factions`).
+
+**The order that actually works is 1 → (2, 3, 4 in any order) → 5 → 6.** Roles
+first, because everything else is a rule about who may do what and there is
+currently no "who". Party accounts before visibility, because "visible to the
+party" has no meaning until a party exists.
+
+**Three things worth knowing before any of this is scheduled:**
+
+- **Item 6 is much larger than it looks, and is the reason this belongs in specs
+  rather than in the debt register.** A visibility flag is one column and one
+  toggle; _honouring_ it is every read path in the app — each domain's list and
+  card, the map's markers, cross-entity search, the dashboard counts — filtering
+  by who is asking. Those paths run through the metadata layer, which is
+  string-keyed: a read path that forgets to filter keeps working and quietly
+  leaks. `CLAUDE.md` records this exact failure mode from TD-19, where a missed
+  string key turned into a filter that silently stopped filtering. This spec
+  needs an explicit inventory of read paths as part of its acceptance criteria,
+  not a general instruction to be careful.
+- **Item 6 is also Phase 5's "player-facing read-only view", already on this
+  roadmap, already annotated "requires the authorisation model that does not
+  exist today."** That prediction is now the request. Treat the two as the same
+  work rather than filing a second one.
+- **Item 4 has no plumbing.** There is no mail transport in this repo — no
+  `nodemailer`, no transactional-mail service, nothing in `package.json`. A
+  password reset that emails a link means choosing and configuring one, on a
+  self-hosted app whose whole deployment story is `docker-compose`. That choice
+  is an ADR, and it is most of the cost of item 4. Worth asking the DM whether a
+  reset performed by hand (they already activate accounts by hand, per item 2)
+  is enough for now.
+
+Authentication itself is not from scratch: `next-auth` 5 and `bcrypt` are already
+in use, `auth.ts`/`auth.config.ts` exist, and every mutation already checks a
+session (`app/lib/auth/requireSession.ts`, TD-01). What changes is that the check
+stops being "is anyone logged in" and becomes "is this person allowed" — and it
+has to keep living in the Server Action and the route handler, never in the
+component that renders the button.
+
+### Also asked for on 2026-08-18, and much smaller
+
+- **A breadcrumb trail in the geography header** — `Piani di Esistenza / Piano
+Materiale / Regno di Kang / Skreebars` instead of the bare current title.
+  **Note this reverses a decision:** SPEC-004 M7 excluded breadcrumbs from the
+  MVP on purpose, and `GeographyExplorer` keeps a navigation _stack_ rather than
+  a fetched ancestor chain for that reason. The stack already holds exactly the
+  titles a breadcrumb needs, so the change is small — but do it as a deliberate
+  reversal, recorded, not as a bug fix.
+- **Magic-item filters as dropdowns.** Replace the `SelectButtonery` for rarity
+  and type with two dropdowns, same height as today's buttons, both on one row.
+  A contained UI change to one domain's filter bar.
+- **Create a place, then attach entities to it.** The DM's example: create "la
+  Taverna del Gallo Robin" inside Skreebars, and link a character there — rather
+  than attaching an NPC or deity straight from the map's right-click menu. This
+  is the model SPEC-008 T8 already chose (an entity has no coordinates of its
+  own; it lives at a place), so the gap is workflow, not data: creating the
+  intermediate place has to be quick, and an entity attached to a place has to be
+  visible from that place. Relates to TD-85, which is what currently makes the
+  place-creation flow hard to reach at all.
 
 None of these displaces SPEC-006 and SPEC-007, both shipped 2026-08-10. They are
 recorded here so the question "what should Phase 4 actually contain?" has evidence

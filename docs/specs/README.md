@@ -40,17 +40,20 @@ Steps 1–3 are cheap and go in one file. Do not skip straight to 4 for anything
 
 ## Index
 
-| #   | Feature                                                            | Status                          | Phase |
-| --- | ------------------------------------------------------------------ | ------------------------------- | ----- |
-| 001 | [Combat tracker](./001-combat-tracker.md)                          | Draft — skeleton, not agreed    | 4     |
-| 002 | [Map POI persistence](./002-map-poi-persistence.md)                | Shipped 2026-08-01              | 3     |
-| 003 | [Real relations](./003-real-relations.md)                          | Superseded by 004               | 3     |
-| 004 | [World model](./004-world-model.md)                                | Shipped 2026-08-08              | 3     |
-| 005 | [Place repositioning](./005-place-repositioning.md)                | Shipped 2026-08-07              | 3     |
-| 006 | [Factions the DM can author](./006-factions.md)                    | Shipped 2026-08-10              | 3     |
-| 007 | [The world is described but not drawn](./007-placement-backlog.md) | Shipped 2026-08-10 — 2 gaps     | 3     |
-| 008 | [Entity location reference](./008-entity-location-reference.md)    | Shipped 2026-08-08              | 3     |
-| 009 | [Zones as areas](./009-zones-as-areas.md)                          | In progress — T3, T5 left       | 3     |
-| 010 | [Deleting a place](./010-deleting-a-place.md)                      | Agreed 2026-08-10 — not started | 3     |
+| #   | Feature                                                                       | Status                           | Phase |
+| --- | ----------------------------------------------------------------------------- | -------------------------------- | ----- |
+| 001 | [Combat tracker](./001-combat-tracker.md)                                     | Draft — skeleton, not agreed     | 4     |
+| 002 | [Map POI persistence](./002-map-poi-persistence.md)                           | Shipped 2026-08-01               | 3     |
+| 003 | [Real relations](./003-real-relations.md)                                     | Superseded by 004                | 3     |
+| 004 | [World model](./004-world-model.md)                                           | Shipped 2026-08-08               | 3     |
+| 005 | [Place repositioning](./005-place-repositioning.md)                           | Shipped 2026-08-07               | 3     |
+| 006 | [Factions the DM can author](./006-factions.md)                               | Shipped 2026-08-10               | 3     |
+| 007 | [The world is described but not drawn](./007-placement-backlog.md)            | Shipped 2026-08-10 — 2 gaps      | 3     |
+| 008 | [Entity location reference](./008-entity-location-reference.md)               | Shipped 2026-08-08               | 3     |
+| 009 | [Zones as areas](./009-zones-as-areas.md)                                     | In progress — T3, T5 left        | 3     |
+| 010 | [Deleting a place](./010-deleting-a-place.md)                                 | Agreed 2026-08-10 — not started  | 3     |
+| 011 | [Cross-entity search](./011-cross-entity-search.md)                           | Shipped 2026-08-17               | 3     |
+| 012 | [Publishing and internet exposure](./012-publishing-and-internet-exposure.md) | Draft — needs the DM's agreement | 3     |
+| 013 | [Campaign management](./013-campaign-management.md)                           | Draft — awaiting agreement       | 4     |
 
 Feature ideas live in [`../ROADMAP.md`](../ROADMAP.md) until they are ready for a spec.

@@ -277,6 +277,48 @@ dependency order:
 Do them in that order. Each is small; built in the wrong order, the first two are
 guesses.
 
+### Reversed on 2026-08-18 — area footprints become polygons
+
+**SPEC-009 shipped rectangles only, and said to revisit "only if rectangles prove
+genuinely unusable in practice." They have.** The DM's evidence, drawing the real
+campaign map: on the root map the material plane is the upper part of a
+hemisphere, and any rectangle over it takes in ground that is not the material
+plane; one level down, Kang's realm cannot be boxed without also claiming a piece
+of the dwarven kingdom and a piece of Quel'Thalas. The damage is deferred rather
+than immediate — it surfaces when those neighbours get their own maps and their
+borders contradict the boxes already drawn.
+
+**Why this outranks a normal feature request:** SPEC-009's whole point was that
+"containment becomes spatially true." A rectangle that covers a neighbour's
+ground makes it spatially _false_, so the current shape does not merely look
+wrong, it breaks the guarantee the rest of the map model is built on — including
+the refusal rules that stop pins and areas from sharing ground.
+
+**Sized L, and the cost is concentrated in three predicates** that are currently
+trivial arithmetic in `app/modules/maps/lib/utils/footprint.ts`:
+
+- **Containment** goes from point-in-rectangle to point-in-polygon. Routine.
+- **The derived centre** goes from a midpoint to a centroid — and a concave
+  polygon's centroid can fall _outside_ the polygon, which would put a
+  horseshoe-shaped region's pin in the empty middle. SPEC-009 writes that centre
+  into `lat`/`lng` at creation so every existing consumer keeps working, so this
+  needs a real answer (pole of inaccessibility, or an author-placed label point),
+  not a formula picked for being short.
+- **Overlap** goes from comparing two intervals to polygon-polygon intersection.
+  This is the expensive one, and it is load-bearing: "an area may not overlap a
+  sibling" is what makes the model coherent.
+
+Plus drawing (drag-to-draw becomes click-per-vertex with a closing gesture, undo
+of the last vertex, and a minimum-vertex rule where SPEC-009 had a minimum-size
+one), clamping to the map's bounds, and SPEC-009 T5's move/resize editing, which
+re-runs both checks on every edit and is where a naive polygon implementation
+will hurt most.
+
+**Decide in the spec, not before:** whether to take on a geometry library
+(polygon intersection written by hand is a classic source of subtle, data-
+dependent bugs) and whether existing rectangles migrate as four-point polygons —
+they should, which makes the change additive rather than a break.
+
 ### Also asked for on 2026-08-18, and much smaller
 
 - **A breadcrumb trail in the geography header** — `Piani di Esistenza / Piano

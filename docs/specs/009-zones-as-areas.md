@@ -32,6 +32,26 @@ Read together, these say something stronger than "zones can be rectangles": **co
 ## 4. Non-goals
 
 - **Polygons.** Rectangles only. Coastlines and mountain ranges would look better and cost far more, in drawing, storage, hit-testing and every later edit. Revisit only if rectangles prove genuinely unusable in practice, not because a polygon would be prettier.
+
+  > **Superseded 2026-08-18 — the revisit condition above was met.** The DM drew
+  > the real world and the rectangles do not fit it: on the root map the material
+  > plane is the upper part of a hemisphere and a rectangle over it swallows
+  > ground that is not the material plane; inside it, Kang's realm cannot be
+  > boxed without taking a piece of the dwarven kingdom and a piece of Quel'Thalas.
+  >
+  > **This is not the aesthetic objection this non-goal was guarding against.** It
+  > is §3's own premise failing: an area that covers ground belonging to a
+  > neighbour makes containment spatially _false_, which is the one thing this
+  > spec set out to make true — and the collision surfaces later, when those
+  > neighbours get their own maps and their borders disagree with the boxes
+  > already drawn. Rectangles are usable on a map whose regions happen to be
+  > boxy, and this campaign's map is not one.
+  >
+  > Polygon footprints are recorded as a spec candidate in `ROADMAP.md`. **Leave
+  > the paragraph above as written** — it is an accurate record of what was
+  > decided in 2026-08-10 and on what evidence, and the cost it lists is still
+  > the cost.
+
 - **Overlapping areas.** Two sibling areas may not overlap. Containment with ambiguity is not containment, and rule 3 would have no single answer for a point in the overlap.
 - **Areas for landmarks.** `poi` rows stay points. A landmark is a place on a map, not a container of one.
 - **Automatic reparenting on geography.** Nothing walks the tree looking for pins that "should" belong to an area drawn later. The rules are enforced at the moment of drawing and the moment of placing, not retroactively by a sweep.

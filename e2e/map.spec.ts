@@ -44,12 +44,26 @@ test.describe("world map", () => {
     const menu = page.getByLabel(messages.geography.contextMenu.ariaLabel);
     await expect(menu).toBeVisible();
     await expect(
-      menu.getByText(messages.geography.contextMenu.addMarker.trigger)
+      menu.getByText(messages.geography.contextMenu.addMarker.trigger, {
+        exact: true,
+      })
     ).toBeVisible();
     // "Copia coordinate" is gone (TD-96) — the DM saw no purpose for a raw
     // pixel pair under CRS.Simple. Measure is the entry that survives it.
+    //
+    // `exact: true` is load-bearing here, not defensive boilerplate:
+    // Playwright's `getByText` substring-matches by default, and the
+    // Measure item's own sublabel is "Avvia la misurazione della
+    // distanza" — which contains "misura" (the first six letters of
+    // "misurazione"). Without `exact`, this locator resolves to both the
+    // trigger label and the sublabel and throws a strict-mode violation.
+    // Caught 2026-08-18 (CI run 32167830767) when TD-96 swapped this
+    // assertion from the now-removed "Copia coordinate" (no such
+    // collision) to "Misura".
     await expect(
-      menu.getByText(messages.geography.contextMenu.measure.trigger)
+      menu.getByText(messages.geography.contextMenu.measure.trigger, {
+        exact: true,
+      })
     ).toBeVisible();
   });
 

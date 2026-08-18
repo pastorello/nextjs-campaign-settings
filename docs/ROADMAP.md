@@ -219,12 +219,63 @@ party" has no meaning until a party exists.
   reset performed by hand (they already activate accounts by hand, per item 2)
   is enough for now.
 
+**One thing the role model must not sweep up:** temporary scratch markers on the
+map (TD-86) are for players too, the DM was explicit. The natural default when
+splitting DM from player is "the map is read-only for players", and that default
+is wrong here. Whatever shape item 1 takes needs a place for actions that are
+neither reads nor campaign edits.
+
 Authentication itself is not from scratch: `next-auth` 5 and `bcrypt` are already
 in use, `auth.ts`/`auth.config.ts` exist, and every mutation already checks a
 session (`app/lib/auth/requireSession.ts`, TD-01). What changes is that the check
 stops being "is anyone logged in" and becomes "is this person allowed" — and it
 has to keep living in the Server Action and the route handler, never in the
 component that renders the button.
+
+### Decided on 2026-08-18 — the place popover, and making the map measurable
+
+Two feature threads came out of the DM's second pass. Both are recorded here
+rather than in the register because both change what the app does, not whether it
+does it correctly.
+
+**The place popover.** Clicking a place opens a popover carrying its description
+and its actions: "rimuovi definitivamente" and "sposta nei luoghi non
+posizionati"; the list of NPCs and deities currently at that place, each with an
+X that returns it to the unattached pool; and a control to attach an entity here.
+
+This one surface answers four separate reports — attaching an entity from the
+place instead of the map's right-click menu, seeing what lives somewhere,
+un-placing without deleting, and the "create la Taverna del Gallo Robin in
+Skreebars, then link a character to it" workflow. **It is also the precondition
+for TD-93's placement invariant**: blocking a second placement is only reasonable
+once un-placing is one click away, and for TD-96, which removes the right-click
+entry this popover replaces.
+
+Worth the spec template specifically for its edge cases: what "rimuovi
+definitivamente" does to a place that has children (SPEC-010 already decided
+reparenting for deletion — this must match it, not invent a second rule), and
+what an entity's X means when the entity is attached to a landmark POI rather
+than to the zone itself (SPEC-008 T8's two cases).
+
+**Making the map measurable** — three requests that are one feature, in
+dependency order:
+
+1. **A scale per map** ("50 pixel = 4.5 km"), set from the map's own edit menu.
+   This is the missing piece: the maps are `CRS.Simple`, so the app knows pixel
+   distances and nothing else. A stored scale is what turns those into leagues.
+   It is a new field on the place alongside `mapBounds`, so it lands naturally
+   with **TD-81**, which is already going to touch how a map is framed.
+2. **A working measurement tool** on top of it — **TD-94** is the bug (haversine
+   metres on a pixel map), but the DM also proposed the interaction: click to
+   start, the track draws in red while the mouse moves, a second click ends it
+   and drops a marker with the distance. Adopt that; it is clearer than the
+   current panel-driven flow.
+3. **A grid overlay toggle** next to zoom in / zoom out, so distances can be
+   eyeballed without measuring at all. Cheap once the scale exists, and close to
+   useless before it — a grid whose squares mean nothing is decoration.
+
+Do them in that order. Each is small; built in the wrong order, the first two are
+guesses.
 
 ### Also asked for on 2026-08-18, and much smaller
 

@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-18
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-78, TD-79, TD-81 – TD-93.** Everything else in the summary table is closed.
+**Open items: TD-78, TD-79, TD-81 – TD-96.** Everything else in the summary table is closed.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -115,6 +115,9 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-91 | The dashboard counts four domains of six — places and factions were never added                              | 🟡 Medium            | S      | 4     |
 | TD-92 | The dashboard's cards are not clickable, so the counts lead nowhere                                          | 🟢 Low               | S      | 4     |
 | TD-93 | An already-positioned place or attached entity can be positioned again elsewhere                             | 🟠 High              | M      | 4     |
+| TD-94 | The measurement tool reports haversine metres on a pixel-space map, so every distance is meaningless         | 🟠 High              | M      | 4     |
+| TD-95 | The place panel is half-untranslated, with English strings hardcoded in the component                        | 🟡 Medium            | S      | 4     |
+| TD-96 | The map's right-click menu carries two entries the model has outgrown                                        | 🟢 Low               | S      | 4     |
 
 ---
 
@@ -167,6 +170,13 @@ positioned until the DM uploads a map one level up — counts identically to a
 place whose parent already has a map and simply hasn't been drawn on it yet.
 The two situations have different fixes (upload a map vs. draw a pin), and
 the count cannot tell the DM which one they're looking at.
+
+**Possibly moot as of 2026-08-18.** The DM asked for the unpositioned-places
+count to be removed from the geography header entirely (see TD-85), on the
+grounds that a number with no action attached is noise. If it ships removed,
+this item is about the precision of a figure nobody is shown — reassess then
+rather than closing it now: `countUnpositionedPlaces` still exists, and a future
+surface may well want it.
 
 **Why this is Low, not Medium.** `MapUploadControl` (SPEC-007 T1) already
 surfaces the fix in practice: the moment the DM reaches the mapless parent,
@@ -359,19 +369,29 @@ Nothing anywhere sets the panel open in `"list"` mode.
 list view needs is already passed from `WorldMap` — `pois`, `unplacedChildren`,
 `onPositionPlace`, `onUpdatePOI`, `onDeletePOI`. What is missing is a button.
 
-**The fix, in shape:** one control that opens the panel with
-`setPOIPanelMode("list")`. Two candidate homes, and the second is better:
+**The fix, decided with the DM on 2026-08-18** — and it is not the panel:
 
-- Another floating button in `MapControls`' stack — consistent with the other
-  map controls, but that stack is exactly what TD-84 is about, so this depends
-  on TD-84 landing first.
-- **The unpositioned-places count in `GeographyExplorer`'s header.** It already
-  says "41 luoghi non ancora posizionati" and today does nothing; making it the
-  button that opens the list gives the number a purpose and puts the entry point
-  next to the thing it describes. **The DM's first instinct was to delete that
-  count as useless (reported 2026-08-18); this is the counter-proposal, and it
-  needs the DM's agreement before implementing** — if they still want it gone,
-  the control moves to the map instead and the count is removed separately.
+- **The unpositioned-places count comes out of the header.** The DM's reasoning:
+  a label that reports a number without offering an action on it is noise. It
+  goes, rather than becoming the button (which was this item's original
+  counter-proposal, now rejected).
+- **Positioning gets its own right-click entry, "Posiziona luogo."** Clicking it
+  opens a dropdown of the places that are still unpositioned; picking one arms
+  the existing positioning flow at the clicked point. **When every place is
+  already positioned the entry stays visible but disabled** — the DM asked for
+  this explicitly, so that the absence of work is legible rather than the menu
+  item silently disappearing.
+
+That puts the action where the DM already is (right-clicking the spot they want
+to fill), instead of behind a panel they have to open, read and then aim from.
+The unplaced-children list inside `MapPOIPanel` becomes redundant for this
+purpose and should be reviewed once the menu entry works — do not delete it in
+the same change.
+
+**POI edit and delete are a separate answer, and it is TD-93's popover** — the
+DM's decision that clicking a place opens a popover carrying its description and
+its actions. Which means the panel's list view may end up with no callers at
+all; decide that at the end of both items, not now.
 
 **Check while implementing:** `handlePOIModeChange` (`WorldMap.tsx:423`) takes
 `"list" | "add" | "edit"` and stores it with `setPOIPanelMode(mode as "list" | "add")`.
@@ -392,20 +412,27 @@ handles, with no persistence anywhere; and `WorldMap` destructures only
 The context-menu item is therefore add-only, and the state dies with the
 component.
 
-**The real question is not how to persist them — it is what this menu item is
-for.** POIs already exist, are persisted (SPEC-002 / TD-14), are scoped to the
-place in view, and can carry a category, a description and a linked entity. An
-unnamed, unsaved marker duplicates the POI's job while doing it worse.
-`useMapMarkers` is vendored-library scaffolding (`app/modules/maps/` — see
-`CLAUDE.md`'s "unused is not dead" entry), not something this app's flows asked
-for.
+**Decided with the DM on 2026-08-18: keep the behaviour, fix the name.** The
+ephemerality is the point — this is a scratch pin for reasoning about the map
+out loud ("the party is about here, the dragon is about there"), not a record of
+anything. What made it a defect was a label that promised persistence it never
+had.
 
-**Recommended fix: remove the menu item**, and leave `useMapMarkers` in place as
-inventory. That is a deletion, which this codebase prefers, and it removes a
-dead end the DM has already walked into once. **Ask before doing it** — if
-"drop a quick pin I don't have to name" is a flow the DM actually wants, then
-the answer is the opposite one (persist markers as a POI category), and that is
-a spec, not this item.
+**So the fix is much smaller than this entry originally assumed:**
+
+- Rename the menu entry to **"Aggiungi un marker temporaneo"** (and its English
+  counterpart), in **both** `messages/it.json` and `messages/en.json`. The
+  sublabel should say plainly that it disappears on reload.
+- Give the marker a way to be dismissed — clicking it, or a "clear temporary
+  markers" action. `useMapMarkers` already exposes `removeMarker`; `WorldMap`
+  currently destructures only `addMarker` (`WorldMap.tsx:159`), so this is
+  wiring, not new machinery. **The DM did not ask for this**, having accepted
+  reload-to-clear; propose it, do not assume it.
+
+**This one is for players too, not only the DM** (DM, 2026-08-18) — a scratch
+marker is a table-conversation tool, so whatever role model lands must leave it
+on the player side of the line. Recorded here because the accounts epic in
+`ROADMAP.md` will otherwise default every map action to DM-only.
 
 ### TD-87 — Zoom out does nothing on a child map — every map opens already at its minimum zoom
 
@@ -546,20 +573,127 @@ placement silently wins and the first is lost with no warning and no record.
 possible — and it is worth reading that item's archive entry before designing
 this one, because the shape of the answer is likely the same.
 
-**Two decisions the DM has to make before this can be implemented**, and they
-are product decisions, not technical ones:
+**Both open questions were answered by the DM on 2026-08-18, and the answer
+arrived as an interaction design rather than a rule.** Clicking a place opens a
+popover showing its description and, from there:
 
-1. **Refuse, or move?** Blocking the second placement matches the report
-   literally ("first you have to remove it"). Offering "this is already at X —
-   move it here?" is fewer steps and loses nothing, since the old position is
-   being abandoned either way.
-2. **Does this apply to places, entities, or both?** The report names NPCs,
-   deities and places together, but they do not share a mechanism: a place
-   carries its own `lat`/`lng`, while an entity carries a reference to a place
-   (SPEC-008 T8). The constraint is therefore two different pieces of work that
-   happen to answer the same complaint.
+- **"Rimuovi definitivamente"** and **"Sposta nei luoghi non posizionati"** —
+  two distinct destructive-ish actions, deletion versus un-placing.
+- **The entities present at that place** (NPCs and deities), each with an **X**
+  that sends it back to the pool of unattached entities.
+- **A control to attach an NPC or deity to this place**, which is where that
+  operation lives from now on — not in the map's right-click menu (see TD-96).
 
-**Sized M, not S,** because the honest fix has a database half (a constraint, so
-the invariant holds regardless of which code path writes) and a UI half (a
-message that explains the refusal, in both catalogues). A UI-only check is not
-worth doing: it is the path that has already failed here once.
+**This answers question 1 as "refuse, and provide the removal":** placement of an
+already-placed thing is blocked, and un-placing is a first-class action one click
+away rather than a thing the DM has to reverse-engineer. **It answers question 2
+as "both"**, while confirming they stay two mechanisms — the place's own
+`lat`/`lng` for "sposta nei luoghi non posizionati", the entity's location
+reference for the per-entity X.
+
+**The popover itself is a feature, not this item.** It is recorded in
+`ROADMAP.md` as a spec candidate, because it also absorbs two earlier reports
+(attaching entities from the place rather than the map, and seeing what lives at
+a place) and because designing a destructive-action surface deserves the spec
+template's edge-case section. **What stays here is the invariant**: the database
+half, so that "already placed" cannot be violated by whichever code path writes
+next, and a message in both catalogues explaining the refusal.
+
+**Sized M, not S,** because a UI-only check is not worth doing: the UI is the
+path that has already failed here once. **Sequence it after the popover spec** —
+the constraint needs the un-place action to exist, or it turns a recoverable
+mistake into a dead end.
+
+### TD-94 — The measurement tool reports haversine metres on a pixel-space map, so every distance it gives is meaningless
+
+**Severity:** 🟠 High · **Effort:** M · **Found:** 2026-08-18, reported by the DM as "Misura seems not to work, or I have not understood it"
+
+The DM could not tell whether the tool is broken or just opaque. It is broken,
+and the mechanism is exact.
+
+`LeafletMap` builds the map with `crs: L.CRS.Simple` (`LeafletMap.tsx:109`) —
+the flat, unprojected coordinate system, correct for a hand-drawn fantasy map,
+in which a coordinate pair is **a pixel position, not a place on a globe**.
+`useMeasurement` then hands those pairs to `calculateDistance`
+(`app/modules/maps/lib/utils/coordinates.ts:140`), which is the **haversine
+formula on a sphere of radius 6371 km**: it reads `lat` as degrees of latitude,
+`lng` as degrees of longitude, and returns metres.
+
+So a click at pixel row 1200 is interpreted as latitude 1200°. The trigonometry
+does not error — it wraps, repeatedly — and returns a confident number with no
+relationship to anything on the map. This is not a precision problem to tune; the
+formula is answering a different question from the one being asked.
+
+**The two halves of a real fix:**
+
+1. **Measure in the map's own space.** With `CRS.Simple` the honest primitive is
+   Euclidean pixel distance (`map.distance()` already does the right thing under
+   this CRS). Leave `calculateDistance` alone — it is correct for real geography
+   and may have other callers — and give this path its own function rather than
+   bending that one.
+2. **Convert pixels into campaign units**, which is the DM's separate request for
+   a map scale ("50 pixel = 4.5 km"). Without it the tool can only ever say "312
+   pixels", which is honest but useless at the table. **That needs a per-map
+   scale stored alongside the map**, so it is a data-model change and lives in a
+   spec — see `ROADMAP.md`.
+
+**Depends on TD-81.** Pixel distances only mean something if the map's bounds
+actually match the image's pixels, which today they do not.
+
+**The DM also proposed a clearer interaction** — click to start, the track draws
+in red as the mouse moves, a second click ends it and drops a marker showing the
+distance. Worth adopting; it is recorded with the scale work rather than here,
+since this item is about the number being wrong, not about how it is collected.
+
+### TD-95 — The place panel is half-untranslated, with English strings hardcoded in the component
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-08-18, reported by the DM
+
+Opening "Aggiungi luogo" shows an Italian app with English labels in it.
+`MapPOIPanel` does import `useTranslations` and does use `t` in places, but at
+least five user-facing strings are written straight into the JSX: `"My Places"`
+(`:341`), `"Clear"` (`:815`), `"Clear coordinates"` (`:656`),
+`"Unplaced places (n)"` (`:830`), and a toast built by template literal,
+`` `Cleared ${n} place${n !== 1 ? "s" : ""}` `` (`:556`) — which also hardcodes
+English pluralisation, something the catalogue's own plural support exists to
+handle.
+
+**This is a straight violation of a standing rule**, not a gap in an unfinished
+feature: `CLAUDE.md` says new user-facing copy goes in both catalogues and is
+read through `next-intl`, never written into JSX. Same shape as TD-62, which
+found hardcoded English POI category names, and a leftover the TD-21 bilingual
+pass did not reach because this file came from the vendored map module.
+
+**The DM also asked for a rename while we are here:** "My Places" becomes
+**"Luoghi di interesse"** — so this is not a mechanical extraction of the current
+wording, and the English catalogue needs a matching decision rather than
+`"My Places"` copied across.
+
+**Do not treat this as a rename-only change.** Sweep the whole file for
+JSX-embedded copy before starting, and check the rest of
+`app/modules/maps/components/**` in the same pass — if this file drifted, its
+neighbours plausibly did too. A key added to one catalogue and not the other
+fails CI's key-set check, which is the cheap safety net here.
+
+### TD-96 — The map's right-click menu carries two entries the model has outgrown
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-08-18, reported by the DM
+
+Two entries the DM wants gone, for two different reasons:
+
+- **"Collega un personaggio esistente."** Attaching an NPC or deity becomes an
+  action inside the place's own popover (TD-93), where the DM can see what is
+  already there. Doing it from a right-click on empty map space asks them to
+  attach an entity to a location they cannot see the contents of. **Blocked on
+  the popover shipping** — remove the entry when its replacement exists, not
+  before, or the operation becomes unreachable in between.
+- **"Copia coordinate."** The DM sees no purpose for it. Given `CRS.Simple`, what
+  it copies is a raw pixel pair meaningful only to someone debugging the map, and
+  nothing in the app asks the DM to paste coordinates anywhere. **Not blocked on
+  anything** — it can go on its own.
+
+**Check before removing either:** whether an e2e spec drives the menu through
+these entries, and whether their message keys are referenced anywhere else. Keys
+left behind in the catalogues after the JSX goes are exactly the kind of drift
+this register exists to prevent — remove them from **both** `it.json` and
+`en.json` in the same commit.

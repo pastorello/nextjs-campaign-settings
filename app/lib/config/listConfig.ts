@@ -1,5 +1,6 @@
 import ListColumn from "../definitions/interfaces/lists/ListColumn";
 import MagicItemMetaField from "../definitions/enums/magicitem/MagicItemMetaField";
+import TreasureMetaField from "../definitions/enums/treasure/TreasureMetaField";
 import DeityMetaField from "../definitions/enums/deities/DeityMetaField";
 import NpcMetaField from "../definitions/enums/npc/NpcMetaField";
 import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
@@ -146,6 +147,26 @@ const listConfig: Record<PageType, ListConfig> = {
     emptyMessageKey: "factions.page.emptyMessage",
     editModalTitleKey: "factions.form.editTitle",
     modalContent: "factionform",
+  },
+
+  [PageType.Treasure]: {
+    columns: [
+      {
+        fieldKey: TreasureMetaField.category,
+        labelKey: "treasure.fields.category.label",
+      },
+      {
+        fieldKey: TreasureMetaField.value,
+        labelKey: "treasure.fields.value.label",
+        // Free-form silver amount, not a closed vocabulary — SortableHeader's
+        // built-in filter select needs `PageMeta.options`, which this field
+        // has none of (same reasoning as factions' `description` column).
+        isFiltrable: false,
+      },
+    ],
+    emptyMessageKey: "treasure.page.emptyMessage",
+    editModalTitleKey: "treasure.form.editTitle",
+    modalContent: "treasureform",
   },
 };
 

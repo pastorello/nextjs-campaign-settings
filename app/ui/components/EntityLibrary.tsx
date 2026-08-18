@@ -7,6 +7,7 @@ import { fetchFilteredNpc } from "@/app/lib/data/npc/fetchFilteredNpc";
 import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
 import { fetchFilteredFactions } from "@/app/lib/data/faction/fetchFilteredFactions";
 import fetchFactionRosters from "@/app/lib/data/faction/fetchFactionRosters";
+import { fetchFilteredTreasures } from "@/app/lib/data/treasure/fetchFilteredTreasures";
 import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
 
 import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
@@ -18,6 +19,7 @@ import MagicItemLibrary from "../magicitems/MagicItemLibrary";
 import NpcLibrary from "../npc/NpcLibrary";
 import SpellLibrary from "../spells/SpellLibrary";
 import FactionLibrary from "../factions/FactionLibrary";
+import TreasureLibrary from "../treasures/TreasureLibrary";
 
 /**
  * Where each record sits in the world tree (SPEC-004 T5a), resolved here
@@ -80,6 +82,10 @@ export default async function EntityLibrary(props: {
           items={await fetchFilteredFactions(searchParams)}
           rosters={await fetchFactionRosters()}
         />
+      );
+    case PageType.Treasure:
+      return (
+        <TreasureLibrary items={await fetchFilteredTreasures(searchParams)} />
       );
   }
 }

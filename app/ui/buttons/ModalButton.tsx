@@ -13,6 +13,7 @@ import NpcForm from "../npc/NpcForm";
 import SpellForm from "../spells/SpellForm";
 import DeityForm from "../deities/DeityForm";
 import FactionForm from "../factions/FactionForm";
+import TreasureForm from "../treasures/TreasureForm";
 import OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
 interface ModalButtonProps {
@@ -111,6 +112,18 @@ const ModalButton = ({
           )}
           {modalContent === "factionform" && (
             <FactionForm
+              {...componentProps}
+              onCancel={closeModal}
+              onSaveFinished={(item: object) => {
+                closeModal();
+                if (onSave) {
+                  onSave(item);
+                }
+              }}
+            />
+          )}
+          {modalContent === "treasureform" && (
+            <TreasureForm
               {...componentProps}
               onCancel={closeModal}
               onSaveFinished={(item: object) => {

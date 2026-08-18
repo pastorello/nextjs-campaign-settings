@@ -1,4 +1,5 @@
 import MagicItemMetaField from "../definitions/enums/magicitem/MagicItemMetaField";
+import TreasureMetaField from "../definitions/enums/treasure/TreasureMetaField";
 import MetaConfigKey from "../definitions/types/MetaConfigKey";
 import DeityMetaField from "../definitions/enums/deities/DeityMetaField";
 import NpcMetaField from "../definitions/enums/npc/NpcMetaField";
@@ -77,6 +78,13 @@ const formFields: Record<PageType, MetaConfigKey[]> = {
   ],
 
   [PageType.Faction]: ["name", "description"],
+
+  [PageType.Treasure]: [
+    TreasureMetaField.name,
+    TreasureMetaField.description,
+    TreasureMetaField.category,
+    TreasureMetaField.value,
+  ],
 };
 
 export default formFields;

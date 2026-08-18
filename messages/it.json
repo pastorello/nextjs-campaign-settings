@@ -14,7 +14,8 @@
       "factions": "Fazioni",
       "manage": "Gestisci {section}",
       "signOut": "Esci",
-      "language": "Lingua"
+      "language": "Lingua",
+      "treasure": "Tesori"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -740,6 +741,29 @@
       "artObjects": "Oggetti d'arte",
       "gems": "Gemme",
       "tradeGoods": "Beni di scambio"
+    },
+    "page": {
+      "title": "Tesori",
+      "searchPlaceholder": "Cerca tesori...",
+      "itemSingular": "tesoro",
+      "itemPlural": "tesori",
+      "newItemButton": "Nuovo tesoro",
+      "emptyMessage": "Nessun tesoro trovato"
+    },
+    "form": {
+      "createTitle": "Crea nuovo tesoro",
+      "editTitle": "Modifica tesoro",
+      "createButton": "Crea tesoro",
+      "editButton": "Modifica tesoro"
+    },
+    "fields": {
+      "category": {
+        "label": "Categoria"
+      },
+      "value": {
+        "label": "Valore (in argento)",
+        "placeholder": "Valore in monete d'argento"
+      }
     }
   },
   "search": {

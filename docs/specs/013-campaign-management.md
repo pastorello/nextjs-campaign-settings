@@ -1,9 +1,9 @@
 # SPEC-013: Campaign management
 
-- **Status:** Draft — amended 2026-08-18 after the DM's review of the first draft. §7 is the one thing still open.
+- **Status:** **Agreed 2026-08-18.** Amended the same day after the DM's review of the first draft (§6's counting rule reversed, treasure catalogue added, per-scene table renamed), and §7's fork settled by [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md). Nothing is left open; T2 can start.
 - **Date:** 2026-08-18
 - **Phase:** ROADMAP Phase 4 (Session tooling)
-- **Related:** [`docs/domain/campaign-design-method.md`](../domain/campaign-design-method.md) · [SPEC-004](./004-world-model.md) (world tree) · [SPEC-010](./010-deleting-a-place.md) (place deletion) · [SPEC-011](./011-cross-entity-search.md) · [SPEC-001](./001-combat-tracker.md) (successor, not prerequisite) · SPEC-014 (calendar and timeline — planned, not yet written) · ADR-0009/0010 · ROADMAP Phase 3, "Campaigns as stories, not as scoping"
+- **Related:** [`docs/domain/campaign-design-method.md`](../domain/campaign-design-method.md) · [SPEC-004](./004-world-model.md) (world tree) · [SPEC-010](./010-deleting-a-place.md) (place deletion) · [SPEC-011](./011-cross-entity-search.md) · [SPEC-001](./001-combat-tracker.md) (successor, not prerequisite) · SPEC-014 (calendar and timeline — planned, not yet written) · [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md) (decides §7) · ADR-0009/0010 · ROADMAP Phase 3, "Campaigns as stories, not as scoping"
 
 ---
 
@@ -365,21 +365,21 @@ filters — with `category` an option-backed integer field, the same shape
 `pageMetaFields.ts` and ordered in `pagesConfig.ts`, driving form, list and
 validation exactly as the other six domains do.
 
-`scene`, `sceneCreature` and `treasure` do not. They are **ordered collections
-edited inline inside a parent's page** — a shape `EntityForm` has never had to
-render, since every existing domain is one flat record per form. This is a real
-architectural fork and `CLAUDE.md` forbids resolving it by hardcoding fields in a
-component:
+`scene`, `sceneCreature` and `loot` do not. They are **ordered collections edited
+inline inside a parent's page** — a shape `EntityForm` has never had to render,
+since every existing domain is one flat record per form.
 
-- **(a)** extend `PageMeta` with a collection field type, so nested rows stay
-  metadata-driven;
-- **(b)** keep the scene editor as bespoke components under `app/ui/campaigns/`,
-  with `PageMeta` still supplying each row's validators, and record the boundary.
+**Settled by [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md)**
+(2026-08-18): they stay outside the metadata layer, as dedicated components under
+`app/ui/campaigns/`, and `PageMeta` gains no collection variant. Every scalar
+field on those rows still declares its `PageMeta` — validator and label key
+included — and the editor consumes those declarations rather than restating them.
 
-**An ADR decides this before T3, and it is on the critical path.** Current lean is
-(b) — the metadata layer's value is that one declaration drives form, column,
-filter and query, and a nested inline collection has no list column and no filter
-to drive — but the ADR is where that gets argued, not this spec.
+The ADR carries the reasoning, the alternative it rejected (a fifth `PageMeta`
+variant, which three of the layer's four consumers would have to special-case as
+inapplicable — the unenforced state TD-08 removed), the boundary between the two
+regimes, and the condition that reopens it. Do not re-argue it here; if it needs
+reopening, that happens in a new ADR.
 
 ## 8. Acceptance criteria
 
@@ -428,7 +428,7 @@ to drive — but the ADR is where that gets argued, not this spec.
 
 | #   | File                                                                                               | Change                                                                                    |
 | --- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| 1   | `docs/adr/0011-nested-collections-and-the-metadata-layer.md`                                       | New — decides §7                                                                          |
+| 1   | ~~`docs/adr/0011-inline-collections-outside-the-metadata-layer.md`~~                               | ✅ written 2026-08-18 — decides §7                                                        |
 | 2   | `prisma/schema.prisma` + migration                                                                 | The six tables, plus `magicitems.consumable` and its backfill                             |
 | 3   | `app/lib/definitions/**`                                                                           | `SceneKind`, `AdventureStatus`, `TreasureCategory`, interfaces                            |
 | 4   | `app/lib/config/campaigns/**`, `app/lib/config/treasure/**`, `pageMetaFields.ts`, `pagesConfig.ts` | Metadata for campaign, adventure, the treasure catalogue and `magicitems.consumable`      |
@@ -441,9 +441,10 @@ to drive — but the ADR is where that gets argued, not this spec.
 
 **Risks**
 
-- **The ADR is on the critical path.** Getting §7 wrong means either a bespoke
-  editor that quietly bypasses the app's core abstraction, or a speculative
-  generalisation of `PageMeta` that serves exactly one caller.
+- **~~The ADR is on the critical path.~~** Closed by ADR-0011. The residual risk it
+  names is that the app now has two ways to build an editing surface, and the
+  boundary only works if the next session reads it — hence the follow-up to
+  `CLAUDE.md` and `ARCHITECTURE.md` the ADR calls for.
 - **The at-the-table interaction is the part tests will not catch.** Marking has
   to be fast and unambiguous mid-session on a laptop — pointer or keyboard, never
   touch — and that is a real-browser check, not a unit test.
@@ -471,12 +472,12 @@ reasoning is the useful part)_
 
 **Still open**
 
-- **§7's fork.** The one thing that still needs a decision before T4 and T8. The
-  recommendation is (b); the ADR is T1.
+Nothing. §7's fork was the last item and [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md)
+closed it on 2026-08-18.
 
 ## 10. Task breakdown
 
-- [ ] **T1** — ADR-0011: nested collections and the metadata layer. _(no test; decision artefact, blocks T4/T8)_
+- [x] **T1** — ADR-0011: ordered inline collections outside the metadata layer. **Done 2026-08-18.** _(no test; decision artefact, blocked T4/T8)_
 - [ ] **T2** — Schema + migration: the six tables, `magicitems.consumable`, and its backfill from `type`. _(test: migration applies to an empty database; relations null rather than cascade where §6 says so; the backfill sets scroll and potion consumable and nothing else)_
 - [ ] **T3** — Definitions: the three closed vocabularies and their interfaces. _(test: vocabulary membership validators)_
 - [ ] **T4** — Metadata for `campaign`, `adventure` and `magicitems.consumable`. _(test: each field declares `fieldType`, `controlType`, `validator`, `getDatum`, as the existing domain metadata tests assert)_

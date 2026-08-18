@@ -22,14 +22,16 @@ Do **not** write one for routine implementation choices, naming, or anything a c
 
 ## Index
 
-| #                                                      | Title                                           | Status   | Date       |
-| ------------------------------------------------------ | ----------------------------------------------- | -------- | ---------- |
-| [0001](./0001-record-architecture-decisions.md)        | Record architecture decisions                   | Accepted | 2026-07-22 |
-| [0002](./0002-testing-stack.md)                        | Use Vitest and Playwright for testing           | Accepted | 2026-07-22 |
-| [0003](./0003-metadata-driven-domain-configuration.md) | Metadata-driven domain configuration            | Accepted | 2026-07-22 |
-| [0004](./0004-server-actions-over-rest-api.md)         | Server Actions over a REST API layer            | Accepted | 2026-07-22 |
-| [0005](./0005-english-identifiers.md)                  | English identifiers in code, Italian in the UI  | Accepted | 2026-07-22 |
-| [0006](./0006-bilingual-ui.md)                         | Bilingual UI (it + en), single-language content | Accepted | 2026-07-22 |
-| [0007](./0007-message-key-resolution-boundary.md)      | Resolve message keys at the render boundary     | Accepted | 2026-07-30 |
-| [0008](./0008-map-image-storage.md)                    | Map images on a local volume, served with auth  | Accepted | 2026-08-06 |
-| [0009](./0009-world-tree-as-one-polymorphic-table.md)  | The world as one polymorphic `poi` tree         | Accepted | 2026-08-07 |
+| #                                                               | Title                                                 | Status   | Date       |
+| --------------------------------------------------------------- | ----------------------------------------------------- | -------- | ---------- |
+| [0001](./0001-record-architecture-decisions.md)                 | Record architecture decisions                         | Accepted | 2026-07-22 |
+| [0002](./0002-testing-stack.md)                                 | Use Vitest and Playwright for testing                 | Accepted | 2026-07-22 |
+| [0003](./0003-metadata-driven-domain-configuration.md)          | Metadata-driven domain configuration                  | Accepted | 2026-07-22 |
+| [0004](./0004-server-actions-over-rest-api.md)                  | Server Actions over a REST API layer                  | Accepted | 2026-07-22 |
+| [0005](./0005-english-identifiers.md)                           | English identifiers in code, Italian in the UI        | Accepted | 2026-07-22 |
+| [0006](./0006-bilingual-ui.md)                                  | Bilingual UI (it + en), single-language content       | Accepted | 2026-07-22 |
+| [0007](./0007-message-key-resolution-boundary.md)               | Resolve message keys at the render boundary           | Accepted | 2026-07-30 |
+| [0008](./0008-map-image-storage.md)                             | Map images on a local volume, served with auth        | Accepted | 2026-08-06 |
+| [0009](./0009-world-tree-as-one-polymorphic-table.md)           | The world as one polymorphic `poi` tree               | Accepted | 2026-08-07 |
+| [0010](./0010-entity-location-as-stored-reference.md)           | An entity's location as a stored reference            | Accepted | 2026-08-08 |
+| [0011](./0011-inline-collections-outside-the-metadata-layer.md) | Ordered inline collections outside the metadata layer | Accepted | 2026-08-18 |

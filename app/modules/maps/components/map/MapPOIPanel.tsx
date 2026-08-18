@@ -342,9 +342,14 @@ export const MapPOIPanel = memo(function MapPOIPanel({
   const filterCategoryLabelKey = filterCategory
     ? POI_CATEGORIES.find((c) => c.id === filterCategory)?.labelKey
     : undefined;
+  // TD-95 — was the hardcoded "My Places". The DM asked for a rename while
+  // this was being fixed, not a literal re-translation: "Luoghi di
+  // interesse" in Italian, matched here by "Places of Interest" rather than
+  // a re-translated "My Places" — echoing the POI terminology (POICategory,
+  // "poiCategories") already used throughout this panel.
   const categoryName = filterCategoryLabelKey
     ? t(filterCategoryLabelKey)
-    : "My Places";
+    : t("geography.poiPanel.title");
 
   /**
    * Handle add POI mode. Also drops any pending footprint (SPEC-009 T2):
@@ -553,16 +558,19 @@ export const MapPOIPanel = memo(function MapPOIPanel({
   );
 
   /**
-   * Handle clear all with confirmation
+   * Handle clear all with confirmation. The toast used to hand-build its own
+   * English pluralisation (`place${n !== 1 ? "s" : ""}`) — next-intl's own
+   * plural support (already used elsewhere in this catalogue, e.g.
+   * `geography.unpositionedCount`) replaces it here (TD-95).
    */
   const handleClearAll = useCallback(() => {
     if (confirm(`Are you sure you want to delete all ${pois.length} POIs?`)) {
       onClearAll();
       toast.success(
-        `Cleared ${pois.length} place${pois.length !== 1 ? "s" : ""}`
+        t("geography.poiPanel.clearedToast", { count: pois.length })
       );
     }
-  }, [pois.length, onClearAll]);
+  }, [pois.length, onClearAll, t]);
 
   /**
    * Handle location selection mode toggle
@@ -659,7 +667,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                 <button
                   onClick={handleClearCoordinates}
                   className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  title="Clear coordinates"
+                  title={t("geography.poiPanel.clearCoordinates")}
                 >
                   <XCircle className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                 </button>
@@ -818,7 +826,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
             >
               <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400" />
               <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300 leading-tight">
-                Clear
+                {t("geography.poiPanel.clear")}
               </span>
             </button>
           </div>
@@ -833,7 +841,11 @@ export const MapPOIPanel = memo(function MapPOIPanel({
               onClick={() => setIsUnplacedOpen((open) => !open)}
               className="w-full flex items-center justify-between px-6 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
-              <span>Unplaced places ({unplacedChildren.length})</span>
+              <span>
+                {t("geography.poiPanel.unplacedCount", {
+                  count: unplacedChildren.length,
+                })}
+              </span>
               <ChevronDown
                 className={`h-4 w-4 transition-transform ${
                   isUnplacedOpen ? "rotate-180" : ""

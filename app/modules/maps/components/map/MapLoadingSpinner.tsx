@@ -1,6 +1,7 @@
 "use client";
 
 import { useContext } from "react";
+import { useTranslations } from "next-intl";
 import { MapContext } from "@/app/modules/maps/contexts/MapContext";
 
 /**
@@ -29,6 +30,11 @@ import { MapContext } from "@/app/modules/maps/contexts/MapContext";
  * ```
  */
 export function MapLoadingSpinner() {
+  // TD-95 — found while sweeping this file's neighbours after MapPOIPanel's
+  // hardcoded copy: this one is also production-reachable, rendered by
+  // `GeographyExplorer` on every `/dashboard/geography` load until the map
+  // is ready.
+  const t = useTranslations("geography");
   const context = useContext(MapContext);
 
   if (!context) {
@@ -53,7 +59,7 @@ export function MapLoadingSpinner() {
 
         {/* Loading text */}
         <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400 animate-pulse">
-          Loading map...
+          {t("loadingMap")}
         </p>
       </div>
     </div>

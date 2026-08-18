@@ -82,11 +82,15 @@ describe("MapPOIPanel — list view", () => {
   it("disables Export and Clear with no POIs, enables them with some", () => {
     const { rerender } = render(<MapPOIPanel {...baseProps()} pois={[]} />);
     expect(screen.getByText("Export").closest("button")).toBeDisabled();
-    expect(screen.getByText("Clear").closest("button")).toBeDisabled();
+    expect(
+      screen.getByText("geography.poiPanel.clear").closest("button")
+    ).toBeDisabled();
 
     rerender(<MapPOIPanel {...baseProps()} pois={[poi]} />);
     expect(screen.getByText("Export").closest("button")).not.toBeDisabled();
-    expect(screen.getByText("Clear").closest("button")).not.toBeDisabled();
+    expect(
+      screen.getByText("geography.poiPanel.clear").closest("button")
+    ).not.toBeDisabled();
   });
 
   it("calls onExport when Export is clicked", () => {
@@ -103,17 +107,23 @@ describe("MapPOIPanel — list view", () => {
     expect(props.onClose).toHaveBeenCalled();
   });
 
-  it("clears all POIs only after confirming", () => {
+  it("clears all POIs only after confirming, with a translated, plural-aware toast (TD-95)", () => {
     const props = baseProps();
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     render(<MapPOIPanel {...props} pois={[poi]} />);
 
-    fireEvent.click(screen.getByText("Clear"));
+    fireEvent.click(screen.getByText("geography.poiPanel.clear"));
     expect(props.onClearAll).not.toHaveBeenCalled();
 
     confirmSpy.mockReturnValue(true);
-    fireEvent.click(screen.getByText("Clear"));
+    fireEvent.click(screen.getByText("geography.poiPanel.clear"));
     expect(props.onClearAll).toHaveBeenCalled();
+    // Used to be a hand-built template literal
+    // (`Cleared ${n} place${n !== 1 ? "s" : ""}`) with its own English
+    // pluralisation logic. Now next-intl's plural support does that job.
+    expect(toast.success).toHaveBeenCalledWith(
+      "geography.poiPanel.clearedToast"
+    );
   });
 
   it("flies to a POI when its row is clicked", () => {
@@ -152,13 +162,43 @@ describe("MapPOIPanel — list view", () => {
   });
 });
 
+describe("MapPOIPanel — hardcoded strings swept into the catalogues (TD-95)", () => {
+  it("titles the panel with the translated 'Places of Interest' heading, not the old hardcoded 'My Places'", () => {
+    render(<MapPOIPanel {...baseProps()} />);
+    expect(screen.getByText("geography.poiPanel.title")).toBeInTheDocument();
+    expect(screen.queryByText("My Places")).not.toBeInTheDocument();
+  });
+
+  it("still shows the category's own label when filterCategory is given, not the panel title", () => {
+    render(<MapPOIPanel {...baseProps()} filterCategory="shopping" />);
+    expect(
+      screen.queryByText("geography.poiPanel.title")
+    ).not.toBeInTheDocument();
+  });
+
+  it("labels the clear-coordinates button with translated copy, not the old hardcoded title", () => {
+    const props = baseProps();
+    render(
+      <MapPOIPanel {...props} initialLat={10.123456} initialLng={20.654321} />
+    );
+    fireEvent.click(screen.getByText("Add"));
+
+    expect(
+      screen.getByTitle("geography.poiPanel.clearCoordinates")
+    ).toBeInTheDocument();
+    expect(screen.queryByTitle("Clear coordinates")).not.toBeInTheDocument();
+  });
+});
+
 describe("MapPOIPanel — unplaced places (TD-71, SPEC-005 §5.A)", () => {
   it("renders no section when there are no unplaced children", () => {
     render(<MapPOIPanel {...baseProps()} />);
-    expect(screen.queryByText(/Unplaced places/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("geography.poiPanel.unplacedCount")
+    ).not.toBeInTheDocument();
   });
 
-  it("lists each unplaced child with its title, kind and a count", () => {
+  it("lists each unplaced child with its title, kind and a count (TD-95: translated, plural-aware)", () => {
     render(
       <MapPOIPanel
         {...baseProps()}
@@ -169,7 +209,12 @@ describe("MapPOIPanel — unplaced places (TD-71, SPEC-005 §5.A)", () => {
       />
     );
 
-    expect(screen.getByText("Unplaced places (2)")).toBeInTheDocument();
+    // Used to be a hardcoded "Unplaced places (2)" string, hand-built in
+    // JSX. Now a message key read through next-intl; the global mock
+    // (vitest.setup.ts) returns the key itself, ignoring the `count` param.
+    expect(
+      screen.getByText("geography.poiPanel.unplacedCount")
+    ).toBeInTheDocument();
     expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
     expect(screen.getByText("region")).toBeInTheDocument();
     expect(screen.getByText("Skreebars")).toBeInTheDocument();
@@ -223,7 +268,7 @@ describe("MapPOIPanel — unplaced places (TD-71, SPEC-005 §5.A)", () => {
     );
 
     expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("Unplaced places (1)"));
+    fireEvent.click(screen.getByText("geography.poiPanel.unplacedCount"));
     expect(screen.queryByText("Kingdom of Kang")).not.toBeInTheDocument();
     expect(screen.getByText("Skreebars Market")).toBeInTheDocument();
   });

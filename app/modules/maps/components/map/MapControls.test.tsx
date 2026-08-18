@@ -27,13 +27,18 @@ beforeEach(() => {
   map = {};
 });
 
+// The global next-intl mock (vitest.setup.ts) returns the raw key handed to
+// `t()`, ignoring the namespace passed to `useTranslations()` — so
+// `t("zoomIn")` resolves to the literal string "zoomIn" here, not the
+// catalogue's "Zoom in" (TD-95: these tooltips used to be hardcoded English,
+// asserted on directly; they're message keys now).
 describe("MapControls", () => {
   it("wires zoom in, zoom out and reset view to the hook", () => {
     render(<MapControls />);
 
-    screen.getByTitle("Zoom in").click();
-    screen.getByTitle("Zoom out").click();
-    screen.getByTitle("Reset view").click();
+    screen.getByTitle("zoomIn").click();
+    screen.getByTitle("zoomOut").click();
+    screen.getByTitle("resetView").click();
 
     expect(zoomIn).toHaveBeenCalled();
     expect(zoomOut).toHaveBeenCalled();
@@ -44,16 +49,16 @@ describe("MapControls", () => {
     map = null;
     render(<MapControls />);
 
-    expect(screen.getByTitle("Zoom in")).toBeDisabled();
-    expect(screen.getByTitle("Zoom out")).toBeDisabled();
-    expect(screen.getByTitle("Reset view")).toBeDisabled();
+    expect(screen.getByTitle("zoomIn")).toBeDisabled();
+    expect(screen.getByTitle("zoomOut")).toBeDisabled();
+    expect(screen.getByTitle("resetView")).toBeDisabled();
   });
 
   it("toggles the fullscreen button's label and icon on fullscreenchange", () => {
     render(<MapControls />);
 
     expect(
-      screen.getByRole("button", { name: "Enter fullscreen" })
+      screen.getByRole("button", { name: "enterFullscreen" })
     ).toBeInTheDocument();
 
     Object.defineProperty(document, "fullscreenElement", {
@@ -65,7 +70,7 @@ describe("MapControls", () => {
     });
 
     expect(
-      screen.getByRole("button", { name: "Exit fullscreen" })
+      screen.getByRole("button", { name: "exitFullscreen" })
     ).toBeInTheDocument();
 
     Object.defineProperty(document, "fullscreenElement", {
@@ -77,14 +82,14 @@ describe("MapControls", () => {
     });
 
     expect(
-      screen.getByRole("button", { name: "Enter fullscreen" })
+      screen.getByRole("button", { name: "enterFullscreen" })
     ).toBeInTheDocument();
   });
 
   it("calls the fullscreen control's onClick handler", () => {
     render(<MapControls />);
 
-    screen.getByRole("button", { name: "Enter fullscreen" }).click();
+    screen.getByRole("button", { name: "enterFullscreen" }).click();
 
     expect(toggleFullscreen).toHaveBeenCalled();
   });

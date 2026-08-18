@@ -487,6 +487,7 @@
       "title": "Geography"
     },
     "up": "Up",
+    "loadingMap": "Loading map…",
     "unpositionedCount": "{count, plural, =0 {Every place is positioned} one {# place not yet positioned} other {# places not yet positioned}}",
     "noWorldYet": "You haven't created your world yet.",
     "createWorldLink": "Create your world",
@@ -505,6 +506,13 @@
     },
     "mapOptions": {
       "trigger": "Map options"
+    },
+    "mapControls": {
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "resetView": "Reset view",
+      "enterFullscreen": "Enter fullscreen",
+      "exitFullscreen": "Exit fullscreen"
     },
     "contextMenu": {
       "ariaLabel": "Map context menu",
@@ -565,6 +573,13 @@
       "poiSaveFailed": "Could not save “{title}”. The change has been undone.",
       "poiDeleteFailed": "Could not delete “{title}”. The place has been restored.",
       "placePositionFailed": "Could not position “{title}”. Try again."
+    },
+    "poiPanel": {
+      "title": "Places of Interest",
+      "clear": "Clear",
+      "clearCoordinates": "Clear coordinates",
+      "unplacedCount": "{count, plural, one {# unplaced place} other {# unplaced places}}",
+      "clearedToast": "{count, plural, one {Cleared # place} other {Cleared # places}}"
     },
     "maps": {
       "planesOfExistence": "Planes of Existence",

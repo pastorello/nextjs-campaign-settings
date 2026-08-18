@@ -81,13 +81,19 @@ interface MapPOIPanelProps {
   onFlyTo: (poi: POI) => void;
   onRequestLocation?: () => void;
   onClearCoordinates?: () => void;
-  onModeChange?: (mode: "list" | "add" | "edit") => void;
+  onModeChange?: (mode: ViewMode) => void;
   isSelectingLocation?: boolean;
   initialLat?: number | undefined;
   initialLng?: number | undefined;
   cursorLat?: number | undefined;
   cursorLng?: number | undefined;
-  mode?: "list" | "add"; // Control view mode from parent
+  // Control view mode from parent. `ViewMode`'s full range, including
+  // "edit" — `MapPOIPanel` itself drives that transition (`handleEditMode`)
+  // whenever an external mode is in force (TD-85: this used to be narrowed
+  // to `"list" | "add"` here, so the caller had to cast a real "edit" value
+  // down to a lie the compiler believed; see `WorldMap.tsx`'s
+  // `handlePOIModeChange`).
+  mode?: ViewMode;
   // Creates a navigable/deity/npc place under the current parent, returning
   // whether it succeeded and, on failure, the server's own refusal message
   // (SPEC-009 T2) — `createPlace` already names exactly what went wrong, so
@@ -119,7 +125,7 @@ interface MapPOIPanelProps {
   onFootprintConsumed?: () => void;
 }
 
-type ViewMode = "list" | "add" | "edit";
+export type ViewMode = "list" | "add" | "edit";
 
 interface POIFormData {
   kind: PlaceKind;

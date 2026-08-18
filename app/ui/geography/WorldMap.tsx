@@ -10,6 +10,7 @@ import { MapContextMenu } from "@/app/modules/maps/components/map/MapContextMenu
 import {
   MapPOIPanel,
   type AddPlaceInput,
+  type ViewMode,
 } from "@/app/modules/maps/components/map/MapPOIPanel";
 import { useMapContextMenu } from "@/app/modules/maps/hooks/useMapContextMenu";
 import { useMapMarkers } from "@/app/modules/maps/hooks/useMapMarkers";
@@ -68,6 +69,7 @@ function WorldMap({
   onDescend,
   onMapChanged,
   onDeleted,
+  unpositionedCount,
 }: {
   parentId: number;
   /** The place currently being viewed — named in the delete confirmation. */
@@ -93,8 +95,17 @@ function WorldMap({
   // The place currently being viewed was just deleted (SPEC-010 T3) —
   // `GeographyExplorer` pops it off the navigation stack.
   onDeleted: () => void;
+  // Tree-wide, not scoped to the place in view — how many places anywhere
+  // in the campaign still have no position (SPEC-007 T2's
+  // `countUnpositionedPlaces`). Used to be its own header label in
+  // `GeographyExplorer`; TD-85 moved it here, beside the context menu's
+  // "Posiziona luogo" entry, since a number with no action attached to it
+  // was noise (DM, 2026-08-18). Reused as-is, not recomputed per place —
+  // see the context menu's own prop comment for why that's still correct.
+  unpositionedCount: number;
 }) {
   const t = useTranslations("geography.errors");
+  const tGeography = useTranslations("geography");
   const tEditArea = useTranslations("geography.editArea");
   const tContextMenu = useTranslations("geography.contextMenu");
   const tDrawArea = useTranslations("geography.drawArea");
@@ -116,7 +127,7 @@ function WorldMap({
     lat: number;
     lng: number;
   } | null>(null);
-  const [poiPanelMode, setPOIPanelMode] = useState<"list" | "add">("list");
+  const [poiPanelMode, setPOIPanelMode] = useState<ViewMode>("list");
   const [isSelectingPOILocation, setIsSelectingPOILocation] = useState(false);
   const [cursorCoords, setCursorCoords] = useState<{
     lat: number;
@@ -308,6 +319,33 @@ function WorldMap({
     [unplacedChildren]
   );
 
+  // Positions an unplaced place directly at the point the context menu was
+  // opened over (TD-85) — the right-click itself is the aim, so picking a
+  // place from "Posiziona luogo"'s dropdown finalizes the position right
+  // away rather than re-arming a second crosshair click the way
+  // `handlePositionPlace`'s panel-driven flow does. `MapContextMenu`
+  // withholds this entry over an existing area with the same `hideAddPlace`
+  // gate it already applies to "Add Place" (SPEC-009 T4), so this handler
+  // never needs its own containment check.
+  const handleContextMenuPositionPlace = useCallback(
+    async (id: number, lat: number, lng: number) => {
+      const child = unplacedChildren.find((candidate) => candidate.id === id);
+      const title = child?.title ?? "";
+      try {
+        const result = await updateZonePosition({ id, lat, lng });
+        if (result.ok) {
+          setPlacesRefetchToken((token) => token + 1);
+        } else {
+          toast.error(t("placePositionFailed", { title }));
+        }
+      } catch (error) {
+        console.error("Failed to position place from the context menu:", error);
+        toast.error(t("placePositionFailed", { title }));
+      }
+    },
+    [unplacedChildren, t]
+  );
+
   // Handle POI location selection request. Also cancels draw-area mode
   // (SPEC-009 T2) — see `handlePositionPlace`.
   const handleRequestPOILocation = useCallback(() => {
@@ -425,9 +463,13 @@ function WorldMap({
     setIsSelectingPOILocation(false);
   }, []);
 
-  // Handle POI panel mode change
-  const handlePOIModeChange = useCallback((mode: "list" | "add" | "edit") => {
-    setPOIPanelMode(mode as "list" | "add");
+  // Handle POI panel mode change. Used to store this with a
+  // `mode as "list" | "add"` cast, silently dropping a real "edit" value
+  // the compiler was never told could happen — `poiPanelMode`'s declared
+  // type now matches this callback's own parameter type, so there's
+  // nothing left to lie about (TD-85).
+  const handlePOIModeChange = useCallback((mode: ViewMode) => {
+    setPOIPanelMode(mode);
   }, []);
 
   // Handle map click for POI location selection, and for positioning an
@@ -703,6 +745,15 @@ function WorldMap({
         addSubMapLabel={tDrawArea("trigger")}
         onAttachEntity={() => setIsAttachEntityOpen(true)}
         attachEntityLabel={tAttachEntity("trigger")}
+        unplacedPlaces={unplacedChildren}
+        unpositionedCount={unpositionedCount}
+        onPositionPlace={(id, lat, lng) =>
+          void handleContextMenuPositionPlace(id, lat, lng)
+        }
+        positionPlaceLabel={tContextMenu("positionPlace.trigger")}
+        positionPlaceSublabel={tGeography("unpositionedCount", {
+          count: unpositionedCount,
+        })}
       />
 
       {/* POI Panel */}

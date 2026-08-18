@@ -261,3 +261,111 @@ describe("MapContextMenu", () => {
     expect(onClose).toHaveBeenCalled();
   });
 });
+
+describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
+  const unplacedPlaces = [
+    { id: 5, title: "Kingdom of Kang", kind: "region" as const },
+    { id: 6, title: "Skreebars", kind: "city" as const },
+  ];
+
+  it("does not show the entry without onPositionPlace", () => {
+    renderMenu();
+    expect(screen.queryByText("Position a place")).not.toBeInTheDocument();
+  });
+
+  it("shows the entry, translated, when onPositionPlace is provided", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedPlaces,
+      unpositionedCount: 2,
+      positionPlaceLabel: "Posiziona luogo",
+    });
+    expect(screen.getByText("Posiziona luogo")).toBeInTheDocument();
+  });
+
+  it("hides the entry inside an existing area, the same containment rule as Add Place", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedPlaces,
+      unpositionedCount: 2,
+      hideAddPlace: true,
+    });
+    expect(screen.queryByText("Position a place")).not.toBeInTheDocument();
+  });
+
+  it("is disabled when unpositionedCount is zero, so it stays visible rather than vanishing", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedPlaces: [],
+      unpositionedCount: 0,
+    });
+
+    const trigger = screen.getByText("Position a place").closest("button")!;
+    expect(trigger).toBeDisabled();
+  });
+
+  it("is enabled when unpositionedCount is greater than zero", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedPlaces,
+      unpositionedCount: 2,
+    });
+
+    const trigger = screen.getByText("Position a place").closest("button")!;
+    expect(trigger).not.toBeDisabled();
+  });
+
+  it("shows the count as the entry's sublabel when given", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedPlaces,
+      unpositionedCount: 2,
+      positionPlaceSublabel: "2 luoghi non ancora posizionati",
+    });
+    expect(
+      screen.getByText("2 luoghi non ancora posizionati")
+    ).toBeInTheDocument();
+  });
+
+  it("expands a dropdown of the unplaced places when clicked", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedPlaces,
+      unpositionedCount: 2,
+    });
+
+    expect(screen.queryByText("Kingdom of Kang")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Position a place"));
+
+    expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
+    expect(screen.getByText("Skreebars")).toBeInTheDocument();
+  });
+
+  it("does nothing when the disabled entry is clicked — no dropdown opens", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedPlaces: [],
+      unpositionedCount: 0,
+    });
+
+    fireEvent.click(screen.getByText("Position a place"));
+
+    expect(screen.queryByText("Kingdom of Kang")).not.toBeInTheDocument();
+  });
+
+  it("positions the picked place at the point the menu was opened over, then closes", () => {
+    const onPositionPlace = vi.fn();
+    const { onClose } = renderMenu({
+      onPositionPlace,
+      unplacedPlaces,
+      unpositionedCount: 2,
+    });
+
+    fireEvent.click(screen.getByText("Position a place"));
+    fireEvent.click(screen.getByText("Kingdom of Kang"));
+
+    expect(onPositionPlace).toHaveBeenCalledWith(5, 12.3456, 65.4321);
+    expect(onClose).toHaveBeenCalled();
+  });
+});

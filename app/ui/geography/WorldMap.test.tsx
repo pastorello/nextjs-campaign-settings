@@ -38,6 +38,8 @@ let onAddPOI: ((lat: number, lng: number) => void) | undefined;
 let onEditArea: (() => void) | undefined;
 let onAddSubMap: (() => void) | undefined;
 let onAttachEntity: (() => void) | undefined;
+let onContextMenuPositionPlace:
+  ((id: number, lat: number, lng: number) => void) | undefined;
 vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
   MapContextMenu: (props: {
     onAddPOI: (lat: number, lng: number) => void;
@@ -47,17 +49,23 @@ vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
     showEditArea?: boolean;
     onAddSubMap?: () => void;
     onAttachEntity?: () => void;
+    unplacedPlaces?: { id: number; title: string; kind: string }[];
+    unpositionedCount?: number;
+    onPositionPlace?: (id: number, lat: number, lng: number) => void;
   }) => {
     onAddPOI = props.onAddPOI;
     onEditArea = props.onEditArea;
     onAddSubMap = props.onAddSubMap;
     onAttachEntity = props.onAttachEntity;
+    onContextMenuPositionPlace = props.onPositionPlace;
     return (
       <div
         data-testid="map-context-menu"
         data-open={props.isOpen}
         data-hide-add-place={props.hideAddPlace ?? false}
         data-show-edit-area={props.showEditArea ?? false}
+        data-unplaced-places-count={props.unplacedPlaces?.length ?? 0}
+        data-unpositioned-count={props.unpositionedCount ?? 0}
       />
     );
   },
@@ -259,7 +267,7 @@ const bounds: L.LatLngBoundsExpression = [
 const onDescend = vi.fn();
 
 /** Renders WorldMap and waits for its image-overlay bootstrap effect to settle. */
-async function renderMap(mapUrl = "/maps/test.jpg") {
+async function renderMap(mapUrl = "/maps/test.jpg", unpositionedCount = 0) {
   render(
     <WorldMap
       parentId={1}
@@ -273,6 +281,7 @@ async function renderMap(mapUrl = "/maps/test.jpg") {
       onDescend={onDescend}
       onMapChanged={vi.fn()}
       onDeleted={vi.fn()}
+      unpositionedCount={unpositionedCount}
     />
   );
   await waitFor(() => {
@@ -325,6 +334,7 @@ describe("WorldMap", () => {
         onDescend={vi.fn()}
         onMapChanged={vi.fn()}
         onDeleted={vi.fn()}
+        unpositionedCount={0}
       />
     );
 
@@ -1020,9 +1030,7 @@ describe("WorldMap — resizing and moving an existing area (SPEC-009 T5)", () =
 describe("WorldMap — dismissing temporary markers (TD-86)", () => {
   it("shows no clear control when there are no temporary markers", async () => {
     await renderMap();
-    expect(
-      screen.queryByText("clear")
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("clear")).not.toBeInTheDocument();
   });
 
   it("shows a clear control once a temporary marker exists, for every viewer (not DM-gated)", async () => {
@@ -1033,9 +1041,7 @@ describe("WorldMap — dismissing temporary markers (TD-86)", () => {
     });
     await renderMap();
 
-    expect(
-      screen.getByText("clear")
-    ).toBeInTheDocument();
+    expect(screen.getByText("clear")).toBeInTheDocument();
   });
 
   it("calls clearMarkers when the clear control is clicked", async () => {
@@ -1050,5 +1056,75 @@ describe("WorldMap — dismissing temporary markers (TD-86)", () => {
     fireEvent.click(screen.getByText("clear"));
 
     expect(clearMarkers).toHaveBeenCalled();
+  });
+});
+
+describe("WorldMap — positioning a place from the context menu (TD-85)", () => {
+  it("passes this place's unplaced children and the tree-wide count through to the context menu", async () => {
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    ]);
+    await renderMap("/maps/test.jpg", 7);
+
+    expect(screen.getByTestId("map-context-menu")).toHaveAttribute(
+      "data-unplaced-places-count",
+      "1"
+    );
+    expect(screen.getByTestId("map-context-menu")).toHaveAttribute(
+      "data-unpositioned-count",
+      "7"
+    );
+  });
+
+  it("positions the chosen place at the point the context menu was opened over, sending only id/lat/lng", async () => {
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    ]);
+    await renderMap();
+
+    act(() => {
+      onContextMenuPositionPlace?.(5, 10, 20);
+    });
+
+    await waitFor(() => {
+      expect(updateZonePosition).toHaveBeenCalledWith({
+        id: 5,
+        lat: 10,
+        lng: 20,
+      });
+    });
+  });
+
+  it("bumps the navigable refetch token after a successful context-menu positioning", async () => {
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    ]);
+    await renderMap();
+    const tokenBefore = useNavigableChildren.mock.calls.at(-1)?.[2];
+
+    act(() => {
+      onContextMenuPositionPlace?.(5, 10, 20);
+    });
+
+    await waitFor(() => {
+      const tokenAfter = useNavigableChildren.mock.calls.at(-1)?.[2];
+      expect(tokenAfter).not.toBe(tokenBefore);
+    });
+  });
+
+  it("toasts and does not refetch when the update fails", async () => {
+    updateZonePosition.mockResolvedValue({ ok: false });
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    ]);
+    await renderMap();
+
+    act(() => {
+      onContextMenuPositionPlace?.(5, 10, 20);
+    });
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("placePositionFailed");
+    });
   });
 });

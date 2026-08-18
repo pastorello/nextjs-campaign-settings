@@ -519,6 +519,9 @@
       "addPlace": {
         "trigger": "Add Place",
         "sublabel": "Create a place here"
+      },
+      "positionPlace": {
+        "trigger": "Position a place"
       }
     },
     "temporaryMarkers": {

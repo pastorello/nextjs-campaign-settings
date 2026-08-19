@@ -391,6 +391,7 @@ describe("WorldMap", () => {
         onDescend={onDescend}
         onMapChanged={vi.fn()}
         onDeleted={vi.fn()}
+        unpositionedCount={0}
       />
     );
     await waitFor(() => {
@@ -428,6 +429,7 @@ describe("WorldMap", () => {
         onDescend={onDescend}
         onMapChanged={vi.fn()}
         onDeleted={vi.fn()}
+        unpositionedCount={0}
       />
     );
     await waitFor(() => {
@@ -474,6 +476,7 @@ describe("WorldMap", () => {
         onDescend={onDescend}
         onMapChanged={vi.fn()}
         onDeleted={vi.fn()}
+        unpositionedCount={0}
       />
     );
     await waitFor(() => {
@@ -1334,6 +1337,7 @@ describe("WorldMap — sized to its container, not the viewport (TD-84)", () => 
         onDescend={onDescend}
         onMapChanged={vi.fn()}
         onDeleted={vi.fn()}
+        unpositionedCount={0}
       />
     );
     await waitFor(() => {
@@ -1373,6 +1377,7 @@ describe("WorldMap — the zoom floor leaves room to zoom out (TD-87)", () => {
         onDescend={onDescend}
         onMapChanged={vi.fn()}
         onDeleted={vi.fn()}
+        unpositionedCount={0}
       />
     );
     await waitFor(() => {
@@ -1430,6 +1435,7 @@ describe("WorldMap — the zoom floor leaves room to zoom out (TD-87)", () => {
         onDescend={onDescend}
         onMapChanged={vi.fn()}
         onDeleted={vi.fn()}
+        unpositionedCount={0}
       />
     );
     await waitFor(() => {

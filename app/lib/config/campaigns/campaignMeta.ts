@@ -15,6 +15,19 @@ import z from "zod";
  * them — the same "shared either way" half of ADR-0011's boundary that
  * `scene`/`sceneCreature`/`loot` already use.
  */
+/**
+ * `Campaign.synopsis` is `string | null` in the domain interface, so
+ * `CampaignForm` submits an unset synopsis as an explicit `null` rather than
+ * omitting the key. `.optional()` alone only tolerates `undefined`; this
+ * preprocesses `null` the same way before handing off — the same local
+ * helper `adventureMeta.ts`, `sceneMeta.ts` and `sceneCreatureMeta.ts`
+ * already carry for the same reason (found by T7's browser pass there; found
+ * here by T10's a11y e2e, whose fixture setup is a minimal title-only create).
+ */
+function nullableToOptional<T extends z.ZodTypeAny>(schema: T) {
+  return z.preprocess((raw) => (raw === null ? undefined : raw), schema);
+}
+
 const campaignMeta = {
   [CampaignMetaField.title]: {
     metaField: "title",
@@ -30,7 +43,7 @@ const campaignMeta = {
     defaultValue: "",
     fieldType: FieldType.string,
     controlType: ControlType.Textarea,
-    validator: z.string().optional(),
+    validator: nullableToOptional(z.string().optional()),
   },
   [CampaignMetaField.partySize]: {
     metaField: "partySize",

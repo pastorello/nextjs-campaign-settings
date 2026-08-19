@@ -17,4 +17,13 @@ describe("campaignMeta (SPEC-013 T4)", () => {
   it("rejects a non-positive party size", () => {
     expect(campaignMeta.partySize.validator.safeParse(0).success).toBe(false);
   });
+
+  // Regression (T10, found by the a11y e2e's fixture setup): `CampaignForm`
+  // submits an empty synopsis as an explicit `null` — `Campaign` types it
+  // `string | null` — but the validator was a bare `.optional()`, which only
+  // tolerates `undefined`. Same gap T7/T8 fixed for `adventureMeta.synopsis`
+  // and `sceneMeta.description`, so a minimal title-only create failed.
+  it("accepts a null synopsis, the same as an unset optional string column", () => {
+    expect(campaignMeta.synopsis.validator.safeParse(null).success).toBe(true);
+  });
 });

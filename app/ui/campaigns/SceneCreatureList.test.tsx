@@ -30,6 +30,11 @@ vi.mock("@/app/lib/data/campaigns/deleteSceneCreatureById", () => ({
   default: (...args: unknown[]) => deleteSceneCreatureById(...args),
 }));
 
+const setSceneCreatureAwarded = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/campaigns/setSceneCreatureAwarded", () => ({
+  default: (...args: unknown[]) => setSceneCreatureAwarded(...args),
+}));
+
 const notifySuccess = vi.fn<(...args: unknown[]) => void>();
 const notifyError = vi.fn<(...args: unknown[]) => void>();
 vi.mock("@/app/lib/notifications/notify", () => ({
@@ -135,5 +140,31 @@ describe("SceneCreatureList (SPEC-013 T8)", () => {
 
     fireEvent.click(screen.getByTestId("creature-form"));
     expect(screen.queryByTestId("creature-form")).not.toBeInTheDocument();
+  });
+
+  it("checks off a creature as awarded, independently per creature", async () => {
+    setSceneCreatureAwarded.mockResolvedValue({ ok: true });
+    render(
+      <SceneCreatureList
+        sceneId={1}
+        creatures={[goblins, { ...boss, awarded: true }]}
+        npcOptions={[]}
+      />
+    );
+
+    const checkboxes = screen.getAllByRole("checkbox");
+    expect(checkboxes[0]).toHaveAttribute("aria-checked", "false");
+    expect(checkboxes[1]).toHaveAttribute("aria-checked", "true");
+
+    fireEvent.click(checkboxes[0]!);
+
+    await waitFor(() =>
+      expect(setSceneCreatureAwarded).toHaveBeenCalledWith(1, true)
+    );
+    expect(setSceneCreatureAwarded).not.toHaveBeenCalledWith(
+      2,
+      expect.anything()
+    );
+    expect(refresh).toHaveBeenCalled();
   });
 });

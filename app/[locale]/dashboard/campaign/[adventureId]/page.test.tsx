@@ -17,6 +17,11 @@ vi.mock("@/app/lib/data/campaigns/fetchAdventureWithScenes", () => ({
   default: (...args: unknown[]) => fetchAdventureWithScenes(...args),
 }));
 
+const getBudgetTotals = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/campaigns/getBudgetTotals", () => ({
+  default: (...args: unknown[]) => getBudgetTotals(...args),
+}));
+
 const fetchFieldOptions = vi.fn<(...args: unknown[]) => unknown>();
 vi.mock("@/app/lib/data/options/fetchFieldOptions", () => ({
   default: (...args: unknown[]) => fetchFieldOptions(...args),
@@ -24,6 +29,10 @@ vi.mock("@/app/lib/data/options/fetchFieldOptions", () => ({
 
 vi.mock("@/app/ui/campaigns/AdventureHeader", () => ({
   default: () => <div data-testid="adventure-header" />,
+}));
+
+vi.mock("@/app/ui/campaigns/BudgetPanel", () => ({
+  default: () => <div data-testid="budget-panel" />,
 }));
 
 vi.mock("@/app/ui/campaigns/SceneList", () => ({
@@ -36,6 +45,13 @@ describe("Adventure page (SPEC-013 T8)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     fetchFieldOptions.mockResolvedValue([]);
+    getBudgetTotals.mockResolvedValue({
+      xp: { assigned: 0, found: 0 },
+      currency: { assigned: 0, found: 0 },
+      permanentItems: { assigned: 0, found: 0 },
+      consumables: { assigned: 0, found: 0 },
+      heroPoints: 0,
+    });
   });
 
   it("titles the page from the adventure.page catalogue", async () => {
@@ -63,7 +79,7 @@ describe("Adventure page (SPEC-013 T8)", () => {
     expect(notFound).toHaveBeenCalled();
   });
 
-  it("shows the adventure header and its scene list once found", async () => {
+  it("shows the adventure header, budget panel and scene list once found", async () => {
     fetchAdventureWithScenes.mockResolvedValue({
       id: 10,
       currencyUnit: "gold",
@@ -74,7 +90,9 @@ describe("Adventure page (SPEC-013 T8)", () => {
       await AdventurePage({ params: Promise.resolve({ adventureId: "10" }) })
     );
 
+    expect(getBudgetTotals).toHaveBeenCalledWith(10);
     expect(screen.getByTestId("adventure-header")).toBeInTheDocument();
+    expect(screen.getByTestId("budget-panel")).toBeInTheDocument();
     expect(screen.getByTestId("scene-list")).toBeInTheDocument();
   });
 });

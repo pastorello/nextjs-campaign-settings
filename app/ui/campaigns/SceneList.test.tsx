@@ -45,6 +45,11 @@ vi.mock("@/app/lib/data/campaigns/deleteSceneById", () => ({
   default: (...args: unknown[]) => deleteSceneById(...args),
 }));
 
+const setSceneAwarded = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/campaigns/setSceneAwarded", () => ({
+  default: (...args: unknown[]) => setSceneAwarded(...args),
+}));
+
 const notifySuccess = vi.fn<(...args: unknown[]) => void>();
 const notifyError = vi.fn<(...args: unknown[]) => void>();
 vi.mock("@/app/lib/notifications/notify", () => ({
@@ -178,6 +183,27 @@ describe("SceneList (SPEC-013 T8)", () => {
     fireEvent.click(within(dialog).getByText("common.form.delete"));
 
     await waitFor(() => expect(deleteSceneById).toHaveBeenCalledWith(1));
+    expect(refresh).toHaveBeenCalled();
+  });
+
+  it("checks off a scene as awarded, independently per scene, by keyboard", async () => {
+    setSceneAwarded.mockResolvedValue({ ok: true });
+    const scenes = [
+      makeScene({ id: 1, title: "First", awarded: false }),
+      makeScene({ id: 2, title: "Second", awarded: true }),
+    ];
+
+    render(<SceneList {...baseProps} scenes={scenes} />);
+
+    const checkboxes = screen.getAllByRole("checkbox");
+    expect(checkboxes[0]).toHaveAttribute("aria-checked", "false");
+    expect(checkboxes[1]).toHaveAttribute("aria-checked", "true");
+
+    checkboxes[0]!.focus();
+    fireEvent.keyUp(checkboxes[0]!, { key: " " });
+
+    await waitFor(() => expect(setSceneAwarded).toHaveBeenCalledWith(1, true));
+    expect(setSceneAwarded).not.toHaveBeenCalledWith(2, expect.anything());
     expect(refresh).toHaveBeenCalled();
   });
 });

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import reorderLoot from "@/app/lib/data/campaigns/reorderLoot";
 import deleteLootById from "@/app/lib/data/campaigns/deleteLootById";
+import setLootTaken from "@/app/lib/data/campaigns/setLootTaken";
 import Loot from "@/app/lib/definitions/interfaces/campaign/Loot";
 import {
   CurrencyUnit,
@@ -21,6 +22,7 @@ import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import IconType from "@/app/ui/buttons/BaseButton/IconType";
 
 import LootForm from "./LootForm";
+import CheckOffControl from "./CheckOffControl";
 
 interface LootListProps {
   sceneId: number;
@@ -162,6 +164,14 @@ export default function LootList({
                       ({optionLabel(treasureOptions, row.treasureId)})
                     </span>
                   )}
+                  <div className="mt-1 max-w-[120px]">
+                    <CheckOffControl
+                      label={t("loot.checkOff.label")}
+                      checked={row.taken}
+                      onToggle={(next) => setLootTaken(row.id, next)}
+                      errorMessage={t("common.checkOff.failed")}
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center gap-1">
                   <BaseButton

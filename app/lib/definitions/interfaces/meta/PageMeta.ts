@@ -17,11 +17,14 @@ type MetaDisplayValue = string | number | boolean | number[] | string[] | null;
 
 /**
  * Tables whose rows can back a field's options — closed, like `PlaceKind`.
- * A union of one until a second field genuinely needs this (SPEC-006 §9's
- * open question 1); collapse it if nothing joins `faction` within a couple
- * of features rather than keeping the indirection for symmetry.
+ * Stayed a union of one (`"faction"`) until SPEC-013 T6 needed four more:
+ * `sceneMeta.zoneId`, `sceneCreatureMeta.npcId` and `lootMeta`'s
+ * `magicItemId`/`treasureId` are each a plain FK where the referenced table
+ * is the membership check, the same shape `faction` already established
+ * (SPEC-006 §7). See `fetchFieldOptions.ts` for the table read each name maps
+ * to.
  */
-type OptionTableName = "faction";
+type OptionTableName = "faction" | "zone" | "npc" | "magicitems" | "treasure";
 
 /**
  * A field's options are either a static list or rows in a table — never

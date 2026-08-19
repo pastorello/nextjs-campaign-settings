@@ -16,7 +16,8 @@ import treasureCategories from "./treasure-categories";
 const treasureMeta = {
   // Static options, like `magicitems.type` — SPEC-013 §6 is explicit that
   // this is the `options` branch of `PageMeta`, not `optionTable` (that
-  // branch is FK-backed and today only permits `"faction"`).
+  // branch is FK-backed — `"faction"`, and since T6, `"zone"`/`"npc"`/
+  // `"magicitems"`/`"treasure"` for `scene`/`sceneCreature`/`loot`'s links).
   [TreasureMetaField.category]: {
     metaField: "category",
     labelKey: "treasure.fields.category.label",

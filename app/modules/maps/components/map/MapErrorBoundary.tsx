@@ -1,8 +1,18 @@
 "use client";
 
 import { Component, ReactNode } from "react";
+import { useTranslations } from "next-intl";
 
-interface MapErrorBoundaryProps {
+interface MapErrorBoundaryLabels {
+  title: string;
+  defaultMessage: string;
+  tryAgain: string;
+  goHome: string;
+  technicalDetails: string;
+  noStackTrace: string;
+}
+
+interface MapErrorBoundaryClassProps extends MapErrorBoundaryLabels {
   children: ReactNode;
 }
 
@@ -12,41 +22,16 @@ interface MapErrorBoundaryState {
 }
 
 /**
- * MapErrorBoundary component - Error boundary for map-related errors
- *
- * This component catches JavaScript errors anywhere in the map component tree
- * and displays a fallback UI instead of crashing the entire application.
- *
- * Features:
- * - Catches and handles errors in map components
- * - Displays user-friendly error messages
- * - Provides reset functionality
- * - Logs errors for debugging
- * - Prevents app crashes from map failures
- *
- * Common Error Scenarios:
- * - Missing Leaflet library
- * - Invalid map configuration
- * - Tile loading failures
- * - Marker rendering errors
- * - Network connectivity issues
- *
- * @example
- * ```tsx
- * <MapErrorBoundary>
- *   <MapProvider>
- *     <LeafletMap>
- *       <LeafletTileLayer url={tileUrl} />
- *     </LeafletMap>
- *   </MapProvider>
- * </MapErrorBoundary>
- * ```
+ * Class component holding the error-boundary lifecycle
+ * (getDerivedStateFromError, componentDidCatch) — hooks like useTranslations
+ * can't run here, so the translated copy arrives as props from the
+ * MapErrorBoundary wrapper below.
  */
-export class MapErrorBoundary extends Component<
-  MapErrorBoundaryProps,
+class MapErrorBoundaryClass extends Component<
+  MapErrorBoundaryClassProps,
   MapErrorBoundaryState
 > {
-  constructor(props: MapErrorBoundaryProps) {
+  constructor(props: MapErrorBoundaryClassProps) {
     super(props);
     this.state = {
       hasError: false,
@@ -99,12 +84,11 @@ export class MapErrorBoundary extends Component<
             </div>
 
             <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-              Map Error
+              {this.props.title}
             </h2>
 
             <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-              {this.state.error?.message ||
-                "An unexpected error occurred while loading the map."}
+              {this.state.error?.message || this.props.defaultMessage}
             </p>
 
             <div className="space-y-3">
@@ -112,23 +96,23 @@ export class MapErrorBoundary extends Component<
                 onClick={this.handleReset}
                 className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium"
               >
-                Try Again
+                {this.props.tryAgain}
               </button>
 
               <button
                 onClick={() => (window.location.href = "/")}
                 className="w-full px-4 py-2 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-lg transition-colors font-medium"
               >
-                Go Home
+                {this.props.goHome}
               </button>
             </div>
 
             <details className="mt-6 text-left">
               <summary className="cursor-pointer text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300">
-                Technical Details
+                {this.props.technicalDetails}
               </summary>
               <pre className="mt-2 p-3 bg-zinc-100 dark:bg-zinc-900 rounded text-xs overflow-auto text-zinc-800 dark:text-zinc-200">
-                {this.state.error?.stack || "No stack trace available"}
+                {this.state.error?.stack || this.props.noStackTrace}
               </pre>
             </details>
           </div>
@@ -138,4 +122,56 @@ export class MapErrorBoundary extends Component<
 
     return this.props.children;
   }
+}
+
+interface MapErrorBoundaryProps {
+  children: ReactNode;
+}
+
+/**
+ * MapErrorBoundary component - Error boundary for map-related errors
+ *
+ * This component catches JavaScript errors anywhere in the map component tree
+ * and displays a fallback UI instead of crashing the entire application.
+ *
+ * Features:
+ * - Catches and handles errors in map components
+ * - Displays user-friendly error messages
+ * - Provides reset functionality
+ * - Logs errors for debugging
+ * - Prevents app crashes from map failures
+ *
+ * Common Error Scenarios:
+ * - Missing Leaflet library
+ * - Invalid map configuration
+ * - Tile loading failures
+ * - Marker rendering errors
+ * - Network connectivity issues
+ *
+ * @example
+ * ```tsx
+ * <MapErrorBoundary>
+ *   <MapProvider>
+ *     <LeafletMap>
+ *       <LeafletTileLayer url={tileUrl} />
+ *     </LeafletMap>
+ *   </MapProvider>
+ * </MapErrorBoundary>
+ * ```
+ */
+export function MapErrorBoundary({ children }: MapErrorBoundaryProps) {
+  const t = useTranslations("geography.errorBoundary");
+
+  return (
+    <MapErrorBoundaryClass
+      title={t("title")}
+      defaultMessage={t("defaultMessage")}
+      tryAgain={t("tryAgain")}
+      goHome={t("goHome")}
+      technicalDetails={t("technicalDetails")}
+      noStackTrace={t("noStackTrace")}
+    >
+      {children}
+    </MapErrorBoundaryClass>
+  );
 }

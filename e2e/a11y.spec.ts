@@ -63,6 +63,104 @@ for (const path of PAGES) {
   });
 }
 
+/**
+ * SPEC-013 T10: the campaign and adventure pages. These two cannot join
+ * `PAGES` above — what they render depends on data (the campaign page is a
+ * creation form until the one campaign exists; the adventure page needs a
+ * real adventure id in the URL) — so this test builds its fixtures first,
+ * idempotently, the same way `world.setup.ts` does for the root place: the
+ * campaign has no delete action (T6, deliberate), so the first run creates
+ * "E2E Campaign" and every later run finds it already there.
+ *
+ * Each page is scanned with its add-forms open, so the scan covers the
+ * bespoke forms (ADR-0011) as well as the lists: the ladder plus
+ * `AdventureForm` on the campaign page; `BudgetPanel`, a scene row with its
+ * check-off control, plus `SceneForm`/`SceneCreatureForm`/`LootForm` on the
+ * adventure page. Not covered: the edit variants of the forms (same
+ * components, same inputs, different initial values) and rows in the
+ * creature/loot lists (same row controls the scene list's scan covers).
+ */
+test("campaign and adventure pages have no accessibility violations", async ({
+  page,
+}) => {
+  await page.goto("/dashboard/campaign");
+  await page.waitForLoadState("networkidle");
+
+  const scan = async (label: string) => {
+    const results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze();
+    const summary = results.violations.map(
+      (violation) => `${violation.id} (${violation.nodes.length} nodes)`
+    );
+    expect(summary, `axe violations on ${label}`).toEqual([]);
+  };
+
+  const createCampaignButton = page.getByRole("button", {
+    name: messages.campaign.form.createButton,
+  });
+  if (await createCampaignButton.isVisible().catch(() => false)) {
+    await page
+      .getByLabel(messages.campaign.fields.title.label)
+      .fill("E2E Campaign");
+    await createCampaignButton.click();
+  }
+
+  const addAdventureButton = page.getByRole("button", {
+    name: messages.adventure.ladder.addButton,
+  });
+  await expect(addAdventureButton).toBeVisible();
+
+  const adventureLink = page.getByRole("link", { name: "E2E Adventure" });
+  if (!(await adventureLink.isVisible().catch(() => false))) {
+    await addAdventureButton.click();
+    const form = page.locator("form");
+    await form
+      .getByLabel(messages.adventure.fields.title.label)
+      .fill("E2E Adventure");
+    await form
+      .getByRole("button", { name: messages.adventure.form.createButton })
+      .click();
+    await expect(adventureLink).toBeVisible();
+  }
+
+  // Campaign page: header, ladder with a row, and the add-adventure form.
+  await addAdventureButton.click();
+  await scan("/dashboard/campaign");
+
+  await adventureLink.click();
+  await expect(
+    page.getByRole("button", { name: messages.scene.list.addButton })
+  ).toBeVisible();
+  await page.waitForLoadState("networkidle");
+
+  const sceneTitle = page.getByText("E2E Scene");
+  if (!(await sceneTitle.isVisible().catch(() => false))) {
+    await page
+      .getByRole("button", { name: messages.scene.list.addButton })
+      .click();
+    const form = page.locator("form");
+    await form.getByLabel(messages.scene.fields.title.label).fill("E2E Scene");
+    await form
+      .getByRole("button", { name: messages.scene.form.createButton })
+      .click();
+    await expect(sceneTitle).toBeVisible();
+  }
+
+  // Adventure page: budget panel, a scene row with its check-off control,
+  // and all three add-forms open at once.
+  await page
+    .getByRole("button", { name: messages.scene.list.addButton })
+    .click();
+  await page
+    .getByRole("button", { name: messages.sceneCreature.list.addButton })
+    .click();
+  await page
+    .getByRole("button", { name: messages.loot.list.addButton })
+    .click();
+  await scan("/dashboard/campaign/[adventureId]");
+});
+
 // The three row/toolbar buttons this test tabs through to find, read from the
 // catalogue rather than hardcoded — "Delete" here used to be a dead branch
 // that never matched the actual Italian button text ("Elimina").

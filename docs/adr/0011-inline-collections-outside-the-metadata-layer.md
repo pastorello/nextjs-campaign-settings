@@ -1,6 +1,6 @@
 # ADR-0011: Keep ordered inline collections outside the metadata layer
 
-- **Status:** Accepted — agreed with the DM 2026-08-18, before any implementation
+- **Status:** Accepted — agreed with the DM 2026-08-18, before any implementation. **Amended 2026-08-19** — see note below the boundary.
 - **Date:** 2026-08-18
 - **Deciders:** the maintainer (DM), with Claude Code
 - **Related:** decides [SPEC-013](../specs/013-campaign-management.md) §7 (its T1); builds on [ADR-0003](./0003-metadata-driven-domain-configuration.md) (the metadata layer itself) and [ADR-0007](./0007-message-key-resolution-boundary.md); qualifies `CLAUDE.md`'s "never bypass the metadata layer"; TD-08 (the `PageMeta` discriminated union), TD-09 (the quartets collapsed against that layer)
@@ -27,9 +27,29 @@ Every **scalar field** on those rows still declares its `PageMeta` — validator
 
 The boundary, stated so a future session can check a case against it rather than re-argue it:
 
-- **Inside the metadata layer** — a domain that is one flat record, has a list page of its own, a form, and header filters. The six existing domains, plus SPEC-013's `campaign`, `adventure` and the `treasure` catalogue.
+- **Inside the metadata layer** — a domain that is one flat record, has a list page of its own, a form, and header filters. The six existing domains, plus SPEC-013's `treasure` catalogue.
 - **Outside it** — a collection of rows that exists only within a parent's page, has no list page, no header filter, and no query built from a filter form.
 - **Shared either way** — the Zod validator and the label key for every scalar field. A bespoke editor may not invent its own validation.
+
+> **Amended 2026-08-19.** This boundary originally put `campaign` and
+> `adventure` on the "inside" list, alongside `treasure`. That was wrong on its
+> own terms the day it was written: §5 describes a single campaign created
+> once via an empty-state form, with adventures shown as a position-ordered
+> ladder inside the campaign page — not a filterable admin list — which is
+> the "outside" shape this ADR defines, not the "inside" one it named them
+> under. SPEC-013 §9 flagged the resulting §5/§7 contradiction the next day
+> without resolving which side was correct; asked directly, the DM confirmed
+> the ladder reading and this ADR is the one that was wrong. `campaign` and
+> `adventure` move to the "outside" bucket, effective for T4 onward: their
+> scalar fields still declare `PageMeta` (validator and label key), consumed
+> directly by the bespoke campaign/adventure UI (T7–T9) the same way
+> `scene`/`sceneCreature`/`loot`'s will be — not registered in
+> `pagesConfig.ts`, `queryFields.ts` or `listConfig.ts`, and `getQuery.ts`'s
+> hardcoded `name`-default-sort-field is therefore untouched by this spec.
+> `treasure` is unaffected — it has a real list page and stays "inside." The
+> reasoning in **Alternatives considered** and **Consequences** below was
+> written with `scene`/`sceneCreature`/`loot` as the motivating case and holds
+> unchanged; only the classification of `campaign`/`adventure` was wrong.
 
 ## Alternatives considered
 

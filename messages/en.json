@@ -761,6 +761,10 @@
       "attuned": {
         "label": "Attunement Required",
         "shortLabel": "Attunement"
+      },
+      "consumable": {
+        "label": "Consumable",
+        "shortLabel": "Consumable"
       }
     }
   },

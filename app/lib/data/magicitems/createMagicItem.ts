@@ -18,7 +18,7 @@ export default async function createMagicItem(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  const { name, description, type, rarity, attuned } = formData;
+  const { name, description, type, rarity, attuned, consumable } = formData;
 
   await prisma.magicitems.create({
     data: {
@@ -27,6 +27,7 @@ export default async function createMagicItem(
       type,
       rarity,
       attuned,
+      consumable,
     },
   });
 

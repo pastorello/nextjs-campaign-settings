@@ -24,6 +24,7 @@ const validFormData: MagicItem = {
   type: firstOptionValue(itemTypes),
   rarity: firstOptionValue(rarity),
   attuned: false,
+  consumable: false,
 };
 
 describe("createMagicItem (TD-80)", () => {
@@ -54,6 +55,7 @@ describe("createMagicItem (TD-80)", () => {
         type: validFormData.type,
         rarity: validFormData.rarity,
         attuned: validFormData.attuned,
+        consumable: validFormData.consumable,
       },
     });
   });

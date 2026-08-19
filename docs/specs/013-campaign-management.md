@@ -404,8 +404,27 @@ validation exactly as the other six domains do.
 inline inside a parent's page** — a shape `EntityForm` has never had to render,
 since every existing domain is one flat record per form.
 
-**Settled by [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md)**
-(2026-08-18): they stay outside the metadata layer, as dedicated components under
+**`campaign` and `adventure` don't either — corrected 2026-08-19.** The
+paragraph above originally claimed campaign/adventure "fit the metadata layer
+as it stands... driving form, list and validation exactly as the other six
+domains do," i.e. a standard `EntityList`/header-filter page. §5 always
+described something else: a single campaign, created once via an empty-state
+form, with adventures shown as a position-ordered ladder — not a filterable
+admin list. The two readings were never reconciled at the time (see the "Still
+open" note this replaces, below), and [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md)
+itself had the same error, naming them "inside" the metadata layer. Asked
+directly ahead of T4, the DM confirmed §5's ladder reading. `campaign` and
+`adventure` join `scene`/`sceneCreature`/`loot` outside the metadata layer:
+dedicated components under `app/ui/campaigns/`, no list page, no
+`pagesConfig.ts`/`queryFields.ts`/`listConfig.ts` registration. `getQuery.ts`'s
+hardcoded `name`-default-sort-field is therefore never reached by
+`title`-keyed campaign/adventure rows — the fix that reading would have
+required does not apply.
+
+The treasure catalogue is the one that actually fits the description above: a
+flat record, its own list page, its own filters — shipped as T4b.
+
+They stay outside the metadata layer, as dedicated components under
 `app/ui/campaigns/`, and `PageMeta` gains no collection variant. Every scalar
 field on those rows still declares its `PageMeta` — validator and label key
 included — and the editor consumes those declarations rather than restating them.
@@ -461,18 +480,18 @@ reopening, that happens in a new ADR.
 
 **Files touched, in order**
 
-| #   | File                                                                                               | Change                                                                                    |
-| --- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| 1   | ~~`docs/adr/0011-inline-collections-outside-the-metadata-layer.md`~~                               | ✅ written 2026-08-18 — decides §7                                                        |
-| 2   | `prisma/schema.prisma` + migration                                                                 | The six tables, plus `magicitems.consumable` and its backfill                             |
-| 3   | `app/lib/definitions/**`                                                                           | `SceneKind`, `AdventureStatus`, `TreasureCategory`, interfaces                            |
-| 4   | `app/lib/config/campaigns/**`, `app/lib/config/treasure/**`, `pageMetaFields.ts`, `pagesConfig.ts` | Metadata for campaign, adventure, the treasure catalogue and `magicitems.consumable`      |
-| 5   | `app/lib/data/campaigns/**`                                                                        | One function per file: fetch campaign, adventure with scenes, budget totals               |
-| 6   | `app/lib/data/campaigns/**`                                                                        | Create/update/delete/reorder + the check-off toggles, each auth-guarded and Zod-validated |
-| 7   | `app/[locale]/dashboard/campaign/**`                                                               | Campaign page, adventure page                                                             |
-| 8   | `app/ui/campaigns/**`                                                                              | Ladder, scene list, scene editor, budget panel, check controls                            |
-| 9   | `messages/{it,en}.json`                                                                            | Both catalogues, same key set                                                             |
-| 10  | `docs/PROJECT_STATE.md`, `docs/ROADMAP.md`, `docs/ARCHITECTURE.md`                                 | Inventory, Phase 4, and the metadata-layer boundary the ADR sets                          |
+| #   | File                                                                                                                                                                                | Change                                                                                                                                                                                                                                                                          |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ~~`docs/adr/0011-inline-collections-outside-the-metadata-layer.md`~~                                                                                                                | ✅ written 2026-08-18 — decides §7                                                                                                                                                                                                                                              |
+| 2   | `prisma/schema.prisma` + migration                                                                                                                                                  | The six tables, plus `magicitems.consumable` and its backfill                                                                                                                                                                                                                   |
+| 3   | `app/lib/definitions/**`                                                                                                                                                            | `SceneKind`, `AdventureStatus`, `TreasureCategory`, interfaces                                                                                                                                                                                                                  |
+| 4   | `app/lib/config/campaigns/**`; `app/lib/config/magicitem/**`, `pageMetaFields.ts`, `pagesConfig.ts`, `queryFields.ts`, `listConfig.ts`, `formFields.ts` for `magicitems.consumable` | `campaign`/`adventure` `PageMeta` (bespoke, per ADR-0011's amendment — not registered in `pagesConfig.ts`/`queryFields.ts`/`listConfig.ts`); `magicitems.consumable` fully wired as a standard field, same as `attuned`. The treasure catalogue (also standard) shipped as T4b. |
+| 5   | `app/lib/data/campaigns/**`                                                                                                                                                         | One function per file: fetch campaign, adventure with scenes, budget totals                                                                                                                                                                                                     |
+| 6   | `app/lib/data/campaigns/**`                                                                                                                                                         | Create/update/delete/reorder + the check-off toggles, each auth-guarded and Zod-validated                                                                                                                                                                                       |
+| 7   | `app/[locale]/dashboard/campaign/**`                                                                                                                                                | Campaign page, adventure page                                                                                                                                                                                                                                                   |
+| 8   | `app/ui/campaigns/**`                                                                                                                                                               | Ladder, scene list, scene editor, budget panel, check controls                                                                                                                                                                                                                  |
+| 9   | `messages/{it,en}.json`                                                                                                                                                             | Both catalogues, same key set                                                                                                                                                                                                                                                   |
+| 10  | `docs/PROJECT_STATE.md`, `docs/ROADMAP.md`, `docs/ARCHITECTURE.md`                                                                                                                  | Inventory, Phase 4, and the metadata-layer boundary the ADR sets                                                                                                                                                                                                                |
 
 **Risks**
 
@@ -507,33 +526,24 @@ reasoning is the useful part)_
 
 **Still open**
 
-**Do `campaign` and `adventure` get a standard filterable list page, or not?**
-Found 2026-08-19 while T2/T3/T4b were in flight — §7 says they "fit the
-metadata layer as it stands... driving form, list and validation exactly as
-the other six domains do," which means the usual `EntityList`/header-filter
-machinery. §5 describes something else: a single campaign (created once, via
-an empty-state form) and adventures shown as a position-ordered ladder, not a
-filterable admin list. The two sections were never reconciled, and T4 is where
-this has to be answered — it decides whether `campaign`/`adventure` are
-registered in `queryFields.ts`/`listConfig.ts` at all, and, if they are,
-whether `getQuery.ts`'s hardcoded `name`-as-default-sort-field (`CLAUDE.md`'s
-language-conventions section already flags this exact line as a TD-19
-near-miss) needs a fix first — `treasure` was safe because it has a real
-`name` column; `adventure`/`campaign` use `title`. If the ladder/single-record
-reading of §5 is right, none of this applies and T4 is simpler than §7 implies.
-Resolve with the DM before starting T4, not by picking the reading that's less
-work.
+Nothing, as of 2026-08-19. The one open item — whether `campaign`/`adventure`
+get a standard filterable list page or the bespoke ladder — is resolved above
+and in [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md)'s
+2026-08-19 amendment: the ladder reading, confirmed by the DM. `getQuery.ts`'s
+hardcoded `name`-default-sort-field is consequently out of scope for this
+spec — `campaign`/`adventure` never reach `getQuery.ts` at all.
 
-§7's fork itself was the last _other_ item and
+§7's original fork was the prior open item and
 [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md)
-closed it on 2026-08-18.
+closed it on 2026-08-18 — incompletely, as it turned out; see the ADR's own
+amendment note.
 
 ## 10. Task breakdown
 
 - [x] **T1** — ADR-0011: ordered inline collections outside the metadata layer. **Done 2026-08-18.** _(no test; decision artefact, blocked T4/T8)_
 - [x] **T2** — Schema + migration: the six tables, `magicitems.consumable`, and its backfill from `type`. **Done 2026-08-18** ([PR #181](https://github.com/pastorello/nextjs-campaign-settings/pull/181)). _(test: migration applies to an empty database; relations null rather than cascade where §6 says so; the backfill sets scroll and potion consumable and nothing else)_
 - [x] **T3** — Definitions: the three closed vocabularies and their interfaces. **Done 2026-08-18** ([PR #180](https://github.com/pastorello/nextjs-campaign-settings/pull/180)). _(test: vocabulary membership validators)_
-- [ ] **T4** — Metadata for `campaign`, `adventure` and `magicitems.consumable`. _(test: each field declares `fieldType`, `controlType`, `validator`, `getDatum`, as the existing domain metadata tests assert)_
+- [x] **T4** — Metadata for `campaign`, `adventure` and `magicitems.consumable`. **Done 2026-08-19** ([PR #193](https://github.com/pastorello/nextjs-campaign-settings/pull/193)). `campaign`/`adventure` landed bespoke (ADR-0011 amendment), not registered in `pagesConfig.ts`; `magicitems.consumable` landed as a standard field, fully wired like `attuned`. _(test: each field declares `fieldType`, `controlType`, `validator`, `getDatum`, as the existing domain metadata tests assert)_
 - [x] **T4b** — The treasure catalogue as the seventh domain: metadata, list, form, filters. **Done 2026-08-18** ([PR #185](https://github.com/pastorello/nextjs-campaign-settings/pull/185)). _(test: the same suite shape the other six domains have — CRUD, validation, unauthenticated rejection)_
 - [ ] **T5** — Data layer: campaign, adventure-with-scenes, the budget totals and the silver/gold conversion. _(test: the three disjoint inventories against a fixture mixing magic, catalogue and unlinked loot; unset target is not zero; a gold-displayed amount round-trips)_
 - [ ] **T6** — Server actions: CRUD and reorder, auth-guarded and validated. _(test: unauthenticated rejection and invalid-input rejection for each)_

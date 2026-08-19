@@ -11,6 +11,7 @@ import {
   FlagIcon,
   MagnifyingGlassIcon,
   BanknotesIcon,
+  ClipboardDocumentListIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Link from "next/link";
@@ -22,6 +23,11 @@ const links = [
   // name but not which of the six catalogues holds it (SPEC-011 §5).
   { key: "search", href: "/dashboard/search", icon: MagnifyingGlassIcon },
   { key: "home", href: "/dashboard", icon: HomeIcon },
+  {
+    key: "campaign",
+    href: "/dashboard/campaign",
+    icon: ClipboardDocumentListIcon,
+  },
   {
     key: "deities",
     href: "/dashboard/deities",

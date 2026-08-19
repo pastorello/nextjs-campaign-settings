@@ -15,7 +15,8 @@
       "manage": "Manage {section}",
       "signOut": "Sign Out",
       "language": "Language",
-      "treasure": "Treasure"
+      "treasure": "Treasure",
+      "campaign": "Campaign"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -809,6 +810,89 @@
       "groups": {
         "places": "Places"
       }
+    }
+  },
+  "campaign": {
+    "page": {
+      "title": "Campaign"
+    },
+    "emptyState": {
+      "description": "You don't have a campaign yet. Create one to start building your adventure ladder."
+    },
+    "form": {
+      "createButton": "Create campaign",
+      "editButton": "Save changes"
+    },
+    "fields": {
+      "title": {
+        "label": "Title"
+      },
+      "synopsis": {
+        "label": "Synopsis"
+      },
+      "partySize": {
+        "label": "Party size"
+      }
+    }
+  },
+  "adventure": {
+    "fields": {
+      "position": {
+        "label": "Position"
+      },
+      "targetLevel": {
+        "label": "Target level"
+      },
+      "title": {
+        "label": "Title"
+      },
+      "synopsis": {
+        "label": "Synopsis"
+      },
+      "timeline": {
+        "label": "Planned timeline"
+      },
+      "status": {
+        "label": "Status"
+      },
+      "xpTarget": {
+        "label": "XP target"
+      },
+      "currencyTarget": {
+        "label": "Currency target"
+      },
+      "currencyUnit": {
+        "label": "Currency unit"
+      },
+      "permanentItemTarget": {
+        "label": "Permanent item target"
+      },
+      "consumableTarget": {
+        "label": "Consumable target"
+      }
+    },
+    "statuses": {
+      "planned": "Planned",
+      "active": "Active",
+      "completed": "Completed"
+    },
+    "currencyUnits": {
+      "silver": "Silver",
+      "gold": "Gold"
+    },
+    "form": {
+      "createButton": "Add adventure"
+    },
+    "ladder": {
+      "title": "Adventures",
+      "addButton": "Add adventure",
+      "emptyMessage": "No adventures yet. Add one to start the ladder.",
+      "columns": {
+        "progress": "Progress",
+        "progressReadout": "{awarded}/{total} scenes"
+      },
+      "moveUp": "Move \"{title}\" up",
+      "moveDown": "Move \"{title}\" down"
     }
   }
 }

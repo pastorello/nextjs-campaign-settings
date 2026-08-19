@@ -20,6 +20,18 @@ vi.mock("next-intl", () => ({
 const refresh = vi.fn();
 vi.mock("@/i18n/navigation", () => ({
   useRouter: () => ({ refresh }),
+  Link: ({
+    href,
+    children,
+    ...rest
+  }: {
+    href: string;
+    children: React.ReactNode;
+  }) => (
+    <a href={href} {...rest}>
+      {children}
+    </a>
+  ),
 }));
 
 const updateAdventure = vi.fn<(...args: unknown[]) => unknown>();

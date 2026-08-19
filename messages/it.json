@@ -836,6 +836,10 @@
     }
   },
   "adventure": {
+    "page": {
+      "title": "Avventura"
+    },
+    "backToCampaign": "Torna alla campagna",
     "fields": {
       "position": {
         "label": "Posizione"
@@ -881,7 +885,8 @@
       "gold": "Oro"
     },
     "form": {
-      "createButton": "Aggiungi avventura"
+      "createButton": "Aggiungi avventura",
+      "editButton": "Salva modifiche"
     },
     "ladder": {
       "title": "Avventure",
@@ -893,6 +898,128 @@
       },
       "moveUp": "Sposta \"{title}\" in alto",
       "moveDown": "Sposta \"{title}\" in basso"
+    }
+  },
+  "scene": {
+    "fields": {
+      "position": {
+        "label": "Posizione"
+      },
+      "kind": {
+        "label": "Tipo"
+      },
+      "title": {
+        "label": "Titolo"
+      },
+      "description": {
+        "label": "Descrizione"
+      },
+      "xpAward": {
+        "label": "PE assegnati"
+      },
+      "grantsHeroPoint": {
+        "label": "Assegna punto eroe"
+      },
+      "zoneId": {
+        "label": "Luogo",
+        "noneOption": "Nessun luogo"
+      }
+    },
+    "kinds": {
+      "fight": "Scontro",
+      "explore": "Esplorazione",
+      "clue": "Indizio",
+      "goal": "Obiettivo",
+      "dungeon": "Dungeon",
+      "break": "Pausa"
+    },
+    "place": {
+      "unassigned": "Luogo non assegnato",
+      "viewMap": "Vedi sulla mappa"
+    },
+    "list": {
+      "title": "Scene",
+      "addButton": "Aggiungi scena",
+      "emptyMessage": "Nessuna scena ancora. Aggiungine una per iniziare l'avventura.",
+      "moveUp": "Sposta \"{title}\" in alto",
+      "moveDown": "Sposta \"{title}\" in basso"
+    },
+    "form": {
+      "createButton": "Aggiungi scena",
+      "editButton": "Salva modifiche"
+    }
+  },
+  "sceneCreature": {
+    "fields": {
+      "position": {
+        "label": "Posizione"
+      },
+      "name": {
+        "label": "Nome"
+      },
+      "level": {
+        "label": "Livello"
+      },
+      "xpEach": {
+        "label": "PE ciascuno"
+      },
+      "quantity": {
+        "label": "Quantità"
+      },
+      "note": {
+        "label": "Nota"
+      },
+      "npcId": {
+        "label": "PNG collegato",
+        "noneOption": "Non collegato"
+      }
+    },
+    "list": {
+      "title": "Creature",
+      "addButton": "Aggiungi creatura",
+      "emptyMessage": "Nessuna creatura ancora.",
+      "moveUp": "Sposta \"{name}\" in alto",
+      "moveDown": "Sposta \"{name}\" in basso",
+      "xpTotal": "PE totali"
+    },
+    "form": {
+      "createButton": "Aggiungi creatura",
+      "editButton": "Salva modifiche"
+    }
+  },
+  "loot": {
+    "fields": {
+      "position": {
+        "label": "Posizione"
+      },
+      "description": {
+        "label": "Descrizione"
+      },
+      "quantity": {
+        "label": "Quantità"
+      },
+      "value": {
+        "label": "Valore"
+      },
+      "magicItemId": {
+        "label": "Oggetto magico",
+        "noneOption": "Non collegato"
+      },
+      "treasureId": {
+        "label": "Tesoro del catalogo",
+        "noneOption": "Non collegato"
+      }
+    },
+    "list": {
+      "title": "Bottino",
+      "addButton": "Aggiungi bottino",
+      "emptyMessage": "Nessun bottino ancora.",
+      "moveUp": "Sposta \"{description}\" in alto",
+      "moveDown": "Sposta \"{description}\" in basso"
+    },
+    "form": {
+      "createButton": "Aggiungi bottino",
+      "editButton": "Salva modifiche"
     }
   }
 }

@@ -16,6 +16,15 @@ function nullableAmountValidator() {
 }
 
 /**
+ * `note` maps to a nullable column and `SceneCreature`'s domain interface
+ * types it `string | null`, not optional — same gap and same fix as
+ * `sceneMeta.description`'s own comment explains.
+ */
+function nullableToOptional<T extends z.ZodTypeAny>(schema: T) {
+  return z.preprocess((raw) => (raw === null ? undefined : raw), schema);
+}
+
+/**
  * A scene creature row's own scalar fields (SPEC-013 §5/§6) — outside the
  * metadata layer (ADR-0011), declared here so the bespoke scene editor (T8)
  * consumes each field's validator and label key rather than restating them.
@@ -73,7 +82,7 @@ const sceneCreatureMeta = {
     defaultValue: "",
     fieldType: FieldType.string,
     controlType: ControlType.Textarea,
-    validator: z.string().optional(),
+    validator: nullableToOptional(z.string().optional()),
   },
   [SceneCreatureMetaField.npcId]: {
     metaField: "npcId",

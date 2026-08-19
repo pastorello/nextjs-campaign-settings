@@ -602,6 +602,14 @@
       "tourism": "Turismo",
       "emergency": "Emergenza",
       "utilities": "Utenze"
+    },
+    "errorBoundary": {
+      "title": "Errore della mappa",
+      "defaultMessage": "Si è verificato un errore imprevisto durante il caricamento della mappa.",
+      "tryAgain": "Riprova",
+      "goHome": "Vai alla home",
+      "technicalDetails": "Dettagli tecnici",
+      "noStackTrace": "Nessuno stack trace disponibile"
     }
   },
   "world": {

@@ -34,6 +34,10 @@ import {
   findContainingSibling,
   type Footprint,
 } from "@/app/modules/maps/lib/utils/footprint";
+import {
+  computeImageBounds,
+  computeMinZoom,
+} from "@/app/modules/maps/lib/utils/placeMapView";
 
 /**
  * WorldMap - the map view backing `/dashboard/geography`.
@@ -165,6 +169,7 @@ function WorldMap({
     isOpen: isContextMenuOpen,
     position: contextMenuPosition,
     close: closeContextMenu,
+    runWithoutClosing,
   } = useMapContextMenu();
 
   // User markers hook — ephemeral, table-talk scratch pins (TD-86): no
@@ -254,6 +259,15 @@ function WorldMap({
 
   const map = useLeafletMap();
   const [currentImage, setCurrentImage] = useState<L.ImageOverlay | null>(null);
+  // The bounds actually framing the map right now — starts as the
+  // stored/default `bounds` prop and is corrected once the loaded image
+  // reports its real pixel dimensions (TD-81/TD-87). Kept in state, not
+  // derived inline, because both `useDrawArea` instances below need the
+  // corrected value too: clamping a drawn rectangle to the old default
+  // square while the visible image is a different aspect ratio would let
+  // the DM draw outside what the map actually shows.
+  const [effectiveBounds, setEffectiveBounds] =
+    useState<L.LatLngBoundsExpression>(bounds);
 
   // Memoized callbacks to prevent unnecessary re-renders
   const handleMeasurementClose = useCallback(() => {
@@ -437,7 +451,7 @@ function WorldMap({
   // or by `handleDrawAreaCancelled`.
   useDrawArea({
     enabled: isDrawingArea,
-    bounds,
+    bounds: effectiveBounds,
     onComplete: handleAreaDrawn,
     onCancel: handleDrawAreaCancelled,
   });
@@ -451,7 +465,7 @@ function WorldMap({
   // other), so only one is ever actually enabled.
   useDrawArea({
     enabled: editingArea !== null,
-    bounds,
+    bounds: effectiveBounds,
     onComplete: (footprint) => void handleAreaEditDrawn(footprint),
     onCancel: handleAreaEditCancelled,
   });
@@ -607,17 +621,104 @@ function WorldMap({
           setCurrentImage(null);
         }
 
-        const image = L.imageOverlay(mapUrl, bounds);
+        // Framed with the stored/default bounds and hidden (opacity 0)
+        // until the image itself reports its real pixel dimensions
+        // (TD-81) — the stored `mapBounds` is a hardcoded square today
+        // (nothing writes it yet, see the module doc comment in
+        // `placeMapView.ts`), so painting it before correction would
+        // stretch a non-square image on one axis for however long the
+        // fetch takes.
+        const image = L.imageOverlay(mapUrl, bounds, { opacity: 0 });
 
         if (map) {
           image.addTo(map);
-          map.setMinZoom(0);
-          map.setZoom(0);
-          map.setMaxZoom(10);
-          map.setMaxBounds(bounds);
-          map.fitBounds(bounds);
-          map.setView(initialView, initialZoom);
           setCurrentImage(image);
+          setEffectiveBounds(bounds);
+
+          // Interim framing before the image's own dimensions are known —
+          // the same stored/default view this component has always opened
+          // with. Corrected below once the image reports its real size.
+          //
+          // TD-87: the floor must be measured, not pinned to a constant —
+          // `getBoundsZoom` reports the zoom at which the image fills the
+          // container, but it clamps its own answer to whatever
+          // minZoom/maxZoom the map *currently* has (`LeafletMap`'s
+          // tile-map default of 3 the very first time this effect runs, or
+          // a previous render's own computed floor on any later one), so
+          // the floor is loosened first or the "fit" would just echo the
+          // old floor back unchanged.
+          //
+          // `setView` fires Leaflet's `movestart` — wrapped in
+          // `runWithoutClosing` so it can never be mistaken for the user
+          // dragging/scrolling the map and close a context menu that
+          // happens to be open (unlikely for this interim call, which runs
+          // at mount, but the corrective re-fit below is exactly this
+          // situation and the two are kept consistent).
+          runWithoutClosing(() => {
+            map.setMinZoom(-Infinity);
+            const minZoom = computeMinZoom(
+              map.getBoundsZoom(bounds),
+              initialZoom
+            );
+            map.setMinZoom(minZoom);
+            map.setMaxZoom(10);
+            map.setMaxBounds(bounds);
+            map.setView(initialView, initialZoom);
+          });
+
+          image.once("load", () => {
+            if (cancelled) return;
+
+            const element = image.getElement();
+            const naturalWidth = element?.naturalWidth;
+            const naturalHeight = element?.naturalHeight;
+            // A broken/undecodable image has no natural size to frame
+            // against — fall back to the stored/default bounds rather than
+            // computing nonsense from zeros.
+            const fittedBounds =
+              naturalWidth && naturalHeight
+                ? computeImageBounds(naturalWidth, naturalHeight)
+                : bounds;
+
+            // `ImageOverlay.setBounds` requires an actual `L.LatLngBounds`
+            // instance, unlike the constructor and `Map.fitBounds`/
+            // `setMaxBounds`, which accept the plain tuple form directly —
+            // `fittedBounds` is always that plain 2-corner tuple in
+            // practice (from `computeImageBounds` or the stored/default
+            // `bounds` prop, never an existing `LatLngBounds` instance).
+            const [southWest, northEast] = fittedBounds as [
+              L.LatLngTuple,
+              L.LatLngTuple,
+            ];
+            image.setBounds(L.latLngBounds(southWest, northEast));
+            image.setOpacity(1);
+            setEffectiveBounds(fittedBounds);
+
+            // TD-87, same reasoning as the interim framing above: the
+            // floor is re-measured against the corrected bounds (fixing
+            // bounds without re-fitting the floor to match would leave the
+            // floor stale, still measured against the stored/default
+            // square) — loosened first so `getBoundsZoom` reports the real
+            // fit rather than the floor just set above. `fitBounds` below
+            // is what the map is about to open at, so it doubles as its
+            // own `openZoom`.
+            //
+            // This whole re-fit is wrapped in `runWithoutClosing`: it fires
+            // whenever the browser finishes loading the image, which is
+            // asynchronous and can land well after mount — including while
+            // a DM has the right-click context menu open. `fitBounds` fires
+            // Leaflet's `movestart` exactly as a user drag/scroll would,
+            // and unwrapped that closed the menu (and detached its
+            // "Aggiungi luogo" button) mid-click in CI, a real regression
+            // this fixes rather than a flaky test.
+            runWithoutClosing(() => {
+              map.setMinZoom(-Infinity);
+              const fitZoom = map.getBoundsZoom(fittedBounds);
+              map.setMinZoom(computeMinZoom(fitZoom, fitZoom));
+              map.setMaxBounds(fittedBounds);
+              map.fitBounds(fittedBounds);
+            });
+          });
         }
       })
       .catch((error: unknown) => {
@@ -635,7 +736,17 @@ function WorldMap({
   }, [map, mapUrl]);
 
   return (
-    <div className="relative h-screen w-full overflow-hidden">
+    // `h-full`, not `h-screen` (TD-84) — this fills whatever height
+    // `GeographyExplorer`'s `flex-1 min-h-0` slot actually has, rather than
+    // declaring its own full-viewport height inside an already-offset,
+    // padded column. A viewport-sized box there pushed every
+    // `absolute bottom-*`/`top-*` control anchored to it (the zoom/reset/
+    // fullscreen stack, the tile switcher, the "up" button, the POI
+    // panel's lower half) below the fold. `toggleFullscreen`
+    // (`useMapControls.ts`) calls `document.documentElement.requestFullscreen()`,
+    // not this element, so it does not depend on this box being
+    // viewport-sized either.
+    <div className="relative h-full w-full overflow-hidden">
       {/* Map */}
       <LeafletMap
         className="w-full h-full"

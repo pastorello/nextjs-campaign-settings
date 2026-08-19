@@ -602,6 +602,14 @@
       "tourism": "Tourism",
       "emergency": "Emergency",
       "utilities": "Utilities"
+    },
+    "errorBoundary": {
+      "title": "Map Error",
+      "defaultMessage": "An unexpected error occurred while loading the map.",
+      "tryAgain": "Try Again",
+      "goHome": "Go Home",
+      "technicalDetails": "Technical Details",
+      "noStackTrace": "No stack trace available"
     }
   },
   "world": {

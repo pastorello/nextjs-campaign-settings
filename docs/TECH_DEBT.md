@@ -109,11 +109,11 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-85 | The POI panel's list mode has no entry point, so positioning places and editing POIs are unreachable         | 🟠 High              | M      | 4     |
 | TD-86 | "Add marker" drops an ephemeral pin that cannot be removed and does not survive a reload                     | 🟡 Medium            | S      | 4     |
 | TD-87 | Zoom out does nothing on a child map — every map opens already at its minimum zoom                           | 🟠 High              | S      | 4     |
-| TD-88 | The sidebar cannot scroll, so the last nav items (logout, locale) are unreachable                            | 🟠 High              | S      | 4     |
-| TD-89 | `NpcCard`'s chevron never rotates — the `group-*` variant has no marked ancestor                             | 🟢 Low               | S      | 4     |
-| TD-90 | `DeityCard`/`MagicItemCard` rotate a non-square wrapper, so the chevron shifts instead of turning in place   | 🟢 Low               | S      | 4     |
-| TD-91 | The dashboard counts four domains of six — places and factions were never added                              | 🟡 Medium            | S      | 4     |
-| TD-92 | The dashboard's cards are not clickable, so the counts lead nowhere                                          | 🟢 Low               | S      | 4     |
+| TD-88 | ✅ Sidebar scroll container added; sign-out and locale switcher reachable                                    | ~~🟠 High~~ done     | S      | 4     |
+| TD-89 | ✅ `group` ancestor added; chevron rotates on all five disclosure cards                                      | ~~🟢 Low~~ done      | S      | 4     |
+| TD-90 | ✅ Icon rotates in a square box now, not the wrapper — incl. two unreported instances found                  | ~~🟢 Low~~ done      | S      | 4     |
+| TD-91 | ✅ Places and factions counted; every place in the tree, per the DM                                          | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-92 | ✅ Every card links to its domain list via the locale-aware `Link`                                           | ~~🟢 Low~~ done      | S      | 4     |
 | TD-93 | An already-positioned place or attached entity can be positioned again elsewhere                             | 🟠 High              | M      | 4     |
 | TD-94 | Measurement reports haversine metres on a pixel-space map — superseded by SPEC-015, do not patch alone       | 🟠 High              | M      | 4     |
 | TD-95 | The place panel is half-untranslated, with English strings hardcoded in the component                        | 🟡 Medium            | S      | 4     |
@@ -499,94 +499,6 @@ gives exactly the zoom at which the image fits — and open at that, rather than
 pinning `minZoom` to 0 and the view to a constant -2. Schedule with TD-81: both
 are "the map's framing is a constant instead of a property of the image", and
 fixing bounds without fixing zoom leaves the second half visibly broken.
-
-### TD-88 — The sidebar cannot scroll, so the last nav items (logout, locale) are unreachable
-
-**Severity:** 🟠 High · **Effort:** S · **Found:** 2026-08-18, reported by the DM
-
-The dashboard sidebar is `flex h-full flex-col py-4 px-2` (`app/ui/dashboard/sidenav.tsx:13`)
-inside a layout column that is `h-screen ... md:overflow-hidden`
-(`app/[locale]/dashboard/layout.tsx:5`). Nothing in that chain scrolls. While the
-nav was short this was invisible; now that the sections have grown past the
-viewport, the items at the bottom — **sign-out and the locale switcher** — are
-clipped away with no way to reach them.
-
-**The fix, in shape:** let the nav's own column scroll (`md:overflow-y-auto` on
-the sidebar container), keeping the layout's `md:overflow-hidden` so the page
-itself still does not. Check that the sign-out block stays pinned to the bottom
-when the list is short — `mt-auto`/`grow` spacing there is doing that job today
-and a naive overflow change can break it.
-
-**Not the same bug as TD-84**, though they rhyme: this one is a missing scroll
-container, that one is a wrong height. Fixing either does not fix the other.
-
-### TD-89 — `NpcCard`'s chevron never rotates — the `group-*` variant has no marked ancestor
-
-**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-08-18, reported by the DM
-
-`NpcCard`'s disclosure arrow stays pointing down whether the card is open or
-closed. The class is there — `group-data-open:rotate-180` (`NpcCard.tsx:97`) —
-but it cannot ever match: a `group-*` variant needs an ancestor carrying the
-`group` class, and `NpcCard`'s `DisclosureButton` does not have one.
-`DeityCard.tsx:47` and `MagicItemCard.tsx:22` both do (`className="... group"`),
-which is precisely why their arrows move and this one does not. The class is
-also on the button itself here rather than on the icon, where the other two put
-it.
-
-**The fix, in shape:** mark the ancestor `group` and move the rotation onto the
-chevron, matching the other two cards — then fix all three the same way per
-TD-90, since the shape those two use is itself wrong.
-
-### TD-90 — `DeityCard`/`MagicItemCard` rotate a non-square wrapper, so the chevron shifts instead of turning in place
-
-**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-08-18, reported by the DM ("opening the card moves the arrow until it touches the border")
-
-Both cards wrap the chevron in `<div className="w-[40px] group-data-open:rotate-180">`
-(`DeityCard.tsx:113`, `MagicItemCard.tsx:50`) and rotate **the wrapper**. The
-wrapper is 40px wide but takes its height from the icon and does not centre it,
-so a 180° turn about the box's centre lands the glyph somewhere else — the DM
-sees it slide toward the edge rather than pivot.
-
-**The fix, in shape:** rotate the icon, not the box, and give the box a square,
-centred geometry (`flex h-10 w-10 items-center justify-center`) so the pivot and
-the glyph share a centre. Add `transition-transform` while there, so it reads as
-a turn rather than a jump.
-
-**Do TD-89 and TD-90 as one change across all three cards** — same file shape,
-same fix, and leaving them inconsistent is how the divergence happened in the
-first place. `SpellCard` and `FactionCard` have the same disclosure pattern and
-should be checked in the same pass even though nothing has been reported about
-them.
-
-### TD-91 — The dashboard counts four domains of six — places and factions were never added
-
-**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-08-18, reported by the DM
-
-`fetchCardData` (`app/lib/data/fetchCardData.ts`) counts magic items, NPCs,
-spells and deities. Places and factions — both of which now exist as full
-domains (SPEC-004, SPEC-006) — are missing, so the dashboard silently
-under-reports what the campaign contains. Neither spec added the count when it
-shipped.
-
-**The fix, in shape:** two more `prisma.*.count()` calls in the same
-`Promise.all`, two more `Card`s in `CardWrapper` (`app/ui/dashboard/cards.tsx`),
-and the two message keys in **both** `messages/it.json` and `messages/en.json`
-(a key in one and not the other fails CI's key-set check). Check what "places"
-should count — every place in the tree, or only positioned ones — before
-writing the query; TD-79 is about exactly that ambiguity elsewhere.
-
-### TD-92 — The dashboard's cards are not clickable, so the counts lead nowhere
-
-**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-08-18, requested by the DM
-
-`Card` (`app/ui/dashboard/cards.tsx:37`) renders a static tile. Seeing "142
-spells" and wanting to go to the spells list is the obvious next move, and there
-is nothing to click.
-
-**The fix, in shape:** wrap each card in the locale-aware `Link` from
-`@/i18n/navigation` (not `next/link` — the locale segment matters, TD-21) and
-point it at that domain's list page. Do this after TD-91, so the two new cards
-get their links in the same pass rather than being added and then linked.
 
 ### TD-93 — An already-positioned place or attached entity can be positioned again elsewhere
 

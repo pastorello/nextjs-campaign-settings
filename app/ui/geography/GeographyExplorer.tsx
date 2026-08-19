@@ -90,14 +90,21 @@ export default function GeographyExplorer({
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="mb-4 flex flex-none items-center gap-4">
-        {stack.length > 1 && (
-          <BaseButton icon={IconType.chevronUp} onClick={handleAscend}>
-            {t("up")}
-          </BaseButton>
-        )}
         <PageTitle>{current.title}</PageTitle>
       </div>
       <div className="relative w-full flex-1 min-h-0">
+        {/* Anchored to the map itself, not the header row above it (TD-83)
+            — the header can still scroll out of view inside the dashboard's
+            own scroll container, and "up" is the only way out of a map
+            once descended, so it can't live somewhere that scrolls away
+            from the thing it acts on. */}
+        {stack.length > 1 && (
+          <div className="absolute top-4 left-4 z-[1000]">
+            <BaseButton icon={IconType.chevronUp} onClick={handleAscend}>
+              {t("up")}
+            </BaseButton>
+          </div>
+        )}
         <MapErrorBoundary>
           <MapProvider>
             <WorldMap

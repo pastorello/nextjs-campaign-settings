@@ -147,6 +147,30 @@ describe("GeographyExplorer — layout never scrolls the header out of view (usa
   });
 });
 
+describe("GeographyExplorer — the up button stays reachable while descending (TD-83)", () => {
+  it("anchors the up button to the map overlay, not inside the header row that can scroll away", () => {
+    const { container } = render(
+      <GeographyExplorer root={root} unpositionedCount={7} />
+    );
+
+    descend(kang);
+
+    const upButton = screen.getByText("up");
+    // The old bug: "up" lived in the header row (`div.mb-4`), which scrolls
+    // out of view along with the rest of the dashboard's page chrome once
+    // the map pushes the column taller than the viewport (TD-84). It must
+    // now live inside the map's own overlay container instead, the same
+    // one `MapControls`/`MapTileSwitcher` float in.
+    const header = screen.getByText("Kingdom of Kang").closest("div.mb-4");
+    const mapWrapper = container.querySelector(
+      ".relative.w-full.flex-1.min-h-0"
+    );
+
+    expect(header?.contains(upButton)).toBe(false);
+    expect(mapWrapper?.contains(upButton)).toBe(true);
+  });
+});
+
 describe("GeographyExplorer (SPEC-004 M7)", () => {
   it("renders the root's own map and title, no up button", () => {
     render(<GeographyExplorer root={root} unpositionedCount={7} />);

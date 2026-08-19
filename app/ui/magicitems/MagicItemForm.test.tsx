@@ -57,7 +57,14 @@ describe("MagicItemForm", () => {
   it("renders every declared field via the field-layout children function", () => {
     render(<MagicItemForm onCancel={vi.fn()} onSaveFinished={vi.fn()} />);
 
-    for (const field of ["name", "type", "rarity", "attuned", "description"]) {
+    for (const field of [
+      "name",
+      "type",
+      "rarity",
+      "attuned",
+      "consumable",
+      "description",
+    ]) {
       expect(screen.getByText(field)).toBeInTheDocument();
     }
   });

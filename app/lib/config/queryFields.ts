@@ -81,6 +81,7 @@ const queryFields: Record<PageType, MetaConfigKey[]> = {
     MagicItemMetaField.rarity,
     MagicItemMetaField.type,
     MagicItemMetaField.attuned,
+    MagicItemMetaField.consumable,
   ],
 
   // A faction's name is its only searchable content — description is prose,

@@ -24,6 +24,7 @@ const validFormData: MagicItem = {
   type: firstOptionValue(itemTypes),
   rarity: firstOptionValue(rarity),
   attuned: false,
+  consumable: false,
 };
 
 describe("updateMagicItem (TD-80)", () => {

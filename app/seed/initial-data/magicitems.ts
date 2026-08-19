@@ -6,6 +6,7 @@ const magicitems = [
     rarity: 3,
     type: 0,
     attuned: true,
+    consumable: false,
   },
   {
     name: "Bacchetta dei Segreti",
@@ -14,6 +15,7 @@ const magicitems = [
     rarity: 1,
     type: 3,
     attuned: false,
+    consumable: false,
   },
   {
     name: "Cintura della Forza dei Giganti",
@@ -22,6 +24,7 @@ const magicitems = [
     rarity: 6,
     type: 5,
     attuned: true,
+    consumable: false,
   },
   {
     name: "Difensiva",
@@ -30,6 +33,7 @@ const magicitems = [
     rarity: 4,
     type: 1,
     attuned: true,
+    consumable: false,
   },
 ];
 

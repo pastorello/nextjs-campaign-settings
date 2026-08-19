@@ -51,6 +51,7 @@ const pagesConfig: Record<PageType, MetaConfigKey[]> = {
     MagicItemMetaField.rarity,
     MagicItemMetaField.type,
     MagicItemMetaField.attuned,
+    MagicItemMetaField.consumable,
   ],
   [PageType.Npc]: [
     "id",

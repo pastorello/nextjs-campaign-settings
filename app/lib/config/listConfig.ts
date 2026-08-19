@@ -127,6 +127,11 @@ const listConfig: Record<PageType, ListConfig> = {
         labelKey: "magicItems.fields.attuned.shortLabel",
         sortable: false,
       },
+      {
+        fieldKey: MagicItemMetaField.consumable,
+        labelKey: "magicItems.fields.consumable.shortLabel",
+        sortable: false,
+      },
     ],
     emptyMessageKey: "magicItems.page.emptyMessage",
     editModalTitleKey: "magicItems.form.editTitle",

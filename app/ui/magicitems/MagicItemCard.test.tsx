@@ -15,6 +15,7 @@ const item: MagicItem = {
   rarity: 1,
   type: 1,
   attuned: false,
+  consumable: false,
   description: "<p>A blade of pure light.</p>",
 };
 

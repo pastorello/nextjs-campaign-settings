@@ -59,6 +59,9 @@ export default function MagicItemForm({
               <div className="mb-2 flex w-full">
                 {field(MagicItemMetaField.attuned)}
               </div>
+              <div className="mb-2 flex w-full">
+                {field(MagicItemMetaField.consumable)}
+              </div>
             </div>
             <div className="mb-2 flex w-[60%] p-2">
               {field(MagicItemMetaField.description)}

@@ -4,6 +4,7 @@ enum MagicItemMetaField {
   rarity = "rarity",
   description = "description",
   attuned = "attuned",
+  consumable = "consumable",
 }
 
 export default MagicItemMetaField;

@@ -36,6 +36,17 @@ const magicItemsMeta = {
     controlType: ControlType.Bool,
     validator: z.boolean().optional(),
   },
+  // SPEC-013 §6/§7 — consumed on use (scroll, potion) vs. worn or wielded.
+  // Unlike `attuned`, the column is `NOT NULL DEFAULT false`, so the
+  // validator is not optional.
+  [MagicItemMetaField.consumable]: {
+    metaField: "consumable",
+    labelKey: "magicItems.fields.consumable.label",
+    defaultValue: false,
+    fieldType: FieldType.boolean,
+    controlType: ControlType.Bool,
+    validator: z.boolean(),
+  },
 } satisfies Record<string, PageMeta>;
 
 export default magicItemsMeta;

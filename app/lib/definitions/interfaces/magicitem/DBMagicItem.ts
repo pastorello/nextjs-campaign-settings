@@ -4,6 +4,7 @@ interface DBMagicItem {
   rarity: number;
   type: number;
   attuned: boolean;
+  consumable: boolean;
   description: string;
 }
 

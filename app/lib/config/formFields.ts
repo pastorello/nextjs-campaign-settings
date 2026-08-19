@@ -42,6 +42,7 @@ const formFields: Record<PageType, MetaConfigKey[]> = {
     MagicItemMetaField.rarity,
     MagicItemMetaField.type,
     MagicItemMetaField.attuned,
+    MagicItemMetaField.consumable,
   ],
 
   [PageType.Npc]: [

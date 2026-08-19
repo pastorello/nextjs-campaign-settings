@@ -4,6 +4,7 @@ interface MagicItem {
   rarity: number;
   type: number;
   attuned: boolean;
+  consumable: boolean;
   description: string;
 }
 

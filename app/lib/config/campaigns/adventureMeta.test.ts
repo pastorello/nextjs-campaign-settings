@@ -60,4 +60,23 @@ describe("adventureMeta (SPEC-013 T4)", () => {
       adventureMeta.currencyUnit.validator.safeParse("copper").success
     ).toBe(false);
   });
+
+  // T7 (`AdventureForm`) creates an adventure with only position, target
+  // level and title set (§5.2) and — because `Adventure`'s domain interface
+  // types every other field `string | null`, not optional — supplies these
+  // three as an explicit `null` rather than omitting them. `.optional()`
+  // alone only tolerates `undefined`; a real `createAdventure` call with a
+  // bare-minimum adventure failed validation in the browser before this.
+  it.each(["synopsis", "timeline"] as const)(
+    "accepts a null %s, the same as an unset optional string column",
+    (field) => {
+      expect(adventureMeta[field].validator.safeParse(null).success).toBe(true);
+    }
+  );
+
+  it("accepts a null currencyUnit, the same as an unset display choice", () => {
+    expect(adventureMeta.currencyUnit.validator.safeParse(null).success).toBe(
+      true
+    );
+  });
 });

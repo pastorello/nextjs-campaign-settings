@@ -15,7 +15,8 @@
       "manage": "Gestisci {section}",
       "signOut": "Esci",
       "language": "Lingua",
-      "treasure": "Tesori"
+      "treasure": "Tesori",
+      "campaign": "Campagna"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -809,6 +810,89 @@
       "groups": {
         "places": "Luoghi"
       }
+    }
+  },
+  "campaign": {
+    "page": {
+      "title": "Campagna"
+    },
+    "emptyState": {
+      "description": "Non hai ancora una campagna. Creane una per iniziare a costruire la ladder delle avventure."
+    },
+    "form": {
+      "createButton": "Crea campagna",
+      "editButton": "Salva modifiche"
+    },
+    "fields": {
+      "title": {
+        "label": "Titolo"
+      },
+      "synopsis": {
+        "label": "Sinossi"
+      },
+      "partySize": {
+        "label": "Numero di giocatori"
+      }
+    }
+  },
+  "adventure": {
+    "fields": {
+      "position": {
+        "label": "Posizione"
+      },
+      "targetLevel": {
+        "label": "Livello bersaglio"
+      },
+      "title": {
+        "label": "Titolo"
+      },
+      "synopsis": {
+        "label": "Sinossi"
+      },
+      "timeline": {
+        "label": "Cronologia prevista"
+      },
+      "status": {
+        "label": "Stato"
+      },
+      "xpTarget": {
+        "label": "Obiettivo PE"
+      },
+      "currencyTarget": {
+        "label": "Obiettivo valuta"
+      },
+      "currencyUnit": {
+        "label": "Unità valuta"
+      },
+      "permanentItemTarget": {
+        "label": "Obiettivo oggetti permanenti"
+      },
+      "consumableTarget": {
+        "label": "Obiettivo consumabili"
+      }
+    },
+    "statuses": {
+      "planned": "Pianificata",
+      "active": "Attiva",
+      "completed": "Completata"
+    },
+    "currencyUnits": {
+      "silver": "Argento",
+      "gold": "Oro"
+    },
+    "form": {
+      "createButton": "Aggiungi avventura"
+    },
+    "ladder": {
+      "title": "Avventure",
+      "addButton": "Aggiungi avventura",
+      "emptyMessage": "Nessuna avventura ancora. Aggiungine una per iniziare la ladder.",
+      "columns": {
+        "progress": "Progresso",
+        "progressReadout": "{awarded}/{total} scene"
+      },
+      "moveUp": "Sposta \"{title}\" in alto",
+      "moveDown": "Sposta \"{title}\" in basso"
     }
   }
 }

@@ -87,7 +87,7 @@ app/lib/config/pagesConfig.ts           Record<PageType, MetaConfigKey[]>
 
 Those four consumers are also the layer's limit. A `PageMeta` describes one scalar field of one flat record, and `fieldType: array` means an array of scalars — an incantesimo's classes — not an array of rows. No variant's value is a collection of records.
 
-So **ordered collections of rows, edited inline inside a parent's page, stay outside the metadata layer** and are rendered by dedicated components. SPEC-013's `scene`, `sceneCreature` and `loot` are the first of them, under `app/ui/campaigns/`. [ADR-0011](./adr/0011-inline-collections-outside-the-metadata-layer.md) carries the reasoning, the alternative it rejected (a fifth `PageMeta` variant that three of the four consumers above would have to special-case as inapplicable) and the condition that reopens the question.
+So **ordered collections of rows, edited inline inside a parent's page — and the single-record "root" pages that only ever create or show one thing, never list or filter many — stay outside the metadata layer** and are rendered by dedicated components. SPEC-013's `campaign`, `adventure`, `scene`, `sceneCreature` and `loot` are the domains that live there, under `app/ui/campaigns/`. [ADR-0011](./adr/0011-inline-collections-outside-the-metadata-layer.md) carries the reasoning, the alternative it rejected (a fifth `PageMeta` variant that three of the four consumers above would have to special-case as inapplicable) and the condition that reopens the question.
 
 The test to apply to something new, so the case is checked rather than the argument re-run:
 
@@ -97,7 +97,7 @@ The test to apply to something new, so the case is checked rather than the argum
 | Exists only inside a parent's page                    | no             | yes                  |
 | A Prisma `where` clause is built from it              | yes            | no                   |
 
-SPEC-013's `campaign`, `adventure` and `treasure` catalogue are flat domains and sit on the left; its `scene`, `sceneCreature` and `loot` sit on the right.
+SPEC-013's `treasure` catalogue is a flat domain and sits on the left. `campaign`, `adventure`, `scene`, `sceneCreature` and `loot` all sit on the right: a campaign is a single record created once from an empty state and shown as a position-ordered ladder, not a filterable admin list, and `adventure` follows it for the same reason (ADR-0011, amended 2026-08-19 — the ADR's first version put these two on the left, which contradicted SPEC-013 §5 from the day it was written). `app/ui/campaigns/CampaignForm.tsx`/`AdventureForm.tsx`/`AdventureLadder.tsx`/`CampaignHeader.tsx` (T7) are the dedicated components for the first two; the scene/creature/loot editor (T8) is still to come.
 
 **Shared either way:** the Zod `validator` and the label key of every scalar field. A bespoke editor consumes those declarations; it may not invent its own. Nothing in the compiler enforces that half — a label or a validator restated by hand inside a component is exactly the drift ADR-0011 says to watch for, and it is the signal to revisit the decision.
 

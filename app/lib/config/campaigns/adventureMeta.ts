@@ -28,6 +28,23 @@ function renderAmount(datum: number | null) {
 }
 
 /**
+ * `synopsis`, `timeline` and `currencyUnit` map to nullable columns and
+ * `Adventure`'s domain interface types them `string | null` accordingly —
+ * not optional, so a caller that leaves one unset (T7's `AdventureForm`,
+ * creating an adventure with only position/level/title per §5.2) supplies
+ * an explicit `null` rather than omitting the key. `.optional()` alone only
+ * tolerates `undefined`; this preprocesses `null` the same way before
+ * handing off, the same shape `nullableAmountValidator` above already uses.
+ * `PageMeta`'s `StringFieldMeta.validator` type is `ZodType<string |
+ * undefined>` by design (a string field is never null elsewhere in the
+ * metadata layer) — `z.preprocess` still satisfies it since its *output*
+ * type is unchanged, only what it accepts on the way in.
+ */
+function nullableToOptional<T extends z.ZodTypeAny>(schema: T) {
+  return z.preprocess((raw) => (raw === null ? undefined : raw), schema);
+}
+
+/**
  * The adventure's own scalar fields (SPEC-013 §5/§6). `campaignId` is
  * deliberately not declared here — it is set by the data layer from the
  * campaign page the adventure is created on (T6), the same way a scene's
@@ -66,7 +83,7 @@ const adventureMeta = {
     defaultValue: "",
     fieldType: FieldType.string,
     controlType: ControlType.Textarea,
-    validator: z.string().optional(),
+    validator: nullableToOptional(z.string().optional()),
   },
   [AdventureMetaField.timeline]: {
     metaField: "timeline",
@@ -74,7 +91,7 @@ const adventureMeta = {
     defaultValue: "",
     fieldType: FieldType.string,
     controlType: ControlType.Textarea,
-    validator: z.string().optional(),
+    validator: nullableToOptional(z.string().optional()),
   },
   [AdventureMetaField.status]: {
     metaField: "status",
@@ -114,7 +131,7 @@ const adventureMeta = {
     fieldType: FieldType.string,
     options: currencyUnits,
     controlType: ControlType.Select,
-    validator: z.enum(["silver", "gold"]).optional(),
+    validator: nullableToOptional(z.enum(["silver", "gold"]).optional()),
   },
   [AdventureMetaField.permanentItemTarget]: {
     metaField: "permanentItemTarget",

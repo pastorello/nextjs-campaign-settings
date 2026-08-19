@@ -105,6 +105,9 @@
       "deleteFailed": "Errore durante la cancellazione",
       "networkFailed": "Errore di rete"
     },
+    "checkOff": {
+      "failed": "Aggiornamento non riuscito"
+    },
     "formErrors": {
       "title": "Controlla i campi segnalati:"
     },
@@ -947,6 +950,9 @@
     "form": {
       "createButton": "Aggiungi scena",
       "editButton": "Salva modifiche"
+    },
+    "checkOff": {
+      "label": "Assegnato"
     }
   },
   "sceneCreature": {
@@ -985,6 +991,9 @@
     "form": {
       "createButton": "Aggiungi creatura",
       "editButton": "Salva modifiche"
+    },
+    "checkOff": {
+      "label": "Assegnato"
     }
   },
   "loot": {
@@ -1020,6 +1029,27 @@
     "form": {
       "createButton": "Aggiungi bottino",
       "editButton": "Salva modifiche"
+    },
+    "checkOff": {
+      "label": "Trovato"
     }
+  },
+  "budget": {
+    "title": "Budget dell'avventura",
+    "columns": {
+      "category": "Categoria",
+      "target": "Obiettivo",
+      "assigned": "Assegnato",
+      "remaining": "Da assegnare",
+      "found": "Trovato",
+      "missed": "Non trovato"
+    },
+    "categories": {
+      "xp": "Esperienza",
+      "currency": "Valuta",
+      "permanentItems": "Oggetti permanenti",
+      "consumables": "Consumabili"
+    },
+    "heroPoints": "Punti eroe guadagnati"
   }
 }

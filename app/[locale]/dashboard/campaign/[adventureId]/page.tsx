@@ -3,9 +3,11 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 
 import fetchAdventureWithScenes from "@/app/lib/data/campaigns/fetchAdventureWithScenes";
+import getBudgetTotals from "@/app/lib/data/campaigns/getBudgetTotals";
 import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
 import { CurrencyUnit } from "@/app/lib/utils/currency/convertCurrency";
 import AdventureHeader from "@/app/ui/campaigns/AdventureHeader";
+import BudgetPanel from "@/app/ui/campaigns/BudgetPanel";
 import SceneList from "@/app/ui/campaigns/SceneList";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -22,8 +24,10 @@ interface AdventurePageProps {
  * information plus its scenes, each with its own creatures and loot, all
  * in position order. Outside the metadata layer (ADR-0011) — bespoke
  * components under `app/ui/campaigns/`, same shape as the campaign page
- * (T7). The budget panel and the awarded/taken check-off controls are T9's,
- * not built here.
+ * (T7). The budget panel (`BudgetPanel`, T9) reads `getBudgetTotals` fresh
+ * on every render — `CheckOffControl`'s `router.refresh()` re-runs this
+ * server component, which is what makes the panel update without a full
+ * page reload.
  */
 export default async function AdventurePage({ params }: AdventurePageProps) {
   const { adventureId } = await params;
@@ -34,12 +38,13 @@ export default async function AdventurePage({ params }: AdventurePageProps) {
   const adventure = await fetchAdventureWithScenes(id);
   if (!adventure) notFound();
 
-  const [zoneOptions, npcOptions, magicItemOptions, treasureOptions] =
+  const [zoneOptions, npcOptions, magicItemOptions, treasureOptions, totals] =
     await Promise.all([
       fetchFieldOptions("zone"),
       fetchFieldOptions("npc"),
       fetchFieldOptions("magicitems"),
       fetchFieldOptions("treasure"),
+      getBudgetTotals(id),
     ]);
 
   const currencyUnit = (adventure.currencyUnit ?? "silver") as CurrencyUnit;
@@ -47,6 +52,14 @@ export default async function AdventurePage({ params }: AdventurePageProps) {
   return (
     <div>
       <AdventureHeader adventure={adventure} />
+      <BudgetPanel
+        totals={totals}
+        currencyUnit={currencyUnit}
+        xpTarget={adventure.xpTarget}
+        currencyTarget={adventure.currencyTarget}
+        permanentItemTarget={adventure.permanentItemTarget}
+        consumableTarget={adventure.consumableTarget}
+      />
       <SceneList
         adventureId={adventure.id}
         scenes={adventure.scenes}

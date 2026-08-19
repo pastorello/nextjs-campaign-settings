@@ -30,6 +30,11 @@ vi.mock("@/app/lib/data/campaigns/deleteLootById", () => ({
   default: (...args: unknown[]) => deleteLootById(...args),
 }));
 
+const setLootTaken = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/campaigns/setLootTaken", () => ({
+  default: (...args: unknown[]) => setLootTaken(...args),
+}));
+
 const notifySuccess = vi.fn<(...args: unknown[]) => void>();
 const notifyError = vi.fn<(...args: unknown[]) => void>();
 vi.mock("@/app/lib/notifications/notify", () => ({

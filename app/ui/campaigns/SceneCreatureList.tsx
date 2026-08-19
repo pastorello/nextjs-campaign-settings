@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import reorderSceneCreatures from "@/app/lib/data/campaigns/reorderSceneCreatures";
 import deleteSceneCreatureById from "@/app/lib/data/campaigns/deleteSceneCreatureById";
+import setSceneCreatureAwarded from "@/app/lib/data/campaigns/setSceneCreatureAwarded";
 import SceneCreature from "@/app/lib/definitions/interfaces/campaign/SceneCreature";
 import { ResolvedOption } from "@/app/lib/definitions/types/SelectOption";
 import { notifyError, notifySuccess } from "@/app/lib/notifications/notify";
@@ -17,6 +18,7 @@ import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import IconType from "@/app/ui/buttons/BaseButton/IconType";
 
 import SceneCreatureForm from "./SceneCreatureForm";
+import CheckOffControl from "./CheckOffControl";
 
 interface SceneCreatureListProps {
   sceneId: number;
@@ -141,6 +143,16 @@ export default function SceneCreatureList({
                       ? "—"
                       : creature.xpEach * creature.quantity}
                   </span>
+                  <div className="mt-1 max-w-[120px]">
+                    <CheckOffControl
+                      label={t("sceneCreature.checkOff.label")}
+                      checked={creature.awarded}
+                      onToggle={(next) =>
+                        setSceneCreatureAwarded(creature.id, next)
+                      }
+                      errorMessage={t("common.checkOff.failed")}
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center gap-1">
                   <BaseButton

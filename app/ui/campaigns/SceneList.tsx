@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import reorderScenes from "@/app/lib/data/campaigns/reorderScenes";
 import deleteSceneById from "@/app/lib/data/campaigns/deleteSceneById";
+import setSceneAwarded from "@/app/lib/data/campaigns/setSceneAwarded";
 import { SceneWithDetails } from "@/app/lib/data/campaigns/fetchAdventureWithScenes";
 import { CurrencyUnit } from "@/app/lib/utils/currency/convertCurrency";
 import { ResolvedOption } from "@/app/lib/definitions/types/SelectOption";
@@ -20,6 +21,7 @@ import IconType from "@/app/ui/buttons/BaseButton/IconType";
 import SceneForm from "./SceneForm";
 import SceneCreatureList from "./SceneCreatureList";
 import LootList from "./LootList";
+import CheckOffControl from "./CheckOffControl";
 
 interface SceneListProps {
   adventureId: number;
@@ -175,6 +177,14 @@ export default function SceneList({
                           </span>
                         )}
                       </p>
+                      <div className="mt-2 max-w-[140px]">
+                        <CheckOffControl
+                          label={t("scene.checkOff.label")}
+                          checked={scene.awarded}
+                          onToggle={(next) => setSceneAwarded(scene.id, next)}
+                          errorMessage={t("common.checkOff.failed")}
+                        />
+                      </div>
                     </div>
                     <div className="flex items-center gap-1">
                       <BaseButton

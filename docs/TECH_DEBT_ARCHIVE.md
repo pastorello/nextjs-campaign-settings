@@ -2458,3 +2458,289 @@ is nothing to click.
 `@/i18n/navigation` (not `next/link` — the locale segment matters, TD-21) and
 point it at that domain's list page. Do this after TD-91, so the two new cards
 get their links in the same pass rather than being added and then linked.
+
+---
+
+### TD-81 ✅ Every map is framed with the same square default bounds, so any non-square image is stretched — **DONE (2026-08-19)**
+
+**Outcome:** [PR #189](https://github.com/pastorello/nextjs-campaign-settings/pull/189). The open question was answered by the DM: keep the coordinate space in image pixels, preserve the aspect ratio, letterbox rather than crop, and make sure a full zoom-out is still reachable. The image-loading effect now frames the map with the stored/default bounds at `opacity: 0`, then corrects to the loaded image's real `naturalWidth`/`naturalHeight` via `computeImageBounds` once it reports them, fading in only after the correction lands — so a DM never sees the wrong-aspect-ratio frame, even briefly.
+
+**A second, real bug was found and fixed in the same PR, not left for later:** the async image-load callback fires `map.fitBounds`/`setView`, and Leaflet's `movestart` event fires identically for that and a real user drag — `useMapContextMenu`'s close-on-movestart handler was closing an open right-click menu out from under a DM who had just opened it, whenever the image happened to finish loading mid-interaction. Fixed with a `runWithoutClosing()` wrapper scoped to WorldMap's own programmatic camera moves; a genuine drag still closes the menu. This was traced from a CI E2E failure via the actual Playwright trace artifact, not guessed at — see TD-87's entry below for the full mechanism, since both fixes shipped together.
+
+The original description follows.
+
+---
+
+### TD-81 (original) 🟠 Every map is framed with the same square default bounds, so any non-square image is stretched
+
+**Severity:** 🟠 High · **Effort:** M · **Found:** 2026-08-17, reported by the DM while navigating root → material plane → Kang
+
+Descending from the material plane into Kang's realm renders that map visibly
+deformed. Nothing about Kang is special: **no map in the tree is framed to its
+own image.** `DEFAULT_MAP_BOUNDS` (`app/modules/maps/lib/utils/placeMapView.ts:22`)
+is a hardcoded square, `[[0, 0], [2000, 2000]]`, and
+`parsePlaceMapBounds` falls back to it for every place, because nothing ever
+writes `mapBounds`: `updateZoneMap` only ever sets `mapImage`, and M4's
+create-world flow only sets `title`/`mapImage` — the file's own header comment
+says so. `WorldMap.tsx:562` then hands those bounds to `L.imageOverlay`, which
+stretches whatever pixels it is given to fill them. An image close to 1:1 looks
+fine; a 3:2 or 2:3 one is scaled non-uniformly along one axis.
+
+**The stretch factor is the image's aspect ratio, nothing else** — which is why
+the root and the material plane look right and Kang does not, and why the
+distortion is stable rather than zoom-dependent.
+
+**The fix, in shape:** derive the bounds from the image's real pixel dimensions
+instead of a constant, so the overlay's aspect ratio always matches the file's.
+Two places it could happen, and they are not exclusive:
+
+- **At upload (preferred).** Read the image's intrinsic size in the upload
+  route handler and persist `[[0, 0], [height, width]]` into `mapBounds`. One
+  write, no client work, and `checkPlacement`'s existing use of
+  `parsePlaceMapBounds` — which validates that a child's coordinates fall
+  inside the parent's map — starts being correct too, instead of validating
+  against a square that does not describe the map.
+- **At render (fallback for maps already uploaded).** `L.imageOverlay`'s image
+  exposes `naturalWidth`/`naturalHeight` on load; bounds could be recomputed
+  then. Needed only if we choose not to backfill.
+
+**Open question for the DM before implementing:** should the stored coordinate
+space stay in image pixels (so `mapBounds` is literally the file's dimensions
+and every existing pin keeps meaning what it meant), or be normalised to a
+fixed range? Pixels are the lower-risk answer, but it means **existing pins
+placed against the old square bounds will land in the wrong spot once the
+bounds change**, and that migration is the reason this is M rather than S.
+
+---
+
+### TD-83 ✅ The "up" button is unreachable once you descend — it scrolls out of view above the map — **DONE (2026-08-19)**
+
+**Outcome:** [PR #189](https://github.com/pastorello/nextjs-campaign-settings/pull/189). "Up" moved out of `GeographyExplorer`'s scrolling header row into the map's own overlay container — the same `relative` box `WorldMap`, `MapControls` and `MapTileSwitcher` already float in — so it can no longer scroll away from the thing it acts on, independent of whatever TD-84 does to the surrounding page chrome. The header keeps the title and the unpositioned count. Regression test in `GeographyExplorer.test.tsx` asserts the button lives inside the map's overlay container, not the header row; confirmed to fail against the pre-fix code by stashing the change and re-running.
+
+The original description follows.
+
+---
+
+### TD-83 (original) 🟠 The "up" button is unreachable once you descend — it scrolls out of view above the map
+
+**Severity:** 🟠 High · **Effort:** S · **Found:** 2026-08-17, reported by the DM (twice: root → material plane, and again generally)
+
+Descending from the root into a child map leaves the DM with no visible way
+back. The button is not missing from the render tree — `GeographyExplorer`
+renders a `BaseButton` with `t("up")` whenever `stack.length > 1`, and that
+condition is satisfied — but it sits in a header row **above** the map, and the
+map's own box is a full viewport tall (see TD-84). To see any of the map the DM
+scrolls down inside the dashboard's `md:overflow-y-auto` column, and the header
+— title, unpositioned count and the only exit from this map — scrolls away with
+it. Until TD-84's height bug is fixed, the button is present, correct, and
+unreachable.
+
+**A second symptom confirms the reading.** The DM separately reported that the
+page title is visible on the root map but "disappears" on a sub-map
+(2026-08-18). `GeographyExplorer` renders `<PageTitle>{current.title}</PageTitle>`
+unconditionally, so it cannot disappear — but it shares the header row with the
+"up" button, and the two go out of view together. One header, two complaints.
+(The DM also asked for a breadcrumb trail in that header. That is a separate,
+deliberate reversal of SPEC-004 M7's no-breadcrumbs decision, recorded in
+`ROADMAP.md`, not part of this fix.)
+
+**Reproduce before fixing.** The above is the reading of the code, not a
+verified repro; confirm the button really is rendered-but-scrolled rather than
+not rendered at all (a broken descend that never pushes the stack would look
+identical to the DM and would be a different bug entirely).
+
+**Fix TD-84 first,** then re-check this one: a map that stops overflowing its
+container may well take the header back into view and close this item for free.
+If it does not, the answer is to stop relying on page chrome for map
+navigation — put "up" in the map overlay with the other floating controls,
+where it cannot scroll away from the thing it acts on.
+
+**Related:** TD-82 would give the browser's own back button a meaning here,
+which is a second, independent way out. It is not a substitute for a visible
+control.
+
+---
+
+### TD-84 ✅ `WorldMap` is `h-screen` inside a padded column, so the bottom-right control stack is clipped below the fold — **DONE (2026-08-19)**
+
+**Outcome:** [PR #189](https://github.com/pastorello/nextjs-campaign-settings/pull/189). One-class fix, as the write-up predicted: `WorldMap`'s root element is `h-full` now, not `h-screen`, so it fills `GeographyExplorer`'s `flex-1 min-h-0` slot instead of declaring its own viewport-sized height inside it. Regression test asserts the root carries `h-full` and not `h-screen`. Fixing TD-84 also removed TD-83's root cause, as that entry predicted it might.
+
+The original description follows.
+
+---
+
+### TD-84 (original) 🟠 `WorldMap` is `h-screen` inside a padded column, so the bottom-right control stack is clipped below the fold
+
+**Severity:** 🟠 High · **Effort:** S · **Found:** 2026-08-17, reported by the DM after the "modifica" button landed
+
+Adding `MapOptionsButton` to `MapControls`' `extraControls` slot made the
+floating column at the bottom right taller, and the DM now sees only the new
+pencil button — zoom, reset and fullscreen are below the visible area. **The
+new button did not cause this; it revealed it.**
+
+`WorldMap`'s root element is `relative h-screen w-full overflow-hidden`
+(`app/ui/geography/WorldMap.tsx:590`) — a full _viewport_ height — while it is
+mounted inside `GeographyExplorer`'s `relative w-full flex-1 min-h-0` slot,
+itself inside the dashboard layout's `grow p-6 md:overflow-y-auto md:p-12`
+column, under a header row with `mb-4`. So the map's box starts roughly
+150–200px down the viewport and is still 100vh tall: its bottom edge, and every
+`absolute bottom-*` control anchored to it, lands that far below the fold.
+`MapControls` (`bottom-24 sm:bottom-8 right-4`) grows _upward_ from that edge,
+so the topmost item — the newly added pencil — is the only one that survives
+into the visible area. `MapTileSwitcher` (`bottom-24 sm:bottom-8 left-4`) is
+anchored the same way and should be checked in the same pass.
+
+**The fix, in shape:** `h-full` instead of `h-screen`, so the map fills the
+`flex-1 min-h-0` box that `GeographyExplorer` already sizes for it, rather than
+declaring its own viewport-sized height inside it. Check the fullscreen path
+while there — `MapControls`' fullscreen toggle uses the Fullscreen API on the
+map element, which is where a viewport-sized height was plausibly wanted, and
+that is the one case `h-full` must not break.
+
+**A third symptom, reported 2026-08-18 and worth fixing in the same pass:**
+`MapPOIPanel`'s desktop shell is `absolute top-0 left-0 h-full w-96`
+(`MapPOIPanel.tsx:1031`), so it inherits the same wrong height and its lower
+half — including the description field of the "add a place" form — is cut off
+below the fold. Three independent-looking complaints, one `h-screen`.
+
+**Verify at more than one viewport.** The mobile offset (`bottom-24`) exists to
+clear something; confirm what, before flattening both breakpoints to the same
+value.
+
+**Same root cause as TD-83,** most likely fixed in the same change — but filed
+separately because the symptoms are independent and either fix could land
+without the other.
+
+---
+
+### TD-86 ✅ "Add marker" drops an ephemeral pin that cannot be removed and does not survive a reload — **DONE (2026-08-19)**
+
+**Outcome:** [PR #190](https://github.com/pastorello/nextjs-campaign-settings/pull/190). Renamed to "Aggiungi un marker temporaneo" / "Add a temporary marker" in both catalogues, sublabel stating plainly it disappears on reload. A dismiss control was added — `clearMarkers`, wired from `useMapMarkers` into a small "clear temporary markers" button shown whenever any exist — as a proposal beyond what the DM asked for, not assumed; visible to every viewer, not DM-gated, per the DM's explicit note that this is a table-conversation tool.
+
+The original description follows.
+
+---
+
+### TD-86 (original) 🟡 "Add marker" drops an ephemeral pin that cannot be removed and does not survive a reload
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-08-18, reported by the DM
+
+The right-click menu's "Aggiungi marker" places a pin that the DM then cannot get
+rid of, and that disappears on reload. Both are by construction:
+`useMapMarkers` keeps markers in React state and a `useRef` map of Leaflet
+handles, with no persistence anywhere; and `WorldMap` destructures only
+`addMarker` from it (`WorldMap.tsx:159`), never the hook's own `removeMarker`.
+The context-menu item is therefore add-only, and the state dies with the
+component.
+
+**Decided with the DM on 2026-08-18: keep the behaviour, fix the name.** The
+ephemerality is the point — this is a scratch pin for reasoning about the map
+out loud ("the party is about here, the dragon is about there"), not a record of
+anything. What made it a defect was a label that promised persistence it never
+had.
+
+**So the fix is much smaller than this entry originally assumed:**
+
+- Rename the menu entry to **"Aggiungi un marker temporaneo"** (and its English
+  counterpart), in **both** `messages/it.json` and `messages/en.json`. The
+  sublabel should say plainly that it disappears on reload.
+- Give the marker a way to be dismissed — clicking it, or a "clear temporary
+  markers" action. `useMapMarkers` already exposes `removeMarker`; `WorldMap`
+  currently destructures only `addMarker` (`WorldMap.tsx:159`), so this is
+  wiring, not new machinery. **The DM did not ask for this**, having accepted
+  reload-to-clear; propose it, do not assume it.
+
+**This one is for players too, not only the DM** (DM, 2026-08-18) — a scratch
+marker is a table-conversation tool, so whatever role model lands must leave it
+on the player side of the line. Recorded here because the accounts epic in
+`ROADMAP.md` will otherwise default every map action to DM-only.
+
+---
+
+### TD-87 ✅ Zoom out does nothing on a child map — every map opens already at its minimum zoom — **DONE (2026-08-19)**
+
+**Outcome:** [PR #189](https://github.com/pastorello/nextjs-campaign-settings/pull/189). The write-up's own reproduction steps confirmed the read exactly. Fixed with a `computeMinZoom(fitZoom, openZoom)` helper using Leaflet's own `getBoundsZoom(bounds)` rather than a hardcoded floor, guaranteeing the minimum sits strictly below whatever zoom the map opens at — recomputed both at the interim framing and again once the image loads and the bounds correct (TD-81), so a stale floor from the first pass can't survive the second.
+
+**Traced to a genuine CI regression, not test flake, via the actual Playwright trace artifact rather than a guess.** The E2E suite failed deterministically on a right-click → "Add Place" interaction; the trace showed the click functionally landing (the POI panel ended up open) while Playwright's own `.click()` call kept losing the target to "element detached from the DOM, retrying." Root cause: the corrective re-fit this fix introduces (`map.fitBounds`/`setView`, fired from an async `image.once("load", …)` callback that can land at any point after mount) fires Leaflet's `movestart` event — identical to a real user drag — and `useMapContextMenu`'s existing close-on-movestart handler was closing an open right-click menu out from under the click whenever the image happened to finish loading mid-interaction. Fixed with `useMapContextMenu.runWithoutClosing(fn)`, which suppresses that handler only for the duration of a caller's own synchronous programmatic camera move; a genuine user drag/scroll still closes the menu. Regression tests: `useMapContextMenu.test.ts` (closes on a real `movestart`; does not close on one triggered inside `runWithoutClosing`; resumes closing afterward even if the wrapped call throws) and a `WorldMap.test.tsx` wiring test confirming both camera moves are actually routed through the wrapper rather than calling the map API directly.
+
+The original description follows.
+
+---
+
+### TD-87 (original) 🟠 Zoom out does nothing on a child map — every map opens already at its minimum zoom
+
+**Severity:** 🟠 High · **Effort:** S · **Found:** 2026-08-18, reported by the DM as "zoom out only works on the root map"
+
+The image-loading effect (`WorldMap.tsx:565-570`) runs, for every map:
+
+```
+map.setMinZoom(0);
+map.setZoom(0);
+map.setMaxZoom(10);
+map.setMaxBounds(bounds);
+map.fitBounds(bounds);
+map.setView(initialView, initialZoom);
+```
+
+`initialZoom` is `DEFAULT_MAP_INITIAL_ZOOM` = **-2** for every place, since
+nothing writes `mapInitialZoom` (same root cause family as TD-81). Leaflet
+clamps that to the minimum just set, so the map settles at zoom 0 — which _is_
+its minimum. There is no room to zoom out, on any map, until the DM has zoomed
+in first. `setMaxBounds(bounds)` compounds it by refusing to show anything
+outside the (wrong, per TD-81) bounds.
+
+**Why the root map appears to be the exception:** most likely because the DM
+zooms in there before trying, which restores the margin. **Reproduce before
+fixing** — open a child map, zoom in twice, then zoom out and see whether it
+moves and stops at zoom 0. If it does, this reading is confirmed. If zoom out is
+dead even from a zoomed-in state, the cause is elsewhere and this write-up is
+wrong.
+
+**The fix, in shape:** stop hardcoding the floor. Compute the minimum zoom from
+the map's own bounds and the container size — Leaflet's `getBoundsZoom(bounds)`
+gives exactly the zoom at which the image fits — and open at that, rather than
+pinning `minZoom` to 0 and the view to a constant -2. Schedule with TD-81: both
+are "the map's framing is a constant instead of a property of the image", and
+fixing bounds without fixing zoom leaves the second half visibly broken.
+
+---
+
+### TD-95 ✅ The place panel is half-untranslated, with English strings hardcoded in the component — **DONE (2026-08-19)**
+
+**Outcome:** [PR #190](https://github.com/pastorello/nextjs-campaign-settings/pull/190). All five named strings extracted into `messages/it.json`/`messages/en.json` under `geography.poiPanel`. "My Places" became "Luoghi di interesse" as the DM asked, with a matching English label chosen deliberately ("Places of Interest", echoing the existing `POICategory` terminology) rather than a literal re-translation of the old wording. The toast's hand-built English pluralisation was replaced with next-intl's plural support.
+
+**The "check the neighbours" instruction found more than the one file.** `MapControls.tsx`'s tooltips and `MapLoadingSpinner.tsx`'s loading text were also hardcoded English, fixed in the same sweep. A further instance — `MapErrorBoundary.tsx`'s fallback UI — was found but correctly left for its own follow-up rather than scope-creeped in: it is a class component needing a structural wrapper, with no existing test coverage. That follow-up shipped separately as [PR #191](https://github.com/pastorello/nextjs-campaign-settings/pull/191).
+
+The original description follows.
+
+---
+
+### TD-95 (original) 🟡 The place panel is half-untranslated, with English strings hardcoded in the component
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-08-18, reported by the DM
+
+Opening "Aggiungi luogo" shows an Italian app with English labels in it.
+`MapPOIPanel` does import `useTranslations` and does use `t` in places, but at
+least five user-facing strings are written straight into the JSX: `"My Places"`
+(`:341`), `"Clear"` (`:815`), `"Clear coordinates"` (`:656`),
+`"Unplaced places (n)"` (`:830`), and a toast built by template literal,
+`` `Cleared ${n} place${n !== 1 ? "s" : ""}` `` (`:556`) — which also hardcodes
+English pluralisation, something the catalogue's own plural support exists to
+handle.
+
+**This is a straight violation of a standing rule**, not a gap in an unfinished
+feature: `CLAUDE.md` says new user-facing copy goes in both catalogues and is
+read through `next-intl`, never written into JSX. Same shape as TD-62, which
+found hardcoded English POI category names, and a leftover the TD-21 bilingual
+pass did not reach because this file came from the vendored map module.
+
+**The DM also asked for a rename while we are here:** "My Places" becomes
+**"Luoghi di interesse"** — so this is not a mechanical extraction of the current
+wording, and the English catalogue needs a matching decision rather than
+`"My Places"` copied across.
+
+**Do not treat this as a rename-only change.** Sweep the whole file for
+JSX-embedded copy before starting, and check the rest of
+`app/modules/maps/components/**` in the same pass — if this file drifted, its
+neighbours plausibly did too. A key added to one catalogue and not the other
+fails CI's key-set check, which is the cheap safety net here.

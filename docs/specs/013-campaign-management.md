@@ -507,7 +507,25 @@ reasoning is the useful part)_
 
 **Still open**
 
-Nothing. §7's fork was the last item and [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md)
+**Do `campaign` and `adventure` get a standard filterable list page, or not?**
+Found 2026-08-19 while T2/T3/T4b were in flight — §7 says they "fit the
+metadata layer as it stands... driving form, list and validation exactly as
+the other six domains do," which means the usual `EntityList`/header-filter
+machinery. §5 describes something else: a single campaign (created once, via
+an empty-state form) and adventures shown as a position-ordered ladder, not a
+filterable admin list. The two sections were never reconciled, and T4 is where
+this has to be answered — it decides whether `campaign`/`adventure` are
+registered in `queryFields.ts`/`listConfig.ts` at all, and, if they are,
+whether `getQuery.ts`'s hardcoded `name`-as-default-sort-field (`CLAUDE.md`'s
+language-conventions section already flags this exact line as a TD-19
+near-miss) needs a fix first — `treasure` was safe because it has a real
+`name` column; `adventure`/`campaign` use `title`. If the ladder/single-record
+reading of §5 is right, none of this applies and T4 is simpler than §7 implies.
+Resolve with the DM before starting T4, not by picking the reading that's less
+work.
+
+§7's fork itself was the last _other_ item and
+[ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md)
 closed it on 2026-08-18.
 
 ## 10. Task breakdown

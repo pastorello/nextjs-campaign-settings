@@ -166,6 +166,11 @@ vi.mock("@/app/ui/geography/DeletePlaceButton", () => ({
   ),
 }));
 
+// A real pass-through — tests that care whether WorldMap actually routes
+// its camera moves through this wrapper (rather than calling `map.setView`/
+// `fitBounds` directly, bypassing it) assert on this mock's own call log,
+// not just on `setView`/`fitBounds` themselves.
+const runWithoutClosing = vi.fn((fn: () => void) => fn());
 const useMapContextMenu = vi.fn(() => ({
   isOpen: false,
   position: null as {
@@ -174,6 +179,7 @@ const useMapContextMenu = vi.fn(() => ({
     latlng: { lat: number; lng: number };
   } | null,
   close: vi.fn(),
+  runWithoutClosing,
 }));
 vi.mock("@/app/modules/maps/hooks/useMapContextMenu", () => ({
   useMapContextMenu: () => useMapContextMenu(),
@@ -208,11 +214,17 @@ vi.mock("@/app/modules/maps/hooks/useNavigableChildren", () => ({
   useNavigableChildren: (...args: unknown[]) => useNavigableChildren(...args),
 }));
 const setView = vi.fn();
-const setMinZoom = vi.fn();
+const setMinZoom = vi.fn<(zoom: number) => void>();
 const setMaxZoom = vi.fn();
 const setMaxBounds = vi.fn();
 const setZoom = vi.fn();
 const fitBounds = vi.fn();
+// TD-87: defaults to a fit well below every fixture's `initialZoom` (1, or
+// -2 where a test overrides it to match the real per-place default) so
+// existing tests — none of which assert on `setMinZoom`'s value — keep
+// seeing genuine headroom without having to know about this mock. Tests
+// that care about the actual computation override this per-case.
+const getBoundsZoom = vi.fn(() => -4);
 const fakeMap = {
   setView,
   setMinZoom,
@@ -220,18 +232,54 @@ const fakeMap = {
   setMaxBounds,
   setZoom,
   fitBounds,
+  getBoundsZoom,
 };
 vi.mock("@/app/modules/maps/hooks/useLeafletMap", () => ({
   useLeafletMap: () => fakeMap,
 }));
 
 const imageAddTo = vi.fn();
-const imageOverlay = vi.fn((_url: string, _bounds: unknown) => ({
-  addTo: imageAddTo,
-  remove: vi.fn(),
-}));
+const imageRemove = vi.fn();
+const imageSetBounds = vi.fn();
+const imageSetOpacity = vi.fn();
+// The image-overlay bootstrap effect (TD-81/TD-87) waits for the loaded
+// image's own `load` event before trusting its natural size, rather than
+// firing on every render — `once("load", cb)` records that callback here
+// instead of invoking it, so tests can choose whether/when the image has
+// "finished loading."
+let imageOnLoad: (() => void) | undefined;
+// Matches the default `bounds` fixture below (a 1000x1000 square) so tests
+// that don't care about TD-81's aspect-ratio correction see the same
+// numbers before and after the image "loads." Tests that do care override
+// these before rendering.
+let imageNaturalWidth: number | undefined = 1000;
+let imageNaturalHeight: number | undefined = 1000;
+const imageOverlay = vi.fn(
+  (_url: string, _bounds: unknown, _options?: unknown) => ({
+    addTo: imageAddTo,
+    remove: imageRemove,
+    setBounds: imageSetBounds,
+    setOpacity: imageSetOpacity,
+    getElement: () => ({
+      naturalWidth: imageNaturalWidth,
+      naturalHeight: imageNaturalHeight,
+    }),
+    once: (event: string, cb: () => void) => {
+      if (event === "load") imageOnLoad = cb;
+    },
+  })
+);
 vi.mock("leaflet", () => ({
-  imageOverlay: (url: string, bounds: unknown) => imageOverlay(url, bounds),
+  imageOverlay: (url: string, bounds: unknown, options?: unknown) =>
+    imageOverlay(url, bounds, options),
+  // Real Leaflet's `ImageOverlay.setBounds` requires an actual
+  // `L.LatLngBounds` instance, not a plain tuple — reassembling the two
+  // corners into a tuple is enough here since the mocked `image.setBounds`
+  // below only records what it was called with.
+  latLngBounds: (southWest: unknown, northEast: unknown) => [
+    southWest,
+    northEast,
+  ],
 }));
 
 vi.mock("sonner", () => ({
@@ -247,7 +295,13 @@ const bounds: L.LatLngBoundsExpression = [
 
 const onDescend = vi.fn();
 
-/** Renders WorldMap and waits for its image-overlay bootstrap effect to settle. */
+/**
+ * Renders WorldMap, waits for its image-overlay bootstrap effect to settle,
+ * then simulates the image finishing its load — the state most tests care
+ * about, since that's what a DM actually sees. Tests specifically about the
+ * interim (pre-load) or the load-triggered reframing call `render` directly
+ * instead and drive `imageOnLoad` themselves.
+ */
 async function renderMap(mapUrl = "/maps/test.jpg") {
   render(
     <WorldMap
@@ -267,6 +321,9 @@ async function renderMap(mapUrl = "/maps/test.jpg") {
   await waitFor(() => {
     expect(imageAddTo).toHaveBeenCalled();
   });
+  act(() => {
+    imageOnLoad?.();
+  });
 }
 
 beforeEach(() => {
@@ -274,6 +331,14 @@ beforeEach(() => {
   drawAreaCallCount = 0;
   drawAreaOptions = undefined;
   editAreaOptions = undefined;
+  imageOnLoad = undefined;
+  imageNaturalWidth = 1000;
+  imageNaturalHeight = 1000;
+  // `clearAllMocks` clears call history, not the return value a previous
+  // test may have overridden with `mockReturnValue` (as opposed to
+  // `mockReturnValueOnce`) — reset explicitly so tests can't leak a custom
+  // fit zoom into whichever test happens to run after them.
+  getBoundsZoom.mockReturnValue(-4);
   createPlace.mockResolvedValue({ ok: true, id: 1 });
   updateZonePosition.mockResolvedValue({ ok: true });
   useNavigableChildren.mockReturnValue([]);
@@ -282,17 +347,139 @@ beforeEach(() => {
     isOpen: false,
     position: null,
     close: vi.fn(),
+    runWithoutClosing,
   });
 });
 
 describe("WorldMap", () => {
-  it("loads the image overlay onto the map on mount", async () => {
-    await renderMap();
+  it("loads the image overlay onto the map on mount, hidden until it reports its own size (TD-81)", async () => {
+    render(
+      <WorldMap
+        parentId={1}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        mapUrl="/maps/test.jpg"
+        bounds={bounds}
+        initialView={[500, 500]}
+        initialZoom={1}
+        onDescend={onDescend}
+        onMapChanged={vi.fn()}
+        onDeleted={vi.fn()}
+      />
+    );
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
 
-    expect(imageOverlay).toHaveBeenCalledWith("/maps/test.jpg", bounds);
+    // Interim framing, before the image's `load` event fires — the same
+    // stored/default view this component has always opened with, but
+    // painted invisible (opacity 0) so a wrong-aspect-ratio square is never
+    // actually shown while the real dimensions are still unknown.
+    expect(imageOverlay).toHaveBeenCalledWith("/maps/test.jpg", bounds, {
+      opacity: 0,
+    });
     expect(imageAddTo).toHaveBeenCalledWith(fakeMap);
     expect(setMaxBounds).toHaveBeenCalledWith(bounds);
     expect(setView).toHaveBeenCalledWith([500, 500], 1);
+    expect(imageSetOpacity).not.toHaveBeenCalled();
+  });
+
+  it("reframes to the image's own aspect ratio once it reports its natural size, instead of the stored square (TD-81)", async () => {
+    // A 16:9 image — distinct from the 1:1 `bounds` fixture, so a bug that
+    // never corrects past the square default is caught.
+    imageNaturalWidth = 1600;
+    imageNaturalHeight = 900;
+    render(
+      <WorldMap
+        parentId={1}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        mapUrl="/maps/test.jpg"
+        bounds={bounds}
+        initialView={[500, 500]}
+        initialZoom={1}
+        onDescend={onDescend}
+        onMapChanged={vi.fn()}
+        onDeleted={vi.fn()}
+      />
+    );
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
+
+    act(() => {
+      imageOnLoad?.();
+    });
+
+    const fittedBounds = [
+      [0, 0],
+      [900, 1600],
+    ];
+    expect(imageSetBounds).toHaveBeenCalledWith(fittedBounds);
+    expect(imageSetOpacity).toHaveBeenCalledWith(1);
+    expect(setMaxBounds).toHaveBeenLastCalledWith(fittedBounds);
+    // Leaflet's own `fitBounds` reframes the view against the corrected
+    // (aspect-correct) bounds — not the stored/default square passed at
+    // mount, before the image's real size was known.
+    expect(fitBounds).toHaveBeenLastCalledWith(fittedBounds);
+  });
+
+  // Regression (CI flake traced to a real bug, not test flake): the image
+  // `load` event this effect waits on fires asynchronously and, in CI,
+  // sometimes lands while a DM has just opened the right-click context
+  // menu. `fitBounds`/`setView` fire Leaflet's `movestart`, which
+  // `useMapContextMenu` treats as "the user is navigating away" and closes
+  // the menu — detaching its "Add Place" button out from under a
+  // Playwright click mid-action. Both camera moves this effect makes must
+  // go through `runWithoutClosing` so that hook can tell this apart from an
+  // actual user drag/scroll instead of closing every open menu it lands on.
+  it("routes both camera moves (the interim framing and the TD-81 corrective re-fit) through runWithoutClosing, not straight to the map (regression)", async () => {
+    render(
+      <WorldMap
+        parentId={1}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        mapUrl="/maps/test.jpg"
+        bounds={bounds}
+        initialView={[500, 500]}
+        initialZoom={1}
+        onDescend={onDescend}
+        onMapChanged={vi.fn()}
+        onDeleted={vi.fn()}
+      />
+    );
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
+
+    // The interim `setView`, called at mount, already went through
+    // `runWithoutClosing` — before the image has even reported it loaded.
+    expect(runWithoutClosing).toHaveBeenCalledTimes(1);
+    expect(setView).toHaveBeenCalledWith([500, 500], 1);
+
+    act(() => {
+      imageOnLoad?.();
+    });
+
+    // The corrective re-fit, once the image "loads," is the second call —
+    // and `fitBounds` only having fired at all proves it happened *inside*
+    // one of `runWithoutClosing`'s calls, since the mock's pass-through
+    // implementation is the only thing that ever invokes the wrapped
+    // callback.
+    expect(runWithoutClosing).toHaveBeenCalledTimes(2);
+    expect(fitBounds).toHaveBeenCalled();
+  });
+
+  it("falls back to the stored bounds if the loaded image reports no natural size", async () => {
+    imageNaturalWidth = 0;
+    imageNaturalHeight = 0;
+
+    await renderMap();
+
+    expect(imageSetBounds).toHaveBeenCalledWith(bounds);
   });
 
   it("renders empty ground with the upload control when mapUrl is blank (SPEC-007 T1)", async () => {
@@ -766,6 +953,7 @@ describe("WorldMap — descending into an area instead of placing a point (SPEC-
       isOpen: true,
       position: { x: 1, y: 2, latlng: { lat: 5, lng: 5 } },
       close: vi.fn(),
+      runWithoutClosing,
     });
     await renderMap();
 
@@ -780,6 +968,7 @@ describe("WorldMap — descending into an area instead of placing a point (SPEC-
       isOpen: true,
       position: { x: 1, y: 2, latlng: { lat: 50, lng: 50 } },
       close: vi.fn(),
+      runWithoutClosing,
     });
     await renderMap();
 
@@ -879,6 +1068,7 @@ describe("WorldMap — resizing and moving an existing area (SPEC-009 T5)", () =
       isOpen: true,
       position: { x: 1, y: 2, latlng: { lat: 5, lng: 5 } },
       close: vi.fn(),
+      runWithoutClosing,
     });
   });
 
@@ -998,5 +1188,127 @@ describe("WorldMap — resizing and moving an existing area (SPEC-009 T5)", () =
         "grab"
       );
     });
+  });
+});
+
+describe("WorldMap — sized to its container, not the viewport (TD-84)", () => {
+  it("fills the height its parent gives it instead of declaring its own full-viewport height", async () => {
+    const { container } = render(
+      <WorldMap
+        parentId={1}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        mapUrl="/maps/test.jpg"
+        bounds={bounds}
+        initialView={[500, 500]}
+        initialZoom={1}
+        onDescend={onDescend}
+        onMapChanged={vi.fn()}
+        onDeleted={vi.fn()}
+      />
+    );
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
+
+    // The old bug: this root element was `h-screen` (100% of the whole
+    // viewport) while mounted inside `GeographyExplorer`'s
+    // `flex-1 min-h-0` slot, itself offset by page chrome above it — so it
+    // was always taller than the space actually available, clipping every
+    // `absolute bottom-*` control anchored to it below the fold.
+    const root = container.firstElementChild;
+    expect(root).toHaveClass("h-full");
+    expect(root).not.toHaveClass("h-screen");
+  });
+});
+
+describe("WorldMap — the zoom floor leaves room to zoom out (TD-87)", () => {
+  it("opens strictly above its computed minimum zoom, not pinned exactly on it", async () => {
+    // Mirrors the real bug: every place opens at `DEFAULT_MAP_INITIAL_ZOOM`
+    // (-2, since nothing writes `mapInitialZoom`), and the image's own fit
+    // for these bounds is a floor of -4 — well below that opening zoom.
+    // Pre-fix, `setMinZoom` was hardcoded to 0 regardless of `getBoundsZoom`,
+    // so the opening view (clamped to 0, since -2 < 0) landed exactly on
+    // the floor and "zoom out" had nowhere to go.
+    getBoundsZoom.mockReturnValue(-4);
+    render(
+      <WorldMap
+        parentId={1}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        mapUrl="/maps/test.jpg"
+        bounds={bounds}
+        initialView={[500, 500]}
+        initialZoom={-2}
+        onDescend={onDescend}
+        onMapChanged={vi.fn()}
+        onDeleted={vi.fn()}
+      />
+    );
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
+
+    expect(setView).toHaveBeenCalledWith([500, 500], -2);
+    const openZoom = -2;
+    // Not merely "not equal" — genuinely below, i.e. there is at least one
+    // full step of zoom-out headroom below wherever the map opens.
+    const minZoomArg = setMinZoom.mock.calls.at(-1)?.[0];
+    expect(minZoomArg).toBeLessThan(openZoom);
+  });
+
+  it("re-measures the floor against the corrected bounds once the image loads, rather than leaving it stale", async () => {
+    // A different fit for the corrected (post-load) bounds than for the
+    // interim stored/default ones, so a fix that only recomputes the floor
+    // once (at mount) rather than again on load would be caught: the last
+    // `setMinZoom` call would still reflect the interim fit instead of this
+    // one.
+    getBoundsZoom.mockReturnValueOnce(-4).mockReturnValueOnce(-6);
+    imageNaturalWidth = 1600;
+    imageNaturalHeight = 900;
+
+    await renderMap();
+
+    const fittedBounds = [
+      [0, 0],
+      [900, 1600],
+    ];
+    expect(fitBounds).toHaveBeenLastCalledWith(fittedBounds);
+    const lastMinZoom = setMinZoom.mock.calls.at(-1)?.[0];
+    // `computeMinZoom(-6, -6)` — the second, post-load `getBoundsZoom` call
+    // doubling as both the fit and the opening zoom, since `fitBounds`
+    // targets exactly that fit.
+    expect(lastMinZoom).toBe(-7);
+  });
+
+  it("does not let a fit at or above the opening zoom leave the floor pinned on it (the original bug's exact shape)", async () => {
+    // The image's own fit (0) is not looser than the opening zoom (0) —
+    // naively using the fit alone as the floor reproduces TD-87 exactly:
+    // floor equals opening zoom, so zoom out has nothing to do.
+    getBoundsZoom.mockReturnValue(0);
+
+    render(
+      <WorldMap
+        parentId={1}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        mapUrl="/maps/test.jpg"
+        bounds={bounds}
+        initialView={[500, 500]}
+        initialZoom={0}
+        onDescend={onDescend}
+        onMapChanged={vi.fn()}
+        onDeleted={vi.fn()}
+      />
+    );
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
+
+    const minZoomArg = setMinZoom.mock.calls.at(-1)?.[0];
+    expect(minZoomArg).toBeLessThan(0);
   });
 });

@@ -17,6 +17,22 @@ export interface UseMapContextMenuReturn {
   isOpen: boolean;
   position: ContextMenuPosition | null;
   close: () => void;
+  /**
+   * Run `fn` — which must synchronously call a Leaflet method that moves or
+   * zooms the map, e.g. `setView`/`fitBounds` — without letting the
+   * `movestart` it fires close an already-open menu.
+   *
+   * Leaflet's `movestart` event fires identically whether the map moved
+   * because the user dragged/scrolled it or because app code repositioned
+   * it programmatically (e.g. `WorldMap`'s TD-81/TD-87 corrective re-fit,
+   * fired asynchronously once a loaded image reports its real aspect
+   * ratio). Left unguarded, a programmatic move that happens to land while
+   * the menu is open closes it — and since `movestart` fires synchronously
+   * within the very call that triggers it, wrapping that call here is
+   * enough to tell the two apart without threading any extra state through
+   * the map instance itself.
+   */
+  runWithoutClosing: (fn: () => void) => void;
 }
 
 /**
@@ -42,12 +58,25 @@ export function useMapContextMenu(): UseMapContextMenuReturn {
   const clickHandlerRef = useRef<(() => void) | null>(null);
   const moveStartHandlerRef = useRef<(() => void) | null>(null);
 
+  // Set for the duration of a `runWithoutClosing` call — see that function
+  // and the `UseMapContextMenuReturn.runWithoutClosing` doc comment.
+  const suppressCloseRef = useRef(false);
+
   /**
    * Close the context menu
    */
   const close = useCallback(() => {
     setIsOpen(false);
     setPosition(null);
+  }, []);
+
+  const runWithoutClosing = useCallback((fn: () => void) => {
+    suppressCloseRef.current = true;
+    try {
+      fn();
+    } finally {
+      suppressCloseRef.current = false;
+    }
   }, []);
 
   /**
@@ -100,9 +129,10 @@ export function useMapContextMenu(): UseMapContextMenuReturn {
       }
     };
 
-    // Move/drag handler to close menu
+    // Move/drag handler to close menu — skipped for a move `runWithoutClosing`
+    // triggered, since that is app code repositioning the map, not the user.
     const handleMoveStart = () => {
-      if (isOpen) {
+      if (isOpen && !suppressCloseRef.current) {
         close();
       }
     };
@@ -138,5 +168,6 @@ export function useMapContextMenu(): UseMapContextMenuReturn {
     isOpen,
     position,
     close,
+    runWithoutClosing,
   };
 }

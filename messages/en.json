@@ -836,6 +836,10 @@
     }
   },
   "adventure": {
+    "page": {
+      "title": "Adventure"
+    },
+    "backToCampaign": "Back to campaign",
     "fields": {
       "position": {
         "label": "Position"
@@ -881,7 +885,8 @@
       "gold": "Gold"
     },
     "form": {
-      "createButton": "Add adventure"
+      "createButton": "Add adventure",
+      "editButton": "Save changes"
     },
     "ladder": {
       "title": "Adventures",
@@ -893,6 +898,128 @@
       },
       "moveUp": "Move \"{title}\" up",
       "moveDown": "Move \"{title}\" down"
+    }
+  },
+  "scene": {
+    "fields": {
+      "position": {
+        "label": "Position"
+      },
+      "kind": {
+        "label": "Kind"
+      },
+      "title": {
+        "label": "Title"
+      },
+      "description": {
+        "label": "Description"
+      },
+      "xpAward": {
+        "label": "XP award"
+      },
+      "grantsHeroPoint": {
+        "label": "Grants hero point"
+      },
+      "zoneId": {
+        "label": "Place",
+        "noneOption": "No place"
+      }
+    },
+    "kinds": {
+      "fight": "Fight",
+      "explore": "Explore",
+      "clue": "Clue",
+      "goal": "Goal",
+      "dungeon": "Dungeon",
+      "break": "Break"
+    },
+    "place": {
+      "unassigned": "Place not assigned",
+      "viewMap": "View on map"
+    },
+    "list": {
+      "title": "Scenes",
+      "addButton": "Add scene",
+      "emptyMessage": "No scenes yet. Add one to start the adventure.",
+      "moveUp": "Move \"{title}\" up",
+      "moveDown": "Move \"{title}\" down"
+    },
+    "form": {
+      "createButton": "Add scene",
+      "editButton": "Save changes"
+    }
+  },
+  "sceneCreature": {
+    "fields": {
+      "position": {
+        "label": "Position"
+      },
+      "name": {
+        "label": "Name"
+      },
+      "level": {
+        "label": "Level"
+      },
+      "xpEach": {
+        "label": "XP each"
+      },
+      "quantity": {
+        "label": "Quantity"
+      },
+      "note": {
+        "label": "Note"
+      },
+      "npcId": {
+        "label": "Linked NPC",
+        "noneOption": "Not linked"
+      }
+    },
+    "list": {
+      "title": "Creatures",
+      "addButton": "Add creature",
+      "emptyMessage": "No creatures yet.",
+      "moveUp": "Move \"{name}\" up",
+      "moveDown": "Move \"{name}\" down",
+      "xpTotal": "XP total"
+    },
+    "form": {
+      "createButton": "Add creature",
+      "editButton": "Save changes"
+    }
+  },
+  "loot": {
+    "fields": {
+      "position": {
+        "label": "Position"
+      },
+      "description": {
+        "label": "Description"
+      },
+      "quantity": {
+        "label": "Quantity"
+      },
+      "value": {
+        "label": "Value"
+      },
+      "magicItemId": {
+        "label": "Magic item",
+        "noneOption": "Not linked"
+      },
+      "treasureId": {
+        "label": "Catalogue treasure",
+        "noneOption": "Not linked"
+      }
+    },
+    "list": {
+      "title": "Loot",
+      "addButton": "Add loot",
+      "emptyMessage": "No loot yet.",
+      "moveUp": "Move \"{description}\" up",
+      "moveDown": "Move \"{description}\" down"
+    },
+    "form": {
+      "createButton": "Add loot",
+      "editButton": "Save changes"
     }
   }
 }

@@ -41,4 +41,10 @@ describe("sceneCreatureMeta (SPEC-013 T6)", () => {
   it("rejects a non-positive npcId", () => {
     expect(sceneCreatureMeta.npcId.validator.safeParse(0).success).toBe(false);
   });
+
+  // `SceneCreature`'s domain interface types `note` `string | null`, not
+  // optional — same gap and same fix as `sceneMeta.description`'s own test.
+  it("accepts a null note, the same as an unset optional string column", () => {
+    expect(sceneCreatureMeta.note.validator.safeParse(null).success).toBe(true);
+  });
 });

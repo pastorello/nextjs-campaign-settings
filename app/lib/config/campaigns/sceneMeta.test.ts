@@ -38,4 +38,14 @@ describe("sceneMeta (SPEC-013 T6)", () => {
   it("rejects a non-positive zoneId", () => {
     expect(sceneMeta.zoneId.validator.safeParse(0).success).toBe(false);
   });
+
+  // `Scene`'s domain interface types `description` `string | null`, not
+  // optional — the scene editor (T8) supplies an explicit `null` for a
+  // blank description rather than omitting the key. `.optional()` alone
+  // only tolerates `undefined`; a real `createScene` call with a blank
+  // description failed validation in the browser before this, the same gap
+  // T7 found and fixed for `adventureMeta.synopsis`/`timeline`.
+  it("accepts a null description, the same as an unset optional string column", () => {
+    expect(sceneMeta.description.validator.safeParse(null).success).toBe(true);
+  });
 });

@@ -23,6 +23,20 @@ function nullableAmountValidator() {
 }
 
 /**
+ * `description` maps to a nullable column and `Scene`'s domain interface
+ * types it `string | null` accordingly, not optional — so a caller that
+ * leaves it unset (the scene editor's create/edit form, T8) supplies an
+ * explicit `null` rather than omitting the key. `.optional()` alone only
+ * tolerates `undefined`; this preprocesses `null` the same way before
+ * handing off, the same shape `adventureMeta.ts`'s own `nullableToOptional`
+ * already uses for `synopsis`/`timeline`. Found and fixed in the browser
+ * during T8, the same way T7 found `adventureMeta`'s version of this bug.
+ */
+function nullableToOptional<T extends z.ZodTypeAny>(schema: T) {
+  return z.preprocess((raw) => (raw === null ? undefined : raw), schema);
+}
+
+/**
  * A scene's own scalar fields (SPEC-013 §5/§6) — outside the metadata layer
  * (ADR-0011), declared here so the bespoke scene editor (T8) consumes each
  * field's validator and label key rather than restating them. `zoneId` is a
@@ -64,7 +78,7 @@ const sceneMeta = {
     defaultValue: "",
     fieldType: FieldType.string,
     controlType: ControlType.Textarea,
-    validator: z.string().optional(),
+    validator: nullableToOptional(z.string().optional()),
   },
   [SceneMetaField.xpAward]: {
     metaField: "xpAward",

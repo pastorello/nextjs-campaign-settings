@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import updateAdventure from "@/app/lib/data/campaigns/updateAdventure";
 import reorderAdventures from "@/app/lib/data/campaigns/reorderAdventures";
 import deleteAdventureById from "@/app/lib/data/campaigns/deleteAdventureById";
@@ -161,7 +161,14 @@ export default function AdventureLadder({
                 <tr key={adventure.id} className="border-b last:border-none">
                   <td className="px-3 py-3">{adventure.position}</td>
                   <td className="px-3 py-3">{adventure.targetLevel}</td>
-                  <td className="px-3 py-3">{adventure.title}</td>
+                  <td className="px-3 py-3">
+                    <Link
+                      href={`/dashboard/campaign/${adventure.id}`}
+                      className="text-blue-600 underline"
+                    >
+                      {adventure.title}
+                    </Link>
+                  </td>
                   <td className="px-3 py-3">
                     <Select
                       value={adventure.status}

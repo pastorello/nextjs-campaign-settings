@@ -2338,3 +2338,123 @@ Config: `testDir: "./e2e"`, `webServer` pointing at `pnpm dev`, `baseURL: "http:
 **TD-45 done (2026-08-04):** page-level route components (`app/[locale]/dashboard/**`, `app/ui/geography/WorldMap.tsx`) had no coverage target and 0% coverage. 10 new test files cover the repeated shapes once each rather than per domain — `error.tsx`/`not-found.tsx`/`loading.tsx`/`layout.tsx`, the overview page, the public list-page pattern (`spells/page.tsx` stands in for `deities`/`magicitems`/`npc`), the admin list-page pattern (`admin/spells/page.tsx`), the admin "new item" pattern (`admin/spells/new/page.tsx`), `geography/page.tsx`'s map-switcher state, and `WorldMap.tsx`'s own bootstrap effect and POI-selection flow (its child components and hooks are stubbed — each already has its own suite; five components and four hooks after TD-46's cleanup removed two that were dead, not unwired). 27 new tests; suite grew 682 → 709.
 
 **`coverage.all` investigated, found moot (TD-44, 2026-08-02):** the plan was to flip `coverage.all: true` to remove the v8 provider's suspected blind spot — without it, a file no test ever imports doesn't appear in the report at all, so the denominator could in principle be silently undercounting the codebase. Trying it on Vitest 3 first produced byte-identical totals (3289 lines) with the flag on or off; on this repo's Vitest 4.1.10 the option doesn't even compile anymore, because `CoverageOptions` dropped it — "instrument every `include`d file regardless of import" is now unconditional default behaviour, not an opt-in. So there was no blind spot to remove and nothing to set in `vitest.config.ts`. What the full picture _did_ surface, cleanly, is two directories nothing has a target for: page-level route components and `app/modules/maps/components/**` (Leaflet rendering) — filed as TD-45 and TD-46.
+
+---
+
+## Phase 4 — Session tooling
+
+### TD-88 ✅ The sidebar cannot scroll, so the last nav items (logout, locale) are unreachable — **DONE (2026-08-18)**
+
+**Outcome:** one class added to the sidenav's own column, `md:overflow-y-auto`, alongside the layout column's existing `md:overflow-hidden` (left untouched, so the page itself still does not scroll — [PR #183](https://github.com/pastorello/nextjs-campaign-settings/pull/183)).
+
+**The bottom-pinning trap the write-up warned about was checked, not assumed.** Rather than eyeballing it in a browser, the actual pinning mechanism was traced in the markup: a `grow` spacer between the nav links and the locale-switcher/sign-out controls — and its parent column, also `grow` — push the bottom controls down regardless of list length, independent of `overflow`. `sidenav.test.tsx` (new) asserts both elements still carry `grow` and that the spacer is immediately followed by the locale switcher then the sign-out form, so a future change that breaks the pin by _reordering_ rather than by removing a class still fails the test. `layout.test.tsx` was extended to assert the page-level `md:overflow-hidden` survives.
+
+The original description follows.
+
+---
+
+### TD-88 (original) 🟠 The sidebar cannot scroll, so the last nav items (logout, locale) are unreachable
+
+The dashboard sidebar is `flex h-full flex-col py-4 px-2` (`app/ui/dashboard/sidenav.tsx:13`)
+inside a layout column that is `h-screen ... md:overflow-hidden`
+(`app/[locale]/dashboard/layout.tsx:5`). Nothing in that chain scrolls. While the
+nav was short this was invisible; now that the sections have grown past the
+viewport, the items at the bottom — **sign-out and the locale switcher** — are
+clipped away with no way to reach them.
+
+**The fix, in shape:** let the nav's own column scroll (`md:overflow-y-auto` on
+the sidebar container), keeping the layout's `md:overflow-hidden` so the page
+itself still does not. Check that the sign-out block stays pinned to the bottom
+when the list is short — `mt-auto`/`grow` spacing there is doing that job today
+and a naive overflow change can break it.
+
+**Not the same bug as TD-84**, though they rhyme: this one is a missing scroll
+container, that one is a wrong height. Fixing either does not fix the other.
+
+---
+
+### TD-89 / TD-90 ✅ Card disclosure chevrons — wrong ancestor, wrong rotation target — **DONE (2026-08-18)**
+
+**Outcome:** both fixed together, as the write-up asked, across every card with the pattern — [PR #184](https://github.com/pastorello/nextjs-campaign-settings/pull/184), two commits (one per root cause). `NpcCard` gained the missing `group` ancestor; all five cards now rotate `flex h-10 w-10 items-center justify-center`-boxed icons rather than a non-square wrapper, with `transition-transform` added so it reads as a turn.
+
+**The check-the-neighbours instruction found a real, unreported bug.** `SpellCard` and `FactionCard` both had the exact TD-90 defect — a bare `w-[40px]` div rotated instead of the icon inside it — even though nothing had been reported about either. Neither had the TD-89 defect (both already carried `group` on their `DisclosureButton`). Fixed identically to `DeityCard`/`MagicItemCard`, so all five cards now share one shape.
+
+**Verification discipline:** each new/extended test was confirmed to fail against the pre-fix source by stashing only the `.tsx` sources while keeping the new tests, then re-running — all five test files failed as expected before the fix, confirming genuine regression coverage rather than tests that happened to pass either way.
+
+The original descriptions follow.
+
+---
+
+### TD-89 (original) 🟢 `NpcCard`'s chevron never rotates — the `group-*` variant has no marked ancestor
+
+`NpcCard`'s disclosure arrow stays pointing down whether the card is open or
+closed. The class is there — `group-data-open:rotate-180` (`NpcCard.tsx:97`) —
+but it cannot ever match: a `group-*` variant needs an ancestor carrying the
+`group` class, and `NpcCard`'s `DisclosureButton` does not have one.
+`DeityCard.tsx:47` and `MagicItemCard.tsx:22` both do (`className="... group"`),
+which is precisely why their arrows move and this one does not. The class is
+also on the button itself here rather than on the icon, where the other two put
+it.
+
+**The fix, in shape:** mark the ancestor `group` and move the rotation onto the
+chevron, matching the other two cards — then fix all three the same way per
+TD-90, since the shape those two use is itself wrong.
+
+### TD-90 (original) 🟢 `DeityCard`/`MagicItemCard` rotate a non-square wrapper, so the chevron shifts instead of turning in place
+
+Both cards wrap the chevron in `<div className="w-[40px] group-data-open:rotate-180">`
+(`DeityCard.tsx:113`, `MagicItemCard.tsx:50`) and rotate **the wrapper**. The
+wrapper is 40px wide but takes its height from the icon and does not centre it,
+so a 180° turn about the box's centre lands the glyph somewhere else — the DM
+sees it slide toward the edge rather than pivot.
+
+**The fix, in shape:** rotate the icon, not the box, and give the box a square,
+centred geometry (`flex h-10 w-10 items-center justify-center`) so the pivot and
+the glyph share a centre. Add `transition-transform` while there, so it reads as
+a turn rather than a jump.
+
+**Do TD-89 and TD-90 as one change across all three cards** — same file shape,
+same fix, and leaving them inconsistent is how the divergence happened in the
+first place. `SpellCard` and `FactionCard` have the same disclosure pattern and
+should be checked in the same pass even though nothing has been reported about
+them.
+
+---
+
+### TD-91 / TD-92 ✅ Dashboard counts four domains of six, and none of the cards are clickable — **DONE (2026-08-18)**
+
+**Outcome:** [PR #187](https://github.com/pastorello/nextjs-campaign-settings/pull/187), two commits. `fetchCardData` gained `prisma.zone.count()` and `prisma.faction.count()` in the same `Promise.all`; every card now wraps in the locale-aware `Link` from `@/i18n/navigation`, pointing at `/dashboard/magicitems`, `/dashboard/npc`, `/dashboard/spells`, `/dashboard/deities`, `/dashboard/geography` (places — the route predates the card and was never renamed) and `/dashboard/factions`, each verified to have a real `page.tsx` before being wired.
+
+**The DM's decision on TD-91's open question:** count every place in the tree, not only positioned ones — the `zone.count()` call carries no filter.
+
+**A pre-existing test needed a companion fix, not a workaround.** `__test__/data/errorPropagation.test.ts`'s prisma mock builds its count array eagerly; adding two new `count()` calls to `fetchCardData` meant the mock needed `zone`/`faction` stubs too, or the pre-existing DB-unreachable propagation test threw before it ever reached the rejection it was testing for. Stubs added, not the assertion loosened.
+
+The original descriptions follow.
+
+---
+
+### TD-91 (original) 🟡 The dashboard counts four domains of six — places and factions were never added
+
+`fetchCardData` (`app/lib/data/fetchCardData.ts`) counts magic items, NPCs,
+spells and deities. Places and factions — both of which now exist as full
+domains (SPEC-004, SPEC-006) — are missing, so the dashboard silently
+under-reports what the campaign contains. Neither spec added the count when it
+shipped.
+
+**The fix, in shape:** two more `prisma.*.count()` calls in the same
+`Promise.all`, two more `Card`s in `CardWrapper` (`app/ui/dashboard/cards.tsx`),
+and the two message keys in **both** `messages/it.json` and `messages/en.json`
+(a key in one and not the other fails CI's key-set check). Check what "places"
+should count — every place in the tree, or only positioned ones — before
+writing the query; TD-79 is about exactly that ambiguity elsewhere.
+
+### TD-92 (original) 🟢 The dashboard's cards are not clickable, so the counts lead nowhere
+
+`Card` (`app/ui/dashboard/cards.tsx:37`) renders a static tile. Seeing "142
+spells" and wanting to go to the spells list is the obvious next move, and there
+is nothing to click.
+
+**The fix, in shape:** wrap each card in the locale-aware `Link` from
+`@/i18n/navigation` (not `next/link` — the locale segment matters, TD-21) and
+point it at that domain's list page. Do this after TD-91, so the two new cards
+get their links in the same pass rather than being added and then linked.

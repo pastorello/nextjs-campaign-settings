@@ -1,6 +1,6 @@
 # Project State — Campaign Settings
 
-**Last updated:** 2026-08-17
+**Last updated:** 2026-08-18
 **Status:** Working prototype, not production-ready
 **Phase:** 4 (session tooling) — Phases 1–3 are complete; see [`ROADMAP.md`](./ROADMAP.md)
 **Goal of the current phase:** move from reference material to something used _during_ a session — encounter builder, initiative tracker, session notes, quick-reference panel, dice roller, random generators. See [`ROADMAP.md`](./ROADMAP.md) for the full list.
@@ -11,16 +11,19 @@
 
 ## 1. What this project is
 
-A self-hosted web app for a Dungeon Master to manage a D&D 5e campaign setting: the reference material of a homebrew world. It is a CRUD dashboard over six domains:
+A self-hosted web app for a Dungeon Master to manage a D&D 5e campaign setting: the reference material of a homebrew world. It is a CRUD dashboard over seven domains, plus an interactive world map:
 
 | Domain      | Name in code | Description                                                                                    |
 | ----------- | ------------ | ---------------------------------------------------------------------------------------------- |
 | Spells      | `spells`     | Spell compendium with level, subclasses (`circle`), classes, casting time, range, duration     |
-| Magic items | `magicitems` | Items with rarity, type, attunement flag                                                       |
+| Magic items | `magicitems` | Items with rarity, type, attunement flag, and (SPEC-013) a consumable/permanent flag           |
 | NPCs        | `npc`        | Name, title, role, alignment, faction, location, appearance, personality, motivations, secrets |
 | Deities     | `deities`    | Patrons with rank, tarot card, celestial body, element, tradition, alignment, divine residence |
 | Factions    | `faction`    | Organizations and groups with descriptions, rosters of NPCs                                    |
+| Treasure    | `treasure`   | SPEC-013's catalogue of non-magical valuables — coins, art objects, gems, trade goods          |
 | Geography   | `geography`  | Interactive world map (Leaflet) with POIs, measurement, tile switching                         |
+
+**Campaign management (SPEC-013) is underway, outside this table.** `campaign`, `adventure`, `scene`, `sceneCreature` and `loot` are Phase 4 additions with their own shape — `scene`/`sceneCreature`/`loot` are ordered inline collections deliberately kept outside the metadata layer ([ADR-0011](./adr/0011-inline-collections-outside-the-metadata-layer.md)), not a domain in the table above. Schema and vocabularies are done (T2, T3); the campaign and adventure pages are not yet built.
 
 **Identifiers are English; the UI ships bilingual (Italian + English).** See [ADR-0005](./adr/0005-english-identifiers.md), implemented as TD-19 on 2026-07-30, and [ADR-0006](./adr/0006-bilingual-ui.md), implemented as TD-21 — copy lives in `messages/{it,en}.json`, not in JSX. Postgres columns keep their Italian names, decoupled from the code by Prisma `@map` (`name @map("nome")`) — so raw SQL and `psql` still show `nome`, `descrizione`, `livello`.
 

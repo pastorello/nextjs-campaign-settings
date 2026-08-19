@@ -513,10 +513,10 @@ closed it on 2026-08-18.
 ## 10. Task breakdown
 
 - [x] **T1** — ADR-0011: ordered inline collections outside the metadata layer. **Done 2026-08-18.** _(no test; decision artefact, blocked T4/T8)_
-- [ ] **T2** — Schema + migration: the six tables, `magicitems.consumable`, and its backfill from `type`. _(test: migration applies to an empty database; relations null rather than cascade where §6 says so; the backfill sets scroll and potion consumable and nothing else)_
-- [ ] **T3** — Definitions: the three closed vocabularies and their interfaces. _(test: vocabulary membership validators)_
+- [x] **T2** — Schema + migration: the six tables, `magicitems.consumable`, and its backfill from `type`. **Done 2026-08-18** ([PR #181](https://github.com/pastorello/nextjs-campaign-settings/pull/181)). _(test: migration applies to an empty database; relations null rather than cascade where §6 says so; the backfill sets scroll and potion consumable and nothing else)_
+- [x] **T3** — Definitions: the three closed vocabularies and their interfaces. **Done 2026-08-18** ([PR #180](https://github.com/pastorello/nextjs-campaign-settings/pull/180)). _(test: vocabulary membership validators)_
 - [ ] **T4** — Metadata for `campaign`, `adventure` and `magicitems.consumable`. _(test: each field declares `fieldType`, `controlType`, `validator`, `getDatum`, as the existing domain metadata tests assert)_
-- [ ] **T4b** — The treasure catalogue as the seventh domain: metadata, list, form, filters. _(test: the same suite shape the other six domains have — CRUD, validation, unauthenticated rejection)_
+- [x] **T4b** — The treasure catalogue as the seventh domain: metadata, list, form, filters. **Done 2026-08-18** ([PR #185](https://github.com/pastorello/nextjs-campaign-settings/pull/185)). _(test: the same suite shape the other six domains have — CRUD, validation, unauthenticated rejection)_
 - [ ] **T5** — Data layer: campaign, adventure-with-scenes, the budget totals and the silver/gold conversion. _(test: the three disjoint inventories against a fixture mixing magic, catalogue and unlinked loot; unset target is not zero; a gold-displayed amount round-trips)_
 - [ ] **T6** — Server actions: CRUD and reorder, auth-guarded and validated. _(test: unauthenticated rejection and invalid-input rejection for each)_
 - [ ] **T7** — Campaign page: creation, ladder, status. _(test: empty state, position ordering)_

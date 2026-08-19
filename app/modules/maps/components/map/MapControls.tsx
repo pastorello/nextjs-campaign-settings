@@ -2,6 +2,7 @@
 "use client";
 
 import { memo, useState, useEffect, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { Plus, Minus, Maximize2, Minimize2 } from "lucide-react";
 import { useMapControls } from "@/app/modules/maps/hooks/useMapControls";
 import { useGeolocation } from "@/app/modules/maps/hooks/useGeolocation";
@@ -29,6 +30,9 @@ export const MapControls = memo(function MapControls({
     useMapControls();
   const { locateUser, isLocating, isAvailable } = useGeolocation();
   const [isFullscreen, setIsFullscreen] = useState(false);
+  // TD-95 — these four tooltips were still hardcoded English, the same
+  // drift `MapPOIPanel` had, found while sweeping this file's neighbours.
+  const t = useTranslations("geography.mapControls");
 
   // Listen for fullscreen changes
   useEffect(() => {
@@ -52,8 +56,8 @@ export const MapControls = memo(function MapControls({
           onClick={zoomIn}
           disabled={!map}
           className="flex h-9 w-9 items-center justify-center border-b border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Zoom in"
-          aria-label="Zoom in"
+          title={t("zoomIn")}
+          aria-label={t("zoomIn")}
         >
           <Plus className="h-5 w-5 text-gray-600 dark:text-gray-100" />
         </button>
@@ -61,8 +65,8 @@ export const MapControls = memo(function MapControls({
           onClick={zoomOut}
           disabled={!map}
           className="flex h-9 w-9 items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Zoom out"
-          aria-label="Zoom out"
+          title={t("zoomOut")}
+          aria-label={t("zoomOut")}
         >
           <Minus className="h-5 w-5 text-gray-600 dark:text-gray-100" />
         </button>
@@ -73,8 +77,8 @@ export const MapControls = memo(function MapControls({
         onClick={resetView}
         disabled={!map}
         className="flex h-9 w-9 items-center justify-center rounded bg-white dark:bg-slate-700 shadow-lg hover:bg-gray-50 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
-        title="Reset view"
-        aria-label="Reset view to default"
+        title={t("resetView")}
+        aria-label={t("resetView")}
       >
         <svg
           className="h-5 w-5 text-gray-600 dark:text-gray-100"
@@ -94,8 +98,8 @@ export const MapControls = memo(function MapControls({
       <button
         onClick={toggleFullscreen}
         className="flex h-9 w-9 items-center justify-center rounded bg-white dark:bg-slate-700 shadow-lg hover:bg-gray-50 dark:hover:bg-slate-600"
-        title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-        aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+        title={isFullscreen ? t("exitFullscreen") : t("enterFullscreen")}
+        aria-label={isFullscreen ? t("exitFullscreen") : t("enterFullscreen")}
       >
         {isFullscreen ? (
           <Minimize2 className="h-5 w-5 text-gray-600 dark:text-gray-100" />

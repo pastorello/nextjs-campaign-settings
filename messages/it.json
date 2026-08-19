@@ -487,6 +487,7 @@
       "title": "Geografia"
     },
     "up": "Sali",
+    "loadingMap": "Caricamento della mappa…",
     "unpositionedCount": "{count, plural, =0 {Tutti i luoghi sono posizionati} one {# luogo non ancora posizionato} other {# luoghi non ancora posizionati}}",
     "noWorldYet": "Non hai ancora creato il tuo mondo.",
     "createWorldLink": "Crea il tuo mondo",
@@ -506,13 +507,18 @@
     "mapOptions": {
       "trigger": "Opzioni mappa"
     },
+    "mapControls": {
+      "zoomIn": "Aumenta zoom",
+      "zoomOut": "Riduci zoom",
+      "resetView": "Ripristina vista",
+      "enterFullscreen": "Attiva schermo intero",
+      "exitFullscreen": "Esci da schermo intero"
+    },
     "contextMenu": {
       "ariaLabel": "Menu contestuale della mappa",
-      "copyCoordinates": "Copia coordinate",
-      "copiedLabel": "Copiato!",
       "addMarker": {
-        "trigger": "Aggiungi marker",
-        "sublabel": "Posiziona un marker qui"
+        "trigger": "Aggiungi un marker temporaneo",
+        "sublabel": "Scompare al ricaricamento della pagina"
       },
       "measure": {
         "trigger": "Misura",
@@ -521,7 +527,13 @@
       "addPlace": {
         "trigger": "Aggiungi luogo",
         "sublabel": "Crea un luogo qui"
+      },
+      "positionPlace": {
+        "trigger": "Posiziona luogo"
       }
+    },
+    "temporaryMarkers": {
+      "clear": "{count, plural, one {Rimuovi il marker temporaneo} other {Rimuovi # marker temporanei}}"
     },
     "deletePlace": {
       "trigger": "Elimina questa mappa",
@@ -561,6 +573,13 @@
       "poiSaveFailed": "Impossibile salvare «{title}». La modifica è stata annullata.",
       "poiDeleteFailed": "Impossibile eliminare «{title}». Il luogo è stato ripristinato.",
       "placePositionFailed": "Impossibile posizionare «{title}». Riprova."
+    },
+    "poiPanel": {
+      "title": "Luoghi di interesse",
+      "clear": "Svuota",
+      "clearCoordinates": "Cancella le coordinate",
+      "unplacedCount": "{count, plural, one {# luogo non posizionato} other {# luoghi non posizionati}}",
+      "clearedToast": "{count, plural, one {Eliminato # luogo} other {Eliminati # luoghi}}"
     },
     "maps": {
       "planesOfExistence": "Piani di Esistenza",

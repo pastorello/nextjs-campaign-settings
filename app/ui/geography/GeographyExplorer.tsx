@@ -38,8 +38,10 @@ export default function GeographyExplorer({
 }: {
   root: RootPlace;
   // Tree-wide, not scoped to the place in view (SPEC-007 T2) — how much of
-  // the world is still undrawn. Rendered even at zero: its absence would be
-  // ambiguous with "not computed" (SPEC-007 §5 edge cases).
+  // the world is still undrawn. Passed straight through to `WorldMap`,
+  // which shows it beside the context menu's "Posiziona luogo" entry
+  // (TD-85) rather than as a header label here — a number with no action
+  // attached to it was noise (DM, 2026-08-18).
   unpositionedCount: number;
   // A pre-built root-to-place chain (SPEC-011 T4), from a cross-entity
   // place search result — landing the DM directly on that place's own map
@@ -89,9 +91,6 @@ export default function GeographyExplorer({
     <div className="flex h-full flex-col overflow-hidden">
       <div className="mb-4 flex flex-none items-center gap-4">
         <PageTitle>{current.title}</PageTitle>
-        <span className="text-sm text-gray-500 dark:text-gray-400">
-          {t("unpositionedCount", { count: unpositionedCount })}
-        </span>
       </div>
       <div className="relative w-full flex-1 min-h-0">
         {/* Anchored to the map itself, not the header row above it (TD-83)
@@ -122,6 +121,7 @@ export default function GeographyExplorer({
               onDescend={handleDescend}
               onMapChanged={handleMapChanged}
               onDeleted={handleDeleted}
+              unpositionedCount={unpositionedCount}
             />
             <MapLoadingSpinner />
           </MapProvider>

@@ -1,4 +1,10 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { toast } from "sonner";
 
@@ -32,6 +38,8 @@ let onAddPOI: ((lat: number, lng: number) => void) | undefined;
 let onEditArea: (() => void) | undefined;
 let onAddSubMap: (() => void) | undefined;
 let onAttachEntity: (() => void) | undefined;
+let onContextMenuPositionPlace:
+  ((id: number, lat: number, lng: number) => void) | undefined;
 vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
   MapContextMenu: (props: {
     onAddPOI: (lat: number, lng: number) => void;
@@ -41,17 +49,23 @@ vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
     showEditArea?: boolean;
     onAddSubMap?: () => void;
     onAttachEntity?: () => void;
+    unplacedPlaces?: { id: number; title: string; kind: string }[];
+    unpositionedCount?: number;
+    onPositionPlace?: (id: number, lat: number, lng: number) => void;
   }) => {
     onAddPOI = props.onAddPOI;
     onEditArea = props.onEditArea;
     onAddSubMap = props.onAddSubMap;
     onAttachEntity = props.onAttachEntity;
+    onContextMenuPositionPlace = props.onPositionPlace;
     return (
       <div
         data-testid="map-context-menu"
         data-open={props.isOpen}
         data-hide-add-place={props.hideAddPlace ?? false}
         data-show-edit-area={props.showEditArea ?? false}
+        data-unplaced-places-count={props.unplacedPlaces?.length ?? 0}
+        data-unpositioned-count={props.unpositionedCount ?? 0}
       />
     );
   },
@@ -184,8 +198,13 @@ const useMapContextMenu = vi.fn(() => ({
 vi.mock("@/app/modules/maps/hooks/useMapContextMenu", () => ({
   useMapContextMenu: () => useMapContextMenu(),
 }));
+const useMapMarkers = vi.fn(() => ({
+  markers: [] as { id: string; lat: number; lng: number }[],
+  addMarker: vi.fn(),
+  clearMarkers: vi.fn(),
+}));
 vi.mock("@/app/modules/maps/hooks/useMapMarkers", () => ({
-  useMapMarkers: () => ({ addMarker: vi.fn() }),
+  useMapMarkers: () => useMapMarkers(),
 }));
 const reloadPOIs = vi.fn();
 vi.mock("@/app/modules/maps/hooks/usePOIManager", () => ({
@@ -302,7 +321,7 @@ const onDescend = vi.fn();
  * interim (pre-load) or the load-triggered reframing call `render` directly
  * instead and drive `imageOnLoad` themselves.
  */
-async function renderMap(mapUrl = "/maps/test.jpg") {
+async function renderMap(mapUrl = "/maps/test.jpg", unpositionedCount = 0) {
   render(
     <WorldMap
       parentId={1}
@@ -316,6 +335,7 @@ async function renderMap(mapUrl = "/maps/test.jpg") {
       onDescend={onDescend}
       onMapChanged={vi.fn()}
       onDeleted={vi.fn()}
+      unpositionedCount={unpositionedCount}
     />
   );
   await waitFor(() => {
@@ -349,6 +369,11 @@ beforeEach(() => {
     close: vi.fn(),
     runWithoutClosing,
   });
+  useMapMarkers.mockReturnValue({
+    markers: [],
+    addMarker: vi.fn(),
+    clearMarkers: vi.fn(),
+  });
 });
 
 describe("WorldMap", () => {
@@ -366,6 +391,7 @@ describe("WorldMap", () => {
         onDescend={onDescend}
         onMapChanged={vi.fn()}
         onDeleted={vi.fn()}
+        unpositionedCount={0}
       />
     );
     await waitFor(() => {
@@ -403,6 +429,7 @@ describe("WorldMap", () => {
         onDescend={onDescend}
         onMapChanged={vi.fn()}
         onDeleted={vi.fn()}
+        unpositionedCount={0}
       />
     );
     await waitFor(() => {
@@ -449,6 +476,7 @@ describe("WorldMap", () => {
         onDescend={onDescend}
         onMapChanged={vi.fn()}
         onDeleted={vi.fn()}
+        unpositionedCount={0}
       />
     );
     await waitFor(() => {
@@ -496,6 +524,7 @@ describe("WorldMap", () => {
         onDescend={vi.fn()}
         onMapChanged={vi.fn()}
         onDeleted={vi.fn()}
+        unpositionedCount={0}
       />
     );
 
@@ -1191,6 +1220,108 @@ describe("WorldMap — resizing and moving an existing area (SPEC-009 T5)", () =
   });
 });
 
+describe("WorldMap — dismissing temporary markers (TD-86)", () => {
+  it("shows no clear control when there are no temporary markers", async () => {
+    await renderMap();
+    expect(screen.queryByText("clear")).not.toBeInTheDocument();
+  });
+
+  it("shows a clear control once a temporary marker exists, for every viewer (not DM-gated)", async () => {
+    useMapMarkers.mockReturnValue({
+      markers: [{ id: "marker-1", lat: 1, lng: 2 }],
+      addMarker: vi.fn(),
+      clearMarkers: vi.fn(),
+    });
+    await renderMap();
+
+    expect(screen.getByText("clear")).toBeInTheDocument();
+  });
+
+  it("calls clearMarkers when the clear control is clicked", async () => {
+    const clearMarkers = vi.fn();
+    useMapMarkers.mockReturnValue({
+      markers: [{ id: "marker-1", lat: 1, lng: 2 }],
+      addMarker: vi.fn(),
+      clearMarkers,
+    });
+    await renderMap();
+
+    fireEvent.click(screen.getByText("clear"));
+
+    expect(clearMarkers).toHaveBeenCalled();
+  });
+});
+
+describe("WorldMap — positioning a place from the context menu (TD-85)", () => {
+  it("passes this place's unplaced children and the tree-wide count through to the context menu", async () => {
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    ]);
+    await renderMap("/maps/test.jpg", 7);
+
+    expect(screen.getByTestId("map-context-menu")).toHaveAttribute(
+      "data-unplaced-places-count",
+      "1"
+    );
+    expect(screen.getByTestId("map-context-menu")).toHaveAttribute(
+      "data-unpositioned-count",
+      "7"
+    );
+  });
+
+  it("positions the chosen place at the point the context menu was opened over, sending only id/lat/lng", async () => {
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    ]);
+    await renderMap();
+
+    act(() => {
+      onContextMenuPositionPlace?.(5, 10, 20);
+    });
+
+    await waitFor(() => {
+      expect(updateZonePosition).toHaveBeenCalledWith({
+        id: 5,
+        lat: 10,
+        lng: 20,
+      });
+    });
+  });
+
+  it("bumps the navigable refetch token after a successful context-menu positioning", async () => {
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    ]);
+    await renderMap();
+    const tokenBefore = useNavigableChildren.mock.calls.at(-1)?.[2];
+
+    act(() => {
+      onContextMenuPositionPlace?.(5, 10, 20);
+    });
+
+    await waitFor(() => {
+      const tokenAfter = useNavigableChildren.mock.calls.at(-1)?.[2];
+      expect(tokenAfter).not.toBe(tokenBefore);
+    });
+  });
+
+  it("toasts and does not refetch when the update fails", async () => {
+    updateZonePosition.mockResolvedValue({ ok: false });
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    ]);
+    await renderMap();
+
+    act(() => {
+      onContextMenuPositionPlace?.(5, 10, 20);
+    });
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("placePositionFailed");
+    });
+  });
+});
+
 describe("WorldMap — sized to its container, not the viewport (TD-84)", () => {
   it("fills the height its parent gives it instead of declaring its own full-viewport height", async () => {
     const { container } = render(
@@ -1206,6 +1337,7 @@ describe("WorldMap — sized to its container, not the viewport (TD-84)", () => 
         onDescend={onDescend}
         onMapChanged={vi.fn()}
         onDeleted={vi.fn()}
+        unpositionedCount={0}
       />
     );
     await waitFor(() => {
@@ -1245,6 +1377,7 @@ describe("WorldMap — the zoom floor leaves room to zoom out (TD-87)", () => {
         onDescend={onDescend}
         onMapChanged={vi.fn()}
         onDeleted={vi.fn()}
+        unpositionedCount={0}
       />
     );
     await waitFor(() => {
@@ -1302,6 +1435,7 @@ describe("WorldMap — the zoom floor leaves room to zoom out (TD-87)", () => {
         onDescend={onDescend}
         onMapChanged={vi.fn()}
         onDeleted={vi.fn()}
+        unpositionedCount={0}
       />
     );
     await waitFor(() => {

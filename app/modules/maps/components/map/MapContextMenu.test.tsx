@@ -1,10 +1,4 @@
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-  act,
-} from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { MapContextMenu } from "./MapContextMenu";
@@ -68,7 +62,7 @@ describe("MapContextMenu", () => {
     expect(container2).toBeEmptyDOMElement();
   });
 
-  it("shows Add Marker, Measure and Copy Coordinates, but not Add Place without onAddPOI", () => {
+  it("shows Add Marker and Measure, but not Add Place without onAddPOI", () => {
     render(
       <MapContextMenu
         isOpen
@@ -81,8 +75,13 @@ describe("MapContextMenu", () => {
 
     expect(screen.getByText("Add Marker")).toBeInTheDocument();
     expect(screen.getByText("Measure")).toBeInTheDocument();
-    expect(screen.getByText("Copy Coordinates")).toBeInTheDocument();
     expect(screen.queryByText("Add Place")).not.toBeInTheDocument();
+  });
+
+  it("never shows Copy Coordinates — the entry is gone (TD-96)", () => {
+    renderMenu();
+    expect(screen.queryByText("Copy Coordinates")).not.toBeInTheDocument();
+    expect(screen.queryByText("Copia coordinate")).not.toBeInTheDocument();
   });
 
   it("shows Add Place when onAddPOI is provided", () => {
@@ -96,7 +95,6 @@ describe("MapContextMenu", () => {
     // Unaffected entries stay.
     expect(screen.getByText("Add Marker")).toBeInTheDocument();
     expect(screen.getByText("Measure")).toBeInTheDocument();
-    expect(screen.getByText("Copy Coordinates")).toBeInTheDocument();
   });
 
   it("calls onAddMarker with the clicked coordinates, then closes", () => {
@@ -124,20 +122,6 @@ describe("MapContextMenu", () => {
 
     expect(onAddPOI).toHaveBeenCalledWith(12.3456, 65.4321);
     expect(onClose).toHaveBeenCalled();
-  });
-
-  it("copies the formatted coordinates to the clipboard and shows feedback", async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    Object.assign(navigator, { clipboard: { writeText } });
-
-    renderMenu();
-
-    fireEvent.click(screen.getByText("Copy Coordinates"));
-
-    await waitFor(() => {
-      expect(writeText).toHaveBeenCalledWith("12.345600, 65.432100");
-    });
-    expect(await screen.findByText("Copied!")).toBeInTheDocument();
   });
 
   it("does not show Add sub-map or Attach entity without their handlers (usability fix, 2026-08-17)", () => {
@@ -230,8 +214,6 @@ describe("MapContextMenu", () => {
 
   it("renders translated copy for the always-shown items when provided, in place of the English defaults", () => {
     renderMenu({
-      copyCoordinatesLabel: "Copia coordinate",
-      copiedLabel: "Copiato!",
       addMarkerLabel: "Aggiungi marker",
       addMarkerSublabel: "Posiziona un marker qui",
       measureLabel: "Misura",
@@ -241,7 +223,6 @@ describe("MapContextMenu", () => {
       ariaLabel: "Menu contestuale della mappa",
     });
 
-    expect(screen.getByText("Copia coordinate")).toBeInTheDocument();
     expect(screen.getByText("Aggiungi marker")).toBeInTheDocument();
     expect(screen.getByText("Posiziona un marker qui")).toBeInTheDocument();
     expect(screen.getByText("Misura")).toBeInTheDocument();
@@ -253,21 +234,9 @@ describe("MapContextMenu", () => {
     expect(
       screen.getByRole("menu", { name: "Menu contestuale della mappa" })
     ).toBeInTheDocument();
-    expect(screen.queryByText("Copy Coordinates")).not.toBeInTheDocument();
     expect(screen.queryByText("Add Marker")).not.toBeInTheDocument();
     expect(screen.queryByText("Measure")).not.toBeInTheDocument();
     expect(screen.queryByText("Add Place")).not.toBeInTheDocument();
-  });
-
-  it("shows translated 'copied' feedback when copiedLabel is provided", async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    Object.assign(navigator, { clipboard: { writeText } });
-
-    renderMenu({ copiedLabel: "Copiato!" });
-
-    fireEvent.click(screen.getByText("Copy Coordinates"));
-
-    expect(await screen.findByText("Copiato!")).toBeInTheDocument();
   });
 
   it("falls back to the English defaults when no translated copy is provided", () => {
@@ -289,6 +258,114 @@ describe("MapContextMenu", () => {
     expect(onClose).not.toHaveBeenCalled();
 
     fireEvent.mouseDown(document.body);
+    expect(onClose).toHaveBeenCalled();
+  });
+});
+
+describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
+  const unplacedPlaces = [
+    { id: 5, title: "Kingdom of Kang", kind: "region" as const },
+    { id: 6, title: "Skreebars", kind: "city" as const },
+  ];
+
+  it("does not show the entry without onPositionPlace", () => {
+    renderMenu();
+    expect(screen.queryByText("Position a place")).not.toBeInTheDocument();
+  });
+
+  it("shows the entry, translated, when onPositionPlace is provided", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedPlaces,
+      unpositionedCount: 2,
+      positionPlaceLabel: "Posiziona luogo",
+    });
+    expect(screen.getByText("Posiziona luogo")).toBeInTheDocument();
+  });
+
+  it("hides the entry inside an existing area, the same containment rule as Add Place", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedPlaces,
+      unpositionedCount: 2,
+      hideAddPlace: true,
+    });
+    expect(screen.queryByText("Position a place")).not.toBeInTheDocument();
+  });
+
+  it("is disabled when unpositionedCount is zero, so it stays visible rather than vanishing", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedPlaces: [],
+      unpositionedCount: 0,
+    });
+
+    const trigger = screen.getByText("Position a place").closest("button")!;
+    expect(trigger).toBeDisabled();
+  });
+
+  it("is enabled when unpositionedCount is greater than zero", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedPlaces,
+      unpositionedCount: 2,
+    });
+
+    const trigger = screen.getByText("Position a place").closest("button")!;
+    expect(trigger).not.toBeDisabled();
+  });
+
+  it("shows the count as the entry's sublabel when given", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedPlaces,
+      unpositionedCount: 2,
+      positionPlaceSublabel: "2 luoghi non ancora posizionati",
+    });
+    expect(
+      screen.getByText("2 luoghi non ancora posizionati")
+    ).toBeInTheDocument();
+  });
+
+  it("expands a dropdown of the unplaced places when clicked", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedPlaces,
+      unpositionedCount: 2,
+    });
+
+    expect(screen.queryByText("Kingdom of Kang")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Position a place"));
+
+    expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
+    expect(screen.getByText("Skreebars")).toBeInTheDocument();
+  });
+
+  it("does nothing when the disabled entry is clicked — no dropdown opens", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedPlaces: [],
+      unpositionedCount: 0,
+    });
+
+    fireEvent.click(screen.getByText("Position a place"));
+
+    expect(screen.queryByText("Kingdom of Kang")).not.toBeInTheDocument();
+  });
+
+  it("positions the picked place at the point the menu was opened over, then closes", () => {
+    const onPositionPlace = vi.fn();
+    const { onClose } = renderMenu({
+      onPositionPlace,
+      unplacedPlaces,
+      unpositionedCount: 2,
+    });
+
+    fireEvent.click(screen.getByText("Position a place"));
+    fireEvent.click(screen.getByText("Kingdom of Kang"));
+
+    expect(onPositionPlace).toHaveBeenCalledWith(5, 12.3456, 65.4321);
     expect(onClose).toHaveBeenCalled();
   });
 });

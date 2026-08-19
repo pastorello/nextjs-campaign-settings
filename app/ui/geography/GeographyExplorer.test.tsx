@@ -34,6 +34,7 @@ interface CapturedWorldMapProps {
   }) => void;
   onMapChanged: (mapImage: string) => void;
   onDeleted: () => void;
+  unpositionedCount: number;
 }
 
 let capturedProps: CapturedWorldMapProps | null = null;
@@ -101,17 +102,23 @@ function ascend() {
   });
 }
 
-describe("GeographyExplorer — unpositioned count (SPEC-007 T2)", () => {
-  it("renders the count beside the title", () => {
+describe("GeographyExplorer — unpositioned count (SPEC-007 T2; moved off the header by TD-85)", () => {
+  it("no longer renders the count as its own header label", () => {
     render(<GeographyExplorer root={root} unpositionedCount={42} />);
 
-    expect(screen.getByText("unpositionedCount")).toBeInTheDocument();
+    // The bare count/plural string used to render directly in the header;
+    // TD-85 moved it into the context menu's "Posiziona luogo" entry
+    // instead — a label with no action attached to it was noise (DM,
+    // 2026-08-18).
+    expect(screen.queryByText("unpositionedCount")).not.toBeInTheDocument();
   });
 
-  it("still renders when every place is positioned, rather than hiding", () => {
-    render(<GeographyExplorer root={root} unpositionedCount={0} />);
+  it("passes the count straight through to WorldMap, whatever its value", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={42} />);
+    expect(capturedProps?.unpositionedCount).toBe(42);
 
-    expect(screen.getByText("unpositionedCount")).toBeInTheDocument();
+    render(<GeographyExplorer root={root} unpositionedCount={0} />);
+    expect(capturedProps?.unpositionedCount).toBe(0);
   });
 });
 

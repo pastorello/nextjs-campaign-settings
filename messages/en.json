@@ -487,6 +487,7 @@
       "title": "Geography"
     },
     "up": "Up",
+    "loadingMap": "Loading map…",
     "unpositionedCount": "{count, plural, =0 {Every place is positioned} one {# place not yet positioned} other {# places not yet positioned}}",
     "noWorldYet": "You haven't created your world yet.",
     "createWorldLink": "Create your world",
@@ -506,13 +507,18 @@
     "mapOptions": {
       "trigger": "Map options"
     },
+    "mapControls": {
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "resetView": "Reset view",
+      "enterFullscreen": "Enter fullscreen",
+      "exitFullscreen": "Exit fullscreen"
+    },
     "contextMenu": {
       "ariaLabel": "Map context menu",
-      "copyCoordinates": "Copy Coordinates",
-      "copiedLabel": "Copied!",
       "addMarker": {
-        "trigger": "Add Marker",
-        "sublabel": "Place a marker here"
+        "trigger": "Add a temporary marker",
+        "sublabel": "Disappears on reload"
       },
       "measure": {
         "trigger": "Measure",
@@ -521,7 +527,13 @@
       "addPlace": {
         "trigger": "Add Place",
         "sublabel": "Create a place here"
+      },
+      "positionPlace": {
+        "trigger": "Position a place"
       }
+    },
+    "temporaryMarkers": {
+      "clear": "{count, plural, one {Remove the temporary marker} other {Remove # temporary markers}}"
     },
     "deletePlace": {
       "trigger": "Delete this map",
@@ -561,6 +573,13 @@
       "poiSaveFailed": "Could not save “{title}”. The change has been undone.",
       "poiDeleteFailed": "Could not delete “{title}”. The place has been restored.",
       "placePositionFailed": "Could not position “{title}”. Try again."
+    },
+    "poiPanel": {
+      "title": "Places of Interest",
+      "clear": "Clear",
+      "clearCoordinates": "Clear coordinates",
+      "unplacedCount": "{count, plural, one {# unplaced place} other {# unplaced places}}",
+      "clearedToast": "{count, plural, one {Cleared # place} other {Cleared # places}}"
     },
     "maps": {
       "planesOfExistence": "Planes of Existence",

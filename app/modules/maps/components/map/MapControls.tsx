@@ -14,6 +14,12 @@ interface MapControlsProps {
   // generic (`app/modules/maps/**` is domain-agnostic), sized to match its
   // siblings (`h-9 w-9`) by the caller.
   extraControls?: ReactNode;
+  // Same contract as `extraControls`, different position: rendered directly
+  // beneath the zoom cluster, for controls that belong beside zoom in/out
+  // specifically (SPEC-015 §5's grid toggle). The caller supplies the
+  // domain content and matches the sibling sizing (`h-9 w-9`); this file
+  // only provides the spot.
+  belowZoomControls?: ReactNode;
 }
 
 /**
@@ -25,6 +31,7 @@ interface MapControlsProps {
  */
 export const MapControls = memo(function MapControls({
   extraControls,
+  belowZoomControls,
 }: MapControlsProps) {
   const { map, zoomIn, zoomOut, toggleFullscreen, resetView } =
     useMapControls();
@@ -71,6 +78,8 @@ export const MapControls = memo(function MapControls({
           <Minus className="h-5 w-5 text-gray-600 dark:text-gray-100" />
         </button>
       </div>
+
+      {belowZoomControls}
 
       {/* Reset View Button */}
       <button

@@ -100,6 +100,22 @@ describe("MapControls", () => {
     expect(queryByTestId("extra-control")).not.toBeInTheDocument();
   });
 
+  it("renders belowZoomControls between the zoom cluster and reset view (SPEC-015 T6)", () => {
+    render(
+      <MapControls belowZoomControls={<div data-testid="below-zoom" />} />
+    );
+
+    const slot = screen.getByTestId("below-zoom");
+    // Positional contract, not just presence: the slot sits after the zoom
+    // buttons and before reset view in the same stack.
+    const stack = slot.parentElement;
+    const children = Array.from(stack?.children ?? []);
+    const zoomCluster = screen.getByTitle("zoomIn").parentElement;
+    expect(children.indexOf(slot)).toBe(
+      children.indexOf(zoomCluster as Element) + 1
+    );
+  });
+
   it("renders extraControls in the same stack as the generic buttons (usability fix, 2026-08-17)", () => {
     render(<MapControls extraControls={<div data-testid="extra-control" />} />);
 

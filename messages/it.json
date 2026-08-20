@@ -518,6 +518,15 @@
         "saveFailed": "Salvataggio della griglia non riuscito. Riprova."
       }
     },
+    "gridToggle": {
+      "show": "Mostra la griglia",
+      "hide": "Nascondi la griglia",
+      "configure": "Griglia non configurata — configurala"
+    },
+    "gridLegend": {
+      "squareEquals": "1 quadretto = {distance}",
+      "totalSize": "{columns} × {rows} quadretti — {width} × {height}"
+    },
     "unpositionedCount": "{count, plural, =0 {Tutti i luoghi sono posizionati} one {# luogo non ancora posizionato} other {# luoghi non ancora posizionati}}",
     "noWorldYet": "Non hai ancora creato il tuo mondo.",
     "createWorldLink": "Crea il tuo mondo",

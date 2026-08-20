@@ -518,6 +518,15 @@
         "saveFailed": "Saving the grid failed. Try again."
       }
     },
+    "gridToggle": {
+      "show": "Show the grid",
+      "hide": "Hide the grid",
+      "configure": "No grid configured — set one up"
+    },
+    "gridLegend": {
+      "squareEquals": "1 square = {distance}",
+      "totalSize": "{columns} × {rows} squares — {width} × {height}"
+    },
     "unpositionedCount": "{count, plural, =0 {Every place is positioned} one {# place not yet positioned} other {# places not yet positioned}}",
     "noWorldYet": "You haven't created your world yet.",
     "createWorldLink": "Create your world",

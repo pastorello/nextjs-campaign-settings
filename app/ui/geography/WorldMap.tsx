@@ -31,6 +31,8 @@ import MapUploadControl from "@/app/ui/geography/MapUploadControl";
 import DeletePlaceButton from "@/app/ui/geography/DeletePlaceButton";
 import MapOptionsButton from "@/app/ui/geography/MapOptionsButton";
 import MapGridConfigPanel from "@/app/ui/geography/MapGridConfigPanel";
+import MapGridToggle from "@/app/ui/geography/MapGridToggle";
+import MapGridOverlay from "@/app/ui/geography/MapGridOverlay";
 import {
   findContainingSibling,
   type Footprint,
@@ -137,6 +139,9 @@ function WorldMap({
   const [isMapUploadOpen, setIsMapUploadOpen] = useState(false);
   const [isDeleteMapOpen, setIsDeleteMapOpen] = useState(false);
   const [isGridConfigOpen, setIsGridConfigOpen] = useState(false);
+  // The grid overlay's toggle (SPEC-015 §5 step 5) — off on every load and
+  // never persisted (§9, decided 2026-08-20; do not add storage for it).
+  const [isGridVisible, setIsGridVisible] = useState(false);
   const [isPOIPanelOpen, setIsPOIPanelOpen] = useState(false);
   const [poiFilterCategory, setPOIFilterCategory] =
     useState<POICategory | null>(null);
@@ -589,6 +594,10 @@ function WorldMap({
     setPositioningPlace(null);
     setCursorCoords(null);
     setEditingArea(null);
+    // "Off on every load" (SPEC-015 §9) includes navigating to another
+    // place — `WorldMap` isn't remounted on `parentId` change, so without
+    // this the previous map's toggle state would carry over.
+    setIsGridVisible(false);
   }
 
   const handlePOIExport = useCallback(() => {
@@ -688,7 +697,19 @@ function WorldMap({
             map.setMinZoom(minZoom);
             map.setMaxZoom(10);
             map.setMaxBounds(bounds);
-            map.setView(initialView, initialZoom);
+            // `animate: false`, and not only because an animated initial
+            // framing is pointless: `runWithoutClosing`'s suppression
+            // window is synchronous, and an *animated* view change defers
+            // its `moveend` — after which `setMaxBounds`'s own
+            // `panInsideMaxBounds` hook may pan the map, firing a
+            // `movestart` outside the window that closes a context menu
+            // the DM has meanwhile opened. CI caught exactly this: on a
+            // slow runner this whole effect ran after the test's
+            // right-click, and the menu detached ~100ms after opening.
+            // With `animate: false` the entire cascade — movestart,
+            // moveend, the max-bounds pan — runs synchronously inside the
+            // suppression.
+            map.setView(initialView, initialZoom, { animate: false });
           });
 
           image.once("load", () => {
@@ -748,7 +769,9 @@ function WorldMap({
               const fitZoom = map.getBoundsZoom(fittedBounds);
               map.setMinZoom(computeMinZoom(fitZoom, fitZoom));
               map.setMaxBounds(fittedBounds);
-              map.fitBounds(fittedBounds);
+              // Same `animate: false` reasoning as the interim framing
+              // above — this re-fit is the case that actually bit in CI.
+              map.fitBounds(fittedBounds, { animate: false });
             });
           });
         }
@@ -807,6 +830,27 @@ function WorldMap({
             onConfigureGrid={() => setIsGridConfigOpen(true)}
           />
         }
+        belowZoomControls={
+          // No map image → no grid surface at all (§5's edge-case table),
+          // matching the absence of the configuration entry above.
+          isValidString(mapUrl) ? (
+            <MapGridToggle
+              isConfigured={gridColumns !== null && gridScale !== null}
+              isVisible={isGridVisible}
+              onToggle={() => setIsGridVisible((visible) => !visible)}
+              onConfigure={() => setIsGridConfigOpen(true)}
+            />
+          ) : undefined
+        }
+      />
+
+      {/* The grid overlay and its legend (SPEC-015 T6) — draws only while
+          the toggle is on and the grid is configured. */}
+      <MapGridOverlay
+        isVisible={isGridVisible}
+        gridColumns={gridColumns}
+        gridScale={gridScale}
+        imageSize={imageSize}
       />
 
       {/* Dismiss the temporary markers (TD-86) — a scratch pin for table

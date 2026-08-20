@@ -291,6 +291,13 @@ guesses.
 > [SPEC-015](./specs/015-map-grid-and-scale.md); the original text above is kept
 > deliberately, as the reasoning it replaced.
 
+> **Shipped 2026-08-20 — the whole thread is done.** SPEC-015 landed T1–T8: the
+> grid model and its configuration panel behind the map's edit control, the
+> overlay + legend toggled beside zoom in/out (item 3), and measurement rebuilt
+> click–track–click on the grid (item 2, closing TD-94 — its write-up moved to
+> the archive). The spec's §11 carries the outcome notes, including what was
+> deliberately not built (no grid-removal flow yet, noted in PR #206).
+
 ### Reversed on 2026-08-18 — area footprints become polygons
 
 **SPEC-009 shipped rectangles only, and said to revisit "only if rectangles prove

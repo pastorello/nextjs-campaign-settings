@@ -207,3 +207,53 @@ test("a keyboard user can see where the focus is", async ({ page }) => {
 
   throw new Error("Tab never reached one of the app's own buttons");
 });
+
+/**
+ * SPEC-015 T8 (§8): axe at zero on the grid configuration panel. The
+ * geography page as a whole is not in `PAGES` above — the Leaflet canvas
+ * is its own accessibility story — so the scan is scoped to the open
+ * dialog, which is exactly what the criterion names. The panel's
+ * keyboard-completability has its own unit test (T5); this covers the
+ * rendered dialog: labels, names, contrast.
+ */
+test("the map grid configuration panel has no accessibility violations", async ({
+  page,
+}) => {
+  await page.goto("/dashboard/geography");
+  await expect(page.locator(".leaflet-container")).toBeVisible();
+
+  await page
+    .getByRole("button", { name: messages.geography.mapOptions.trigger })
+    .click();
+  await page
+    .getByRole("button", { name: messages.geography.gridConfig.trigger })
+    .click();
+
+  // The Dialog root itself is a zero-height `relative` wrapper (its panel
+  // is `fixed`-positioned), which Playwright reports as hidden — so the
+  // wait anchors on the panel's visible title instead.
+  await expect(
+    page.getByText(messages.geography.gridConfig.title)
+  ).toBeVisible();
+
+  // Scan a settled panel: it opens through a framer-motion fade
+  // (opacity 0 → 1), and a scan that races the animation reads the text
+  // against the backdrop *through* the still-translucent panel, flagging
+  // every node in it — nondeterministically, depending on where the fade
+  // had got to. Same lesson as the networkidle wait above.
+  await page.waitForFunction(() => {
+    const panel = document.querySelector('[role="dialog"] .bg-white');
+    return panel !== null && getComputedStyle(panel).opacity === "1";
+  });
+
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .include('[role="dialog"]')
+    .analyze();
+
+  const summary = results.violations.map(
+    (violation) => `${violation.id} (${violation.nodes.length} nodes)`
+  );
+
+  expect(summary, "axe violations on the grid configuration panel").toEqual([]);
+});

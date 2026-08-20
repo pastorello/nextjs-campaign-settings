@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-19
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-78, TD-79, TD-82, TD-85, TD-93, TD-94, TD-96, TD-97, TD-98, TD-99.** Everything else in the summary table is closed. TD-85 and TD-96 are `part` — shipped in part, with the remainder deliberately deferred; their write-ups stay here rather than in the archive because that remainder is still live work.
+**Open items: TD-78, TD-79, TD-82, TD-85, TD-93, TD-96, TD-97, TD-98, TD-99.** Everything else in the summary table is closed. TD-85 and TD-96 are `part` — shipped in part, with the remainder deliberately deferred; their write-ups stay here rather than in the archive because that remainder is still live work.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -115,7 +115,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-91 | ✅ Places and factions counted; every place in the tree, per the DM                                           | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-92 | ✅ Every card links to its domain list via the locale-aware `Link`                                            | ~~🟢 Low~~ done      | S      | 4     |
 | TD-93 | An already-positioned place or attached entity can be positioned again elsewhere                              | 🟠 High              | M      | 4     |
-| TD-94 | Measurement reports haversine metres on a pixel-space map — superseded by SPEC-015, do not patch alone        | 🟠 High              | M      | 4     |
+| TD-94 | ✅ Closed by SPEC-015 T7 — measurement rebuilt on the grid, haversine path deleted, regression test in place  | ~~🟠 High~~ done     | M      | 4     |
 | TD-95 | ✅ POI panel + neighbours (`MapControls`, `MapLoadingSpinner`, `MapErrorBoundary`) swept into both catalogues | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-96 | "Copia coordinate" removed; "Collega personaggio" stays until TD-93's popover ships                           | ~~🟢 Low~~ part      | S      | 4     |
 | TD-97 | `MagicItemType`'s nine members are still Italian identifiers — a TD-33 miss                                   | 🟢 Low               | S      | 4     |
@@ -364,55 +364,6 @@ next, and a message in both catalogues explaining the refusal.
 path that has already failed here once. **Sequence it after the popover spec** —
 the constraint needs the un-place action to exist, or it turns a recoverable
 mistake into a dead end.
-
-### TD-94 — The measurement tool reports haversine metres on a pixel-space map, so every distance it gives is meaningless
-
-> **Superseded 2026-08-18 by [SPEC-015](../specs/015-map-grid-and-scale.md) — do not
-> patch this in isolation.** The bug is real and the diagnosis below stands, but the
-> fix is not "swap haversine for a pixel distance": a pixel distance is still not a
-> distance until the map carries a scale. SPEC-015 gives every map a grid and four
-> named scales, and rebuilds measurement on top of that (its T7 carries this
-> regression test). Fixing the formula alone would produce a confident number in
-> pixels, which is the same class of wrong.
-
-**Severity:** 🟠 High · **Effort:** M · **Found:** 2026-08-18, reported by the DM as "Misura seems not to work, or I have not understood it"
-
-The DM could not tell whether the tool is broken or just opaque. It is broken,
-and the mechanism is exact.
-
-`LeafletMap` builds the map with `crs: L.CRS.Simple` (`LeafletMap.tsx:109`) —
-the flat, unprojected coordinate system, correct for a hand-drawn fantasy map,
-in which a coordinate pair is **a pixel position, not a place on a globe**.
-`useMeasurement` then hands those pairs to `calculateDistance`
-(`app/modules/maps/lib/utils/coordinates.ts:140`), which is the **haversine
-formula on a sphere of radius 6371 km**: it reads `lat` as degrees of latitude,
-`lng` as degrees of longitude, and returns metres.
-
-So a click at pixel row 1200 is interpreted as latitude 1200°. The trigonometry
-does not error — it wraps, repeatedly — and returns a confident number with no
-relationship to anything on the map. This is not a precision problem to tune; the
-formula is answering a different question from the one being asked.
-
-**The two halves of a real fix:**
-
-1. **Measure in the map's own space.** With `CRS.Simple` the honest primitive is
-   Euclidean pixel distance (`map.distance()` already does the right thing under
-   this CRS). Leave `calculateDistance` alone — it is correct for real geography
-   and may have other callers — and give this path its own function rather than
-   bending that one.
-2. **Convert pixels into campaign units**, which is the DM's separate request for
-   a map scale ("50 pixel = 4.5 km"). Without it the tool can only ever say "312
-   pixels", which is honest but useless at the table. **That needs a per-map
-   scale stored alongside the map**, so it is a data-model change and lives in a
-   spec — see `ROADMAP.md`.
-
-**Depends on TD-81.** Pixel distances only mean something if the map's bounds
-actually match the image's pixels, which today they do not.
-
-**The DM also proposed a clearer interaction** — click to start, the track draws
-in red as the mouse moves, a second click ends it and drops a marker showing the
-distance. Worth adopting; it is recorded with the scale work rather than here,
-since this item is about the number being wrong, not about how it is collected.
 
 ### TD-96 — The map's right-click menu carries two entries the model has outgrown
 

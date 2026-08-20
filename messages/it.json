@@ -492,6 +492,32 @@
     },
     "up": "Sali",
     "loadingMap": "Caricamento della mappa…",
+    "fields": {
+      "gridColumns": {
+        "label": "Larghezza in quadretti"
+      },
+      "gridScale": {
+        "label": "Scala"
+      }
+    },
+    "gridScales": {
+      "dungeon": "Dungeon / tattica",
+      "province": "Provinciale",
+      "kingdom": "Regionale",
+      "continent": "Continentale"
+    },
+    "gridConfig": {
+      "trigger": "Configura la griglia",
+      "title": "Griglia della mappa",
+      "derivedRows": {
+        "label": "Altezza in quadretti (derivata)"
+      },
+      "save": "Salva la griglia",
+      "success": "Griglia salvata.",
+      "errors": {
+        "saveFailed": "Salvataggio della griglia non riuscito. Riprova."
+      }
+    },
     "unpositionedCount": "{count, plural, =0 {Tutti i luoghi sono posizionati} one {# luogo non ancora posizionato} other {# luoghi non ancora posizionati}}",
     "noWorldYet": "Non hai ancora creato il tuo mondo.",
     "createWorldLink": "Crea il tuo mondo",

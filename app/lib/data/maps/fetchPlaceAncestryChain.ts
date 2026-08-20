@@ -10,6 +10,8 @@ export interface PlaceAncestryZone {
   mapBounds: unknown;
   mapInitialView: unknown;
   mapInitialZoom: number | null;
+  gridColumns: number | null;
+  gridScale: string | null;
 }
 
 /**
@@ -48,6 +50,8 @@ export default async function fetchPlaceAncestryChain(
         mapBounds: true,
         mapInitialView: true,
         mapInitialZoom: true,
+        gridColumns: true,
+        gridScale: true,
       },
     });
   } catch (error) {

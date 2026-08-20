@@ -14,6 +14,11 @@ export interface PlaceStackEntry {
   bounds: L.LatLngBoundsExpression;
   initialView: L.LatLngExpression;
   initialZoom: number;
+  // The map's grid configuration (SPEC-015 §6), both null until the DM
+  // configures one. Kept raw (`string`, not `GridScale`) the same way
+  // `PlaceChild.kind` is — narrowed at the point of use.
+  gridColumns: number | null;
+  gridScale: string | null;
 }
 
 /**
@@ -40,6 +45,8 @@ export default function toStackEntry(place: {
   mapBounds: unknown;
   mapInitialView: unknown;
   mapInitialZoom: number | null;
+  gridColumns: number | null;
+  gridScale: string | null;
 }): PlaceStackEntry {
   return {
     id: place.id,
@@ -48,5 +55,7 @@ export default function toStackEntry(place: {
     bounds: parsePlaceMapBounds(place.mapBounds),
     initialView: parsePlaceMapInitialView(place.mapInitialView),
     initialZoom: parsePlaceMapInitialZoom(place.mapInitialZoom),
+    gridColumns: place.gridColumns,
+    gridScale: place.gridScale,
   };
 }

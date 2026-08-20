@@ -85,6 +85,18 @@ export default function GeographyExplorer({
     });
   };
 
+  // The place currently being viewed just got its grid configured
+  // (SPEC-015 T5) — same patch-in-place shape as `handleMapChanged`, and
+  // for the same reason: this component owns the stack, so it updates the
+  // current entry rather than `WorldMap` re-fetching anything.
+  const handleGridChanged = (gridColumns: number, gridScale: string) => {
+    setStack((prev) => {
+      const last = prev[prev.length - 1];
+      if (!last) return prev;
+      return [...prev.slice(0, -1), { ...last, gridColumns, gridScale }];
+    });
+  };
+
   if (!current) return null;
 
   return (
@@ -118,8 +130,11 @@ export default function GeographyExplorer({
               bounds={current.bounds}
               initialView={current.initialView}
               initialZoom={current.initialZoom}
+              gridColumns={current.gridColumns}
+              gridScale={current.gridScale}
               onDescend={handleDescend}
               onMapChanged={handleMapChanged}
+              onGridChanged={handleGridChanged}
               onDeleted={handleDeleted}
               unpositionedCount={unpositionedCount}
             />

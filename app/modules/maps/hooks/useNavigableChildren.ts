@@ -32,6 +32,10 @@ export interface NavigableChild {
   // `null` for a point. An area always has a map (rule 1), so unlike
   // `mapImage` this never needs the "positioned but undrawn" distinction.
   footprint: Footprint | null;
+  // The child's own map's grid configuration (SPEC-015 §6) — carried so
+  // descending seeds the stack entry with it, like the framing fields above.
+  gridColumns: number | null;
+  gridScale: string | null;
 }
 
 /**
@@ -160,6 +164,8 @@ export function useNavigableChildren(
             mapInitialView: row.mapInitialView,
             mapInitialZoom: row.mapInitialZoom,
             footprint: isFootprint(row.footprint) ? row.footprint : null,
+            gridColumns: row.gridColumns,
+            gridScale: row.gridScale,
           }))
         );
       } catch (error) {

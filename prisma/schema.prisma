@@ -133,6 +133,12 @@ model zone {
   // area; a place without one is a point. `lat`/`lng` still hold the
   // rectangle's derived centre so every existing consumer keeps working.
   footprint      Json?
+  // SPEC-015 — the map's grid: squares across the image's width (the height
+  // in squares is derived from the aspect ratio, never stored) and which of
+  // the four named scales one square represents (`GridScale`). Both null is
+  // the no-grid state every existing map starts in.
+  gridColumns    Int?
+  gridScale      String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

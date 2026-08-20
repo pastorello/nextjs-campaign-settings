@@ -1,6 +1,6 @@
 # SPEC-015: Map grids, scale and measurement
 
-- **Status:** **Draft — needs the DM's agreement.** Written 2026-08-18 from the DM's own description of the grid model; nothing here has been built.
+- **Status:** **Agreed 2026-08-20.** Both §9 open questions decided with the DM: the grid toggle's state is not persisted, and the legend also shows the map's total size. Written 2026-08-18 from the DM's own description of the grid model; nothing built yet.
 - **Date:** 2026-08-18
 - **Phase:** ROADMAP Phase 4 (Session tooling)
 - **Related:** [`docs/ROADMAP.md`](../ROADMAP.md) "Decided on 2026-08-18 — making the map measurable" (**this spec supersedes its scale design**) · **TD-94** (the measurement bug; superseded by this spec rather than patched) · **TD-81** (map framing — fixed separately, deliberately) · [SPEC-004](./004-world-model.md) (the world tree) · [SPEC-009](./009-zones-as-areas.md) (footprints) · [ADR-0008](../adr/0008-map-image-storage.md) · [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md) (the boundary §7 applies)
@@ -79,7 +79,9 @@ campaign's own units.
 
 5. A **grid toggle** sits beside zoom in and zoom out. Switched on, the grid is
    drawn over the map; switched off, the map is exactly as it is today.
-6. A legend states what one square means — "1 quadretto = 9 km".
+6. A legend states what one square means — "1 quadretto = 9 km" — and the map's
+   total size — "36 × 24 quadretti — 324 × 216 km". _(The total-size line was
+   §9's second open question, decided 2026-08-20.)_
 
 **Main flow — measuring**
 
@@ -166,7 +168,7 @@ awkward, that is evidence worth recording, not worked around silently.
 - [ ] The height in squares is derived from the image's aspect ratio and never asked for.
 - [ ] A width of zero, a negative width, or one past the cap is rejected with a field-level error.
 - [ ] The grid overlay can be toggled from the map controls and is off by default.
-- [ ] The legend states what one square means, in the map's own scale.
+- [ ] The legend states what one square means, in the map's own scale, and the map's total size in squares and in units.
 - [ ] A map with no grid configured offers configuration and reports no distances at all.
 - [ ] Measuring reports the same distance regardless of the current zoom level.
 - [ ] Measurement uses the map's own pixel space, not a haversine formula — TD-94 cannot recur.
@@ -207,12 +209,16 @@ awkward, that is evidence worth recording, not worked around silently.
 - **Measurement is a visual interaction** — click, drag, click — and unit tests
   will not tell you it feels right at the table.
 
-**Open questions**
+**Open questions — both decided 2026-08-20**
 
 - Should the grid toggle's state persist per map, per session, or not at all?
-  Not blocking; default to not persisted and revisit if it annoys.
+  **Decided: not persisted.** The grid starts off on every load, as §5 and the
+  acceptance criteria already state; revisit only if it proves annoying at the
+  table. No client state, no extra column.
 - Should the legend show the map's total size ("36 × 24 quadretti — 324 × 216 km")?
-  Cheap, and probably useful, but not specified by the DM.
+  **Decided: yes.** One computed line from values the legend already holds
+  (columns, derived height, scale), and a free sanity check — a wrong scale
+  announces itself as an absurd total. §5 and §8 carry it now.
 
 ## 10. Task breakdown
 

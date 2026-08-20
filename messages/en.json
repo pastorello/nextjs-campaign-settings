@@ -527,6 +527,11 @@
       "squareEquals": "1 square = {distance}",
       "totalSize": "{columns} × {rows} squares — {width} × {height}"
     },
+    "measure": {
+      "unavailable": "Measurement unavailable: configure the map's grid first.",
+      "hint": "Click the start point, then the end point — Esc to exit",
+      "exit": "Exit measurement"
+    },
     "unpositionedCount": "{count, plural, =0 {Every place is positioned} one {# place not yet positioned} other {# places not yet positioned}}",
     "noWorldYet": "You haven't created your world yet.",
     "createWorldLink": "Create your world",

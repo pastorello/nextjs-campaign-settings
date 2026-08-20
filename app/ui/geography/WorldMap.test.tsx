@@ -36,11 +36,16 @@ vi.mock("@/app/modules/maps/components/map/MapControls", () => ({
     <div data-testid="map-controls">{props.belowZoomControls}</div>
   ),
 }));
-vi.mock("@/app/modules/maps/components/map/MapMeasurementPanel", () => ({
-  MapMeasurementPanel: () => <div data-testid="map-measurement-panel" />,
+// Has its own suite (SPEC-015 T7) — stubbed so these tests assert on the
+// arming gate WorldMap owns, not the click-track-click interaction.
+vi.mock("@/app/ui/geography/MapMeasureTool", () => ({
+  default: (props: { isActive: boolean }) => (
+    <div data-testid="map-measure-tool" data-active={props.isActive} />
+  ),
 }));
 
 let onAddPOI: ((lat: number, lng: number) => void) | undefined;
+let onStartMeasurement: (() => void) | undefined;
 let onEditArea: (() => void) | undefined;
 let onAddSubMap: (() => void) | undefined;
 let onAttachEntity: (() => void) | undefined;
@@ -49,6 +54,7 @@ let onContextMenuPositionPlace:
 vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
   MapContextMenu: (props: {
     onAddPOI: (lat: number, lng: number) => void;
+    onStartMeasurement: () => void;
     isOpen: boolean;
     hideAddPlace?: boolean;
     onEditArea?: () => void;
@@ -60,6 +66,7 @@ vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
     onPositionPlace?: (id: number, lat: number, lng: number) => void;
   }) => {
     onAddPOI = props.onAddPOI;
+    onStartMeasurement = props.onStartMeasurement;
     onEditArea = props.onEditArea;
     onAddSubMap = props.onAddSubMap;
     onAttachEntity = props.onAttachEntity;
@@ -342,7 +349,7 @@ vi.mock("leaflet", () => ({
 }));
 
 vi.mock("sonner", () => ({
-  toast: { success: vi.fn(), error: vi.fn() },
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
 }));
 
 import WorldMap from "./WorldMap";
@@ -1709,6 +1716,43 @@ describe("WorldMap — the grid overlay's toggle (SPEC-015 T6)", () => {
     rerender(<WorldMap parentId={2} {...props} />);
     expect(screen.getByTestId("map-grid-overlay")).toHaveAttribute(
       "data-visible",
+      "false"
+    );
+  });
+});
+
+describe("WorldMap — arming the measure tool (SPEC-015 T7)", () => {
+  it("arms the tool from the context menu when the grid is configured and the image has loaded", async () => {
+    await renderMap("/maps/test.jpg", 0, {
+      gridColumns: 36,
+      gridScale: "kingdom",
+    });
+
+    expect(screen.getByTestId("map-measure-tool")).toHaveAttribute(
+      "data-active",
+      "false"
+    );
+
+    act(() => {
+      onStartMeasurement?.();
+    });
+
+    expect(screen.getByTestId("map-measure-tool")).toHaveAttribute(
+      "data-active",
+      "true"
+    );
+  });
+
+  it("refuses to arm without a configured grid, explaining instead of guessing (§5, TD-94)", async () => {
+    await renderMap();
+
+    act(() => {
+      onStartMeasurement?.();
+    });
+
+    expect(toast.info).toHaveBeenCalledWith("unavailable");
+    expect(screen.getByTestId("map-measure-tool")).toHaveAttribute(
+      "data-active",
       "false"
     );
   });

@@ -172,6 +172,27 @@ vi.mock("@/app/ui/geography/MapUploadControl", () => ({
   ),
 }));
 
+// Has its own suite (SPEC-015 T5) — stubbed here so this file stays about
+// WorldMap's own state, not the grid form flow. `data-image-size` is how
+// the tests below watch the natural-size plumbing the panel derives its
+// height from.
+vi.mock("@/app/ui/geography/MapGridConfigPanel", () => ({
+  default: (props: {
+    isOpen: boolean;
+    imageSize: { width: number; height: number } | null;
+  }) => (
+    <div
+      data-testid="map-grid-config-panel"
+      data-open={props.isOpen}
+      data-image-size={
+        props.imageSize === null
+          ? ""
+          : `${props.imageSize.width}x${props.imageSize.height}`
+      }
+    />
+  ),
+}));
+
 // Has its own suite (SPEC-010 T3) — stubbed here so this file stays about
 // WorldMap's own state, not the delete-confirmation flow.
 vi.mock("@/app/ui/geography/DeletePlaceButton", () => ({
@@ -333,7 +354,10 @@ async function renderMap(mapUrl = "/maps/test.jpg", unpositionedCount = 0) {
       initialView={[500, 500]}
       initialZoom={1}
       onDescend={onDescend}
+      gridColumns={null}
+      gridScale={null}
       onMapChanged={vi.fn()}
+      onGridChanged={vi.fn()}
       onDeleted={vi.fn()}
       unpositionedCount={unpositionedCount}
     />
@@ -389,7 +413,10 @@ describe("WorldMap", () => {
         initialView={[500, 500]}
         initialZoom={1}
         onDescend={onDescend}
+        gridColumns={null}
+        gridScale={null}
         onMapChanged={vi.fn()}
+        onGridChanged={vi.fn()}
         onDeleted={vi.fn()}
         unpositionedCount={0}
       />
@@ -427,7 +454,10 @@ describe("WorldMap", () => {
         initialView={[500, 500]}
         initialZoom={1}
         onDescend={onDescend}
+        gridColumns={null}
+        gridScale={null}
         onMapChanged={vi.fn()}
+        onGridChanged={vi.fn()}
         onDeleted={vi.fn()}
         unpositionedCount={0}
       />
@@ -474,7 +504,10 @@ describe("WorldMap", () => {
         initialView={[500, 500]}
         initialZoom={1}
         onDescend={onDescend}
+        gridColumns={null}
+        gridScale={null}
         onMapChanged={vi.fn()}
+        onGridChanged={vi.fn()}
         onDeleted={vi.fn()}
         unpositionedCount={0}
       />
@@ -522,7 +555,10 @@ describe("WorldMap", () => {
         initialView={[500, 500]}
         initialZoom={1}
         onDescend={vi.fn()}
+        gridColumns={null}
+        gridScale={null}
         onMapChanged={vi.fn()}
+        onGridChanged={vi.fn()}
         onDeleted={vi.fn()}
         unpositionedCount={0}
       />
@@ -1335,7 +1371,10 @@ describe("WorldMap — sized to its container, not the viewport (TD-84)", () => 
         initialView={[500, 500]}
         initialZoom={1}
         onDescend={onDescend}
+        gridColumns={null}
+        gridScale={null}
         onMapChanged={vi.fn()}
+        onGridChanged={vi.fn()}
         onDeleted={vi.fn()}
         unpositionedCount={0}
       />
@@ -1375,7 +1414,10 @@ describe("WorldMap — the zoom floor leaves room to zoom out (TD-87)", () => {
         initialView={[500, 500]}
         initialZoom={-2}
         onDescend={onDescend}
+        gridColumns={null}
+        gridScale={null}
         onMapChanged={vi.fn()}
+        onGridChanged={vi.fn()}
         onDeleted={vi.fn()}
         unpositionedCount={0}
       />
@@ -1433,7 +1475,10 @@ describe("WorldMap — the zoom floor leaves room to zoom out (TD-87)", () => {
         initialView={[500, 500]}
         initialZoom={0}
         onDescend={onDescend}
+        gridColumns={null}
+        gridScale={null}
         onMapChanged={vi.fn()}
+        onGridChanged={vi.fn()}
         onDeleted={vi.fn()}
         unpositionedCount={0}
       />
@@ -1444,5 +1489,87 @@ describe("WorldMap — the zoom floor leaves room to zoom out (TD-87)", () => {
 
     const minZoomArg = setMinZoom.mock.calls.at(-1)?.[0];
     expect(minZoomArg).toBeLessThan(0);
+  });
+});
+
+describe("WorldMap — the grid panel's image size (SPEC-015 T5)", () => {
+  it("hands the panel no size until the image loads, then its natural size", async () => {
+    imageNaturalWidth = 1600;
+    imageNaturalHeight = 900;
+    render(
+      <WorldMap
+        parentId={1}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        mapUrl="/maps/test.jpg"
+        bounds={bounds}
+        initialView={[500, 500]}
+        initialZoom={1}
+        onDescend={onDescend}
+        gridColumns={null}
+        gridScale={null}
+        onMapChanged={vi.fn()}
+        onGridChanged={vi.fn()}
+        onDeleted={vi.fn()}
+        unpositionedCount={0}
+      />
+    );
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
+
+    // Before the image reports its dimensions the aspect ratio is unknown —
+    // the panel renders its derived height as `—` off this (§5's edge-case
+    // table).
+    expect(screen.getByTestId("map-grid-config-panel")).toHaveAttribute(
+      "data-image-size",
+      ""
+    );
+
+    act(() => {
+      imageOnLoad?.();
+    });
+
+    expect(screen.getByTestId("map-grid-config-panel")).toHaveAttribute(
+      "data-image-size",
+      "1600x900"
+    );
+  });
+
+  it("keeps the size unknown when a broken image reports no dimensions", async () => {
+    imageNaturalWidth = 0;
+    imageNaturalHeight = 0;
+    render(
+      <WorldMap
+        parentId={1}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        mapUrl="/maps/test.jpg"
+        bounds={bounds}
+        initialView={[500, 500]}
+        initialZoom={1}
+        onDescend={onDescend}
+        gridColumns={null}
+        gridScale={null}
+        onMapChanged={vi.fn()}
+        onGridChanged={vi.fn()}
+        onDeleted={vi.fn()}
+        unpositionedCount={0}
+      />
+    );
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
+
+    act(() => {
+      imageOnLoad?.();
+    });
+
+    expect(screen.getByTestId("map-grid-config-panel")).toHaveAttribute(
+      "data-image-size",
+      ""
+    );
   });
 });

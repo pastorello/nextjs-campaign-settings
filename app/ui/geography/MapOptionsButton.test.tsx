@@ -11,6 +11,7 @@ describe("MapOptionsButton (usability fix, 2026-08-17)", () => {
         isRoot={false}
         onReplaceMap={vi.fn()}
         onDeleteMap={vi.fn()}
+        onConfigureGrid={vi.fn()}
       />
     );
 
@@ -25,6 +26,7 @@ describe("MapOptionsButton (usability fix, 2026-08-17)", () => {
         isRoot={false}
         onReplaceMap={vi.fn()}
         onDeleteMap={vi.fn()}
+        onConfigureGrid={vi.fn()}
       />
     );
 
@@ -41,6 +43,7 @@ describe("MapOptionsButton (usability fix, 2026-08-17)", () => {
         isRoot={false}
         onReplaceMap={vi.fn()}
         onDeleteMap={vi.fn()}
+        onConfigureGrid={vi.fn()}
       />
     );
 
@@ -57,6 +60,7 @@ describe("MapOptionsButton (usability fix, 2026-08-17)", () => {
         isRoot={false}
         onReplaceMap={onReplaceMap}
         onDeleteMap={vi.fn()}
+        onConfigureGrid={vi.fn()}
       />
     );
 
@@ -75,6 +79,7 @@ describe("MapOptionsButton (usability fix, 2026-08-17)", () => {
         isRoot={false}
         onReplaceMap={vi.fn()}
         onDeleteMap={onDeleteMap}
+        onConfigureGrid={vi.fn()}
       />
     );
 
@@ -84,6 +89,42 @@ describe("MapOptionsButton (usability fix, 2026-08-17)", () => {
     expect(onDeleteMap).toHaveBeenCalled();
   });
 
+  it("offers configuring the grid, and calls onConfigureGrid (SPEC-015 T5)", () => {
+    const onConfigureGrid = vi.fn();
+    render(
+      <MapOptionsButton
+        hasMap
+        isRoot={false}
+        onReplaceMap={vi.fn()}
+        onDeleteMap={vi.fn()}
+        onConfigureGrid={onConfigureGrid}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "trigger" }));
+    fireEvent.click(screen.getByText("gridConfig.trigger"));
+
+    expect(onConfigureGrid).toHaveBeenCalled();
+    // The menu closed with the click, like its sibling entries.
+    expect(screen.queryByText("gridConfig.trigger")).not.toBeInTheDocument();
+  });
+
+  it("does not offer the grid without a map image (SPEC-015 §5 edge case)", () => {
+    render(
+      <MapOptionsButton
+        hasMap={false}
+        isRoot={false}
+        onReplaceMap={vi.fn()}
+        onDeleteMap={vi.fn()}
+        onConfigureGrid={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "trigger" }));
+
+    expect(screen.queryByText("gridConfig.trigger")).not.toBeInTheDocument();
+  });
+
   it("does not offer deleting the map for the root (rule 1, SPEC-010)", () => {
     render(
       <MapOptionsButton
@@ -91,6 +132,7 @@ describe("MapOptionsButton (usability fix, 2026-08-17)", () => {
         isRoot={true}
         onReplaceMap={vi.fn()}
         onDeleteMap={vi.fn()}
+        onConfigureGrid={vi.fn()}
       />
     );
 

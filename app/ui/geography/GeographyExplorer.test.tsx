@@ -31,8 +31,13 @@ interface CapturedWorldMapProps {
     mapBounds: unknown;
     mapInitialView: unknown;
     mapInitialZoom: number | null;
+    gridColumns: number | null;
+    gridScale: string | null;
   }) => void;
+  gridColumns: number | null;
+  gridScale: string | null;
   onMapChanged: (mapImage: string) => void;
+  onGridChanged: (gridColumns: number, gridScale: string) => void;
   onDeleted: () => void;
   unpositionedCount: number;
 }
@@ -55,6 +60,8 @@ const root = {
   mapBounds: null,
   mapInitialView: null,
   mapInitialZoom: null,
+  gridColumns: null,
+  gridScale: null,
 };
 
 const kang = {
@@ -66,6 +73,8 @@ const kang = {
   mapBounds: null,
   mapInitialView: null,
   mapInitialZoom: null,
+  gridColumns: null,
+  gridScale: null,
 };
 
 const skreebars = {
@@ -77,6 +86,8 @@ const skreebars = {
   mapBounds: null,
   mapInitialView: null,
   mapInitialZoom: null,
+  gridColumns: null,
+  gridScale: null,
 };
 
 const cieli = {
@@ -88,6 +99,8 @@ const cieli = {
   mapBounds: null,
   mapInitialView: null,
   mapInitialZoom: null,
+  gridColumns: null,
+  gridScale: null,
 };
 
 function descend(child: typeof kang | typeof cieli) {
@@ -300,6 +313,29 @@ describe("GeographyExplorer (SPEC-004 M7)", () => {
     // Still on the same place, not pushed as a new stack entry.
     expect(screen.getByText("Cieli")).toBeInTheDocument();
     expect(screen.queryByText("up")).toBeInTheDocument();
+  });
+
+  it("patches the current place's grid after WorldMap reports it configured (SPEC-015 T5)", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={7} />);
+
+    descend(kang);
+    expect(capturedProps?.gridColumns).toBeNull();
+
+    act(() => {
+      capturedProps?.onGridChanged(36, "kingdom");
+    });
+
+    expect(capturedProps?.gridColumns).toBe(36);
+    expect(capturedProps?.gridScale).toBe("kingdom");
+    // Still on the same place, not pushed as a new stack entry.
+    expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
+
+    // Ascending discards the patch's target with its entry — the root's own
+    // grid is untouched.
+    act(() => {
+      screen.getByText("up").click();
+    });
+    expect(capturedProps?.gridColumns).toBeNull();
   });
 });
 

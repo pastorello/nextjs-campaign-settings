@@ -492,6 +492,32 @@
     },
     "up": "Up",
     "loadingMap": "Loading map…",
+    "fields": {
+      "gridColumns": {
+        "label": "Width in squares"
+      },
+      "gridScale": {
+        "label": "Scale"
+      }
+    },
+    "gridScales": {
+      "dungeon": "Dungeon / tactical",
+      "province": "Province",
+      "kingdom": "Kingdom",
+      "continent": "Continent"
+    },
+    "gridConfig": {
+      "trigger": "Configure the grid",
+      "title": "Map grid",
+      "derivedRows": {
+        "label": "Height in squares (derived)"
+      },
+      "save": "Save the grid",
+      "success": "Grid saved.",
+      "errors": {
+        "saveFailed": "Saving the grid failed. Try again."
+      }
+    },
     "unpositionedCount": "{count, plural, =0 {Every place is positioned} one {# place not yet positioned} other {# places not yet positioned}}",
     "noWorldYet": "You haven't created your world yet.",
     "createWorldLink": "Create your world",

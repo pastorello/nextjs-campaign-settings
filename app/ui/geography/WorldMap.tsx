@@ -30,6 +30,7 @@ import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
 import MapUploadControl from "@/app/ui/geography/MapUploadControl";
 import DeletePlaceButton from "@/app/ui/geography/DeletePlaceButton";
 import MapOptionsButton from "@/app/ui/geography/MapOptionsButton";
+import MapGridConfigPanel from "@/app/ui/geography/MapGridConfigPanel";
 import {
   findContainingSibling,
   type Footprint,
@@ -70,8 +71,11 @@ function WorldMap({
   bounds,
   initialView,
   initialZoom,
+  gridColumns,
+  gridScale,
   onDescend,
   onMapChanged,
+  onGridChanged,
   onDeleted,
   unpositionedCount,
 }: {
@@ -90,12 +94,20 @@ function WorldMap({
   bounds: L.LatLngBoundsExpression;
   initialView: L.LatLngExpression;
   initialZoom: number;
+  // The stored grid configuration for the place currently being viewed
+  // (SPEC-015 §6), both null until the DM sets one — carried on the stack
+  // entry like `mapUrl` is.
+  gridColumns: number | null;
+  gridScale: string | null;
   onDescend: (child: NavigableChild) => void;
   // The place currently being viewed just got a map, or had its map
   // replaced (SPEC-007 T1) — `GeographyExplorer` owns the stack of places
   // being viewed, so it patches the current entry rather than this
   // component re-fetching anything.
   onMapChanged: (mapImage: string) => void;
+  // The place currently being viewed just got its grid configured
+  // (SPEC-015 T5) — same patch-the-stack shape as `onMapChanged`.
+  onGridChanged: (gridColumns: number, gridScale: string) => void;
   // The place currently being viewed was just deleted (SPEC-010 T3) —
   // `GeographyExplorer` pops it off the navigation stack.
   onDeleted: () => void;
@@ -124,6 +136,7 @@ function WorldMap({
   const [isAttachEntityOpen, setIsAttachEntityOpen] = useState(false);
   const [isMapUploadOpen, setIsMapUploadOpen] = useState(false);
   const [isDeleteMapOpen, setIsDeleteMapOpen] = useState(false);
+  const [isGridConfigOpen, setIsGridConfigOpen] = useState(false);
   const [isPOIPanelOpen, setIsPOIPanelOpen] = useState(false);
   const [poiFilterCategory, setPOIFilterCategory] =
     useState<POICategory | null>(null);
@@ -268,6 +281,14 @@ function WorldMap({
   // the DM draw outside what the map actually shows.
   const [effectiveBounds, setEffectiveBounds] =
     useState<L.LatLngBoundsExpression>(bounds);
+  // The loaded image's natural pixel size (SPEC-015 T5) — `null` until the
+  // browser reports it, and reset on every map change, so the grid panel's
+  // derived height renders as `—` rather than a number computed from a
+  // previous map's aspect ratio.
+  const [imageSize, setImageSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
 
   // Memoized callbacks to prevent unnecessary re-renders
   const handleMeasurementClose = useCallback(() => {
@@ -621,6 +642,10 @@ function WorldMap({
           setCurrentImage(null);
         }
 
+        // The previous map's dimensions say nothing about this one —
+        // unknown again until the new image reports its own (SPEC-015 T5).
+        setImageSize(null);
+
         // Framed with the stored/default bounds and hidden (opacity 0)
         // until the image itself reports its real pixel dimensions
         // (TD-81) — the stored `mapBounds` is a hardcoded square today
@@ -679,6 +704,13 @@ function WorldMap({
               naturalWidth && naturalHeight
                 ? computeImageBounds(naturalWidth, naturalHeight)
                 : bounds;
+            // Same guard as above: a broken image keeps the aspect ratio
+            // unknown, so the grid panel's derived height stays `—`.
+            setImageSize(
+              naturalWidth && naturalHeight
+                ? { width: naturalWidth, height: naturalHeight }
+                : null
+            );
 
             // `ImageOverlay.setBounds` requires an actual `L.LatLngBounds`
             // instance, unlike the constructor and `Map.fitBounds`/
@@ -772,6 +804,7 @@ function WorldMap({
             isRoot={isRoot}
             onReplaceMap={() => setIsMapUploadOpen(true)}
             onDeleteMap={() => setIsDeleteMapOpen(true)}
+            onConfigureGrid={() => setIsGridConfigOpen(true)}
           />
         }
       />
@@ -824,6 +857,20 @@ function WorldMap({
         isOpen={isDeleteMapOpen}
         onClose={() => setIsDeleteMapOpen(false)}
         onDeleted={onDeleted}
+      />
+
+      {/* Configure the grid of the place currently being viewed (SPEC-015
+          T5) — externally controlled like its two siblings above, opened
+          from `MapOptionsButton`'s menu, which only offers it when the
+          place has a map image. */}
+      <MapGridConfigPanel
+        placeId={parentId}
+        isOpen={isGridConfigOpen}
+        onClose={() => setIsGridConfigOpen(false)}
+        gridColumns={gridColumns}
+        gridScale={gridScale}
+        imageSize={imageSize}
+        onSaved={onGridChanged}
       />
 
       {/* Measurement Panel */}

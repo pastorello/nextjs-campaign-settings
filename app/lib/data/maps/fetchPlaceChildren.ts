@@ -51,6 +51,8 @@ export default async function fetchPlaceChildren(
     mapInitialView: row.mapInitialView,
     mapInitialZoom: row.mapInitialZoom,
     footprint: row.footprint,
+    gridColumns: row.gridColumns,
+    gridScale: row.gridScale,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   }));
@@ -68,6 +70,8 @@ export default async function fetchPlaceChildren(
     mapInitialView: null,
     mapInitialZoom: null,
     footprint: null,
+    gridColumns: null,
+    gridScale: null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   }));

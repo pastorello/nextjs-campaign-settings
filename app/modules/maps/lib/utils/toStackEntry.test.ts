@@ -11,6 +11,8 @@ describe("toStackEntry", () => {
       mapBounds: null,
       mapInitialView: null,
       mapInitialZoom: null,
+      gridColumns: null,
+      gridScale: null,
     });
 
     expect(entry.mapUrl).toBe("/api/maps/kang.png/image");
@@ -24,6 +26,8 @@ describe("toStackEntry", () => {
       mapBounds: null,
       mapInitialView: null,
       mapInitialZoom: null,
+      gridColumns: null,
+      gridScale: null,
     });
 
     expect(entry.mapUrl).toBe("");
@@ -37,9 +41,27 @@ describe("toStackEntry", () => {
       mapBounds: null,
       mapInitialView: null,
       mapInitialZoom: null,
+      gridColumns: null,
+      gridScale: null,
     });
 
     expect(entry.id).toBe(9);
     expect(entry.title).toBe("Skreebars");
+  });
+
+  it("carries the grid configuration through unchanged (SPEC-015 T5)", () => {
+    const entry = toStackEntry({
+      id: 2,
+      title: "Kang",
+      mapImage: "kang.png",
+      mapBounds: null,
+      mapInitialView: null,
+      mapInitialZoom: null,
+      gridColumns: 36,
+      gridScale: "kingdom",
+    });
+
+    expect(entry.gridColumns).toBe(36);
+    expect(entry.gridScale).toBe("kingdom");
   });
 });

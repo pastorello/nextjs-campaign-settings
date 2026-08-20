@@ -12,6 +12,10 @@ interface RootPlace {
   mapBounds: unknown;
   mapInitialView: unknown;
   mapInitialZoom: number | null;
+  // The root map's grid configuration (SPEC-015 §6), both null until the
+  // DM configures one — the documented no-grid state.
+  gridColumns: number | null;
+  gridScale: string | null;
 }
 
 export default RootPlace;

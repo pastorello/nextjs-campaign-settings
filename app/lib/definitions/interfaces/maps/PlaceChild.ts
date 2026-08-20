@@ -29,6 +29,11 @@ interface PlaceChild {
   // an area rather than a point. Raw `unknown`/`Json`, like `mapBounds` —
   // parsed with `isFootprint` at the point of use.
   footprint: unknown;
+  // This place's own map's grid configuration (SPEC-015 §6) — descends into
+  // the stack with the rest of the map-framing fields. Always null for a
+  // landmark `poi` row, which never has a map of its own.
+  gridColumns: number | null;
+  gridScale: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

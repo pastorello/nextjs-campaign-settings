@@ -25,6 +25,8 @@ describe("fetchRootPlace", () => {
         mapBounds: true,
         mapInitialView: true,
         mapInitialZoom: true,
+        gridColumns: true,
+        gridScale: true,
       },
     });
   });

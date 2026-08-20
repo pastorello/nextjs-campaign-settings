@@ -23,6 +23,8 @@ export default async function fetchRootPlace(): Promise<RootPlace | null> {
         mapBounds: true,
         mapInitialView: true,
         mapInitialZoom: true,
+        gridColumns: true,
+        gridScale: true,
       },
     });
   } catch (error) {
@@ -38,5 +40,7 @@ export default async function fetchRootPlace(): Promise<RootPlace | null> {
     mapBounds: row.mapBounds,
     mapInitialView: row.mapInitialView,
     mapInitialZoom: row.mapInitialZoom,
+    gridColumns: row.gridColumns,
+    gridScale: row.gridScale,
   };
 }

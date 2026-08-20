@@ -11,6 +11,11 @@ interface MapOptionsButtonProps {
   isRoot: boolean;
   onReplaceMap: () => void;
   onDeleteMap: () => void;
+  // Opens the grid configuration panel (SPEC-015 T5). The entry only
+  // renders when the place has a map image — without one there is no
+  // aspect ratio to derive a height from, and §5's edge-case table says
+  // the configuration surface does not exist at all.
+  onConfigureGrid: () => void;
 }
 
 /**
@@ -29,10 +34,16 @@ export default function MapOptionsButton({
   isRoot,
   onReplaceMap,
   onDeleteMap,
+  onConfigureGrid,
 }: MapOptionsButtonProps) {
   const t = useTranslations("geography.mapOptions");
   const tMapUpload = useTranslations("geography.mapUpload");
   const tDeletePlace = useTranslations("geography.deletePlace");
+  // Namespaced one level up from its siblings on purpose: the test-side
+  // `next-intl` mock returns the key passed to `t`, and `deletePlace`'s
+  // menu entry already renders as the bare leaf "trigger" there — a second
+  // "trigger" leaf would make the two entries indistinguishable by text.
+  const tGeography = useTranslations("geography");
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -57,6 +68,17 @@ export default function MapOptionsButton({
           >
             {hasMap ? tMapUpload("replaceSubmit") : tMapUpload("uploadSubmit")}
           </button>
+          {hasMap && (
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                onConfigureGrid();
+              }}
+              className="rounded px-3 py-2 text-left text-sm text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              {tGeography("gridConfig.trigger")}
+            </button>
+          )}
           {!isRoot && (
             <button
               onClick={() => {

@@ -1,6 +1,6 @@
 # SPEC-011: Cross-entity search
 
-- **Status:** Agreed 2026-08-13 — scope decided with the DM: factions and places are in, both open numeric/UX questions resolved. See §9 for the record.
+- **Status:** Shipped 2026-08-17 — see §11. Previously: Agreed 2026-08-13 — scope decided with the DM: factions and places are in, both open numeric/UX questions resolved. See §9 for the record.
 - **Date:** 2026-08-13
 - **Phase:** 3
 - **Related:** [ADR-0006](../adr/0006-bilingual-ui.md) (content is never translated; UI copy ships bilingual), [ADR-0007](../adr/0007-message-key-resolution-boundary.md) (message key resolution boundary), `getQuery.ts` (the per-domain free-text mechanism this spec reuses rather than replaces), [SPEC-006](./006-factions.md) (established the `?query=<name>` entity-link convention this spec also uses, in the absence of per-entity detail routes), [SPEC-004](./004-world-model.md) (the world tree a place result has to navigate into, since places have no flat list page)

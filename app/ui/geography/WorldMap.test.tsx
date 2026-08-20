@@ -460,7 +460,7 @@ describe("WorldMap", () => {
     });
     expect(imageAddTo).toHaveBeenCalledWith(fakeMap);
     expect(setMaxBounds).toHaveBeenCalledWith(bounds);
-    expect(setView).toHaveBeenCalledWith([500, 500], 1);
+    expect(setView).toHaveBeenCalledWith([500, 500], 1, { animate: false });
     expect(imageSetOpacity).not.toHaveBeenCalled();
   });
 
@@ -506,7 +506,9 @@ describe("WorldMap", () => {
     // Leaflet's own `fitBounds` reframes the view against the corrected
     // (aspect-correct) bounds — not the stored/default square passed at
     // mount, before the image's real size was known.
-    expect(fitBounds).toHaveBeenLastCalledWith(fittedBounds);
+    expect(fitBounds).toHaveBeenLastCalledWith(fittedBounds, {
+      animate: false,
+    });
   });
 
   // Regression (CI flake traced to a real bug, not test flake): the image
@@ -545,7 +547,7 @@ describe("WorldMap", () => {
     // The interim `setView`, called at mount, already went through
     // `runWithoutClosing` — before the image has even reported it loaded.
     expect(runWithoutClosing).toHaveBeenCalledTimes(1);
-    expect(setView).toHaveBeenCalledWith([500, 500], 1);
+    expect(setView).toHaveBeenCalledWith([500, 500], 1, { animate: false });
 
     act(() => {
       imageOnLoad?.();
@@ -1452,7 +1454,7 @@ describe("WorldMap — the zoom floor leaves room to zoom out (TD-87)", () => {
       expect(imageAddTo).toHaveBeenCalled();
     });
 
-    expect(setView).toHaveBeenCalledWith([500, 500], -2);
+    expect(setView).toHaveBeenCalledWith([500, 500], -2, { animate: false });
     const openZoom = -2;
     // Not merely "not equal" — genuinely below, i.e. there is at least one
     // full step of zoom-out headroom below wherever the map opens.
@@ -1476,7 +1478,9 @@ describe("WorldMap — the zoom floor leaves room to zoom out (TD-87)", () => {
       [0, 0],
       [900, 1600],
     ];
-    expect(fitBounds).toHaveBeenLastCalledWith(fittedBounds);
+    expect(fitBounds).toHaveBeenLastCalledWith(fittedBounds, {
+      animate: false,
+    });
     const lastMinZoom = setMinZoom.mock.calls.at(-1)?.[0];
     // `computeMinZoom(-6, -6)` — the second, post-load `getBoundsZoom` call
     // doubling as both the fit and the opening zoom, since `fitBounds`

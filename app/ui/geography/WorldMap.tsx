@@ -697,7 +697,19 @@ function WorldMap({
             map.setMinZoom(minZoom);
             map.setMaxZoom(10);
             map.setMaxBounds(bounds);
-            map.setView(initialView, initialZoom);
+            // `animate: false`, and not only because an animated initial
+            // framing is pointless: `runWithoutClosing`'s suppression
+            // window is synchronous, and an *animated* view change defers
+            // its `moveend` — after which `setMaxBounds`'s own
+            // `panInsideMaxBounds` hook may pan the map, firing a
+            // `movestart` outside the window that closes a context menu
+            // the DM has meanwhile opened. CI caught exactly this: on a
+            // slow runner this whole effect ran after the test's
+            // right-click, and the menu detached ~100ms after opening.
+            // With `animate: false` the entire cascade — movestart,
+            // moveend, the max-bounds pan — runs synchronously inside the
+            // suppression.
+            map.setView(initialView, initialZoom, { animate: false });
           });
 
           image.once("load", () => {
@@ -757,7 +769,9 @@ function WorldMap({
               const fitZoom = map.getBoundsZoom(fittedBounds);
               map.setMinZoom(computeMinZoom(fitZoom, fitZoom));
               map.setMaxBounds(fittedBounds);
-              map.fitBounds(fittedBounds);
+              // Same `animate: false` reasoning as the interim framing
+              // above — this re-fit is the case that actually bit in CI.
+              map.fitBounds(fittedBounds, { animate: false });
             });
           });
         }

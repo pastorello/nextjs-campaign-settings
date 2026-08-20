@@ -6,6 +6,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import type { ReactNode } from "react";
 import { toast } from "sonner";
 
 // WorldMap composes five already-independently-tested map subcomponents and
@@ -27,8 +28,13 @@ vi.mock("@/app/modules/maps/components/map/LeafletMap", () => ({
     return <div data-testid="leaflet-map" data-cursor={props.cursorStyle} />;
   },
 }));
+// Renders the `belowZoomControls` slot so the grid toggle (SPEC-015 T6)
+// is reachable; `extraControls` stays swallowed — `MapOptionsButton`'s
+// menu has its own suite.
 vi.mock("@/app/modules/maps/components/map/MapControls", () => ({
-  MapControls: () => <div data-testid="map-controls" />,
+  MapControls: (props: { belowZoomControls?: ReactNode }) => (
+    <div data-testid="map-controls">{props.belowZoomControls}</div>
+  ),
 }));
 vi.mock("@/app/modules/maps/components/map/MapMeasurementPanel", () => ({
   MapMeasurementPanel: () => <div data-testid="map-measurement-panel" />,
@@ -193,6 +199,19 @@ vi.mock("@/app/ui/geography/MapGridConfigPanel", () => ({
   ),
 }));
 
+// Has its own suite (SPEC-015 T6) — stubbed so these tests assert on what
+// WorldMap hands it (the toggle's state, the stored grid), not on Leaflet
+// polylines or the legend, which the overlay's own tests cover.
+vi.mock("@/app/ui/geography/MapGridOverlay", () => ({
+  default: (props: { isVisible: boolean; gridColumns: number | null }) => (
+    <div
+      data-testid="map-grid-overlay"
+      data-visible={props.isVisible}
+      data-grid-columns={props.gridColumns ?? ""}
+    />
+  ),
+}));
+
 // Has its own suite (SPEC-010 T3) — stubbed here so this file stays about
 // WorldMap's own state, not the delete-confirmation flow.
 vi.mock("@/app/ui/geography/DeletePlaceButton", () => ({
@@ -342,7 +361,14 @@ const onDescend = vi.fn();
  * interim (pre-load) or the load-triggered reframing call `render` directly
  * instead and drive `imageOnLoad` themselves.
  */
-async function renderMap(mapUrl = "/maps/test.jpg", unpositionedCount = 0) {
+async function renderMap(
+  mapUrl = "/maps/test.jpg",
+  unpositionedCount = 0,
+  grid: { gridColumns: number | null; gridScale: string | null } = {
+    gridColumns: null,
+    gridScale: null,
+  }
+) {
   render(
     <WorldMap
       parentId={1}
@@ -354,8 +380,8 @@ async function renderMap(mapUrl = "/maps/test.jpg", unpositionedCount = 0) {
       initialView={[500, 500]}
       initialZoom={1}
       onDescend={onDescend}
-      gridColumns={null}
-      gridScale={null}
+      gridColumns={grid.gridColumns}
+      gridScale={grid.gridScale}
       onMapChanged={vi.fn()}
       onGridChanged={vi.fn()}
       onDeleted={vi.fn()}
@@ -1570,6 +1596,116 @@ describe("WorldMap — the grid panel's image size (SPEC-015 T5)", () => {
     expect(screen.getByTestId("map-grid-config-panel")).toHaveAttribute(
       "data-image-size",
       ""
+    );
+  });
+});
+
+describe("WorldMap — the grid overlay's toggle (SPEC-015 T6)", () => {
+  it("starts with the grid off on every load, even when one is configured (§9: not persisted)", async () => {
+    await renderMap("/maps/test.jpg", 0, {
+      gridColumns: 36,
+      gridScale: "kingdom",
+    });
+
+    expect(screen.getByTestId("map-grid-overlay")).toHaveAttribute(
+      "data-visible",
+      "false"
+    );
+    // A configured grid gets a real toggle, labelled with what it would do.
+    expect(screen.getByTitle("show")).toBeInTheDocument();
+  });
+
+  it("toggles the overlay on and off", async () => {
+    await renderMap("/maps/test.jpg", 0, {
+      gridColumns: 36,
+      gridScale: "kingdom",
+    });
+
+    fireEvent.click(screen.getByTitle("show"));
+    expect(screen.getByTestId("map-grid-overlay")).toHaveAttribute(
+      "data-visible",
+      "true"
+    );
+
+    fireEvent.click(screen.getByTitle("hide"));
+    expect(screen.getByTestId("map-grid-overlay")).toHaveAttribute(
+      "data-visible",
+      "false"
+    );
+  });
+
+  it("is inert without a configured grid: it opens the configuration panel and draws nothing (§5)", async () => {
+    await renderMap();
+
+    fireEvent.click(screen.getByTitle("configure"));
+
+    expect(screen.getByTestId("map-grid-config-panel")).toHaveAttribute(
+      "data-open",
+      "true"
+    );
+    expect(screen.getByTestId("map-grid-overlay")).toHaveAttribute(
+      "data-visible",
+      "false"
+    );
+  });
+
+  it("renders no toggle at all for a place with no map image (§5's edge-case table)", () => {
+    render(
+      <WorldMap
+        parentId={1}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        mapUrl=""
+        bounds={bounds}
+        initialView={[500, 500]}
+        initialZoom={1}
+        onDescend={onDescend}
+        gridColumns={null}
+        gridScale={null}
+        onMapChanged={vi.fn()}
+        onGridChanged={vi.fn()}
+        onDeleted={vi.fn()}
+        unpositionedCount={0}
+      />
+    );
+
+    expect(screen.queryByTitle("configure")).toBeNull();
+    expect(screen.queryByTitle("show")).toBeNull();
+  });
+
+  it("switches the grid back off when navigating to another place", async () => {
+    const props = {
+      placeTitle: "Terra",
+      parentTitle: "Piani di Esistenza",
+      isRoot: false,
+      mapUrl: "/maps/test.jpg",
+      bounds,
+      initialView: [500, 500] as [number, number],
+      initialZoom: 1,
+      onDescend,
+      gridColumns: 36,
+      gridScale: "kingdom",
+      onMapChanged: vi.fn(),
+      onGridChanged: vi.fn(),
+      onDeleted: vi.fn(),
+      unpositionedCount: 0,
+    };
+    const { rerender } = render(<WorldMap parentId={1} {...props} />);
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByTitle("show"));
+    expect(screen.getByTestId("map-grid-overlay")).toHaveAttribute(
+      "data-visible",
+      "true"
+    );
+
+    rerender(<WorldMap parentId={2} {...props} />);
+    expect(screen.getByTestId("map-grid-overlay")).toHaveAttribute(
+      "data-visible",
+      "false"
     );
   });
 });

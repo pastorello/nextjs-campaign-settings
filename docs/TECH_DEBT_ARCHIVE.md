@@ -2744,3 +2744,75 @@ JSX-embedded copy before starting, and check the rest of
 `app/modules/maps/components/**` in the same pass — if this file drifted, its
 neighbours plausibly did too. A key added to one catalogue and not the other
 fails CI's key-set check, which is the cheap safety net here.
+
+---
+
+### TD-94 ✅ The measurement tool reports haversine metres on a pixel-space map — **DONE (2026-08-20)**
+
+**Outcome:** closed by [SPEC-015](./specs/015-map-grid-and-scale.md) T7
+([PR #209](https://github.com/pastorello/nextjs-campaign-settings/pull/209)), not
+patched in isolation — exactly as the supersession note below prescribed. The
+grid model (T1–T5) first gave every map a scale worth converting into;
+measurement was then rebuilt as `MapMeasureTool` on `measureDistanceInMeters` —
+Euclidean in the map's own pixel space, then squares, then the scale's metres —
+with the DM's click–track–click interaction. The vendored
+`MapMeasurementPanel`/`useMeasurement` pair (the haversine path, plus an area
+mode computing shoelace on pixel coordinates — the same disease) was deleted;
+`calculateDistance` in `coordinates.ts` is untouched, per the write-up's own
+"leave it alone" half — it is correct for real geography. The regression test
+lives in `MapMeasureTool.test.tsx`: the point pair the old path read as
+~33,000 km of longitude now labels as 27 km, from the grid. Without a configured
+grid, measurement refuses with a one-line explanation rather than guessing.
+
+The original description follows.
+
+---
+
+### TD-94 (original) 🟠 The measurement tool reports haversine metres on a pixel-space map, so every distance it gives is meaningless
+
+> **Superseded 2026-08-18 by [SPEC-015](../specs/015-map-grid-and-scale.md) — do not
+> patch this in isolation.** The bug is real and the diagnosis below stands, but the
+> fix is not "swap haversine for a pixel distance": a pixel distance is still not a
+> distance until the map carries a scale. SPEC-015 gives every map a grid and four
+> named scales, and rebuilds measurement on top of that (its T7 carries this
+> regression test). Fixing the formula alone would produce a confident number in
+> pixels, which is the same class of wrong.
+
+**Severity:** 🟠 High · **Effort:** M · **Found:** 2026-08-18, reported by the DM as "Misura seems not to work, or I have not understood it"
+
+The DM could not tell whether the tool is broken or just opaque. It is broken,
+and the mechanism is exact.
+
+`LeafletMap` builds the map with `crs: L.CRS.Simple` (`LeafletMap.tsx:109`) —
+the flat, unprojected coordinate system, correct for a hand-drawn fantasy map,
+in which a coordinate pair is **a pixel position, not a place on a globe**.
+`useMeasurement` then hands those pairs to `calculateDistance`
+(`app/modules/maps/lib/utils/coordinates.ts:140`), which is the **haversine
+formula on a sphere of radius 6371 km**: it reads `lat` as degrees of latitude,
+`lng` as degrees of longitude, and returns metres.
+
+So a click at pixel row 1200 is interpreted as latitude 1200°. The trigonometry
+does not error — it wraps, repeatedly — and returns a confident number with no
+relationship to anything on the map. This is not a precision problem to tune; the
+formula is answering a different question from the one being asked.
+
+**The two halves of a real fix:**
+
+1. **Measure in the map's own space.** With `CRS.Simple` the honest primitive is
+   Euclidean pixel distance (`map.distance()` already does the right thing under
+   this CRS). Leave `calculateDistance` alone — it is correct for real geography
+   and may have other callers — and give this path its own function rather than
+   bending that one.
+2. **Convert pixels into campaign units**, which is the DM's separate request for
+   a map scale ("50 pixel = 4.5 km"). Without it the tool can only ever say "312
+   pixels", which is honest but useless at the table. **That needs a per-map
+   scale stored alongside the map**, so it is a data-model change and lives in a
+   spec — see `ROADMAP.md`.
+
+**Depends on TD-81.** Pixel distances only mean something if the map's bounds
+actually match the image's pixels, which today they do not.
+
+**The DM also proposed a clearer interaction** — click to start, the track draws
+in red as the mouse moves, a second click ends it and drops a marker showing the
+distance. Worth adopting; it is recorded with the scale work rather than here,
+since this item is about the number being wrong, not about how it is collected.

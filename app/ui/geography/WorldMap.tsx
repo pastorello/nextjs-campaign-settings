@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { LeafletMap } from "@/app/modules/maps/components/map/LeafletMap";
 import { MapControls } from "@/app/modules/maps/components/map/MapControls";
-import { MapMeasurementPanel } from "@/app/modules/maps/components/map/MapMeasurementPanel";
+import MapMeasureTool from "@/app/ui/geography/MapMeasureTool";
+import parseGridScale from "@/app/lib/config/geography/parseGridScale";
 import { MapContextMenu } from "@/app/modules/maps/components/map/MapContextMenu";
 import {
   MapPOIPanel,
@@ -129,7 +130,11 @@ function WorldMap({
   const tDrawArea = useTranslations("geography.drawArea");
   const tAttachEntity = useTranslations("geography.attachEntity");
   const tTemporaryMarkers = useTranslations("geography.temporaryMarkers");
-  const [isMeasurementOpen, setIsMeasurementOpen] = useState(false);
+  const tMeasure = useTranslations("geography.measure");
+  // Click–track–click measurement (SPEC-015 T7) — armed from the context
+  // menu, only when the grid is configured; off on every load, like the
+  // grid toggle.
+  const [isMeasuring, setIsMeasuring] = useState(false);
   // Consolidated map controls (usability fix, 2026-08-17): these three used
   // to be always-visible floating buttons of their own; now each is a
   // controlled dialog/picker, opened either from `MapOptionsButton`'s menu
@@ -296,8 +301,8 @@ function WorldMap({
   } | null>(null);
 
   // Memoized callbacks to prevent unnecessary re-renders
-  const handleMeasurementClose = useCallback(() => {
-    setIsMeasurementOpen(false);
+  const handleMeasureExit = useCallback(() => {
+    setIsMeasuring(false);
   }, []);
 
   // Context menu handlers
@@ -309,8 +314,21 @@ function WorldMap({
   );
 
   const handleContextMenuMeasurement = useCallback(() => {
-    setIsMeasurementOpen(true);
-  }, []);
+    // No grid, no distances (§5's edge-case table): measurement never
+    // starts, and the DM gets the one-line explanation rather than a
+    // guessed number. `imageSize === null` (image still loading or
+    // undecodable) blocks for the same reason — there is no pixel width
+    // to convert through yet.
+    if (
+      gridColumns === null ||
+      parseGridScale(gridScale) === null ||
+      imageSize === null
+    ) {
+      toast.info(tMeasure("unavailable"));
+      return;
+    }
+    setIsMeasuring(true);
+  }, [gridColumns, gridScale, imageSize, tMeasure]);
 
   const handleContextMenuAddPOI = useCallback((lat: number, lng: number) => {
     // Always set fresh coordinates - this ensures updates even if panel is already open
@@ -596,8 +614,10 @@ function WorldMap({
     setEditingArea(null);
     // "Off on every load" (SPEC-015 §9) includes navigating to another
     // place — `WorldMap` isn't remounted on `parentId` change, so without
-    // this the previous map's toggle state would carry over.
+    // this the previous map's toggle state would carry over. The measure
+    // tool disarms for the same reason: its grid is the previous map's.
     setIsGridVisible(false);
+    setIsMeasuring(false);
   }
 
   const handlePOIExport = useCallback(() => {
@@ -811,7 +831,8 @@ function WorldMap({
           isSelectingPOILocation ||
           positioningPlace ||
           isDrawingArea ||
-          editingArea
+          editingArea ||
+          isMeasuring
             ? "crosshair"
             : "grab"
         }
@@ -917,10 +938,15 @@ function WorldMap({
         onSaved={onGridChanged}
       />
 
-      {/* Measurement Panel */}
-      <MapMeasurementPanel
-        isOpen={isMeasurementOpen}
-        onClose={handleMeasurementClose}
+      {/* Click–track–click distance measurement in the map's own units
+          (SPEC-015 T7) — replaces the vendored panel flow, whose haversine
+          arithmetic on pixel coordinates was TD-94. */}
+      <MapMeasureTool
+        isActive={isMeasuring}
+        gridColumns={gridColumns}
+        gridScale={gridScale}
+        imageSize={imageSize}
+        onExit={handleMeasureExit}
       />
 
       {/* Context Menu */}

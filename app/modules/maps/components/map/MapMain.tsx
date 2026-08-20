@@ -10,7 +10,6 @@ import { MapTopBar } from "./MapTopBar";
 import { MapTileSwitcher } from "./MapTileSwitcher";
 import { MapControls } from "./MapControls";
 import { MapDetailsPanel } from "./MapDetailsPanel";
-import { MapMeasurementPanel } from "./MapMeasurementPanel";
 import { MapContextMenu } from "./MapContextMenu";
 import { MapPOIPanel } from "./MapPOIPanel";
 import { useMapTileProvider } from "@/app/modules/maps/hooks/useMapTileProvider";
@@ -39,7 +38,6 @@ const GEOJSON_STYLE = {
 export function MapMain() {
   const [selectedCountry, setSelectedCountry] =
     useState<GeoJSON.Feature | null>(null);
-  const [isMeasurementOpen, setIsMeasurementOpen] = useState(false);
   const [isPOIPanelOpen, setIsPOIPanelOpen] = useState(false);
   const [poiFilterCategory, setPOIFilterCategory] =
     useState<POICategory | null>(null);
@@ -101,14 +99,6 @@ export function MapMain() {
     setSelectedCountry(null);
   }, []);
 
-  const handleMeasurementOpen = useCallback(() => {
-    setIsMeasurementOpen(true);
-  }, []);
-
-  const handleMeasurementClose = useCallback(() => {
-    setIsMeasurementOpen(false);
-  }, []);
-
   // Context menu handlers
   const handleAddMarker = useCallback(
     (lat: number, lng: number) => {
@@ -116,10 +106,6 @@ export function MapMain() {
     },
     [addMarker]
   );
-
-  const handleContextMenuMeasurement = useCallback(() => {
-    setIsMeasurementOpen(true);
-  }, []);
 
   const handleContextMenuAddPOI = useCallback((lat: number, lng: number) => {
     // Always set fresh coordinates - this ensures updates even if panel is already open
@@ -276,7 +262,6 @@ export function MapMain() {
         onCountrySelect={(countryId) => void handleCountrySelect(countryId)}
         selectedCountry={selectedCountry}
         onClearSelection={handleClearSelection}
-        onMeasurementClick={handleMeasurementOpen}
         onPOIClick={() => handleOpenPOIPanel()}
         isPOIPanelOpen={isPOIPanelOpen}
         onClosePOIPanel={handleClosePOIPanel}
@@ -300,19 +285,17 @@ export function MapMain() {
         onClose={handleClearSelection}
       />
 
-      {/* Measurement Panel */}
-      <MapMeasurementPanel
-        isOpen={isMeasurementOpen}
-        onClose={handleMeasurementClose}
-      />
-
       {/* Context Menu */}
       <MapContextMenu
         isOpen={isContextMenuOpen}
         position={contextMenuPosition}
         onClose={closeContextMenu}
         onAddMarker={handleAddMarker}
-        onStartMeasurement={handleContextMenuMeasurement}
+        // Measurement is a domain feature now (SPEC-015 T7,
+        // app/ui/geography/MapMeasureTool.tsx): it needs the map's grid,
+        // which this vendored composition has no notion of — so its
+        // context-menu entry is a no-op here.
+        onStartMeasurement={() => {}}
         onAddPOI={handleContextMenuAddPOI}
       />
 

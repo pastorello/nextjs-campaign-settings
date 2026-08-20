@@ -527,6 +527,11 @@
       "squareEquals": "1 quadretto = {distance}",
       "totalSize": "{columns} × {rows} quadretti — {width} × {height}"
     },
+    "measure": {
+      "unavailable": "Misurazione non disponibile: configura prima la griglia della mappa.",
+      "hint": "Clicca il punto di partenza, poi quello di arrivo — Esc per uscire",
+      "exit": "Esci dalla misurazione"
+    },
     "unpositionedCount": "{count, plural, =0 {Tutti i luoghi sono posizionati} one {# luogo non ancora posizionato} other {# luoghi non ancora posizionati}}",
     "noWorldYet": "Non hai ancora creato il tuo mondo.",
     "createWorldLink": "Crea il tuo mondo",

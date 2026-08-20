@@ -2,26 +2,27 @@ import { test, expect } from "@playwright/test";
 import messages from "@/messages/it.json";
 
 /**
- * TD-46 (see docs/TECH_DEBT.md): `MapMeasurementPanel`, reachable from the
- * context menu's "Measure" item — distance mode, placing points on the map,
- * reading the running distance, and finishing the measurement.
+ * SPEC-015 T7: measurement is click–track–click on the map's own grid
+ * (`MapMeasureTool`), replacing the vendored panel flow this spec used to
+ * drive — whose haversine arithmetic on pixel coordinates was TD-94.
  *
- * The sibling "area" mode and the search/filtering sub-slice originally
- * planned here are out of scope: `MapSearchBar` (country search) is entirely
- * commented out in `WorldMap.tsx` — unreachable by a real user today — so
- * there is nothing for an e2e spec to drive. See TD-46's note in
- * `docs/TECH_DEBT.md`.
+ * The world-setup root's map image is a deliberately minimal 8-byte PNG
+ * (`world.setup.ts`) that no browser can decode, so the image never
+ * reports a natural size and nothing can be measured against it — which
+ * makes the *unavailable* edge case (§5's table) the honest end-to-end
+ * path here: measurement must refuse with the one-line explanation, never
+ * a guess. The full click–track–click interaction is covered by
+ * `MapMeasureTool.test.tsx` against a mocked map; driving it end-to-end
+ * needs a decodable fixture image (recorded in SPEC-015 §11).
  */
 test.describe("map measurement", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/geography");
-    await expect(page.locator(".leaflet-container")).toBeVisible();
-  });
-
-  test("distance mode: placing points updates the running distance, and finishing keeps the result", async ({
+  test("without a usable grid, measuring refuses with an explanation (SPEC-015 §5, TD-94)", async ({
     page,
   }) => {
+    await page.goto("/dashboard/geography");
     const map = page.locator(".leaflet-container");
+    await expect(map).toBeVisible();
+
     await map.click({ button: "right", position: { x: 300, y: 200 } });
     await page
       .getByRole("button", {
@@ -29,29 +30,8 @@ test.describe("map measurement", () => {
       })
       .click();
 
-    await expect(page.getByText("Select a measurement mode")).toBeVisible();
-
-    await page.getByTitle("Distance", { exact: true }).click();
-
-    await map.click({ position: { x: 250, y: 150 } });
-    await map.click({ position: { x: 450, y: 350 } });
-
-    const pointsValue = page
-      .locator("p", { hasText: "Points" })
-      .locator("xpath=following-sibling::p[1]");
-    await expect(pointsValue).toHaveText("2");
-
-    const distanceValue = page
-      .locator("p", { hasText: "Distance" })
-      .locator("xpath=following-sibling::p[1]");
-    await expect(distanceValue).not.toHaveText("—");
-
-    await page.getByTitle("Done").click();
-
-    await expect(page.getByText("Distance:")).toBeVisible();
-    await expect(page.getByText("Select a measurement mode")).not.toBeVisible();
-
-    await page.getByRole("button", { name: "Close measurement tools" }).click();
-    await expect(page.getByText("Distance:")).not.toBeVisible();
+    await expect(
+      page.getByText(messages.geography.measure.unavailable)
+    ).toBeVisible();
   });
 });

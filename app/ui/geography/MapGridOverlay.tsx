@@ -4,9 +4,7 @@ import { useEffect } from "react";
 import type { Polyline } from "leaflet";
 import { useLocale, useTranslations } from "next-intl";
 
-import zoneGridMeta from "@/app/lib/config/geography/zoneGridMeta";
-import type GridScale from "@/app/lib/definitions/enums/geography/GridScale";
-import ZoneGridMetaField from "@/app/lib/definitions/enums/geography/ZoneGridMetaField";
+import parseGridScale from "@/app/lib/config/geography/parseGridScale";
 import {
   deriveGridRows,
   metersPerSquare,
@@ -31,19 +29,6 @@ interface MapGridOverlayProps {
 }
 
 /**
- * Narrows the stored raw string through the meta's own validator — the
- * same move `MapGridConfigPanel` makes, but falling back to `null` rather
- * than a default: an unparseable scale means the map has no usable grid,
- * and a grid that is not configured is never drawn or guessed at (§5's
- * edge-case table).
- */
-function toConfiguredScale(gridScale: string | null): GridScale | null {
-  const parsed =
-    zoneGridMeta[ZoneGridMetaField.gridScale].validator.safeParse(gridScale);
-  return parsed.success ? parsed.data : null;
-}
-
-/**
  * The grid overlay and its legend (SPEC-015 §5 steps 5–6). One Leaflet
  * multi-polyline holds every line — at most 200 columns (the validator's
  * cap, §5's performance mitigation) plus the derived rows — added to the
@@ -64,7 +49,7 @@ export default function MapGridOverlay({
   const t = useTranslations("geography.gridLegend");
   const locale = useLocale();
 
-  const scale = toConfiguredScale(gridScale);
+  const scale = parseGridScale(gridScale);
   const squareSize =
     imageSize === null
       ? null

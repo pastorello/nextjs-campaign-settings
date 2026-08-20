@@ -240,7 +240,8 @@ Two feature threads came out of the DM's second pass. Both are recorded here
 rather than in the register because both change what the app does, not whether it
 does it correctly.
 
-**The place popover.** Clicking a place opens a popover carrying its description
+**The place popover** — now drafted as [SPEC-016](./specs/016-place-popover.md)
+(2026-08-20), awaiting agreement. Clicking a place opens a popover carrying its description
 and its actions: "rimuovi definitivamente" and "sposta nei luoghi non
 posizionati"; the list of NPCs and deities currently at that place, each with an
 X that returns it to the unattached pool; and a control to attach an entity here.

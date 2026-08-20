@@ -1,6 +1,6 @@
 # SPEC-015: Map grids, scale and measurement
 
-- **Status:** **Agreed 2026-08-20.** Both §9 open questions decided with the DM: the grid toggle's state is not persisted, and the legend also shows the map's total size. Written 2026-08-18 from the DM's own description of the grid model; nothing built yet.
+- **Status:** **Shipped 2026-08-20** — T1–T8 all landed the same day the spec was agreed (PRs #202–#209); see §11. _(Agreed 2026-08-20: both §9 open questions decided with the DM — the grid toggle's state is not persisted, and the legend also shows the map's total size. Written 2026-08-18 from the DM's own description of the grid model.)_
 - **Date:** 2026-08-18
 - **Phase:** ROADMAP Phase 4 (Session tooling)
 - **Related:** [`docs/ROADMAP.md`](../ROADMAP.md) "Decided on 2026-08-18 — making the map measurable" (**this spec supersedes its scale design**) · **TD-94** (the measurement bug; superseded by this spec rather than patched) · **TD-81** (map framing — fixed separately, deliberately) · [SPEC-004](./004-world-model.md) (the world tree) · [SPEC-009](./009-zones-as-areas.md) (footprints) · [ADR-0008](../adr/0008-map-image-storage.md) · [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md) (the boundary §7 applies)
@@ -164,22 +164,22 @@ awkward, that is evidence worth recording, not worked around silently.
 
 ## 8. Acceptance criteria
 
-- [ ] A map's grid can be configured with a width in squares and one of the four scales.
-- [ ] The height in squares is derived from the image's aspect ratio and never asked for.
-- [ ] A width of zero, a negative width, or one past the cap is rejected with a field-level error.
-- [ ] The grid overlay can be toggled from the map controls and is off by default.
-- [ ] The legend states what one square means, in the map's own scale, and the map's total size in squares and in units.
-- [ ] A map with no grid configured offers configuration and reports no distances at all.
-- [ ] Measuring reports the same distance regardless of the current zoom level.
-- [ ] Measurement uses the map's own pixel space, not a haversine formula — TD-94 cannot recur.
-- [ ] Changing a map's scale rewrites no stored value.
-- [ ] A child map's grid is independent of its parent's.
-- [ ] Replacing the map image keeps the configured width and recomputes the derived height.
-- [ ] Every new mutation rejects an unauthenticated request.
-- [ ] Every new mutation rejects invalid input with field-level errors.
-- [ ] Every new user-facing string exists in both `messages/it.json` and `messages/en.json`.
-- [ ] axe reports zero violations on the configuration panel, and it is completable with the keyboard alone.
-- [ ] Coverage has not dropped.
+- [x] A map's grid can be configured with a width in squares and one of the four scales.
+- [x] The height in squares is derived from the image's aspect ratio and never asked for.
+- [x] A width of zero, a negative width, or one past the cap is rejected with a field-level error.
+- [x] The grid overlay can be toggled from the map controls and is off by default.
+- [x] The legend states what one square means, in the map's own scale, and the map's total size in squares and in units.
+- [x] A map with no grid configured offers configuration and reports no distances at all.
+- [x] Measuring reports the same distance regardless of the current zoom level.
+- [x] Measurement uses the map's own pixel space, not a haversine formula — TD-94 cannot recur.
+- [x] Changing a map's scale rewrites no stored value.
+- [x] A child map's grid is independent of its parent's.
+- [x] Replacing the map image keeps the configured width and recomputes the derived height.
+- [x] Every new mutation rejects an unauthenticated request.
+- [x] Every new mutation rejects invalid input with field-level errors.
+- [x] Every new user-facing string exists in both `messages/it.json` and `messages/en.json`.
+- [x] axe reports zero violations on the configuration panel, and it is completable with the keyboard alone.
+- [x] Coverage has not dropped.
 
 ## 9. Implementation plan
 
@@ -222,19 +222,46 @@ awkward, that is evidence worth recording, not worked around silently.
 
 ## 10. Task breakdown
 
-- [ ] **T1** — Schema + migration: `gridColumns`, `gridScale`. _(test: migration applies to an empty database; both columns nullable)_
-- [ ] **T2** — `GridScale` vocabulary and its four static options. _(test: membership validator; metres-per-square values)_
-- [ ] **T3** — The conversion helpers: derived height from aspect ratio, pixels → squares → distance. _(test: each scale round-trips; a zoom change does not alter the result)_
-- [ ] **T4** — `PageMeta` for both fields, and the validated, auth-guarded save. _(test: unauthenticated rejection; zero/negative/over-cap rejection)_
-- [ ] **T5** — The configuration panel behind the map's edit control. _(test: derived height renders as `—` when unknown; keyboard-completable)_
-- [ ] **T6** — The grid overlay and its toggle. _(test: off by default; inert with no grid configured)_
-- [ ] **T7** — Measurement rebuilt on the new primitive, retiring the haversine call. _(test: TD-94's regression — a pixel-space map never reports a haversine metre)_
-- [ ] **T8** — i18n both catalogues, a11y pass, docs update. _(test: catalogue key-set check in CI, axe at zero)_
+- [x] **T1** — Schema + migration: `gridColumns`, `gridScale`. _(test: migration applies to an empty database; both columns nullable)_
+- [x] **T2** — `GridScale` vocabulary and its four static options. _(test: membership validator; metres-per-square values)_
+- [x] **T3** — The conversion helpers: derived height from aspect ratio, pixels → squares → distance. _(test: each scale round-trips; a zoom change does not alter the result)_
+- [x] **T4** — `PageMeta` for both fields, and the validated, auth-guarded save. _(test: unauthenticated rejection; zero/negative/over-cap rejection)_
+- [x] **T5** — The configuration panel behind the map's edit control. _(test: derived height renders as `—` when unknown; keyboard-completable)_
+- [x] **T6** — The grid overlay and its toggle. _(test: off by default; inert with no grid configured)_
+- [x] **T7** — Measurement rebuilt on the new primitive, retiring the haversine call. _(test: TD-94's regression — a pixel-space map never reports a haversine metre)_
+- [x] **T8** — i18n both catalogues, a11y pass, docs update. _(test: catalogue key-set check in CI, axe at zero)_
 
 ## 11. Outcome
 
-_Fill in at close._
-
-- Shipped: —
-- Deviations from spec and why: —
-- Follow-up debt created: —
+- **Shipped:** everything in §5, 2026-08-20, as eight tasks / eight PRs
+  ([#202](https://github.com/pastorello/nextjs-campaign-settings/pull/202)–[#209](https://github.com/pastorello/nextjs-campaign-settings/pull/209)):
+  schema, `GridScale` vocabulary, the conversion helpers, the `PageMeta` pair
+  with the auth-guarded save, the configuration panel, the overlay + legend
+  with the toggle beside zoom, and measurement rebuilt click–track–click on
+  `measureDistanceInMeters` (closing **TD-94**, whose regression test pins that
+  a pixel-space map never again reports a haversine metre).
+- **Deviations from spec and why:**
+  - **§7's ADR-0011 boundary was _not_ awkward** — recorded here because §7
+    asked for evidence either way. The panel, the overlay and the measure tool
+    all consume `zoneGridMeta`'s validators and label keys without restating
+    them (`parseGridScale` wraps the declared validator for the two readers);
+    nothing about the split fought back. First exercise of the boundary since
+    the ADR, and it held.
+  - **Area measurement was removed with the vendored panel.** §5 never
+    specified area; the panel's area mode ran the shoelace formula with
+    Earth's radius on pixel coordinates — TD-94's disease in a second shape —
+    so retiring the haversine path took it too. If area-on-the-grid is ever
+    wanted, it is a new roadmap item, not a revert.
+  - **The full click–track–click interaction is not driven end-to-end.** The
+    e2e fixture image (`world.setup.ts`) is a deliberately undecodable 8-byte
+    PNG, so the image never reports a natural size and e2e can only exercise
+    the measurement-unavailable path (which it does). The interaction itself
+    is covered in `MapMeasureTool.test.tsx` against a mocked map. Driving it
+    e2e needs a decodable fixture image — noted below as debt.
+- **Follow-up debt created:**
+  - No grid-removal flow: a configured grid can be edited but not unset
+    (noted in [PR #206](https://github.com/pastorello/nextjs-campaign-settings/pull/206)).
+    Cheap once wanted — `updateZoneGrid` already validates; it needs a
+    "remove" affordance and a nulling write.
+  - A decodable e2e fixture map image, so the measurement interaction and the
+    grid overlay can be exercised end-to-end rather than only against mocks.

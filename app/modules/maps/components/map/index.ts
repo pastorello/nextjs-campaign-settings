@@ -15,7 +15,6 @@
  * - MapTileSwitcher: Base map layer switcher
  * - MapThemeSwitcher: Light/dark theme toggle
  * - MapDetailsPanel: Country information panel
- * - MapMeasurementPanel: Distance/area measurement tools
  *
  * Utilities:
  * - MapProvider: Context provider for map instance
@@ -38,7 +37,6 @@ export { MapTileSwitcher } from "./MapTileSwitcher";
 export { MapControls } from "./MapControls";
 export { MapThemeSwitcher } from "./MapThemeSwitcher";
 export { MapUser } from "./MapUser";
-export { MapMeasurementPanel } from "./MapMeasurementPanel";
 export { MapDetailsPanel } from "./MapDetailsPanel";
 export { MapContextMenu } from "./MapContextMenu";
 export { MapPOIPanel } from "./MapPOIPanel";

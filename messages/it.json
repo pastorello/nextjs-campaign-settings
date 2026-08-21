@@ -548,6 +548,11 @@
       "trigger": "Modifica area",
       "sublabel": "Ridimensiona o sposta"
     },
+    "popover": {
+      "close": "Chiudi",
+      "openMap": "Apri mappa",
+      "openMapUnavailable": "Questo luogo non ha ancora una mappa."
+    },
     "mapOptions": {
       "trigger": "Opzioni mappa"
     },

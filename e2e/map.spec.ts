@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page, type Locator } from "@playwright/test";
 import messages from "@/messages/it.json";
 
 /**
@@ -21,6 +21,33 @@ import messages from "@/messages/it.json";
  */
 const imageLayer = ".leaflet-image-layer";
 
+/**
+ * Right-click the map until the context menu is actually open (TD-100).
+ *
+ * `.leaflet-container` becoming visible is not "the map is ready": on a slow
+ * environment (CI runners, chiefly) the first right-click can land before
+ * Leaflet's `contextmenu` handler is attached — nothing opens, and a test
+ * that right-clicked exactly once then waits 30s for a menu that will never
+ * come. The init tail can also close a menu that did open (~100–200ms after
+ * opening; see TD-100's write-up for the suspected `moveend` →
+ * `panInsideMaxBounds` → `movestart` cascade). A real DM shrugs and
+ * right-clicks again, so the test does the same. This does not mask a
+ * persistent regression: if the menu keeps dying, every retry fails and
+ * `toPass` exhausts.
+ */
+async function openContextMenu(
+  page: Page,
+  position: { x: number; y: number }
+): Promise<Locator> {
+  const map = page.locator(".leaflet-container");
+  const menu = page.getByLabel(messages.geography.contextMenu.ariaLabel);
+  await expect(async () => {
+    await map.click({ button: "right", position });
+    await expect(menu).toBeVisible({ timeout: 1500 });
+  }).toPass({ timeout: 15000 });
+  return menu;
+}
+
 test.describe("world map", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/dashboard/geography");
@@ -36,13 +63,7 @@ test.describe("world map", () => {
   });
 
   test("right-clicking the map opens the context menu", async ({ page }) => {
-    const map = page.locator(".leaflet-container");
-    await expect(map).toBeVisible();
-
-    await map.click({ button: "right", position: { x: 300, y: 200 } });
-
-    const menu = page.getByLabel(messages.geography.contextMenu.ariaLabel);
-    await expect(menu).toBeVisible();
+    const menu = await openContextMenu(page, { x: 300, y: 200 });
     await expect(
       menu.getByText(messages.geography.contextMenu.addMarker.trigger, {
         exact: true,
@@ -77,11 +98,8 @@ test.describe("world map", () => {
   test("clicking the visible Close button closes the desktop POI panel", async ({
     page,
   }) => {
-    const map = page.locator(".leaflet-container");
-    await expect(map).toBeVisible();
-
-    await map.click({ button: "right", position: { x: 400, y: 250 } });
-    await page
+    const menu = await openContextMenu(page, { x: 400, y: 250 });
+    await menu
       .getByRole("button", {
         name: messages.geography.contextMenu.addPlace.trigger,
       })

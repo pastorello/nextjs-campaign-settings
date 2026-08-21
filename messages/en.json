@@ -548,6 +548,11 @@
       "trigger": "Edit Area",
       "sublabel": "Resize or move"
     },
+    "popover": {
+      "close": "Close",
+      "openMap": "Open map",
+      "openMapUnavailable": "This place doesn't have a map yet."
+    },
     "mapOptions": {
       "trigger": "Map options"
     },

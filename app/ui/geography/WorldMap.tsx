@@ -28,6 +28,7 @@ import isValidString from "@/app/lib/utils/validators/isValidString";
 import createPlace from "@/app/lib/data/maps/createPlace";
 import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
 import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
+import PlacePopover from "@/app/ui/geography/PlacePopover";
 import MapUploadControl from "@/app/ui/geography/MapUploadControl";
 import DeletePlaceButton from "@/app/ui/geography/DeletePlaceButton";
 import MapOptionsButton from "@/app/ui/geography/MapOptionsButton";
@@ -187,6 +188,13 @@ function WorldMap({
     title: string;
   } | null>(null);
 
+  // The place popover (SPEC-016 T2) — one at a time by construction, a
+  // single state slot rather than a set. Clicking a marker/rectangle
+  // (`useNavigableChildren`) used to descend straight into it; now it opens
+  // this instead, and "Apri mappa" inside the popover is what actually
+  // descends.
+  const [popoverPlace, setPopoverPlace] = useState<NavigableChild | null>(null);
+
   // Context menu hook
   const {
     isOpen: isContextMenuOpen,
@@ -220,10 +228,39 @@ function WorldMap({
   // changing, and creating a place changes neither.
   const [placesRefetchToken, setPlacesRefetchToken] = useState(0);
 
-  // Navigable `region` children, same scope — clicking one calls `onDescend`
+  // A marker/rectangle click opens the popover instead of descending
+  // directly (SPEC-016 T2) — suppressed while measuring, since map clicks
+  // belong to the measure tool then (§5's edge-case table). Other crosshair
+  // modes (positioning, drawing an area) don't need a guard here: a Leaflet
+  // marker/rectangle click never reaches the map's own click handler those
+  // modes listen on.
+  const handlePlaceClick = useCallback(
+    (child: NavigableChild) => {
+      if (isMeasuring) return;
+      setPopoverPlace(child);
+    },
+    [isMeasuring]
+  );
+
+  // "Apri mappa" (SPEC-016 T2) — the popover's own descend action, now the
+  // only path into `onDescend`.
+  const handleOpenMap = useCallback(
+    (child: NavigableChild) => {
+      onDescend(child);
+      setPopoverPlace(null);
+    },
+    [onDescend]
+  );
+
+  const handleClosePopover = useCallback(() => {
+    setPopoverPlace(null);
+  }, []);
+
+  // Navigable `region` children, same scope — clicking one opens the
+  // popover (SPEC-016 T2; used to call `onDescend` directly).
   const navigableChildren = useNavigableChildren(
     parentId,
-    onDescend,
+    handlePlaceClick,
     placesRefetchToken,
     editingArea?.id ?? null
   );
@@ -612,6 +649,10 @@ function WorldMap({
     setPositioningPlace(null);
     setCursorCoords(null);
     setEditingArea(null);
+    // The popover refers to a place on the map being left (SPEC-016 T2) —
+    // `WorldMap` isn't remounted on `parentId` change, so without this it
+    // would survive the navigation open, anchored to nothing on the new map.
+    setPopoverPlace(null);
     // "Off on every load" (SPEC-015 §9) includes navigating to another
     // place — `WorldMap` isn't remounted on `parentId` change, so without
     // this the previous map's toggle state would carry over. The measure
@@ -948,6 +989,17 @@ function WorldMap({
         imageSize={imageSize}
         onExit={handleMeasureExit}
       />
+
+      {/* The place popover (SPEC-016 T2) — opened by a marker/rectangle
+          click (`useNavigableChildren`), replacing the old click-to-descend
+          behaviour. "Apri mappa" is the only path left into `onDescend`. */}
+      {popoverPlace && (
+        <PlacePopover
+          place={popoverPlace}
+          onClose={handleClosePopover}
+          onOpenMap={handleOpenMap}
+        />
+      )}
 
       {/* Context Menu */}
       <MapContextMenu

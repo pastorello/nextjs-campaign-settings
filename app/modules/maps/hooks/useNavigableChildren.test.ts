@@ -173,19 +173,20 @@ describe("useNavigableChildren", () => {
     expect(markerAddTo).toHaveBeenCalledWith(fakeMap);
   });
 
-  it("calls onDescend with the child when its marker is clicked", async () => {
+  it("calls onPlaceClick with the child when its marker is clicked", async () => {
     fetchPlaceChildren.mockResolvedValue([row({ id: 7, title: "Kang" })]);
-    const onDescend = vi.fn();
+    const onPlaceClick = vi.fn();
 
-    renderHook(() => useNavigableChildren(1, onDescend));
+    renderHook(() => useNavigableChildren(1, onPlaceClick));
 
     await waitFor(() => expect(clickHandlers.size).toBe(1));
     const handler = [...clickHandlers.values()][0];
     handler?.();
 
-    expect(onDescend).toHaveBeenCalledWith({
+    expect(onPlaceClick).toHaveBeenCalledWith({
       id: 7,
       title: "Kang",
+      description: null,
       lat: 10,
       lng: 20,
       mapImage: "kang.png",
@@ -254,7 +255,7 @@ describe("useNavigableChildren — areas (SPEC-009 T2)", () => {
     );
   });
 
-  it("calls onDescend with the child when the area is clicked", async () => {
+  it("calls onPlaceClick with the child when the area is clicked", async () => {
     fetchPlaceChildren.mockResolvedValue([
       row({
         id: 3,
@@ -265,14 +266,14 @@ describe("useNavigableChildren — areas (SPEC-009 T2)", () => {
         ],
       }),
     ]);
-    const onDescend = vi.fn();
+    const onPlaceClick = vi.fn();
 
-    renderHook(() => useNavigableChildren(1, onDescend));
+    renderHook(() => useNavigableChildren(1, onPlaceClick));
 
     await waitFor(() => expect(rectangleClickHandlers.size).toBe(1));
     rectangleClickHandlers.values().next().value?.();
 
-    expect(onDescend).toHaveBeenCalledWith(
+    expect(onPlaceClick).toHaveBeenCalledWith(
       expect.objectContaining({ id: 3, title: "Kingdom of Kang" })
     );
   });
@@ -391,11 +392,11 @@ describe("useNavigableChildren — drag to reposition (TD-71, SPEC-005 §5.B)", 
     );
   });
 
-  it("does not call onDescend for the click Leaflet may fire right after a drag", async () => {
+  it("does not call onPlaceClick for the click Leaflet may fire right after a drag", async () => {
     fetchPlaceChildren.mockResolvedValue([row({ id: 1 })]);
-    const onDescend = vi.fn();
+    const onPlaceClick = vi.fn();
 
-    renderHook(() => useNavigableChildren(1, onDescend));
+    renderHook(() => useNavigableChildren(1, onPlaceClick));
     await waitFor(() => expect(dragendHandlers.size).toBe(1));
 
     await act(async () => {
@@ -404,19 +405,19 @@ describe("useNavigableChildren — drag to reposition (TD-71, SPEC-005 §5.B)", 
       await Promise.resolve();
     });
 
-    expect(onDescend).not.toHaveBeenCalled();
+    expect(onPlaceClick).not.toHaveBeenCalled();
   });
 
-  it("still descends on a genuine click with no preceding drag", async () => {
+  it("still calls onPlaceClick on a genuine click with no preceding drag", async () => {
     fetchPlaceChildren.mockResolvedValue([row({ id: 1 })]);
-    const onDescend = vi.fn();
+    const onPlaceClick = vi.fn();
 
-    renderHook(() => useNavigableChildren(1, onDescend));
+    renderHook(() => useNavigableChildren(1, onPlaceClick));
     await waitFor(() => expect(clickHandlers.size).toBe(1));
 
     clickHandlers.values().next().value?.();
 
-    expect(onDescend).toHaveBeenCalled();
+    expect(onPlaceClick).toHaveBeenCalled();
   });
 
   it("reverts the position and notifies when the server rejects the drag", async () => {

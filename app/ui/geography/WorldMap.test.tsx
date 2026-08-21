@@ -227,6 +227,29 @@ vi.mock("@/app/ui/geography/DeletePlaceButton", () => ({
   ),
 }));
 
+// Has its own suite (SPEC-016 T2) — stubbed here so this file stays about
+// which place `WorldMap` opens the popover for, and what its two callbacks
+// do, not the popover's own positioning/Esc/outside-click machinery.
+let popoverOnClose: (() => void) | undefined;
+let popoverOnOpenMap: ((place: { id: number }) => void) | undefined;
+vi.mock("@/app/ui/geography/PlacePopover", () => ({
+  default: (props: {
+    place: { id: number; title: string };
+    onClose: () => void;
+    onOpenMap: (place: { id: number }) => void;
+  }) => {
+    popoverOnClose = props.onClose;
+    popoverOnOpenMap = props.onOpenMap;
+    return (
+      <div
+        data-testid="place-popover"
+        data-place-id={props.place.id}
+        data-place-title={props.place.title}
+      />
+    );
+  },
+}));
+
 // A real pass-through — tests that care whether WorldMap actually routes
 // its camera moves through this wrapper (rather than calling `map.setView`/
 // `fitBounds` directly, bypassing it) assert on this mock's own call log,
@@ -411,6 +434,8 @@ beforeEach(() => {
   imageOnLoad = undefined;
   imageNaturalWidth = 1000;
   imageNaturalHeight = 1000;
+  popoverOnClose = undefined;
+  popoverOnOpenMap = undefined;
   // `clearAllMocks` clears call history, not the return value a previous
   // test may have overridden with `mockReturnValue` (as opposed to
   // `mockReturnValueOnce`) — reset explicitly so tests can't leak a custom
@@ -1754,6 +1779,85 @@ describe("WorldMap — arming the measure tool (SPEC-015 T7)", () => {
     expect(screen.getByTestId("map-measure-tool")).toHaveAttribute(
       "data-active",
       "false"
+    );
+  });
+});
+
+describe("WorldMap — the place popover (SPEC-016 T2)", () => {
+  const place = { id: 7, title: "Kang", lat: 5, lng: 5, mapImage: null };
+
+  function clickPlace(child: unknown = place) {
+    const onPlaceClick = useNavigableChildren.mock.calls.at(-1)?.[1] as
+      ((child: unknown) => void) | undefined;
+    act(() => {
+      onPlaceClick?.(child);
+    });
+  }
+
+  it("opens the popover for the clicked place instead of descending directly", async () => {
+    await renderMap();
+
+    clickPlace();
+
+    expect(screen.getByTestId("place-popover")).toHaveAttribute(
+      "data-place-id",
+      "7"
+    );
+    expect(onDescend).not.toHaveBeenCalled();
+  });
+
+  it("does not open the popover while the measure tool is active (§5's edge-case table)", async () => {
+    await renderMap("/maps/test.jpg", 0, {
+      gridColumns: 36,
+      gridScale: "kingdom",
+    });
+    act(() => {
+      onStartMeasurement?.();
+    });
+
+    clickPlace();
+
+    expect(screen.queryByTestId("place-popover")).not.toBeInTheDocument();
+  });
+
+  it("descends via onDescend and closes the popover when Apri mappa is used", async () => {
+    await renderMap();
+    clickPlace();
+
+    act(() => {
+      popoverOnOpenMap?.(place);
+    });
+
+    expect(onDescend).toHaveBeenCalledWith(place);
+    expect(screen.queryByTestId("place-popover")).not.toBeInTheDocument();
+  });
+
+  it("closes the popover on its own onClose callback", async () => {
+    await renderMap();
+    clickPlace();
+    expect(screen.getByTestId("place-popover")).toBeInTheDocument();
+
+    act(() => {
+      popoverOnClose?.();
+    });
+
+    expect(screen.queryByTestId("place-popover")).not.toBeInTheDocument();
+  });
+
+  it("shows one popover at a time — clicking another place replaces it", async () => {
+    await renderMap();
+    clickPlace(place);
+    expect(screen.getByTestId("place-popover")).toHaveAttribute(
+      "data-place-id",
+      "7"
+    );
+
+    clickPlace({ ...place, id: 9, title: "Skreebars" });
+
+    expect(screen.getAllByTestId("place-popover")).toHaveLength(1);
+    expect(screen.getByTestId("place-popover")).toHaveAttribute(
+      "data-place-id",
+      "9"
     );
   });
 });

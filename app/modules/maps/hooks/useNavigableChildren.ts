@@ -18,6 +18,8 @@ import type PlaceChild from "@/app/lib/definitions/interfaces/maps/PlaceChild";
 export interface NavigableChild {
   id: number;
   title: string;
+  // Shown in the place popover (SPEC-016 T2) alongside the title.
+  description: string | null;
   lat: number;
   lng: number;
   // The child's own map — what `GeographyExplorer` needs to descend into it.
@@ -42,8 +44,15 @@ export interface NavigableChild {
  * Renders the current place's navigable children (SPEC-004 §10 M7 — the fix
  * for the "clicking the material world does nothing" defect in §1; T2 widens
  * "navigable" from `region` alone to `NAVIGABLE_PLACE_KINDS`) as clickable
- * markers, calling `onDescend` when one is clicked.
+ * markers, calling `onPlaceClick` when one is clicked.
  *
+ * `onPlaceClick` used to descend straight into the child; SPEC-016 T2
+ * repurposed the click to open `WorldMap`'s place popover instead — the
+ * callback's shape is unchanged (`(child: NavigableChild) => void`), only
+ * what the caller does with it. Descending is now the popover's own "Apri
+ * mappa" action, invoked by `WorldMap` separately.
+ *
+
  * A positioned child with no map of its own is included too (SPEC-007 T1) —
  * excluding it, the earlier behaviour, is exactly the bug SPEC-007 §1
  * describes: four branches were positioned but permanently unreachable
@@ -63,7 +72,7 @@ export interface NavigableChild {
  */
 export function useNavigableChildren(
   parentId: number,
-  onDescend: (child: NavigableChild) => void,
+  onPlaceClick: (child: NavigableChild) => void,
   refetchToken: number = 0,
   editingChildId: number | null = null
 ): NavigableChild[] {
@@ -73,9 +82,9 @@ export function useNavigableChildren(
   // Holds either a point child's `Marker` or an area child's `Rectangle`
   // (SPEC-009 T2) — both satisfy `Layer`, which is all cleanup here needs.
   const markersRef = useRef<Layer[]>([]);
-  const onDescendRef = useRef(onDescend);
+  const onPlaceClickRef = useRef(onPlaceClick);
   useEffect(() => {
-    onDescendRef.current = onDescend;
+    onPlaceClickRef.current = onPlaceClick;
   });
 
   // Reference kept fresh the same way `onDescendRef` is, for the same
@@ -157,6 +166,7 @@ export function useNavigableChildren(
           navigable.map((row) => ({
             id: row.id,
             title: row.title,
+            description: row.description,
             lat: row.lat,
             lng: row.lng,
             mapImage: row.mapImage,
@@ -222,7 +232,7 @@ export function useNavigableChildren(
             className: "font-medium",
           });
           rectangle.on("click", () => {
-            onDescendRef.current(child);
+            onPlaceClickRef.current(child);
           });
           markersRef.current.push(rectangle);
           continue;
@@ -248,8 +258,8 @@ export function useNavigableChildren(
         }).addTo(map);
         marker.bindTooltip(child.title);
 
-        // A drop shouldn't also descend into the place just dragged —
-        // Leaflet's own click suppression after a drag isn't a documented
+        // A drop shouldn't also open the popover for the place just dragged
+        // — Leaflet's own click suppression after a drag isn't a documented
         // guarantee across versions/touch, so this hook makes it explicit.
         // Scoped per marker (a plain closure variable, not a hook ref):
         // dragging one marker must never suppress a genuine click on
@@ -261,14 +271,15 @@ export function useNavigableChildren(
           void repositionChild(child.id, lat, lng);
           // Leaflet fires any synthetic post-drag click synchronously, in
           // the same tick as `dragend` — this clears the guard right after,
-          // so a later, genuine click on the same marker still descends.
+          // so a later, genuine click on the same marker still opens the
+          // popover.
           setTimeout(() => {
             justDragged = false;
           }, 0);
         });
         marker.on("click", () => {
           if (justDragged) return;
-          onDescendRef.current(child);
+          onPlaceClickRef.current(child);
         });
         markersRef.current.push(marker);
       }

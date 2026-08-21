@@ -1,6 +1,6 @@
 # SPEC-016: The place popover
 
-- **Status:** Draft
+- **Status:** **Agreed 2026-08-21.** All three §9 open questions decided with the DM: a single click always opens the popover (descend lives inside it as "Apri mappa", no double-click shortcut); a zone's popover lists only its direct attachments (each landmark's popover lists its own); un-placing asks no confirmation (deletion keeps its own).
 - **Date:** 2026-08-20
 - **Phase:** 4
 - **Related:** TD-93 (placement invariant — sequenced **after** this spec ships), TD-85 (remainder: POI edit/delete reachability), TD-96 (remainder: the "Collega un personaggio esistente" menu entry), SPEC-005 (repositioning — unaffected), SPEC-008 (entity location reference — the attach modal and the two presence cases), SPEC-010 (deleting a place — the deletion semantics this popover must reuse, not reinvent), [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md)
@@ -75,7 +75,13 @@ Same popover, adjusted for what a landmark is: title and description; the entiti
 
 ## 6. Data model changes
 
-**None.** Every column involved is already in place and nullable where needed: `zone.lat`/`zone.lng` (and the SPEC-009 area bounds), `npc.zoneId`/`npc.poiId`, `deities.zoneId`/`deities.poiId`. What is new is two small mutations — **un-place** (null a zone's position) and **detach** (null an entity's location reference) — both of which check auth and validate input like every other mutation (rules 1 and 2). No migration, no backfill.
+**None.** Every column involved is already in place and nullable where needed: `zone.lat`/`zone.lng` (and the SPEC-009 area bounds), `npc.zoneId`/`npc.poiId`, `deities.zoneId`/`deities.poiId`. No migration, no backfill.
+
+Checked against the code on 2026-08-21:
+
+- **Detach already exists.** `assignLocationSchema` accepts `zoneId: null, poiId: null`, so the X is a call to SPEC-008's existing `assignLocation` mutation with both nulls — no new mutation, and TD-93's future constraint composes with it unchanged.
+- **Un-place is the one new mutation.** `updateZonePosition` requires finite `lat`/`lng` by design (SPEC-005 repositions, it never clears), so clearing a position is a new, separate function — auth-checked and Zod-validated like every other mutation (rules 1 and 2), clearing the footprint along with the point per §5's edge case.
+- **One new read**: entities at a given zone or landmark (NPCs and deities by `zoneId`/`poiId`). Nothing existing serves it — `fetchLinkableEntities` is the opposite pool.
 
 ## 7. Metadata changes
 
@@ -100,17 +106,39 @@ Same popover, adjusted for what a landmark is: title and description; the entiti
 
 ## 9. Implementation plan
 
-_Fill in after the sections above are agreed._
+**Files touched, in order**
 
-**Open questions**
+| #   | File                                                                    | Change                                                                                                                                                                              |
+| --- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `app/lib/data/maps/fetchEntitiesAtPlace.ts` (new)                       | The one new read: NPCs and deities at a given zone (direct only) or landmark, one function per file as usual                                                                        |
+| 2   | `app/lib/data/maps/unplacePlace.ts` (new)                               | The one new mutation: auth check, Zod validation, clears `lat`/`lng` and the SPEC-009 footprint, refuses the root                                                                   |
+| 3   | `app/ui/geography/PlacePopover.tsx` (new, + test)                       | The popover itself — title/description, "Apri mappa", entities list with X, attach control, the two zone actions / the two landmark actions, empty state, Esc/outside close         |
+| 4   | `app/modules/maps/hooks/useNavigableChildren.ts`                        | Marker and rectangle click stop descending and report the clicked place upward (the `justDragged` guard now suppresses the popover); descend becomes a callback the popover invokes |
+| 5   | `app/ui/geography/WorldMap.tsx`                                         | Owns the open-popover state (one at a time), wires descend/attach/delete/un-place into it, suppresses it while measurement is active                                                |
+| 6   | `app/ui/geography/AttachEntityButton.tsx` / `DeletePlaceButton.tsx`     | Reused from the popover, pre-filled — no forked second mechanism                                                                                                                    |
+| 7   | `e2e/map.spec.ts` and any spec that navigates by clicking a marker      | Updated deliberately for the new click semantics — descend now goes through "Apri mappa"                                                                                            |
+| 8   | `app/modules/maps/hooks/useMapContextMenu.ts` + `messages/{it,en}.json` | Remove "Collega un personaggio esistente" and its keys, both catalogues, same commit (TD-96)                                                                                        |
+| 9   | `app/modules/maps/components/map/MapPOIPanel.tsx`                       | Evidence-based decision on the now-possibly-orphaned list view, own commit                                                                                                          |
+| 10  | `e2e/a11y.spec.ts`, `docs/TECH_DEBT.md`, `docs/ROADMAP.md`, this file   | Axe check on the popover; TD-85 and TD-96 closed; §11 filled                                                                                                                        |
 
-1. **Click semantics.** The DM said "clicking a place opens a popover", and today clicking descends. Proposed: single click always opens the popover and descend moves inside it as "Apri mappa" — one consistent interaction, one extra click to navigate. Alternative: double-click still descends directly as a shortcut. Which?
-2. **Does a zone's popover also show entities attached to its landmarks?** Proposed: no — it lists only direct attachments, and each landmark's own popover lists its own; a "grouped" view can come later if the DM misses it. Confirm.
-3. **Confirmation on "sposta nei luoghi non posizionati".** Deletion keeps its confirmation. Un-placing is cheap to reverse (the positioning flow already exists), so proposed: no confirmation dialog. Confirm.
+**Risks**
+
+- **The click-semantics change breaks every test that navigates by clicking a marker.** That is expected, not collateral — those tests encode the old behaviour. Update them in the same task as the behaviour change (file 7), never loosened to pass both ways.
+- **Leaflet/React interplay.** The popover is a React component anchored to a map position, living alongside imperative Leaflet layers; the context menu's `runWithoutClosing` and the `{ animate: false }` framing lesson from SPEC-015 T6 (deferred `moveend` closing UI on slow runners) both apply. Reuse those patterns rather than rediscovering them.
+- **Scope pull toward TD-93.** The invariant ("refuse a second placement") is explicitly out of scope; the popover only builds the removal half. Resist implementing the refusal here "since we're in the file".
 
 ## 10. Task breakdown
 
-_Fill in after §9 is agreed._
+- [ ] **T1** — `fetchEntitiesAtPlace` + `unplacePlace`, with the detach path confirmed as existing `assignLocation({zoneId: null, poiId: null})` _(test: unauthenticated rejected, invalid input rejected with field errors, root un-place refused, footprint cleared with the point, entities-at returns direct attachments only)_
+- [ ] **T2** — Popover shell replacing descend: click opens it (marker and rectangle), "Apri mappa" descends, disabled-with-label when the place has no map, Esc/outside close, one at a time, drag guard, measurement suppression; e2e specs that clicked-to-descend updated in the same commit _(test: unit for open/close/guard states; the updated e2e navigation path green)_
+- [ ] **T3** — Entities list with X-to-detach and empty state, from a zone and from a landmark _(test: detach clears both references and the list updates without reopening; empty state rendered)_
+- [ ] **T4** — Attach control opening SPEC-008's modal pre-filled with the clicked place; completed attach appears in the popover _(test: modal receives the pre-fill; list refreshes)_
+- [ ] **T5** — "Sposta nei luoghi non posizionati" wired, no confirmation; the place reappears in "Posiziona luogo" with its count _(test: e2e — un-place then find it in the dropdown, count incremented)_
+- [ ] **T6** — "Rimuovi definitivamente" wired to the SPEC-010 flow, confirmation intact _(test: existing deletion e2e reached from the popover)_
+- [ ] **T7** — Landmark popover variant: edit and delete reachable (TD-85's remainder) _(test: e2e — edit a landmark's title from the popover; delete one)_
+- [ ] **T8** — Remove the right-click "Collega un personaggio esistente" entry and its keys from both catalogues (TD-96) _(test: menu no longer shows it; CI key-set check green; no orphaned key references)_
+- [ ] **T9** — `MapPOIPanel` list view: grep for remaining callers, delete it as its own commit if orphaned, or record why it stays _(test: suite green after whichever outcome)_
+- [ ] **T10** — Axe check on the popover in `e2e/a11y.spec.ts`; TD-85 and TD-96 flipped closed in the register; ROADMAP updated; §11 filled _(test: a11y spec green)_
 
 ## 11. Outcome
 

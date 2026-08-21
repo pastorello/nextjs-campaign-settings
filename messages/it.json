@@ -551,7 +551,15 @@
     "popover": {
       "close": "Chiudi",
       "openMap": "Apri mappa",
-      "openMapUnavailable": "Questo luogo non ha ancora una mappa."
+      "openMapUnavailable": "Questo luogo non ha ancora una mappa.",
+      "entities": "Presenti qui",
+      "entitiesLoading": "Caricamento…",
+      "entitiesEmpty": "Nessun personaggio o divinità in questo luogo.",
+      "detach": "Rimuovi {name} da questo luogo",
+      "errors": {
+        "loadEntitiesFailed": "Impossibile caricare chi si trova qui. Riprova.",
+        "detachFailed": "Impossibile rimuovere il collegamento. Riprova."
+      }
     },
     "mapOptions": {
       "trigger": "Opzioni mappa"

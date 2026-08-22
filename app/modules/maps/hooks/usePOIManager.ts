@@ -629,7 +629,15 @@ export function usePOIManager(
   );
 
   /**
-   * Fly to POI location
+   * Fly to POI location.
+   *
+   * Used to also `openPopup()` on arrival, on a timer matched to the flight
+   * duration. That went with the native popup T7 removed — with none bound,
+   * `openPopup` is a silent no-op, so the timer is gone too rather than left
+   * as a call that looks like it does something. Flying does not open the
+   * place popover in its stead: the popover is the answer to "I clicked
+   * this", and `onFlyTo` is reached from the panel's own list, where the row
+   * already shows what the popover would.
    */
   const flyToPOI = useCallback(
     (poi: POI) => {
@@ -637,14 +645,6 @@ export function usePOIManager(
       map.flyTo([poi.lat, poi.lng], 16, {
         duration: 1.5,
       });
-
-      // Open popup if marker exists
-      const marker = markersRef.current.get(poi.id);
-      if (marker) {
-        setTimeout(() => {
-          marker.openPopup();
-        }, 1500);
-      }
     },
     [map]
   );

@@ -558,6 +558,7 @@
       "detach": "Rimuovi {name} da questo luogo",
       "attach": "Collega personaggio",
       "unplace": "Sposta nei luoghi non posizionati",
+      "delete": "Rimuovi definitivamente",
       "errors": {
         "loadEntitiesFailed": "Impossibile caricare chi si trova qui. Riprova.",
         "detachFailed": "Impossibile rimuovere il collegamento. Riprova."

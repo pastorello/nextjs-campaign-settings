@@ -288,6 +288,18 @@ function WorldMap({
     [t]
   );
 
+  // "Rimuovi definitivamente" (SPEC-016 T6) — `PlacePopover` embeds
+  // `DeletePlaceButton` itself (the confirmation dialog and the SPEC-010
+  // mutation are entirely its own); this only runs once it reports success.
+  // Same bookkeeping `handleUnplace` does, for the same reason: the deleted
+  // place is a child of the one currently being viewed, not the one
+  // currently being viewed itself, so there is no navigation stack to pop —
+  // just a marker to drop and a popover with nothing left to show.
+  const handlePopoverPlaceDeleted = useCallback(() => {
+    setPlacesRefetchToken((token) => token + 1);
+    setPopoverPlace(null);
+  }, []);
+
   // Navigable `region` children, same scope — clicking one opens the
   // popover (SPEC-016 T2; used to call `onDescend` directly).
   const navigableChildren = useNavigableChildren(
@@ -1028,9 +1040,11 @@ function WorldMap({
       {popoverPlace && (
         <PlacePopover
           place={popoverPlace}
+          parentTitle={placeTitle}
           onClose={handleClosePopover}
           onOpenMap={handleOpenMap}
           onUnplace={(child) => void handleUnplace(child)}
+          onDeleted={handlePopoverPlaceDeleted}
         />
       )}
 

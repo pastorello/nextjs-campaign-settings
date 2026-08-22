@@ -23,6 +23,17 @@ vi.mock("@/app/modules/maps/hooks/useLeafletMap", () => ({
   useLeafletMap: () => useLeafletMap(),
 }));
 
+// The list is unit-tested in its own file; here it stands in for itself, so
+// this suite stays a test of the popover shell rather than of the entity
+// fetch behind it.
+const entityListTargets = vi.fn();
+vi.mock("@/app/ui/geography/PlaceEntityList", () => ({
+  default: ({ target }: { target: unknown }) => {
+    entityListTargets(target);
+    return <div data-testid="entity-list" />;
+  },
+}));
+
 import PlacePopover from "./PlacePopover";
 import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildren";
 
@@ -120,6 +131,13 @@ describe("PlacePopover", () => {
 
     fireEvent.click(button);
     expect(onOpenMap).not.toHaveBeenCalled();
+  });
+
+  it("lists the entities present at the clicked zone", () => {
+    renderPopover();
+
+    expect(screen.getByTestId("entity-list")).toBeInTheDocument();
+    expect(entityListTargets).toHaveBeenCalledWith({ zoneId: 7 });
   });
 
   it("closes on Escape", () => {

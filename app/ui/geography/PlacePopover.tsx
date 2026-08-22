@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 
 import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
+import PlaceEntityList from "@/app/ui/geography/PlaceEntityList";
 import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildren";
 
 interface PlacePopoverProps {
@@ -17,8 +18,9 @@ interface PlacePopoverProps {
  * The place popover (SPEC-016) — anchored to the marker or rectangle the DM
  * clicked, replacing the old click-to-descend behaviour
  * (`useNavigableChildren`, T2). This shell carries the title, description
- * and "Apri mappa"; the entities list, attach control and the zone/landmark
- * action pairs land on top of it in later tasks (T3-T7).
+ * and "Apri mappa", plus the entities present at the place (T3); the
+ * attach control and the zone/landmark action pairs land on top of it in
+ * later tasks (T4-T7).
  *
  * Tracks the map's own `move`/`zoom` events to stay anchored to the clicked
  * place's `lat`/`lng` while the DM pans, rather than closing on any map
@@ -116,6 +118,10 @@ export default function PlacePopover({
           {place.description}
         </p>
       )}
+
+      {/* A navigable child is a zone, so the list is always keyed by
+          `zoneId` here; the landmark variant passes `poiId` instead (T7). */}
+      <PlaceEntityList target={{ zoneId: place.id }} />
 
       <div className="flex flex-col gap-1">
         <button

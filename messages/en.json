@@ -551,7 +551,15 @@
     "popover": {
       "close": "Close",
       "openMap": "Open map",
-      "openMapUnavailable": "This place doesn't have a map yet."
+      "openMapUnavailable": "This place doesn't have a map yet.",
+      "entities": "Present here",
+      "entitiesLoading": "Loading…",
+      "entitiesEmpty": "No character or deity in this place.",
+      "detach": "Remove {name} from this place",
+      "errors": {
+        "loadEntitiesFailed": "Could not load who is here. Try again.",
+        "detachFailed": "Could not remove the link. Try again."
+      }
     },
     "mapOptions": {
       "trigger": "Map options"

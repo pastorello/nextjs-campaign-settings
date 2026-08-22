@@ -91,8 +91,8 @@ Checked against the code on 2026-08-21:
 
 - [ ] Clicking a positioned place opens the popover; it no longer descends directly, and "Apri mappa" descends instead
 - [ ] "Apri mappa" is disabled, with a label, for a positioned place that has no map yet
-- [ ] The popover lists exactly the entities attached directly to the clicked zone (or to the clicked landmark), with an empty state when there are none
-- [ ] The X detaches an entity back to the unattached pool, from a zone and from a landmark alike, and the popover updates without reopening
+- [x] The popover lists exactly the entities attached directly to the clicked zone (or to the clicked landmark), with an empty state when there are none
+- [x] The X detaches an entity back to the unattached pool, from a zone and from a landmark alike, and the popover updates without reopening
 - [ ] "Collega personaggio" opens the SPEC-008 modal pre-filled with the clicked place, and a completed attach appears in the popover
 - [ ] "Sposta nei luoghi non posizionati" clears the place's position (marker or area) and it reappears in the "Posiziona luogo" dropdown with the count incremented
 - [ ] "Rimuovi definitivamente" behaves exactly as SPEC-010 specifies, confirmation included
@@ -131,7 +131,7 @@ Checked against the code on 2026-08-21:
 
 - [ ] **T1** — `fetchEntitiesAtPlace` + `unplacePlace`, with the detach path confirmed as existing `assignLocation({zoneId: null, poiId: null})` _(test: unauthenticated rejected, invalid input rejected with field errors, root un-place refused, footprint cleared with the point, entities-at returns direct attachments only)_
 - [x] **T2** — Popover shell replacing descend: click opens it (marker and rectangle), "Apri mappa" descends, disabled-with-label when the place has no map, Esc/outside close, one at a time, drag guard, measurement suppression; e2e specs that clicked-to-descend updated in the same commit _(test: unit for open/close/guard states; the updated e2e navigation path green)_ — no e2e spec clicked a navigable marker to descend before this landed (`map.spec.ts` says so explicitly), so file 7 of §9 had nothing to update
-- [ ] **T3** — Entities list with X-to-detach and empty state, from a zone and from a landmark _(test: detach clears both references and the list updates without reopening; empty state rendered)_
+- [x] **T3** — Entities list with X-to-detach and empty state, from a zone and from a landmark _(test: detach clears both references and the list updates without reopening; empty state rendered)_ — extracted as `PlaceEntityList`, keyed by the same `{zoneId} | {poiId}` discriminant `fetchEntitiesAtPlace` takes, so T7's landmark popover reuses it unchanged; the popover wires the zone branch. No e2e touched: nothing in `e2e/` reaches the popover yet (T5-T7 and T10 add that).
 - [ ] **T4** — Attach control opening SPEC-008's modal pre-filled with the clicked place; completed attach appears in the popover _(test: modal receives the pre-fill; list refreshes)_
 - [ ] **T5** — "Sposta nei luoghi non posizionati" wired, no confirmation; the place reappears in "Posiziona luogo" with its count _(test: e2e — un-place then find it in the dropdown, count incremented)_
 - [ ] **T6** — "Rimuovi definitivamente" wired to the SPEC-010 flow, confirmation intact _(test: existing deletion e2e reached from the popover)_

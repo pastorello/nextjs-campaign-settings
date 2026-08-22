@@ -240,16 +240,22 @@ let popoverOnClose: (() => void) | undefined;
 let popoverOnOpenMap: ((place: { id: number }) => void) | undefined;
 let popoverOnUnplace:
   ((place: { id: number; title: string }) => void) | undefined;
+let popoverOnDeleted: (() => void) | undefined;
+let popoverParentTitle: string | undefined;
 vi.mock("@/app/ui/geography/PlacePopover", () => ({
   default: (props: {
     place: { id: number; title: string };
+    parentTitle: string;
     onClose: () => void;
     onOpenMap: (place: { id: number }) => void;
     onUnplace: (place: { id: number; title: string }) => void;
+    onDeleted: () => void;
   }) => {
     popoverOnClose = props.onClose;
     popoverOnOpenMap = props.onOpenMap;
     popoverOnUnplace = props.onUnplace;
+    popoverOnDeleted = props.onDeleted;
+    popoverParentTitle = props.parentTitle;
     return (
       <div
         data-testid="place-popover"
@@ -447,6 +453,8 @@ beforeEach(() => {
   popoverOnClose = undefined;
   popoverOnOpenMap = undefined;
   popoverOnUnplace = undefined;
+  popoverOnDeleted = undefined;
+  popoverParentTitle = undefined;
   // `clearAllMocks` clears call history, not the return value a previous
   // test may have overridden with `mockReturnValue` (as opposed to
   // `mockReturnValueOnce`) — reset explicitly so tests can't leak a custom
@@ -1943,5 +1951,39 @@ describe("WorldMap — un-placing from the popover (SPEC-016 T5)", () => {
     });
     expect(screen.getByTestId("place-popover")).toBeInTheDocument();
     consoleError.mockRestore();
+  });
+});
+
+describe("WorldMap — deleting from the popover (SPEC-016 T6)", () => {
+  const place = { id: 7, title: "Kang", lat: 5, lng: 5, mapImage: null };
+
+  function clickPlace(child: unknown = place) {
+    const onPlaceClick = useNavigableChildren.mock.calls.at(-1)?.[1] as
+      ((child: unknown) => void) | undefined;
+    act(() => {
+      onPlaceClick?.(child);
+    });
+  }
+
+  it("passes the place currently being viewed as the reparent target", async () => {
+    await renderMap();
+    clickPlace();
+
+    expect(popoverParentTitle).toBe("Terra");
+  });
+
+  it("refetches and closes the popover once the popover reports a completed deletion", async () => {
+    await renderMap();
+    clickPlace();
+    const tokenBefore = useUnplacedChildren.mock.calls.at(-1)?.[1] as number;
+
+    act(() => {
+      popoverOnDeleted?.();
+    });
+
+    await waitFor(() => {
+      expect(useUnplacedChildren.mock.calls.at(-1)?.[1]).toBe(tokenBefore + 1);
+    });
+    expect(screen.queryByTestId("place-popover")).not.toBeInTheDocument();
   });
 });

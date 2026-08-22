@@ -126,9 +126,9 @@ test.describe("un-placing a positioned place (SPEC-016 T5)", () => {
     // Cleanup, round-tripping through the same dropdown (SPEC-016 T5's
     // pairing action, TD-85): picking it positions it right back at the
     // point the menu is open over, no second click needed
-    // (`handleContextMenuPositionPlace`). Then delete it the way a
-    // navigable place is deleted today — descend and use "Elimina questa
-    // mappa" — since T6 (delete from the popover) hasn't landed yet.
+    // (`handleContextMenuPositionPlace`). Then delete it straight from the
+    // popover's own "Rimuovi definitivamente" (SPEC-016 T6) — no need to
+    // descend into the place and reach it through `MapOptionsButton`.
     await menu.getByText(title).click();
     await expect(menu).toBeHidden();
 
@@ -136,20 +136,16 @@ test.describe("un-placing a positioned place (SPEC-016 T5)", () => {
     await navigableMarkers.last().click();
     await expect(popover).toBeVisible();
     await popover
-      .getByRole("button", { name: messages.geography.popover.openMap })
-      .click();
-
-    await page.getByLabel(messages.geography.mapOptions.trigger).click();
-    await page
-      .getByRole("button", { name: messages.geography.deletePlace.trigger })
+      .getByRole("button", { name: messages.geography.popover.delete })
       .click();
     await page
       .getByRole("button", { name: messages.geography.deletePlace.confirm })
       .click();
 
-    // `onDeleted` pops back to the parent map, which the deleted region no
-    // longer appears on — the same proof-of-cleanup shape
+    // The popover's own place no longer exists — nothing left at this
+    // position to show, the same proof-of-cleanup shape
     // `map-place-repositioning.spec.ts` uses for its own test row.
+    await expect(popover).not.toBeVisible();
     await expect(navigableMarkers).toHaveCount(baselineMarkerCount);
   });
 });

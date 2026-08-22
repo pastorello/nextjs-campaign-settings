@@ -62,6 +62,34 @@ vi.mock("@/app/ui/geography/AttachEntityButton", () => ({
   },
 }));
 
+// Same reasoning again: the confirmation dialog and the SPEC-010 mutation
+// are `DeletePlaceButton`'s own suite; here it stands in so this suite only
+// exercises how the popover wires it (T6).
+const deletePlaceProps = vi.fn();
+vi.mock("@/app/ui/geography/DeletePlaceButton", () => ({
+  default: ({
+    placeId,
+    placeTitle,
+    parentTitle,
+    isRoot,
+    isOpen,
+    onDeleted,
+  }: {
+    placeId: number;
+    placeTitle: string;
+    parentTitle: string;
+    isRoot: boolean;
+    isOpen: boolean;
+    onClose: () => void;
+    onDeleted: () => void;
+  }) => {
+    deletePlaceProps({ placeId, placeTitle, parentTitle, isRoot, isOpen });
+    return isOpen ? (
+      <button onClick={() => onDeleted()}>simulate-delete</button>
+    ) : null;
+  },
+}));
+
 import PlacePopover from "./PlacePopover";
 import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildren";
 
@@ -83,14 +111,18 @@ const place: NavigableChild = {
 const onClose = vi.fn();
 const onOpenMap = vi.fn();
 const onUnplace = vi.fn();
+const onDeleted = vi.fn();
+const parentTitle = "Kang";
 
 function renderPopover(overrides: Partial<NavigableChild> = {}) {
   return render(
     <PlacePopover
       place={{ ...place, ...overrides }}
+      parentTitle={parentTitle}
       onClose={onClose}
       onOpenMap={onOpenMap}
       onUnplace={onUnplace}
+      onDeleted={onDeleted}
     />
   );
 }
@@ -209,6 +241,44 @@ describe("PlacePopover", () => {
 
     expect(onUnplace).toHaveBeenCalledWith(place);
     expect(onUnplace).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the delete confirmation closed until Rimuovi definitivamente is clicked", () => {
+    renderPopover();
+
+    expect(deletePlaceProps).toHaveBeenCalledWith({
+      placeId: 7,
+      placeTitle: place.title,
+      parentTitle,
+      isRoot: false,
+      isOpen: false,
+    });
+    expect(screen.queryByText("simulate-delete")).not.toBeInTheDocument();
+  });
+
+  it("opens the delete confirmation, pre-filled with the clicked place and its parent, when Rimuovi definitivamente is clicked", () => {
+    renderPopover();
+
+    fireEvent.click(screen.getByText("delete"));
+
+    expect(deletePlaceProps).toHaveBeenLastCalledWith({
+      placeId: 7,
+      placeTitle: place.title,
+      parentTitle,
+      isRoot: false,
+      isOpen: true,
+    });
+  });
+
+  it("calls onDeleted once the deletion confirms, without calling onUnplace or onClose itself", () => {
+    renderPopover();
+    fireEvent.click(screen.getByText("delete"));
+
+    fireEvent.click(screen.getByText("simulate-delete"));
+
+    expect(onDeleted).toHaveBeenCalledTimes(1);
+    expect(onUnplace).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it("does not close on a click inside a Headless UI portal (the attach modal escapes popoverRef)", async () => {

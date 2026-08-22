@@ -7,10 +7,14 @@ import { X } from "lucide-react";
 import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
 import PlaceEntityList from "@/app/ui/geography/PlaceEntityList";
 import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
+import DeletePlaceButton from "@/app/ui/geography/DeletePlaceButton";
 import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildren";
 
 interface PlacePopoverProps {
   place: NavigableChild;
+  /** Named in the deletion dialog's reparent message (T6) — the place
+   * currently being viewed, i.e. `place`'s own parent. */
+  parentTitle: string;
   onClose: () => void;
   onOpenMap: (place: NavigableChild) => void;
   /**
@@ -19,6 +23,12 @@ interface PlacePopoverProps {
    * bookkeeping are `WorldMap`'s, the same split as `onOpenMap`.
    */
   onUnplace: (place: NavigableChild) => void;
+  /**
+   * "Rimuovi definitivamente" (T6) succeeded — `WorldMap` closes the
+   * popover and drops its marker, the same bookkeeping `onUnplace` does,
+   * since the place this popover is anchored to no longer exists.
+   */
+  onDeleted: () => void;
 }
 
 /**
@@ -26,8 +36,8 @@ interface PlacePopoverProps {
  * clicked, replacing the old click-to-descend behaviour
  * (`useNavigableChildren`, T2). This shell carries the title, description
  * and "Apri mappa", plus the entities present at the place (T3), the attach
- * control (T4) and un-placing (T5); the landmark variant and deletion land
- * on top of it in later tasks (T6-T7).
+ * control (T4), un-placing (T5) and deletion (T6); the landmark variant
+ * lands on top of it in a later task (T7).
  *
  * Tracks the map's own `move`/`zoom` events to stay anchored to the clicked
  * place's `lat`/`lng` while the DM pans, rather than closing on any map
@@ -47,17 +57,28 @@ interface PlacePopoverProps {
  * mutation, the refetch that drops this place's own marker, and closing the
  * popover are all `WorldMap`'s, since un-placing removes the very place this
  * popover is anchored to.
+ *
+ * "Rimuovi definitivamente" (T6), by contrast, embeds `DeletePlaceButton`
+ * directly — the same component `MapOptionsButton` already opens for the
+ * place currently being viewed, unforked, retargeted at the clicked place.
+ * Its confirmation dialog (impact counts, the SPEC-010 mutation itself) is
+ * entirely its own; only the post-success bookkeeping — closing the popover,
+ * dropping the marker — bubbles up through `onDeleted`, the same split T5
+ * uses for `onUnplace`.
  */
 export default function PlacePopover({
   place,
+  parentTitle,
   onClose,
   onOpenMap,
   onUnplace,
+  onDeleted,
 }: PlacePopoverProps) {
   const map = useLeafletMap();
   const t = useTranslations("geography.popover");
   const popoverRef = useRef<HTMLDivElement>(null);
   const [isAttachOpen, setIsAttachOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [entitiesRefreshKey, setEntitiesRefreshKey] = useState(0);
   const [screenPosition, setScreenPosition] = useState<{
     x: number;
@@ -176,6 +197,16 @@ export default function PlacePopover({
         >
           {t("unplace")}
         </button>
+        {/* "Rimuovi definitivamente" (T6) — the SPEC-010 deletion flow,
+            behind the same confirmation dialog it has today
+            (`DeletePlaceButton`, reused unchanged). */}
+        <button
+          type="button"
+          onClick={() => setIsDeleteOpen(true)}
+          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-gray-600 dark:text-red-400 dark:hover:bg-red-900/30"
+        >
+          {t("delete")}
+        </button>
       </div>
 
       <div className="flex flex-col gap-1">
@@ -202,6 +233,22 @@ export default function PlacePopover({
         isOpen={isAttachOpen}
         onClose={() => setIsAttachOpen(false)}
         onAttached={() => setEntitiesRefreshKey((key) => key + 1)}
+      />
+
+      {/* "Rimuovi definitivamente" (T6) — reuses `DeletePlaceButton`
+          unchanged, the same component `MapOptionsButton` opens for the
+          place currently being viewed; here it targets the clicked place
+          instead. Never rendered for the root, since the root never gets a
+          popover in the first place (§5's edge cases) — `isRoot={false}` is
+          therefore always correct here. */}
+      <DeletePlaceButton
+        placeId={place.id}
+        placeTitle={place.title}
+        parentTitle={parentTitle}
+        isRoot={false}
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onDeleted={onDeleted}
       />
     </div>
   );

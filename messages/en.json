@@ -557,6 +557,7 @@
       "entitiesEmpty": "No character or deity in this place.",
       "detach": "Remove {name} from this place",
       "attach": "Attach a character",
+      "unplace": "Move to unpositioned places",
       "errors": {
         "loadEntitiesFailed": "Could not load who is here. Try again.",
         "detachFailed": "Could not remove the link. Try again."
@@ -630,7 +631,8 @@
       "poiLoadFailed": "Could not load your places. Reload the page to try again.",
       "poiSaveFailed": "Could not save “{title}”. The change has been undone.",
       "poiDeleteFailed": "Could not delete “{title}”. The place has been restored.",
-      "placePositionFailed": "Could not position “{title}”. Try again."
+      "placePositionFailed": "Could not position “{title}”. Try again.",
+      "placeUnplaceFailed": "Could not move “{title}” back to unpositioned places. Try again."
     },
     "poiPanel": {
       "title": "Places of Interest",

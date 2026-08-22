@@ -27,6 +27,7 @@ import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import createPlace from "@/app/lib/data/maps/createPlace";
 import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
+import unplacePlace from "@/app/lib/data/maps/unplacePlace";
 import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
 import PlacePopover from "@/app/ui/geography/PlacePopover";
 import MapUploadControl from "@/app/ui/geography/MapUploadControl";
@@ -255,6 +256,37 @@ function WorldMap({
   const handleClosePopover = useCallback(() => {
     setPopoverPlace(null);
   }, []);
+
+  // "Sposta nei luoghi non posizionati" (SPEC-016 T5) — no confirmation
+  // (§9's open question, agreed 2026-08-21). Clears the place's position
+  // (and, for an area, its footprint — `unplacePlace` handles both) and
+  // sends it back to the unpositioned pool. Success bumps
+  // `placesRefetchToken`, the same convention `handleContextMenuPositionPlace`
+  // uses in the other direction, so `unplacedChildren` picks up the child and
+  // `navigableChildren` drops its marker; the popover closes since there is
+  // nothing left at this position to show. `unpositionedCount` itself needs
+  // no equivalent bump here: `unplacePlace`, like `updateZonePosition`,
+  // calls `revalidatePath("/dashboard/geography")`, which Next.js already
+  // uses to refresh this Server Component prop on the client after the
+  // action resolves — confirmed live in e2e (SPEC-016 T5); a client-side
+  // "bonus" on top of it double-counted.
+  const handleUnplace = useCallback(
+    async (child: NavigableChild) => {
+      try {
+        const result = await unplacePlace({ id: child.id });
+        if (result.ok) {
+          setPlacesRefetchToken((token) => token + 1);
+          setPopoverPlace(null);
+        } else {
+          toast.error(t("placeUnplaceFailed", { title: child.title }));
+        }
+      } catch (error) {
+        console.error("Failed to un-place the place:", error);
+        toast.error(t("placeUnplaceFailed", { title: child.title }));
+      }
+    },
+    [t]
+  );
 
   // Navigable `region` children, same scope — clicking one opens the
   // popover (SPEC-016 T2; used to call `onDescend` directly).
@@ -998,6 +1030,7 @@ function WorldMap({
           place={popoverPlace}
           onClose={handleClosePopover}
           onOpenMap={handleOpenMap}
+          onUnplace={(child) => void handleUnplace(child)}
         />
       )}
 

@@ -82,6 +82,7 @@ const place: NavigableChild = {
 
 const onClose = vi.fn();
 const onOpenMap = vi.fn();
+const onUnplace = vi.fn();
 
 function renderPopover(overrides: Partial<NavigableChild> = {}) {
   return render(
@@ -89,6 +90,7 @@ function renderPopover(overrides: Partial<NavigableChild> = {}) {
       place={{ ...place, ...overrides }}
       onClose={onClose}
       onOpenMap={onOpenMap}
+      onUnplace={onUnplace}
     />
   );
 }
@@ -198,6 +200,15 @@ describe("PlacePopover", () => {
 
     expect(entityListProps).toHaveBeenCalledWith({ zoneId: 7 }, 1);
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("calls onUnplace with the clicked place when Sposta nei luoghi non posizionati is clicked, without asking for confirmation", () => {
+    renderPopover();
+
+    fireEvent.click(screen.getByText("unplace"));
+
+    expect(onUnplace).toHaveBeenCalledWith(place);
+    expect(onUnplace).toHaveBeenCalledTimes(1);
   });
 
   it("does not close on a click inside a Headless UI portal (the attach modal escapes popoverRef)", async () => {

@@ -556,6 +556,7 @@
       "entitiesLoading": "Caricamento…",
       "entitiesEmpty": "Nessun personaggio o divinità in questo luogo.",
       "detach": "Rimuovi {name} da questo luogo",
+      "attach": "Collega personaggio",
       "errors": {
         "loadEntitiesFailed": "Impossibile caricare chi si trova qui. Riprova.",
         "detachFailed": "Impossibile rimuovere il collegamento. Riprova."

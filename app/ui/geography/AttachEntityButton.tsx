@@ -29,8 +29,10 @@ interface AttachEntityButtonProps {
   /**
    * Externally controlled (usability fix, 2026-08-17): this used to be a
    * floating trigger button in its own map corner; the trigger now lives
-   * in `MapContextMenu`'s "Collega un personaggio esistente" entry, and
-   * this component renders only the picker/modal flow itself.
+   * in `MapContextMenu`'s "Collega un personaggio esistente" entry (removed
+   * by SPEC-016 T8) and, since SPEC-016 T4, `PlacePopover`'s "Collega
+   * personaggio" — this component renders only the picker/modal flow
+   * itself, pre-filled to whichever zone its caller passes.
    */
   isOpen: boolean;
   onClose: () => void;

@@ -556,6 +556,7 @@
       "entitiesLoading": "Loading…",
       "entitiesEmpty": "No character or deity in this place.",
       "detach": "Remove {name} from this place",
+      "attach": "Attach a character",
       "errors": {
         "loadEntitiesFailed": "Could not load who is here. Try again.",
         "detachFailed": "Could not remove the link. Try again."

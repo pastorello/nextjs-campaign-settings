@@ -34,6 +34,12 @@ const ASSIGN_ACTIONS: Record<
 
 interface PlaceEntityListProps {
   target: EntityListTarget;
+  /**
+   * Bumped by the caller to force a refetch — the attach control (T4) lives
+   * outside this list and completes through its own modal, so there is no
+   * local mutation to fold into state the way a detach has.
+   */
+  refreshKey?: number;
 }
 
 const rowKey = (entity: EntityAtPlace) => `${entity.type}-${entity.id}`;
@@ -56,7 +62,10 @@ const rowKey = (entity: EntityAtPlace) => `${entity.type}-${entity.id}`;
  * has just told us the one row's outcome, and a second round-trip would
  * only re-derive it.
  */
-export default function PlaceEntityList({ target }: PlaceEntityListProps) {
+export default function PlaceEntityList({
+  target,
+  refreshKey,
+}: PlaceEntityListProps) {
   const t = useTranslations("geography.popover");
   const [entities, setEntities] = useState<EntityAtPlace[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -98,7 +107,7 @@ export default function PlaceEntityList({ target }: PlaceEntityListProps) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `t` intentionally excluded: a new translator identity from a parent re-render must not refetch the list.
-  }, [zoneId, poiId]);
+  }, [zoneId, poiId, refreshKey]);
 
   const handleDetach = async (entity: EntityAtPlace) => {
     setDetachingKey(rowKey(entity));

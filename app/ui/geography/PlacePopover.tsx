@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 
 import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
 import PlaceEntityList from "@/app/ui/geography/PlaceEntityList";
+import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
 import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildren";
 
 interface PlacePopoverProps {
@@ -18,15 +19,23 @@ interface PlacePopoverProps {
  * The place popover (SPEC-016) — anchored to the marker or rectangle the DM
  * clicked, replacing the old click-to-descend behaviour
  * (`useNavigableChildren`, T2). This shell carries the title, description
- * and "Apri mappa", plus the entities present at the place (T3); the
- * attach control and the zone/landmark action pairs land on top of it in
- * later tasks (T4-T7).
+ * and "Apri mappa", plus the entities present at the place (T3) and the
+ * attach control (T4); the zone/landmark action pairs land on top of it in
+ * later tasks (T5-T7).
  *
  * Tracks the map's own `move`/`zoom` events to stay anchored to the clicked
  * place's `lat`/`lng` while the DM pans, rather than closing on any map
  * movement the way `MapContextMenu` does — a popover the DM is reading is
  * worth keeping open through a small pan, unlike a menu whose position only
  * ever mattered for the single click that opened it.
+ *
+ * "Collega personaggio" (T4) reuses `AttachEntityButton` as-is, pre-filled
+ * with the clicked zone rather than the map's own currently-viewed parent —
+ * the same component the right-click menu still opens today (TD-96's
+ * removal is T8). A successful attach bumps `refreshKey` rather than
+ * threading the new entity through state: the list has just been told to
+ * refetch, and `AssignLocationModal` already knows nothing about what it
+ * assigned beyond an id.
  */
 export default function PlacePopover({
   place,
@@ -36,6 +45,8 @@ export default function PlacePopover({
   const map = useLeafletMap();
   const t = useTranslations("geography.popover");
   const popoverRef = useRef<HTMLDivElement>(null);
+  const [isAttachOpen, setIsAttachOpen] = useState(false);
+  const [entitiesRefreshKey, setEntitiesRefreshKey] = useState(0);
   const [screenPosition, setScreenPosition] = useState<{
     x: number;
     y: number;
@@ -68,9 +79,19 @@ export default function PlacePopover({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      // `AttachEntityButton`'s modal (T4) is Headless UI, which portals its
+      // content to a root at `document.body` — outside `popoverRef` in the
+      // DOM regardless of where the component sits in the React tree — so
+      // a click inside it would otherwise read as "outside" and close the
+      // popover out from under the modal it just opened.
+      const insidePortal =
+        target instanceof Element &&
+        target.closest("[data-headlessui-portal]") !== null;
       if (
         popoverRef.current &&
-        !popoverRef.current.contains(event.target as Node)
+        !popoverRef.current.contains(target) &&
+        !insidePortal
       ) {
         onClose();
       }
@@ -121,7 +142,20 @@ export default function PlacePopover({
 
       {/* A navigable child is a zone, so the list is always keyed by
           `zoneId` here; the landmark variant passes `poiId` instead (T7). */}
-      <PlaceEntityList target={{ zoneId: place.id }} />
+      <PlaceEntityList
+        target={{ zoneId: place.id }}
+        refreshKey={entitiesRefreshKey}
+      />
+
+      <div className="mb-3 flex flex-col gap-1">
+        <button
+          type="button"
+          onClick={() => setIsAttachOpen(true)}
+          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+        >
+          {t("attach")}
+        </button>
+      </div>
 
       <div className="flex flex-col gap-1">
         <button
@@ -138,6 +172,16 @@ export default function PlacePopover({
           </p>
         )}
       </div>
+
+      {/* Pre-filled with the clicked zone, not the map's currently-viewed
+          parent (contrast `WorldMap`'s own mount of this component) — the
+          popover's whole point is acting on the place under the click. */}
+      <AttachEntityButton
+        zoneId={place.id}
+        isOpen={isAttachOpen}
+        onClose={() => setIsAttachOpen(false)}
+        onAttached={() => setEntitiesRefreshKey((key) => key + 1)}
+      />
     </div>
   );
 }

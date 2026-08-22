@@ -54,6 +54,9 @@ vi.mock("@/app/modules/maps/hooks/useLeafletMap", () => ({
 }));
 
 const dragendHandlers = new Map<unknown, () => void>();
+// T7 — the landmark popover's own click plumbing, the same map shape
+// `dragendHandlers` already uses.
+const clickHandlers = new Map<unknown, () => void>();
 const markerGetLatLng = vi.fn(() => ({ lat: 99, lng: 88 }));
 const markerAddTo = vi.fn();
 const marker = vi.fn((..._args: unknown[]) => {
@@ -63,6 +66,7 @@ const marker = vi.fn((..._args: unknown[]) => {
     getLatLng: markerGetLatLng,
     on: vi.fn((event: string, handler: () => void) => {
       if (event === "dragend") dragendHandlers.set(instance, handler);
+      if (event === "click") clickHandlers.set(instance, handler);
     }),
   };
   markerAddTo.mockReturnValue(instance);
@@ -98,6 +102,17 @@ const PARENT_ID = 1;
 
 async function renderLoaded() {
   const rendered = renderHook(() => usePOIManager(PARENT_ID), {
+    wrapper: MapProvider,
+  });
+  await waitFor(() => expect(rendered.result.current.isLoading).toBe(false));
+  return rendered;
+}
+
+// T7's own variant of `renderLoaded` — the click callback is `usePOIManager`'s
+// second, optional argument, so every other describe block's calls (which
+// only ever pass `PARENT_ID`) are unaffected by its existence.
+async function renderLoadedWithClick(onPOIClick: (poi: unknown) => void) {
+  const rendered = renderHook(() => usePOIManager(PARENT_ID, onPOIClick), {
     wrapper: MapProvider,
   });
   await waitFor(() => expect(rendered.result.current.isLoading).toBe(false));
@@ -409,6 +424,7 @@ describe("usePOIManager — marker drag (TD-71, SPEC-005 §5.B)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     dragendHandlers.clear();
+    clickHandlers.clear();
     fetchPlaceChildren.mockResolvedValue([storedRow]);
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
@@ -453,5 +469,92 @@ describe("usePOIManager — marker drag (TD-71, SPEC-005 §5.B)", () => {
       lng: storedRow.lng,
     });
     expect(notifyError).toHaveBeenCalledWith("poiSaveFailed");
+  });
+});
+
+describe("usePOIManager — landmark click (SPEC-016 T7)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    dragendHandlers.clear();
+    clickHandlers.clear();
+    fetchPlaceChildren.mockResolvedValue([storedRow]);
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("does not bind a native Leaflet popup — the place popover supersedes it", async () => {
+    await renderLoaded();
+
+    await waitFor(() => expect(marker).toHaveBeenCalled());
+    const instance = markerAddTo.mock.results[0]?.value as {
+      bindPopup: ReturnType<typeof vi.fn>;
+    };
+    expect(instance.bindPopup).not.toHaveBeenCalled();
+  });
+
+  it("calls onPOIClick with the clicked POI", async () => {
+    const onPOIClick = vi.fn();
+    await renderLoadedWithClick(onPOIClick);
+    await waitFor(() => expect(clickHandlers.size).toBe(1));
+
+    act(() => {
+      clickHandlers.values().next().value?.();
+    });
+
+    expect(onPOIClick).toHaveBeenCalledTimes(1);
+    expect(onPOIClick).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "7", title: "Tavern" })
+    );
+  });
+
+  it("suppresses the synthetic click Leaflet fires right after a drag, but not a later genuine one", async () => {
+    updatePoi.mockResolvedValue({ ok: true });
+    const onPOIClick = vi.fn();
+    await renderLoadedWithClick(onPOIClick);
+    await waitFor(() => {
+      expect(dragendHandlers.size).toBe(1);
+      expect(clickHandlers.size).toBe(1);
+    });
+
+    // Same tick as `dragend` — mirrors the synthetic post-drag click
+    // Leaflet fires synchronously, which the guard exists to swallow.
+    act(() => {
+      dragendHandlers.values().next().value?.();
+      clickHandlers.values().next().value?.();
+    });
+    expect(onPOIClick).not.toHaveBeenCalled();
+
+    // The guard's own `setTimeout(..., 0)` gets a turn to run — the same
+    // real-timer flush `PlacePopover.test.tsx` uses for its own
+    // delayed-listener setup.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    act(() => {
+      clickHandlers.values().next().value?.();
+    });
+    expect(onPOIClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not call onPOIClick for a POI whose create hasn't resolved a database id yet", async () => {
+    fetchPlaceChildren.mockResolvedValue([]);
+    createPoi.mockReturnValue(new Promise(() => {}));
+    const onPOIClick = vi.fn();
+    const { result } = await renderLoadedWithClick(onPOIClick);
+
+    act(() => {
+      result.current.addPOI("Tavern", 10, 20, "food-drink");
+    });
+    await waitFor(() => expect(clickHandlers.size).toBe(1));
+
+    act(() => {
+      clickHandlers.values().next().value?.();
+    });
+
+    expect(onPOIClick).not.toHaveBeenCalled();
   });
 });

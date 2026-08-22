@@ -381,6 +381,81 @@ describe("MapPOIPanel — add/edit form", () => {
   });
 });
 
+describe("MapPOIPanel — externally requested edit (SPEC-016 T7)", () => {
+  it("pre-fills the edit form from editTarget, without going through the list row", () => {
+    const props = baseProps();
+    render(
+      <MapPOIPanel
+        {...props}
+        pois={[poi]}
+        mode="edit"
+        onModeChange={vi.fn()}
+        editTarget={poi}
+      />
+    );
+
+    // Reached with no hover/click on `POIListItem`'s own row — the popover's
+    // "Modifica" (T7) hands this component the POI directly, since the row
+    // it would otherwise come from is unreachable (TD-85).
+    expect(screen.getByDisplayValue("Skreebars Market")).toBeInTheDocument();
+    expect(screen.getByText("Edit Place")).toBeInTheDocument();
+  });
+
+  it("updates through onUpdatePOI, the same as an edit reached from the list", () => {
+    const props = baseProps();
+    render(
+      <MapPOIPanel
+        {...props}
+        pois={[poi]}
+        mode="edit"
+        onModeChange={vi.fn()}
+        editTarget={poi}
+      />
+    );
+
+    fireEvent.change(screen.getByDisplayValue("Skreebars Market"), {
+      target: { value: "Renamed Market" },
+    });
+    fireEvent.click(screen.getByText("Update"));
+
+    expect(props.onUpdatePOI).toHaveBeenCalledWith(
+      "poi-1",
+      expect.objectContaining({ title: "Renamed Market" })
+    );
+  });
+
+  it("does not re-seed the form from a stale editTarget once the caller clears it", () => {
+    const props = baseProps();
+    const { rerender } = render(
+      <MapPOIPanel
+        {...props}
+        pois={[poi]}
+        mode="edit"
+        onModeChange={vi.fn()}
+        editTarget={poi}
+      />
+    );
+    fireEvent.change(screen.getByDisplayValue("Skreebars Market"), {
+      target: { value: "Mid-edit draft" },
+    });
+
+    // The caller (`WorldMap`) leaves `editTarget` referentially stable while
+    // the panel stays open — a re-render with the same object must not
+    // clobber whatever the DM has typed so far.
+    rerender(
+      <MapPOIPanel
+        {...props}
+        pois={[poi]}
+        mode="edit"
+        onModeChange={vi.fn()}
+        editTarget={poi}
+      />
+    );
+
+    expect(screen.getByDisplayValue("Mid-edit draft")).toBeInTheDocument();
+  });
+});
+
 describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
   function kindSelect() {
     return screen.getByText("Kind").closest("div")!.querySelector("select")!;

@@ -10,15 +10,17 @@ vi.mock("@/app/lib/data/deities/assignLocation", () => ({ default: vi.fn() }));
 vi.mock("@/app/ui/components/AssignLocationModal", () => ({
   default: ({
     currentZoneId,
+    currentPoiId,
     currentLocationLabel,
     onAssigned,
   }: {
     currentZoneId: number | null;
+    currentPoiId: number | null;
     currentLocationLabel: string;
     onAssigned?: () => void;
   }) => (
     <div>
-      modal:{currentZoneId}:{currentLocationLabel}
+      modal:{currentZoneId}:{currentPoiId}:{currentLocationLabel}
       <button onClick={() => onAssigned?.()}>simulate-assign</button>
     </div>
   ),
@@ -76,10 +78,26 @@ describe("AttachEntityButton (usability fix, 2026-08-17: externally controlled)"
       target: { value: "9" },
     });
 
-    expect(screen.getByText("modal:5:Dexter")).toBeInTheDocument();
+    expect(screen.getByText("modal:5::Dexter")).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("simulate-assign"));
     expect(onAttached).toHaveBeenCalled();
+  });
+
+  it("pre-fills the modal's landmark step too when poiId is given (SPEC-016 T7)", async () => {
+    render(
+      <AttachEntityButton zoneId={5} poiId={42} isOpen onClose={vi.fn()} />
+    );
+
+    fireEvent.change(screen.getAllByRole("combobox")[0]!, {
+      target: { value: "npc" },
+    });
+    await screen.findByText("Dexter");
+    fireEvent.change(screen.getAllByRole("combobox")[1]!, {
+      target: { value: "9" },
+    });
+
+    expect(screen.getByText("modal:5:42:Dexter")).toBeInTheDocument();
   });
 
   it("cancelling the picker calls onClose without opening the modal", () => {

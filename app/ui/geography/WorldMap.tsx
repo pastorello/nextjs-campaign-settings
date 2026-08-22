@@ -22,14 +22,20 @@ import {
 } from "@/app/modules/maps/hooks/useNavigableChildren";
 import { useUnplacedChildren } from "@/app/modules/maps/hooks/useUnplacedChildren";
 import { useDrawArea } from "@/app/modules/maps/hooks/useDrawArea";
-import type { POICategory, POIGeoJSON } from "@/app/modules/maps/types/poi";
+import type {
+  POI,
+  POICategory,
+  POIGeoJSON,
+} from "@/app/modules/maps/types/poi";
 import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import createPlace from "@/app/lib/data/maps/createPlace";
 import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
 import unplacePlace from "@/app/lib/data/maps/unplacePlace";
 import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
-import PlacePopover from "@/app/ui/geography/PlacePopover";
+import PlacePopover, {
+  type PopoverTarget,
+} from "@/app/ui/geography/PlacePopover";
 import MapUploadControl from "@/app/ui/geography/MapUploadControl";
 import DeletePlaceButton from "@/app/ui/geography/DeletePlaceButton";
 import MapOptionsButton from "@/app/ui/geography/MapOptionsButton";
@@ -189,12 +195,22 @@ function WorldMap({
     title: string;
   } | null>(null);
 
-  // The place popover (SPEC-016 T2) — one at a time by construction, a
-  // single state slot rather than a set. Clicking a marker/rectangle
-  // (`useNavigableChildren`) used to descend straight into it; now it opens
-  // this instead, and "Apri mappa" inside the popover is what actually
-  // descends.
-  const [popoverPlace, setPopoverPlace] = useState<NavigableChild | null>(null);
+  // The place popover (SPEC-016 T2, widened to landmarks in T7) — one at a
+  // time by construction, a single state slot rather than a set. Clicking a
+  // marker/rectangle (`useNavigableChildren`) or a landmark marker
+  // (`usePOIManager`) used to descend/open a native Leaflet popup
+  // respectively; now both open this instead, and "Apri mappa" inside the
+  // popover is what actually descends (zone only — a landmark has none).
+  const [popoverTarget, setPopoverTarget] = useState<PopoverTarget | null>(
+    null
+  );
+
+  // The landmark `MapPOIPanel`'s edit form is pre-filled for (SPEC-016 T7,
+  // "Modifica") — `null` whenever the panel isn't in an externally-requested
+  // edit, cleared by `handlePOIModeChange` the moment the panel leaves edit
+  // mode (cancelled or saved) so re-editing the same landmark later still
+  // transitions `null` → POI rather than being a no-op re-render.
+  const [poiEditTarget, setPoiEditTarget] = useState<POI | null>(null);
 
   // Context menu hook
   const {
@@ -212,6 +228,20 @@ function WorldMap({
   // was the simpler of the two dismiss shapes TD-86 proposed.
   const { markers, addMarker, clearMarkers } = useMapMarkers();
 
+  // A landmark marker click opens the popover (SPEC-016 T7), the same
+  // `isMeasuring` guard `handlePlaceClick` uses below for the identical
+  // reason (§5's edge-case table: map clicks belong to the measure tool
+  // while it's active). Declared ahead of `usePOIManager` — it's this
+  // hook's own `onPOIClick` argument — the same ordering constraint
+  // `handleEditMode`/`createMarker` already impose inside that hook.
+  const handlePOIClick = useCallback(
+    (poi: POI) => {
+      if (isMeasuring) return;
+      setPopoverTarget({ kind: "poi", poi });
+    },
+    [isMeasuring]
+  );
+
   // POI Manager hook, scoped to the place currently being viewed
   const {
     pois,
@@ -222,7 +252,7 @@ function WorldMap({
     exportGeoJSON,
     importGeoJSON,
     flyToPOI,
-  } = usePOIManager(parentId);
+  } = usePOIManager(parentId, handlePOIClick);
 
   // Bumped after a successful region create so `useNavigableChildren`
   // reloads — its own effect only reruns on `parentId`/`refetchToken`
@@ -238,7 +268,7 @@ function WorldMap({
   const handlePlaceClick = useCallback(
     (child: NavigableChild) => {
       if (isMeasuring) return;
-      setPopoverPlace(child);
+      setPopoverTarget({ kind: "zone", place: child });
     },
     [isMeasuring]
   );
@@ -248,13 +278,13 @@ function WorldMap({
   const handleOpenMap = useCallback(
     (child: NavigableChild) => {
       onDescend(child);
-      setPopoverPlace(null);
+      setPopoverTarget(null);
     },
     [onDescend]
   );
 
   const handleClosePopover = useCallback(() => {
-    setPopoverPlace(null);
+    setPopoverTarget(null);
   }, []);
 
   // "Sposta nei luoghi non posizionati" (SPEC-016 T5) — no confirmation
@@ -276,7 +306,7 @@ function WorldMap({
         const result = await unplacePlace({ id: child.id });
         if (result.ok) {
           setPlacesRefetchToken((token) => token + 1);
-          setPopoverPlace(null);
+          setPopoverTarget(null);
         } else {
           toast.error(t("placeUnplaceFailed", { title: child.title }));
         }
@@ -297,8 +327,31 @@ function WorldMap({
   // just a marker to drop and a popover with nothing left to show.
   const handlePopoverPlaceDeleted = useCallback(() => {
     setPlacesRefetchToken((token) => token + 1);
-    setPopoverPlace(null);
+    setPopoverTarget(null);
   }, []);
+
+  // "Modifica" (SPEC-016 T7) — opens the shared `MapPOIPanel` drawer already
+  // in edit mode, pre-filled with the clicked landmark (`editTarget`,
+  // consumed by the panel's own seeding effect). The popover closes: the
+  // DM's focus has moved to the edit form, the same way "Apri mappa"
+  // already closes it for a zone.
+  const handleEditLandmark = useCallback((poi: POI) => {
+    setPoiEditTarget(poi);
+    setPOIPanelMode("edit");
+    setIsPOIPanelOpen(true);
+    setPopoverTarget(null);
+  }, []);
+
+  // "Elimina" (SPEC-016 T7) — `usePOIManager.deletePOI` is synchronous
+  // (optimistic, no server round trip to await) and already unconfirmed, so
+  // this closes the popover immediately rather than waiting on anything.
+  const handleDeleteLandmark = useCallback(
+    (poi: POI) => {
+      deletePOI(poi.id);
+      setPopoverTarget(null);
+    },
+    [deletePOI]
+  );
 
   // Navigable `region` children, same scope — clicking one opens the
   // popover (SPEC-016 T2; used to call `onDescend` directly).
@@ -426,6 +479,7 @@ function WorldMap({
     setPositioningPlace(null);
     setPOIPanelMode("list");
     setPendingFootprint(null);
+    setPoiEditTarget(null);
     // Reset coordinates and category after a brief delay to allow panel to close smoothly
     setTimeout(() => {
       setPOIFilterCategory(null);
@@ -609,6 +663,12 @@ function WorldMap({
   // nothing left to lie about (TD-85).
   const handlePOIModeChange = useCallback((mode: ViewMode) => {
     setPOIPanelMode(mode);
+    // Leaving edit mode — cancelled back to the list, or a successful save
+    // (`MapPOIPanel.resetFormAfterSave`) — either way (SPEC-016 T7):
+    // `poiEditTarget` cleared so re-editing the same landmark later is a
+    // `null` → POI transition the panel's seeding effect actually fires on,
+    // not a no-op re-render.
+    if (mode !== "edit") setPoiEditTarget(null);
   }, []);
 
   // Handle map click for POI location selection, and for positioning an
@@ -696,7 +756,7 @@ function WorldMap({
     // The popover refers to a place on the map being left (SPEC-016 T2) —
     // `WorldMap` isn't remounted on `parentId` change, so without this it
     // would survive the navigation open, anchored to nothing on the new map.
-    setPopoverPlace(null);
+    setPopoverTarget(null);
     // "Off on every load" (SPEC-015 §9) includes navigating to another
     // place — `WorldMap` isn't remounted on `parentId` change, so without
     // this the previous map's toggle state would carry over. The measure
@@ -1034,17 +1094,22 @@ function WorldMap({
         onExit={handleMeasureExit}
       />
 
-      {/* The place popover (SPEC-016 T2) — opened by a marker/rectangle
-          click (`useNavigableChildren`), replacing the old click-to-descend
-          behaviour. "Apri mappa" is the only path left into `onDescend`. */}
-      {popoverPlace && (
+      {/* The place popover (SPEC-016 T2, widened to landmarks in T7) —
+          opened by a marker/rectangle click (`useNavigableChildren`) or a
+          landmark marker click (`usePOIManager`), replacing the old
+          click-to-descend/native-Leaflet-popup behaviour respectively.
+          "Apri mappa" is the only path left into `onDescend`, zone only. */}
+      {popoverTarget && (
         <PlacePopover
-          place={popoverPlace}
+          target={popoverTarget}
+          parentId={parentId}
           parentTitle={placeTitle}
           onClose={handleClosePopover}
           onOpenMap={handleOpenMap}
           onUnplace={(child) => void handleUnplace(child)}
           onDeleted={handlePopoverPlaceDeleted}
+          onEditLandmark={handleEditLandmark}
+          onDeleteLandmark={handleDeleteLandmark}
         />
       )}
 
@@ -1111,6 +1176,7 @@ function WorldMap({
         positioningPlaceId={positioningPlace?.id ?? null}
         pendingFootprint={pendingFootprint}
         onFootprintConsumed={handleFootprintConsumed}
+        editTarget={poiEditTarget}
       />
     </div>
   );

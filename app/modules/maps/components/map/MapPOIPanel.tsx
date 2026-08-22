@@ -123,6 +123,13 @@ interface MapPOIPanelProps {
   // the caller can drop it before it might otherwise attach itself to an
   // unrelated place.
   onFootprintConsumed?: () => void;
+  // Opens the edit form pre-filled with this POI (SPEC-016 T7) — the place
+  // popover's "Modifica" reaches `handleEditMode` from outside for the
+  // first time; previously it was only ever called from `POIListItem`'s own
+  // row, which nothing could reach (TD-85). The caller is expected to pair
+  // this with `mode="edit"` and `isOpen`; this component only seeds the
+  // form, it doesn't open the panel or force the mode itself.
+  editTarget?: POI | null;
 }
 
 export type ViewMode = "list" | "add" | "edit";
@@ -251,6 +258,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
   positioningPlaceId,
   pendingFootprint = null,
   onFootprintConsumed,
+  editTarget = null,
 }: MapPOIPanelProps) {
   const t = useTranslations();
   const [isMobile, setIsMobile] = useState(false);
@@ -400,6 +408,19 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     },
     [setViewMode]
   );
+
+  // Seeds the edit form from outside (SPEC-016 T7) — the place popover's
+  // "Modifica" hands this component a POI to edit rather than the DM
+  // picking one from the (unreachable, TD-85) list row itself. Fires once
+  // per distinct `editTarget` the caller hands over, not on every
+  // `handleEditMode` identity change — the caller (`WorldMap`) is
+  // responsible for clearing `editTarget` back to `null` once the panel
+  // leaves edit mode, so re-editing the same landmark later still triggers
+  // this (a `null` → POI transition, not a no-op re-render).
+  useEffect(() => {
+    if (editTarget) handleEditMode(editTarget);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed on `editTarget` alone, not `handleEditMode`'s own identity
+  }, [editTarget]);
 
   const resetFormAfterSave = useCallback(() => {
     setViewMode("list");

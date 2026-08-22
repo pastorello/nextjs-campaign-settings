@@ -559,6 +559,8 @@
       "attach": "Attach a character",
       "unplace": "Move to unpositioned places",
       "delete": "Remove permanently",
+      "editLandmark": "Edit",
+      "deleteLandmark": "Delete",
       "errors": {
         "loadEntitiesFailed": "Could not load who is here. Try again.",
         "detachFailed": "Could not remove the link. Try again."

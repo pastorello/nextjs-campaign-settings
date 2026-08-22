@@ -94,6 +94,7 @@ const importGeoJSON = vi.fn(() => 2);
 let onAddPlace:
   ((input: unknown) => Promise<{ ok: boolean; error?: string }>) | undefined;
 let onPositionPlace: ((id: number) => void) | undefined;
+let onPOIModeChange: ((mode: string) => void) | undefined;
 vi.mock("@/app/modules/maps/components/map/MapPOIPanel", () => ({
   MapPOIPanel: (props: {
     onRequestLocation: () => void;
@@ -105,12 +106,16 @@ vi.mock("@/app/modules/maps/components/map/MapPOIPanel", () => ({
     onPositionPlace: (id: number) => void;
     positioningPlaceId: number | null;
     mode?: string;
+    onModeChange?: (mode: string) => void;
     pendingFootprint?: unknown;
+    isOpen: boolean;
+    editTarget?: { id: string; title: string } | null;
   }) => {
     onRequestLocation = props.onRequestLocation;
     onImport = props.onImport;
     onAddPlace = props.onAddPlace;
     onPositionPlace = props.onPositionPlace;
+    onPOIModeChange = props.onModeChange;
     return (
       <div
         data-testid="map-poi-panel"
@@ -119,6 +124,8 @@ vi.mock("@/app/modules/maps/components/map/MapPOIPanel", () => ({
         data-unplaced-count={props.unplacedChildren.length}
         data-positioning-id={props.positioningPlaceId ?? undefined}
         data-mode={props.mode}
+        data-open={props.isOpen}
+        data-edit-target-id={props.editTarget?.id}
         data-pending-footprint={
           props.pendingFootprint
             ? JSON.stringify(props.pendingFootprint)
@@ -241,26 +248,45 @@ let popoverOnOpenMap: ((place: { id: number }) => void) | undefined;
 let popoverOnUnplace:
   ((place: { id: number; title: string }) => void) | undefined;
 let popoverOnDeleted: (() => void) | undefined;
+let popoverOnEditLandmark:
+  ((poi: { id: string; title: string }) => void) | undefined;
+let popoverOnDeleteLandmark:
+  ((poi: { id: string; title: string }) => void) | undefined;
 let popoverParentTitle: string | undefined;
+let popoverParentId: number | undefined;
+type MockPopoverTarget =
+  | { kind: "zone"; place: { id: number; title: string } }
+  | { kind: "poi"; poi: { id: string; title: string } };
 vi.mock("@/app/ui/geography/PlacePopover", () => ({
   default: (props: {
-    place: { id: number; title: string };
+    target: MockPopoverTarget;
+    parentId: number;
     parentTitle: string;
     onClose: () => void;
     onOpenMap: (place: { id: number }) => void;
     onUnplace: (place: { id: number; title: string }) => void;
     onDeleted: () => void;
+    onEditLandmark: (poi: { id: string; title: string }) => void;
+    onDeleteLandmark: (poi: { id: string; title: string }) => void;
   }) => {
     popoverOnClose = props.onClose;
     popoverOnOpenMap = props.onOpenMap;
     popoverOnUnplace = props.onUnplace;
     popoverOnDeleted = props.onDeleted;
+    popoverOnEditLandmark = props.onEditLandmark;
+    popoverOnDeleteLandmark = props.onDeleteLandmark;
     popoverParentTitle = props.parentTitle;
+    popoverParentId = props.parentId;
+    const { id, title } =
+      props.target.kind === "zone"
+        ? { id: props.target.place.id, title: props.target.place.title }
+        : { id: props.target.poi.id, title: props.target.poi.title };
     return (
       <div
         data-testid="place-popover"
-        data-place-id={props.place.id}
-        data-place-title={props.place.title}
+        data-place-id={id}
+        data-place-title={title}
+        data-target-kind={props.target.kind}
       />
     );
   },
@@ -293,18 +319,26 @@ vi.mock("@/app/modules/maps/hooks/useMapMarkers", () => ({
   useMapMarkers: () => useMapMarkers(),
 }));
 const reloadPOIs = vi.fn();
+// A stable spy, not `vi.fn()` inlined per call (unlike the hook's other
+// no-op returns above): T7's popover-delete tests assert on it directly,
+// the same reason `exportGeoJSON`/`importGeoJSON` are already top-level.
+const deletePOI = vi.fn();
+// A spy wrapper, not a bare object return, so tests can read the
+// `onPOIClick` callback `WorldMap` passes (SPEC-016 T7) — the same shape
+// `useNavigableChildren`'s own mock below uses for `onPlaceClick`.
+const usePOIManager = vi.fn((..._args: unknown[]) => ({
+  pois: [],
+  addPOI: vi.fn(),
+  updatePOI: vi.fn(),
+  deletePOI,
+  clearAllPOIs: vi.fn(),
+  exportGeoJSON,
+  importGeoJSON,
+  flyToPOI: vi.fn(),
+  reloadPOIs,
+}));
 vi.mock("@/app/modules/maps/hooks/usePOIManager", () => ({
-  usePOIManager: () => ({
-    pois: [],
-    addPOI: vi.fn(),
-    updatePOI: vi.fn(),
-    deletePOI: vi.fn(),
-    clearAllPOIs: vi.fn(),
-    exportGeoJSON,
-    importGeoJSON,
-    flyToPOI: vi.fn(),
-    reloadPOIs,
-  }),
+  usePOIManager: (...args: unknown[]) => usePOIManager(...args),
 }));
 const useUnplacedChildren = vi
   .fn<(...args: unknown[]) => { id: number; title: string; kind: string }[]>()
@@ -454,7 +488,10 @@ beforeEach(() => {
   popoverOnOpenMap = undefined;
   popoverOnUnplace = undefined;
   popoverOnDeleted = undefined;
+  popoverOnEditLandmark = undefined;
+  popoverOnDeleteLandmark = undefined;
   popoverParentTitle = undefined;
+  popoverParentId = undefined;
   // `clearAllMocks` clears call history, not the return value a previous
   // test may have overridden with `mockReturnValue` (as opposed to
   // `mockReturnValueOnce`) — reset explicitly so tests can't leak a custom
@@ -1985,5 +2022,104 @@ describe("WorldMap — deleting from the popover (SPEC-016 T6)", () => {
       expect(useUnplacedChildren.mock.calls.at(-1)?.[1]).toBe(tokenBefore + 1);
     });
     expect(screen.queryByTestId("place-popover")).not.toBeInTheDocument();
+  });
+});
+
+describe("WorldMap — landmark popover (SPEC-016 T7)", () => {
+  const poi = { id: "42", title: "Fontana del Corvo", lat: 6, lng: 6 };
+
+  function clickPOI(target: unknown = poi) {
+    const onPOIClick = usePOIManager.mock.calls.at(-1)?.[1] as
+      ((poi: unknown) => void) | undefined;
+    act(() => {
+      onPOIClick?.(target);
+    });
+  }
+
+  it("passes the WorldMap-scoped onPOIClick callback as usePOIManager's second argument", async () => {
+    await renderMap();
+
+    expect(usePOIManager).toHaveBeenLastCalledWith(1, expect.any(Function));
+  });
+
+  it("opens the popover for the clicked landmark", async () => {
+    await renderMap();
+
+    clickPOI();
+
+    const popover = screen.getByTestId("place-popover");
+    expect(popover).toHaveAttribute("data-target-kind", "poi");
+    expect(popover).toHaveAttribute("data-place-id", "42");
+    expect(popover).toHaveAttribute("data-place-title", "Fontana del Corvo");
+    // The enclosing zone — a landmark's own `POI` shape carries no `zoneId`
+    // of its own, so the popover's attach-control pre-fill (T7) needs this
+    // from `WorldMap` directly.
+    expect(popoverParentId).toBe(1);
+  });
+
+  it("does not open the popover for a landmark click while measuring", async () => {
+    await renderMap("/maps/test.jpg", 0, {
+      gridColumns: 36,
+      gridScale: "kingdom",
+    });
+    act(() => {
+      onStartMeasurement?.();
+    });
+
+    clickPOI();
+
+    expect(screen.queryByTestId("place-popover")).not.toBeInTheDocument();
+  });
+
+  it("opens MapPOIPanel pre-filled in edit mode, and closes the popover, when Modifica is invoked", async () => {
+    await renderMap();
+    clickPOI();
+
+    act(() => {
+      popoverOnEditLandmark?.(poi);
+    });
+
+    const panel = screen.getByTestId("map-poi-panel");
+    expect(panel).toHaveAttribute("data-open", "true");
+    expect(panel).toHaveAttribute("data-mode", "edit");
+    expect(panel).toHaveAttribute("data-edit-target-id", "42");
+    expect(screen.queryByTestId("place-popover")).not.toBeInTheDocument();
+  });
+
+  it("deletes the landmark and closes the popover, without any confirmation, when Elimina is invoked", async () => {
+    await renderMap();
+    clickPOI();
+
+    act(() => {
+      popoverOnDeleteLandmark?.(poi);
+    });
+
+    expect(deletePOI).toHaveBeenCalledWith("42");
+    expect(deletePOI).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId("place-popover")).not.toBeInTheDocument();
+  });
+
+  it("clears the edit target once the panel reports leaving edit mode (cancelled or saved)", async () => {
+    await renderMap();
+    clickPOI();
+    act(() => {
+      popoverOnEditLandmark?.(poi);
+    });
+    expect(screen.getByTestId("map-poi-panel")).toHaveAttribute(
+      "data-edit-target-id",
+      "42"
+    );
+
+    // `MapPOIPanel` itself drives this transition (cancel back to the list,
+    // or `resetFormAfterSave` after a completed edit) by calling
+    // `onModeChange` — simulated directly here, since the panel's own
+    // suite covers when it actually happens.
+    act(() => {
+      onPOIModeChange?.("list");
+    });
+
+    expect(screen.getByTestId("map-poi-panel")).not.toHaveAttribute(
+      "data-edit-target-id"
+    );
   });
 });

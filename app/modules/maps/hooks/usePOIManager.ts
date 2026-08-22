@@ -55,7 +55,10 @@ function toClientPOI(
  * - GeoJSON import/export
  * - Map marker rendering with category colors
  * - Proper cleanup on unmount
+ * - `onPOIClick` (T7): a click on a marker opens the place popover, the same
+ *   role `useNavigableChildren`'s `onPlaceClick` plays for zones
  *
+
  * ## Persistence (TD-14 / SPEC-002)
  *
  * POIs used to live in `localStorage`. They are rows in Postgres now, global
@@ -88,7 +91,10 @@ function toClientPOI(
  *
  * @returns Object with POI management functions and state
  */
-export function usePOIManager(parentId: number) {
+export function usePOIManager(
+  parentId: number,
+  onPOIClick?: (poi: POI) => void
+) {
   const map = useLeafletMap();
   const t = useTranslations("geography.errors");
   const [pois, setPOIs] = useState<POI[]>([]);
@@ -121,6 +127,14 @@ export function usePOIManager(parentId: number) {
   const tRef = useRef(t);
   useEffect(() => {
     tRef.current = t;
+  });
+
+  // Read from inside a Leaflet click handler created once per marker
+  // (T7), the same reason `tRef` exists — `useNavigableChildren`'s own
+  // `onPlaceClickRef` is the precedent this mirrors.
+  const onPOIClickRef = useRef(onPOIClick);
+  useEffect(() => {
+    onPOIClickRef.current = onPOIClick;
   });
 
   /**
@@ -290,22 +304,11 @@ export function usePOIManager(parentId: number) {
           }),
         }).addTo(map);
 
-        // Add popup
-        const popupContent = `
-      <div class="min-w-[150px]">
-        <div class="font-semibold mb-1">${poi.title}</div>
-        ${
-          poi.description
-            ? `<div class="text-xs text-gray-600 mb-1">${poi.description}</div>`
-            : ""
-        }
-        <div class="text-[11px] text-gray-400">${poi.lat.toFixed(
-          6
-        )}, ${poi.lng.toFixed(6)}</div>
-      </div>
-    `;
-        marker.bindPopup(popupContent);
-
+        // No `bindPopup` here (unlike before T7): clicking a landmark now
+        // opens the place popover (`PlacePopover`, `renderMarkers`'s own
+        // `click` handler below) instead of Leaflet's native, read-only one
+        // — the same supersession `useNavigableChildren`'s zone markers
+        // already went through in T2.
         return marker;
       } catch (error) {
         console.error("Failed to create POI marker:", error);
@@ -350,13 +353,40 @@ export function usePOIManager(parentId: number) {
       }
 
       if (marker) {
+        // A drop shouldn't also open the popover for the landmark just
+        // dragged — the same explicit guard `useNavigableChildren` uses for
+        // its own zone markers (T2), for the same reason: Leaflet's own
+        // click suppression after a drag isn't a documented guarantee.
+        // Scoped per marker (a plain closure variable), not a hook ref.
+        let justDragged = false;
+
         // TD-71, SPEC-005 §5.B — reposition on drop. `updatePOI` already
         // does the optimistic-update/revert/toast dance; this only has to
         // read the marker's new position and hand it off.
         marker.on("dragend", () => {
+          justDragged = true;
           const { lat, lng } = marker.getLatLng();
           updatePOI(poi.id, { lat, lng });
+          // Leaflet fires any synthetic post-drag click synchronously, in
+          // the same tick as `dragend` — this clears the guard right after,
+          // so a later, genuine click on the same marker still opens the
+          // popover.
+          setTimeout(() => {
+            justDragged = false;
+          }, 0);
         });
+
+        // T7 — opens the place popover, mirroring `useNavigableChildren`'s
+        // own marker click. Guarded on a resolved server id: a POI clicked
+        // in the brief optimistic window before its `createPoi` round trip
+        // lands has no database id yet, and every consumer of this click
+        // (`fetchEntitiesAtPlace`, the edit/delete machinery) needs one.
+        marker.on("click", () => {
+          if (justDragged) return;
+          if (!serverIdsRef.current.has(poi.id)) return;
+          onPOIClickRef.current?.(poi);
+        });
+
         markersRef.current.set(poi.id, marker);
       }
     }

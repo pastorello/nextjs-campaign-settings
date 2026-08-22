@@ -42,20 +42,22 @@ vi.mock("@/app/ui/geography/PlaceEntityList", () => ({
 
 // Same reasoning: the picker/modal flow itself is `AttachEntityButton`'s own
 // suite; here it stands in so this suite only exercises how the popover
-// wires it (T4).
+// wires it (T4, extended with `poiId` in T7).
 const attachEntityProps = vi.fn();
 vi.mock("@/app/ui/geography/AttachEntityButton", () => ({
   default: ({
     zoneId,
+    poiId,
     isOpen,
     onAttached,
   }: {
     zoneId: number;
+    poiId?: number | null;
     isOpen: boolean;
     onClose: () => void;
     onAttached?: () => void;
   }) => {
-    attachEntityProps({ zoneId, isOpen });
+    attachEntityProps({ zoneId, poiId: poiId ?? null, isOpen });
     return isOpen ? (
       <button onClick={() => onAttached?.()}>simulate-attach</button>
     ) : null;
@@ -90,8 +92,9 @@ vi.mock("@/app/ui/geography/DeletePlaceButton", () => ({
   },
 }));
 
-import PlacePopover from "./PlacePopover";
+import PlacePopover, { type PopoverTarget } from "./PlacePopover";
 import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildren";
+import type { POI } from "@/app/modules/maps/types/poi";
 
 const place: NavigableChild = {
   id: 7,
@@ -108,23 +111,51 @@ const place: NavigableChild = {
   gridScale: null,
 };
 
+const poi: POI = {
+  id: "42",
+  title: "Fontana del Corvo",
+  description: "A weathered stone fountain.",
+  lat: 12,
+  lng: 24,
+  category: "tourism",
+  createdAt: 0,
+  updatedAt: 0,
+};
+
 const onClose = vi.fn();
 const onOpenMap = vi.fn();
 const onUnplace = vi.fn();
 const onDeleted = vi.fn();
+const onEditLandmark = vi.fn();
+const onDeleteLandmark = vi.fn();
+const parentId = 3;
 const parentTitle = "Kang";
 
-function renderPopover(overrides: Partial<NavigableChild> = {}) {
+function renderPopover(
+  target: PopoverTarget = { kind: "zone", place },
+  overrideParentId: number = parentId
+) {
   return render(
     <PlacePopover
-      place={{ ...place, ...overrides }}
+      target={target}
+      parentId={overrideParentId}
       parentTitle={parentTitle}
       onClose={onClose}
       onOpenMap={onOpenMap}
       onUnplace={onUnplace}
       onDeleted={onDeleted}
+      onEditLandmark={onEditLandmark}
+      onDeleteLandmark={onDeleteLandmark}
     />
   );
+}
+
+function renderZonePopover(overrides: Partial<NavigableChild> = {}) {
+  return renderPopover({ kind: "zone", place: { ...place, ...overrides } });
+}
+
+function renderLandmarkPopover(overrides: Partial<POI> = {}) {
+  return renderPopover({ kind: "poi", poi: { ...poi, ...overrides } });
 }
 
 // The outside-click listener attaches after a 0ms timeout (to avoid closing
@@ -144,17 +175,17 @@ beforeEach(() => {
   useLeafletMap.mockReturnValue(fakeMap);
 });
 
-describe("PlacePopover", () => {
+describe("PlacePopover — zone", () => {
   it("renders nothing until the map instance is available", () => {
     useLeafletMap.mockReturnValue(null as never);
 
-    renderPopover();
+    renderZonePopover();
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("positions itself at the clicked place's lat/lng, converted to a container point", () => {
-    renderPopover();
+    renderZonePopover();
 
     expect(latLngToContainerPoint).toHaveBeenCalledWith([10, 20]);
     const dialog = screen.getByRole("dialog");
@@ -162,14 +193,14 @@ describe("PlacePopover", () => {
   });
 
   it("shows the place's title and description", () => {
-    renderPopover();
+    renderZonePopover();
 
     expect(screen.getByText("Taverna del Gallo Robin")).toBeInTheDocument();
     expect(screen.getByText("A cozy tavern by the docks.")).toBeInTheDocument();
   });
 
   it("omits the description block when the place has none", () => {
-    renderPopover({ description: null });
+    renderZonePopover({ description: null });
 
     expect(
       screen.queryByText("A cozy tavern by the docks.")
@@ -177,7 +208,7 @@ describe("PlacePopover", () => {
   });
 
   it("calls onOpenMap with the place when Apri mappa is clicked and the place has a map", () => {
-    renderPopover();
+    renderZonePopover();
 
     fireEvent.click(screen.getByText("openMap"));
 
@@ -185,7 +216,7 @@ describe("PlacePopover", () => {
   });
 
   it("disables Apri mappa with an explanatory label when the place has no map yet", () => {
-    renderPopover({ mapImage: null });
+    renderZonePopover({ mapImage: null });
 
     const button = screen.getByText("openMap");
     expect(button).toBeDisabled();
@@ -196,35 +227,37 @@ describe("PlacePopover", () => {
   });
 
   it("lists the entities present at the clicked zone", () => {
-    renderPopover();
+    renderZonePopover();
 
     expect(screen.getByTestId("entity-list")).toBeInTheDocument();
     expect(entityListProps).toHaveBeenCalledWith({ zoneId: 7 }, 0);
   });
 
-  it("keeps the attach control closed until Collega personaggio is clicked", () => {
-    renderPopover();
+  it("keeps the attach control closed until Collega personaggio is clicked, pre-filled with the zone and no landmark", () => {
+    renderZonePopover();
 
     expect(attachEntityProps).toHaveBeenCalledWith({
       zoneId: 7,
+      poiId: null,
       isOpen: false,
     });
     expect(screen.queryByText("simulate-attach")).not.toBeInTheDocument();
   });
 
   it("opens the attach control pre-filled with the clicked zone", () => {
-    renderPopover();
+    renderZonePopover();
 
     fireEvent.click(screen.getByText("attach"));
 
     expect(attachEntityProps).toHaveBeenLastCalledWith({
       zoneId: 7,
+      poiId: null,
       isOpen: true,
     });
   });
 
   it("refreshes the entities list once an attach completes, without reopening the popover", () => {
-    renderPopover();
+    renderZonePopover();
     fireEvent.click(screen.getByText("attach"));
     entityListProps.mockClear();
 
@@ -235,7 +268,7 @@ describe("PlacePopover", () => {
   });
 
   it("calls onUnplace with the clicked place when Sposta nei luoghi non posizionati is clicked, without asking for confirmation", () => {
-    renderPopover();
+    renderZonePopover();
 
     fireEvent.click(screen.getByText("unplace"));
 
@@ -244,7 +277,7 @@ describe("PlacePopover", () => {
   });
 
   it("keeps the delete confirmation closed until Rimuovi definitivamente is clicked", () => {
-    renderPopover();
+    renderZonePopover();
 
     expect(deletePlaceProps).toHaveBeenCalledWith({
       placeId: 7,
@@ -257,7 +290,7 @@ describe("PlacePopover", () => {
   });
 
   it("opens the delete confirmation, pre-filled with the clicked place and its parent, when Rimuovi definitivamente is clicked", () => {
-    renderPopover();
+    renderZonePopover();
 
     fireEvent.click(screen.getByText("delete"));
 
@@ -271,7 +304,7 @@ describe("PlacePopover", () => {
   });
 
   it("calls onDeleted once the deletion confirms, without calling onUnplace or onClose itself", () => {
-    renderPopover();
+    renderZonePopover();
     fireEvent.click(screen.getByText("delete"));
 
     fireEvent.click(screen.getByText("simulate-delete"));
@@ -281,8 +314,15 @@ describe("PlacePopover", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
+  it("renders no landmark-only action", () => {
+    renderZonePopover();
+
+    expect(screen.queryByText("editLandmark")).not.toBeInTheDocument();
+    expect(screen.queryByText("deleteLandmark")).not.toBeInTheDocument();
+  });
+
   it("does not close on a click inside a Headless UI portal (the attach modal escapes popoverRef)", async () => {
-    renderPopover();
+    renderZonePopover();
     await flushOutsideClickTimeout();
 
     const portalNode = document.createElement("div");
@@ -296,7 +336,7 @@ describe("PlacePopover", () => {
   });
 
   it("closes on Escape", () => {
-    renderPopover();
+    renderZonePopover();
 
     fireEvent.keyDown(document, { key: "Escape" });
 
@@ -304,7 +344,7 @@ describe("PlacePopover", () => {
   });
 
   it("closes when the close button is clicked", () => {
-    renderPopover();
+    renderZonePopover();
 
     fireEvent.click(screen.getByLabelText("close"));
 
@@ -312,7 +352,7 @@ describe("PlacePopover", () => {
   });
 
   it("closes on outside click but not on a click inside the popover", async () => {
-    renderPopover();
+    renderZonePopover();
     await flushOutsideClickTimeout();
 
     fireEvent.mouseDown(screen.getByText("Taverna del Gallo Robin"));
@@ -323,7 +363,7 @@ describe("PlacePopover", () => {
   });
 
   it("recomputes its position when the map pans or zooms", () => {
-    renderPopover();
+    renderZonePopover();
     latLngToContainerPoint.mockClear();
     latLngToContainerPoint.mockReturnValue({ x: 99, y: 88 });
 
@@ -339,11 +379,84 @@ describe("PlacePopover", () => {
   });
 
   it("tears down its map listeners on unmount", () => {
-    const { unmount } = renderPopover();
+    const { unmount } = renderZonePopover();
 
     unmount();
 
     expect(mapOff).toHaveBeenCalledWith("move", expect.any(Function));
     expect(mapOff).toHaveBeenCalledWith("zoom", expect.any(Function));
+  });
+});
+
+describe("PlacePopover — landmark (SPEC-016 T7)", () => {
+  it("positions itself at the clicked landmark's lat/lng", () => {
+    renderLandmarkPopover();
+
+    expect(latLngToContainerPoint).toHaveBeenCalledWith([12, 24]);
+  });
+
+  it("shows the landmark's title and description", () => {
+    renderLandmarkPopover();
+
+    expect(screen.getByText("Fontana del Corvo")).toBeInTheDocument();
+    expect(screen.getByText("A weathered stone fountain.")).toBeInTheDocument();
+  });
+
+  it("omits the description block when the landmark has none", () => {
+    renderLandmarkPopover({ description: undefined });
+
+    expect(
+      screen.queryByText("A weathered stone fountain.")
+    ).not.toBeInTheDocument();
+  });
+
+  it("lists the entities present at the clicked landmark, keyed by poiId", () => {
+    renderLandmarkPopover();
+
+    expect(entityListProps).toHaveBeenCalledWith({ poiId: 42 }, 0);
+  });
+
+  it("pre-fills the attach control with the enclosing zone and the landmark itself", () => {
+    renderLandmarkPopover();
+
+    fireEvent.click(screen.getByText("attach"));
+
+    expect(attachEntityProps).toHaveBeenLastCalledWith({
+      zoneId: parentId,
+      poiId: 42,
+      isOpen: true,
+    });
+  });
+
+  it("renders no zone-only action", () => {
+    renderLandmarkPopover();
+
+    expect(screen.queryByText("openMap")).not.toBeInTheDocument();
+    expect(screen.queryByText("unplace")).not.toBeInTheDocument();
+    expect(screen.queryByText("delete")).not.toBeInTheDocument();
+  });
+
+  it("calls onEditLandmark with the clicked landmark when Modifica is clicked", () => {
+    const currentPoi = { ...poi };
+    renderPopover({ kind: "poi", poi: currentPoi });
+
+    fireEvent.click(screen.getByText("editLandmark"));
+
+    expect(onEditLandmark).toHaveBeenCalledWith(currentPoi);
+    expect(onEditLandmark).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls onDeleteLandmark with the clicked landmark when Elimina is clicked, without asking for confirmation", () => {
+    const currentPoi = { ...poi };
+    renderPopover({ kind: "poi", poi: currentPoi });
+
+    fireEvent.click(screen.getByText("deleteLandmark"));
+
+    expect(onDeleteLandmark).toHaveBeenCalledWith(currentPoi);
+    expect(onDeleteLandmark).toHaveBeenCalledTimes(1);
+    // No `DeletePlaceButton` (the zone's confirmed SPEC-010 flow, T6) is
+    // even mounted for a landmark — `deletePlaceProps` is the mock's own
+    // call log, so an empty one proves the component was never rendered.
+    expect(deletePlaceProps).not.toHaveBeenCalled();
   });
 });

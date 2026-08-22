@@ -559,6 +559,8 @@
       "attach": "Collega personaggio",
       "unplace": "Sposta nei luoghi non posizionati",
       "delete": "Rimuovi definitivamente",
+      "editLandmark": "Modifica",
+      "deleteLandmark": "Elimina",
       "errors": {
         "loadEntitiesFailed": "Impossibile caricare chi si trova qui. Riprova.",
         "detachFailed": "Impossibile rimuovere il collegamento. Riprova."

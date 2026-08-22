@@ -27,12 +27,22 @@ interface AttachEntityButtonProps {
   /** The zone currently being viewed — pre-fills the modal's Zone step. */
   zoneId: number;
   /**
+   * Pre-fills the modal's optional landmark step too (T7's landmark
+   * popover) — `null`/omitted for a zone popover, the clicked landmark's
+   * id for a landmark one. `zoneId` still names its *enclosing* zone in
+   * that case (`PlacePopover` passes its own `parentId`, since a `POI` has
+   * no `zoneId` field of its own — `usePOIManager` scopes POIs to it
+   * instead).
+   */
+  poiId?: number | null;
+  /**
    * Externally controlled (usability fix, 2026-08-17): this used to be a
    * floating trigger button in its own map corner; the trigger now lives
    * in `MapContextMenu`'s "Collega un personaggio esistente" entry (removed
    * by SPEC-016 T8) and, since SPEC-016 T4, `PlacePopover`'s "Collega
    * personaggio" — this component renders only the picker/modal flow
-   * itself, pre-filled to whichever zone its caller passes.
+   * itself, pre-filled to whichever zone (and, per T7, landmark) its caller
+   * passes.
    */
   isOpen: boolean;
   onClose: () => void;
@@ -49,6 +59,7 @@ interface AttachEntityButtonProps {
  */
 export default function AttachEntityButton({
   zoneId,
+  poiId = null,
   isOpen,
   onClose,
   onAttached,
@@ -152,7 +163,7 @@ export default function AttachEntityButton({
           onClose={reset}
           entityId={selected.id}
           currentZoneId={zoneId}
-          currentPoiId={null}
+          currentPoiId={poiId}
           currentLocationLabel={selected.name}
           assignAction={ASSIGN_ACTIONS[entityType]}
           onAssigned={() => {

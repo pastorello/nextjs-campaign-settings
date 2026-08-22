@@ -26,11 +26,39 @@ vi.mock("@/app/modules/maps/hooks/useLeafletMap", () => ({
 // The list is unit-tested in its own file; here it stands in for itself, so
 // this suite stays a test of the popover shell rather than of the entity
 // fetch behind it.
-const entityListTargets = vi.fn();
+const entityListProps = vi.fn();
 vi.mock("@/app/ui/geography/PlaceEntityList", () => ({
-  default: ({ target }: { target: unknown }) => {
-    entityListTargets(target);
+  default: ({
+    target,
+    refreshKey,
+  }: {
+    target: unknown;
+    refreshKey?: number;
+  }) => {
+    entityListProps(target, refreshKey);
     return <div data-testid="entity-list" />;
+  },
+}));
+
+// Same reasoning: the picker/modal flow itself is `AttachEntityButton`'s own
+// suite; here it stands in so this suite only exercises how the popover
+// wires it (T4).
+const attachEntityProps = vi.fn();
+vi.mock("@/app/ui/geography/AttachEntityButton", () => ({
+  default: ({
+    zoneId,
+    isOpen,
+    onAttached,
+  }: {
+    zoneId: number;
+    isOpen: boolean;
+    onClose: () => void;
+    onAttached?: () => void;
+  }) => {
+    attachEntityProps({ zoneId, isOpen });
+    return isOpen ? (
+      <button onClick={() => onAttached?.()}>simulate-attach</button>
+    ) : null;
   },
 }));
 
@@ -137,7 +165,53 @@ describe("PlacePopover", () => {
     renderPopover();
 
     expect(screen.getByTestId("entity-list")).toBeInTheDocument();
-    expect(entityListTargets).toHaveBeenCalledWith({ zoneId: 7 });
+    expect(entityListProps).toHaveBeenCalledWith({ zoneId: 7 }, 0);
+  });
+
+  it("keeps the attach control closed until Collega personaggio is clicked", () => {
+    renderPopover();
+
+    expect(attachEntityProps).toHaveBeenCalledWith({
+      zoneId: 7,
+      isOpen: false,
+    });
+    expect(screen.queryByText("simulate-attach")).not.toBeInTheDocument();
+  });
+
+  it("opens the attach control pre-filled with the clicked zone", () => {
+    renderPopover();
+
+    fireEvent.click(screen.getByText("attach"));
+
+    expect(attachEntityProps).toHaveBeenLastCalledWith({
+      zoneId: 7,
+      isOpen: true,
+    });
+  });
+
+  it("refreshes the entities list once an attach completes, without reopening the popover", () => {
+    renderPopover();
+    fireEvent.click(screen.getByText("attach"));
+    entityListProps.mockClear();
+
+    fireEvent.click(screen.getByText("simulate-attach"));
+
+    expect(entityListProps).toHaveBeenCalledWith({ zoneId: 7 }, 1);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("does not close on a click inside a Headless UI portal (the attach modal escapes popoverRef)", async () => {
+    renderPopover();
+    await flushOutsideClickTimeout();
+
+    const portalNode = document.createElement("div");
+    portalNode.setAttribute("data-headlessui-portal", "");
+    document.body.appendChild(portalNode);
+
+    fireEvent.mouseDown(portalNode);
+
+    expect(onClose).not.toHaveBeenCalled();
+    document.body.removeChild(portalNode);
   });
 
   it("closes on Escape", () => {

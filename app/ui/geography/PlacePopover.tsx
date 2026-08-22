@@ -13,15 +13,21 @@ interface PlacePopoverProps {
   place: NavigableChild;
   onClose: () => void;
   onOpenMap: (place: NavigableChild) => void;
+  /**
+   * "Sposta nei luoghi non posizionati" (T5) — no confirmation (§9's open
+   * question, agreed 2026-08-21). The mutation and its refetch/count
+   * bookkeeping are `WorldMap`'s, the same split as `onOpenMap`.
+   */
+  onUnplace: (place: NavigableChild) => void;
 }
 
 /**
  * The place popover (SPEC-016) — anchored to the marker or rectangle the DM
  * clicked, replacing the old click-to-descend behaviour
  * (`useNavigableChildren`, T2). This shell carries the title, description
- * and "Apri mappa", plus the entities present at the place (T3) and the
- * attach control (T4); the zone/landmark action pairs land on top of it in
- * later tasks (T5-T7).
+ * and "Apri mappa", plus the entities present at the place (T3), the attach
+ * control (T4) and un-placing (T5); the landmark variant and deletion land
+ * on top of it in later tasks (T6-T7).
  *
  * Tracks the map's own `move`/`zoom` events to stay anchored to the clicked
  * place's `lat`/`lng` while the DM pans, rather than closing on any map
@@ -36,11 +42,17 @@ interface PlacePopoverProps {
  * threading the new entity through state: the list has just been told to
  * refetch, and `AssignLocationModal` already knows nothing about what it
  * assigned beyond an id.
+ *
+ * "Sposta nei luoghi non posizionati" (T5) only calls `onUnplace` — the
+ * mutation, the refetch that drops this place's own marker, and closing the
+ * popover are all `WorldMap`'s, since un-placing removes the very place this
+ * popover is anchored to.
  */
 export default function PlacePopover({
   place,
   onClose,
   onOpenMap,
+  onUnplace,
 }: PlacePopoverProps) {
   const map = useLeafletMap();
   const t = useTranslations("geography.popover");
@@ -154,6 +166,15 @@ export default function PlacePopover({
           className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
         >
           {t("attach")}
+        </button>
+        {/* No confirmation (§9's open question, agreed 2026-08-21) — unlike
+            deletion (T6), un-placing doesn't destroy data. */}
+        <button
+          type="button"
+          onClick={() => onUnplace(place)}
+          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+        >
+          {t("unplace")}
         </button>
       </div>
 

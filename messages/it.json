@@ -557,6 +557,7 @@
       "entitiesEmpty": "Nessun personaggio o divinità in questo luogo.",
       "detach": "Rimuovi {name} da questo luogo",
       "attach": "Collega personaggio",
+      "unplace": "Sposta nei luoghi non posizionati",
       "errors": {
         "loadEntitiesFailed": "Impossibile caricare chi si trova qui. Riprova.",
         "detachFailed": "Impossibile rimuovere il collegamento. Riprova."
@@ -630,7 +631,8 @@
       "poiLoadFailed": "Impossibile caricare i luoghi. Ricarica la pagina per riprovare.",
       "poiSaveFailed": "Impossibile salvare «{title}». La modifica è stata annullata.",
       "poiDeleteFailed": "Impossibile eliminare «{title}». Il luogo è stato ripristinato.",
-      "placePositionFailed": "Impossibile posizionare «{title}». Riprova."
+      "placePositionFailed": "Impossibile posizionare «{title}». Riprova.",
+      "placeUnplaceFailed": "Impossibile spostare «{title}» tra i luoghi non posizionati. Riprova."
     },
     "poiPanel": {
       "title": "Luoghi di interesse",

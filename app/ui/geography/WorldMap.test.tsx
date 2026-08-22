@@ -169,6 +169,12 @@ vi.mock("@/app/lib/data/maps/updateZonePosition", () => ({
   default: (input: unknown) => updateZonePosition(input),
 }));
 
+const unplacePlace =
+  vi.fn<(input: unknown) => Promise<{ ok: boolean; errors?: unknown }>>();
+vi.mock("@/app/lib/data/maps/unplacePlace", () => ({
+  default: (input: unknown) => unplacePlace(input),
+}));
+
 // Has its own suite (SPEC-008 T5) — stubbed here so this file stays about
 // WorldMap's own state, not the assignment modal's entity-picker flow.
 vi.mock("@/app/ui/geography/AttachEntityButton", () => ({
@@ -232,14 +238,18 @@ vi.mock("@/app/ui/geography/DeletePlaceButton", () => ({
 // do, not the popover's own positioning/Esc/outside-click machinery.
 let popoverOnClose: (() => void) | undefined;
 let popoverOnOpenMap: ((place: { id: number }) => void) | undefined;
+let popoverOnUnplace:
+  ((place: { id: number; title: string }) => void) | undefined;
 vi.mock("@/app/ui/geography/PlacePopover", () => ({
   default: (props: {
     place: { id: number; title: string };
     onClose: () => void;
     onOpenMap: (place: { id: number }) => void;
+    onUnplace: (place: { id: number; title: string }) => void;
   }) => {
     popoverOnClose = props.onClose;
     popoverOnOpenMap = props.onOpenMap;
+    popoverOnUnplace = props.onUnplace;
     return (
       <div
         data-testid="place-popover"
@@ -436,6 +446,7 @@ beforeEach(() => {
   imageNaturalHeight = 1000;
   popoverOnClose = undefined;
   popoverOnOpenMap = undefined;
+  popoverOnUnplace = undefined;
   // `clearAllMocks` clears call history, not the return value a previous
   // test may have overridden with `mockReturnValue` (as opposed to
   // `mockReturnValueOnce`) — reset explicitly so tests can't leak a custom
@@ -443,6 +454,7 @@ beforeEach(() => {
   getBoundsZoom.mockReturnValue(-4);
   createPlace.mockResolvedValue({ ok: true, id: 1 });
   updateZonePosition.mockResolvedValue({ ok: true });
+  unplacePlace.mockResolvedValue({ ok: true });
   useNavigableChildren.mockReturnValue([]);
   useUnplacedChildren.mockReturnValue([]);
   useMapContextMenu.mockReturnValue({
@@ -1859,5 +1871,77 @@ describe("WorldMap — the place popover (SPEC-016 T2)", () => {
       "data-place-id",
       "9"
     );
+  });
+});
+
+describe("WorldMap — un-placing from the popover (SPEC-016 T5)", () => {
+  const place = { id: 7, title: "Kang", lat: 5, lng: 5, mapImage: null };
+
+  function clickPlace(child: unknown = place) {
+    const onPlaceClick = useNavigableChildren.mock.calls.at(-1)?.[1] as
+      ((child: unknown) => void) | undefined;
+    act(() => {
+      onPlaceClick?.(child);
+    });
+  }
+
+  it("un-places the clicked place: refetches and closes the popover", async () => {
+    await renderMap("/maps/test.jpg", 2);
+    clickPlace();
+    const tokenBefore = useUnplacedChildren.mock.calls.at(-1)?.[1] as number;
+
+    act(() => {
+      popoverOnUnplace?.(place);
+    });
+
+    expect(unplacePlace).toHaveBeenCalledWith({ id: 7 });
+    await waitFor(() => {
+      expect(useUnplacedChildren.mock.calls.at(-1)?.[1]).toBe(tokenBefore + 1);
+    });
+    // `unpositionedCount` itself is left as the `unpositionedCount` prop
+    // passed in, untouched by this component — `unplacePlace`, like
+    // `updateZonePosition`, calls `revalidatePath`, which is what actually
+    // refreshes that Server Component prop in the real app (confirmed live
+    // in e2e, SPEC-016 T5); this suite mocks the mutation, so there is
+    // nothing here to revalidate against.
+    expect(screen.getByTestId("map-context-menu")).toHaveAttribute(
+      "data-unpositioned-count",
+      "2"
+    );
+    expect(screen.queryByTestId("place-popover")).not.toBeInTheDocument();
+  });
+
+  it("shows an error toast and keeps the popover open when the mutation is rejected", async () => {
+    unplacePlace.mockResolvedValue({ ok: false, errors: {} });
+    await renderMap();
+    clickPlace();
+
+    act(() => {
+      popoverOnUnplace?.(place);
+    });
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("placeUnplaceFailed");
+    });
+    expect(screen.getByTestId("place-popover")).toBeInTheDocument();
+  });
+
+  it("shows an error toast and keeps the popover open when the mutation throws", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    unplacePlace.mockRejectedValue(new Error("boom"));
+    await renderMap();
+    clickPlace();
+
+    act(() => {
+      popoverOnUnplace?.(place);
+    });
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("placeUnplaceFailed");
+    });
+    expect(screen.getByTestId("place-popover")).toBeInTheDocument();
+    consoleError.mockRestore();
   });
 });

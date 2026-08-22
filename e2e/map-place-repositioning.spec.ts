@@ -13,24 +13,18 @@ import messages from "@/messages/it.json";
  * image upload) and enough to prove the plumbing, per docs/TESTING.md's
  * "E2E is expensive and each one must earn its place".
  *
- * **§5.A (the "Unplaced places" picker) has no e2e spec here, deliberately.**
- * Testing it for real needs a place with no coordinates to start from, and
- * there is currently no in-app path that produces one: `placeSchema.ts`
- * requires `lat`/`lng` at creation time for every kind. The only unplaced
- * rows that have ever existed are SPEC-004's one-time world-seed script's —
- * not something `pnpm dev`'s UI, or this e2e database (seeded only by
- * `world.setup.ts`'s single root place, itself coordinate-less by a
- * different mechanism — it has no parent map to sit on), can produce. Every
- * other e2e spec in this suite creates its rows through the app specifically
- * to avoid reaching around it (docs/TESTING.md); doing that here would mean
- * either adding a raw-DB seeding path to the e2e harness — a new precedent,
- * not a TD-71-sized decision — or writing an e2e spec that can never
- * actually reach the code it claims to test. §5.A's wiring is instead
- * covered where it's reachable: `useUnplacedChildren.test.ts` (the data
- * layer), `MapPOIPanel.test.tsx`'s "unplaced places" describe block (the
- * picker UI), and `WorldMap.test.tsx`'s "positioning an unplaced place"
- * describe block (crosshair mode, `updatePoi` called with only
- * `{ id, lat, lng }`, the reload/refetch triggers).
+ * **§5.A (the "Unplaced places" picker) had no e2e spec here, historically,
+ * because nothing could produce an unplaced row through the UI** —
+ * `placeSchema.ts` requires `lat`/`lng` at creation time for every kind, and
+ * the only unplaced rows that ever existed were SPEC-004's one-time
+ * world-seed script's. SPEC-016 T5's "Sposta nei luoghi non posizionati"
+ * closed that gap — un-placing an already-positioned region is now the
+ * in-app path, exercised end to end in `map-unplace.spec.ts`, which also
+ * covers the picker's dropdown and count. This file stays scoped to drag
+ * repositioning; §5.A's own unit coverage
+ * (`useUnplacedChildren.test.ts`, `MapPOIPanel.test.tsx`'s "unplaced
+ * places" block, `WorldMap.test.tsx`'s "positioning an unplaced place"
+ * block) is unchanged by that.
  */
 test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
   test("repositions an already-placed marker by dragging it", async ({

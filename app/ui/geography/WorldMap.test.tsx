@@ -48,7 +48,6 @@ let onAddPOI: ((lat: number, lng: number) => void) | undefined;
 let onStartMeasurement: (() => void) | undefined;
 let onEditArea: (() => void) | undefined;
 let onAddSubMap: (() => void) | undefined;
-let onAttachEntity: (() => void) | undefined;
 let onContextMenuPositionPlace:
   ((id: number, lat: number, lng: number) => void) | undefined;
 vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
@@ -60,7 +59,6 @@ vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
     onEditArea?: () => void;
     showEditArea?: boolean;
     onAddSubMap?: () => void;
-    onAttachEntity?: () => void;
     unplacedPlaces?: { id: number; title: string; kind: string }[];
     unpositionedCount?: number;
     onPositionPlace?: (id: number, lat: number, lng: number) => void;
@@ -69,7 +67,6 @@ vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
     onStartMeasurement = props.onStartMeasurement;
     onEditArea = props.onEditArea;
     onAddSubMap = props.onAddSubMap;
-    onAttachEntity = props.onAttachEntity;
     onContextMenuPositionPlace = props.onPositionPlace;
     return (
       <div
@@ -180,14 +177,6 @@ const unplacePlace =
   vi.fn<(input: unknown) => Promise<{ ok: boolean; errors?: unknown }>>();
 vi.mock("@/app/lib/data/maps/unplacePlace", () => ({
   default: (input: unknown) => unplacePlace(input),
-}));
-
-// Has its own suite (SPEC-008 T5) — stubbed here so this file stays about
-// WorldMap's own state, not the assignment modal's entity-picker flow.
-vi.mock("@/app/ui/geography/AttachEntityButton", () => ({
-  default: (props: { isOpen: boolean }) => (
-    <div data-testid="attach-entity-button" data-open={props.isOpen} />
-  ),
 }));
 
 // Has its own suite (SPEC-007 T1) — stubbed here so this file stays about
@@ -887,23 +876,16 @@ describe("WorldMap", () => {
   });
 });
 
-describe("WorldMap — attach an existing entity from the context menu (usability fix, 2026-08-17)", () => {
-  it("opens AttachEntityButton when the context menu's Attach entity entry is used", async () => {
+describe("WorldMap — attaching an existing entity (SPEC-016 T8, TD-96)", () => {
+  it("no longer mounts an AttachEntityButton of its own", async () => {
+    // T8 removed the right-click entry that was this instance's only
+    // trigger; `PlacePopover` now mounts its own, pre-filled with the
+    // clicked place (T4/T7) rather than the map's currently-viewed parent.
     await renderMap();
 
-    expect(screen.getByTestId("attach-entity-button")).toHaveAttribute(
-      "data-open",
-      "false"
-    );
-
-    act(() => {
-      onAttachEntity?.();
-    });
-
-    expect(screen.getByTestId("attach-entity-button")).toHaveAttribute(
-      "data-open",
-      "true"
-    );
+    expect(
+      screen.queryByTestId("attach-entity-button")
+    ).not.toBeInTheDocument();
   });
 });
 

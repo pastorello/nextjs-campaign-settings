@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 import messages from "@/messages/it.json";
 
+import { chooseFromContextMenu } from "./helpers/mapContextMenu";
+
 /**
  * SPEC-015 T7: measurement is click–track–click on the map's own grid
  * (`MapMeasureTool`), replacing the vendored panel flow this spec used to
@@ -23,12 +25,11 @@ test.describe("map measurement", () => {
     const map = page.locator(".leaflet-container");
     await expect(map).toBeVisible();
 
-    await map.click({ button: "right", position: { x: 300, y: 200 } });
-    await page
-      .getByRole("button", {
-        name: messages.geography.contextMenu.measure.trigger,
-      })
-      .click();
+    await chooseFromContextMenu(
+      page,
+      { x: 300, y: 200 },
+      messages.geography.contextMenu.measure.trigger
+    );
 
     await expect(
       page.getByText(messages.geography.measure.unavailable)

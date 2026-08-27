@@ -1,6 +1,12 @@
 import { test, expect } from "@playwright/test";
 import messages from "@/messages/it.json";
 
+import {
+  chooseFromContextMenu,
+  contextMenu,
+  openContextMenu,
+} from "./helpers/mapContextMenu";
+
 /**
  * SPEC-016 T5: "Sposta nei luoghi non posizionati" sends a positioned place
  * back to the unpositioned pool, no confirmation (§9's open question, agreed
@@ -41,7 +47,7 @@ test.describe("un-placing a positioned place (SPEC-016 T5)", () => {
     // positioned there.
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(300);
-    const menu = page.getByLabel(messages.geography.contextMenu.ariaLabel);
+    const menu = contextMenu(page);
     const positionButton = menu.locator("button", {
       hasText: messages.geography.contextMenu.positionPlace.trigger,
     });
@@ -51,8 +57,7 @@ test.describe("un-placing a positioned place (SPEC-016 T5)", () => {
     // Baseline, read before this test adds anything — the proofs below are
     // all deltas, not absolute counts, since other rows may already be
     // unpositioned or on the map (e.g. from a previous, non-cleaned-up run).
-    await map.click({ button: "right", position: { x: 250, y: 150 } });
-    await expect(menu).toBeVisible();
+    await openContextMenu(page, { x: 250, y: 150 });
     const baselineText = await positionButton.textContent();
     const baselineCount = parseInt(baselineText?.match(/\d+/)?.[0] ?? "0", 10);
     await page.keyboard.press("Escape");
@@ -61,13 +66,11 @@ test.describe("un-placing a positioned place (SPEC-016 T5)", () => {
 
     // Create a navigable place with a map image, so it has coordinates to
     // un-place in the first place.
-    await map.click({ button: "right", position: { x: 300, y: 200 } });
-    await expect(menu).toBeVisible();
-    await menu
-      .getByRole("button", {
-        name: messages.geography.contextMenu.addPlace.trigger,
-      })
-      .click();
+    await chooseFromContextMenu(
+      page,
+      { x: 300, y: 200 },
+      messages.geography.contextMenu.addPlace.trigger
+    );
     // Scoped to the "Kind" field specifically, not `getByRole("combobox")`
     // — the dashboard's own `LocaleSwitcher` is a `<select>` too, and the
     // panel shows a second one (Category) alongside Kind while the kind is
@@ -114,8 +117,7 @@ test.describe("un-placing a positioned place (SPEC-016 T5)", () => {
     // Back in the unpositioned pool: "Posiziona luogo" is enabled (it may
     // have started disabled, at a baseline of zero), its count reflects the
     // one that just joined, and it is listed by name.
-    await map.click({ button: "right", position: { x: 250, y: 150 } });
-    await expect(menu).toBeVisible();
+    await openContextMenu(page, { x: 250, y: 150 });
     await expect(positionButton).toBeEnabled();
     const afterText = await positionButton.textContent();
     const afterCount = parseInt(afterText?.match(/\d+/)?.[0] ?? "0", 10);

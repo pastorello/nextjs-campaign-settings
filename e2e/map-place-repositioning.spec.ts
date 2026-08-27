@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 import messages from "@/messages/it.json";
 
+import { chooseFromContextMenu } from "./helpers/mapContextMenu";
+
 /**
  * TD-71 / SPEC-005 §5.B: a DM can drag an already-placed marker to a new
  * spot, and the new position persists. Writes through the same `updatePoi`
@@ -72,12 +74,11 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
     // the whole drag below, and it covers the map's leftmost 384px, so a
     // marker created there cannot be pressed. Anything past x ≈ 400 is
     // reachable; x 600 leaves room for the +120px drag as well.
-    await map.click({ button: "right", position: { x: 600, y: 300 } });
-    await page
-      .getByRole("button", {
-        name: messages.geography.contextMenu.addPlace.trigger,
-      })
-      .click();
+    await chooseFromContextMenu(
+      page,
+      { x: 600, y: 300 },
+      messages.geography.contextMenu.addPlace.trigger
+    );
     await page.getByPlaceholder("Enter place name").fill(title);
     await page.getByRole("button", { name: "Save" }).click();
 
@@ -147,12 +148,11 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
     // reachable, not just present in the DOM. Right-click somewhere away
     // from the marker's post-drag position, which would otherwise swallow
     // the right-click instead of the map.
-    await map.click({ button: "right", position: { x: 300, y: 500 } });
-    await page
-      .getByRole("button", {
-        name: messages.geography.contextMenu.addPlace.trigger,
-      })
-      .click();
+    await chooseFromContextMenu(
+      page,
+      { x: 300, y: 500 },
+      messages.geography.contextMenu.addPlace.trigger
+    );
     await page.getByRole("button", { name: "Back" }).click();
 
     const listItem = page.locator("button", { hasText: title }).first();

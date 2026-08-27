@@ -3,6 +3,8 @@ import AxeBuilder from "@axe-core/playwright";
 
 import messages from "@/messages/it.json";
 
+import { chooseFromContextMenu } from "./helpers/mapContextMenu";
+
 /**
  * Automated accessibility scan (TD-15).
  *
@@ -299,14 +301,11 @@ test("the place popover has no accessibility violations", async ({ page }) => {
   const navigableMarkers = page.locator(".custom-navigable-marker");
   const baselineMarkerCount = await navigableMarkers.count();
 
-  const menu = page.getByLabel(messages.geography.contextMenu.ariaLabel);
-  await map.click({ button: "right", position: { x: 300, y: 200 } });
-  await expect(menu).toBeVisible();
-  await menu
-    .getByRole("button", {
-      name: messages.geography.contextMenu.addPlace.trigger,
-    })
-    .click();
+  await chooseFromContextMenu(
+    page,
+    { x: 300, y: 200 },
+    messages.geography.contextMenu.addPlace.trigger
+  );
   // Scoped to the "Kind" field: the dashboard's `LocaleSwitcher` is a
   // `<select>` too, and the panel shows Category alongside Kind while the
   // kind is still the default "poi".

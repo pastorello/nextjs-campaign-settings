@@ -359,6 +359,20 @@ exactly once and waiting 30s. This unhostages CI without masking a
 persistent regression (if the menu keeps dying, the retry exhausts and the
 test still fails), but it deliberately does not fix the app.
 
+**That interim was too narrow, and CI proved it on 2026-08-27** (run
+33113909995, PR #230 — again a PR that changes nothing this test touches).
+`openContextMenu` returned as soon as the menu was _visible_, which leaves
+the window between "visible" and "the item is clicked" unguarded — and the
+second signature above landed squarely in it: the menu opened, "Aggiungi
+luogo" resolved, then went unstable and detached mid-click, three attempts
+running. Retrying the open cannot recover from that, because by then the
+helper has already returned. The helper has therefore moved to
+`e2e/helpers/mapContextMenu.ts` and gained `chooseFromContextMenu`, which
+retries the right-click _and_ the click on the entry as one unit; all six map
+specs plus `a11y.spec.ts` go through it, where before only `map.spec.ts` had
+any retry at all and the other nine right-click sites had none. Still an
+interim, and still not a fix to the app.
+
 **What remains open:** decide whether the menu should close on user-intent
 events (`dragstart`, `zoomstart`) rather than `movestart`, which would end
 this whole class — #208's fix, this suspected trigger, and any future

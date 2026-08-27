@@ -87,9 +87,9 @@ interface PlacePopoverProps {
  * ever mattered for the single click that opened it.
  *
  * "Collega personaggio" (T4) reuses `AttachEntityButton` as-is, pre-filled
- * with the clicked zone rather than the map's own currently-viewed parent —
- * the same component the right-click menu still opens today (TD-96's
- * removal is T8). A successful attach bumps `refreshKey` rather than
+ * with the clicked zone rather than the map's own currently-viewed parent.
+ * Since T8 removed the right-click menu's own entry (TD-96), this is the
+ * map's only way in. A successful attach bumps `refreshKey` rather than
  * threading the new entity through state: the list has just been told to
  * refetch, and `AssignLocationModal` already knows nothing about what it
  * assigned beyond an id. For a landmark (T7), the same control also pre-fills

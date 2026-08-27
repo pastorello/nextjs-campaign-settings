@@ -152,24 +152,17 @@ describe("MapContextMenu", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("shows Attach entity when onAttachEntity is provided, translated when given", () => {
-    renderMenu({
-      onAttachEntity: vi.fn(),
-      attachEntityLabel: "Collega un personaggio esistente",
-    });
+  // SPEC-016 T8 removed the "Collega un personaggio esistente" entry from
+  // this menu (TD-96) — attaching is now an action inside the clicked
+  // place's own popover, where the DM can see what is already there. The
+  // regression guard is below rather than the two tests that used to
+  // exercise the entry.
+  it("no longer offers an attach-entity entry (SPEC-016 T8, TD-96)", () => {
+    renderMenu();
+
     expect(
-      screen.getByText("Collega un personaggio esistente")
-    ).toBeInTheDocument();
-  });
-
-  it("calls onAttachEntity then closes when Attach entity is clicked", () => {
-    const onAttachEntity = vi.fn();
-    const { onClose } = renderMenu({ onAttachEntity });
-
-    fireEvent.click(screen.getByText("Attach an existing entity"));
-
-    expect(onAttachEntity).toHaveBeenCalled();
-    expect(onClose).toHaveBeenCalled();
+      screen.queryByText("Attach an existing entity")
+    ).not.toBeInTheDocument();
   });
 
   it("does not show Edit Area without onEditArea or showEditArea (SPEC-009 T5)", () => {

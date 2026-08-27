@@ -32,7 +32,6 @@ import isValidString from "@/app/lib/utils/validators/isValidString";
 import createPlace from "@/app/lib/data/maps/createPlace";
 import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
 import unplacePlace from "@/app/lib/data/maps/unplacePlace";
-import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
 import PlacePopover, {
   type PopoverTarget,
 } from "@/app/ui/geography/PlacePopover";
@@ -136,19 +135,19 @@ function WorldMap({
   const tEditArea = useTranslations("geography.editArea");
   const tContextMenu = useTranslations("geography.contextMenu");
   const tDrawArea = useTranslations("geography.drawArea");
-  const tAttachEntity = useTranslations("geography.attachEntity");
   const tTemporaryMarkers = useTranslations("geography.temporaryMarkers");
   const tMeasure = useTranslations("geography.measure");
   // Click–track–click measurement (SPEC-015 T7) — armed from the context
   // menu, only when the grid is configured; off on every load, like the
   // grid toggle.
   const [isMeasuring, setIsMeasuring] = useState(false);
-  // Consolidated map controls (usability fix, 2026-08-17): these three used
-  // to be always-visible floating buttons of their own; now each is a
-  // controlled dialog/picker, opened either from `MapOptionsButton`'s menu
-  // (replace/delete this map) or `MapContextMenu`'s right-click menu
-  // (attach an entity).
-  const [isAttachEntityOpen, setIsAttachEntityOpen] = useState(false);
+  // Consolidated map controls (usability fix, 2026-08-17): these used to be
+  // always-visible floating buttons of their own; now each is a controlled
+  // dialog/picker opened from `MapOptionsButton`'s "administer this map"
+  // menu. Attaching an entity used to be here too, opened from
+  // `MapContextMenu`'s right-click menu — SPEC-016 T8 removed that entry
+  // (TD-96); `PlacePopover` mounts its own `AttachEntityButton`, pre-filled
+  // with the clicked place, so there is nothing left for `WorldMap` to own.
   const [isMapUploadOpen, setIsMapUploadOpen] = useState(false);
   const [isDeleteMapOpen, setIsDeleteMapOpen] = useState(false);
   const [isGridConfigOpen, setIsGridConfigOpen] = useState(false);
@@ -1033,18 +1032,6 @@ function WorldMap({
         </button>
       )}
 
-      {/* Attach an existing NPC/deity to the place currently being viewed
-          (SPEC-008 §5/T5) — the map's own entry point into the assignment
-          modal, alongside the admin list's per-row button. Externally
-          controlled, opened from `MapContextMenu`'s right-click menu
-          (usability fix, 2026-08-17). */}
-      <AttachEntityButton
-        zoneId={parentId}
-        isOpen={isAttachEntityOpen}
-        onClose={() => setIsAttachEntityOpen(false)}
-        onAttached={() => setPlacesRefetchToken((token) => token + 1)}
-      />
-
       {/* Give the place currently being viewed a map, or replace it
           (SPEC-007 T1). Externally controlled, opened from
           `MapOptionsButton`'s menu (usability fix, 2026-08-17). */}
@@ -1135,8 +1122,6 @@ function WorldMap({
         addPlaceSublabel={tContextMenu("addPlace.sublabel")}
         onAddSubMap={handleToggleDrawArea}
         addSubMapLabel={tDrawArea("trigger")}
-        onAttachEntity={() => setIsAttachEntityOpen(true)}
-        attachEntityLabel={tAttachEntity("trigger")}
         unplacedPlaces={unplacedChildren}
         unpositionedCount={unpositionedCount}
         onPositionPlace={(id, lat, lng) =>

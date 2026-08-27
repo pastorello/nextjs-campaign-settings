@@ -260,6 +260,23 @@ reparenting for deletion — this must match it, not invent a second rule), and
 what an entity's X means when the entity is attached to a landmark POI rather
 than to the zone itself (SPEC-008 T8's two cases).
 
+> **Shipped 2026-08-27 — the popover is built, and it closed the two items it was
+> blocking.** [SPEC-016](./specs/016-place-popover.md) landed T1–T10 (agreed
+> 2026-08-21, so the "awaiting agreement" above is history): clicking a place —
+> zone or landmark — opens the popover instead of descending, and "Apri mappa" is
+> where descent lives now. It carries the description, who is at that place with
+> an X per row, an attach control pre-filled with the clicked place, and the two
+> destructive actions ("sposta nei luoghi non posizionati" un-places without
+> deleting; "rimuovi definitivamente" reuses SPEC-010's confirmation flow
+> unchanged). **TD-85** and **TD-96** are closed with it — the landmark variant is
+> the entry point POI edit/delete never had, and the right-click "Collega un
+> personaggio esistente" entry is gone now that its replacement exists. **TD-93's
+> placement invariant is unblocked** and stays open: un-placing is one click away,
+> which was the precondition for refusing a second placement. The spec's §11
+> carries the outcome, including one thing the work uncovered rather than caused —
+> **TD-101**, a marker drag that never fires `dragend`, hidden until T7 removed the
+> native popup its e2e spec was reading vacuously.
+
 **Making the map measurable** — three requests that are one feature, in
 dependency order:
 

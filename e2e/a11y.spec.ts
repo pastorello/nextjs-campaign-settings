@@ -89,6 +89,15 @@ test("campaign and adventure pages have no accessibility violations", async ({
   await page.waitForLoadState("networkidle");
 
   const scan = async (label: string) => {
+    // Wait for a non-empty `<title>` before axe runs, or `document-title`
+    // fires on a page that has one. CI run 33113909995 failed here and was
+    // green on retry; `/dashboard/campaign` declares `generateMetadata`, so
+    // the title is not missing, it is briefly out of the tree. Unlike the
+    // `PAGES` loop above, both scans below run after a Server Action has
+    // re-rendered the page rather than after a navigation, so
+    // `networkidle` — already awaited — does not bound that window.
+    await expect(page).toHaveTitle(/\S/);
+
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
       .analyze();

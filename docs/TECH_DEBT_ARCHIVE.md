@@ -2958,3 +2958,69 @@ these entries, and whether their message keys are referenced anywhere else. Keys
 left behind in the catalogues after the JSX goes are exactly the kind of drift
 this register exists to prevent — remove them from **both** `it.json` and
 `en.json` in the same commit.
+
+---
+
+### TD-93 ✅ An already-positioned place or attached entity can be positioned again elsewhere — **DONE (2026-08-27)**
+
+**Outcome:** the invariant is enforced by the database, in the only form the database can actually enforce it — a guarded write, not a constraint and not a trigger. The pre-state travels inside `updateMany`'s `where` (`{ id, zoneId: null, poiId: null }` for an entity, `{ id, lat: null }` for a place), so Postgres itself is what refuses the second placement and nothing can interleave between a check and an update. Three mutations carry it: `npc/assignLocation`, `deities/assignLocation` and `updateZonePosition`. Refusals return a typed `code: "alreadyPlaced"` beside the field errors (`MutationRefusalCode`), and the caller renders the message from both catalogues (ADR-0007) rather than showing the data layer's English prose.
+
+**Why not a trigger, which is what "the database half" first suggests.** The invariant is about a _transition_ (`null` → non-null is fine, non-null → non-null is not), and a `CHECK` constraint cannot see the old row — so the only true schema-level version is a trigger. A trigger would refuse writes that must be allowed: `deletePlace` reparents an attached entity with `zoneId: grandparentId` while its `zoneId` is already non-null (rule 3, SPEC-010), and every SPEC-005 drag rewrites `lat`/`lng` on a row that already has them. Neither is distinguishable from a second placement at the row level. The guard therefore lives where the intent is known, and stays atomic by putting the predicate in the statement.
+
+**`updateZonePosition` had to learn the difference between placing and moving**, which it never carried: `{ id, lat, lng }` served both the "Posiziona luogo" flow and marker drags. It now takes a required `intent: "place" | "reposition"` — required, not defaulted, so every call site is a compiler error until it says which it means. Only `"place"` is guarded; repositioning stays free, as SPEC-016 §6 said it would.
+
+**One addition beyond the item, for the reason the item itself gives** ("the constraint needs the un-place action to exist, or it turns a recoverable mistake into a dead end"): `AssignLocationModal`'s zone select had no "none" entry, so on the NPC and deity pages an entity could be given a location but never relieved of one — the only removal was the map popover's X (SPEC-016 T4). The refusal would have been a dead end on those two surfaces. The entry is `common.locationModal.zoneNoneOption` in both catalogues.
+
+**Verification:** unit tests on all three mutations assert the guard is in the `where` rather than in a preceding read, and that clearing is never guarded. `e2e/entity-location-invariant.spec.ts` proves it against a real Postgres — attach an NPC, then save the same modal unchanged and watch the database refuse it — which is the distinction TD-69's entry insists on: a mock proves our error handling, not the database's behaviour. A missing row is reported as missing rather than as "already placed", at the cost of one read on the failure path only.
+
+**Found while doing it, not caused by it: [TD-102](./TECH_DEBT.md).** An unplaced landmark passes `useUnplacedChildren`'s kind filter and reaches `updateZonePosition`, which writes to `zone` — a cross-table id confusion this item's guard narrows but does not close.
+
+The original description follows.
+
+---
+
+### TD-93 (original) 🟠 An already-positioned place or attached entity can be positioned again elsewhere
+
+**Severity:** 🟠 High · **Effort:** M · **Found:** 2026-08-18, reported by the DM
+
+The DM's rule: something already placed somewhere must be removed from there
+before it can be placed anywhere else. Today nothing enforces that. Positioning
+writes `lat`/`lng` onto the place, and attaching an entity writes its location
+reference; neither checks whether the thing already has one, so the second
+placement silently wins and the first is lost with no warning and no record.
+
+**This is the same class of defect as TD-69**, which added a unique constraint on
+`poi.linkedType`/`linkedId` after finding that a second pin per NPC was silently
+possible — and it is worth reading that item's archive entry before designing
+this one, because the shape of the answer is likely the same.
+
+**Both open questions were answered by the DM on 2026-08-18, and the answer
+arrived as an interaction design rather than a rule.** Clicking a place opens a
+popover showing its description and, from there:
+
+- **"Rimuovi definitivamente"** and **"Sposta nei luoghi non posizionati"** —
+  two distinct destructive-ish actions, deletion versus un-placing.
+- **The entities present at that place** (NPCs and deities), each with an **X**
+  that sends it back to the pool of unattached entities.
+- **A control to attach an NPC or deity to this place**, which is where that
+  operation lives from now on — not in the map's right-click menu (see TD-96).
+
+**This answers question 1 as "refuse, and provide the removal":** placement of an
+already-placed thing is blocked, and un-placing is a first-class action one click
+away rather than a thing the DM has to reverse-engineer. **It answers question 2
+as "both"**, while confirming they stay two mechanisms — the place's own
+`lat`/`lng` for "sposta nei luoghi non posizionati", the entity's location
+reference for the per-entity X.
+
+**The popover itself is a feature, not this item.** It is recorded in
+`ROADMAP.md` as a spec candidate, because it also absorbs two earlier reports
+(attaching entities from the place rather than the map, and seeing what lives at
+a place) and because designing a destructive-action surface deserves the spec
+template's edge-case section. **What stays here is the invariant**: the database
+half, so that "already placed" cannot be violated by whichever code path writes
+next, and a message in both catalogues explaining the refusal.
+
+**Sized M, not S,** because a UI-only check is not worth doing: the UI is the
+path that has already failed here once. **Sequence it after the popover spec** —
+the constraint needs the un-place action to exist, or it turns a recoverable
+mistake into a dead end.

@@ -372,7 +372,7 @@ describe("useNavigableChildren — drag to reposition (TD-71, SPEC-005 §5.B)", 
     expect(options.draggable).toBe(true);
   });
 
-  it("sends only id/lat/lng on drop, never category", async () => {
+  it("sends id/lat/lng and the reposition intent on drop, never category", async () => {
     fetchPlaceChildren.mockResolvedValue([row({ id: 1 })]);
 
     renderHook(() => useNavigableChildren(1, vi.fn()));
@@ -388,6 +388,9 @@ describe("useNavigableChildren — drag to reposition (TD-71, SPEC-005 §5.B)", 
         id: 1,
         lat: 99,
         lng: 88,
+        // A drag is a reposition, never a placement (TD-93) — this row is
+        // already on the map by definition.
+        intent: "reposition",
       })
     );
   });

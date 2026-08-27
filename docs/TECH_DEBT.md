@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-27
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-78, TD-79, TD-82, TD-93, TD-97, TD-98, TD-99, TD-100, TD-101.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
+**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-100, TD-101, TD-102.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -114,7 +114,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-90  | ✅ Icon rotates in a square box now, not the wrapper — incl. two unreported instances found                   | ~~🟢 Low~~ done      | S      | 4     |
 | TD-91  | ✅ Places and factions counted; every place in the tree, per the DM                                           | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-92  | ✅ Every card links to its domain list via the locale-aware `Link`                                            | ~~🟢 Low~~ done      | S      | 4     |
-| TD-93  | An already-positioned place or attached entity can be positioned again elsewhere                              | 🟠 High              | M      | 4     |
+| TD-93  | ✅ Guarded writes refuse a second placement; un-placing and clearing are the way back                         | ~~🟠 High~~ done     | M      | 4     |
 | TD-94  | ✅ Closed by SPEC-015 T7 — measurement rebuilt on the grid, haversine path deleted, regression test in place  | ~~🟠 High~~ done     | M      | 4     |
 | TD-95  | ✅ POI panel + neighbours (`MapControls`, `MapLoadingSpinner`, `MapErrorBoundary`) swept into both catalogues | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-96  | ✅ Both entries gone — "Copia coordinate" with PR #190, "Collega personaggio" with SPEC-016 T8                | ~~🟢 Low~~ done      | S      | 4     |
@@ -123,6 +123,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-99  | A fresh worktree's `pnpm install` postinstall (`prisma generate`) fails for lack of `DATABASE_URL`            | 🟢 Low               | S      | 4     |
 | TD-100 | The map context menu can die to the init tail on slow environments; `map.spec` raced it and lost on CI        | 🟡 Medium            | M      | 4     |
 | TD-101 | Marker drag repositioning never fires `dragend`; its e2e spec was green on a vacuous assertion                | 🟠 High              | M      | 4     |
+| TD-102 | An unplaced landmark is offered in "Posiziona luogo", and positioning it writes to the `zone` table           | 🟠 High              | S      | 4     |
 
 ---
 
@@ -257,52 +258,6 @@ tree hop by hop (`push`) or leave the map entirely (`replace`). `push` is
 probably what the DM means by "poter navigare", but it makes back and the "up"
 button do subtly different things — back retraces _history_, up climbs the
 _tree_, and after a search-result deep link those two are not the same path.
-
-### TD-93 — An already-positioned place or attached entity can be positioned again elsewhere
-
-**Severity:** 🟠 High · **Effort:** M · **Found:** 2026-08-18, reported by the DM
-
-The DM's rule: something already placed somewhere must be removed from there
-before it can be placed anywhere else. Today nothing enforces that. Positioning
-writes `lat`/`lng` onto the place, and attaching an entity writes its location
-reference; neither checks whether the thing already has one, so the second
-placement silently wins and the first is lost with no warning and no record.
-
-**This is the same class of defect as TD-69**, which added a unique constraint on
-`poi.linkedType`/`linkedId` after finding that a second pin per NPC was silently
-possible — and it is worth reading that item's archive entry before designing
-this one, because the shape of the answer is likely the same.
-
-**Both open questions were answered by the DM on 2026-08-18, and the answer
-arrived as an interaction design rather than a rule.** Clicking a place opens a
-popover showing its description and, from there:
-
-- **"Rimuovi definitivamente"** and **"Sposta nei luoghi non posizionati"** —
-  two distinct destructive-ish actions, deletion versus un-placing.
-- **The entities present at that place** (NPCs and deities), each with an **X**
-  that sends it back to the pool of unattached entities.
-- **A control to attach an NPC or deity to this place**, which is where that
-  operation lives from now on — not in the map's right-click menu (see TD-96).
-
-**This answers question 1 as "refuse, and provide the removal":** placement of an
-already-placed thing is blocked, and un-placing is a first-class action one click
-away rather than a thing the DM has to reverse-engineer. **It answers question 2
-as "both"**, while confirming they stay two mechanisms — the place's own
-`lat`/`lng` for "sposta nei luoghi non posizionati", the entity's location
-reference for the per-entity X.
-
-**The popover itself is a feature, not this item.** It is recorded in
-`ROADMAP.md` as a spec candidate, because it also absorbs two earlier reports
-(attaching entities from the place rather than the map, and seeing what lives at
-a place) and because designing a destructive-action surface deserves the spec
-template's edge-case section. **What stays here is the invariant**: the database
-half, so that "already placed" cannot be violated by whichever code path writes
-next, and a message in both catalogues explaining the refusal.
-
-**Sized M, not S,** because a UI-only check is not worth doing: the UI is the
-path that has already failed here once. **Sequence it after the popover spec** —
-the constraint needs the un-place action to exist, or it turns a recoverable
-mistake into a dead end.
 
 ### TD-97 — `MagicItemType`'s nine members are still Italian identifiers — a TD-33 miss
 
@@ -456,3 +411,32 @@ and the two have very different fixes.
 `e2e/map-place-repositioning.spec.ts` is `test.fixme` until then, with the
 row-based reading left in place so that un-`fixme`ing it yields a real test.
 Do not re-green it by comparing two formatters again.
+
+### TD-102 — An unplaced landmark is offered in "Posiziona luogo", and positioning it writes to the `zone` table
+
+**Severity:** 🟠 High · **Effort:** S · **Found:** 2026-08-27, reading every path that writes a position while building TD-93
+
+`useUnplacedChildren` filters `fetchPlaceChildren`'s merged rows on
+`lat === null` and `isPlaceKind(row.kind)` — and `PLACE_KINDS` includes
+`"poi"`, so an unplaced **landmark** passes the filter. `MapContextMenu`
+renders every entry it is handed with no kind filter of its own, and
+`WorldMap.handleContextMenuPositionPlace` calls `updateZonePosition`, which
+writes to `zone`. Zone ids and landmark ids are separate sequences, so
+choosing an unplaced landmark there addresses whichever `zone` row happens to
+carry the same id — a different place entirely, or none.
+
+**Reachable in-app, not hypothetical:** `deletePlace` reparents a deleted
+place's landmarks to the grandparent with `lat: null, lng: null` (SPEC-010
+T1), which is exactly how an unplaced landmark comes to exist.
+
+**TD-93's guard narrows this but does not close it.** A placement now matches
+only a zone that is itself unpositioned, so the common case fails loudly
+(`"This place does not exist."` or the already-positioned refusal, both about
+a row the DM never chose). An unpositioned zone sharing the id is still moved
+silently.
+
+**The fix, in shape:** filter the list by `isNavigablePlaceKind` where it is
+built — a landmark has no context-menu positioning path of its own today — or
+route landmark rows to `updatePoi` instead. Which of the two is a product
+question (should an unplaced landmark be re-placeable from the context menu
+at all?), so ask the DM before building rather than picking the cheaper one.

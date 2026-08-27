@@ -76,7 +76,9 @@
       "zonePlaceholder": "Select a zone",
       "noZonesAvailable": "No zones available.",
       "poiLabel": "Specific landmark (optional)",
-      "poiNoneOption": "None (zone only)"
+      "poiNoneOption": "None (zone only)",
+      "zoneNoneOption": "None (remove from its location)",
+      "alreadyPlaced": "It is already at a location. Remove the existing link before assigning a new one."
     },
     "filters": {
       "all": "All",
@@ -635,6 +637,7 @@
       "poiSaveFailed": "Could not save “{title}”. The change has been undone.",
       "poiDeleteFailed": "Could not delete “{title}”. The place has been restored.",
       "placePositionFailed": "Could not position “{title}”. Try again.",
+      "placeAlreadyPositioned": "“{title}” is already positioned. Move it back to the unpositioned places before placing it elsewhere.",
       "placeUnplaceFailed": "Could not move “{title}” back to unpositioned places. Try again."
     },
     "poiPanel": {

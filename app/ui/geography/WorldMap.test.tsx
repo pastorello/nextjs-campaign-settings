@@ -161,7 +161,11 @@ vi.mock("@/app/lib/data/maps/createPlace", () => ({
 }));
 
 const updateZonePosition =
-  vi.fn<(input: unknown) => Promise<{ ok: boolean; errors?: unknown }>>();
+  vi.fn<
+    (
+      input: unknown
+    ) => Promise<{ ok: boolean; errors?: unknown; code?: string }>
+  >();
 vi.mock("@/app/lib/data/maps/updateZonePosition", () => ({
   default: (input: unknown) => updateZonePosition(input),
 }));
@@ -1248,7 +1252,7 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     );
   });
 
-  it("positions the chosen place at the point the context menu was opened over, sending only id/lat/lng", async () => {
+  it("positions the chosen place at the point the context menu was opened over, as a placement", async () => {
     useUnplacedChildren.mockReturnValue([
       { id: 5, title: "Kingdom of Kang", kind: "region" },
     ]);
@@ -1263,6 +1267,9 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
         id: 5,
         lat: 10,
         lng: 20,
+        // The one call site that is a placement (TD-93): everything else
+        // that writes coordinates is moving something already on the map.
+        intent: "place",
       });
     });
   });
@@ -1298,6 +1305,29 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith("placePositionFailed");
     });
+  });
+
+  it("tells the DM to un-place first when the placement is refused (TD-93)", async () => {
+    updateZonePosition.mockResolvedValue({
+      ok: false,
+      code: "alreadyPlaced",
+      errors: {},
+    });
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    ]);
+    await renderMap();
+
+    act(() => {
+      onContextMenuPositionPlace?.(5, 10, 20);
+    });
+
+    // Not "try again": the write was refused on purpose, and retrying it
+    // unchanged would be refused again.
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("placeAlreadyPositioned");
+    });
+    expect(toast.error).not.toHaveBeenCalledWith("placePositionFailed");
   });
 });
 

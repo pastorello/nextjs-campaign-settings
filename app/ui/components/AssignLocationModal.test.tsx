@@ -168,4 +168,66 @@ describe("AssignLocationModal", () => {
     await waitFor(() => expect(assignAction).toHaveBeenCalled());
     expect(onClose).not.toHaveBeenCalled();
   });
+
+  it("shows the placement refusal from the catalogue, not the data layer's prose (TD-93)", async () => {
+    const assignAction = vi.fn().mockResolvedValue({
+      ok: false,
+      code: "alreadyPlaced",
+      errors: {
+        zoneId: [
+          "This NPC is already at a location. Remove it from there first.",
+        ],
+      },
+    });
+
+    render(
+      <AssignLocationModal
+        isOpen
+        onClose={vi.fn()}
+        entityId={1}
+        currentZoneId={5}
+        currentPoiId={null}
+        currentLocationLabel="Sconosciuta"
+        assignAction={assignAction}
+      />
+    );
+
+    fireEvent.click(screen.getByText("save"));
+
+    await waitFor(() => expect(assignAction).toHaveBeenCalled());
+    expect(screen.getByText(/alreadyPlaced/)).toBeInTheDocument();
+    // The mutation's own English message never reaches the DM: it is a
+    // developer-facing string, and this app ships bilingual (ADR-0006).
+    expect(screen.queryByText(/already at a location/)).toBeNull();
+  });
+
+  it("clears the location through the none option — TD-93's recovery path", async () => {
+    const assignAction = vi.fn().mockResolvedValue({ ok: true });
+
+    render(
+      <AssignLocationModal
+        isOpen
+        onClose={vi.fn()}
+        entityId={1}
+        currentZoneId={5}
+        currentPoiId={9}
+        currentLocationLabel="Skreebars"
+        assignAction={assignAction}
+      />
+    );
+
+    await waitFor(() => expect(fetchZones).toHaveBeenCalled());
+    fireEvent.change(screen.getByLabelText("zoneLabel"), {
+      target: { value: "0" },
+    });
+    fireEvent.click(screen.getByText("save"));
+
+    await waitFor(() =>
+      expect(assignAction).toHaveBeenCalledWith({
+        id: 1,
+        zoneId: null,
+        poiId: null,
+      })
+    );
+  });
 });

@@ -16,6 +16,11 @@ const positionSchema = z.object({
   id: z.coerce.number().int().positive(),
   lat: z.number().finite(),
   lng: z.number().finite(),
+  // TD-93 — required, not defaulted: the two acts this mutation serves are
+  // the same write to Postgres but not the same thing to the DM, and a
+  // default would let the next caller inherit whichever one it did not
+  // mean. Making it a compiler error at every call site is the point.
+  intent: z.enum(["place", "reposition"]),
 });
 
 const footprintSchema = z.object({
@@ -29,9 +34,12 @@ const inputSchema = z.union([footprintSchema, positionSchema]);
  * Repositions or resizes a Zone (TD-71, SPEC-005 §5.B; SPEC-009 T5). Two
  * shapes:
  *
- * - `{ id, lat, lng }` — moves a point. From dragging an already-placed
- *   navigable marker (`useNavigableChildren`) or clicking to place a
- *   previously-unplaced one (`WorldMap`'s positioning flow, SPEC-005 §5.A).
+ * - `{ id, lat, lng, intent }` — moves a point. From dragging an
+ *   already-placed navigable marker (`useNavigableChildren`,
+ *   `intent: "reposition"`) or clicking to place a previously-unplaced one
+ *   (`WorldMap`'s positioning flow, SPEC-005 §5.A, `intent: "place"`).
+ *   Those two used to be indistinguishable here, which is half of TD-93:
+ *   only a placement is refused when the row already has coordinates.
  * - `{ id, footprint }` — resizes/moves an area, re-drawing its rectangle
  *   (`WorldMap`'s area-edit flow, SPEC-009 T5). The derived centre
  *   (`footprintCentre`) is recomputed and written alongside it, the same way
@@ -50,7 +58,12 @@ const inputSchema = z.union([footprintSchema, positionSchema]);
  */
 export default async function updateZonePosition(
   formData:
-    | { id: number; lat: number; lng: number }
+    | {
+        id: number;
+        lat: number;
+        lng: number;
+        intent: "place" | "reposition";
+      }
     | { id: number; footprint: [[number, number], [number, number]] }
 ): Promise<MutationResult> {
   await requireSession();
@@ -61,16 +74,16 @@ export default async function updateZonePosition(
   }
   const data = parsed.data;
 
-  let parentId: number | null;
+  let zone: { parentId: number | null } | null;
   try {
-    const zone = await prisma.zone.findUnique({
+    zone = await prisma.zone.findUnique({
       where: { id: data.id },
       select: { parentId: true },
     });
-    parentId = zone?.parentId ?? null;
   } catch (error) {
     throw toDatabaseError("repositioning zone", error);
   }
+  const parentId = zone?.parentId ?? null;
 
   if ("footprint" in data) {
     // The root is the one row with no parent (SPEC-009 §6) — there is no
@@ -110,13 +123,50 @@ export default async function updateZonePosition(
       if (errors) return { ok: false, errors };
     }
 
-    try {
-      await prisma.zone.update({
-        where: { id: data.id },
-        data: { lat: data.lat, lng: data.lng },
-      });
-    } catch (error) {
-      throw toDatabaseError("repositioning zone", error);
+    // TD-93's invariant. Repositioning an already-placed pin is what
+    // SPEC-005 exists for and stays free; *placing* one is the act the DM
+    // asked to be refused when the thing is already somewhere, and the
+    // pre-state travels inside `updateMany`'s `where` so Postgres is what
+    // refuses it. A read followed by an unguarded update would leave the
+    // window this closes: `useUnplacedChildren`'s dropdown is a client
+    // snapshot, and a stale one is exactly how a second placement is
+    // reached. "Unpositioned" means `lat === null`, the same definition
+    // `countUnpositionedPlaces` uses.
+    if (data.intent === "place") {
+      if (zone === null) {
+        return { ok: false, errors: { id: ["This place does not exist."] } };
+      }
+
+      let count: number;
+      try {
+        ({ count } = await prisma.zone.updateMany({
+          where: { id: data.id, lat: null },
+          data: { lat: data.lat, lng: data.lng },
+        }));
+      } catch (error) {
+        throw toDatabaseError("repositioning zone", error);
+      }
+
+      if (count === 0) {
+        return {
+          ok: false,
+          code: "alreadyPlaced",
+          errors: {
+            lat: [
+              "This place is already positioned. Move it back to the unpositioned places first.",
+            ],
+          },
+        };
+      }
+    } else {
+      try {
+        await prisma.zone.update({
+          where: { id: data.id },
+          data: { lat: data.lat, lng: data.lng },
+        });
+      } catch (error) {
+        throw toDatabaseError("repositioning zone", error);
+      }
     }
   }
 

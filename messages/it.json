@@ -76,7 +76,9 @@
       "zonePlaceholder": "Seleziona una zona",
       "noZonesAvailable": "Nessuna zona disponibile.",
       "poiLabel": "Luogo specifico (opzionale)",
-      "poiNoneOption": "Nessuno (solo zona)"
+      "poiNoneOption": "Nessuno (solo zona)",
+      "zoneNoneOption": "Nessuna (rimuovi dal luogo)",
+      "alreadyPlaced": "È già in un luogo. Rimuovi il collegamento esistente prima di assegnarne uno nuovo."
     },
     "filters": {
       "all": "Tutti",
@@ -635,6 +637,7 @@
       "poiSaveFailed": "Impossibile salvare «{title}». La modifica è stata annullata.",
       "poiDeleteFailed": "Impossibile eliminare «{title}». Il luogo è stato ripristinato.",
       "placePositionFailed": "Impossibile posizionare «{title}». Riprova.",
+      "placeAlreadyPositioned": "«{title}» è già posizionato. Spostalo nei luoghi non posizionati prima di collocarlo altrove.",
       "placeUnplaceFailed": "Impossibile spostare «{title}» tra i luoghi non posizionati. Riprova."
     },
     "poiPanel": {

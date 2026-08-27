@@ -314,6 +314,17 @@ DM's decision that clicking a place opens a popover carrying its description and
 its actions. Which means the panel's list view may end up with no callers at
 all; decide that at the end of both items, not now.
 
+**Decided 2026-08-27 (SPEC-016 T9): the list view stays, and it never was
+unreachable.** This item's own "no entry point" finding was about _opening_ the
+panel in list mode, which nothing still does — but the panel transitions there
+itself once open, on save (`resetFormAfterSave`) and on backing out of the add
+form, and `WorldMap`'s controlled `mode`/`onModeChange` pair follows it.
+`e2e/map-poi-crud.spec.ts` has been exercising that path since before this item
+was written. The popover (SPEC-016 T7) duplicates the row's edit and delete, not
+the rest of the view: Import, Export, Clear all and fly-to have no other home,
+and the add form needs somewhere to return to. What did go with SPEC-016 T9 is
+the unplaced-children picker this item withdrew — see below.
+
 **Check while implementing:** `handlePOIModeChange` (`WorldMap.tsx:423`) takes
 `"list" | "add" | "edit"` and stores it with `setPOIPanelMode(mode as "list" | "add")`.
 The runtime value passes through intact, so this is not believed to be the cause

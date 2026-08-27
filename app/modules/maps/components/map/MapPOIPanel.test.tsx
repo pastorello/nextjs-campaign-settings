@@ -34,9 +34,6 @@ function baseProps() {
     onImport: vi.fn(),
     onFlyTo: vi.fn(),
     onAddPlace: vi.fn().mockResolvedValue({ ok: true }),
-    unplacedChildren: [],
-    onPositionPlace: vi.fn(),
-    positioningPlaceId: null,
     pendingFootprint: null,
     onFootprintConsumed: vi.fn(),
   };
@@ -190,87 +187,20 @@ describe("MapPOIPanel — hardcoded strings swept into the catalogues (TD-95)", 
   });
 });
 
-describe("MapPOIPanel — unplaced places (TD-71, SPEC-005 §5.A)", () => {
-  it("renders no section when there are no unplaced children", () => {
-    render(<MapPOIPanel {...baseProps()} />);
+// The unplaced-children picker this panel used to carry is gone (SPEC-016
+// T9): TD-85's "Posiziona luogo" context-menu entry is the DM's single
+// method for positioning a place, and SPEC-005 §3 records the picker as
+// superseded rather than kept alongside. A guard, not coverage — the panel
+// takes no `unplacedChildren` prop at all any more, so what this asserts is
+// that no second positioning affordance grows back in the list view.
+describe("MapPOIPanel — the unplaced-places picker is withdrawn (SPEC-016 T9, TD-85)", () => {
+  it("offers no positioning control in the list view", () => {
+    render(<MapPOIPanel {...baseProps()} pois={[poi]} />);
+
+    expect(screen.queryByText("Position on map")).not.toBeInTheDocument();
     expect(
       screen.queryByText("geography.poiPanel.unplacedCount")
     ).not.toBeInTheDocument();
-  });
-
-  it("lists each unplaced child with its title, kind and a count (TD-95: translated, plural-aware)", () => {
-    render(
-      <MapPOIPanel
-        {...baseProps()}
-        unplacedChildren={[
-          { id: 1, title: "Kingdom of Kang", kind: "region" },
-          { id: 2, title: "Skreebars", kind: "city" },
-        ]}
-      />
-    );
-
-    // Used to be a hardcoded "Unplaced places (2)" string, hand-built in
-    // JSX. Now a message key read through next-intl; the global mock
-    // (vitest.setup.ts) returns the key itself, ignoring the `count` param.
-    expect(
-      screen.getByText("geography.poiPanel.unplacedCount")
-    ).toBeInTheDocument();
-    expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
-    expect(screen.getByText("region")).toBeInTheDocument();
-    expect(screen.getByText("Skreebars")).toBeInTheDocument();
-    expect(screen.getByText("city")).toBeInTheDocument();
-  });
-
-  it("calls onPositionPlace with the chosen child's id", () => {
-    const props = baseProps();
-    render(
-      <MapPOIPanel
-        {...props}
-        unplacedChildren={[{ id: 7, title: "Kingdom of Kang", kind: "region" }]}
-      />
-    );
-
-    fireEvent.click(screen.getByText("Position on map"));
-
-    expect(props.onPositionPlace).toHaveBeenCalledWith(7);
-  });
-
-  it("shows the positioning state and cancels it on a second click", () => {
-    const props = baseProps();
-    const { rerender } = render(
-      <MapPOIPanel
-        {...props}
-        unplacedChildren={[{ id: 7, title: "Kingdom of Kang", kind: "region" }]}
-        positioningPlaceId={7}
-      />
-    );
-
-    fireEvent.click(screen.getByText("Click on map (cancel)"));
-    expect(props.onPositionPlace).toHaveBeenCalledWith(7);
-
-    rerender(
-      <MapPOIPanel
-        {...props}
-        unplacedChildren={[{ id: 7, title: "Kingdom of Kang", kind: "region" }]}
-        positioningPlaceId={null}
-      />
-    );
-    expect(screen.getByText("Position on map")).toBeInTheDocument();
-  });
-
-  it("collapses and expands the section on click, without affecting the POI list", () => {
-    render(
-      <MapPOIPanel
-        {...baseProps()}
-        pois={[poi]}
-        unplacedChildren={[{ id: 7, title: "Kingdom of Kang", kind: "region" }]}
-      />
-    );
-
-    expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("geography.poiPanel.unplacedCount"));
-    expect(screen.queryByText("Kingdom of Kang")).not.toBeInTheDocument();
-    expect(screen.getByText("Skreebars Market")).toBeInTheDocument();
   });
 });
 

@@ -322,8 +322,18 @@ form, and `WorldMap`'s controlled `mode`/`onModeChange` pair follows it.
 `e2e/map-poi-crud.spec.ts` has been exercising that path since before this item
 was written. The popover (SPEC-016 T7) duplicates the row's edit and delete, not
 the rest of the view: Import, Export, Clear all and fly-to have no other home,
-and the add form needs somewhere to return to. What did go with SPEC-016 T9 is
-the unplaced-children picker this item withdrew — see below.
+and the add form needs somewhere to return to.
+
+**The withdrawal this item ordered is done (SPEC-016 T9, second commit).** The
+condition was "once the menu entry demonstrably works" — PR #190 shipped it, and
+SPEC-016 T5's `map-unplace.spec.ts` drives the dropdown and its count end to end,
+so it has. Gone with the panel section: its three props, `WorldMap`'s
+`handlePositionPlace` / `positioningPlace` crosshair-arming flow and the
+`handleMapClick` branch behind it, the `geography.poiPanel.unplacedCount` key in
+both catalogues, and the unit blocks that covered them (one guard test left in
+`MapPOIPanel.test.tsx` so a second positioning affordance cannot grow back
+there). `useUnplacedChildren` is untouched — "Posiziona luogo" is its only
+reader now.
 
 **Check while implementing:** `handlePOIModeChange` (`WorldMap.tsx:423`) takes
 `"list" | "add" | "edit"` and stores it with `setPOIPanelMode(mode as "list" | "add")`.

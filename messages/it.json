@@ -641,7 +641,6 @@
       "title": "Luoghi di interesse",
       "clear": "Svuota",
       "clearCoordinates": "Cancella le coordinate",
-      "unplacedCount": "{count, plural, one {# luogo non posizionato} other {# luoghi non posizionati}}",
       "clearedToast": "{count, plural, one {Eliminato # luogo} other {Eliminati # luoghi}}"
     },
     "maps": {

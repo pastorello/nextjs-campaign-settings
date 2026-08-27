@@ -167,28 +167,21 @@ function WorldMap({
     lat: number;
     lng: number;
   } | null>(null);
-  // The unplaced child currently being positioned (TD-71, SPEC-005 §5.A) —
-  // title is captured at selection time so a failure toast can name it
-  // without re-reading `unplacedChildren`, which may have moved on by then.
-  const [positioningPlace, setPositioningPlace] = useState<{
-    id: number;
-    title: string;
-  } | null>(null);
   // Draw-an-area mode (SPEC-009 T2) — armed by `MapContextMenu`'s "Add
   // sub-map" entry (ex-`DrawAreaButton`, consolidated 2026-08-17), consumed
   // by `useDrawArea`. `pendingFootprint` is the completed rectangle waiting for
-  // the create form; mutually exclusive with `isSelectingPOILocation`/
-  // `positioningPlace` (see their handlers below), the same way those two
-  // already exclude each other implicitly by being distinct crosshair modes.
+  // the create form; mutually exclusive with `isSelectingPOILocation` (see
+  // their handlers below), the same way the crosshair modes already exclude
+  // each other by being distinct.
   const [isDrawingArea, setIsDrawingArea] = useState(false);
   const [pendingFootprint, setPendingFootprint] = useState<Footprint | null>(
     null
   );
   // The area currently armed for a redraw-to-replace resize/move (SPEC-009
-  // T5) — title is captured at arm time, the same reason `positioningPlace`
-  // captures it, so a failure toast can name the area without re-reading
-  // `areaChildren`. A fourth crosshair mode, mutually exclusive with the
-  // other three the same way they already exclude each other.
+  // T5) — title is captured at arm time so a failure toast can name the area
+  // without re-reading `areaChildren`. A third crosshair mode, mutually
+  // exclusive with the other two the same way they already exclude each
+  // other.
   const [editingArea, setEditingArea] = useState<{
     id: number;
     title: string;
@@ -381,7 +374,10 @@ function WorldMap({
 
   // This place's children with no position yet — always a Zone now (SPEC-008
   // T8: a landmark POI's `lat`/`lng` are required at creation) — feeds
-  // MapPOIPanel's "Unplaced places" section (TD-71, SPEC-005 §5.A).
+  // `MapContextMenu`'s "Posiziona luogo" dropdown and its count (TD-85).
+  // It used to feed `MapPOIPanel`'s "Unplaced places" picker as well; that
+  // was the DM's second method for the same job and is withdrawn (SPEC-016
+  // T9, SPEC-005 §3).
   const unplacedChildren = useUnplacedChildren(parentId, placesRefetchToken);
 
   // Creates a navigable place under the current parent (SPEC-004 M5, T2).
@@ -475,7 +471,6 @@ function WorldMap({
   const handleClosePOIPanel = useCallback(() => {
     setIsPOIPanelOpen(false);
     setIsSelectingPOILocation(false);
-    setPositioningPlace(null);
     setPOIPanelMode("list");
     setPendingFootprint(null);
     setPoiEditTarget(null);
@@ -494,28 +489,11 @@ function WorldMap({
     setPendingFootprint(null);
   }, []);
 
-  // Toggles positioning mode for an unplaced child (TD-71, SPEC-005 §5.A):
-  // choosing the one already being positioned cancels it, choosing a
-  // different one switches the target. Also cancels draw-area mode
-  // (SPEC-009 T2) — the crosshair-mode toggles are mutually exclusive.
-  const handlePositionPlace = useCallback(
-    (id: number) => {
-      setIsDrawingArea(false);
-      setEditingArea(null);
-      setPositioningPlace((prev) => {
-        if (prev?.id === id) return null;
-        const child = unplacedChildren.find((candidate) => candidate.id === id);
-        return child ? { id: child.id, title: child.title } : null;
-      });
-    },
-    [unplacedChildren]
-  );
-
   // Positions an unplaced place directly at the point the context menu was
   // opened over (TD-85) — the right-click itself is the aim, so picking a
   // place from "Posiziona luogo"'s dropdown finalizes the position right
-  // away rather than re-arming a second crosshair click the way
-  // `handlePositionPlace`'s panel-driven flow does. `MapContextMenu`
+  // away rather than re-arming a second crosshair click the way the
+  // withdrawn panel picker did (SPEC-016 T9). `MapContextMenu`
   // withholds this entry over an existing area with the same `hideAddPlace`
   // gate it already applies to "Add Place" (SPEC-009 T4), so this handler
   // never needs its own containment check.
@@ -539,7 +517,7 @@ function WorldMap({
   );
 
   // Handle POI location selection request. Also cancels draw-area mode
-  // (SPEC-009 T2) — see `handlePositionPlace`.
+  // (SPEC-009 T2) — see `handleToggleDrawArea`.
   const handleRequestPOILocation = useCallback(() => {
     setIsDrawingArea(false);
     setEditingArea(null);
@@ -550,7 +528,6 @@ function WorldMap({
   // crosshair modes the same way they cancel this one.
   const handleToggleDrawArea = useCallback(() => {
     setIsSelectingPOILocation(false);
-    setPositioningPlace(null);
     setEditingArea(null);
     setCursorCoords(null);
     setIsDrawingArea((prev) => !prev);
@@ -563,7 +540,6 @@ function WorldMap({
     if (!contextMenuOverArea) return;
     setIsDrawingArea(false);
     setIsSelectingPOILocation(false);
-    setPositioningPlace(null);
     setCursorCoords(null);
     setEditingArea({
       id: contextMenuOverArea.id,
@@ -670,46 +646,14 @@ function WorldMap({
     if (mode !== "edit") setPoiEditTarget(null);
   }, []);
 
-  // Handle map click for POI location selection, and for positioning an
-  // existing unplaced place (TD-71, SPEC-005 §5.A) — the two flows share
-  // the crosshair mode. Positioning always targets a Zone (SPEC-008 T8: a
-  // landmark POI's `lat`/`lng` are required at creation, so nothing else
-  // can ever be "unplaced").
+  // Handle map click for POI location selection.
   const handleMapClick = useCallback(
     (lat: number, lng: number) => {
-      if (positioningPlace) {
-        // Clicking inside an existing area descends into it instead of
-        // repositioning the place there (SPEC-009 T4/§3 rule 3) — the pin
-        // belongs on the area's own map, one level down, not at this one.
-        const containingArea = findContainingSibling([lat, lng], areaChildren);
-        if (containingArea) {
-          setPositioningPlace(null);
-          setCursorCoords(null);
-          onDescend(containingArea);
-          return;
-        }
-
-        const { id, title } = positioningPlace;
-        setPositioningPlace(null);
-        setCursorCoords(null);
-        void (async () => {
-          try {
-            const result = await updateZonePosition({ id, lat, lng });
-            if (result.ok) {
-              setPlacesRefetchToken((token) => token + 1);
-            } else {
-              toast.error(t("placePositionFailed", { title }));
-            }
-          } catch (error) {
-            console.error("Failed to position place:", error);
-            toast.error(t("placePositionFailed", { title }));
-          }
-        })();
-        return;
-      }
-
       if (isSelectingPOILocation) {
-        // Same rule as above — the "Add Place" panel stays open (this
+        // Clicking inside an existing area descends into it instead of
+        // dropping the pin there (SPEC-009 T4/§3 rule 3) — the pin belongs
+        // on the area's own map, one level down, not at this one. The "Add
+        // Place" panel stays open (this
         // component doesn't remount on descend), so whatever the DM already
         // typed survives and the same click can be made one level down.
         const containingArea = findContainingSibling([lat, lng], areaChildren);
@@ -725,23 +669,23 @@ function WorldMap({
         setCursorCoords(null);
       }
     },
-    [positioningPlace, isSelectingPOILocation, areaChildren, onDescend, t]
+    [isSelectingPOILocation, areaChildren, onDescend]
   );
 
   // Handle map mouse move for cursor tracking
   const handleMapMouseMove = useCallback(
     (lat: number, lng: number) => {
-      if (isSelectingPOILocation || positioningPlace) {
+      if (isSelectingPOILocation) {
         setCursorCoords({ lat, lng });
       }
     },
-    [isSelectingPOILocation, positioningPlace]
+    [isSelectingPOILocation]
   );
 
-  // Cancel any in-progress positioning when the DM navigates to a different
-  // map (TD-71, SPEC-005 §5.A edge case) — `WorldMap` isn't remounted on
-  // `parentId` change, so this state would otherwise survive the navigation
-  // and point at a place that no longer belongs to the map being viewed.
+  // Cancel any in-progress crosshair gesture when the DM navigates to a
+  // different map — `WorldMap` isn't remounted on `parentId` change, so this
+  // state would otherwise survive the navigation and point at something that
+  // no longer belongs to the map being viewed.
   // The "adjusting state during render" pattern (React docs, "You Might Not
   // Need an Effect"), not a `useEffect` — `MapSearchBar` already uses this
   // exact shape for the same reason: a `setState` inside an effect body
@@ -749,7 +693,6 @@ function WorldMap({
   const [prevParentId, setPrevParentId] = useState(parentId);
   if (parentId !== prevParentId) {
     setPrevParentId(parentId);
-    setPositioningPlace(null);
     setCursorCoords(null);
     setEditingArea(null);
     // The popover refers to a place on the map being left (SPEC-016 T2) —
@@ -972,11 +915,7 @@ function WorldMap({
         onClick={handleMapClick}
         onMouseMove={handleMapMouseMove}
         cursorStyle={
-          isSelectingPOILocation ||
-          positioningPlace ||
-          isDrawingArea ||
-          editingArea ||
-          isMeasuring
+          isSelectingPOILocation || isDrawingArea || editingArea || isMeasuring
             ? "crosshair"
             : "grab"
         }
@@ -1156,9 +1095,6 @@ function WorldMap({
         cursorLng={cursorCoords?.lng}
         mode={poiPanelMode}
         onAddPlace={handleAddPlace}
-        unplacedChildren={unplacedChildren}
-        onPositionPlace={handlePositionPlace}
-        positioningPlaceId={positioningPlace?.id ?? null}
         pendingFootprint={pendingFootprint}
         onFootprintConsumed={handleFootprintConsumed}
         editTarget={poiEditTarget}

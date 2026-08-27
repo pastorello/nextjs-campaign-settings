@@ -90,7 +90,6 @@ const exportGeoJSON = vi.fn(() => ({
 const importGeoJSON = vi.fn(() => 2);
 let onAddPlace:
   ((input: unknown) => Promise<{ ok: boolean; error?: string }>) | undefined;
-let onPositionPlace: ((id: number) => void) | undefined;
 let onPOIModeChange: ((mode: string) => void) | undefined;
 vi.mock("@/app/modules/maps/components/map/MapPOIPanel", () => ({
   MapPOIPanel: (props: {
@@ -99,9 +98,6 @@ vi.mock("@/app/modules/maps/components/map/MapPOIPanel", () => ({
     initialLat?: number;
     initialLng?: number;
     onAddPlace: (input: unknown) => Promise<{ ok: boolean; error?: string }>;
-    unplacedChildren: { id: number; title: string; kind: string }[];
-    onPositionPlace: (id: number) => void;
-    positioningPlaceId: number | null;
     mode?: string;
     onModeChange?: (mode: string) => void;
     pendingFootprint?: unknown;
@@ -111,15 +107,12 @@ vi.mock("@/app/modules/maps/components/map/MapPOIPanel", () => ({
     onRequestLocation = props.onRequestLocation;
     onImport = props.onImport;
     onAddPlace = props.onAddPlace;
-    onPositionPlace = props.onPositionPlace;
     onPOIModeChange = props.onModeChange;
     return (
       <div
         data-testid="map-poi-panel"
         data-initial-lat={props.initialLat}
         data-initial-lng={props.initialLng}
-        data-unplaced-count={props.unplacedChildren.length}
-        data-positioning-id={props.positioningPlaceId ?? undefined}
         data-mode={props.mode}
         data-open={props.isOpen}
         data-edit-target-id={props.editTarget?.id}
@@ -889,111 +882,6 @@ describe("WorldMap — attaching an existing entity (SPEC-016 T8, TD-96)", () =>
   });
 });
 
-describe("WorldMap — positioning an unplaced place (TD-71, SPEC-005 §5.A)", () => {
-  beforeEach(() => {
-    useUnplacedChildren.mockReturnValue([
-      { id: 5, title: "Kingdom of Kang", kind: "region" },
-    ]);
-  });
-
-  it("enters crosshair mode and passes the positioning id to the panel", async () => {
-    await renderMap();
-
-    act(() => {
-      onPositionPlace?.(5);
-    });
-
-    await waitFor(() => {
-      expect(screen.getByTestId("leaflet-map")).toHaveAttribute(
-        "data-cursor",
-        "crosshair"
-      );
-    });
-    expect(screen.getByTestId("map-poi-panel")).toHaveAttribute(
-      "data-positioning-id",
-      "5"
-    );
-  });
-
-  it("positions the place on the next map click, sending only id/lat/lng", async () => {
-    await renderMap();
-
-    act(() => {
-      onPositionPlace?.(5);
-    });
-    act(() => {
-      onClick?.(10, 20);
-    });
-
-    await waitFor(() => {
-      expect(updateZonePosition).toHaveBeenCalledWith({
-        id: 5,
-        lat: 10,
-        lng: 20,
-      });
-    });
-    await waitFor(() => {
-      expect(screen.getByTestId("leaflet-map")).toHaveAttribute(
-        "data-cursor",
-        "grab"
-      );
-    });
-  });
-
-  it("bumps the navigable refetch token after a successful positioning", async () => {
-    await renderMap();
-    const tokenBefore = useNavigableChildren.mock.calls.at(-1)?.[2];
-
-    act(() => {
-      onPositionPlace?.(5);
-    });
-    act(() => {
-      onClick?.(10, 20);
-    });
-
-    await waitFor(() => {
-      const tokenAfter = useNavigableChildren.mock.calls.at(-1)?.[2];
-      expect(tokenAfter).not.toBe(tokenBefore);
-    });
-  });
-
-  it("cancels positioning on a second click of the same place, without touching the map", async () => {
-    await renderMap();
-
-    act(() => {
-      onPositionPlace?.(5);
-    });
-    act(() => {
-      onPositionPlace?.(5);
-    });
-
-    expect(screen.getByTestId("map-poi-panel")).not.toHaveAttribute(
-      "data-positioning-id"
-    );
-
-    act(() => {
-      onClick?.(10, 20);
-    });
-    expect(updateZonePosition).not.toHaveBeenCalled();
-  });
-
-  it("toasts and leaves the place unplaced when the update fails", async () => {
-    updateZonePosition.mockResolvedValue({ ok: false });
-    await renderMap();
-
-    act(() => {
-      onPositionPlace?.(5);
-    });
-    act(() => {
-      onClick?.(10, 20);
-    });
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("placePositionFailed");
-    });
-  });
-});
-
 describe("WorldMap — draw-an-area (SPEC-009 T2; armed from the context menu since the 2026-08-17 usability fix)", () => {
   it("arms drawing mode and switches to a crosshair cursor", async () => {
     await renderMap();
@@ -1071,24 +959,6 @@ describe("WorldMap — draw-an-area (SPEC-009 T2; armed from the context menu si
     expect(screen.getByTestId("map-poi-panel")).not.toHaveAttribute(
       "data-initial-lat"
     );
-  });
-
-  it("is cancelled when positioning an unplaced place starts", async () => {
-    useUnplacedChildren.mockReturnValue([
-      { id: 5, title: "Kingdom of Kang", kind: "region" },
-    ]);
-    await renderMap();
-
-    act(() => {
-      onAddSubMap?.();
-    });
-    expect(drawAreaOptions?.enabled).toBe(true);
-
-    act(() => {
-      onPositionPlace?.(5);
-    });
-
-    expect(drawAreaOptions?.enabled).toBe(false);
   });
 });
 
@@ -1179,32 +1049,6 @@ describe("WorldMap — descending into an area instead of placing a point (SPEC-
       expect(screen.getByTestId("map-poi-panel")).toHaveAttribute(
         "data-initial-lat",
         "50"
-      );
-    });
-  });
-
-  it("descends into the area and cancels positioning when the click lands inside it", async () => {
-    useUnplacedChildren.mockReturnValue([
-      { id: 5, title: "Skreebars", kind: "city" },
-    ]);
-    await renderMap();
-
-    act(() => {
-      onPositionPlace?.(5);
-    });
-    act(() => {
-      onClick?.(5, 5);
-    });
-
-    expect(onDescend).toHaveBeenCalledWith(area);
-    expect(updateZonePosition).not.toHaveBeenCalled();
-    expect(screen.getByTestId("map-poi-panel")).not.toHaveAttribute(
-      "data-positioning-id"
-    );
-    await waitFor(() => {
-      expect(screen.getByTestId("leaflet-map")).toHaveAttribute(
-        "data-cursor",
-        "grab"
       );
     });
   });

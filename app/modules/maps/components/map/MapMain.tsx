@@ -325,11 +325,6 @@ export function MapMain() {
         // outside app/modules/maps/ imports MapMain, so there is no real
         // parent to create a region/deity/npc place under.
         onAddPlace={() => Promise.resolve({ ok: false })}
-        // Same reasoning (TD-71, SPEC-005): no real parent to fetch
-        // unplaced children for.
-        unplacedChildren={[]}
-        onPositionPlace={() => {}}
-        positioningPlaceId={null}
       />
     </div>
   );

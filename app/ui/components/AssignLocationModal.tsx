@@ -16,9 +16,23 @@ import type ZoneOption from "@/app/lib/definitions/interfaces/maps/ZoneOption";
 import type { ResolvedOption } from "@/app/lib/definitions/types/SelectOption";
 
 const NO_LANDMARK = 0;
+const NO_ZONE = 0;
 
-function toZoneOptions(zones: ZoneOption[]): ResolvedOption[] {
-  return zones.map((zone) => ({ value: zone.id, label: zone.title }));
+/**
+ * The "none" entry is what makes TD-93's refusal recoverable from this
+ * surface: with the invariant in place an entity has to be removed from
+ * where it is before it can be assigned elsewhere, and until now this modal
+ * could only ever set a zone, never clear one — the removal existed on the
+ * map's place popover alone (SPEC-016 T4).
+ */
+function toZoneOptions(
+  zones: ZoneOption[],
+  noneLabel: string
+): ResolvedOption[] {
+  return [
+    { value: NO_ZONE, label: noneLabel },
+    ...zones.map((zone) => ({ value: zone.id, label: zone.title })),
+  ];
 }
 
 function toLandmarkOptions(
@@ -97,7 +111,7 @@ function AssignLocationModalBody({
   }, [zoneId]);
 
   const handleZoneChange = (value: number) => {
-    setZoneId(value);
+    setZoneId(value === NO_ZONE ? null : value);
     setPoiId(null);
   };
 
@@ -111,7 +125,14 @@ function AssignLocationModalBody({
     setIsSaving(false);
 
     if (!result.ok) {
-      setErrors(result.errors);
+      // TD-93 — the refusal is a rule, not a validation failure, so it is
+      // shown from the catalogue (ADR-0007) rather than as the data layer's
+      // own English prose, which is all `result.errors` carries.
+      setErrors(
+        result.code === "alreadyPlaced"
+          ? { zoneId: [t("alreadyPlaced")] }
+          : result.errors
+      );
       return;
     }
 
@@ -128,9 +149,9 @@ function AssignLocationModalBody({
       <FormErrorSummary errors={errors} />
       <Select
         label={t("zoneLabel")}
-        value={zoneId ?? ""}
+        value={zoneId ?? NO_ZONE}
         onChange={(value) => handleZoneChange(Number(value))}
-        options={toZoneOptions(zones)}
+        options={toZoneOptions(zones, t("zoneNoneOption"))}
       />
       {zoneId !== null && (
         <Select

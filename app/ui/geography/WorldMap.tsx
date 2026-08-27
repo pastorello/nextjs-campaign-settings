@@ -502,11 +502,23 @@ function WorldMap({
       const child = unplacedChildren.find((candidate) => candidate.id === id);
       const title = child?.title ?? "";
       try {
-        const result = await updateZonePosition({ id, lat, lng });
+        const result = await updateZonePosition({
+          id,
+          lat,
+          lng,
+          intent: "place",
+        });
         if (result.ok) {
           setPlacesRefetchToken((token) => token + 1);
         } else {
-          toast.error(t("placePositionFailed", { title }));
+          // TD-93 — a refused second placement is not a failed one: the
+          // write was rejected on purpose, and the DM needs to be told what
+          // to do about it rather than invited to "try again".
+          toast.error(
+            result.code === "alreadyPlaced"
+              ? t("placeAlreadyPositioned", { title })
+              : t("placePositionFailed", { title })
+          );
         }
       } catch (error) {
         console.error("Failed to position place from the context menu:", error);

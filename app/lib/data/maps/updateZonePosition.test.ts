@@ -5,15 +5,18 @@ import { auth } from "@/auth";
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
-const { update, findUnique, findMany, poiFindMany } = vi.hoisted(() => ({
-  update: vi.fn(),
-  findUnique: vi.fn(),
-  findMany: vi.fn(),
-  poiFindMany: vi.fn(),
-}));
+const { update, updateMany, findUnique, findMany, poiFindMany } = vi.hoisted(
+  () => ({
+    update: vi.fn(),
+    updateMany: vi.fn(),
+    findUnique: vi.fn(),
+    findMany: vi.fn(),
+    poiFindMany: vi.fn(),
+  })
+);
 vi.mock("@/app/lib/connections/prisma", () => ({
   default: {
-    zone: { update, findUnique, findMany },
+    zone: { update, updateMany, findUnique, findMany },
     poi: { findMany: poiFindMany },
   },
 }));
@@ -26,6 +29,7 @@ describe("updateZonePosition", () => {
     vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
     poiFindMany.mockResolvedValue([]);
     update.mockResolvedValue({});
+    updateMany.mockResolvedValue({ count: 1 });
   });
 
   describe("point moves", () => {
@@ -33,7 +37,12 @@ describe("updateZonePosition", () => {
       findUnique.mockResolvedValue({ parentId: 1 });
       findMany.mockResolvedValue([]);
 
-      const result = await updateZonePosition({ id: 5, lat: 20, lng: 20 });
+      const result = await updateZonePosition({
+        id: 5,
+        lat: 20,
+        lng: 20,
+        intent: "reposition",
+      });
 
       expect(result).toEqual({ ok: true });
       expect(update).toHaveBeenCalledWith({
@@ -54,7 +63,12 @@ describe("updateZonePosition", () => {
         },
       ]);
 
-      const result = await updateZonePosition({ id: 5, lat: 20, lng: 20 });
+      const result = await updateZonePosition({
+        id: 5,
+        lat: 20,
+        lng: 20,
+        intent: "reposition",
+      });
 
       expect(result).toEqual({
         ok: false,
@@ -67,7 +81,12 @@ describe("updateZonePosition", () => {
       findUnique.mockResolvedValue({ parentId: 1 });
       findMany.mockResolvedValue([]);
 
-      await updateZonePosition({ id: 5, lat: 20, lng: 20 });
+      await updateZonePosition({
+        id: 5,
+        lat: 20,
+        lng: 20,
+        intent: "reposition",
+      });
 
       expect(findMany).toHaveBeenCalledWith({
         where: { parentId: 1, id: { not: 5 } },
@@ -75,10 +94,96 @@ describe("updateZonePosition", () => {
       });
     });
 
+    it("places an unpositioned place through a guarded write (TD-93)", async () => {
+      findUnique.mockResolvedValue({ parentId: 1 });
+      findMany.mockResolvedValue([]);
+
+      const result = await updateZonePosition({
+        id: 5,
+        lat: 20,
+        lng: 20,
+        intent: "place",
+      });
+
+      expect(result).toEqual({ ok: true });
+      // The pre-state is in the `where`, not in an earlier read: that is
+      // what makes the database the thing refusing a second placement.
+      expect(updateMany).toHaveBeenCalledWith({
+        where: { id: 5, lat: null },
+        data: { lat: 20, lng: 20 },
+      });
+      expect(update).not.toHaveBeenCalled();
+    });
+
+    it("refuses placing a place that already has coordinates (TD-93)", async () => {
+      findUnique.mockResolvedValue({ parentId: 1 });
+      findMany.mockResolvedValue([]);
+      updateMany.mockResolvedValue({ count: 0 });
+
+      const result = await updateZonePosition({
+        id: 5,
+        lat: 20,
+        lng: 20,
+        intent: "place",
+      });
+
+      expect(result).toEqual({
+        ok: false,
+        code: "alreadyPlaced",
+        errors: {
+          lat: [
+            "This place is already positioned. Move it back to the unpositioned places first.",
+          ],
+        },
+      });
+    });
+
+    it("repositioning the same already-placed row is not refused (SPEC-005)", async () => {
+      findUnique.mockResolvedValue({ parentId: 1 });
+      findMany.mockResolvedValue([]);
+      updateMany.mockResolvedValue({ count: 0 });
+
+      const result = await updateZonePosition({
+        id: 5,
+        lat: 20,
+        lng: 20,
+        intent: "reposition",
+      });
+
+      expect(result).toEqual({ ok: true });
+      expect(updateMany).not.toHaveBeenCalled();
+      expect(update).toHaveBeenCalledWith({
+        where: { id: 5 },
+        data: { lat: 20, lng: 20 },
+      });
+    });
+
+    it("says a missing row is missing rather than already placed", async () => {
+      findUnique.mockResolvedValue(null);
+
+      const result = await updateZonePosition({
+        id: 404,
+        lat: 20,
+        lng: 20,
+        intent: "place",
+      });
+
+      expect(result).toEqual({
+        ok: false,
+        errors: { id: ["This place does not exist."] },
+      });
+      expect(updateMany).not.toHaveBeenCalled();
+    });
+
     it("skips the sibling check for the root (no parent)", async () => {
       findUnique.mockResolvedValue({ parentId: null });
 
-      const result = await updateZonePosition({ id: 1, lat: 20, lng: 20 });
+      const result = await updateZonePosition({
+        id: 1,
+        lat: 20,
+        lng: 20,
+        intent: "reposition",
+      });
 
       expect(result).toEqual({ ok: true });
       expect(findMany).not.toHaveBeenCalled();

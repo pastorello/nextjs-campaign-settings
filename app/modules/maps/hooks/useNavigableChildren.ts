@@ -134,7 +134,14 @@ export function useNavigableChildren(
       };
 
       try {
-        const result = await updateZonePosition({ id, lat, lng });
+        // `reposition`, not `place`: this is SPEC-005's drag of a marker
+        // that is already on this map, which TD-93's invariant leaves free.
+        const result = await updateZonePosition({
+          id,
+          lat,
+          lng,
+          intent: "reposition",
+        });
         if (!result.ok) revert();
       } catch (error) {
         console.error("Failed to reposition navigable place:", error);

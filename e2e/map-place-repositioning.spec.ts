@@ -20,11 +20,11 @@ import messages from "@/messages/it.json";
  * world-seed script's. SPEC-016 T5's "Sposta nei luoghi non posizionati"
  * closed that gap — un-placing an already-positioned region is now the
  * in-app path, exercised end to end in `map-unplace.spec.ts`, which also
- * covers the picker's dropdown and count. This file stays scoped to drag
- * repositioning; §5.A's own unit coverage
- * (`useUnplacedChildren.test.ts`, `MapPOIPanel.test.tsx`'s "unplaced
- * places" block, `WorldMap.test.tsx`'s "positioning an unplaced place"
- * block) is unchanged by that.
+ * covers the context menu's dropdown and count. This file stays scoped to
+ * drag repositioning. §5.A's own panel picker is gone since SPEC-016 T9 —
+ * the context-menu entry is the single method — so what survives of its
+ * unit coverage is `useUnplacedChildren.test.ts` (the query) and
+ * `MapContextMenu.test.tsx`'s dropdown block.
  *
  * ## Quarantined — this test has never actually verified the drag (TD-101)
  *

@@ -29,6 +29,14 @@ A DM can select any existing place — any kind — and give it a position or ch
   > it, not kept alongside. Everything else this spec decided about
   > repositioning (the mechanism, the checks, `useUnplacedChildren` as the query
   > behind it) is untouched.
+  >
+  > **Carried out 2026-08-27** (SPEC-016 T9), once the replacement had proved
+  > itself in the DM's hands and in e2e: the panel's "Unplaced places" section,
+  > its three props, `WorldMap`'s crosshair-arming `handlePositionPlace` flow
+  > and the `positioningPlace` state behind it, and the `unplacedCount`
+  > catalogue key are all gone, with their unit tests. `useUnplacedChildren`
+  > stays exactly as this spec left it — it is now read only by "Posiziona
+  > luogo".
 
 - **No reparenting.** Moving a place to a different parent (changing `parentId`) is out of scope. This spec only ever changes `lat`/`lng` within the place's existing parent's map.
 - **No bulk/multi-select repositioning.**
@@ -131,8 +139,8 @@ None. This is entirely inside `app/modules/maps/`, not the `PageMeta`-driven dom
 
 - [x] **T0** — Land TD-72 first (inline `style` → Tailwind in `usePOIManager.ts` / `useNavigableChildren.ts` marker HTML). Not part of this spec; sequenced here because T5/T6 rewrite the same lines. _(test: existing hook suites stay green)_
 - [x] **T1** — `useUnplacedChildren` hook. _(test: new `useUnplacedChildren.test.ts` — returns rows missing either coordinate, across all kinds; excludes fully-placed rows; refetches on `refetchToken`)_
-- [x] **T2** — Panel section: `unplacedChildren` + `onPositionPlace` props, collapsible "Unplaced places (N)" above the POI list. Plain English strings, not a catalogue — see §11 deviation. _(test: `MapPOIPanel.test.tsx` — section absent when the list is empty, one row per unplaced child, action fires `onPositionPlace` with the right id, positioning state shows and cancels)_
-- [x] **T3** — Flow A wiring in `WorldMap` + `reloadPOIs` exposed from `usePOIManager`. _(test: `WorldMap` suite — choosing a place enters crosshair mode, the next map click calls `updatePoi` with `{ id, lat, lng }` and nothing else, success bumps the refetch token and reloads, failure toasts and leaves the place unplaced, a second click of the same place cancels)_
+- [x] **T2** — ~~Panel section: `unplacedChildren` + `onPositionPlace` props, collapsible "Unplaced places (N)" above the POI list.~~ **Removed 2026-08-27, see §3's note.** Plain English strings, not a catalogue — see §11 deviation. _(test: `MapPOIPanel.test.tsx` — section absent when the list is empty, one row per unplaced child, action fires `onPositionPlace` with the right id, positioning state shows and cancels)_
+- [x] **T3** — Flow A wiring in `WorldMap` + `reloadPOIs` exposed from `usePOIManager`. **The crosshair-arming half was removed with T2 on 2026-08-27** (`reloadPOIs` stays; the context menu positions in one step). _(test: `WorldMap` suite — choosing a place enters crosshair mode, the next map click calls `updatePoi` with `{ id, lat, lng }` and nothing else, success bumps the refetch token and reloads, failure toasts and leaves the place unplaced, a second click of the same place cancels)_
 - [x] **T4** — Flow B for `poi` in `usePOIManager`. _(test: `usePOIManager.test.ts` — marker renders draggable, `dragend` calls `updatePoi` with the new coordinates, a rejected call reverts)_
 - [x] **T5** — Flow B for `useNavigableChildren`, including the no-descend-on-drop guard. _(test: draggable, sends only `{id,lat,lng}`, dragend+click doesn't call `onDescend`, a plain click still does, failure reverts and notifies)_
 - [x] **T6** — Flow B for `useLinkedEntityMarkers`. _(test: same as T5 minus the descend case)_

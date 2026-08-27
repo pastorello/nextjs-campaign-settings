@@ -641,7 +641,6 @@
       "title": "Places of Interest",
       "clear": "Clear",
       "clearCoordinates": "Clear coordinates",
-      "unplacedCount": "{count, plural, one {# unplaced place} other {# unplaced places}}",
       "clearedToast": "{count, plural, one {Cleared # place} other {Cleared # places}}"
     },
     "maps": {

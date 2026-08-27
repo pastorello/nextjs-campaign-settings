@@ -2816,3 +2816,145 @@ actually match the image's pixels, which today they do not.
 in red as the mouse moves, a second click ends it and drops a marker showing the
 distance. Worth adopting; it is recorded with the scale work rather than here,
 since this item is about the number being wrong, not about how it is collected.
+
+---
+
+### TD-85 ✅ The POI panel's list mode has no entry point, so positioning places and editing POIs are unreachable — **DONE (2026-08-27)**
+
+**Outcome:** closed in two shipments, the split this item's own write-up asked for. [PR #190](https://github.com/pastorello/nextjs-campaign-settings/pull/190) (2026-08-19) put positioning where the DM already is — the "Posiziona luogo" right-click entry, its unpositioned count, disabled-not-hidden at zero — and took the count out of the header (TD-79). The remainder, POI edit and delete reachability, was deliberately deferred to the popover and shipped as [SPEC-016](./specs/016-place-popover.md): **T7** ([PR #223](https://github.com/pastorello/nextjs-campaign-settings/pull/223)) widened `PlacePopover` to a landmark variant whose "Modifica"/"Elimina" reach `MapPOIPanel`'s existing edit/delete machinery — the machinery was never the gap, the entry point was — with a new `editTarget` prop seeding the edit form from outside a list row for the first time.
+
+**The "may end up with no callers at all" question was answered with evidence, not a guess (T9).** The list view stays: nothing _opens_ the panel in list mode, but the panel transitions there itself on save (`resetFormAfterSave`) and on backing out of the add form, and `e2e/map-poi-crud.spec.ts` had been walking that path since before this item was written. The popover duplicates the row's edit and delete, not Import, Export, Clear all or fly-to — and the add form needs somewhere to return to.
+
+**The withdrawal this item ordered did happen**, in T9's second commit, once its stated condition ("the menu entry demonstrably works") was met by PR #190 plus T5's `map-unplace.spec.ts` driving the dropdown and its count end to end. Gone: the unplaced-children picker, its three props, `WorldMap`'s `handlePositionPlace`/`positioningPlace` crosshair-arming flow and the `handleMapClick` branch behind it, and the `geography.poiPanel.unplacedCount` key in both catalogues — with one guard test left behind so a second positioning affordance cannot grow back there.
+
+**The "check while implementing" note is discharged too:** `handlePOIModeChange`'s `mode as "list" | "add"` cast is gone, and `poiPanelMode` is typed `ViewMode` — the state widened rather than the compiler lied to.
+
+The original description follows, with the progress notes it accumulated while open.
+
+---
+
+### TD-85 (original) 🟠 The POI panel's list mode has no entry point, so positioning places and editing POIs are unreachable
+
+**Severity:** 🟠 High · **Effort:** M · **Found:** 2026-08-18, from three separate DM reports that turned out to be one defect
+
+**Shipped 2026-08-19 (PR #190), partially.** The "Posiziona luogo" context-menu
+entry, its unpositioned count, and the disabled-not-hidden-at-zero behaviour are
+all in. POI edit/delete reachability is deliberately still open — the write-up
+below already says to decide that once TD-93's popover exists, not before, and
+that stands.
+
+Reported as three things: the DM cannot find the unpositioned places, cannot
+position "Paradiso (Sole)" on the root map, and cannot edit or delete a POI once
+created. All three are the same gap.
+
+`MapPOIPanel` has two views. Its `"list"` view renders the POI list — each row
+with its own edit and delete buttons (`MapPOIPanel.tsx:187` and `:197`) — and the
+unplaced-children list with `onPositionPlace`, which is the entire TD-71 /
+SPEC-005 positioning flow. Its `"add"` view renders the creation form.
+**Only two things in the app open the panel, and both force `"add"` first:**
+`handleContextMenuAddPOI` and `handleAreaDrawn` (`WorldMap.tsx:258` and `:379`)
+each call `setPOIPanelMode("add")` immediately before `setIsPOIPanelOpen(true)`.
+Nothing anywhere sets the panel open in `"list"` mode.
+
+**So the feature is built, wired, unit-tested and unreachable.** Every prop the
+list view needs is already passed from `WorldMap` — `pois`, `unplacedChildren`,
+`onPositionPlace`, `onUpdatePOI`, `onDeletePOI`. What is missing is a button.
+
+**The fix, decided with the DM on 2026-08-18** — and it is not the panel:
+
+- **The unpositioned-places count comes out of the header.** The DM's reasoning:
+  a label that reports a number without offering an action on it is noise. It
+  goes, rather than becoming the button (which was this item's original
+  counter-proposal, now rejected).
+- **Positioning gets its own right-click entry, "Posiziona luogo."** Clicking it
+  opens a dropdown of the places that are still unpositioned; picking one arms
+  the existing positioning flow at the clicked point. **The count goes here**
+  (DM, 2026-08-18) — beside the entry, as "how many are waiting", shown where the
+  DM can act on it and nowhere else. That is the whole of what the removed header
+  label was for; see TD-79. **When every place is
+  already positioned the entry stays visible but disabled** — the DM asked for
+  this explicitly, so that the absence of work is legible rather than the menu
+  item silently disappearing.
+
+That puts the action where the DM already is (right-clicking the spot they want
+to fill), instead of behind a panel they have to open, read and then aim from.
+**The DM confirmed on 2026-08-18 that this is the _single_ method.** The
+unplaced-children list inside `MapPOIPanel` is therefore withdrawn with it, not
+kept alongside — SPEC-005 §4 carries the matching note. Remove it in a follow-up
+commit once the menu entry demonstrably works, not in the same one, so the
+deletion is separable if the new path disappoints.
+
+**POI edit and delete are a separate answer, and it is TD-93's popover** — the
+DM's decision that clicking a place opens a popover carrying its description and
+its actions. Which means the panel's list view may end up with no callers at
+all; decide that at the end of both items, not now.
+
+**Decided 2026-08-27 (SPEC-016 T9): the list view stays, and it never was
+unreachable.** This item's own "no entry point" finding was about _opening_ the
+panel in list mode, which nothing still does — but the panel transitions there
+itself once open, on save (`resetFormAfterSave`) and on backing out of the add
+form, and `WorldMap`'s controlled `mode`/`onModeChange` pair follows it.
+`e2e/map-poi-crud.spec.ts` has been exercising that path since before this item
+was written. The popover (SPEC-016 T7) duplicates the row's edit and delete, not
+the rest of the view: Import, Export, Clear all and fly-to have no other home,
+and the add form needs somewhere to return to.
+
+**The withdrawal this item ordered is done (SPEC-016 T9, second commit).** The
+condition was "once the menu entry demonstrably works" — PR #190 shipped it, and
+SPEC-016 T5's `map-unplace.spec.ts` drives the dropdown and its count end to end,
+so it has. Gone with the panel section: its three props, `WorldMap`'s
+`handlePositionPlace` / `positioningPlace` crosshair-arming flow and the
+`handleMapClick` branch behind it, the `geography.poiPanel.unplacedCount` key in
+both catalogues, and the unit blocks that covered them (one guard test left in
+`MapPOIPanel.test.tsx` so a second positioning affordance cannot grow back
+there). `useUnplacedChildren` is untouched — "Posiziona luogo" is its only
+reader now.
+
+**Check while implementing:** `handlePOIModeChange` (`WorldMap.tsx:423`) takes
+`"list" | "add" | "edit"` and stores it with `setPOIPanelMode(mode as "list" | "add")`.
+The runtime value passes through intact, so this is not believed to be the cause
+of anything the DM sees — but the cast is a lie to the compiler of exactly the
+kind `CLAUDE.md`'s rule 3 exists to prevent, and it sits in the middle of the
+code this item touches. Widen the state's type instead of casting.
+
+---
+
+### TD-96 ✅ The map's right-click menu carries two entries the model has outgrown — **DONE (2026-08-27)**
+
+**Outcome:** closed in two halves, for exactly the reason this item gave. "Copia coordinate" was unblocked and went with [PR #190](https://github.com/pastorello/nextjs-campaign-settings/pull/190) (2026-08-19). "Collega un personaggio esistente" waited for its replacement to exist and went with [SPEC-016](./specs/016-place-popover.md) T8 ([PR #224](https://github.com/pastorello/nextjs-campaign-settings/pull/224)), once `PlacePopover` was mounting its own `AttachEntityButton` pre-filled with the _clicked_ place (T4) or landmark (T7) rather than the currently-viewed parent. `WorldMap`'s own instance and its `isAttachEntityOpen` state went with the entry — the entry was that instance's only trigger.
+
+**The pre-removal check this item prescribed is what made the removal correct, and it overturned the item's own expectation.** No e2e spec drove the menu through either entry, and **no message key was orphaned**: the attach entry never had a label key of its own — `WorldMap` passed it `geography.attachEntity.trigger`, which `AttachEntityButton` also reads as its modal's title. Both catalogues are untouched, deliberately; removing that key would have blanked the modal heading rather than cleaned up drift.
+
+**Consequence worth stating:** the place _currently being viewed_ can no longer be attached to from its own map — only from its marker's popover one level up, or from the admin list's per-row button. That is this item's stated intent (no attaching to "a location you cannot see the contents of"), and it makes the root unattachable from the map entirely, consistent with SPEC-016 §5's edge case that the root never gets a popover.
+
+The original description follows, with the progress note it accumulated while open.
+
+---
+
+### TD-96 (original) 🟢 The map's right-click menu carries two entries the model has outgrown
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-08-18, reported by the DM
+
+**Shipped 2026-08-19 (PR #190), partially.** "Copia coordinate" is gone.
+"Collega un personaggio esistente" is untouched, on purpose — removing it now
+would make attaching an entity unreachable until TD-93's popover exists to
+replace it.
+
+Two entries the DM wants gone, for two different reasons:
+
+- **"Collega un personaggio esistente."** Attaching an NPC or deity becomes an
+  action inside the place's own popover (TD-93), where the DM can see what is
+  already there. Doing it from a right-click on empty map space asks them to
+  attach an entity to a location they cannot see the contents of. **Blocked on
+  the popover shipping** — remove the entry when its replacement exists, not
+  before, or the operation becomes unreachable in between.
+- **"Copia coordinate."** The DM sees no purpose for it. Given `CRS.Simple`, what
+  it copies is a raw pixel pair meaningful only to someone debugging the map, and
+  nothing in the app asks the DM to paste coordinates anywhere. **Not blocked on
+  anything** — it can go on its own.
+
+**Check before removing either:** whether an e2e spec drives the menu through
+these entries, and whether their message keys are referenced anywhere else. Keys
+left behind in the catalogues after the JSX goes are exactly the kind of drift
+this register exists to prevent — remove them from **both** `it.json` and
+`en.json` in the same commit.

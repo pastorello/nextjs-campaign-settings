@@ -1,9 +1,9 @@
 # Technical Debt Register
 
-**Last updated:** 2026-08-19
+**Last updated:** 2026-08-27
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-78, TD-79, TD-82, TD-85, TD-93, TD-96, TD-97, TD-98, TD-99, TD-100, TD-101.** Everything else in the summary table is closed. TD-85 and TD-96 are `part` — shipped in part, with the remainder deliberately deferred; their write-ups stay here rather than in the archive because that remainder is still live work.
+**Open items: TD-78, TD-79, TD-82, TD-93, TD-97, TD-98, TD-99, TD-100, TD-101.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -106,7 +106,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-82  | The place in view has no URL of its own — navigating the tree never changes the address bar                   | 🟡 Medium            | S      | 4     |
 | TD-83  | ✅ "Up" anchored to the map's own overlay container, not the scrolling page header                            | ~~🟠 High~~ done     | S      | 4     |
 | TD-84  | ✅ `WorldMap` sized to its container (`h-full`) instead of the viewport                                       | ~~🟠 High~~ done     | S      | 4     |
-| TD-85  | "Posiziona luogo" entry ships; POI edit/delete reachability still waits on TD-93's popover                    | ~~🟠 High~~ part     | M      | 4     |
+| TD-85  | ✅ "Posiziona luogo" ships (PR #190); POI edit/delete reachable from SPEC-016's popover; list view kept       | ~~🟠 High~~ done     | M      | 4     |
 | TD-86  | ✅ Renamed to "marker temporaneo", dismissable — ephemerality kept, by design                                 | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-87  | ✅ Zoom floor computed from the map's own bounds instead of a hardcoded 0                                     | ~~🟠 High~~ done     | S      | 4     |
 | TD-88  | ✅ Sidebar scroll container added; sign-out and locale switcher reachable                                     | ~~🟠 High~~ done     | S      | 4     |
@@ -117,7 +117,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-93  | An already-positioned place or attached entity can be positioned again elsewhere                              | 🟠 High              | M      | 4     |
 | TD-94  | ✅ Closed by SPEC-015 T7 — measurement rebuilt on the grid, haversine path deleted, regression test in place  | ~~🟠 High~~ done     | M      | 4     |
 | TD-95  | ✅ POI panel + neighbours (`MapControls`, `MapLoadingSpinner`, `MapErrorBoundary`) swept into both catalogues | ~~🟡 Medium~~ done   | S      | 4     |
-| TD-96  | "Copia coordinate" removed; "Collega personaggio" stays until TD-93's popover ships                           | ~~🟢 Low~~ part      | S      | 4     |
+| TD-96  | ✅ Both entries gone — "Copia coordinate" with PR #190, "Collega personaggio" with SPEC-016 T8                | ~~🟢 Low~~ done      | S      | 4     |
 | TD-97  | `MagicItemType`'s nine members are still Italian identifiers — a TD-33 miss                                   | 🟢 Low               | S      | 4     |
 | TD-98  | `.prettierignore` doesn't exclude `.claude/`, so `format:check`/`--write` reach other sessions' worktrees     | 🟢 Low               | S      | 4     |
 | TD-99  | A fresh worktree's `pnpm install` postinstall (`prisma generate`) fails for lack of `DATABASE_URL`            | 🟢 Low               | S      | 4     |
@@ -258,90 +258,6 @@ probably what the DM means by "poter navigare", but it makes back and the "up"
 button do subtly different things — back retraces _history_, up climbs the
 _tree_, and after a search-result deep link those two are not the same path.
 
-### TD-85 — The POI panel's list mode has no entry point, so positioning places and editing POIs are unreachable
-
-**Severity:** 🟠 High · **Effort:** M · **Found:** 2026-08-18, from three separate DM reports that turned out to be one defect
-
-**Shipped 2026-08-19 (PR #190), partially.** The "Posiziona luogo" context-menu
-entry, its unpositioned count, and the disabled-not-hidden-at-zero behaviour are
-all in. POI edit/delete reachability is deliberately still open — the write-up
-below already says to decide that once TD-93's popover exists, not before, and
-that stands.
-
-Reported as three things: the DM cannot find the unpositioned places, cannot
-position "Paradiso (Sole)" on the root map, and cannot edit or delete a POI once
-created. All three are the same gap.
-
-`MapPOIPanel` has two views. Its `"list"` view renders the POI list — each row
-with its own edit and delete buttons (`MapPOIPanel.tsx:187` and `:197`) — and the
-unplaced-children list with `onPositionPlace`, which is the entire TD-71 /
-SPEC-005 positioning flow. Its `"add"` view renders the creation form.
-**Only two things in the app open the panel, and both force `"add"` first:**
-`handleContextMenuAddPOI` and `handleAreaDrawn` (`WorldMap.tsx:258` and `:379`)
-each call `setPOIPanelMode("add")` immediately before `setIsPOIPanelOpen(true)`.
-Nothing anywhere sets the panel open in `"list"` mode.
-
-**So the feature is built, wired, unit-tested and unreachable.** Every prop the
-list view needs is already passed from `WorldMap` — `pois`, `unplacedChildren`,
-`onPositionPlace`, `onUpdatePOI`, `onDeletePOI`. What is missing is a button.
-
-**The fix, decided with the DM on 2026-08-18** — and it is not the panel:
-
-- **The unpositioned-places count comes out of the header.** The DM's reasoning:
-  a label that reports a number without offering an action on it is noise. It
-  goes, rather than becoming the button (which was this item's original
-  counter-proposal, now rejected).
-- **Positioning gets its own right-click entry, "Posiziona luogo."** Clicking it
-  opens a dropdown of the places that are still unpositioned; picking one arms
-  the existing positioning flow at the clicked point. **The count goes here**
-  (DM, 2026-08-18) — beside the entry, as "how many are waiting", shown where the
-  DM can act on it and nowhere else. That is the whole of what the removed header
-  label was for; see TD-79. **When every place is
-  already positioned the entry stays visible but disabled** — the DM asked for
-  this explicitly, so that the absence of work is legible rather than the menu
-  item silently disappearing.
-
-That puts the action where the DM already is (right-clicking the spot they want
-to fill), instead of behind a panel they have to open, read and then aim from.
-**The DM confirmed on 2026-08-18 that this is the _single_ method.** The
-unplaced-children list inside `MapPOIPanel` is therefore withdrawn with it, not
-kept alongside — SPEC-005 §4 carries the matching note. Remove it in a follow-up
-commit once the menu entry demonstrably works, not in the same one, so the
-deletion is separable if the new path disappoints.
-
-**POI edit and delete are a separate answer, and it is TD-93's popover** — the
-DM's decision that clicking a place opens a popover carrying its description and
-its actions. Which means the panel's list view may end up with no callers at
-all; decide that at the end of both items, not now.
-
-**Decided 2026-08-27 (SPEC-016 T9): the list view stays, and it never was
-unreachable.** This item's own "no entry point" finding was about _opening_ the
-panel in list mode, which nothing still does — but the panel transitions there
-itself once open, on save (`resetFormAfterSave`) and on backing out of the add
-form, and `WorldMap`'s controlled `mode`/`onModeChange` pair follows it.
-`e2e/map-poi-crud.spec.ts` has been exercising that path since before this item
-was written. The popover (SPEC-016 T7) duplicates the row's edit and delete, not
-the rest of the view: Import, Export, Clear all and fly-to have no other home,
-and the add form needs somewhere to return to.
-
-**The withdrawal this item ordered is done (SPEC-016 T9, second commit).** The
-condition was "once the menu entry demonstrably works" — PR #190 shipped it, and
-SPEC-016 T5's `map-unplace.spec.ts` drives the dropdown and its count end to end,
-so it has. Gone with the panel section: its three props, `WorldMap`'s
-`handlePositionPlace` / `positioningPlace` crosshair-arming flow and the
-`handleMapClick` branch behind it, the `geography.poiPanel.unplacedCount` key in
-both catalogues, and the unit blocks that covered them (one guard test left in
-`MapPOIPanel.test.tsx` so a second positioning affordance cannot grow back
-there). `useUnplacedChildren` is untouched — "Posiziona luogo" is its only
-reader now.
-
-**Check while implementing:** `handlePOIModeChange` (`WorldMap.tsx:423`) takes
-`"list" | "add" | "edit"` and stores it with `setPOIPanelMode(mode as "list" | "add")`.
-The runtime value passes through intact, so this is not believed to be the cause
-of anything the DM sees — but the cast is a lie to the compiler of exactly the
-kind `CLAUDE.md`'s rule 3 exists to prevent, and it sits in the middle of the
-code this item touches. Widen the state's type instead of casting.
-
 ### TD-93 — An already-positioned place or attached entity can be positioned again elsewhere
 
 **Severity:** 🟠 High · **Effort:** M · **Found:** 2026-08-18, reported by the DM
@@ -387,34 +303,6 @@ next, and a message in both catalogues explaining the refusal.
 path that has already failed here once. **Sequence it after the popover spec** —
 the constraint needs the un-place action to exist, or it turns a recoverable
 mistake into a dead end.
-
-### TD-96 — The map's right-click menu carries two entries the model has outgrown
-
-**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-08-18, reported by the DM
-
-**Shipped 2026-08-19 (PR #190), partially.** "Copia coordinate" is gone.
-"Collega un personaggio esistente" is untouched, on purpose — removing it now
-would make attaching an entity unreachable until TD-93's popover exists to
-replace it.
-
-Two entries the DM wants gone, for two different reasons:
-
-- **"Collega un personaggio esistente."** Attaching an NPC or deity becomes an
-  action inside the place's own popover (TD-93), where the DM can see what is
-  already there. Doing it from a right-click on empty map space asks them to
-  attach an entity to a location they cannot see the contents of. **Blocked on
-  the popover shipping** — remove the entry when its replacement exists, not
-  before, or the operation becomes unreachable in between.
-- **"Copia coordinate."** The DM sees no purpose for it. Given `CRS.Simple`, what
-  it copies is a raw pixel pair meaningful only to someone debugging the map, and
-  nothing in the app asks the DM to paste coordinates anywhere. **Not blocked on
-  anything** — it can go on its own.
-
-**Check before removing either:** whether an e2e spec drives the menu through
-these entries, and whether their message keys are referenced anywhere else. Keys
-left behind in the catalogues after the JSX goes are exactly the kind of drift
-this register exists to prevent — remove them from **both** `it.json` and
-`en.json` in the same commit.
 
 ### TD-97 — `MagicItemType`'s nine members are still Italian identifiers — a TD-33 miss
 

@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-27
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-100, TD-101, TD-102.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
+**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-100, TD-102.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -122,7 +122,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-98  | `.prettierignore` doesn't exclude `.claude/`, so `format:check`/`--write` reach other sessions' worktrees     | 🟢 Low               | S      | 4     |
 | TD-99  | A fresh worktree's `pnpm install` postinstall (`prisma generate`) fails for lack of `DATABASE_URL`            | 🟢 Low               | S      | 4     |
 | TD-100 | The map context menu can die to the init tail on slow environments; `map.spec` raced it and lost on CI        | 🟡 Medium            | M      | 4     |
-| TD-101 | Marker drag repositioning never fires `dragend`; its e2e spec was green on a vacuous assertion                | 🟠 High              | M      | 4     |
+| TD-101 | ✅ Marker drag repositioning: the marker was under the panel, not undraggable; its e2e spec is real now       | ~~🟠 High~~ done     | M      | 4     |
 | TD-102 | An unplaced landmark is offered in "Posiziona luogo", and positioning it writes to the `zone` table           | 🟠 High              | S      | 4     |
 
 ---
@@ -367,50 +367,6 @@ alternatively wrap/neutralise the `LeafletMap` deferred `invalidateSize`
 (e.g. `{ pan: false }` plus keeping `moveend` out of the init tail). Either
 way, the DM-facing claim to preserve is: a menu the DM opened stays open
 until the DM closes it or acts on it.
-
-### TD-101 — Marker drag repositioning never fires `dragend`; its e2e spec was green on a vacuous assertion
-
-**Severity:** 🟠 High · **Effort:** M · **Found:** 2026-08-22, while fixing the
-CI break SPEC-016 T7 caused in `map-place-repositioning.spec.ts`
-
-TD-71 / SPEC-005 §5.B — "a DM can drag an already-placed marker to a new spot,
-and the new position persists" — does not work, and the e2e spec written to
-prove it never could have caught that.
-
-**Why the spec passed anyway.** It read the "before" position from the panel
-row (`formatDecimalDegrees(…, 4)` → `"1890.8620, 344.0000"`) and the "after"
-position from the marker's native Leaflet popup (`toFixed(6)` →
-`"1890.862000, 344.000000"`). Two different formatters over the same numbers,
-so `expect(after).not.toBe(before)` was true no matter what the drag did.
-SPEC-016 T7 deleted that popup (a landmark click opens the place popover now,
-which never shows raw coordinates), which forced both readings onto the panel
-row — and comparing like with like, it fails.
-
-**What actually happens.** A probe run on 2026-08-22 recorded the marker's
-on-screen bounding box as `{x: 588, y: 129}` both before and after the drag
-gesture, and the panel row unchanged immediately after it, before any reload.
-So the marker never moves and no optimistic update is committed: `dragend`
-never fires. This is not a failure to persist a completed drag.
-
-**Not a SPEC-016 regression.** The same row-based assertion fails identically
-with `app/modules/maps/hooks/usePOIManager.ts` reverted to pre-T7 `main` and
-everything else left in place (checked that way round, 2026-08-22). T7 only
-removed the popup that was hiding it.
-
-**What is not yet known, and is this item's first job:** whether the drag is
-broken for a real DM in a browser, or only under Playwright's synthetic mouse
-failing to drive Leaflet's `L.Draggable`. The spec's own comment already flags
-this as the one interaction in the suite that needs Leaflet's real drag
-handling rather than a `dispatchEvent` shortcut, so a harness-only explanation
-is plausible — but `draggable: true` is set on both the POI marker
-(`usePOIManager.createMarker`) and the navigable one
-(`useNavigableChildren`), and neither has been verified by hand. Establish
-that first: it decides whether this is a product bug or a test-harness one,
-and the two have very different fixes.
-
-`e2e/map-place-repositioning.spec.ts` is `test.fixme` until then, with the
-row-based reading left in place so that un-`fixme`ing it yields a real test.
-Do not re-green it by comparing two formatters again.
 
 ### TD-102 — An unplaced landmark is offered in "Posiziona luogo", and positioning it writes to the `zone` table
 

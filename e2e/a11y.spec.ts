@@ -257,3 +257,107 @@ test("the map grid configuration panel has no accessibility violations", async (
 
   expect(summary, "axe violations on the grid configuration panel").toEqual([]);
 });
+
+/**
+ * SPEC-016 T10 (§8): axe at zero on the place popover, the same scoped-scan
+ * shape the grid panel above uses and for the same reason — the geography
+ * page as a whole is not in `PAGES`, so the scan covers exactly the surface
+ * the criterion names.
+ *
+ * The zone variant is the one scanned: it renders strictly more than the
+ * landmark variant (the indigo "Apri mappa" primary, "Sposta nei luoghi non
+ * posizionati" and "Rimuovi definitivamente" on top of the title, close
+ * button, entities list and attach control the two share). Creating one costs
+ * a map image at creation time, so this uploads the same minimal PNG
+ * `world.setup.ts` and `map-unplace.spec.ts` already rely on, and deletes the
+ * place again through the popover's own "Rimuovi definitivamente".
+ *
+ * Not covered, deliberately: the landmark variant's two extra buttons
+ * ("Modifica"/"Elimina" — same `<button>` classes as the zone actions beside
+ * them), and a populated entities list, whose icon-only X would need an
+ * attached NPC to exist here; that row's `aria-label` has its own unit test
+ * in `PlaceEntityList.test.tsx`. What is scanned is the list's empty state.
+ */
+const A11Y_PNG_FILE = {
+  name: "a11y-region.png",
+  mimeType: "image/png",
+  buffer: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+};
+
+test("the place popover has no accessibility violations", async ({ page }) => {
+  const title = `E2E a11y region ${Date.now()}`;
+
+  await page.goto("/dashboard/geography");
+  const map = page.locator(".leaflet-container");
+  await expect(map).toBeVisible();
+  // The image-overlay bootstrap refits the camera once after an interim
+  // framing (TD-81/TD-87); right-clicking during that window positions the
+  // place somewhere the later correction moves away from.
+  await page.waitForLoadState("networkidle");
+  await page.waitForTimeout(300);
+
+  const navigableMarkers = page.locator(".custom-navigable-marker");
+  const baselineMarkerCount = await navigableMarkers.count();
+
+  const menu = page.getByLabel(messages.geography.contextMenu.ariaLabel);
+  await map.click({ button: "right", position: { x: 300, y: 200 } });
+  await expect(menu).toBeVisible();
+  await menu
+    .getByRole("button", {
+      name: messages.geography.contextMenu.addPlace.trigger,
+    })
+    .click();
+  // Scoped to the "Kind" field: the dashboard's `LocaleSwitcher` is a
+  // `<select>` too, and the panel shows Category alongside Kind while the
+  // kind is still the default "poi".
+  await page
+    .locator("label", { hasText: "Kind" })
+    .locator("xpath=following-sibling::select[1]")
+    .selectOption("region");
+  // The panel's second, hidden file input is for GeoJSON import — scoped to
+  // the map-image one by its `accept`.
+  await page
+    .locator('input[type="file"][accept*="image"]')
+    .setInputFiles(A11Y_PNG_FILE);
+  await page.getByPlaceholder("Enter place name").fill(title);
+  await page.getByRole("button", { name: "Save" }).click();
+
+  // The panel stays open in list view after save, absolutely positioned over
+  // the map's left edge — close it, or the new marker is occluded.
+  await page.getByRole("button", { name: "Close", exact: true }).click();
+
+  // `.last()`: `fetchPlaceChildren` orders by `createdAt` ascending, so the
+  // place created here is always the one rendered last.
+  await expect(navigableMarkers).toHaveCount(baselineMarkerCount + 1);
+  await navigableMarkers.last().click();
+
+  const popover = page.getByRole("dialog", { name: title });
+  await expect(popover).toBeVisible();
+  // Scan a settled popover: the entities list fetches on open, and a scan
+  // that races it reads the "Caricamento…" placeholder instead of the
+  // controls the criterion is about.
+  await expect(
+    popover.getByText(messages.geography.popover.entitiesEmpty)
+  ).toBeVisible();
+
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .include('[role="dialog"]')
+    .analyze();
+
+  const summary = results.violations.map(
+    (violation) => `${violation.id} (${violation.nodes.length} nodes)`
+  );
+
+  expect(summary, "axe violations on the place popover").toEqual([]);
+
+  // Cleanup through the popover's own deletion flow (SPEC-016 T6).
+  await popover
+    .getByRole("button", { name: messages.geography.popover.delete })
+    .click();
+  await page
+    .getByRole("button", { name: messages.geography.deletePlace.confirm })
+    .click();
+  await expect(popover).not.toBeVisible();
+  await expect(navigableMarkers).toHaveCount(baselineMarkerCount);
+});

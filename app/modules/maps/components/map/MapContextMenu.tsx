@@ -27,8 +27,15 @@ interface MapContextMenuProps {
   // as plain strings, same as every label below — each optional with an
   // English fallback so a caller that doesn't need translated copy (most
   // unit tests) isn't forced to supply it.
+  //
+  // TD-104: no sublabel. It said "Ridimensiona o sposta" / "Resize or move",
+  // was corrected to "Ridisegna il rettangolo" / "Redraw the rectangle" when
+  // the DM read the first one as promising a resize handle that does not
+  // exist, and is gone entirely now — the label alone says what the entry
+  // does, and `geography.editArea.sublabel` is deleted from both catalogues.
+  // `contextMenu.positionPlace` is the standing precedent for an entry with
+  // a `trigger` and no `sublabel`.
   editAreaLabel?: string;
-  editAreaSublabel?: string;
   // Translated copy for the menu items that were still hardcoded English
   // until this pass (usability fix, 2026-08-17) — `ariaLabel` and the
   // always-shown Add Marker/Measure entries, plus Add Place's
@@ -150,7 +157,6 @@ export const MapContextMenu = memo(function MapContextMenu({
   onEditArea,
   showEditArea = false,
   editAreaLabel,
-  editAreaSublabel,
   ariaLabel = "Map context menu",
   addMarkerLabel = "Add Marker",
   addMarkerSublabel = "Place a marker here",
@@ -403,9 +409,6 @@ export const MapContextMenu = memo(function MapContextMenu({
           <MenuItem
             icon={<Scaling className="h-4 w-4" />}
             label={editAreaLabel ?? "Edit Area"}
-            {...(editAreaSublabel !== undefined && {
-              sublabel: editAreaSublabel,
-            })}
             onClick={handleEditArea}
           />
         </>

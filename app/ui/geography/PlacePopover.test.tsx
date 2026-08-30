@@ -126,6 +126,7 @@ const onClose = vi.fn();
 const onOpenMap = vi.fn();
 const onUnplace = vi.fn();
 const onDeleted = vi.fn();
+const onEditZone = vi.fn();
 const onEditLandmark = vi.fn();
 const onDeleteLandmark = vi.fn();
 const parentId = 3;
@@ -144,6 +145,7 @@ function renderPopover(
       onOpenMap={onOpenMap}
       onUnplace={onUnplace}
       onDeleted={onDeleted}
+      onEditZone={onEditZone}
       onEditLandmark={onEditLandmark}
       onDeleteLandmark={onDeleteLandmark}
     />
@@ -434,6 +436,30 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
     expect(screen.queryByText("openMap")).not.toBeInTheDocument();
     expect(screen.queryByText("unplace")).not.toBeInTheDocument();
     expect(screen.queryByText("delete")).not.toBeInTheDocument();
+    expect(screen.queryByText("editZone")).not.toBeInTheDocument();
+  });
+
+  // TD-104 — the gap this closed: a zone's popover offered attach, unplace,
+  // delete and open-map, and no edit of any kind, while a landmark had
+  // "Modifica" from the very same popover.
+  it("calls onEditZone with the clicked place when Modifica is clicked", () => {
+    const currentPlace = { ...place };
+    renderPopover({ kind: "zone", place: currentPlace });
+
+    fireEvent.click(screen.getByText("editZone"));
+
+    expect(onEditZone).toHaveBeenCalledWith(currentPlace);
+    expect(onEditZone).toHaveBeenCalledTimes(1);
+  });
+
+  // One entry, not two (the DM, 2026-08-30) — the area's redraw lives
+  // inside the panel this opens, not beside it in the popover.
+  it("offers exactly one edit entry for a zone", () => {
+    renderPopover({ kind: "zone", place });
+
+    expect(screen.getByText("editZone")).toBeInTheDocument();
+    expect(screen.queryByText("editArea")).not.toBeInTheDocument();
+    expect(screen.queryByText("editLandmark")).not.toBeInTheDocument();
   });
 
   it("calls onEditLandmark with the clicked landmark when Modifica is clicked", () => {

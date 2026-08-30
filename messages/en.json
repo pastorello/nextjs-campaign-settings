@@ -495,6 +495,12 @@
     "up": "Up",
     "loadingMap": "Loading map…",
     "fields": {
+      "title": {
+        "label": "Name"
+      },
+      "description": {
+        "label": "Description"
+      },
       "gridColumns": {
         "label": "Width in squares"
       },
@@ -547,8 +553,21 @@
       "active": "Drag on the map — Esc to cancel"
     },
     "editArea": {
-      "trigger": "Edit Area",
-      "sublabel": "Redraw the rectangle"
+      "trigger": "Edit Area"
+    },
+    "zoneEdit": {
+      "title": "Edit place",
+      "save": "Save",
+      "success": "Place saved.",
+      "area": {
+        "label": "Area on the parent\u2019s map",
+        "redraw": "Redraw the rectangle",
+        "redrawHint": "The changes above are saved, then drag on the map — Esc to cancel.",
+        "noArea": "This place is a point, not an area: it has no rectangle to redraw."
+      },
+      "errors": {
+        "saveFailed": "Saving the place failed. Try again."
+      }
     },
     "popover": {
       "close": "Close",
@@ -559,6 +578,7 @@
       "entitiesEmpty": "No character or deity in this place.",
       "detach": "Remove {name} from this place",
       "attach": "Attach a character",
+      "editZone": "Edit",
       "unplace": "Move to unpositioned places",
       "delete": "Remove permanently",
       "editLandmark": "Edit",

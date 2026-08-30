@@ -1937,11 +1937,13 @@ describe("WorldMap — un-placing from the popover (SPEC-016 T5)", () => {
       expect(useUnplacedChildren.mock.calls.at(-1)?.[1]).toBe(tokenBefore + 1);
     });
     // No assertion on the tree-wide count here any more (TD-103 stopped
-    // passing it to the menu). It was never this component's to update
-    // anyway: `unplacePlace`, like `updateZonePosition`, calls
-    // `revalidatePath`, and that is what refreshes the Server Component
-    // prop in the real app (confirmed live in e2e, SPEC-016 T5). What this
-    // test is actually about is the refetch above and the popover below.
+    // passing it to the menu), and it was never this component's to update
+    // in any case. This comment used to say the refresh comes from
+    // `revalidatePath`, "confirmed live in e2e" — see TD-105 for why that
+    // attribution does not hold: no `revalidatePath` call in this codebase
+    // names the route file structure these pages actually have, and e2e
+    // runs against `pnpm dev`, which re-renders regardless. What this test
+    // is about is the refetch above and the popover below.
     expect(screen.queryByTestId("place-popover")).not.toBeInTheDocument();
   });
 

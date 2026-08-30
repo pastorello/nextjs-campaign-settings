@@ -288,12 +288,22 @@ function WorldMap({
   // `placesRefetchToken`, the same convention `handleContextMenuPositionPlace`
   // uses in the other direction, so `unplacedChildren` picks up the child and
   // `navigableChildren` drops its marker; the popover closes since there is
-  // nothing left at this position to show. `unpositionedCount` itself needs
-  // no equivalent bump here: `unplacePlace`, like `updateZonePosition`,
-  // calls `revalidatePath("/dashboard/geography")`, which Next.js already
-  // uses to refresh this Server Component prop on the client after the
-  // action resolves — confirmed live in e2e (SPEC-016 T5); a client-side
-  // "bonus" on top of it double-counted.
+  // nothing left at this position to show. `unpositionedCount` itself gets
+  // no equivalent bump here, because a client-side "bonus" on top of
+  // whatever the server already did double-counted — that much was
+  // observed, and it is the reason this code looks the way it does.
+  //
+  // What this comment used to claim, and should not have (TD-105): that
+  // the refresh comes from `unplacePlace`'s
+  // `revalidatePath("/dashboard/geography")`, "confirmed live in e2e".
+  // The observation was real and the attribution was not. `revalidatePath`
+  // matches the route *file* structure, and these pages are
+  // `app/[locale]/dashboard/geography` — so the correct argument is
+  // `("/[locale]/dashboard/geography", "page")` and no call in this
+  // codebase is in that form. E2E cannot settle it either way: it runs
+  // `pnpm dev`, where Server Components re-render per request regardless.
+  // Pointing this mutation at a nonsense path leaves `map-unplace.spec`
+  // passing, count assertion included. See TD-105.
   const handleUnplace = useCallback(
     async (child: NavigableChild) => {
       try {

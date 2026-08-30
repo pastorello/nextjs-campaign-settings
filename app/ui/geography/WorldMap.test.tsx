@@ -60,7 +60,7 @@ vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
     showEditArea?: boolean;
     onAddSubMap?: () => void;
     unplacedPlaces?: { id: number; title: string; kind: string }[];
-    unpositionedCount?: number;
+    positionPlaceSublabel?: string;
     onPositionPlace?: (id: number, lat: number, lng: number) => void;
   }) => {
     onAddPOI = props.onAddPOI;
@@ -75,7 +75,7 @@ vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
         data-hide-add-place={props.hideAddPlace ?? false}
         data-show-edit-area={props.showEditArea ?? false}
         data-unplaced-places-count={props.unplacedPlaces?.length ?? 0}
-        data-unpositioned-count={props.unpositionedCount ?? 0}
+        data-position-place-sublabel={props.positionPlaceSublabel ?? ""}
       />
     );
   },
@@ -1236,7 +1236,13 @@ describe("WorldMap — dismissing temporary markers (TD-86)", () => {
 });
 
 describe("WorldMap — positioning a place from the context menu (TD-85)", () => {
-  it("passes this place's unplaced children and the tree-wide count through to the context menu", async () => {
+  // TD-103 — the two numbers answer different questions, so only one of
+  // them reaches the menu as a number. `unplacedChildren` is what the
+  // dropdown can offer *here*, and the menu decides its own enabled state
+  // from it; the tree-wide count arrives already rendered into the
+  // sublabel's text, where it is awareness rather than a reachability
+  // claim. Passing it as a number is what let it drive `disabled`.
+  it("passes this place's unplaced children as data, and the tree-wide count only as sublabel text", async () => {
     useUnplacedChildren.mockReturnValue([
       { id: 5, title: "Kingdom of Kang", kind: "region" },
     ]);
@@ -1247,8 +1253,8 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
       "1"
     );
     expect(screen.getByTestId("map-context-menu")).toHaveAttribute(
-      "data-unpositioned-count",
-      "7"
+      "data-position-place-sublabel",
+      "unpositionedCount"
     );
   });
 
@@ -1799,16 +1805,12 @@ describe("WorldMap — un-placing from the popover (SPEC-016 T5)", () => {
     await waitFor(() => {
       expect(useUnplacedChildren.mock.calls.at(-1)?.[1]).toBe(tokenBefore + 1);
     });
-    // `unpositionedCount` itself is left as the `unpositionedCount` prop
-    // passed in, untouched by this component — `unplacePlace`, like
-    // `updateZonePosition`, calls `revalidatePath`, which is what actually
-    // refreshes that Server Component prop in the real app (confirmed live
-    // in e2e, SPEC-016 T5); this suite mocks the mutation, so there is
-    // nothing here to revalidate against.
-    expect(screen.getByTestId("map-context-menu")).toHaveAttribute(
-      "data-unpositioned-count",
-      "2"
-    );
+    // No assertion on the tree-wide count here any more (TD-103 stopped
+    // passing it to the menu). It was never this component's to update
+    // anyway: `unplacePlace`, like `updateZonePosition`, calls
+    // `revalidatePath`, and that is what refreshes the Server Component
+    // prop in the real app (confirmed live in e2e, SPEC-016 T5). What this
+    // test is actually about is the refetch above and the popover below.
     expect(screen.queryByTestId("place-popover")).not.toBeInTheDocument();
   });
 

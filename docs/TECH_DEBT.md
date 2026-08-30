@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-27
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-100, TD-102.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
+**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-100, TD-102, TD-103.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -124,6 +124,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-100 | The map context menu can die to the init tail on slow environments; `map.spec` raced it and lost on CI        | 🟡 Medium            | M      | 4     |
 | TD-101 | ✅ Marker drag repositioning: the marker was under the panel, not undraggable; its e2e spec is real now       | ~~🟠 High~~ done     | M      | 4     |
 | TD-102 | An unplaced landmark is offered in "Posiziona luogo", and positioning it writes to the `zone` table           | 🟠 High              | S      | 4     |
+| TD-103 | ✅ "Posiziona luogo" was enabled from a tree-wide count while listing only the current map — a dead click     | ~~🟠 High~~ done     | S      | 4     |
 
 ---
 
@@ -410,3 +411,49 @@ built — a landmark has no context-menu positioning path of its own today — o
 route landmark rows to `updatePoi` instead. Which of the two is a product
 question (should an unplaced landmark be re-placeable from the context menu
 at all?), so ask the DM before building rather than picking the cheaper one.
+
+### TD-103 ✅ "Posiziona luogo" is enabled from a tree-wide count but lists only the current map's children — **DONE (2026-08-30)**
+
+**Severity:** 🟠 High · **Effort:** S · **Found:** 2026-08-30, by the DM using the app while TD-102 was open — "clicco e non succede nulla"
+
+`MapContextMenu`'s entry was `disabled={unpositionedCount === 0}`, and
+`countUnpositionedPlaces` counts every `zone` with `lat: null` **in the whole
+tree**. Its dropdown, meanwhile, was filled from `unplacedPlaces` —
+`useUnplacedChildren(parentId)`, the direct children of the map currently
+open. So on any map whose own children are all placed, the entry rendered
+enabled, the click toggled `isPositionListOpen`, and
+`isPositionListOpen && unplacedPlaces.length > 0` rendered nothing. A control
+that looks available and does nothing at all.
+
+Live on the DM's own database while this was found: 41 unpositioned zones
+tree-wide, so the entry was enabled on **every** map, and useful on the two
+that actually had unplaced children.
+
+**Neither half was wrong on its own.** SPEC-007 §5 says outright that the
+count is "a tree-wide read, not a per-parent one" and that
+`useUnplacedChildren` "answers which children of _this_ place lack
+coordinates and stays as it is" — two numbers for two surfaces, deliberately.
+The header label that consumed the tree-wide one was withdrawn on 2026-08-18
+("a number with no action attached to it is noise"), and the same
+conversation gave positioning its own right-click entry (TD-85). That is
+where the count got wired to `disabled`: an awareness figure asked to answer
+a reachability question.
+
+**Fix:** the entry is enabled from the list it will actually show. The
+tree-wide number still reaches the menu, but only as `positionPlaceSublabel`'s
+already-rendered text — information about the campaign, never a claim about
+this map — so `MapContextMenu` no longer takes `unpositionedCount` at all.
+
+**Why the tests did not catch it:** every case in
+`MapContextMenu.test.tsx` paired `unplacedPlaces: []` with
+`unpositionedCount: 0` and a populated list with `unpositionedCount: 2`. The
+suite encoded the assumption that the two agree, so the one state that
+matters — non-zero count, empty list — was never rendered. It has its own
+test now.
+
+**Interim, and labelled as such.** The DM's own reading of this is that the
+unplaced pool should not be per-map at all: there is no way to move a place
+from one map to another, so a place parked under the wrong parent is stuck
+there. That is re-parenting, cycle refusal and ADR-0010's entity invariant —
+recorded in [`ROADMAP.md`](./ROADMAP.md) as spec work. This item only stops
+the control from lying; it does not decide what the pool should contain.

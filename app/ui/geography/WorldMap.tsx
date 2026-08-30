@@ -1074,7 +1074,6 @@ function WorldMap({
         onAddSubMap={handleToggleDrawArea}
         addSubMapLabel={tDrawArea("trigger")}
         unplacedPlaces={unplacedChildren}
-        unpositionedCount={unpositionedCount}
         onPositionPlace={(id, lat, lng) =>
           void handleContextMenuPositionPlace(id, lat, lng)
         }

@@ -53,17 +53,23 @@ interface MapContextMenuProps {
   // TD-85 — positions an existing unplaced place at the exact point the
   // context menu was opened over. `unplacedPlaces` is this place's own
   // unplaced children (`useUnplacedChildren`, scoped to the map currently
-  // open) and fills the dropdown; `unpositionedCount` is the tree-wide
-  // count SPEC-007 T2 already computes (`countUnpositionedPlaces`), reused
-  // as-is per the DM's 2026-08-18 decision — an awareness number ("how many
-  // are waiting" across the whole campaign), not a claim that all of them
-  // are reachable from here. The entry is disabled, not hidden, exactly
-  // when that count is zero, so "nothing left to place" stays legible
-  // (DM, 2026-08-18) rather than the item silently disappearing. Gated by
-  // the same `hideAddPlace` containment rule as Add Place (SPEC-009 T4):
-  // ground already inside an area belongs to that area's own map.
+  // open); it fills the dropdown *and* decides whether the entry is
+  // enabled, because those must be the same question.
+  //
+  // TD-103: they were not. The entry used to be disabled on a tree-wide
+  // count (`countUnpositionedPlaces`, SPEC-007 T2) while the dropdown was
+  // filled from this list, so on any map whose own children were all placed
+  // the entry looked available and opened an empty list — a click that did
+  // nothing at all. The tree-wide number remains an awareness figure and
+  // still reaches this component, but only as `positionPlaceSublabel`'s
+  // already-rendered text, never as a claim about reachability.
+  //
+  // Disabled, not hidden, when there is nothing here to place, so "nothing
+  // left to place" stays legible (DM, 2026-08-18) rather than the item
+  // silently disappearing. Gated by the same `hideAddPlace` containment
+  // rule as Add Place (SPEC-009 T4): ground already inside an area belongs
+  // to that area's own map.
   unplacedPlaces?: UnplacedChild[];
-  unpositionedCount?: number;
   onPositionPlace?: (id: number, lat: number, lng: number) => void;
   positionPlaceLabel?: string;
   positionPlaceSublabel?: string;
@@ -155,7 +161,6 @@ export const MapContextMenu = memo(function MapContextMenu({
   onAddSubMap,
   addSubMapLabel = "Add sub-map",
   unplacedPlaces = [],
-  unpositionedCount = 0,
   onPositionPlace,
   positionPlaceLabel = "Position a place",
   positionPlaceSublabel,
@@ -245,13 +250,13 @@ export const MapContextMenu = memo(function MapContextMenu({
 
   /**
    * Toggles "Posiziona luogo"'s dropdown (TD-85). A no-op while disabled —
-   * `unpositionedCount === 0` means there is nothing the dropdown could
-   * ever offer.
+   * an empty `unplacedPlaces` means there is nothing this dropdown could
+   * show, which is the same condition the entry is disabled on (TD-103).
    */
   const handleTogglePositionList = useCallback(() => {
-    if (unpositionedCount === 0) return;
+    if (unplacedPlaces.length === 0) return;
     setIsPositionListOpen((open) => !open);
-  }, [unpositionedCount]);
+  }, [unplacedPlaces]);
 
   /**
    * Positions the chosen place at the point the menu was opened over, then
@@ -370,7 +375,7 @@ export const MapContextMenu = memo(function MapContextMenu({
               sublabel: positionPlaceSublabel,
             })}
             onClick={handleTogglePositionList}
-            disabled={unpositionedCount === 0}
+            disabled={unplacedPlaces.length === 0}
           />
           {isPositionListOpen && unplacedPlaces.length > 0 && (
             <div className="ml-2 border-l border-gray-200 dark:border-gray-700 pl-2">

@@ -46,7 +46,6 @@ vi.mock("@/app/ui/geography/MapMeasureTool", () => ({
 
 let onAddPOI: ((lat: number, lng: number) => void) | undefined;
 let onStartMeasurement: (() => void) | undefined;
-let onEditArea: (() => void) | undefined;
 let onAddSubMap: (() => void) | undefined;
 let onContextMenuPositionPlace:
   ((id: number, lat: number, lng: number) => void) | undefined;
@@ -56,8 +55,6 @@ vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
     onStartMeasurement: () => void;
     isOpen: boolean;
     hideAddPlace?: boolean;
-    onEditArea?: () => void;
-    showEditArea?: boolean;
     onAddSubMap?: () => void;
     unplacedPlaces?: { id: number; title: string; kind: string }[];
     positionPlaceSublabel?: string;
@@ -65,7 +62,6 @@ vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
   }) => {
     onAddPOI = props.onAddPOI;
     onStartMeasurement = props.onStartMeasurement;
-    onEditArea = props.onEditArea;
     onAddSubMap = props.onAddSubMap;
     onContextMenuPositionPlace = props.onPositionPlace;
     return (
@@ -73,7 +69,6 @@ vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
         data-testid="map-context-menu"
         data-open={props.isOpen}
         data-hide-add-place={props.hideAddPlace ?? false}
-        data-show-edit-area={props.showEditArea ?? false}
         data-unplaced-places-count={props.unplacedPlaces?.length ?? 0}
         data-position-place-sublabel={props.positionPlaceSublabel ?? ""}
       />
@@ -1132,13 +1127,23 @@ describe("WorldMap — resizing and moving an existing area (SPEC-009 T5)", () =
     });
   });
 
-  it("offers Edit Area only when the context menu is over an area", async () => {
-    await renderMap();
-    expect(screen.getByTestId("map-context-menu")).toHaveAttribute(
-      "data-show-edit-area",
-      "true"
-    );
-  });
+  // TD-104 (the DM, 2026-08-30) removed the right-click "Modifica area"
+  // entry these tests used to arm through. The gesture is unchanged — same
+  // `useDrawArea` instance, same `updateZonePosition` commit — but the only
+  // way in is now the place's own popover and the panel behind it.
+  function armRedraw() {
+    const onPlaceClick = useNavigableChildren.mock.calls.at(-1)?.[1] as
+      ((child: unknown) => void) | undefined;
+    act(() => {
+      onPlaceClick?.(area);
+    });
+    act(() => {
+      popoverOnEditZone?.(area);
+    });
+    act(() => {
+      zoneEditOnRedrawArea?.(area.title);
+    });
+  }
 
   it("arms the redraw gesture, switches to a crosshair cursor, and cancels other crosshair modes", async () => {
     await renderMap();
@@ -1153,9 +1158,7 @@ describe("WorldMap — resizing and moving an existing area (SPEC-009 T5)", () =
       );
     });
 
-    act(() => {
-      onEditArea?.();
-    });
+    armRedraw();
 
     expect(editAreaOptions?.enabled).toBe(true);
     // Arming edit mode cancelled the other crosshair mode — a later click
@@ -1171,9 +1174,7 @@ describe("WorldMap — resizing and moving an existing area (SPEC-009 T5)", () =
   it("calls updateZonePosition with the new footprint and refetches on success", async () => {
     await renderMap();
 
-    act(() => {
-      onEditArea?.();
-    });
+    armRedraw();
     const footprint = [
       [1, 1],
       [20, 20],
@@ -1195,9 +1196,7 @@ describe("WorldMap — resizing and moving an existing area (SPEC-009 T5)", () =
     });
     await renderMap();
 
-    act(() => {
-      onEditArea?.();
-    });
+    armRedraw();
     act(() => {
       editAreaOptions?.onComplete([
         [1, 1],
@@ -1216,9 +1215,7 @@ describe("WorldMap — resizing and moving an existing area (SPEC-009 T5)", () =
     updateZonePosition.mockResolvedValue({ ok: false, errors: {} });
     await renderMap();
 
-    act(() => {
-      onEditArea?.();
-    });
+    armRedraw();
     act(() => {
       editAreaOptions?.onComplete([
         [1, 1],
@@ -1234,9 +1231,7 @@ describe("WorldMap — resizing and moving an existing area (SPEC-009 T5)", () =
   it("disarms without writing when the gesture is cancelled", async () => {
     await renderMap();
 
-    act(() => {
-      onEditArea?.();
-    });
+    armRedraw();
     act(() => {
       editAreaOptions?.onCancel();
     });
@@ -2254,9 +2249,9 @@ describe("WorldMap — a zone's edit panel (TD-104)", () => {
   });
 
   // The whole point of the one-entry decision: the area's redraw is reached
-  // from inside the panel, and lands on the same SPEC-009 T5 commit path the
-  // right-click menu has always used.
-  it("arms the same redraw gesture the right-click menu arms", async () => {
+  // from inside the panel, and lands on SPEC-009 T5's commit path — which,
+  // since the right-click entry went, is the only way to reach it at all.
+  it("arms the SPEC-009 T5 redraw gesture", async () => {
     await renderMap();
     openPanel();
 

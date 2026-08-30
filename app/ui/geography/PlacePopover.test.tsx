@@ -453,12 +453,13 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
   });
 
   // One entry, not two (the DM, 2026-08-30) — the area's redraw lives
-  // inside the panel this opens, not beside it in the popover.
+  // inside the panel this opens, not beside it in the popover. Since the
+  // right-click entry has gone too, this is now the whole edit surface a
+  // zone has, which makes its presence load-bearing rather than convenient.
   it("offers exactly one edit entry for a zone", () => {
     renderPopover({ kind: "zone", place });
 
-    expect(screen.getByText("editZone")).toBeInTheDocument();
-    expect(screen.queryByText("editArea")).not.toBeInTheDocument();
+    expect(screen.getAllByText("editZone")).toHaveLength(1);
     expect(screen.queryByText("editLandmark")).not.toBeInTheDocument();
   });
 

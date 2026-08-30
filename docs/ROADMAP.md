@@ -448,6 +448,55 @@ recorded here so the question "what should Phase 4 actually contain?" has eviden
 behind it when it comes up, instead of being answered from the 2026-07-22 list
 alone.
 
+### Asked for on 2026-08-30, while testing the map
+
+- **One pool of unplaced places, shared by every map — and with it, moving a
+  place from one map to another.** Today "Posiziona luogo" offers only the
+  direct children of the map you are standing on (`useUnplacedChildren(parentId)`),
+  so a place parked under the wrong parent is stuck there: nothing in the app
+  re-parents anything. The DM's framing is that this makes the per-map pool not
+  merely inconsistent but a cage, and that the single pool _is_ how the missing
+  capability gets delivered — picking a pooled place while viewing map X would
+  write `parentId = X` alongside its coordinates.
+  **This is spec work, and an ADR, not a debt item.** Four things follow from
+  it that a filter change does not touch:
+  1. **Re-parenting.** `updateZonePosition` writes `lat`/`lng` only; placing
+     from a global pool has to write the tree edge too.
+  2. **Cycles.** Placing an ancestor onto a descendant's map breaks the tree —
+     "Terra" dropped inside "Regno di Kang", which is under Terra. Needs an
+     explicit refusal with a descendant check; no such invariant exists today.
+  3. **ADR-0010's entity invariant.** A landmark changing maps changes
+     `poi.zoneId`, and `npc`/`deities` rows pointing at that landmark carry a
+     `zoneId` that must follow it — the same agreement `deletePlace` maintains
+     across seven writes in one transaction. Not a single `update`.
+  4. **Scale.** The dropdown is an unstyled list of buttons in a context menu.
+     The DM's own database has 41 unplaced places; a global pool puts all of
+     them on every map.
+     `parentId` on an unplaced row becomes a value nothing reads until the row is
+     placed again — probably acceptable without a migration, since `poi.zoneId` is
+     `NOT NULL` and making it nullable would be a schema change for no gain, but
+     it is a choice that belongs in writing. Related: TD-103, which stopped the
+     entry from lying about availability but deliberately did not decide what the
+     pool should contain.
+- **Deleting a place should ask which kind of delete it is.** One confirmation
+  offering "elimina definitivamente" (remove it and everything under it) or
+  "rimuovi dalla mappa" (it returns to the unplaced pool). Half of this exists
+  already, as two separate popover entries: SPEC-016 T5's "Sposta nei luoghi non
+  posizionati" is exactly the second, and T6's "Rimuovi definitivamente" is the
+  first, with `DeletePlaceButton`'s confirmation listing what moves and what
+  loses its position. What the request changes is that they become one question
+  asked at one moment — and, more substantially, that "cancelliamo tutto" would
+  be a **cascade**, which SPEC-010 rule 2 deliberately is not: children today
+  move up to the grandparent and lose their position, and both `zone.parent` and
+  `poi.zone` are `onDelete: Restrict`, so a cascade has to be written by hand and
+  recursively. A spec should decide whether the reversal is wanted, not a
+  checkbox on a dialog.
+- **Landmark parity in the popover.** A landmark's delete has no confirmation
+  at all (`usePOIManager.deletePOI`, SPEC-016 T7), and there is no landmark
+  equivalent of "Sposta nei luoghi non posizionati" — which is why TD-102's
+  refusal message had to stop short of naming a recovery path. Both are small
+  next to the two items above, and both belong to whichever spec settles them.
+
 ---
 
 ## How to pick what is next

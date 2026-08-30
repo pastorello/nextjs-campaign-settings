@@ -180,10 +180,10 @@ describe("MapContextMenu", () => {
       onEditArea: vi.fn(),
       showEditArea: true,
       editAreaLabel: "Modifica area",
-      editAreaSublabel: "Ridimensiona o sposta",
+      editAreaSublabel: "Ridisegna il rettangolo",
     });
     expect(screen.getByText("Modifica area")).toBeInTheDocument();
-    expect(screen.getByText("Ridimensiona o sposta")).toBeInTheDocument();
+    expect(screen.getByText("Ridisegna il rettangolo")).toBeInTheDocument();
   });
 
   it("falls back to an English default label when none is provided", () => {

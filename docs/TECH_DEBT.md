@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-27
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-100.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
+**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-100, TD-104.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -125,6 +125,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-101 | ✅ Marker drag repositioning: the marker was under the panel, not undraggable; its e2e spec is real now       | ~~🟠 High~~ done     | M      | 4     |
 | TD-102 | ✅ Landmarks route to `placeLandmark`; picking one no longer addresses whichever zone shares its id           | ~~🟠 High~~ done     | M      | 4     |
 | TD-103 | ✅ "Posiziona luogo" was enabled from a tree-wide count while listing only the current map — a dead click     | ~~🟠 High~~ done     | S      | 4     |
+| TD-104 | A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu   | 🟡 Medium            | M      | 4     |
 
 ---
 
@@ -428,3 +429,37 @@ from one map to another, so a place parked under the wrong parent is stuck
 there. That is re-parenting, cycle refusal and ADR-0010's entity invariant —
 recorded in [`ROADMAP.md`](./ROADMAP.md) as spec work. This item only stops
 the control from lying; it does not decide what the pool should contain.
+
+### TD-104 — A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu
+
+**Severity:** 🟡 Medium · **Effort:** M · **Found:** 2026-08-30, by the DM clicking a zone with a sub-map and looking for "Modifica area" where the other actions are
+
+Left-clicking a navigable child opens `PlacePopover`, which offers exactly
+four things: attach an entity, "Sposta nei luoghi non posizionati" (SPEC-016
+T5), "Rimuovi definitivamente" (T6), and "Apri mappa". **No edit of any
+kind.** A landmark, by contrast, has "Modifica" from the same popover (T7).
+Editing a zone's area lives only in the map's right-click menu, reached by
+right-clicking inside the area rather than by clicking the place — which is
+where the DM looked and did not find it.
+
+**And the gap is wider than the missing entry.** Grepping every writer of
+`zone` turns up `createPlace`, `createRootPlace`, `updateZoneMap`,
+`updateZoneGrid`, `updateZonePosition`, `unplacePlace` and `deletePlace`.
+None of them writes `title` or `description`. **A region cannot be renamed
+anywhere in the application.** `MapOptionsButton` acts on the place currently
+being viewed and offers only replace-map, configure-grid and delete.
+
+So this is one decision, not two: if the popover gains an edit surface for
+zones it should be a single entry that covers the title, the description and
+the area, rather than "Modifica area" moved across on its own and a rename
+bolted on later. The area half also changes shape in the move — the
+right-click entry targets `contextMenuOverArea`, the area the click landed
+inside, while a popover entry targets the place already clicked; both end up
+arming `editingArea`, so the gesture itself is unaffected.
+
+**Already fixed, separately:** the entry's sublabel said "Ridimensiona o
+sposta" / "Resize or move" while `handleEditArea` arms only SPEC-009 T5's
+redraw-to-replace. Redrawing the rectangle elsewhere does move the area, so
+the wording was not false about the outcome — but it promised a _control_
+that does not exist, and the DM read it that way. It now describes the
+gesture: "Ridisegna il rettangolo" / "Redraw the rectangle".

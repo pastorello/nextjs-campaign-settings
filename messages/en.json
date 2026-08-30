@@ -548,7 +548,7 @@
     },
     "editArea": {
       "trigger": "Edit Area",
-      "sublabel": "Resize or move"
+      "sublabel": "Redraw the rectangle"
     },
     "popover": {
       "close": "Close",

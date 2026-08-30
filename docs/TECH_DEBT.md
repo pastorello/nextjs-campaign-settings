@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-27
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-100, TD-102.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
+**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-100, TD-104.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -123,7 +123,9 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-99  | A fresh worktree's `pnpm install` postinstall (`prisma generate`) fails for lack of `DATABASE_URL`            | 🟢 Low               | S      | 4     |
 | TD-100 | The map context menu can die to the init tail on slow environments; `map.spec` raced it and lost on CI        | 🟡 Medium            | M      | 4     |
 | TD-101 | ✅ Marker drag repositioning: the marker was under the panel, not undraggable; its e2e spec is real now       | ~~🟠 High~~ done     | M      | 4     |
-| TD-102 | An unplaced landmark is offered in "Posiziona luogo", and positioning it writes to the `zone` table           | 🟠 High              | S      | 4     |
+| TD-102 | ✅ Landmarks route to `placeLandmark`; picking one no longer addresses whichever zone shares its id           | ~~🟠 High~~ done     | M      | 4     |
+| TD-103 | ✅ "Posiziona luogo" was enabled from a tree-wide count while listing only the current map — a dead click     | ~~🟠 High~~ done     | S      | 4     |
+| TD-104 | A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu   | 🟡 Medium            | M      | 4     |
 
 ---
 
@@ -382,31 +384,82 @@ alternatively wrap/neutralise the `LeafletMap` deferred `invalidateSize`
 way, the DM-facing claim to preserve is: a menu the DM opened stays open
 until the DM closes it or acts on it.
 
-### TD-102 — An unplaced landmark is offered in "Posiziona luogo", and positioning it writes to the `zone` table
+### TD-103 ✅ "Posiziona luogo" is enabled from a tree-wide count but lists only the current map's children — **DONE (2026-08-30)**
 
-**Severity:** 🟠 High · **Effort:** S · **Found:** 2026-08-27, reading every path that writes a position while building TD-93
+**Severity:** 🟠 High · **Effort:** S · **Found:** 2026-08-30, by the DM using the app while TD-102 was open — "clicco e non succede nulla"
 
-`useUnplacedChildren` filters `fetchPlaceChildren`'s merged rows on
-`lat === null` and `isPlaceKind(row.kind)` — and `PLACE_KINDS` includes
-`"poi"`, so an unplaced **landmark** passes the filter. `MapContextMenu`
-renders every entry it is handed with no kind filter of its own, and
-`WorldMap.handleContextMenuPositionPlace` calls `updateZonePosition`, which
-writes to `zone`. Zone ids and landmark ids are separate sequences, so
-choosing an unplaced landmark there addresses whichever `zone` row happens to
-carry the same id — a different place entirely, or none.
+`MapContextMenu`'s entry was `disabled={unpositionedCount === 0}`, and
+`countUnpositionedPlaces` counts every `zone` with `lat: null` **in the whole
+tree**. Its dropdown, meanwhile, was filled from `unplacedPlaces` —
+`useUnplacedChildren(parentId)`, the direct children of the map currently
+open. So on any map whose own children are all placed, the entry rendered
+enabled, the click toggled `isPositionListOpen`, and
+`isPositionListOpen && unplacedPlaces.length > 0` rendered nothing. A control
+that looks available and does nothing at all.
 
-**Reachable in-app, not hypothetical:** `deletePlace` reparents a deleted
-place's landmarks to the grandparent with `lat: null, lng: null` (SPEC-010
-T1), which is exactly how an unplaced landmark comes to exist.
+Live on the DM's own database while this was found: 41 unpositioned zones
+tree-wide, so the entry was enabled on **every** map, and useful on the two
+that actually had unplaced children.
 
-**TD-93's guard narrows this but does not close it.** A placement now matches
-only a zone that is itself unpositioned, so the common case fails loudly
-(`"This place does not exist."` or the already-positioned refusal, both about
-a row the DM never chose). An unpositioned zone sharing the id is still moved
-silently.
+**Neither half was wrong on its own.** SPEC-007 §5 says outright that the
+count is "a tree-wide read, not a per-parent one" and that
+`useUnplacedChildren` "answers which children of _this_ place lack
+coordinates and stays as it is" — two numbers for two surfaces, deliberately.
+The header label that consumed the tree-wide one was withdrawn on 2026-08-18
+("a number with no action attached to it is noise"), and the same
+conversation gave positioning its own right-click entry (TD-85). That is
+where the count got wired to `disabled`: an awareness figure asked to answer
+a reachability question.
 
-**The fix, in shape:** filter the list by `isNavigablePlaceKind` where it is
-built — a landmark has no context-menu positioning path of its own today — or
-route landmark rows to `updatePoi` instead. Which of the two is a product
-question (should an unplaced landmark be re-placeable from the context menu
-at all?), so ask the DM before building rather than picking the cheaper one.
+**Fix:** the entry is enabled from the list it will actually show. The
+tree-wide number still reaches the menu, but only as `positionPlaceSublabel`'s
+already-rendered text — information about the campaign, never a claim about
+this map — so `MapContextMenu` no longer takes `unpositionedCount` at all.
+
+**Why the tests did not catch it:** every case in
+`MapContextMenu.test.tsx` paired `unplacedPlaces: []` with
+`unpositionedCount: 0` and a populated list with `unpositionedCount: 2`. The
+suite encoded the assumption that the two agree, so the one state that
+matters — non-zero count, empty list — was never rendered. It has its own
+test now.
+
+**Interim, and labelled as such.** The DM's own reading of this is that the
+unplaced pool should not be per-map at all: there is no way to move a place
+from one map to another, so a place parked under the wrong parent is stuck
+there. That is re-parenting, cycle refusal and ADR-0010's entity invariant —
+recorded in [`ROADMAP.md`](./ROADMAP.md) as spec work. This item only stops
+the control from lying; it does not decide what the pool should contain.
+
+### TD-104 — A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu
+
+**Severity:** 🟡 Medium · **Effort:** M · **Found:** 2026-08-30, by the DM clicking a zone with a sub-map and looking for "Modifica area" where the other actions are
+
+Left-clicking a navigable child opens `PlacePopover`, which offers exactly
+four things: attach an entity, "Sposta nei luoghi non posizionati" (SPEC-016
+T5), "Rimuovi definitivamente" (T6), and "Apri mappa". **No edit of any
+kind.** A landmark, by contrast, has "Modifica" from the same popover (T7).
+Editing a zone's area lives only in the map's right-click menu, reached by
+right-clicking inside the area rather than by clicking the place — which is
+where the DM looked and did not find it.
+
+**And the gap is wider than the missing entry.** Grepping every writer of
+`zone` turns up `createPlace`, `createRootPlace`, `updateZoneMap`,
+`updateZoneGrid`, `updateZonePosition`, `unplacePlace` and `deletePlace`.
+None of them writes `title` or `description`. **A region cannot be renamed
+anywhere in the application.** `MapOptionsButton` acts on the place currently
+being viewed and offers only replace-map, configure-grid and delete.
+
+So this is one decision, not two: if the popover gains an edit surface for
+zones it should be a single entry that covers the title, the description and
+the area, rather than "Modifica area" moved across on its own and a rename
+bolted on later. The area half also changes shape in the move — the
+right-click entry targets `contextMenuOverArea`, the area the click landed
+inside, while a popover entry targets the place already clicked; both end up
+arming `editingArea`, so the gesture itself is unaffected.
+
+**Already fixed, separately:** the entry's sublabel said "Ridimensiona o
+sposta" / "Resize or move" while `handleEditArea` arms only SPEC-009 T5's
+redraw-to-replace. Redrawing the rectangle elsewhere does move the area, so
+the wording was not false about the outcome — but it promised a _control_
+that does not exist, and the DM read it that way. It now describes the
+gesture: "Ridisegna il rettangolo" / "Redraw the rectangle".

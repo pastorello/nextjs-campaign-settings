@@ -180,10 +180,10 @@ describe("MapContextMenu", () => {
       onEditArea: vi.fn(),
       showEditArea: true,
       editAreaLabel: "Modifica area",
-      editAreaSublabel: "Ridimensiona o sposta",
+      editAreaSublabel: "Ridisegna il rettangolo",
     });
     expect(screen.getByText("Modifica area")).toBeInTheDocument();
-    expect(screen.getByText("Ridimensiona o sposta")).toBeInTheDocument();
+    expect(screen.getByText("Ridisegna il rettangolo")).toBeInTheDocument();
   });
 
   it("falls back to an English default label when none is provided", () => {
@@ -270,7 +270,6 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
     renderMenu({
       onPositionPlace: vi.fn(),
       unplacedPlaces,
-      unpositionedCount: 2,
       positionPlaceLabel: "Posiziona luogo",
     });
     expect(screen.getByText("Posiziona luogo")).toBeInTheDocument();
@@ -280,28 +279,47 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
     renderMenu({
       onPositionPlace: vi.fn(),
       unplacedPlaces,
-      unpositionedCount: 2,
       hideAddPlace: true,
     });
     expect(screen.queryByText("Position a place")).not.toBeInTheDocument();
   });
 
-  it("is disabled when unpositionedCount is zero, so it stays visible rather than vanishing", () => {
+  it("is disabled when there is nothing here to place, so it stays visible rather than vanishing", () => {
     renderMenu({
       onPositionPlace: vi.fn(),
       unplacedPlaces: [],
-      unpositionedCount: 0,
     });
 
     const trigger = screen.getByText("Position a place").closest("button")!;
     expect(trigger).toBeDisabled();
   });
 
-  it("is enabled when unpositionedCount is greater than zero", () => {
+  // TD-103 — the entry used to be disabled on a *tree-wide* count while the
+  // dropdown was filled from this per-place list. Every test above paired
+  // the two in step, which is exactly why the split never showed: an empty
+  // list with a non-zero count is the state a DM hits on any map whose own
+  // children are all placed, and it rendered an enabled entry that opened
+  // nothing.
+  it("is disabled when the tree has unplaced places but this map has none of them", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedPlaces: [],
+      positionPlaceSublabel: "41 luoghi non ancora posizionati",
+    });
+
+    const trigger = screen.getByText("Position a place").closest("button")!;
+    expect(trigger).toBeDisabled();
+    // The awareness number still renders — it is information about the
+    // campaign, not a claim that any of it is reachable from here.
+    expect(
+      screen.getByText("41 luoghi non ancora posizionati")
+    ).toBeInTheDocument();
+  });
+
+  it("is enabled when this map has something to place", () => {
     renderMenu({
       onPositionPlace: vi.fn(),
       unplacedPlaces,
-      unpositionedCount: 2,
     });
 
     const trigger = screen.getByText("Position a place").closest("button")!;
@@ -312,7 +330,6 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
     renderMenu({
       onPositionPlace: vi.fn(),
       unplacedPlaces,
-      unpositionedCount: 2,
       positionPlaceSublabel: "2 luoghi non ancora posizionati",
     });
     expect(
@@ -324,7 +341,6 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
     renderMenu({
       onPositionPlace: vi.fn(),
       unplacedPlaces,
-      unpositionedCount: 2,
     });
 
     expect(screen.queryByText("Kingdom of Kang")).not.toBeInTheDocument();
@@ -339,7 +355,6 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
     renderMenu({
       onPositionPlace: vi.fn(),
       unplacedPlaces: [],
-      unpositionedCount: 0,
     });
 
     fireEvent.click(screen.getByText("Position a place"));
@@ -352,7 +367,6 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
     const { onClose } = renderMenu({
       onPositionPlace,
       unplacedPlaces,
-      unpositionedCount: 2,
     });
 
     fireEvent.click(screen.getByText("Position a place"));

@@ -548,7 +548,7 @@
     },
     "editArea": {
       "trigger": "Modifica area",
-      "sublabel": "Ridimensiona o sposta"
+      "sublabel": "Ridisegna il rettangolo"
     },
     "popover": {
       "close": "Chiudi",
@@ -638,6 +638,7 @@
       "poiDeleteFailed": "Impossibile eliminare «{title}». Il luogo è stato ripristinato.",
       "placePositionFailed": "Impossibile posizionare «{title}». Riprova.",
       "placeAlreadyPositioned": "«{title}» è già posizionato. Spostalo nei luoghi non posizionati prima di collocarlo altrove.",
+      "landmarkAlreadyPositioned": "«{title}» è già posizionato sulla mappa.",
       "placeUnplaceFailed": "Impossibile spostare «{title}» tra i luoghi non posizionati. Riprova."
     },
     "poiPanel": {

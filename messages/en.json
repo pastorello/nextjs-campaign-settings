@@ -548,7 +548,7 @@
     },
     "editArea": {
       "trigger": "Edit Area",
-      "sublabel": "Resize or move"
+      "sublabel": "Redraw the rectangle"
     },
     "popover": {
       "close": "Close",
@@ -638,6 +638,7 @@
       "poiDeleteFailed": "Could not delete “{title}”. The place has been restored.",
       "placePositionFailed": "Could not position “{title}”. Try again.",
       "placeAlreadyPositioned": "“{title}” is already positioned. Move it back to the unpositioned places before placing it elsewhere.",
+      "landmarkAlreadyPositioned": "“{title}” is already positioned on the map.",
       "placeUnplaceFailed": "Could not move “{title}” back to unpositioned places. Try again."
     },
     "poiPanel": {

@@ -30,6 +30,7 @@ import type {
 import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import createPlace from "@/app/lib/data/maps/createPlace";
+import placeLandmark from "@/app/lib/data/maps/placeLandmark";
 import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
 import unplacePlace from "@/app/lib/data/maps/unplacePlace";
 import PlacePopover, {
@@ -244,6 +245,7 @@ function WorldMap({
     exportGeoJSON,
     importGeoJSON,
     flyToPOI,
+    reloadPOIs,
   } = usePOIManager(parentId, handlePOIClick);
 
   // Bumped after a successful region create so `useNavigableChildren`
@@ -501,22 +503,56 @@ function WorldMap({
     async (id: number, lat: number, lng: number) => {
       const child = unplacedChildren.find((candidate) => candidate.id === id);
       const title = child?.title ?? "";
+
+      // TD-102 — the id on its own does not say which table to write to.
+      // `fetchPlaceChildren` merges `zone` and `poi` rows into one list and
+      // the two id sequences are independent, so without the row that
+      // produced this entry there is nothing to route on. Refuse rather
+      // than default to a table: defaulting is what moved a place the DM
+      // never chose.
+      if (!child) {
+        console.error("No unplaced child matches the chosen id:", id);
+        toast.error(t("placePositionFailed", { title }));
+        return;
+      }
+
+      const isLandmark = child.kind === "poi";
+
       try {
-        const result = await updateZonePosition({
-          id,
-          lat,
-          lng,
-          intent: "place",
-        });
+        // `kind === "poi"` is a sound discriminator, not a convention:
+        // `fetchPlaceChildren` hardcodes it for every `poi` row,
+        // `placeSchema` restricts `zone.kind` to the navigable kinds, and
+        // SPEC-008 T8's migration copied only navigable-kind rows into
+        // `zone`. No zone can carry it.
+        const result = isLandmark
+          ? await placeLandmark({ id, lat, lng })
+          : await updateZonePosition({ id, lat, lng, intent: "place" });
         if (result.ok) {
           setPlacesRefetchToken((token) => token + 1);
+          // A landmark that gains coordinates has to be *loaded*, not just
+          // dropped from the unplaced list: `usePOIManager` owns the
+          // landmark markers and holds its own state, and this write
+          // happened outside its optimistic path — the row is not in `pois`
+          // yet, so `updatePOI` would have nothing to find. `reloadPOIs`
+          // exists for exactly this and had been left with no caller:
+          // SPEC-016 T9 withdrew `MapPOIPanel`'s unplaced picker, which was
+          // the one that used to call it. Without this the placement
+          // persists and the marker appears only on the next reload
+          // (TD-102).
+          if (isLandmark) await reloadPOIs();
         } else {
           // TD-93 — a refused second placement is not a failed one: the
           // write was rejected on purpose, and the DM needs to be told what
-          // to do about it rather than invited to "try again".
+          // to do about it rather than invited to "try again". The landmark
+          // wording stops short of naming a recovery: SPEC-016 T5's "Sposta
+          // nei luoghi non posizionati" exists for navigable places only,
+          // so telling a DM to un-place a landmark first would point at a
+          // control that is not there (TD-102).
           toast.error(
             result.code === "alreadyPlaced"
-              ? t("placeAlreadyPositioned", { title })
+              ? isLandmark
+                ? t("landmarkAlreadyPositioned", { title })
+                : t("placeAlreadyPositioned", { title })
               : t("placePositionFailed", { title })
           );
         }
@@ -525,7 +561,7 @@ function WorldMap({
         toast.error(t("placePositionFailed", { title }));
       }
     },
-    [unplacedChildren, t]
+    [unplacedChildren, reloadPOIs, t]
   );
 
   // Handle POI location selection request. Also cancels draw-area mode
@@ -1074,7 +1110,6 @@ function WorldMap({
         onAddSubMap={handleToggleDrawArea}
         addSubMapLabel={tDrawArea("trigger")}
         unplacedPlaces={unplacedChildren}
-        unpositionedCount={unpositionedCount}
         onPositionPlace={(id, lat, lng) =>
           void handleContextMenuPositionPlace(id, lat, lng)
         }

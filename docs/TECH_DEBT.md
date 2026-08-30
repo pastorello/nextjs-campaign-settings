@@ -453,7 +453,16 @@ being viewed and offers only replace-map, configure-grid and delete.
 So this is one decision, not two: if the popover gains an edit surface for
 zones it should be a single entry that covers the title, the description and
 the area, rather than "Modifica area" moved across on its own and a rename
-bolted on later. The area half also changes shape in the move — the
+bolted on later.
+
+**Decided by the DM, 2026-08-30: one "Modifica" entry, opening the panel with
+the area inside it.** Not two entries side by side in the popover. So the
+popover gains exactly one button for a zone, matching the shape a landmark
+already has (SPEC-016 T7's "Modifica"), and the area's redraw is reached from
+within that panel rather than from a second place. What the right-click menu
+keeps is a separate question this does not settle — the positional entry still
+works on the area under the cursor, which is the only way to reach an area
+whose place is hard to click. The area half also changes shape in the move — the
 right-click entry targets `contextMenuOverArea`, the area the click landed
 inside, while a popover entry targets the place already clicked; both end up
 arming `editingArea`, so the gesture itself is unaffected.

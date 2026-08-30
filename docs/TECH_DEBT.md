@@ -32,101 +32,101 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-| ID     | Title                                                                                                         | Severity             | Effort | Phase |
-| ------ | ------------------------------------------------------------------------------------------------------------- | -------------------- | ------ | ----- |
-| TD-01  | ✅ Unauthenticated delete endpoints and Server Actions                                                        | ~~🔴 Critical~~ done | M      | 1     |
-| TD-02  | ✅ No input validation, incl. TD-02b's remaining boundaries                                                   | ~~🔴 Critical~~ done | M      | 1–2   |
-| TD-03  | ✅ Test suite does not run                                                                                    | ~~🔴 Critical~~ done | M      | 1     |
-| TD-04  | ✅ TypeScript errors on `tsc --noEmit`                                                                        | ~~🔴 Critical~~ done | S      | 1     |
-| TD-05  | ✅ No ESLint config, no Prettier, no CI                                                                       | ~~🟠 High~~ done     | S      | 1     |
-| TD-06  | ✅ Dead code and tutorial leftovers                                                                           | ~~🟠 High~~ done     | S      | 1     |
-| TD-07  | ✅ `next`/`react` pinned; single lockfile                                                                     | ~~🟠 High~~ done     | S      | 1     |
-| TD-08  | ✅ Metadata and query layer typed; zero `any`, rule is an error                                               | ~~🟠 High~~ done     | M      | 2     |
-| TD-09  | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm                                            | ~~🟠 High~~ done     | L      | 2     |
-| TD-10  | ✅ Toasts (client) vs `logServerIssue` (server) replace the stub                                              | ~~🟠 High~~ done     | M      | 2     |
-| TD-11  | ✅ Timestamps + `@@index([nome])`; relations still deferred                                                   | ~~🟡 Medium~~ part   | M      | 2     |
-| TD-12  | ✅ Filter list declared once; count and rows can no longer diverge                                            | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-13  | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10                                                    | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-14  | ✅ Map POIs persisted only to `localStorage`                                                                  | ~~🟡 Medium~~ done   | M      | 3     |
-| TD-15  | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring                                              | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-16  | ✅ Inconsistent formatting                                                                                    | ~~🟢 Low~~ done      | S      | 1     |
-| TD-17  | ✅ README does not match reality                                                                              | ~~🟢 Low~~ done      | S      | 1     |
-| TD-18  | ✅ `copy-webpack-plugin` forces webpack over Turbopack                                                        | ~~🟢 Low~~ done      | S      | 3     |
-| TD-19  | ✅ Mixed Italian/English identifiers (residual set → TD-33)                                                   | ~~🟠 High~~ done     | L      | 2     |
-| TD-20  | ✅ Every flag on, incl. `noUncheckedIndexedAccess` (`noUnusedLocals` rejected)                                | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-21  | ✅ UI strings hardcoded; app must ship in it + en                                                             | ~~🟠 High~~ done     | L      | 2     |
-| TD-22  | ✅ Lint warnings 293 → 0; every rule back to `error`                                                          | ~~🟠 High~~ done     | M      | 2     |
-| TD-23  | ✅ Migration drift patched forward; migrations match the schema                                               | ~~🟠 High~~ done     | S      | 1     |
-| TD-24  | ✅ Playwright harness + specs; `e2e` job blocking in CI                                                       | ~~🟠 High~~ done     | M      | 1     |
-| TD-25  | ✅ Startup reachability check; 503 distinct from 500                                                          | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-26  | ✅ `sottoclassi` / `circolo` duplication resolved                                                             | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-27  | ✅ Hidden `classi=0` filter on the spells list removed                                                        | ~~🟠 High~~ done     | S      | 2     |
-| TD-28  | ✅ Seed ids removed; the database assigns them, as the UI does                                                | ~~🟠 High~~ done     | S      | 2     |
-| TD-29  | ✅ Loading skeleton was the tutorial's invoices table                                                         | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-30  | ✅ Public list pages actually stream; skeleton matches the content                                            | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-31  | ✅ `sortSelectOptions` mutated shared `PageMeta.options` in place                                             | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-32  | ✅ E2E job spent 9m a run on `playwright install-deps`                                                        | ~~🟠 High~~ done     | S      | 1     |
-| TD-33  | ✅ Italian identifiers TD-19 missed — 16 across 14 files + a directory                                        | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-34  | ✅ CI actions pinned to a deprecated Node 20 runtime; Node 22 → 24                                            | ~~🟢 Low~~ done      | S      | 2     |
-| TD-35  | ✅ E2E specs assert hardcoded Italian copy instead of reading the catalogue                                   | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-36  | ✅ `proxy.ts` matcher let `.jpg` through the auth/i18n gate, breaking map tiles                               | ~~🟠 High~~ done     | S      | 2     |
-| TD-37  | ✅ `authenticate()` and `app/lib/connections/**` are 0% covered — the login and DB-bootstrap path             | ~~🟠 High~~ done     | S      | 2     |
-| TD-38  | ✅ `fetch*`/`get*Count` untested for deities, magicitems, npc — data layer at 51%, target 90%                 | ~~🟠 High~~ done     | S      | 2     |
-| TD-39  | ✅ Pure functions in `app/lib/utils/**` at 51%, target 95% — cheapest real coverage in the project            | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-40  | ✅ Metadata correctness untested — `npcMeta`/`deityMeta` at 14%/25%, target 80%                               | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-41  | ✅ `app/lib/hooks/**` at 52%, target 70% — `useFilterController` entirely untested                            | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-42  | ✅ `app/ui/**` behaviour untested — domain forms/cards/libraries at ~0%, target 60%                           | ~~🟢 Low~~ done      | L      | 2     |
-| TD-43  | ✅ `app/modules/maps/**` geometry and hooks near 0%, target 50%                                               | ~~🟢 Low~~ done      | M      | 2     |
-| TD-44  | ✅ Re-measured coverage with `coverage.all: true`; re-scoped the 70% gap as TD-45/TD-46                       | ~~🟡 Medium~~ done   | S      | 2     |
-| TD-45  | ✅ Page-level route components (`app/[locale]/dashboard/**`, `app/ui/geography`) covered                      | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-46  | ✅ `app/modules/maps/components/**` (Leaflet rendering, 737 lines) Vitest coverage — Tier 1 and Tier 2 done   | ~~🟡 Medium~~ done   | L      | 2     |
-| TD-58  | ✅ Dependabot grouped a major ESLint bump into the dev-dependencies group, breaking CI                        | ~~🟠 High~~ done     | S      | 3     |
-| TD-59  | ✅ `prisma` CLI and `@prisma/client`/`@prisma/adapter-pg` could bump independently, breaking the build        | ~~🟠 High~~ done     | S      | 3     |
-| TD-61  | ✅ Option-backed `Int` fields accept any number; an out-of-list value renders as a blank cell                 | ~~🟠 High~~ done     | S      | 3     |
-| TD-62  | ✅ POI category names are hardcoded English and reach the UI — a TD-21 leftover                               | ~~🟢 Low~~ done      | S      | 3     |
-| TD-63  | ✅ Local dev DB's migration history had a gap `migrate dev`/`migrate deploy` couldn't get past                | ~~🟡 Medium~~ done   | S      | 3     |
-| TD-64  | ✅ `WorldMap.tsx`'s async-effect map-loading pattern trips `react-hooks/set-state-in-effect`                  | ~~🟢 Low~~ done      | S      | 3     |
-| TD-65  | ✅ `DATABASE_URL` in this dev environment isn't a throwaway DB — e2e debris landed in real data               | ~~🟡 Medium~~ done   | S      | 3     |
-| TD-66  | ✅ `UPLOAD_DIR`'s relative default silently splits map-image files from the DB rows referencing them          | ~~🟡 Medium~~ done   | S      | 3     |
-| TD-67  | ✅ "Add to My Places" context-menu label is misleading — it creates any kind, not just a POI                  | ~~🟢 Low~~ done      | S      | 3     |
-| TD-68  | ✅ `MapPOIPanel`'s Close button is unclickable — a same-`z-index` overlay intercepts the click                | ~~🟠 High~~ done     | S      | 3     |
-| TD-69  | ✅ `poi.linkedType`/`linkedId` has no unique constraint — a second pin per NPC/deity is silently possible     | ~~🟠 High~~ done     | S      | 3     |
-| TD-70  | ✅ No rendering path exists for `deity`/`npc` pins on the map, even once positioned                           | ~~🟡 Medium~~ done   | M      | 3     |
-| TD-71  | ✅ No way to position or edit a place that already exists — only newly-created ones get coordinates           | ~~🟠 High~~ done     | L      | 3     |
-| TD-72  | ✅ `usePOIManager.ts`/`useNavigableChildren.ts` marker HTML uses inline `style`, not Tailwind classes         | ~~🟢 Low~~ done      | S      | 3     |
-| TD-73  | ✅ `.env.test.example`'s documented e2e setup (`prisma db push`) leaves a fresh DB unable to seed             | ~~🟡 Medium~~ done   | S      | 3     |
-| TD-74  | ✅ `pageMetaFields` spread four domain metas into one flat object — a name collision silently discarded one   | ~~🟡 Medium~~ done   | S      | 3     |
-| TD-75  | ✅ `pnpm test` fails on a clean checkout — one suite needs a `DATABASE_URL` that only CI provides             | ~~🟡 Medium~~ done   | S      | 3     |
-| TD-76  | ✅ `renderRichText` injects stored text as raw HTML with no sanitisation                                      | ~~🟡 Medium~~ done   | S      | 3     |
-| TD-77  | ✅ An entity's location is resolved through two unreconciled read paths                                       | ~~🟡 Medium~~ done   | S      | 3     |
-| TD-78  | The NPC admin list lost its Fazione column filter when the field went table-backed                            | 🟢 Low               | M      | 3     |
-| TD-79  | The unpositioned-places count doesn't distinguish "blocked on the parent's map" from any other cause          | 🟢 Low               | S      | 3     |
-| TD-80  | ✅ Deity, magic-item, and faction create/update Server Actions lack unit and e2e test coverage                | ~~🟡 Medium~~ done   | M      | 2     |
-| TD-81  | ✅ Maps framed to the image's own aspect ratio instead of a square default                                    | ~~🟠 High~~ done     | M      | 4     |
-| TD-82  | The place in view has no URL of its own — navigating the tree never changes the address bar                   | 🟡 Medium            | S      | 4     |
-| TD-83  | ✅ "Up" anchored to the map's own overlay container, not the scrolling page header                            | ~~🟠 High~~ done     | S      | 4     |
-| TD-84  | ✅ `WorldMap` sized to its container (`h-full`) instead of the viewport                                       | ~~🟠 High~~ done     | S      | 4     |
-| TD-85  | ✅ "Posiziona luogo" ships (PR #190); POI edit/delete reachable from SPEC-016's popover; list view kept       | ~~🟠 High~~ done     | M      | 4     |
-| TD-86  | ✅ Renamed to "marker temporaneo", dismissable — ephemerality kept, by design                                 | ~~🟡 Medium~~ done   | S      | 4     |
-| TD-87  | ✅ Zoom floor computed from the map's own bounds instead of a hardcoded 0                                     | ~~🟠 High~~ done     | S      | 4     |
-| TD-88  | ✅ Sidebar scroll container added; sign-out and locale switcher reachable                                     | ~~🟠 High~~ done     | S      | 4     |
-| TD-89  | ✅ `group` ancestor added; chevron rotates on all five disclosure cards                                       | ~~🟢 Low~~ done      | S      | 4     |
-| TD-90  | ✅ Icon rotates in a square box now, not the wrapper — incl. two unreported instances found                   | ~~🟢 Low~~ done      | S      | 4     |
-| TD-91  | ✅ Places and factions counted; every place in the tree, per the DM                                           | ~~🟡 Medium~~ done   | S      | 4     |
-| TD-92  | ✅ Every card links to its domain list via the locale-aware `Link`                                            | ~~🟢 Low~~ done      | S      | 4     |
-| TD-93  | ✅ Guarded writes refuse a second placement; un-placing and clearing are the way back                         | ~~🟠 High~~ done     | M      | 4     |
-| TD-94  | ✅ Closed by SPEC-015 T7 — measurement rebuilt on the grid, haversine path deleted, regression test in place  | ~~🟠 High~~ done     | M      | 4     |
-| TD-95  | ✅ POI panel + neighbours (`MapControls`, `MapLoadingSpinner`, `MapErrorBoundary`) swept into both catalogues | ~~🟡 Medium~~ done   | S      | 4     |
-| TD-96  | ✅ Both entries gone — "Copia coordinate" with PR #190, "Collega personaggio" with SPEC-016 T8                | ~~🟢 Low~~ done      | S      | 4     |
-| TD-97  | `MagicItemType`'s nine members are still Italian identifiers — a TD-33 miss                                   | 🟢 Low               | S      | 4     |
-| TD-98  | `.prettierignore` doesn't exclude `.claude/`, so `format:check`/`--write` reach other sessions' worktrees     | 🟢 Low               | S      | 4     |
-| TD-99  | A fresh worktree's `pnpm install` postinstall (`prisma generate`) fails for lack of `DATABASE_URL`            | 🟢 Low               | S      | 4     |
-| TD-100 | The map context menu can die to the init tail on slow environments; `map.spec` raced it and lost on CI        | 🟡 Medium            | M      | 4     |
-| TD-101 | ✅ Marker drag repositioning: the marker was under the panel, not undraggable; its e2e spec is real now       | ~~🟠 High~~ done     | M      | 4     |
-| TD-102 | ✅ Landmarks route to `placeLandmark`; picking one no longer addresses whichever zone shares its id           | ~~🟠 High~~ done     | M      | 4     |
-| TD-103 | ✅ "Posiziona luogo" was enabled from a tree-wide count while listing only the current map — a dead click     | ~~🟠 High~~ done     | S      | 4     |
-| TD-104 | A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu   | 🟡 Medium            | M      | 4     |
-| TD-105 | No `revalidatePath` call in the app names the route file structure; all 48 are inert once Next narrows it     | 🟠 High              | M      | 4     |
+| ID     | Title                                                                                                           | Severity             | Effort | Phase |
+| ------ | --------------------------------------------------------------------------------------------------------------- | -------------------- | ------ | ----- |
+| TD-01  | ✅ Unauthenticated delete endpoints and Server Actions                                                          | ~~🔴 Critical~~ done | M      | 1     |
+| TD-02  | ✅ No input validation, incl. TD-02b's remaining boundaries                                                     | ~~🔴 Critical~~ done | M      | 1–2   |
+| TD-03  | ✅ Test suite does not run                                                                                      | ~~🔴 Critical~~ done | M      | 1     |
+| TD-04  | ✅ TypeScript errors on `tsc --noEmit`                                                                          | ~~🔴 Critical~~ done | S      | 1     |
+| TD-05  | ✅ No ESLint config, no Prettier, no CI                                                                         | ~~🟠 High~~ done     | S      | 1     |
+| TD-06  | ✅ Dead code and tutorial leftovers                                                                             | ~~🟠 High~~ done     | S      | 1     |
+| TD-07  | ✅ `next`/`react` pinned; single lockfile                                                                       | ~~🟠 High~~ done     | S      | 1     |
+| TD-08  | ✅ Metadata and query layer typed; zero `any`, rule is an error                                                 | ~~🟠 High~~ done     | M      | 2     |
+| TD-09  | ✅ Quartets collapsed into EntityList / EntityLibrary / EntityForm                                              | ~~🟠 High~~ done     | L      | 2     |
+| TD-10  | ✅ Toasts (client) vs `logServerIssue` (server) replace the stub                                                | ~~🟠 High~~ done     | M      | 2     |
+| TD-11  | ✅ Timestamps + `@@index([nome])`; relations still deferred                                                     | ~~🟡 Medium~~ part   | M      | 2     |
+| TD-12  | ✅ Filter list declared once; count and rows can no longer diverge                                              | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-13  | ✅ Typed errors with `cause`; 404 vs 500; toasts via TD-10                                                      | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-14  | ✅ Map POIs persisted only to `localStorage`                                                                    | ~~🟡 Medium~~ done   | M      | 3     |
+| TD-15  | ✅ `e2e/a11y.spec.ts` — zero axe violations, keyboard focus ring                                                | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-16  | ✅ Inconsistent formatting                                                                                      | ~~🟢 Low~~ done      | S      | 1     |
+| TD-17  | ✅ README does not match reality                                                                                | ~~🟢 Low~~ done      | S      | 1     |
+| TD-18  | ✅ `copy-webpack-plugin` forces webpack over Turbopack                                                          | ~~🟢 Low~~ done      | S      | 3     |
+| TD-19  | ✅ Mixed Italian/English identifiers (residual set → TD-33)                                                     | ~~🟠 High~~ done     | L      | 2     |
+| TD-20  | ✅ Every flag on, incl. `noUncheckedIndexedAccess` (`noUnusedLocals` rejected)                                  | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-21  | ✅ UI strings hardcoded; app must ship in it + en                                                               | ~~🟠 High~~ done     | L      | 2     |
+| TD-22  | ✅ Lint warnings 293 → 0; every rule back to `error`                                                            | ~~🟠 High~~ done     | M      | 2     |
+| TD-23  | ✅ Migration drift patched forward; migrations match the schema                                                 | ~~🟠 High~~ done     | S      | 1     |
+| TD-24  | ✅ Playwright harness + specs; `e2e` job blocking in CI                                                         | ~~🟠 High~~ done     | M      | 1     |
+| TD-25  | ✅ Startup reachability check; 503 distinct from 500                                                            | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-26  | ✅ `sottoclassi` / `circolo` duplication resolved                                                               | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-27  | ✅ Hidden `classi=0` filter on the spells list removed                                                          | ~~🟠 High~~ done     | S      | 2     |
+| TD-28  | ✅ Seed ids removed; the database assigns them, as the UI does                                                  | ~~🟠 High~~ done     | S      | 2     |
+| TD-29  | ✅ Loading skeleton was the tutorial's invoices table                                                           | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-30  | ✅ Public list pages actually stream; skeleton matches the content                                              | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-31  | ✅ `sortSelectOptions` mutated shared `PageMeta.options` in place                                               | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-32  | ✅ E2E job spent 9m a run on `playwright install-deps`                                                          | ~~🟠 High~~ done     | S      | 1     |
+| TD-33  | ✅ Italian identifiers TD-19 missed — 16 across 14 files + a directory                                          | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-34  | ✅ CI actions pinned to a deprecated Node 20 runtime; Node 22 → 24                                              | ~~🟢 Low~~ done      | S      | 2     |
+| TD-35  | ✅ E2E specs assert hardcoded Italian copy instead of reading the catalogue                                     | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-36  | ✅ `proxy.ts` matcher let `.jpg` through the auth/i18n gate, breaking map tiles                                 | ~~🟠 High~~ done     | S      | 2     |
+| TD-37  | ✅ `authenticate()` and `app/lib/connections/**` are 0% covered — the login and DB-bootstrap path               | ~~🟠 High~~ done     | S      | 2     |
+| TD-38  | ✅ `fetch*`/`get*Count` untested for deities, magicitems, npc — data layer at 51%, target 90%                   | ~~🟠 High~~ done     | S      | 2     |
+| TD-39  | ✅ Pure functions in `app/lib/utils/**` at 51%, target 95% — cheapest real coverage in the project              | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-40  | ✅ Metadata correctness untested — `npcMeta`/`deityMeta` at 14%/25%, target 80%                                 | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-41  | ✅ `app/lib/hooks/**` at 52%, target 70% — `useFilterController` entirely untested                              | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-42  | ✅ `app/ui/**` behaviour untested — domain forms/cards/libraries at ~0%, target 60%                             | ~~🟢 Low~~ done      | L      | 2     |
+| TD-43  | ✅ `app/modules/maps/**` geometry and hooks near 0%, target 50%                                                 | ~~🟢 Low~~ done      | M      | 2     |
+| TD-44  | ✅ Re-measured coverage with `coverage.all: true`; re-scoped the 70% gap as TD-45/TD-46                         | ~~🟡 Medium~~ done   | S      | 2     |
+| TD-45  | ✅ Page-level route components (`app/[locale]/dashboard/**`, `app/ui/geography`) covered                        | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-46  | ✅ `app/modules/maps/components/**` (Leaflet rendering, 737 lines) Vitest coverage — Tier 1 and Tier 2 done     | ~~🟡 Medium~~ done   | L      | 2     |
+| TD-58  | ✅ Dependabot grouped a major ESLint bump into the dev-dependencies group, breaking CI                          | ~~🟠 High~~ done     | S      | 3     |
+| TD-59  | ✅ `prisma` CLI and `@prisma/client`/`@prisma/adapter-pg` could bump independently, breaking the build          | ~~🟠 High~~ done     | S      | 3     |
+| TD-61  | ✅ Option-backed `Int` fields accept any number; an out-of-list value renders as a blank cell                   | ~~🟠 High~~ done     | S      | 3     |
+| TD-62  | ✅ POI category names are hardcoded English and reach the UI — a TD-21 leftover                                 | ~~🟢 Low~~ done      | S      | 3     |
+| TD-63  | ✅ Local dev DB's migration history had a gap `migrate dev`/`migrate deploy` couldn't get past                  | ~~🟡 Medium~~ done   | S      | 3     |
+| TD-64  | ✅ `WorldMap.tsx`'s async-effect map-loading pattern trips `react-hooks/set-state-in-effect`                    | ~~🟢 Low~~ done      | S      | 3     |
+| TD-65  | ✅ `DATABASE_URL` in this dev environment isn't a throwaway DB — e2e debris landed in real data                 | ~~🟡 Medium~~ done   | S      | 3     |
+| TD-66  | ✅ `UPLOAD_DIR`'s relative default silently splits map-image files from the DB rows referencing them            | ~~🟡 Medium~~ done   | S      | 3     |
+| TD-67  | ✅ "Add to My Places" context-menu label is misleading — it creates any kind, not just a POI                    | ~~🟢 Low~~ done      | S      | 3     |
+| TD-68  | ✅ `MapPOIPanel`'s Close button is unclickable — a same-`z-index` overlay intercepts the click                  | ~~🟠 High~~ done     | S      | 3     |
+| TD-69  | ✅ `poi.linkedType`/`linkedId` has no unique constraint — a second pin per NPC/deity is silently possible       | ~~🟠 High~~ done     | S      | 3     |
+| TD-70  | ✅ No rendering path exists for `deity`/`npc` pins on the map, even once positioned                             | ~~🟡 Medium~~ done   | M      | 3     |
+| TD-71  | ✅ No way to position or edit a place that already exists — only newly-created ones get coordinates             | ~~🟠 High~~ done     | L      | 3     |
+| TD-72  | ✅ `usePOIManager.ts`/`useNavigableChildren.ts` marker HTML uses inline `style`, not Tailwind classes           | ~~🟢 Low~~ done      | S      | 3     |
+| TD-73  | ✅ `.env.test.example`'s documented e2e setup (`prisma db push`) leaves a fresh DB unable to seed               | ~~🟡 Medium~~ done   | S      | 3     |
+| TD-74  | ✅ `pageMetaFields` spread four domain metas into one flat object — a name collision silently discarded one     | ~~🟡 Medium~~ done   | S      | 3     |
+| TD-75  | ✅ `pnpm test` fails on a clean checkout — one suite needs a `DATABASE_URL` that only CI provides               | ~~🟡 Medium~~ done   | S      | 3     |
+| TD-76  | ✅ `renderRichText` injects stored text as raw HTML with no sanitisation                                        | ~~🟡 Medium~~ done   | S      | 3     |
+| TD-77  | ✅ An entity's location is resolved through two unreconciled read paths                                         | ~~🟡 Medium~~ done   | S      | 3     |
+| TD-78  | The NPC admin list lost its Fazione column filter when the field went table-backed                              | 🟢 Low               | M      | 3     |
+| TD-79  | The unpositioned-places count doesn't distinguish "blocked on the parent's map" from any other cause            | 🟢 Low               | S      | 3     |
+| TD-80  | ✅ Deity, magic-item, and faction create/update Server Actions lack unit and e2e test coverage                  | ~~🟡 Medium~~ done   | M      | 2     |
+| TD-81  | ✅ Maps framed to the image's own aspect ratio instead of a square default                                      | ~~🟠 High~~ done     | M      | 4     |
+| TD-82  | The place in view has no URL of its own — navigating the tree never changes the address bar                     | 🟡 Medium            | S      | 4     |
+| TD-83  | ✅ "Up" anchored to the map's own overlay container, not the scrolling page header                              | ~~🟠 High~~ done     | S      | 4     |
+| TD-84  | ✅ `WorldMap` sized to its container (`h-full`) instead of the viewport                                         | ~~🟠 High~~ done     | S      | 4     |
+| TD-85  | ✅ "Posiziona luogo" ships (PR #190); POI edit/delete reachable from SPEC-016's popover; list view kept         | ~~🟠 High~~ done     | M      | 4     |
+| TD-86  | ✅ Renamed to "marker temporaneo", dismissable — ephemerality kept, by design                                   | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-87  | ✅ Zoom floor computed from the map's own bounds instead of a hardcoded 0                                       | ~~🟠 High~~ done     | S      | 4     |
+| TD-88  | ✅ Sidebar scroll container added; sign-out and locale switcher reachable                                       | ~~🟠 High~~ done     | S      | 4     |
+| TD-89  | ✅ `group` ancestor added; chevron rotates on all five disclosure cards                                         | ~~🟢 Low~~ done      | S      | 4     |
+| TD-90  | ✅ Icon rotates in a square box now, not the wrapper — incl. two unreported instances found                     | ~~🟢 Low~~ done      | S      | 4     |
+| TD-91  | ✅ Places and factions counted; every place in the tree, per the DM                                             | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-92  | ✅ Every card links to its domain list via the locale-aware `Link`                                              | ~~🟢 Low~~ done      | S      | 4     |
+| TD-93  | ✅ Guarded writes refuse a second placement; un-placing and clearing are the way back                           | ~~🟠 High~~ done     | M      | 4     |
+| TD-94  | ✅ Closed by SPEC-015 T7 — measurement rebuilt on the grid, haversine path deleted, regression test in place    | ~~🟠 High~~ done     | M      | 4     |
+| TD-95  | ✅ POI panel + neighbours (`MapControls`, `MapLoadingSpinner`, `MapErrorBoundary`) swept into both catalogues   | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-96  | ✅ Both entries gone — "Copia coordinate" with PR #190, "Collega personaggio" with SPEC-016 T8                  | ~~🟢 Low~~ done      | S      | 4     |
+| TD-97  | `MagicItemType`'s nine members are still Italian identifiers — a TD-33 miss                                     | 🟢 Low               | S      | 4     |
+| TD-98  | `.prettierignore` doesn't exclude `.claude/`, so `format:check`/`--write` reach other sessions' worktrees       | 🟢 Low               | S      | 4     |
+| TD-99  | A fresh worktree's `pnpm install` postinstall (`prisma generate`) fails for lack of `DATABASE_URL`              | 🟢 Low               | S      | 4     |
+| TD-100 | The map context menu can die to the init tail on slow environments; `map.spec` raced it and lost on CI          | 🟡 Medium            | M      | 4     |
+| TD-101 | ✅ Marker drag repositioning: the marker was under the panel, not undraggable; its e2e spec is real now         | ~~🟠 High~~ done     | M      | 4     |
+| TD-102 | ✅ Landmarks route to `placeLandmark`; picking one no longer addresses whichever zone shares its id             | ~~🟠 High~~ done     | M      | 4     |
+| TD-103 | ✅ "Posiziona luogo" was enabled from a tree-wide count while listing only the current map — a dead click       | ~~🟠 High~~ done     | S      | 4     |
+| TD-104 | A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu     | 🟡 Medium            | M      | 4     |
+| TD-105 | 48 `revalidatePath` calls name a route structure that does not exist — and no page is cached, so they are inert | 🟢 Low               | S      | 4     |
 
 ---
 
@@ -465,25 +465,23 @@ the wording was not false about the outcome — but it promised a _control_
 that does not exist, and the DM read it that way. It now describes the
 gesture: "Ridisegna il rettangolo" / "Redraw the rectangle".
 
-### TD-105 — No `revalidatePath` call in the app names the route file structure
+### TD-105 — 48 `revalidatePath` calls name a route structure that does not exist, and nothing is cached anyway
 
-**Severity:** 🟠 High · **Effort:** M · **Found:** 2026-08-30, noticed while writing `placeLandmark` for TD-102 — `createPoi`/`updatePoi` revalidate `/geography` where every zone mutation revalidates `/dashboard/geography`
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-08-30, noticed while writing `placeLandmark` for TD-102 — `createPoi`/`updatePoi` revalidate `/geography` where every zone mutation revalidates `/dashboard/geography`
 
-The odd one out turned out to be the visible corner of something wider: **none
-of the 48 `revalidatePath` calls in the app is in a form that can match.**
+**Two findings, and the second defuses the first.**
 
-Pages live at `app/[locale]/dashboard/<domain>`, so the path begins with a
-dynamic segment. Next's own reference (`node_modules/next/dist/docs/01-app/03-api-reference/04-functions/revalidatePath.md`)
+**1. None of the 48 calls is in a form that can match.** Pages live at
+`app/[locale]/dashboard/<domain>`, so the path begins with a dynamic segment.
+Next's own reference
+(`node_modules/next/dist/docs/01-app/03-api-reference/04-functions/revalidatePath.md`)
 settles it on two points: with rewrites you pass the **destination** path, not
 the URL the browser shows, because the function works on the route file
-structure rather than the visible URL; and when the path contains a dynamic
-segment, the `type` argument is **required**. `proxy.ts` mounts
-`next-intl/middleware` with `localePrefix: "as-needed"`, so
-`/dashboard/geography` is the source URL, rewritten internally to
-`/it/dashboard/geography`.
-
-The correct form is `revalidatePath("/[locale]/dashboard/geography", "page")`.
-What exists instead:
+structure; and when the path contains a dynamic segment, `type` is
+**required**. `proxy.ts` mounts `next-intl/middleware` with
+`localePrefix: "as-needed"`, so `/dashboard/geography` is the source URL,
+rewritten internally to `/it/dashboard/geography`. The form that would match
+is `revalidatePath("/[locale]/dashboard/geography", "page")`.
 
 | form                              | calls | what is wrong                                               |
 | --------------------------------- | ----- | ----------------------------------------------------------- |
@@ -491,33 +489,50 @@ What exists instead:
 | `/geography`, `/npc`, `/spells`…  | 19    | matches nothing: neither source nor destination             |
 | passing `type: "page"`            | 0     | required by the `[locale]` segment, never passed            |
 
-**Why nothing looks broken.** The same reference records a temporary
-behaviour: called from a Server Function, `revalidatePath` currently also
-refreshes previously visited pages, and it says that will be narrowed to the
-specific path. If that is what carries the app — the most plausible reading,
-though unproven — then all 48 work by side effect and stop working together.
+**2. There is no cache for them to invalidate.** Verified against a production
+build on 2026-08-30, not inferred:
 
-**What was actually established, and how.** `map-unplace.spec.ts` asserts that
-"Posiziona luogo"'s count changes after un-placing, and that count is
-`unpositionedCount`, a Server Component prop only a revalidation refreshes.
-Pointing `unplacePlace` at `revalidatePath("/td-105-nonsense-path")` leaves
-that spec **passing, count assertion included**. So the refresh seen in e2e
-does not depend on the path matching anything.
+- `pnpm build` marks **every** route `ƒ (Dynamic) server-rendered on demand`.
+  The only `○ (Static)` entry in the whole table is `/opengraph-image.png`.
+  That follows from the code: every dashboard page reaches `requireSession()`
+  → `auth()` → cookies, which forces dynamic rendering.
+- Against `pnpm start`, the page's own response carries
+  `Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate`.
+- Inserting an unplaced zone **directly into the database**, with no mutation
+  and no `revalidatePath` anywhere in the picture, moved the rendered
+  `unpositionedCount` from 0 to 1 on the very next request, and deleting it
+  moved it back. The page reads the database per request.
+- The client Router Cache does not hold these either: `staleTimes.dynamic`
+  defaults to 0 seconds since Next 15 ("not cached"), and `next.config.ts`
+  sets no `staleTimes`.
 
-**A claim in the code was wrong and has been corrected here.** Comments in
-`WorldMap.tsx` and `WorldMap.test.tsx` said the count refresh comes from
+**So this is not the landmine the first draft of this entry described.** The
+worry was that all 48 work by side effect — the reference notes that a Server
+Function's `revalidatePath` currently also refreshes previously visited pages,
+and says that will be narrowed — and would stop together when Next narrows it.
+They will not, because nothing here is cached to begin with. Correcting the
+paths would change nothing observable.
+
+**The fix is therefore to delete them, or to correct them, and the argument
+runs the other way than expected.** Deleting is honest about today: 48 calls
+that do nothing, one of them (`/geography`) visibly a different kind of
+nothing from the rest, is a standing invitation to misread the caching model —
+this entry exists because it did. Correcting is the bet that caching arrives
+later (PPR, `use cache`, a static shell), and 48 calls that are wrong now
+would be equally wrong then, so keeping them "for later" buys nothing.
+
+**One thing still unverified**, and it is the only reason not to delete them
+outright without looking: whether any client-side navigation currently leans
+on that temporary broad refresh — back/forward in particular, since the
+reference notes `staleTimes` does not govern back/forward caching. Checking
+that needs a browser session against a production build, which the
+curl-and-cookie probe above deliberately did not cover.
+
+**A claim in the code was wrong and was corrected with this entry.** Comments
+in `WorldMap.tsx` and `WorldMap.test.tsx` said the count refresh comes from
 `revalidatePath("/dashboard/geography")`, "confirmed live in e2e (SPEC-016
 T5)". The observation was real; the attribution was not, and e2e could never
-have supported it — `playwright.config.ts` starts `pnpm dev`, and in
-development Server Components re-render per request whatever the cache is
-told. Both comments now say what is known and point here.
-
-**What remains, and why this is not a two-line fix.** Everything above is
-development-only evidence. The question that matters — whether a production
-build serves stale data after a mutation — needs `pnpm build` + `start` and a
-check per domain, and that is the first task of this item rather than
-something to skip on the way to a find-and-replace. Only then is it clear
-whether the fix is mechanical (48 call sites to
-`"/[locale]/dashboard/<domain>", "page"`) or whether some of these pages are
-uncached anyway and the calls should simply go. Worth a shared helper either
-way, so the route-file form is written once rather than 48 times.
+have supported it — `playwright.config.ts` starts `pnpm dev`, where Server
+Components re-render per request whatever the cache is told. Pointing
+`unplacePlace` at `revalidatePath("/td-105-nonsense-path")` leaves
+`map-unplace.spec` passing, count assertion included.

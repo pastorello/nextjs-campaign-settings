@@ -170,6 +170,16 @@ vi.mock("@/app/lib/data/maps/updateZonePosition", () => ({
   default: (input: unknown) => updateZonePosition(input),
 }));
 
+const placeLandmark =
+  vi.fn<
+    (
+      input: unknown
+    ) => Promise<{ ok: boolean; errors?: unknown; code?: string }>
+  >();
+vi.mock("@/app/lib/data/maps/placeLandmark", () => ({
+  default: (input: unknown) => placeLandmark(input),
+}));
+
 const unplacePlace =
   vi.fn<(input: unknown) => Promise<{ ok: boolean; errors?: unknown }>>();
 vi.mock("@/app/lib/data/maps/unplacePlace", () => ({
@@ -485,6 +495,7 @@ beforeEach(() => {
   getBoundsZoom.mockReturnValue(-4);
   createPlace.mockResolvedValue({ ok: true, id: 1 });
   updateZonePosition.mockResolvedValue({ ok: true });
+  placeLandmark.mockResolvedValue({ ok: true });
   unplacePlace.mockResolvedValue({ ok: true });
   useNavigableChildren.mockReturnValue([]);
   useUnplacedChildren.mockReturnValue([]);
@@ -1334,6 +1345,126 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
       expect(toast.error).toHaveBeenCalledWith("placeAlreadyPositioned");
     });
     expect(toast.error).not.toHaveBeenCalledWith("placePositionFailed");
+  });
+
+  // TD-102 — the dropdown lists `fetchPlaceChildren`'s merged rows, so an
+  // unplaced landmark sits in it next to unplaced navigable places. `zone`
+  // and `poi` ids come from independent sequences, so sending every pick to
+  // `updateZonePosition` addressed whichever zone shared the number.
+  it("routes a landmark to the landmark table, never to the zone one", async () => {
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Abandoned well", kind: "poi" },
+    ]);
+    await renderMap();
+
+    act(() => {
+      onContextMenuPositionPlace?.(5, 10, 20);
+    });
+
+    await waitFor(() => {
+      expect(placeLandmark).toHaveBeenCalledWith({ id: 5, lat: 10, lng: 20 });
+    });
+    expect(updateZonePosition).not.toHaveBeenCalled();
+  });
+
+  it("refuses a landmark already placed, without naming a recovery it does not have", async () => {
+    placeLandmark.mockResolvedValue({
+      ok: false,
+      code: "alreadyPlaced",
+      errors: {},
+    });
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Abandoned well", kind: "poi" },
+    ]);
+    await renderMap();
+
+    act(() => {
+      onContextMenuPositionPlace?.(5, 10, 20);
+    });
+
+    // Its own key, not the navigable place's: that one ends with "move it
+    // back to the unpositioned places first", and SPEC-016 T5's un-place
+    // action exists for navigable places only. Telling a DM to use a
+    // control that is not there is the same class of defect as the
+    // "resize or move" sublabel on a redraw-only gesture.
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("landmarkAlreadyPositioned");
+    });
+    expect(toast.error).not.toHaveBeenCalledWith("placeAlreadyPositioned");
+  });
+
+  it("writes nothing when the id is not in the list it rendered", async () => {
+    // The id alone does not say which table to address, and guessing is the
+    // whole defect. A miss means the client snapshot and the menu have
+    // diverged, so the honest move is to refuse rather than pick a table.
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    ]);
+    await renderMap();
+
+    act(() => {
+      onContextMenuPositionPlace?.(999, 10, 20);
+    });
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("placePositionFailed");
+    });
+    expect(updateZonePosition).not.toHaveBeenCalled();
+    expect(placeLandmark).not.toHaveBeenCalled();
+  });
+
+  it("reloads the landmark markers after placing one, so it appears without a page reload", async () => {
+    // `usePOIManager` owns the landmark markers and this write happened
+    // outside its optimistic path — the row is not in `pois` yet, so
+    // bumping the places token alone drops it from the unplaced list and
+    // renders no marker. `reloadPOIs` had been left with no caller when
+    // SPEC-016 T9 withdrew the panel's unplaced picker; found because the
+    // TD-102 e2e placed the landmark successfully and then saw nothing.
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Abandoned well", kind: "poi" },
+    ]);
+    await renderMap();
+
+    act(() => {
+      onContextMenuPositionPlace?.(5, 10, 20);
+    });
+
+    await waitFor(() => {
+      expect(reloadPOIs).toHaveBeenCalled();
+    });
+  });
+
+  it("does not reload the landmark markers when the thing placed was a zone", async () => {
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    ]);
+    await renderMap();
+
+    act(() => {
+      onContextMenuPositionPlace?.(5, 10, 20);
+    });
+
+    await waitFor(() => {
+      expect(updateZonePosition).toHaveBeenCalled();
+    });
+    expect(reloadPOIs).not.toHaveBeenCalled();
+  });
+
+  it("bumps the refetch token after placing a landmark, so its marker appears", async () => {
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Abandoned well", kind: "poi" },
+    ]);
+    await renderMap();
+    const tokenBefore = useNavigableChildren.mock.calls.at(-1)?.[2];
+
+    act(() => {
+      onContextMenuPositionPlace?.(5, 10, 20);
+    });
+
+    await waitFor(() => {
+      const tokenAfter = useNavigableChildren.mock.calls.at(-1)?.[2];
+      expect(tokenAfter).not.toBe(tokenBefore);
+    });
   });
 });
 

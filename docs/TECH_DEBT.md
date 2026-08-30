@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-27
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-100, TD-102, TD-103.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
+**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-100.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -123,7 +123,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-99  | A fresh worktree's `pnpm install` postinstall (`prisma generate`) fails for lack of `DATABASE_URL`            | 🟢 Low               | S      | 4     |
 | TD-100 | The map context menu can die to the init tail on slow environments; `map.spec` raced it and lost on CI        | 🟡 Medium            | M      | 4     |
 | TD-101 | ✅ Marker drag repositioning: the marker was under the panel, not undraggable; its e2e spec is real now       | ~~🟠 High~~ done     | M      | 4     |
-| TD-102 | An unplaced landmark is offered in "Posiziona luogo", and positioning it writes to the `zone` table           | 🟠 High              | S      | 4     |
+| TD-102 | ✅ Landmarks route to `placeLandmark`; picking one no longer addresses whichever zone shares its id           | ~~🟠 High~~ done     | M      | 4     |
 | TD-103 | ✅ "Posiziona luogo" was enabled from a tree-wide count while listing only the current map — a dead click     | ~~🟠 High~~ done     | S      | 4     |
 
 ---
@@ -382,35 +382,6 @@ alternatively wrap/neutralise the `LeafletMap` deferred `invalidateSize`
 (e.g. `{ pan: false }` plus keeping `moveend` out of the init tail). Either
 way, the DM-facing claim to preserve is: a menu the DM opened stays open
 until the DM closes it or acts on it.
-
-### TD-102 — An unplaced landmark is offered in "Posiziona luogo", and positioning it writes to the `zone` table
-
-**Severity:** 🟠 High · **Effort:** S · **Found:** 2026-08-27, reading every path that writes a position while building TD-93
-
-`useUnplacedChildren` filters `fetchPlaceChildren`'s merged rows on
-`lat === null` and `isPlaceKind(row.kind)` — and `PLACE_KINDS` includes
-`"poi"`, so an unplaced **landmark** passes the filter. `MapContextMenu`
-renders every entry it is handed with no kind filter of its own, and
-`WorldMap.handleContextMenuPositionPlace` calls `updateZonePosition`, which
-writes to `zone`. Zone ids and landmark ids are separate sequences, so
-choosing an unplaced landmark there addresses whichever `zone` row happens to
-carry the same id — a different place entirely, or none.
-
-**Reachable in-app, not hypothetical:** `deletePlace` reparents a deleted
-place's landmarks to the grandparent with `lat: null, lng: null` (SPEC-010
-T1), which is exactly how an unplaced landmark comes to exist.
-
-**TD-93's guard narrows this but does not close it.** A placement now matches
-only a zone that is itself unpositioned, so the common case fails loudly
-(`"This place does not exist."` or the already-positioned refusal, both about
-a row the DM never chose). An unpositioned zone sharing the id is still moved
-silently.
-
-**The fix, in shape:** filter the list by `isNavigablePlaceKind` where it is
-built — a landmark has no context-menu positioning path of its own today — or
-route landmark rows to `updatePoi` instead. Which of the two is a product
-question (should an unplaced landmark be re-placeable from the context menu
-at all?), so ask the DM before building rather than picking the cheaper one.
 
 ### TD-103 ✅ "Posiziona luogo" is enabled from a tree-wide count but lists only the current map's children — **DONE (2026-08-30)**
 

@@ -3088,3 +3088,52 @@ and the two have very different fixes.
 `e2e/map-place-repositioning.spec.ts` is `test.fixme` until then, with the
 row-based reading left in place so that un-`fixme`ing it yields a real test.
 Do not re-green it by comparing two formatters again.
+
+### TD-102 ✅ An unplaced landmark is offered in "Posiziona luogo", and positioning it writes to the `zone` table — **DONE (2026-08-30)**
+
+**Outcome: landmarks route to their own table, and an id that matches nothing is refused rather than guessed at.** The register left the choice open as a product question — filter unplaced landmarks out of the dropdown, or route them to the landmark mutation — and the DM answered it by rejecting the premise of the cheaper option: an unplaced thing must stay re-placeable, because there is nowhere else it can be reached from. So the picker keeps offering them and the write goes to `poi`.
+
+**The discriminator is sound, and that was worth establishing before relying on it.** `kind === "poi"` on a `PlaceChild` means "this row came from the `poi` table", not "this row is conventionally a landmark":
+
+- `fetchPlaceChildren` hardcodes `kind: "poi"` for every `poi` row — the column no longer exists there (SPEC-008 T8 dropped it);
+- `placeSchema.kind` is `z.enum(NAVIGABLE_PLACE_KINDS)`, so `createPlace` cannot write it to a zone, and `createRootPlace` hardcodes `"region"`. Those are the only two writers of `zone.kind`;
+- migration `20260808180000_reshape_poi_into_landmark_table` copied only navigable-kind rows into `zone` and deleted the rest, so no legacy row carries it either.
+
+**New: [`placeLandmark.ts`](../app/lib/data/maps/placeLandmark.ts).** Deliberately not an extension of `updatePoi`, and deliberately without `updateZonePosition`'s `intent` discriminator: this mutation _is_ the placement, so there is no second meaning to pass in wrong. It runs SPEC-009 §7's point check against the landmark's own zone (the same `checkPointPlacement` `createPoi` uses) and carries TD-93's guard as `poi.updateMany({ where: { id, lat: null } })` — Postgres refuses a second placement, not a dropdown snapshot that may be minutes old.
+
+**Its refusal deliberately says less than the zone one.** `placeAlreadyPositioned` ends with "move it back to the unpositioned places first"; SPEC-016 T5's un-place action exists for navigable places only, so a landmark reusing that copy would point the DM at a control that is not there. New key `landmarkAlreadyPositioned`, in both catalogues, stops at the fact.
+
+**A missing row is now refused, not defaulted.** `handleContextMenuPositionPlace` used to fall through to `updateZonePosition` when the chosen id matched nothing in its own list. Defaulting to a table is the whole defect in miniature, so it toasts and writes nothing.
+
+**First e2e for SPEC-005 §5.A's picker flow.** [`e2e/map-place-unplaced-landmark.spec.ts`](../e2e/map-place-unplaced-landmark.spec.ts). SPEC-005 §10 T7 recorded that this flow could not be tested end to end, because nothing the running app did produced a row without coordinates. SPEC-010 T1 changed that — deleting a place reparents its landmarks and clears their position — so the spec walks that path rather than seeding a row behind the app's back: create a region with a map, put a landmark in it, delete the region, then place the orphaned landmark from the dropdown. Against the pre-fix code it fails at the last step, since the landmark's id matches no _unpositioned_ zone.
+
+**What this did not fix, and what came out of it.** The dropdown's enabled state still comes from a tree-wide count while its contents are scoped to the current place — filed as TD-103, found by the DM hitting it in the app while this item was open. And the deeper design question the DM raised in the same conversation — that the unplaced pool should be one pool across all maps, since there is otherwise no way to move a place from one map to another — is recorded in [`ROADMAP.md`](./ROADMAP.md), not here: it is re-parenting, cycle refusal and ADR-0010's entity invariant, which is spec work rather than a debt item.
+
+### TD-102 (original) 🟠 An unplaced landmark is offered in "Posiziona luogo", and positioning it writes to the `zone` table
+
+**Severity:** 🟠 High · **Effort:** S · **Found:** 2026-08-27, reading every path that writes a position while building TD-93
+
+`useUnplacedChildren` filters `fetchPlaceChildren`'s merged rows on
+`lat === null` and `isPlaceKind(row.kind)` — and `PLACE_KINDS` includes
+`"poi"`, so an unplaced **landmark** passes the filter. `MapContextMenu`
+renders every entry it is handed with no kind filter of its own, and
+`WorldMap.handleContextMenuPositionPlace` calls `updateZonePosition`, which
+writes to `zone`. Zone ids and landmark ids are separate sequences, so
+choosing an unplaced landmark there addresses whichever `zone` row happens to
+carry the same id — a different place entirely, or none.
+
+**Reachable in-app, not hypothetical:** `deletePlace` reparents a deleted
+place's landmarks to the grandparent with `lat: null, lng: null` (SPEC-010
+T1), which is exactly how an unplaced landmark comes to exist.
+
+**TD-93's guard narrows this but does not close it.** A placement now matches
+only a zone that is itself unpositioned, so the common case fails loudly
+(`"This place does not exist."` or the already-positioned refusal, both about
+a row the DM never chose). An unpositioned zone sharing the id is still moved
+silently.
+
+**The fix, in shape:** filter the list by `isNavigablePlaceKind` where it is
+built — a landmark has no context-menu positioning path of its own today — or
+route landmark rows to `updatePoi` instead. Which of the two is a product
+question (should an unplaced landmark be re-placeable from the context menu
+at all?), so ask the DM before building rather than picking the cheaper one.

@@ -40,6 +40,7 @@ import MapUploadControl from "@/app/ui/geography/MapUploadControl";
 import DeletePlaceButton from "@/app/ui/geography/DeletePlaceButton";
 import MapOptionsButton from "@/app/ui/geography/MapOptionsButton";
 import MapGridConfigPanel from "@/app/ui/geography/MapGridConfigPanel";
+import ZoneEditPanel from "@/app/ui/geography/ZoneEditPanel";
 import MapGridToggle from "@/app/ui/geography/MapGridToggle";
 import MapGridOverlay from "@/app/ui/geography/MapGridOverlay";
 import {
@@ -187,6 +188,15 @@ function WorldMap({
     id: number;
     title: string;
   } | null>(null);
+
+  // The place whose "Modifica" panel is open (TD-104). Holds the whole
+  // `NavigableChild` because the panel seeds three things from it — name,
+  // description, and whether there is a footprint to redraw — and because
+  // mounting on this value rather than gating a permanently-mounted panel
+  // with `isOpen` is what makes the seeding correct for free: editing place
+  // A and then place B mounts a fresh form, so there is no stale-target
+  // clearing dance of the kind `poiEditTarget` needs below.
+  const [editingZone, setEditingZone] = useState<NavigableChild | null>(null);
 
   // The place popover (SPEC-016 T2, widened to landmarks in T7) — one at a
   // time by construction, a single state slot rather than a set. Clicking a
@@ -344,6 +354,25 @@ function WorldMap({
     setPOIPanelMode("edit");
     setIsPOIPanelOpen(true);
     setPopoverTarget(null);
+  }, []);
+
+  // "Modifica" (TD-104) — opens `ZoneEditPanel` for the clicked place. The
+  // popover closes for the same reason it does for a landmark: the DM's
+  // focus has moved to the form. It has to, besides — `useDrawArea` and the
+  // popover's own outside-click listener both bind `mousedown`, so a
+  // popover left open would be dismissed by the first drag of a redraw
+  // anyway.
+  const handleEditZone = useCallback((place: NavigableChild) => {
+    setEditingZone(place);
+    setPopoverTarget(null);
+  }, []);
+
+  // The panel committed a name/description. Nothing here holds those two
+  // directly — `useNavigableChildren` owns the list the map draws from — so
+  // a refetch is the whole update, the same bookkeeping every other place
+  // mutation on this component does.
+  const handleZoneEdited = useCallback(() => {
+    setPlacesRefetchToken((token) => token + 1);
   }, []);
 
   // "Elimina" (SPEC-016 T7) — `usePOIManager.deletePOI` is synchronous
@@ -591,19 +620,27 @@ function WorldMap({
     setIsDrawingArea((prev) => !prev);
   }, []);
 
-  // Arms the redraw-to-replace gesture on the area the context menu was
-  // opened over (SPEC-009 T5) — the mirror of `handleToggleDrawArea`,
-  // cancelling the other crosshair modes for the same reason.
-  const handleEditArea = useCallback(() => {
-    if (!contextMenuOverArea) return;
+  // Arms the redraw-to-replace gesture (SPEC-009 T5) — the mirror of
+  // `handleToggleDrawArea`, cancelling the other crosshair modes for the
+  // same reason. Shared by the two ways in: the right-click menu, which
+  // targets the area the cursor is inside, and `ZoneEditPanel`, which
+  // targets the place the DM clicked (TD-104). The gesture itself is the
+  // same either way; only the choice of target differs, which is why this
+  // takes one rather than reading `contextMenuOverArea` itself.
+  const armAreaRedraw = useCallback((area: { id: number; title: string }) => {
     setIsDrawingArea(false);
     setIsSelectingPOILocation(false);
     setCursorCoords(null);
-    setEditingArea({
+    setEditingArea(area);
+  }, []);
+
+  const handleEditArea = useCallback(() => {
+    if (!contextMenuOverArea) return;
+    armAreaRedraw({
       id: contextMenuOverArea.id,
       title: contextMenuOverArea.title,
     });
-  }, [contextMenuOverArea]);
+  }, [contextMenuOverArea, armAreaRedraw]);
 
   // The hook aborted the redraw gesture itself (Escape, a too-small drag)
   // and wants editing disarmed — the edit-mode counterpart of
@@ -753,6 +790,9 @@ function WorldMap({
     setPrevParentId(parentId);
     setCursorCoords(null);
     setEditingArea(null);
+    // Same reasoning as the popover below: the panel edits a place that
+    // belongs to the map being left (TD-104).
+    setEditingZone(null);
     // The popover refers to a place on the map being left (SPEC-016 T2) —
     // `WorldMap` isn't remounted on `parentId` change, so without this it
     // would survive the navigation open, anchored to nothing on the new map.
@@ -1067,6 +1107,26 @@ function WorldMap({
         onSaved={onGridChanged}
       />
 
+      {/* "Modifica" for a place (TD-104) — name, description and area in
+          one panel, opened from `PlacePopover`. Mounted on `editingZone`
+          rather than gated by an `isOpen` prop like its siblings above:
+          those three act on the place currently *being viewed*, which never
+          changes while they are open, whereas this one acts on a child the
+          DM picked, and a fresh mount per child is what keeps the form
+          seeded from the right one. */}
+      {editingZone && (
+        <ZoneEditPanel
+          placeId={editingZone.id}
+          isOpen
+          onClose={() => setEditingZone(null)}
+          title={editingZone.title}
+          description={editingZone.description}
+          hasFootprint={editingZone.footprint !== null}
+          onSaved={handleZoneEdited}
+          onRedrawArea={(title) => armAreaRedraw({ id: editingZone.id, title })}
+        />
+      )}
+
       {/* Click–track–click distance measurement in the map's own units
           (SPEC-015 T7) — replaces the vendored panel flow, whose haversine
           arithmetic on pixel coordinates was TD-94. */}
@@ -1092,6 +1152,7 @@ function WorldMap({
           onOpenMap={handleOpenMap}
           onUnplace={(child) => void handleUnplace(child)}
           onDeleted={handlePopoverPlaceDeleted}
+          onEditZone={handleEditZone}
           onEditLandmark={handleEditLandmark}
           onDeleteLandmark={handleDeleteLandmark}
         />
@@ -1109,7 +1170,6 @@ function WorldMap({
         onEditArea={handleEditArea}
         showEditArea={!!contextMenuOverArea}
         editAreaLabel={tEditArea("trigger")}
-        editAreaSublabel={tEditArea("sublabel")}
         ariaLabel={tContextMenu("ariaLabel")}
         addMarkerLabel={tContextMenu("addMarker.trigger")}
         addMarkerSublabel={tContextMenu("addMarker.sublabel")}

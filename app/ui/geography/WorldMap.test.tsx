@@ -194,6 +194,33 @@ vi.mock("@/app/ui/geography/MapUploadControl", () => ({
   ),
 }));
 
+// Has its own suite (TD-104) — stubbed here for the same reason as the grid
+// panel below, plus a hard one: the real component imports
+// `updateZoneDetails`, a `"use server"` module whose `@/auth` import does
+// not resolve under vitest.
+vi.mock("@/app/ui/geography/ZoneEditPanel", () => ({
+  default: (props: {
+    placeId: number;
+    title: string;
+    description: string | null;
+    hasFootprint: boolean;
+    onSaved: (title: string, description: string | null) => void;
+    onRedrawArea: (title: string) => void;
+  }) => {
+    zoneEditOnSaved = props.onSaved;
+    zoneEditOnRedrawArea = props.onRedrawArea;
+    return (
+      <div
+        data-testid="zone-edit-panel"
+        data-place-id={props.placeId}
+        data-title={props.title}
+        data-description={props.description ?? ""}
+        data-has-footprint={props.hasFootprint}
+      />
+    );
+  },
+}));
+
 // Has its own suite (SPEC-015 T5) — stubbed here so this file stays about
 // WorldMap's own state, not the grid form flow. `data-image-size` is how
 // the tests below watch the natural-size plumbing the panel derives its
@@ -244,6 +271,11 @@ let popoverOnOpenMap: ((place: { id: number }) => void) | undefined;
 let popoverOnUnplace:
   ((place: { id: number; title: string }) => void) | undefined;
 let popoverOnDeleted: (() => void) | undefined;
+let zoneEditOnSaved:
+  ((title: string, description: string | null) => void) | undefined;
+let zoneEditOnRedrawArea: ((title: string) => void) | undefined;
+let popoverOnEditZone:
+  ((place: { id: number; title: string }) => void) | undefined;
 let popoverOnEditLandmark:
   ((poi: { id: string; title: string }) => void) | undefined;
 let popoverOnDeleteLandmark:
@@ -262,6 +294,7 @@ vi.mock("@/app/ui/geography/PlacePopover", () => ({
     onOpenMap: (place: { id: number }) => void;
     onUnplace: (place: { id: number; title: string }) => void;
     onDeleted: () => void;
+    onEditZone: (place: { id: number; title: string }) => void;
     onEditLandmark: (poi: { id: string; title: string }) => void;
     onDeleteLandmark: (poi: { id: string; title: string }) => void;
   }) => {
@@ -269,6 +302,7 @@ vi.mock("@/app/ui/geography/PlacePopover", () => ({
     popoverOnOpenMap = props.onOpenMap;
     popoverOnUnplace = props.onUnplace;
     popoverOnDeleted = props.onDeleted;
+    popoverOnEditZone = props.onEditZone;
     popoverOnEditLandmark = props.onEditLandmark;
     popoverOnDeleteLandmark = props.onDeleteLandmark;
     popoverParentTitle = props.parentTitle;
@@ -484,7 +518,10 @@ beforeEach(() => {
   popoverOnOpenMap = undefined;
   popoverOnUnplace = undefined;
   popoverOnDeleted = undefined;
+  popoverOnEditZone = undefined;
   popoverOnEditLandmark = undefined;
+  zoneEditOnSaved = undefined;
+  zoneEditOnRedrawArea = undefined;
   popoverOnDeleteLandmark = undefined;
   popoverParentTitle = undefined;
   popoverParentId = undefined;
@@ -2112,5 +2149,178 @@ describe("WorldMap — landmark popover (SPEC-016 T7)", () => {
     expect(screen.getByTestId("map-poi-panel")).not.toHaveAttribute(
       "data-edit-target-id"
     );
+  });
+});
+
+describe("WorldMap — a zone's edit panel (TD-104)", () => {
+  const area = {
+    id: 7,
+    title: "Kang",
+    description: "The eastern march.",
+    lat: 5,
+    lng: 5,
+    mapImage: null,
+    footprint: [
+      [1, 1],
+      [10, 10],
+    ],
+  };
+  const point = {
+    ...area,
+    id: 8,
+    title: "Skreebars",
+    description: null,
+    footprint: null,
+  };
+
+  function clickPlace(child: unknown = area) {
+    const onPlaceClick = useNavigableChildren.mock.calls.at(-1)?.[1] as
+      ((child: unknown) => void) | undefined;
+    act(() => {
+      onPlaceClick?.(child);
+    });
+  }
+
+  function openPanel(child: unknown = area) {
+    clickPlace(child);
+    act(() => {
+      popoverOnEditZone?.(child as { id: number; title: string });
+    });
+  }
+
+  it("opens the panel for the clicked place, seeded from it", async () => {
+    await renderMap();
+
+    openPanel();
+
+    const panel = screen.getByTestId("zone-edit-panel");
+    expect(panel).toHaveAttribute("data-place-id", "7");
+    expect(panel).toHaveAttribute("data-title", "Kang");
+    expect(panel).toHaveAttribute("data-description", "The eastern march.");
+  });
+
+  // The popover has to go: `useDrawArea` and the popover's own outside-click
+  // listener both bind `mousedown`, so the first drag of a redraw would
+  // dismiss it anyway.
+  it("closes the popover when the panel opens", async () => {
+    await renderMap();
+
+    openPanel();
+
+    expect(screen.queryByTestId("place-popover")).not.toBeInTheDocument();
+  });
+
+  it("is not mounted until a place is picked", async () => {
+    await renderMap();
+
+    expect(screen.queryByTestId("zone-edit-panel")).not.toBeInTheDocument();
+  });
+
+  it("tells the panel an area has a rectangle to redraw", async () => {
+    await renderMap();
+
+    openPanel(area);
+
+    expect(screen.getByTestId("zone-edit-panel")).toHaveAttribute(
+      "data-has-footprint",
+      "true"
+    );
+  });
+
+  it("tells the panel a point-placed place has none", async () => {
+    await renderMap();
+
+    openPanel(point);
+
+    expect(screen.getByTestId("zone-edit-panel")).toHaveAttribute(
+      "data-has-footprint",
+      "false"
+    );
+  });
+
+  it("bumps the navigable refetch token after a successful save", async () => {
+    await renderMap();
+    openPanel();
+    const tokenBefore = useNavigableChildren.mock.calls.at(-1)?.[2];
+
+    act(() => {
+      zoneEditOnSaved?.("Kang Reach", "The eastern march.");
+    });
+
+    await waitFor(() => {
+      const tokenAfter = useNavigableChildren.mock.calls.at(-1)?.[2];
+      expect(tokenAfter).not.toBe(tokenBefore);
+    });
+  });
+
+  // The whole point of the one-entry decision: the area's redraw is reached
+  // from inside the panel, and lands on the same SPEC-009 T5 commit path the
+  // right-click menu has always used.
+  it("arms the same redraw gesture the right-click menu arms", async () => {
+    await renderMap();
+    openPanel();
+
+    act(() => {
+      zoneEditOnRedrawArea?.("Kang Reach");
+    });
+
+    expect(editAreaOptions?.enabled).toBe(true);
+    expect(screen.getByTestId("leaflet-map")).toHaveAttribute(
+      "data-cursor",
+      "crosshair"
+    );
+  });
+
+  it("commits the redrawn rectangle against the place the panel was opened for", async () => {
+    await renderMap();
+    openPanel();
+
+    act(() => {
+      zoneEditOnRedrawArea?.("Kang Reach");
+    });
+    const footprint = [
+      [2, 2],
+      [30, 30],
+    ];
+    act(() => {
+      editAreaOptions?.onComplete(footprint);
+    });
+
+    await waitFor(() => {
+      expect(updateZonePosition).toHaveBeenCalledWith({ id: 7, footprint });
+    });
+  });
+
+  // The panel edits a child of the map being left; `WorldMap` is not
+  // remounted on a `parentId` change, so without the reset it would survive
+  // the navigation open, pointed at a place that is no longer on screen.
+  it("closes when navigating to another map", async () => {
+    const props = {
+      placeTitle: "Terra",
+      parentTitle: "Piani di Esistenza",
+      isRoot: false,
+      mapUrl: "/maps/test.jpg",
+      bounds,
+      initialView: [500, 500] as [number, number],
+      initialZoom: 1,
+      onDescend,
+      gridColumns: null,
+      gridScale: null,
+      onMapChanged: vi.fn(),
+      onGridChanged: vi.fn(),
+      onDeleted: vi.fn(),
+      unpositionedCount: 0,
+    };
+    const { rerender } = render(<WorldMap parentId={1} {...props} />);
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
+
+    openPanel();
+    expect(screen.getByTestId("zone-edit-panel")).toBeInTheDocument();
+
+    rerender(<WorldMap parentId={2} {...props} />);
+
+    expect(screen.queryByTestId("zone-edit-panel")).not.toBeInTheDocument();
   });
 });

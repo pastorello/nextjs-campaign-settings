@@ -125,7 +125,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-101 | ✅ Marker drag repositioning: the marker was under the panel, not undraggable; its e2e spec is real now         | ~~🟠 High~~ done     | M      | 4     |
 | TD-102 | ✅ Landmarks route to `placeLandmark`; picking one no longer addresses whichever zone shares its id             | ~~🟠 High~~ done     | M      | 4     |
 | TD-103 | ✅ "Posiziona luogo" was enabled from a tree-wide count while listing only the current map — a dead click       | ~~🟠 High~~ done     | S      | 4     |
-| TD-104 | A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu     | 🟡 Medium            | M      | 4     |
+| TD-104 | ◑ A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu   | ~~🟡 Medium~~ part   | M      | 4     |
 | TD-105 | 48 `revalidatePath` calls name a route structure that does not exist — and no page is cached, so they are inert | 🟢 Low               | S      | 4     |
 
 ---
@@ -431,7 +431,7 @@ there. That is re-parenting, cycle refusal and ADR-0010's entity invariant —
 recorded in [`ROADMAP.md`](./ROADMAP.md) as spec work. This item only stops
 the control from lying; it does not decide what the pool should contain.
 
-### TD-104 — A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu
+### TD-104 ◑ A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu — **the edit surface DONE (2026-08-30)**
 
 **Severity:** 🟡 Medium · **Effort:** M · **Found:** 2026-08-30, by the DM clicking a zone with a sub-map and looking for "Modifica area" where the other actions are
 
@@ -467,12 +467,58 @@ right-click entry targets `contextMenuOverArea`, the area the click landed
 inside, while a popover entry targets the place already clicked; both end up
 arming `editingArea`, so the gesture itself is unaffected.
 
-**Already fixed, separately:** the entry's sublabel said "Ridimensiona o
+**The sublabel is gone, not reworded again.** It first said "Ridimensiona o
 sposta" / "Resize or move" while `handleEditArea` arms only SPEC-009 T5's
 redraw-to-replace. Redrawing the rectangle elsewhere does move the area, so
 the wording was not false about the outcome — but it promised a _control_
-that does not exist, and the DM read it that way. It now describes the
-gesture: "Ridisegna il rettangolo" / "Redraw the rectangle".
+that does not exist, and the DM read it that way. It was corrected to
+"Ridisegna il rettangolo" / "Redraw the rectangle", and this change removes
+it altogether: the label alone says what the entry does, and a line that has
+already had to be rewritten once for over-promising is a line worth not
+having. `geography.editArea.sublabel` is deleted from both catalogues, and
+`contextMenu.positionPlace` remains the standing precedent for an entry with
+a `trigger` and no `sublabel`.
+
+#### What landed (2026-08-30)
+
+- **`zoneMeta`** (`app/lib/config/geography/zoneMeta.ts`) — the `PageMeta`
+  for `title` and `description` that did not exist. Follows `zoneGridMeta`'s
+  ADR-0011 precedent exactly: outside the metadata layer's page composition,
+  declared all the same so the panel and the mutation share one validator
+  and one label key each.
+- **`updateZoneDetails`** — the missing mutation. A whole-form save rather
+  than `updatePoi`'s partial spread, because the form has no way to express
+  what an omitted key would mean. A region is renamable now.
+- **`ZoneEditPanel`** (`app/ui/geography/`) — name, description and area in
+  one panel, modelled on `MapGridConfigPanel`, not on `MapPOIPanel`.
+  Extending the latter was the expected route and was rejected on reading
+  it: its form is hardcoded English throughout (against CLAUDE.md's
+  bilingual rule), its `editTarget` is a `POI` whose id is a `string` where
+  a zone's is a `number`, its save path returns before `kind` is read, and
+  `MapMain.tsx` is a second vendored consumer that any new required prop
+  would break.
+- **The popover** gains one "Modifica" for a zone, per the DM's decision —
+  shown for every zone, not only an area, since the name and description are
+  the half that had no edit surface at all and a point-placed place has
+  those too.
+- **Redrawing saves first.** The area half needs the modal gone, so the
+  button commits the text and only then re-arms `editingArea` through a
+  shared `armAreaRedraw` — the same SPEC-009 T5 commit path the right-click
+  menu has always used, now reached with the clicked place as its target
+  instead of `contextMenuOverArea`.
+- **A point-placed place** gets the area control disabled with a reason
+  rather than absent. Drawing a first rectangle onto a point would convert
+  it into an area — a different operation, which `updateZonePosition` would
+  accept and nobody has specified.
+
+#### Still open
+
+Whether the right-click "Modifica area" entry should be removed now that the
+popover has one. Put to the DM on 2026-08-30 and **not yet answered**; the
+entry is left in place, minus its sublabel, until it is. It is the only way
+to reach an area whose place is hard to click, so removing it is a real
+trade rather than tidying — which is exactly why it is not being decided by
+whoever happens to be editing the file.
 
 ### TD-105 — 48 `revalidatePath` calls name a route structure that does not exist, and nothing is cached anyway
 

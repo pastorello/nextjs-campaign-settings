@@ -175,15 +175,21 @@ describe("MapContextMenu", () => {
     expect(screen.queryByText("Edit Area")).not.toBeInTheDocument();
   });
 
+  // TD-104 dropped this entry's sublabel — `editAreaSublabel` is no longer a
+  // prop, so the compiler, not this test, is what stops one coming back. What
+  // is worth pinning here is the consequence: a button's accessible name is
+  // its whole text content, so with the second line gone the name is exactly
+  // the label, which is what `chooseFromContextMenu` matches on in e2e.
   it("shows Edit Area with translated copy when armed over an area", () => {
     renderMenu({
       onEditArea: vi.fn(),
       showEditArea: true,
       editAreaLabel: "Modifica area",
-      editAreaSublabel: "Ridisegna il rettangolo",
     });
-    expect(screen.getByText("Modifica area")).toBeInTheDocument();
-    expect(screen.getByText("Ridisegna il rettangolo")).toBeInTheDocument();
+
+    expect(
+      screen.getByRole("button", { name: "Modifica area" })
+    ).toBeInTheDocument();
   });
 
   it("falls back to an English default label when none is provided", () => {

@@ -53,6 +53,15 @@ interface PlacePopoverProps {
    */
   onDeleted: () => void;
   /**
+   * "Modifica" (TD-104) — opens `ZoneEditPanel` for this place: its name,
+   * its description and its area in one surface. One entry rather than a
+   * "Modifica area" moved across plus a rename bolted on later, decided by
+   * the DM on 2026-08-30. Delegates entirely, like `onEditLandmark` below
+   * and for the same reason: the panel is a single instance `WorldMap`
+   * owns, and the area half needs the map this popover sits on top of.
+   */
+  onEditZone: (place: NavigableChild) => void;
+  /**
    * "Modifica" (T7) — opens `MapPOIPanel`'s existing edit form for this
    * landmark, pre-filled (TD-85's remainder, finally reachable). The panel
    * is a single shared instance owned by `WorldMap`, not something this
@@ -121,6 +130,7 @@ export default function PlacePopover({
   onOpenMap,
   onUnplace,
   onDeleted,
+  onEditZone,
   onEditLandmark,
   onDeleteLandmark,
 }: PlacePopoverProps) {
@@ -267,6 +277,19 @@ export default function PlacePopover({
 
         {place && (
           <>
+            {/* "Modifica" (TD-104) — `WorldMap` opens `ZoneEditPanel` for
+                this place. First in the fragment, ahead of the two entries
+                that take something away. Shown for every zone, not only an
+                area: the name and description are the half that had no edit
+                surface anywhere in the application, and a point-placed
+                place has those too. */}
+            <button
+              type="button"
+              onClick={() => onEditZone(place)}
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+            >
+              {t("editZone")}
+            </button>
             {/* No confirmation (§9's open question, agreed 2026-08-21) —
                 unlike deletion (T6), un-placing doesn't destroy data. */}
             <button

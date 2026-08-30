@@ -552,9 +552,6 @@
       "trigger": "Add sub-map",
       "active": "Drag on the map — Esc to cancel"
     },
-    "editArea": {
-      "trigger": "Edit Area"
-    },
     "zoneEdit": {
       "title": "Edit place",
       "save": "Save",

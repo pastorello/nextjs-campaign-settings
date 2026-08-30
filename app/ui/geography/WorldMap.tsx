@@ -134,7 +134,6 @@ function WorldMap({
 }) {
   const t = useTranslations("geography.errors");
   const tGeography = useTranslations("geography");
-  const tEditArea = useTranslations("geography.editArea");
   const tContextMenu = useTranslations("geography.contextMenu");
   const tDrawArea = useTranslations("geography.drawArea");
   const tTemporaryMarkers = useTranslations("geography.temporaryMarkers");
@@ -622,25 +621,18 @@ function WorldMap({
 
   // Arms the redraw-to-replace gesture (SPEC-009 T5) — the mirror of
   // `handleToggleDrawArea`, cancelling the other crosshair modes for the
-  // same reason. Shared by the two ways in: the right-click menu, which
-  // targets the area the cursor is inside, and `ZoneEditPanel`, which
-  // targets the place the DM clicked (TD-104). The gesture itself is the
-  // same either way; only the choice of target differs, which is why this
-  // takes one rather than reading `contextMenuOverArea` itself.
+  // same reason. `ZoneEditPanel` is the one caller: the right-click menu
+  // used to arm this too, on the area the cursor was inside, and TD-104
+  // removed that entry (the DM, 2026-08-30) in favour of a single edit
+  // surface reached from the place itself. Still takes its target as an
+  // argument rather than reading `contextMenuOverArea`, which is the shape
+  // that let the popover reach it in the first place.
   const armAreaRedraw = useCallback((area: { id: number; title: string }) => {
     setIsDrawingArea(false);
     setIsSelectingPOILocation(false);
     setCursorCoords(null);
     setEditingArea(area);
   }, []);
-
-  const handleEditArea = useCallback(() => {
-    if (!contextMenuOverArea) return;
-    armAreaRedraw({
-      id: contextMenuOverArea.id,
-      title: contextMenuOverArea.title,
-    });
-  }, [contextMenuOverArea, armAreaRedraw]);
 
   // The hook aborted the redraw gesture itself (Escape, a too-small drag)
   // and wants editing disarmed — the edit-mode counterpart of
@@ -1167,9 +1159,6 @@ function WorldMap({
         onStartMeasurement={handleContextMenuMeasurement}
         onAddPOI={handleContextMenuAddPOI}
         hideAddPlace={!!contextMenuOverArea}
-        onEditArea={handleEditArea}
-        showEditArea={!!contextMenuOverArea}
-        editAreaLabel={tEditArea("trigger")}
         ariaLabel={tContextMenu("ariaLabel")}
         addMarkerLabel={tContextMenu("addMarker.trigger")}
         addMarkerSublabel={tContextMenu("addMarker.sublabel")}

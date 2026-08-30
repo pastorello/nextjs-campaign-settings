@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-27
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-100, TD-104, TD-105.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
+**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-100, TD-105.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -125,7 +125,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-101 | ✅ Marker drag repositioning: the marker was under the panel, not undraggable; its e2e spec is real now         | ~~🟠 High~~ done     | M      | 4     |
 | TD-102 | ✅ Landmarks route to `placeLandmark`; picking one no longer addresses whichever zone shares its id             | ~~🟠 High~~ done     | M      | 4     |
 | TD-103 | ✅ "Posiziona luogo" was enabled from a tree-wide count while listing only the current map — a dead click       | ~~🟠 High~~ done     | S      | 4     |
-| TD-104 | ◑ A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu   | ~~🟡 Medium~~ part   | M      | 4     |
+| TD-104 | ✅ A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu  | ~~🟡 Medium~~ done   | M      | 4     |
 | TD-105 | 48 `revalidatePath` calls name a route structure that does not exist — and no page is cached, so they are inert | 🟢 Low               | S      | 4     |
 
 ---
@@ -431,7 +431,7 @@ there. That is re-parenting, cycle refusal and ADR-0010's entity invariant —
 recorded in [`ROADMAP.md`](./ROADMAP.md) as spec work. This item only stops
 the control from lying; it does not decide what the pool should contain.
 
-### TD-104 ◑ A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu — **the edit surface DONE (2026-08-30)**
+### TD-104 ✅ A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu — **DONE (2026-08-30)**
 
 **Severity:** 🟡 Medium · **Effort:** M · **Found:** 2026-08-30, by the DM clicking a zone with a sub-map and looking for "Modifica area" where the other actions are
 
@@ -467,17 +467,13 @@ right-click entry targets `contextMenuOverArea`, the area the click landed
 inside, while a popover entry targets the place already clicked; both end up
 arming `editingArea`, so the gesture itself is unaffected.
 
-**The sublabel is gone, not reworded again.** It first said "Ridimensiona o
-sposta" / "Resize or move" while `handleEditArea` arms only SPEC-009 T5's
-redraw-to-replace. Redrawing the rectangle elsewhere does move the area, so
-the wording was not false about the outcome — but it promised a _control_
-that does not exist, and the DM read it that way. It was corrected to
-"Ridisegna il rettangolo" / "Redraw the rectangle", and this change removes
-it altogether: the label alone says what the entry does, and a line that has
-already had to be rewritten once for over-promising is a line worth not
-having. `geography.editArea.sublabel` is deleted from both catalogues, and
-`contextMenu.positionPlace` remains the standing precedent for an entry with
-a `trigger` and no `sublabel`.
+**The sublabel outlived its entry by one commit.** It first said
+"Ridimensiona o sposta" / "Resize or move" while `handleEditArea` armed only
+SPEC-009 T5's redraw-to-replace. Redrawing the rectangle elsewhere does move
+the area, so the wording was not false about the outcome — but it promised a
+_control_ that does not exist, and the DM read it that way. It was corrected
+to "Ridisegna il rettangolo" / "Redraw the rectangle", then dropped when the
+popover gained its entry, and then the whole menu item went with it.
 
 #### What landed (2026-08-30)
 
@@ -511,14 +507,30 @@ a `trigger` and no `sublabel`.
   it into an area — a different operation, which `updateZonePosition` would
   accept and nobody has specified.
 
-#### Still open
+#### And the right-click entry is gone (the DM, 2026-08-30)
 
-Whether the right-click "Modifica area" entry should be removed now that the
-popover has one. Put to the DM on 2026-08-30 and **not yet answered**; the
-entry is left in place, minus its sublabel, until it is. It is the only way
-to reach an area whose place is hard to click, so removing it is a real
-trade rather than tidying — which is exactly why it is not being decided by
-whoever happens to be editing the file.
+Asked as an open question when the popover entry landed, and answered
+straight after: **remove it.** `onEditArea`, `showEditArea` and
+`editAreaLabel` are gone from `MapContextMenu`'s props, `handleEditArea` is
+gone from `WorldMap`, and the `geography.editArea` namespace is deleted from
+both catalogues. `armAreaRedraw` survives with one caller instead of two.
+
+**The cost was named and accepted, so record it rather than rediscover it.**
+The right-click entry was the only way to reach an area whose _place_ is
+awkward to click — under a panel, off-screen, or beneath another marker —
+because it targeted the area the cursor was inside rather than a place you
+had to hit. Nothing replaces that. If it turns out to bite on the DM's real
+map, the fix is to restore a deliberate entry point, not to treat the
+removal as a regression: it was a choice between one edit surface and two,
+and one won.
+
+`contextMenuOverArea` stays — it still drives `hideAddPlace`, SPEC-009 T4's
+containment rule, which is a separate concern from editing.
+
+The five SPEC-009 T5 tests in `WorldMap.test.tsx` that armed the gesture
+through the menu now arm it through the popover and panel. They were
+rewired, not deleted: the gesture, the `useDrawArea` instance and the
+`updateZonePosition` commit are all unchanged — only the way in moved.
 
 ### TD-105 — 48 `revalidatePath` calls name a route structure that does not exist, and nothing is cached anyway
 

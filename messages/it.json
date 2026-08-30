@@ -552,9 +552,6 @@
       "trigger": "Aggiungi sottomappa",
       "active": "Trascina sulla mappa — Esc per annullare"
     },
-    "editArea": {
-      "trigger": "Modifica area"
-    },
     "zoneEdit": {
       "title": "Modifica luogo",
       "save": "Salva",

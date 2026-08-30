@@ -165,50 +165,17 @@ describe("MapContextMenu", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("does not show Edit Area without onEditArea or showEditArea (SPEC-009 T5)", () => {
-    renderMenu();
+  // TD-104 (the DM, 2026-08-30) — the menu had an "Edit Area" entry, shown
+  // over an area, that armed SPEC-009 T5's redraw. It is gone: `PlacePopover`
+  // reaches the same gesture from the place itself. `onEditArea`,
+  // `showEditArea` and `editAreaLabel` are no longer props, so the compiler
+  // stops one coming back by accident; this asserts the rendered menu, since
+  // nothing over an area should offer it any more.
+  it("offers no area-editing entry, over an area or otherwise (TD-104)", () => {
+    renderMenu({ hideAddPlace: true });
+
     expect(screen.queryByText("Edit Area")).not.toBeInTheDocument();
-  });
-
-  it("does not show Edit Area when onEditArea is provided but showEditArea is false", () => {
-    renderMenu({ onEditArea: vi.fn(), showEditArea: false });
-    expect(screen.queryByText("Edit Area")).not.toBeInTheDocument();
-  });
-
-  // TD-104 dropped this entry's sublabel — `editAreaSublabel` is no longer a
-  // prop, so the compiler, not this test, is what stops one coming back. What
-  // is worth pinning here is the consequence: a button's accessible name is
-  // its whole text content, so with the second line gone the name is exactly
-  // the label, which is what `chooseFromContextMenu` matches on in e2e.
-  it("shows Edit Area with translated copy when armed over an area", () => {
-    renderMenu({
-      onEditArea: vi.fn(),
-      showEditArea: true,
-      editAreaLabel: "Modifica area",
-    });
-
-    expect(
-      screen.getByRole("button", { name: "Modifica area" })
-    ).toBeInTheDocument();
-  });
-
-  it("falls back to an English default label when none is provided", () => {
-    renderMenu({ onEditArea: vi.fn(), showEditArea: true });
-    expect(screen.getByText("Edit Area")).toBeInTheDocument();
-  });
-
-  it("calls onEditArea then closes when Edit Area is clicked", () => {
-    const onEditArea = vi.fn();
-    const { onClose } = renderMenu({
-      onEditArea,
-      showEditArea: true,
-      editAreaLabel: "Edit Area",
-    });
-
-    fireEvent.click(screen.getByText("Edit Area"));
-
-    expect(onEditArea).toHaveBeenCalled();
-    expect(onClose).toHaveBeenCalled();
+    expect(screen.queryByText("Modifica area")).not.toBeInTheDocument();
   });
 
   it("renders translated copy for the always-shown items when provided, in place of the English defaults", () => {

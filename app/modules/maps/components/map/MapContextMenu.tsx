@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useCallback, useEffect, useRef, useState, useMemo } from "react";
-import { MapPin, Ruler, Star, Scaling, Layers, Crosshair } from "lucide-react";
+import { MapPin, Ruler, Star, Layers, Crosshair } from "lucide-react";
 import type { ContextMenuPosition } from "@/app/modules/maps/hooks/useMapContextMenu";
 import type { UnplacedChild } from "@/app/modules/maps/hooks/useUnplacedChildren";
 
@@ -18,24 +18,15 @@ interface MapContextMenuProps {
   // Marker") stay: they don't write a domain pin, so the containment rule
   // doesn't apply to them.
   hideAddPlace?: boolean;
-  // Arms `WorldMap`'s redraw-to-replace gesture on the area the right-click
-  // landed inside (SPEC-009 T5). Shown only when `showEditArea` is set —
-  // the mirror image of `hideAddPlace`, an area rather than empty ground.
-  onEditArea?: () => void;
-  showEditArea?: boolean;
-  // Resolved at the render boundary by `WorldMap` (ADR-0007) and passed down
-  // as plain strings, same as every label below — each optional with an
-  // English fallback so a caller that doesn't need translated copy (most
-  // unit tests) isn't forced to supply it.
+  // No "Modifica area" here any more (TD-104, the DM on 2026-08-30). It
+  // armed the redraw on the area the right-click landed inside, and it was
+  // the only entry point to an area whose *place* is awkward to click —
+  // under a panel, off-screen, beneath another marker. `PlacePopover`'s
+  // "Modifica" opens `ZoneEditPanel`, which reaches the same gesture from
+  // the place itself, and the DM chose one surface over two. Removing the
+  // escape hatch was named as the cost and accepted; if it turns out to
+  // bite, restore it deliberately rather than as a bug fix.
   //
-  // TD-104: no sublabel. It said "Ridimensiona o sposta" / "Resize or move",
-  // was corrected to "Ridisegna il rettangolo" / "Redraw the rectangle" when
-  // the DM read the first one as promising a resize handle that does not
-  // exist, and is gone entirely now — the label alone says what the entry
-  // does, and `geography.editArea.sublabel` is deleted from both catalogues.
-  // `contextMenu.positionPlace` is the standing precedent for an entry with
-  // a `trigger` and no `sublabel`.
-  editAreaLabel?: string;
   // Translated copy for the menu items that were still hardcoded English
   // until this pass (usability fix, 2026-08-17) — `ariaLabel` and the
   // always-shown Add Marker/Measure entries, plus Add Place's
@@ -154,9 +145,6 @@ export const MapContextMenu = memo(function MapContextMenu({
   onStartMeasurement,
   onAddPOI,
   hideAddPlace = false,
-  onEditArea,
-  showEditArea = false,
-  editAreaLabel,
   ariaLabel = "Map context menu",
   addMarkerLabel = "Add Marker",
   addMarkerSublabel = "Place a marker here",
@@ -234,16 +222,6 @@ export const MapContextMenu = memo(function MapContextMenu({
     onAddPOI(position.latlng.lat, position.latlng.lng);
     onClose();
   }, [position, onAddPOI, onClose]);
-
-  /**
-   * Arms the resize/move gesture on the area under the right-click
-   * (SPEC-009 T5).
-   */
-  const handleEditArea = useCallback(() => {
-    if (!onEditArea) return;
-    onEditArea();
-    onClose();
-  }, [onEditArea, onClose]);
 
   /**
    * Arms drag-to-draw a sub-map area (ex-`DrawAreaButton`, SPEC-009 T2).
@@ -396,21 +374,6 @@ export const MapContextMenu = memo(function MapContextMenu({
               ))}
             </div>
           )}
-        </>
-      )}
-
-      {/* Edit Area — arms the redraw-to-replace gesture on the area the
-          right-click landed inside (SPEC-009 T5). The mirror of "Add Place"
-          above: shown only over an area, never over empty ground. */}
-      {onEditArea && showEditArea && (
-        <>
-          <div className="my-1.5 border-t border-gray-200 dark:border-gray-700" />
-
-          <MenuItem
-            icon={<Scaling className="h-4 w-4" />}
-            label={editAreaLabel ?? "Edit Area"}
-            onClick={handleEditArea}
-          />
         </>
       )}
     </div>

@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 import messages from "@/messages/it.json";
 
+import { chooseFromContextMenu } from "./helpers/mapContextMenu";
+
 /**
  * TD-46 (first sub-slice, see docs/TECH_DEBT.md): the "My Places" POI panel's
  * own add/edit/delete flow.
@@ -24,12 +26,11 @@ test.describe("POI panel CRUD", () => {
     await expect(map).toBeVisible();
 
     // Add
-    await map.click({ button: "right", position: { x: 400, y: 250 } });
-    await page
-      .getByRole("button", {
-        name: messages.geography.contextMenu.addPlace.trigger,
-      })
-      .click();
+    await chooseFromContextMenu(
+      page,
+      { x: 400, y: 250 },
+      messages.geography.contextMenu.addPlace.trigger
+    );
     await page.getByPlaceholder("Enter place name").fill(title);
     await page.getByRole("button", { name: "Save" }).click();
 

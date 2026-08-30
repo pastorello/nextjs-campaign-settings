@@ -3024,3 +3024,67 @@ next, and a message in both catalogues explaining the refusal.
 path that has already failed here once. **Sequence it after the popover spec** —
 the constraint needs the un-place action to exist, or it turns a recoverable
 mistake into a dead end.
+
+---
+
+### TD-101 ✅ Marker drag repositioning never fires `dragend`; its e2e spec was green on a vacuous assertion — **DONE (2026-08-27)**
+
+**Outcome: the drag was never broken — the marker was unreachable, and only in the test's own geometry.** This item's first job was to establish whether a real DM is affected or only Playwright's synthetic mouse. Neither, as it turns out: the product is fine, and the harness is fine too. `e2e/map-place-repositioning.spec.ts` created its POI by right-clicking the map at `{x: 300, y: 200}`, and `MapPOIPanel` — open in list view for the whole drag, because a save returns it there — is `absolute top-0 left-0 h-full w-96 … z-[1000]`, covering the map's leftmost 384px. The marker landed underneath it. `document.elementFromPoint` at the marker's centre returned the panel's header-image gradient, so `page.mouse.down()` pressed the panel, and `dragend` never fired.
+
+**What the probe established, in order** (a throwaway spec, deleted after):
+
+1. Leaflet's drag machinery was armed the whole time — the icon carried `leaflet-marker-draggable`, its `_leaflet_events` held the `mousedown` listener, and computed `pointer-events` was `auto`. So `draggable: true` on `usePOIManager.createMarker` and `useNavigableChildren` was doing its job; neither hook needed changing.
+2. A purely synthetic `mousedown`/`mousemove`/`mouseup` on the icon moved the marker **even in the covered case** — synthetic events go straight to the element and never consult what is painted on top, which is precisely why they proved nothing about the real gesture.
+3. Moving the creation point clear of the panel (`{x: 600, y: 300}`) makes the same real-mouse gesture work end to end: the icon's `transform` advances between mouse steps, `dragend` fires, the optimistic row update lands, and the position survives a reload.
+
+**The spec is a real test now, not re-greened.** It is `test`, not `test.fixme`; both readings still come from the panel row, like for like, so the two-formatter trap this item was opened over cannot come back. It also asserts the optimistic row change _before_ the reload, which keeps "the drag never happened" (TD-101's actual failure) distinguishable from "the drag happened but was not saved". Verified by breaking the wiring on purpose: renaming `usePOIManager`'s `dragend` listener fails the spec at that first assertion, and it passes again restored.
+
+**The register was right to insist on the harness-versus-product question before any fix.** Had the spec been "repaired" by loosening the comparison, or the hooks by rewiring a drag that already worked, both would have been changes to code that was correct.
+
+**One durable note came out of it**, recorded in [`TESTING.md`](./TESTING.md) §E2E as a third selector trap: the POI panel overlays the map's leftmost 384px whenever it is open, so any map spec driving a real mouse gesture has to place its target clear of it.
+
+The original description follows.
+
+### TD-101 (original) 🟠 Marker drag repositioning never fires `dragend`; its e2e spec was green on a vacuous assertion
+
+**Severity:** 🟠 High · **Effort:** M · **Found:** 2026-08-22, while fixing the
+CI break SPEC-016 T7 caused in `map-place-repositioning.spec.ts`
+
+TD-71 / SPEC-005 §5.B — "a DM can drag an already-placed marker to a new spot,
+and the new position persists" — does not work, and the e2e spec written to
+prove it never could have caught that.
+
+**Why the spec passed anyway.** It read the "before" position from the panel
+row (`formatDecimalDegrees(…, 4)` → `"1890.8620, 344.0000"`) and the "after"
+position from the marker's native Leaflet popup (`toFixed(6)` →
+`"1890.862000, 344.000000"`). Two different formatters over the same numbers,
+so `expect(after).not.toBe(before)` was true no matter what the drag did.
+SPEC-016 T7 deleted that popup (a landmark click opens the place popover now,
+which never shows raw coordinates), which forced both readings onto the panel
+row — and comparing like with like, it fails.
+
+**What actually happens.** A probe run on 2026-08-22 recorded the marker's
+on-screen bounding box as `{x: 588, y: 129}` both before and after the drag
+gesture, and the panel row unchanged immediately after it, before any reload.
+So the marker never moves and no optimistic update is committed: `dragend`
+never fires. This is not a failure to persist a completed drag.
+
+**Not a SPEC-016 regression.** The same row-based assertion fails identically
+with `app/modules/maps/hooks/usePOIManager.ts` reverted to pre-T7 `main` and
+everything else left in place (checked that way round, 2026-08-22). T7 only
+removed the popup that was hiding it.
+
+**What is not yet known, and is this item's first job:** whether the drag is
+broken for a real DM in a browser, or only under Playwright's synthetic mouse
+failing to drive Leaflet's `L.Draggable`. The spec's own comment already flags
+this as the one interaction in the suite that needs Leaflet's real drag
+handling rather than a `dispatchEvent` shortcut, so a harness-only explanation
+is plausible — but `draggable: true` is set on both the POI marker
+(`usePOIManager.createMarker`) and the navigable one
+(`useNavigableChildren`), and neither has been verified by hand. Establish
+that first: it decides whether this is a product bug or a test-harness one,
+and the two have very different fixes.
+
+`e2e/map-place-repositioning.spec.ts` is `test.fixme` until then, with the
+row-based reading left in place so that un-`fixme`ing it yields a real test.
+Do not re-green it by comparing two formatters again.

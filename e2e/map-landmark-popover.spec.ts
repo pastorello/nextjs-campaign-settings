@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 import messages from "@/messages/it.json";
 
+import { chooseFromContextMenu } from "./helpers/mapContextMenu";
+
 /**
  * SPEC-016 T7: the landmark popover variant — "Modifica" and "Elimina" reach
  * `MapPOIPanel`'s existing edit/delete machinery, closing TD-85's remainder
@@ -26,12 +28,11 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
 
     // Add a landmark (`kind: "poi"` is the panel's own default — unlike a
     // navigable place, it needs no map image and no kind selection).
-    await map.click({ button: "right", position: { x: 400, y: 250 } });
-    await page
-      .getByRole("button", {
-        name: messages.geography.contextMenu.addPlace.trigger,
-      })
-      .click();
+    await chooseFromContextMenu(
+      page,
+      { x: 400, y: 250 },
+      messages.geography.contextMenu.addPlace.trigger
+    );
     await page.getByPlaceholder("Enter place name").fill(title);
     await page.getByRole("button", { name: "Save" }).click();
 

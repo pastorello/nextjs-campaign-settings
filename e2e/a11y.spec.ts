@@ -3,6 +3,8 @@ import AxeBuilder from "@axe-core/playwright";
 
 import messages from "@/messages/it.json";
 
+import { chooseFromContextMenu } from "./helpers/mapContextMenu";
+
 /**
  * Automated accessibility scan (TD-15).
  *
@@ -87,6 +89,15 @@ test("campaign and adventure pages have no accessibility violations", async ({
   await page.waitForLoadState("networkidle");
 
   const scan = async (label: string) => {
+    // Wait for a non-empty `<title>` before axe runs, or `document-title`
+    // fires on a page that has one. CI run 33113909995 failed here and was
+    // green on retry; `/dashboard/campaign` declares `generateMetadata`, so
+    // the title is not missing, it is briefly out of the tree. Unlike the
+    // `PAGES` loop above, both scans below run after a Server Action has
+    // re-rendered the page rather than after a navigation, so
+    // `networkidle` — already awaited — does not bound that window.
+    await expect(page).toHaveTitle(/\S/);
+
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
       .analyze();
@@ -299,14 +310,11 @@ test("the place popover has no accessibility violations", async ({ page }) => {
   const navigableMarkers = page.locator(".custom-navigable-marker");
   const baselineMarkerCount = await navigableMarkers.count();
 
-  const menu = page.getByLabel(messages.geography.contextMenu.ariaLabel);
-  await map.click({ button: "right", position: { x: 300, y: 200 } });
-  await expect(menu).toBeVisible();
-  await menu
-    .getByRole("button", {
-      name: messages.geography.contextMenu.addPlace.trigger,
-    })
-    .click();
+  await chooseFromContextMenu(
+    page,
+    { x: 300, y: 200 },
+    messages.geography.contextMenu.addPlace.trigger
+  );
   // Scoped to the "Kind" field: the dashboard's `LocaleSwitcher` is a
   // `<select>` too, and the panel shows Category alongside Kind while the
   // kind is still the default "poi".

@@ -3,7 +3,7 @@
 **Last updated:** 2026-08-27
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-100, TD-104.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
+**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-100, TD-104, TD-105.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -126,6 +126,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-102 | ✅ Landmarks route to `placeLandmark`; picking one no longer addresses whichever zone shares its id           | ~~🟠 High~~ done     | M      | 4     |
 | TD-103 | ✅ "Posiziona luogo" was enabled from a tree-wide count while listing only the current map — a dead click     | ~~🟠 High~~ done     | S      | 4     |
 | TD-104 | A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu   | 🟡 Medium            | M      | 4     |
+| TD-105 | No `revalidatePath` call in the app names the route file structure; all 48 are inert once Next narrows it     | 🟠 High              | M      | 4     |
 
 ---
 
@@ -463,3 +464,60 @@ redraw-to-replace. Redrawing the rectangle elsewhere does move the area, so
 the wording was not false about the outcome — but it promised a _control_
 that does not exist, and the DM read it that way. It now describes the
 gesture: "Ridisegna il rettangolo" / "Redraw the rectangle".
+
+### TD-105 — No `revalidatePath` call in the app names the route file structure
+
+**Severity:** 🟠 High · **Effort:** M · **Found:** 2026-08-30, noticed while writing `placeLandmark` for TD-102 — `createPoi`/`updatePoi` revalidate `/geography` where every zone mutation revalidates `/dashboard/geography`
+
+The odd one out turned out to be the visible corner of something wider: **none
+of the 48 `revalidatePath` calls in the app is in a form that can match.**
+
+Pages live at `app/[locale]/dashboard/<domain>`, so the path begins with a
+dynamic segment. Next's own reference (`node_modules/next/dist/docs/01-app/03-api-reference/04-functions/revalidatePath.md`)
+settles it on two points: with rewrites you pass the **destination** path, not
+the URL the browser shows, because the function works on the route file
+structure rather than the visible URL; and when the path contains a dynamic
+segment, the `type` argument is **required**. `proxy.ts` mounts
+`next-intl/middleware` with `localePrefix: "as-needed"`, so
+`/dashboard/geography` is the source URL, rewritten internally to
+`/it/dashboard/geography`.
+
+The correct form is `revalidatePath("/[locale]/dashboard/geography", "page")`.
+What exists instead:
+
+| form                              | calls | what is wrong                                               |
+| --------------------------------- | ----- | ----------------------------------------------------------- |
+| `/dashboard/campaign` and similar | 29    | the _source_ path — the reference's own "Incorrect" example |
+| `/geography`, `/npc`, `/spells`…  | 19    | matches nothing: neither source nor destination             |
+| passing `type: "page"`            | 0     | required by the `[locale]` segment, never passed            |
+
+**Why nothing looks broken.** The same reference records a temporary
+behaviour: called from a Server Function, `revalidatePath` currently also
+refreshes previously visited pages, and it says that will be narrowed to the
+specific path. If that is what carries the app — the most plausible reading,
+though unproven — then all 48 work by side effect and stop working together.
+
+**What was actually established, and how.** `map-unplace.spec.ts` asserts that
+"Posiziona luogo"'s count changes after un-placing, and that count is
+`unpositionedCount`, a Server Component prop only a revalidation refreshes.
+Pointing `unplacePlace` at `revalidatePath("/td-105-nonsense-path")` leaves
+that spec **passing, count assertion included**. So the refresh seen in e2e
+does not depend on the path matching anything.
+
+**A claim in the code was wrong and has been corrected here.** Comments in
+`WorldMap.tsx` and `WorldMap.test.tsx` said the count refresh comes from
+`revalidatePath("/dashboard/geography")`, "confirmed live in e2e (SPEC-016
+T5)". The observation was real; the attribution was not, and e2e could never
+have supported it — `playwright.config.ts` starts `pnpm dev`, and in
+development Server Components re-render per request whatever the cache is
+told. Both comments now say what is known and point here.
+
+**What remains, and why this is not a two-line fix.** Everything above is
+development-only evidence. The question that matters — whether a production
+build serves stale data after a mutation — needs `pnpm build` + `start` and a
+check per domain, and that is the first task of this item rather than
+something to skip on the way to a find-and-replace. Only then is it clear
+whether the fix is mechanical (48 call sites to
+`"/[locale]/dashboard/<domain>", "page"`) or whether some of these pages are
+uncached anyway and the calls should simply go. Worth a shared helper either
+way, so the route-file form is written once rather than 48 times.

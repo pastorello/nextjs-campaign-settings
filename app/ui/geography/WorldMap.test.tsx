@@ -632,12 +632,13 @@ describe("WorldMap", () => {
   // Regression (CI flake traced to a real bug, not test flake): the image
   // `load` event this effect waits on fires asynchronously and, in CI,
   // sometimes lands while a DM has just opened the right-click context
-  // menu. `fitBounds`/`setView` fire Leaflet's `movestart`, which
-  // `useMapContextMenu` treats as "the user is navigating away" and closes
-  // the menu — detaching its "Add Place" button out from under a
-  // Playwright click mid-action. Both camera moves this effect makes must
-  // go through `runWithoutClosing` so that hook can tell this apart from an
-  // actual user drag/scroll instead of closing every open menu it lands on.
+  // menu. `fitBounds`/`setView` change the zoom, and Leaflet fires
+  // `zoomstart` for that exactly as it does for the DM's own wheel — which
+  // `useMapContextMenu` reads as "the DM is navigating away" and closes the
+  // menu, detaching its "Add Place" button out from under a Playwright click
+  // mid-action. Both camera moves this effect makes must go through
+  // `runWithoutClosing` so that hook can tell them apart from a zoom the DM
+  // asked for instead of closing every open menu they land on.
   it("routes both camera moves (the interim framing and the TD-81 corrective re-fit) through runWithoutClosing, not straight to the map (regression)", async () => {
     render(
       <WorldMap

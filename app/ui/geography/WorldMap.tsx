@@ -879,12 +879,12 @@ function WorldMap({
           // the floor is loosened first or the "fit" would just echo the
           // old floor back unchanged.
           //
-          // `setView` fires Leaflet's `movestart` — wrapped in
-          // `runWithoutClosing` so it can never be mistaken for the user
-          // dragging/scrolling the map and close a context menu that
-          // happens to be open (unlikely for this interim call, which runs
-          // at mount, but the corrective re-fit below is exactly this
-          // situation and the two are kept consistent).
+          // `setView` fires Leaflet's `zoomstart` whenever it changes the
+          // zoom — wrapped in `runWithoutClosing` so it can never be mistaken
+          // for the DM zooming the map and close a context menu that happens
+          // to be open (unlikely for this interim call, which runs at mount,
+          // but the corrective re-fit below is exactly this situation and the
+          // two are kept consistent).
           runWithoutClosing(() => {
             map.setMinZoom(-Infinity);
             const minZoom = computeMinZoom(
@@ -895,17 +895,20 @@ function WorldMap({
             map.setMaxZoom(10);
             map.setMaxBounds(bounds);
             // `animate: false`, and not only because an animated initial
-            // framing is pointless: `runWithoutClosing`'s suppression
-            // window is synchronous, and an *animated* view change defers
-            // its `moveend` — after which `setMaxBounds`'s own
-            // `panInsideMaxBounds` hook may pan the map, firing a
-            // `movestart` outside the window that closes a context menu
-            // the DM has meanwhile opened. CI caught exactly this: on a
-            // slow runner this whole effect ran after the test's
-            // right-click, and the menu detached ~100ms after opening.
-            // With `animate: false` the entire cascade — movestart,
-            // moveend, the max-bounds pan — runs synchronously inside the
-            // suppression.
+            // framing is pointless: `runWithoutClosing`'s suppression window
+            // is synchronous, and Leaflet defers an *animated* zoom's
+            // `zoomstart` into a `requestAnimFrame` (`_tryAnimatedZoom`) —
+            // outside the window, where it would close a context menu the DM
+            // has meanwhile opened. With `animate: false` the whole view
+            // change, `zoomstart` included, runs inside the suppression.
+            //
+            // This reasoning used to be written in terms of `movestart` and
+            // the pan `setMaxBounds`'s `panInsideMaxBounds` hook makes on the
+            // deferred `moveend` — the cascade CI caught, where the menu
+            // detached ~100ms after opening. That cascade still happens;
+            // since TD-100 the menu simply does not listen to it any more,
+            // which is why the argument for `animate: false` is now the zoom
+            // rather than the pan.
             map.setView(initialView, initialZoom, { animate: false });
           });
 
@@ -956,11 +959,12 @@ function WorldMap({
             // This whole re-fit is wrapped in `runWithoutClosing`: it fires
             // whenever the browser finishes loading the image, which is
             // asynchronous and can land well after mount — including while
-            // a DM has the right-click context menu open. `fitBounds` fires
-            // Leaflet's `movestart` exactly as a user drag/scroll would,
-            // and unwrapped that closed the menu (and detached its
-            // "Aggiungi luogo" button) mid-click in CI, a real regression
-            // this fixes rather than a flaky test.
+            // a DM has the right-click context menu open. `fitBounds`
+            // changes the zoom, and Leaflet fires `zoomstart` for that
+            // exactly as it does for the DM's own wheel or pinch, so
+            // unwrapped it closed the menu (and detached its "Aggiungi
+            // luogo" button) mid-click in CI, a real regression this fixes
+            // rather than a flaky test.
             runWithoutClosing(() => {
               map.setMinZoom(-Infinity);
               const fitZoom = map.getBoundsZoom(fittedBounds);

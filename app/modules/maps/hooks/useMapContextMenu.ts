@@ -18,19 +18,21 @@ export interface UseMapContextMenuReturn {
   position: ContextMenuPosition | null;
   close: () => void;
   /**
-   * Run `fn` — which must synchronously call a Leaflet method that moves or
-   * zooms the map, e.g. `setView`/`fitBounds` — without letting the
-   * `movestart` it fires close an already-open menu.
+   * Run `fn` — which must synchronously call a Leaflet method that zooms the
+   * map, e.g. `setView`/`fitBounds` — without letting the `zoomstart` it
+   * fires close an already-open menu.
    *
-   * Leaflet's `movestart` event fires identically whether the map moved
-   * because the user dragged/scrolled it or because app code repositioned
-   * it programmatically (e.g. `WorldMap`'s TD-81/TD-87 corrective re-fit,
-   * fired asynchronously once a loaded image reports its real aspect
-   * ratio). Left unguarded, a programmatic move that happens to land while
-   * the menu is open closes it — and since `movestart` fires synchronously
-   * within the very call that triggers it, wrapping that call here is
-   * enough to tell the two apart without threading any extra state through
-   * the map instance itself.
+   * Since TD-100 the menu closes on what the DM did to the map, not on where
+   * the map ended up: `dragstart` and `zoomstart`, never `movestart`. For a
+   * pan that distinction is free, because Leaflet fires map-level `dragstart`
+   * from its drag handler alone. For a zoom it is not: `zoomstart` fires
+   * identically whether the DM spun the wheel or app code called `fitBounds`
+   * (e.g. `WorldMap`'s TD-81/TD-87 corrective re-fit, fired asynchronously
+   * once a loaded image reports its real aspect ratio). Left unguarded, such
+   * a re-fit landing while the menu is open closes it — and since `zoomstart`
+   * fires synchronously within the very call that triggers it, wrapping that
+   * call here is enough to tell the two apart without threading any extra
+   * state through the map instance itself.
    */
   runWithoutClosing: (fn: () => void) => void;
 }
@@ -42,7 +44,7 @@ export interface UseMapContextMenuReturn {
  * - Proper event handler cleanup (stores reference to specific handler)
  * - Prevents default browser context menu on map
  * - Tracks click position in both screen and map coordinates
- * - Closes on map click, scroll, or escape key
+ * - Closes on map click, on the DM dragging or zooming the map, or on escape
  *
  * @returns Object with context menu state and controls
  */
@@ -56,7 +58,7 @@ export function useMapContextMenu(): UseMapContextMenuReturn {
     null
   );
   const clickHandlerRef = useRef<(() => void) | null>(null);
-  const moveStartHandlerRef = useRef<(() => void) | null>(null);
+  const userMoveHandlerRef = useRef<(() => void) | null>(null);
 
   // Set for the duration of a `runWithoutClosing` call — see that function
   // and the `UseMapContextMenuReturn.runWithoutClosing` doc comment.
@@ -129,9 +131,19 @@ export function useMapContextMenu(): UseMapContextMenuReturn {
       }
     };
 
-    // Move/drag handler to close menu — skipped for a move `runWithoutClosing`
-    // triggered, since that is app code repositioning the map, not the user.
-    const handleMoveStart = () => {
+    // The DM moving the map closes the menu; the app moving the map does not
+    // (TD-100). `movestart` cannot tell those apart — it fires for every
+    // camera move, including the ones the map's own initialisation tail makes
+    // (`invalidateSize` → `moveend` → `setMaxBounds`'s `panInsideMaxBounds`
+    // → a pan), which is how a menu the DM had just opened could vanish
+    // mid-click. `dragstart` and `zoomstart` are the DM's two ways of moving
+    // it, so the menu listens to those instead; the one case they still share
+    // with app code is a programmatic zoom, which `runWithoutClosing` marks.
+    //
+    // Known and accepted: Leaflet's keyboard pan (arrow keys, `panBy`) fires
+    // neither, so it leaves the menu open where it used to close it. Its
+    // zoom keys still close it, and so does clicking anywhere on the map.
+    const handleUserMove = () => {
       if (isOpen && !suppressCloseRef.current) {
         close();
       }
@@ -140,12 +152,13 @@ export function useMapContextMenu(): UseMapContextMenuReturn {
     // Store references
     contextMenuHandlerRef.current = handleContextMenu;
     clickHandlerRef.current = handleClick;
-    moveStartHandlerRef.current = handleMoveStart;
+    userMoveHandlerRef.current = handleUserMove;
 
     // Attach handlers
     map.on("contextmenu", handleContextMenu);
     map.on("click", handleClick);
-    map.on("movestart", handleMoveStart);
+    map.on("dragstart", handleUserMove);
+    map.on("zoomstart", handleUserMove);
 
     // Cleanup
     return () => {
@@ -157,9 +170,10 @@ export function useMapContextMenu(): UseMapContextMenuReturn {
         map.off("click", clickHandlerRef.current);
         clickHandlerRef.current = null;
       }
-      if (moveStartHandlerRef.current) {
-        map.off("movestart", moveStartHandlerRef.current);
-        moveStartHandlerRef.current = null;
+      if (userMoveHandlerRef.current) {
+        map.off("dragstart", userMoveHandlerRef.current);
+        map.off("zoomstart", userMoveHandlerRef.current);
+        userMoveHandlerRef.current = null;
       }
     };
   }, [map, isOpen, close]);

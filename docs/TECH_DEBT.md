@@ -1,9 +1,9 @@
 # Technical Debt Register
 
-**Last updated:** 2026-08-27
+**Last updated:** 2026-08-31
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-100, TD-105.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
+**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-105.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -121,7 +121,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-97  | `MagicItemType`'s nine members are still Italian identifiers — a TD-33 miss                                     | 🟢 Low               | S      | 4     |
 | TD-98  | `.prettierignore` doesn't exclude `.claude/`, so `format:check`/`--write` reach other sessions' worktrees       | 🟢 Low               | S      | 4     |
 | TD-99  | A fresh worktree's `pnpm install` postinstall (`prisma generate`) fails for lack of `DATABASE_URL`              | 🟢 Low               | S      | 4     |
-| TD-100 | The map context menu can die to the init tail on slow environments; `map.spec` raced it and lost on CI          | 🟡 Medium            | M      | 4     |
+| TD-100 | ✅ The context menu closes on the DM's `dragstart`/`zoomstart`, not on every `movestart`                        | ~~🟡 Medium~~ done   | M      | 4     |
 | TD-101 | ✅ Marker drag repositioning: the marker was under the panel, not undraggable; its e2e spec is real now         | ~~🟠 High~~ done     | M      | 4     |
 | TD-102 | ✅ Landmarks route to `placeLandmark`; picking one no longer addresses whichever zone shares its id             | ~~🟠 High~~ done     | M      | 4     |
 | TD-103 | ✅ "Posiziona luogo" was enabled from a tree-wide count while listing only the current map — a dead click       | ~~🟠 High~~ done     | S      | 4     |
@@ -315,7 +315,7 @@ that would make this the same class of bug, not a new one), or write the
 `.env.example`-fallback workaround into `docs/TESTING.md` once, next to TD-75's
 note, so it isn't rediscovered per agent.
 
-### TD-100 — The map context menu can die to the init tail on slow environments; `map.spec` raced it and lost on CI
+### TD-100 ✅ The map context menu can die to the init tail on slow environments; `map.spec` raced it and lost on CI — **DONE (2026-08-31)**
 
 **Severity:** 🟡 Medium · **Effort:** M · **Found:** 2026-08-21, from a docs-only PR (#215) failing e2e twice on the same test
 
@@ -376,14 +376,57 @@ specs plus `a11y.spec.ts` go through it, where before only `map.spec.ts` had
 any retry at all and the other nine right-click sites had none. Still an
 interim, and still not a fix to the app.
 
-**What remains open:** decide whether the menu should close on user-intent
-events (`dragstart`, `zoomstart`) rather than `movestart`, which would end
-this whole class — #208's fix, this suspected trigger, and any future
-programmatic move — instead of wrapping each new trigger one at a time; or
-alternatively wrap/neutralise the `LeafletMap` deferred `invalidateSize`
-(e.g. `{ pan: false }` plus keeping `moveend` out of the init tail). Either
-way, the DM-facing claim to preserve is: a menu the DM opened stays open
-until the DM closes it or acts on it.
+**Decided and shipped (2026-08-31): the menu closes on `dragstart` and
+`zoomstart`, never on `movestart`.** Of the two options this entry left open,
+the user-intent one was taken; neutralising the deferred `invalidateSize` was
+not, because it only removes the trigger this entry happened to find, and the
+next programmatic move would reopen the same class. `useMapContextMenu` now
+attaches one handler to those two events instead of to `movestart`.
+
+**Why those two events are the right line, verified against Leaflet's own
+source** (`node_modules/leaflet/dist/leaflet-src.js`) rather than assumed:
+
+- Map-level `dragstart` is fired from `Map.Drag._onDragStart` alone — a real
+  pointer drag, mouse or touch. No app call produces it. So every
+  programmatic pan, including this entry's `invalidateSize` → `moveend` →
+  `panInsideMaxBounds` cascade, is now invisible to the menu, and so is any
+  future one.
+- `zoomstart` is fired from `Map._moveStart(zoomChanged)`, which runs for the
+  DM's wheel/pinch/`+`/`-` **and** for a programmatic `setView`/`fitBounds`
+  that changes the zoom. It cannot tell them apart on its own, so
+  `runWithoutClosing` stays exactly as load-bearing as before — it is what
+  marks `WorldMap`'s two camera moves as the app's.
+
+**`animate: false` on those two moves is still load-bearing, for a new
+reason,** and the comments in `WorldMap.tsx` that gave the old one were
+corrected with this change: `_tryAnimatedZoom` defers an animated zoom's
+`_moveStart` into a `requestAnimFrame`, so an animated re-fit would fire its
+`zoomstart` _after_ `runWithoutClosing`'s synchronous window had closed. The
+old comments explained the flag in terms of the deferred `moveend` and the
+max-bounds pan; that cascade still happens, the menu just no longer listens
+to it.
+
+**One behaviour narrowed, knowingly:** Leaflet's keyboard pan (arrow keys →
+`map.panBy`) fires neither event, so it now leaves the menu open where it
+used to close it. Its zoom keys still close it, as does a click anywhere on
+the map or Escape. Recorded in the handler's comment; if it ever bites, the
+fix is an explicit key handler, not a return to `movestart`.
+
+**Tests.** `useMapContextMenu.test.ts` gained the regression this turns on —
+a bare `movestart`, wrapped or not, leaves the menu open — plus one test per
+user-intent event; the `runWithoutClosing` pair now drives `zoomstart`, which
+is the event they actually guard. Those run against a fake map, so
+`map.spec.ts` covers the half only a browser can: a real mouse drag closes
+the menu.
+
+**The e2e retry helpers stay.** `e2e/helpers/mapContextMenu.ts` answers two
+signatures and this fixes one of them — a right-click that lands before
+Leaflet has attached its `contextmenu` handler still opens nothing, and only
+clicking again can help that. Its header now says which half is fixed in the
+app and why the retries remain.
+
+The DM-facing claim this preserves: a menu the DM opened stays open until the
+DM closes it or acts on it.
 
 ### TD-103 ✅ "Posiziona luogo" is enabled from a tree-wide count but lists only the current map's children — **DONE (2026-08-30)**
 

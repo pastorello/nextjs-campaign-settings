@@ -14,9 +14,12 @@ import messages from "@/messages/it.json";
  * - the first right-click can land *before* Leaflet's `contextmenu` handler
  *   is attached — nothing opens, and a test that right-clicked exactly once
  *   then waits its full timeout for a menu that will never come;
- * - a menu that *did* open can be closed from under the test ~100–200ms
+ * - a menu that *did* open could be closed from under the test ~100–200ms
  *   later, by the suspected `invalidateSize` → `moveend` →
- *   `panInsideMaxBounds` → `movestart` cascade.
+ *   `panInsideMaxBounds` → `movestart` cascade. **This one is fixed in the
+ *   app**: since TD-100 the menu closes on `dragstart`/`zoomstart` — what the
+ *   DM did — and no longer on `movestart`, so no camera move the app makes on
+ *   its own can take the menu away.
  *
  * A real DM shrugs and right-clicks again, so these helpers do the same.
  * This does not mask a persistent regression: if the menu keeps dying, every
@@ -36,10 +39,12 @@ import messages from "@/messages/it.json";
  * contents before deciding what to do with it — those reads cannot go inside
  * the retry without a genuine assertion failure being retried away.
  *
- * None of this fixes the app. TD-100 stays open on the real question: whether
- * the menu should close on user-intent events (`dragstart`, `zoomstart`)
- * rather than on `movestart`, which would end this whole class instead of
- * wrapping each new trigger one at a time.
+ * **Why the retries stay now that TD-100 is fixed.** The fix answers the
+ * second signature and the whole class it belonged to, but it cannot answer
+ * the first: a right-click that lands before Leaflet has attached its
+ * `contextmenu` handler opens nothing, and only clicking again can. Deleting
+ * the retries would re-hostage CI on that alone — and they cost nothing when
+ * the first attempt works, which is every run locally.
  */
 
 /** The context menu itself, open or not. */

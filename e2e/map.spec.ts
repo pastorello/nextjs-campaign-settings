@@ -66,6 +66,36 @@ test.describe("world map", () => {
     ).toBeVisible();
   });
 
+  // TD-100: the menu closes on what the DM does to the map — Leaflet's
+  // `dragstart` and `zoomstart` — and no longer on `movestart`, which fires
+  // for every camera move including the ones the map's own initialisation
+  // tail makes on nobody's behalf. `useMapContextMenu`'s unit tests drive a
+  // fake map that emits whatever they ask it to, so this is the half only a
+  // browser can prove: a real mouse drag does reach the handler, and the menu
+  // the DM opened does go away when they grab the map.
+  test("dragging the map closes the context menu", async ({ page }) => {
+    const menu = await openContextMenu(page, { x: 120, y: 80 });
+    await expect(menu).toBeVisible();
+
+    const box = await page.locator(".leaflet-container").boundingBox();
+    if (!box) throw new Error("the map is not laid out — no bounding box");
+
+    // Grab the map at its far corner, well clear of the menu: that opens at
+    // the right-click point and extends ~220×180 px down and to the right of
+    // it, and a mousedown *on* the menu would prove nothing about dragging.
+    const startX = box.x + box.width - 60;
+    const startY = box.y + box.height - 60;
+
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    await page.mouse.move(startX - 120, startY - 80, { steps: 10 });
+    await page.mouse.up();
+
+    // Not a false positive via the click handler: Leaflet suppresses its
+    // `click` when the pointer moved past its drag tolerance, which 120px is.
+    await expect(menu).not.toBeVisible();
+  });
+
   // TD-68: MapPOIPanel's desktop Close button and the hero-image gradient
   // overlay behind it shared `z-10`, so the overlay (later in DOM order)
   // painted on top and silently swallowed every click at the button's own

@@ -15,6 +15,13 @@ vi.mock("@/app/lib/connections/prisma", () => ({
   default: { zone: { updateMany, findUnique, findMany } },
 }));
 
+// T5's structural rule has its own tests; here it is a collaborator, and
+// what matters is that it is asked first and that its refusal is honoured.
+const { checkTreePlacement } = vi.hoisted(() => ({
+  checkTreePlacement: vi.fn(),
+}));
+vi.mock("./checkTreePlacement", () => ({ default: checkTreePlacement }));
+
 import placeZone from "./placeZone";
 
 /**
@@ -30,6 +37,7 @@ describe("placeZone (SPEC-017 T3, extracted from updateZonePosition)", () => {
     updateMany.mockResolvedValue({ count: 1 });
     findUnique.mockResolvedValue({ parentId: 1 });
     findMany.mockResolvedValue([]);
+    checkTreePlacement.mockResolvedValue(null);
   });
 
   it("places an unpositioned place through a guarded write (TD-93)", async () => {
@@ -109,6 +117,37 @@ describe("placeZone (SPEC-017 T3, extracted from updateZonePosition)", () => {
       errors: { id: ["This place does not exist."] },
     });
     expect(updateMany).not.toHaveBeenCalled();
+  });
+
+  it("refuses a placement that would put a place inside its own subtree (T5)", async () => {
+    checkTreePlacement.mockResolvedValue({
+      parentId: ["A place cannot be placed inside a place that it contains."],
+    });
+
+    const result = await placeZone({ id: 5, parentId: 9, lat: 20, lng: 20 });
+
+    expect(result).toEqual({
+      ok: false,
+      code: "wouldCycle",
+      errors: {
+        parentId: ["A place cannot be placed inside a place that it contains."],
+      },
+    });
+    expect(updateMany).not.toHaveBeenCalled();
+    expect(checkTreePlacement).toHaveBeenCalledWith({
+      zoneId: 5,
+      targetParentId: 9,
+    });
+  });
+
+  it("asks the structural question before the spatial one", async () => {
+    checkTreePlacement.mockResolvedValue({ parentId: ["nope"] });
+
+    await placeZone({ id: 5, parentId: 9, lat: 20, lng: 20 });
+
+    // "Which siblings would it collide with" means nothing when the target
+    // is inside the subtree being moved.
+    expect(findMany).not.toHaveBeenCalled();
   });
 
   it("refuses a placement inside an existing sibling area (SPEC-009 §7)", async () => {

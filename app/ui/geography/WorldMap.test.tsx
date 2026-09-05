@@ -165,6 +165,16 @@ vi.mock("@/app/lib/data/maps/updateZonePosition", () => ({
   default: (input: unknown) => updateZonePosition(input),
 }));
 
+const placeZone =
+  vi.fn<
+    (
+      input: unknown
+    ) => Promise<{ ok: boolean; errors?: unknown; code?: string }>
+  >();
+vi.mock("@/app/lib/data/maps/placeZone", () => ({
+  default: (input: unknown) => placeZone(input),
+}));
+
 const placeLandmark =
   vi.fn<
     (
@@ -527,6 +537,7 @@ beforeEach(() => {
   getBoundsZoom.mockReturnValue(-4);
   createPlace.mockResolvedValue({ ok: true, id: 1 });
   updateZonePosition.mockResolvedValue({ ok: true });
+  placeZone.mockResolvedValue({ ok: true });
   placeLandmark.mockResolvedValue({ ok: true });
   unplacePlace.mockResolvedValue({ ok: true });
   useNavigableChildren.mockReturnValue([]);
@@ -1313,14 +1324,11 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     });
 
     await waitFor(() => {
-      expect(updateZonePosition).toHaveBeenCalledWith({
-        id: 5,
-        lat: 10,
-        lng: 20,
-        // The one call site that is a placement (TD-93): everything else
-        // that writes coordinates is moving something already on the map.
-        intent: "place",
-      });
+      // The one call site that is a placement (TD-93): everything else
+      // that writes coordinates is moving something already on the map,
+      // which is why placement is its own mutation (SPEC-017 T3).
+      expect(placeZone).toHaveBeenCalledWith({ id: 5, lat: 10, lng: 20 });
+      expect(updateZonePosition).not.toHaveBeenCalled();
     });
   });
 
@@ -1342,7 +1350,7 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
   });
 
   it("toasts and does not refetch when the update fails", async () => {
-    updateZonePosition.mockResolvedValue({ ok: false });
+    placeZone.mockResolvedValue({ ok: false });
     useUnplacedChildren.mockReturnValue([
       { id: 5, title: "Kingdom of Kang", kind: "region" },
     ]);
@@ -1358,7 +1366,7 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
   });
 
   it("tells the DM to un-place first when the placement is refused (TD-93)", async () => {
-    updateZonePosition.mockResolvedValue({
+    placeZone.mockResolvedValue({
       ok: false,
       code: "alreadyPlaced",
       errors: {},
@@ -1383,7 +1391,7 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
   // TD-102 — the dropdown lists `fetchPlaceChildren`'s merged rows, so an
   // unplaced landmark sits in it next to unplaced navigable places. `zone`
   // and `poi` ids come from independent sequences, so sending every pick to
-  // `updateZonePosition` addressed whichever zone shared the number.
+  // `placeZone` addressed whichever zone shared the number.
   it("routes a landmark to the landmark table, never to the zone one", async () => {
     useUnplacedChildren.mockReturnValue([
       { id: 5, title: "Abandoned well", kind: "poi" },
@@ -1397,7 +1405,7 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     await waitFor(() => {
       expect(placeLandmark).toHaveBeenCalledWith({ id: 5, lat: 10, lng: 20 });
     });
-    expect(updateZonePosition).not.toHaveBeenCalled();
+    expect(placeZone).not.toHaveBeenCalled();
   });
 
   it("refuses a landmark already placed, without naming a recovery it does not have", async () => {
@@ -1478,7 +1486,7 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     });
 
     await waitFor(() => {
-      expect(updateZonePosition).toHaveBeenCalled();
+      expect(placeZone).toHaveBeenCalled();
     });
     expect(reloadPOIs).not.toHaveBeenCalled();
   });

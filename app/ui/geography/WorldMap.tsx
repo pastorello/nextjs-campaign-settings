@@ -31,6 +31,7 @@ import { useLeafletMap } from "@/app/modules/maps/hooks/useLeafletMap";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import createPlace from "@/app/lib/data/maps/createPlace";
 import placeLandmark from "@/app/lib/data/maps/placeLandmark";
+import placeZone from "@/app/lib/data/maps/placeZone";
 import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
 import unplacePlace from "@/app/lib/data/maps/unplacePlace";
 import PlacePopover, {
@@ -564,7 +565,7 @@ function WorldMap({
         // `zone`. No zone can carry it.
         const result = isLandmark
           ? await placeLandmark({ id, lat, lng })
-          : await updateZonePosition({ id, lat, lng, intent: "place" });
+          : await placeZone({ id, lat, lng });
         if (result.ok) {
           setPlacesRefetchToken((token) => token + 1);
           // A landmark that gains coordinates has to be *loaded*, not just

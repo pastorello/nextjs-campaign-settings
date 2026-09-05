@@ -17,15 +17,16 @@ const inputSchema = z.object({
 
 /**
  * Draws a landmark that has no position onto its zone's map (TD-102) — the
- * landmark half of `updateZonePosition`'s `intent: "place"`.
+ * landmark half of `placeZone` (which was `updateZonePosition`'s
+ * `intent: "place"` branch until SPEC-017 T3 split it out).
  *
  * **Why this exists at all.** `fetchPlaceChildren` merges two tables into
  * one list, and `useUnplacedChildren` filters that list down to the rows
  * with no coordinates — so "Posiziona luogo"'s dropdown offers unplaced
  * landmarks (`poi` rows) alongside unplaced navigable places (`zone` rows).
  * Both carry an `id`, the two sequences are independent, and routing every
- * pick to `updateZonePosition` therefore addressed whichever `zone`
- * happened to share the number: a different place entirely, or none.
+ * pick to the zone mutation therefore addressed whichever `zone` happened
+ * to share the number: a different place entirely, or none.
  *
  * The caller branches on `kind === "poi"`, which is a sound discriminator
  * rather than a convention: `fetchPlaceChildren` hardcodes it for every

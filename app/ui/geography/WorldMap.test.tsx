@@ -375,11 +375,19 @@ const usePOIManager = vi.fn((..._args: unknown[]) => ({
 vi.mock("@/app/modules/maps/hooks/usePOIManager", () => ({
   usePOIManager: (...args: unknown[]) => usePOIManager(...args),
 }));
-const useUnplacedChildren = vi
-  .fn<(...args: unknown[]) => { id: number; title: string; kind: string }[]>()
+const useUnplacedPlaces = vi
+  .fn<
+    (...args: unknown[]) => {
+      id: number;
+      title: string;
+      kind: string;
+      parentId: number;
+      parentTitle: string;
+    }[]
+  >()
   .mockReturnValue([]);
-vi.mock("@/app/modules/maps/hooks/useUnplacedChildren", () => ({
-  useUnplacedChildren: (...args: unknown[]) => useUnplacedChildren(...args),
+vi.mock("@/app/modules/maps/hooks/useUnplacedPlaces", () => ({
+  useUnplacedPlaces: (...args: unknown[]) => useUnplacedPlaces(...args),
 }));
 const useNavigableChildren = vi
   .fn<(...args: unknown[]) => unknown[]>()
@@ -482,9 +490,12 @@ async function renderMap(
   grid: { gridColumns: number | null; gridScale: string | null } = {
     gridColumns: null,
     gridScale: null,
-  }
+  },
+  ancestorIds: number[] = [1]
 ) {
-  const view = render(mapElement(mapUrl, unpositionedCount, grid, 1));
+  const view = render(
+    mapElement(mapUrl, unpositionedCount, grid, 1, ancestorIds)
+  );
   await waitFor(() => {
     expect(imageAddTo).toHaveBeenCalled();
   });
@@ -499,11 +510,13 @@ function mapElement(
   mapUrl: string,
   unpositionedCount: number,
   grid: { gridColumns: number | null; gridScale: string | null },
-  parentId: number
+  parentId: number,
+  ancestorIds: number[] = [parentId]
 ) {
   return (
     <WorldMap
       parentId={parentId}
+      ancestorIds={ancestorIds}
       placeTitle="Terra"
       parentTitle="Piani di Esistenza"
       isRoot={false}
@@ -552,7 +565,7 @@ beforeEach(() => {
   placeLandmark.mockResolvedValue({ ok: true });
   unplacePlace.mockResolvedValue({ ok: true });
   useNavigableChildren.mockReturnValue([]);
-  useUnplacedChildren.mockReturnValue([]);
+  useUnplacedPlaces.mockReturnValue([]);
   useMapContextMenu.mockReturnValue({
     isOpen: false,
     position: null,
@@ -571,6 +584,7 @@ describe("WorldMap", () => {
     render(
       <WorldMap
         parentId={1}
+        ancestorIds={[1]}
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
         isRoot={false}
@@ -612,6 +626,7 @@ describe("WorldMap", () => {
     render(
       <WorldMap
         parentId={1}
+        ancestorIds={[1]}
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
         isRoot={false}
@@ -665,6 +680,7 @@ describe("WorldMap", () => {
     render(
       <WorldMap
         parentId={1}
+        ancestorIds={[1]}
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
         isRoot={false}
@@ -716,6 +732,7 @@ describe("WorldMap", () => {
     render(
       <WorldMap
         parentId={1}
+        ancestorIds={[1]}
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
         isRoot={false}
@@ -1309,8 +1326,14 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
   // sublabel's text, where it is awareness rather than a reachability
   // claim. Passing it as a number is what let it drive `disabled`.
   it("passes this place's unplaced children as data, and the tree-wide count only as sublabel text", async () => {
-    useUnplacedChildren.mockReturnValue([
-      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 5,
+        title: "Kingdom of Kang",
+        kind: "region",
+        parentId: 1,
+        parentTitle: "Terra",
+      },
     ]);
     await renderMap("/maps/test.jpg", 7);
 
@@ -1325,8 +1348,14 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
   });
 
   it("positions the chosen place at the point the context menu was opened over, as a placement", async () => {
-    useUnplacedChildren.mockReturnValue([
-      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 5,
+        title: "Kingdom of Kang",
+        kind: "region",
+        parentId: 1,
+        parentTitle: "Terra",
+      },
     ]);
     await renderMap();
 
@@ -1350,9 +1379,88 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     });
   });
 
+  it("offers places from other maps, not only this map's own children", async () => {
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 5,
+        title: "Kingdom of Kang",
+        kind: "region",
+        // Parked under a different parent entirely — the case that was
+        // unreachable before the pool became campaign-wide (SPEC-017 T8).
+        parentId: 99,
+        parentTitle: "Piani Esterni",
+      },
+    ]);
+    await renderMap();
+
+    expect(screen.getByTestId("map-context-menu")).toHaveAttribute(
+      "data-unplaced-places-count",
+      "1"
+    );
+  });
+
+  it("leaves out a place that contains this map, which T5 would refuse anyway", async () => {
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 7,
+        title: "Terra",
+        kind: "region",
+        parentId: 99,
+        parentTitle: "Piani Esterni",
+      },
+    ]);
+
+    // The stack is root → … → this map, so 7 is an ancestor of the map in
+    // view: placing it here would cut its own subtree off the root.
+    await renderMap(
+      "/maps/test.jpg",
+      0,
+      { gridColumns: null, gridScale: null },
+      [7, 1]
+    );
+
+    expect(screen.getByTestId("map-context-menu")).toHaveAttribute(
+      "data-unplaced-places-count",
+      "0"
+    );
+  });
+
+  it("keeps a landmark whose id collides with an ancestor zone's (TD-102)", async () => {
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 7,
+        title: "Abandoned well",
+        kind: "poi",
+        parentId: 3,
+        parentTitle: "Skreebars",
+      },
+    ]);
+
+    // `zone` and `poi` ids come from independent sequences, so landmark 7
+    // has nothing to do with ancestor zone 7 — and a landmark can never be
+    // an ancestor of anything, having no children at all.
+    await renderMap(
+      "/maps/test.jpg",
+      0,
+      { gridColumns: null, gridScale: null },
+      [7, 1]
+    );
+
+    expect(screen.getByTestId("map-context-menu")).toHaveAttribute(
+      "data-unplaced-places-count",
+      "1"
+    );
+  });
+
   it("places onto the map in view, not the one it was mounted with", async () => {
-    useUnplacedChildren.mockReturnValue([
-      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 5,
+        title: "Kingdom of Kang",
+        kind: "region",
+        parentId: 1,
+        parentTitle: "Terra",
+      },
     ]);
     const view = await renderMap();
 
@@ -1388,8 +1496,14 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
   });
 
   it("bumps the navigable refetch token after a successful context-menu positioning", async () => {
-    useUnplacedChildren.mockReturnValue([
-      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 5,
+        title: "Kingdom of Kang",
+        kind: "region",
+        parentId: 1,
+        parentTitle: "Terra",
+      },
     ]);
     await renderMap();
     const tokenBefore = useNavigableChildren.mock.calls.at(-1)?.[2];
@@ -1406,8 +1520,14 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
 
   it("toasts and does not refetch when the update fails", async () => {
     placeZone.mockResolvedValue({ ok: false });
-    useUnplacedChildren.mockReturnValue([
-      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 5,
+        title: "Kingdom of Kang",
+        kind: "region",
+        parentId: 1,
+        parentTitle: "Terra",
+      },
     ]);
     await renderMap();
 
@@ -1426,8 +1546,14 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
       code: "alreadyPlaced",
       errors: {},
     });
-    useUnplacedChildren.mockReturnValue([
-      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 5,
+        title: "Kingdom of Kang",
+        kind: "region",
+        parentId: 1,
+        parentTitle: "Terra",
+      },
     ]);
     await renderMap();
 
@@ -1448,8 +1574,14 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
   // and `poi` ids come from independent sequences, so sending every pick to
   // `placeZone` addressed whichever zone shared the number.
   it("routes a landmark to the landmark table, never to the zone one", async () => {
-    useUnplacedChildren.mockReturnValue([
-      { id: 5, title: "Abandoned well", kind: "poi" },
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 5,
+        title: "Abandoned well",
+        kind: "poi",
+        parentId: 1,
+        parentTitle: "Terra",
+      },
     ]);
     await renderMap();
 
@@ -1474,8 +1606,14 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
       code: "alreadyPlaced",
       errors: {},
     });
-    useUnplacedChildren.mockReturnValue([
-      { id: 5, title: "Abandoned well", kind: "poi" },
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 5,
+        title: "Abandoned well",
+        kind: "poi",
+        parentId: 1,
+        parentTitle: "Terra",
+      },
     ]);
     await renderMap();
 
@@ -1498,8 +1636,14 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     // The id alone does not say which table to address, and guessing is the
     // whole defect. A miss means the client snapshot and the menu have
     // diverged, so the honest move is to refuse rather than pick a table.
-    useUnplacedChildren.mockReturnValue([
-      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 5,
+        title: "Kingdom of Kang",
+        kind: "region",
+        parentId: 1,
+        parentTitle: "Terra",
+      },
     ]);
     await renderMap();
 
@@ -1521,8 +1665,14 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     // renders no marker. `reloadPOIs` had been left with no caller when
     // SPEC-016 T9 withdrew the panel's unplaced picker; found because the
     // TD-102 e2e placed the landmark successfully and then saw nothing.
-    useUnplacedChildren.mockReturnValue([
-      { id: 5, title: "Abandoned well", kind: "poi" },
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 5,
+        title: "Abandoned well",
+        kind: "poi",
+        parentId: 1,
+        parentTitle: "Terra",
+      },
     ]);
     await renderMap();
 
@@ -1536,8 +1686,14 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
   });
 
   it("does not reload the landmark markers when the thing placed was a zone", async () => {
-    useUnplacedChildren.mockReturnValue([
-      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 5,
+        title: "Kingdom of Kang",
+        kind: "region",
+        parentId: 1,
+        parentTitle: "Terra",
+      },
     ]);
     await renderMap();
 
@@ -1552,8 +1708,14 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
   });
 
   it("bumps the refetch token after placing a landmark, so its marker appears", async () => {
-    useUnplacedChildren.mockReturnValue([
-      { id: 5, title: "Abandoned well", kind: "poi" },
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 5,
+        title: "Abandoned well",
+        kind: "poi",
+        parentId: 1,
+        parentTitle: "Terra",
+      },
     ]);
     await renderMap();
     const tokenBefore = useNavigableChildren.mock.calls.at(-1)?.[2];
@@ -1574,6 +1736,7 @@ describe("WorldMap — sized to its container, not the viewport (TD-84)", () => 
     const { container } = render(
       <WorldMap
         parentId={1}
+        ancestorIds={[1]}
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
         isRoot={false}
@@ -1617,6 +1780,7 @@ describe("WorldMap — the zoom floor leaves room to zoom out (TD-87)", () => {
     render(
       <WorldMap
         parentId={1}
+        ancestorIds={[1]}
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
         isRoot={false}
@@ -1680,6 +1844,7 @@ describe("WorldMap — the zoom floor leaves room to zoom out (TD-87)", () => {
     render(
       <WorldMap
         parentId={1}
+        ancestorIds={[1]}
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
         isRoot={false}
@@ -1712,6 +1877,7 @@ describe("WorldMap — the grid panel's image size (SPEC-015 T5)", () => {
     render(
       <WorldMap
         parentId={1}
+        ancestorIds={[1]}
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
         isRoot={false}
@@ -1756,6 +1922,7 @@ describe("WorldMap — the grid panel's image size (SPEC-015 T5)", () => {
     render(
       <WorldMap
         parentId={1}
+        ancestorIds={[1]}
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
         isRoot={false}
@@ -1840,6 +2007,7 @@ describe("WorldMap — the grid overlay's toggle (SPEC-015 T6)", () => {
     render(
       <WorldMap
         parentId={1}
+        ancestorIds={[1]}
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
         isRoot={false}
@@ -1878,7 +2046,9 @@ describe("WorldMap — the grid overlay's toggle (SPEC-015 T6)", () => {
       onDeleted: vi.fn(),
       unpositionedCount: 0,
     };
-    const { rerender } = render(<WorldMap parentId={1} {...props} />);
+    const { rerender } = render(
+      <WorldMap parentId={1} ancestorIds={[1]} {...props} />
+    );
     await waitFor(() => {
       expect(imageAddTo).toHaveBeenCalled();
     });
@@ -1889,7 +2059,7 @@ describe("WorldMap — the grid overlay's toggle (SPEC-015 T6)", () => {
       "true"
     );
 
-    rerender(<WorldMap parentId={2} {...props} />);
+    rerender(<WorldMap parentId={2} ancestorIds={[2]} {...props} />);
     expect(screen.getByTestId("map-grid-overlay")).toHaveAttribute(
       "data-visible",
       "false"
@@ -2027,7 +2197,7 @@ describe("WorldMap — un-placing from the popover (SPEC-016 T5)", () => {
   it("un-places the clicked place: refetches and closes the popover", async () => {
     await renderMap("/maps/test.jpg", 2);
     clickPlace();
-    const tokenBefore = useUnplacedChildren.mock.calls.at(-1)?.[1] as number;
+    const tokenBefore = useUnplacedPlaces.mock.calls.at(-1)?.[0] as number;
 
     act(() => {
       popoverOnUnplace?.(place);
@@ -2035,7 +2205,7 @@ describe("WorldMap — un-placing from the popover (SPEC-016 T5)", () => {
 
     expect(unplacePlace).toHaveBeenCalledWith({ id: 7 });
     await waitFor(() => {
-      expect(useUnplacedChildren.mock.calls.at(-1)?.[1]).toBe(tokenBefore + 1);
+      expect(useUnplacedPlaces.mock.calls.at(-1)?.[0]).toBe(tokenBefore + 1);
     });
     // No assertion on the tree-wide count here any more (TD-103 stopped
     // passing it to the menu), and it was never this component's to update
@@ -2104,14 +2274,14 @@ describe("WorldMap — deleting from the popover (SPEC-016 T6)", () => {
   it("refetches and closes the popover once the popover reports a completed deletion", async () => {
     await renderMap();
     clickPlace();
-    const tokenBefore = useUnplacedChildren.mock.calls.at(-1)?.[1] as number;
+    const tokenBefore = useUnplacedPlaces.mock.calls.at(-1)?.[0] as number;
 
     act(() => {
       popoverOnDeleted?.();
     });
 
     await waitFor(() => {
-      expect(useUnplacedChildren.mock.calls.at(-1)?.[1]).toBe(tokenBefore + 1);
+      expect(useUnplacedPlaces.mock.calls.at(-1)?.[0]).toBe(tokenBefore + 1);
     });
     expect(screen.queryByTestId("place-popover")).not.toBeInTheDocument();
   });
@@ -2375,7 +2545,9 @@ describe("WorldMap — a zone's edit panel (TD-104)", () => {
       onDeleted: vi.fn(),
       unpositionedCount: 0,
     };
-    const { rerender } = render(<WorldMap parentId={1} {...props} />);
+    const { rerender } = render(
+      <WorldMap parentId={1} ancestorIds={[1]} {...props} />
+    );
     await waitFor(() => {
       expect(imageAddTo).toHaveBeenCalled();
     });
@@ -2383,7 +2555,7 @@ describe("WorldMap — a zone's edit panel (TD-104)", () => {
     openPanel();
     expect(screen.getByTestId("zone-edit-panel")).toBeInTheDocument();
 
-    rerender(<WorldMap parentId={2} {...props} />);
+    rerender(<WorldMap parentId={2} ancestorIds={[2]} {...props} />);
 
     expect(screen.queryByTestId("zone-edit-panel")).not.toBeInTheDocument();
   });

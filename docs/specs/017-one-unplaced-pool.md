@@ -96,12 +96,12 @@ What does change is what those columns _mean_ while a row is unplaced, and it is
 - [ ] Picking a place from another map positions it **and** writes `parentId` (zone) or `zoneId` (landmark) to the map in view, in one write
 - [ ] Picking a local child behaves exactly as it does today
 - [ ] Placing a zone onto a map contained by that zone — or onto its own map — is refused, with a message naming the reason, and the offending rows are absent from that map's list _(refused at the mutation, T5; the message and the list filter are T9)_
-- [ ] Moving a landmark carries the `zoneId` of every NPC and deity attached to it, in the same transaction; `poiId` is unchanged
-- [ ] A failed or refused move leaves every row exactly as it was
-- [ ] The target parent, not the stored one, is what SPEC-009 §7's placement checks run against
+- [x] Moving a landmark carries the `zoneId` of every NPC and deity attached to it, in the same transaction; `poiId` is unchanged
+- [x] A failed or refused move leaves every row exactly as it was
+- [x] The target parent, not the stored one, is what SPEC-009 §7's placement checks run against
 - [ ] A landmark can be sent back to the unpositioned places from its popover, and reappears in the pool
 - [x] The campaign-wide count counts what the list offers, landmarks included _(T7)_
-- [ ] `placeLandmark` is the only writer of `poi.zoneId` outside creation and deletion
+- [x] `placeLandmark` is the only writer of `poi.zoneId` outside creation and deletion
 - [ ] Every new or changed mutation rejects an unauthenticated request
 - [ ] Every new or changed mutation rejects invalid input with field-level errors
 - [ ] Every new user-facing string exists in both `messages/it.json` and `messages/en.json`
@@ -158,7 +158,7 @@ What does change is what those columns _mean_ while a row is unplaced, and it is
 - [x] **T3** — Extract `placeZone` from `updateZonePosition`'s `intent: "place"` branch; `updateZonePosition` keeps reposition and resize; call sites updated _(test: the existing `updateZonePosition` place-branch tests move to `placeZone.test.ts` and stay green — pure refactor, no behaviour change)_
 - [x] **T4** — `placeZone` takes a target `parentId`, writes it with the coordinates in one guarded `updateMany`, and runs SPEC-009 §7's checks against that parent _(test: unit — the edge is written, a stale "already placed" is still refused, the checks use the target)_ — and refuses the root, which becomes placeable the moment the edge is writable; T5's descendant check subsumes it but names the reason less well
 - [x] **T5** — `placeZone` refuses a cycle: the target may not be the place itself or any of its descendants _(test: unit — self, direct child, grandchild all refused with a named error; a sibling accepted)_
-- [ ] **T6** — `placeLandmark` takes a target `zoneId`; `poi.zoneId` and the `zoneId` of every NPC and deity with that `poiId` move together in one transaction _(test: unit — the invariant holds after the move; a refused placement writes nothing at all)_ — and `updatePoi` drops its unreachable `zoneId`, so the edge has one writer, not two _(test: unit — the update schema rejects it)_
+- [x] **T6** — `placeLandmark` takes a target `zoneId`; `poi.zoneId` and the `zoneId` of every NPC and deity with that `poiId` move together in one transaction _(test: unit — the invariant holds after the move; a refused placement writes nothing at all)_ — and `updatePoi` drops its unreachable `zoneId`, so the edge has one writer, not two _(test: unit — the update schema rejects it)_
 - [x] **T7** — `countUnpositionedPlaces` counts unplaced landmarks alongside unplaced zones _(test: unit — a `poi` with `lat: null` is counted; regression for the zones-only bug)_
 - [ ] **T8** — `useUnplacedChildren` becomes campaign-wide `useUnplacedPlaces`; `WorldMap` excludes the ancestors of the map in view using the navigation stack it already holds _(test: unit — the hook returns places from other maps; an ancestor is filtered out)_
 - [ ] **T9** — The picker: two groups, provenance label, filter box, scroll cap; the move toast and the cycle message, both catalogues _(test: unit — grouping and filtering render; e2e covers the flow in T11)_

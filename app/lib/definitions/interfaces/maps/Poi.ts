@@ -36,8 +36,14 @@ export interface PoiCreateInput {
   zoneId: number;
 }
 
-/** Payload for `updatePoi`: only `id` is required. */
-export interface PoiUpdateInput extends Partial<PoiCreateInput> {
+/**
+ * Payload for `updatePoi`: only `id` is required, and `zoneId` is not
+ * accepted at all — a landmark's zone is its tree edge, written only by a
+ * placement (SPEC-017 T6, ADR-0012).
+ */
+export interface PoiUpdateInput extends Partial<
+  Omit<PoiCreateInput, "zoneId">
+> {
   id: number;
 }
 

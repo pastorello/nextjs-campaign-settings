@@ -44,10 +44,20 @@ export function buildPoiCreateSchema() {
  * update only carries the fields the user edited — mirrors
  * `buildEntitySchema.buildUpdateSchema`, which POI does not use directly
  * because it sits outside the metadata layer (SPEC-002 §7).
+ *
+ * **`zoneId` is not updatable (SPEC-017 T6).** A landmark's zone is its
+ * tree edge, and ADR-0012 gives the edge exactly one writer: the placement.
+ * `updatePoi` accepted a `zoneId` and wrote it while maintaining none of
+ * ADR-0010's entity follow-through — unreachable, since `usePOIManager`
+ * never sent the key, but a second door onto the same state change and the
+ * only one that broke the invariant. `.strict()` rather than the default
+ * strip, so sending it is refused out loud instead of quietly ignored.
  */
 export function buildPoiUpdateSchema() {
   return z
     .object(poiFields)
+    .omit({ zoneId: true })
     .partial()
-    .extend({ id: z.coerce.number().int().positive() });
+    .extend({ id: z.coerce.number().int().positive() })
+    .strict();
 }

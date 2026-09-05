@@ -122,6 +122,8 @@ That is worth stating plainly because it is the whole shape of this spec: **noth
 
 **The count is a tree-wide read, not a per-parent one.** `useUnplacedChildren` answers "which children of _this_ place lack coordinates" and stays as it is. The new count is `prisma.zone.count({ where: { lat: null, parentId: { not: null } } })` — every place except the root. One query, on a table of 42 rows.
 
+> **Widened 2026-09-05 by [SPEC-017](./017-one-unplaced-pool.md) T7.** That query is now half of the count: `prisma.poi.count({ where: { lat: null } })` runs alongside it. Landmarks became a separate table after this spec shipped (SPEC-008 T8) and the picker has listed unplaced ones ever since, so a zones-only number reported three over a list of five. §9's risk note — "written as one small function for exactly that reason" — is where this was foreseen; no root exclusion is needed on the landmark half, since `poi.zoneId` is `NOT NULL`.
+
 **The entity-side fixes reuse what exists.** `AssignLocationButton` gains a text-trigger shape for card use — a prop or a thin wrapper on the same component, not a second implementation. The failure mode this project has paid for twice (TD-09's quartets, the metadata layer's near-forks) is two things doing one job and drifting.
 
 **Two reads of an entity's location will need reconciling.** `EntityLibrary` uses `fetchDerivedAncestry` → `toDerivedPlacements`; `EntityList` uses `fetchEntityLocationSummaries`. Only the second carries the `zoneId`/`poiId` the modal needs. Either the card reads summaries too, or `toDerivedPlacements` starts carrying the ids — **do not add a third read.**

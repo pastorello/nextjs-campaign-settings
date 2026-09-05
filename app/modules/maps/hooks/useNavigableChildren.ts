@@ -134,14 +134,11 @@ export function useNavigableChildren(
       };
 
       try {
-        // `reposition`, not `place`: this is SPEC-005's drag of a marker
-        // that is already on this map, which TD-93's invariant leaves free.
-        const result = await updateZonePosition({
-          id,
-          lat,
-          lng,
-          intent: "reposition",
-        });
+        // `updateZonePosition`, not `placeZone`: this is SPEC-005's drag
+        // of a marker already on this map, which TD-93's invariant leaves
+        // free. SPEC-017 T3 turned that distinction from an argument into
+        // the function you call.
+        const result = await updateZonePosition({ id, lat, lng });
         if (!result.ok) revert();
       } catch (error) {
         console.error("Failed to reposition navigable place:", error);

@@ -41,7 +41,6 @@ describe("updateZonePosition", () => {
         id: 5,
         lat: 20,
         lng: 20,
-        intent: "reposition",
       });
 
       expect(result).toEqual({ ok: true });
@@ -67,7 +66,6 @@ describe("updateZonePosition", () => {
         id: 5,
         lat: 20,
         lng: 20,
-        intent: "reposition",
       });
 
       expect(result).toEqual({
@@ -85,7 +83,6 @@ describe("updateZonePosition", () => {
         id: 5,
         lat: 20,
         lng: 20,
-        intent: "reposition",
       });
 
       expect(findMany).toHaveBeenCalledWith({
@@ -94,28 +91,7 @@ describe("updateZonePosition", () => {
       });
     });
 
-    it("places an unpositioned place through a guarded write (TD-93)", async () => {
-      findUnique.mockResolvedValue({ parentId: 1 });
-      findMany.mockResolvedValue([]);
-
-      const result = await updateZonePosition({
-        id: 5,
-        lat: 20,
-        lng: 20,
-        intent: "place",
-      });
-
-      expect(result).toEqual({ ok: true });
-      // The pre-state is in the `where`, not in an earlier read: that is
-      // what makes the database the thing refusing a second placement.
-      expect(updateMany).toHaveBeenCalledWith({
-        where: { id: 5, lat: null },
-        data: { lat: 20, lng: 20 },
-      });
-      expect(update).not.toHaveBeenCalled();
-    });
-
-    it("refuses placing a place that already has coordinates (TD-93)", async () => {
+    it("moves an already-placed row without the guard placement uses (SPEC-005)", async () => {
       findUnique.mockResolvedValue({ parentId: 1 });
       findMany.mockResolvedValue([]);
       updateMany.mockResolvedValue({ count: 0 });
@@ -124,55 +100,17 @@ describe("updateZonePosition", () => {
         id: 5,
         lat: 20,
         lng: 20,
-        intent: "place",
       });
 
-      expect(result).toEqual({
-        ok: false,
-        code: "alreadyPlaced",
-        errors: {
-          lat: [
-            "This place is already positioned. Move it back to the unpositioned places first.",
-          ],
-        },
-      });
-    });
-
-    it("repositioning the same already-placed row is not refused (SPEC-005)", async () => {
-      findUnique.mockResolvedValue({ parentId: 1 });
-      findMany.mockResolvedValue([]);
-      updateMany.mockResolvedValue({ count: 0 });
-
-      const result = await updateZonePosition({
-        id: 5,
-        lat: 20,
-        lng: 20,
-        intent: "reposition",
-      });
-
+      // `updateMany` is `placeZone`'s guard (SPEC-017 T3), and a drag must
+      // never reach it: a row already on the map would have `count: 0` and
+      // a reposition would start refusing itself.
       expect(result).toEqual({ ok: true });
       expect(updateMany).not.toHaveBeenCalled();
       expect(update).toHaveBeenCalledWith({
         where: { id: 5 },
         data: { lat: 20, lng: 20 },
       });
-    });
-
-    it("says a missing row is missing rather than already placed", async () => {
-      findUnique.mockResolvedValue(null);
-
-      const result = await updateZonePosition({
-        id: 404,
-        lat: 20,
-        lng: 20,
-        intent: "place",
-      });
-
-      expect(result).toEqual({
-        ok: false,
-        errors: { id: ["This place does not exist."] },
-      });
-      expect(updateMany).not.toHaveBeenCalled();
     });
 
     it("skips the sibling check for the root (no parent)", async () => {
@@ -182,7 +120,6 @@ describe("updateZonePosition", () => {
         id: 1,
         lat: 20,
         lng: 20,
-        intent: "reposition",
       });
 
       expect(result).toEqual({ ok: true });

@@ -35,3 +35,4 @@ Do **not** write one for routine implementation choices, naming, or anything a c
 | [0009](./0009-world-tree-as-one-polymorphic-table.md)           | The world as one polymorphic `poi` tree               | Accepted | 2026-08-07 |
 | [0010](./0010-entity-location-as-stored-reference.md)           | An entity's location as a stored reference            | Accepted | 2026-08-08 |
 | [0011](./0011-inline-collections-outside-the-metadata-layer.md) | Ordered inline collections outside the metadata layer | Accepted | 2026-08-18 |
+| [0012](./0012-placement-writes-the-tree-edge.md)                | Placement writes the tree edge                        | Accepted | 2026-09-04 |

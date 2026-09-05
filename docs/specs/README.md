@@ -57,5 +57,6 @@ Steps 1–3 are cheap and go in one file. Do not skip straight to 4 for anything
 | 013 | [Campaign management](./013-campaign-management.md)                           | Closed 2026-08-19 — shipped      | 4     |
 | 015 | [Map grids, scale and measurement](./015-map-grid-and-scale.md)               | Shipped 2026-08-20               | 4     |
 | 016 | [The place popover](./016-place-popover.md)                                   | Shipped 2026-08-27               | 4     |
+| 017 | [One pool of unplaced places](./017-one-unplaced-pool.md)                     | Agreed 2026-09-05                | 4     |
 
 Feature ideas live in [`../ROADMAP.md`](../ROADMAP.md) until they are ready for a spec.

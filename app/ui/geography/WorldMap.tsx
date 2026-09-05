@@ -565,7 +565,7 @@ function WorldMap({
         // `zone`. No zone can carry it.
         const result = isLandmark
           ? await placeLandmark({ id, lat, lng })
-          : await placeZone({ id, lat, lng });
+          : await placeZone({ id, parentId, lat, lng });
         if (result.ok) {
           setPlacesRefetchToken((token) => token + 1);
           // A landmark that gains coordinates has to be *loaded*, not just
@@ -600,7 +600,11 @@ function WorldMap({
         toast.error(t("placePositionFailed", { title }));
       }
     },
-    [unplacedChildren, reloadPOIs, t]
+    // `parentId` is a dependency now that a placement writes it (SPEC-017
+    // T4): `GeographyExplorer` does not key `WorldMap`, so descending swaps
+    // the prop on a mounted component and a memoised handler holding the
+    // old id would move the place onto the map the DM just left.
+    [unplacedChildren, parentId, reloadPOIs, t]
   );
 
   // Handle POI location selection request. Also cancels draw-area mode

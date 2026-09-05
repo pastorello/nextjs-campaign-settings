@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { LeafletMap } from "@/app/modules/maps/components/map/LeafletMap";
@@ -20,7 +20,7 @@ import {
   useNavigableChildren,
   type NavigableChild,
 } from "@/app/modules/maps/hooks/useNavigableChildren";
-import { useUnplacedChildren } from "@/app/modules/maps/hooks/useUnplacedChildren";
+import { useUnplacedPlaces } from "@/app/modules/maps/hooks/useUnplacedPlaces";
 import { useDrawArea } from "@/app/modules/maps/hooks/useDrawArea";
 import type {
   POI,
@@ -77,6 +77,7 @@ import {
  */
 function WorldMap({
   parentId,
+  ancestorIds,
   placeTitle,
   parentTitle,
   isRoot,
@@ -93,6 +94,12 @@ function WorldMap({
   unpositionedCount,
 }: {
   parentId: number;
+  // This map's own ancestor chain, itself included — `GeographyExplorer`'s
+  // navigation stack, which is exactly that (SPEC-017 T8). Used to leave
+  // out of the pool the places that contain this map: T5 refuses them at
+  // the mutation, and offering a row only to reject it is worse than not
+  // offering it.
+  ancestorIds: number[];
   /** The place currently being viewed — named in the delete confirmation. */
   placeTitle: string;
   // Where this place's children/landmarks reparent to on delete (SPEC-010
@@ -413,13 +420,30 @@ function WorldMap({
       )
     : undefined;
 
-  // This place's children with no position yet — always a Zone now (SPEC-008
-  // T8: a landmark POI's `lat`/`lng` are required at creation) — feeds
-  // `MapContextMenu`'s "Posiziona luogo" dropdown and its count (TD-85).
-  // It used to feed `MapPOIPanel`'s "Unplaced places" picker as well; that
-  // was the DM's second method for the same job and is withdrawn (SPEC-016
-  // T9, SPEC-005 §3).
-  const unplacedChildren = useUnplacedChildren(parentId, placesRefetchToken);
+  // The campaign's unplaced places — one pool, every map (SPEC-017 T8),
+  // where this used to be the children of the map in view. Feeds
+  // `MapContextMenu`'s "Posiziona luogo" dropdown (TD-85). It used to feed
+  // `MapPOIPanel`'s "Unplaced places" picker as well; that was the DM's
+  // second method for the same job and is withdrawn (SPEC-016 T9,
+  // SPEC-005 §3).
+  const unplacedPlaces = useUnplacedPlaces(placesRefetchToken, parentId);
+
+  // What may be placed *here*. A place that contains this map would break
+  // the tree, and `placeZone` refuses it (T5) — so it is left out rather
+  // than offered and rejected.
+  //
+  // The `kind` guard is not decoration: `zone` and `poi` ids come from
+  // independent sequences (TD-102), so a landmark that happens to share a
+  // number with an ancestor zone would otherwise vanish from the pool for
+  // no reason at all. A landmark has no children and can never be an
+  // ancestor of anything.
+  const placeableUnplaced = useMemo(
+    () =>
+      unplacedPlaces.filter(
+        (place) => place.kind === "poi" || !ancestorIds.includes(place.id)
+      ),
+    [unplacedPlaces, ancestorIds]
+  );
 
   // Creates a navigable place under the current parent (SPEC-004 M5, T2).
   // `kind: "poi"` never reaches this — the panel keeps that on the original
@@ -540,7 +564,7 @@ function WorldMap({
   // never needs its own containment check.
   const handleContextMenuPositionPlace = useCallback(
     async (id: number, lat: number, lng: number) => {
-      const child = unplacedChildren.find((candidate) => candidate.id === id);
+      const child = placeableUnplaced.find((candidate) => candidate.id === id);
       const title = child?.title ?? "";
 
       // TD-102 — the id on its own does not say which table to write to.
@@ -604,7 +628,7 @@ function WorldMap({
     // T4): `GeographyExplorer` does not key `WorldMap`, so descending swaps
     // the prop on a mounted component and a memoised handler holding the
     // old id would move the place onto the map the DM just left.
-    [unplacedChildren, parentId, reloadPOIs, t]
+    [placeableUnplaced, parentId, reloadPOIs, t]
   );
 
   // Handle POI location selection request. Also cancels draw-area mode
@@ -1177,7 +1201,7 @@ function WorldMap({
         addPlaceSublabel={tContextMenu("addPlace.sublabel")}
         onAddSubMap={handleToggleDrawArea}
         addSubMapLabel={tDrawArea("trigger")}
-        unplacedPlaces={unplacedChildren}
+        unplacedPlaces={placeableUnplaced}
         onPositionPlace={(id, lat, lng) =>
           void handleContextMenuPositionPlace(id, lat, lng)
         }

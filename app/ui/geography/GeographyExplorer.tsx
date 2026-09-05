@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import {
@@ -55,6 +55,13 @@ export default function GeographyExplorer({
     initialStack ?? [toStackEntry(root)]
   );
   const current = stack[stack.length - 1] ?? stack[0];
+
+  // The stack *is* the ancestor chain of the place in view, itself last —
+  // which is exactly the set of places that must not be offered as
+  // placeable here (SPEC-017 T8): each of them contains this map, so
+  // placing one onto it would cut its own subtree off the root (T5).
+  // Memoised because `WorldMap` uses it in a dependency array.
+  const ancestorIds = useMemo(() => stack.map((entry) => entry.id), [stack]);
 
   const handleDescend = (child: NavigableChild) => {
     setStack((prev) => [...prev, toStackEntry(child)]);
@@ -121,6 +128,7 @@ export default function GeographyExplorer({
           <MapProvider>
             <WorldMap
               parentId={current.id}
+              ancestorIds={ancestorIds}
               placeTitle={current.title}
               parentTitle={
                 stack.length > 1 ? stack[stack.length - 2]!.title : ""

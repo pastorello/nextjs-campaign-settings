@@ -173,7 +173,9 @@ this up if the DM asks for it back, not before.
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-08-10, [SPEC-007](./specs/007-placement-backlog.md) T2 — filed 2026-08-17 during the Phase 3 closure audit, since it had only ever been recorded as prose in `ROADMAP.md`, with no number of its own
 
 `countUnpositionedPlaces` (`app/lib/data/maps/countUnpositionedPlaces.ts`) reports
-one tree-wide number: every place with `lat: null` and a non-null `parentId`. A
+one tree-wide number: every place with `lat: null` and a non-null `parentId`
+— plus, since SPEC-017 T7 (2026-09-05), every landmark with `lat: null`, which
+does not change anything this item argues. A
 place whose own parent has no map yet — so it structurally cannot be
 positioned until the DM uploads a map one level up — counts identically to a
 place whose parent already has a map and simply hasn't been drawn on it yet.

@@ -11,6 +11,10 @@ import { checkPointPlacement } from "./checkPlacement";
 
 const inputSchema = z.object({
   id: z.coerce.number().int().positive(),
+  // The map being placed onto — the target parent, not the place's current
+  // one. Required, not optional-with-a-fallback: a placement that could
+  // silently keep the old edge is the bug SPEC-017 exists to fix.
+  parentId: z.coerce.number().int().positive(),
   lat: z.number().finite(),
   lng: z.number().finite(),
 });
@@ -32,6 +36,16 @@ const inputSchema = z.object({
  * target parent here, and only here, so a drag can never re-parent
  * anything.
  *
+ * **It writes the tree edge, and that is the point** (SPEC-017 T4,
+ * [ADR-0012](../../../../docs/adr/0012-placement-writes-the-tree-edge.md)).
+ * `parentId` travels in the same `updateMany` as the coordinates because
+ * the two are one fact: a `lat`/`lng` pair is a position inside one map
+ * image, measured against that parent's `mapBounds`, and means a different
+ * spot — or nothing at all — on any other map. Writing one without the
+ * other produces a row that is internally coherent and factually nonsense.
+ * This is what makes moving a place between maps possible: the DM opens the
+ * target map, picks a pooled place, and the edge follows the pin.
+ *
  * **A placement, never a reposition**, hence no discriminator to get wrong.
  * The pre-state travels inside `updateMany`'s `where`, so Postgres is what
  * refuses a second placement rather than `useUnplacedPlaces`' client
@@ -39,11 +53,23 @@ const inputSchema = z.object({
  * `lat === null`, the same definition `countUnpositionedPlaces` and
  * `fetchUnplacedPlaces` use.
  *
- * SPEC-009 §7's point check runs first, against the place's siblings, with
- * `excludeZoneId` so the row does not collide with itself.
+ * SPEC-009 §7's point check runs first, and against the **target's**
+ * siblings — the place is landing among them, not among the ones it is
+ * leaving. `excludeZoneId` keeps the row out of its own sibling set, which
+ * matters when the target parent is also its current one (the ordinary
+ * case, and every case until T8 widens the pool).
+ *
+ * The root is refused outright. It is the one zone with no parent
+ * (SPEC-009 §6) and nothing lists it as placeable — `fetchUnplacedPlaces`
+ * and `countUnpositionedPlaces` both exclude it — but the guard belongs
+ * here rather than in the caller, for TD-93's reason: the list is a client
+ * snapshot and this is where the rule is real. T5's descendant check will
+ * subsume it (every zone is a descendant of the root, so every target is);
+ * the explicit refusal stays because it names the reason.
  */
 export default async function placeZone(formData: {
   id: number;
+  parentId: number;
   lat: number;
   lng: number;
 }): Promise<MutationResult> {
@@ -73,20 +99,25 @@ export default async function placeZone(formData: {
     return { ok: false, errors: { id: ["This place does not exist."] } };
   }
 
-  if (zone.parentId != null) {
-    const errors = await checkPointPlacement({
-      parentId: zone.parentId,
-      point: [data.lat, data.lng],
-      excludeZoneId: data.id,
-    });
-    if (errors) return { ok: false, errors };
+  if (zone.parentId === null) {
+    return {
+      ok: false,
+      errors: { id: ["The root place cannot be placed on a map."] },
+    };
   }
+
+  const errors = await checkPointPlacement({
+    parentId: data.parentId,
+    point: [data.lat, data.lng],
+    excludeZoneId: data.id,
+  });
+  if (errors) return { ok: false, errors };
 
   let count: number;
   try {
     ({ count } = await prisma.zone.updateMany({
       where: { id: data.id, lat: null },
-      data: { lat: data.lat, lng: data.lng },
+      data: { lat: data.lat, lng: data.lng, parentId: data.parentId },
     }));
   } catch (error) {
     throw toDatabaseError("placing zone", error);

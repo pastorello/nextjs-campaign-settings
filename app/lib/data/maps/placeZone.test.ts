@@ -33,21 +33,60 @@ describe("placeZone (SPEC-017 T3, extracted from updateZonePosition)", () => {
   });
 
   it("places an unpositioned place through a guarded write (TD-93)", async () => {
-    const result = await placeZone({ id: 5, lat: 20, lng: 20 });
+    const result = await placeZone({ id: 5, parentId: 1, lat: 20, lng: 20 });
 
     expect(result).toEqual({ ok: true });
     // The pre-state is in the `where`, not in an earlier read: that is
     // what makes the database the thing refusing a second placement.
     expect(updateMany).toHaveBeenCalledWith({
       where: { id: 5, lat: null },
-      data: { lat: 20, lng: 20 },
+      data: { lat: 20, lng: 20, parentId: 1 },
     });
+  });
+
+  it("writes the tree edge in the same statement as the coordinates (SPEC-017 T4)", async () => {
+    // The place currently lives under 1; it is being placed on 9's map.
+    findUnique.mockResolvedValue({ parentId: 1 });
+
+    const result = await placeZone({ id: 5, parentId: 9, lat: 20, lng: 20 });
+
+    expect(result).toEqual({ ok: true });
+    // One write, not two: a coordinate means nothing except against the
+    // map it was measured on (ADR-0012), so the edge cannot lag behind it.
+    expect(updateMany).toHaveBeenCalledTimes(1);
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { id: 5, lat: null },
+      data: { lat: 20, lng: 20, parentId: 9 },
+    });
+  });
+
+  it("checks the point against the target's siblings, not the ones it is leaving", async () => {
+    findUnique.mockResolvedValue({ parentId: 1 });
+
+    await placeZone({ id: 5, parentId: 9, lat: 20, lng: 20 });
+
+    expect(findMany).toHaveBeenCalledWith({
+      where: { parentId: 9, id: { not: 5 } },
+      select: { title: true, footprint: true },
+    });
+  });
+
+  it("refuses to place the root, which has no parent to leave", async () => {
+    findUnique.mockResolvedValue({ parentId: null });
+
+    const result = await placeZone({ id: 1, parentId: 9, lat: 20, lng: 20 });
+
+    expect(result).toEqual({
+      ok: false,
+      errors: { id: ["The root place cannot be placed on a map."] },
+    });
+    expect(updateMany).not.toHaveBeenCalled();
   });
 
   it("refuses placing a place that already has coordinates (TD-93)", async () => {
     updateMany.mockResolvedValue({ count: 0 });
 
-    const result = await placeZone({ id: 5, lat: 20, lng: 20 });
+    const result = await placeZone({ id: 5, parentId: 1, lat: 20, lng: 20 });
 
     expect(result).toEqual({
       ok: false,
@@ -63,7 +102,7 @@ describe("placeZone (SPEC-017 T3, extracted from updateZonePosition)", () => {
   it("says a missing row is missing rather than already placed", async () => {
     findUnique.mockResolvedValue(null);
 
-    const result = await placeZone({ id: 404, lat: 20, lng: 20 });
+    const result = await placeZone({ id: 404, parentId: 1, lat: 20, lng: 20 });
 
     expect(result).toEqual({
       ok: false,
@@ -83,7 +122,7 @@ describe("placeZone (SPEC-017 T3, extracted from updateZonePosition)", () => {
       },
     ]);
 
-    const result = await placeZone({ id: 5, lat: 20, lng: 20 });
+    const result = await placeZone({ id: 5, parentId: 1, lat: 20, lng: 20 });
 
     expect(result).toEqual({
       ok: false,
@@ -93,7 +132,9 @@ describe("placeZone (SPEC-017 T3, extracted from updateZonePosition)", () => {
   });
 
   it("excludes its own row from the sibling query", async () => {
-    await placeZone({ id: 5, lat: 20, lng: 20 });
+    // Matters most when the target is also the current parent — the
+    // ordinary case, and every case until T8 widens the pool.
+    await placeZone({ id: 5, parentId: 1, lat: 20, lng: 20 });
 
     expect(findMany).toHaveBeenCalledWith({
       where: { parentId: 1, id: { not: 5 } },
@@ -104,6 +145,7 @@ describe("placeZone (SPEC-017 T3, extracted from updateZonePosition)", () => {
   it("rejects invalid input with field-level errors", async () => {
     const result = await placeZone({
       id: 5,
+      parentId: 1,
       lat: Number.NaN,
       lng: 20,
     });
@@ -118,9 +160,9 @@ describe("placeZone (SPEC-017 T3, extracted from updateZonePosition)", () => {
   it("throws UnauthorizedError without a session, and writes nothing", async () => {
     vi.mocked(auth).mockResolvedValue(null as never);
 
-    await expect(placeZone({ id: 5, lat: 20, lng: 20 })).rejects.toBeInstanceOf(
-      UnauthorizedError
-    );
+    await expect(
+      placeZone({ id: 5, parentId: 1, lat: 20, lng: 20 })
+    ).rejects.toBeInstanceOf(UnauthorizedError);
     expect(updateMany).not.toHaveBeenCalled();
   });
 });

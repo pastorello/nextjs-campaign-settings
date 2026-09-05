@@ -484,9 +484,26 @@ async function renderMap(
     gridScale: null,
   }
 ) {
-  render(
+  const view = render(mapElement(mapUrl, unpositionedCount, grid, 1));
+  await waitFor(() => {
+    expect(imageAddTo).toHaveBeenCalled();
+  });
+  act(() => {
+    imageOnLoad?.();
+  });
+  return view;
+}
+
+/** The element itself, so a test can re-render it with a different parent. */
+function mapElement(
+  mapUrl: string,
+  unpositionedCount: number,
+  grid: { gridColumns: number | null; gridScale: string | null },
+  parentId: number
+) {
+  return (
     <WorldMap
-      parentId={1}
+      parentId={parentId}
       placeTitle="Terra"
       parentTitle="Piani di Esistenza"
       isRoot={false}
@@ -503,12 +520,6 @@ async function renderMap(
       unpositionedCount={unpositionedCount}
     />
   );
-  await waitFor(() => {
-    expect(imageAddTo).toHaveBeenCalled();
-  });
-  act(() => {
-    imageOnLoad?.();
-  });
 }
 
 beforeEach(() => {
@@ -1327,8 +1338,52 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
       // The one call site that is a placement (TD-93): everything else
       // that writes coordinates is moving something already on the map,
       // which is why placement is its own mutation (SPEC-017 T3).
-      expect(placeZone).toHaveBeenCalledWith({ id: 5, lat: 10, lng: 20 });
+      // `parentId` is the map in view: picking from the pool places the
+      // thing here *and* moves it here (SPEC-017 T4).
+      expect(placeZone).toHaveBeenCalledWith({
+        id: 5,
+        parentId: 1,
+        lat: 10,
+        lng: 20,
+      });
       expect(updateZonePosition).not.toHaveBeenCalled();
+    });
+  });
+
+  it("places onto the map in view, not the one it was mounted with", async () => {
+    useUnplacedChildren.mockReturnValue([
+      { id: 5, title: "Kingdom of Kang", kind: "region" },
+    ]);
+    const view = await renderMap();
+
+    // `GeographyExplorer` does not key `WorldMap`, so descending swaps
+    // `parentId` on a mounted component rather than remounting it, and a
+    // memoised handler still holding the old id would write the tree edge
+    // of the map the DM just left (SPEC-017 T4).
+    //
+    // **This test passes with or without `parentId` in that handler's
+    // dependency array — checked, not assumed.** `t` comes from a mocked
+    // `useTranslations` whose identity changes on every render, so the
+    // memoisation never actually holds here and the stale closure cannot
+    // be reproduced. What guards the dependency is `react-hooks/
+    // exhaustive-deps`, which did catch it. This asserts the behaviour the
+    // feature needs — the edge follows the map in view — not the reason it
+    // currently holds.
+    view.rerender(
+      mapElement("/maps/test.jpg", 0, { gridColumns: null, gridScale: null }, 2)
+    );
+
+    act(() => {
+      onContextMenuPositionPlace?.(5, 10, 20);
+    });
+
+    await waitFor(() => {
+      expect(placeZone).toHaveBeenCalledWith({
+        id: 5,
+        parentId: 2,
+        lat: 10,
+        lng: 20,
+      });
     });
   });
 

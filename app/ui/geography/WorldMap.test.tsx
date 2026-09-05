@@ -1458,7 +1458,12 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     });
 
     await waitFor(() => {
-      expect(placeLandmark).toHaveBeenCalledWith({ id: 5, lat: 10, lng: 20 });
+      expect(placeLandmark).toHaveBeenCalledWith({
+        id: 5,
+        zoneId: 1,
+        lat: 10,
+        lng: 20,
+      });
     });
     expect(placeZone).not.toHaveBeenCalled();
   });

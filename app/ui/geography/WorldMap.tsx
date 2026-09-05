@@ -564,7 +564,7 @@ function WorldMap({
         // SPEC-008 T8's migration copied only navigable-kind rows into
         // `zone`. No zone can carry it.
         const result = isLandmark
-          ? await placeLandmark({ id, lat, lng })
+          ? await placeLandmark({ id, zoneId: parentId, lat, lng })
           : await placeZone({ id, parentId, lat, lng });
         if (result.ok) {
           setPlacesRefetchToken((token) => token + 1);

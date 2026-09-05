@@ -31,13 +31,19 @@ describe("updatePoi", () => {
     });
   });
 
-  it("writes a new zoneId when reassigned to a different one", async () => {
-    await updatePoi({ id: 1, zoneId: 7 });
-
-    expect(update).toHaveBeenCalledWith({
-      where: { id: 1 },
-      data: { zoneId: 7 },
+  it("refuses to reassign the zone, and writes nothing (SPEC-017 T6)", async () => {
+    // `zoneId` left this payload entirely: a landmark's zone is its tree
+    // edge, written only by `placeLandmark`, which also carries every
+    // attached entity's `zoneId` along with it (ADR-0010). This function
+    // could write it and maintained none of that.
+    const result = await updatePoi({
+      id: 1,
+      // @ts-expect-error -- the point of the test: not in `PoiUpdateInput`
+      zoneId: 7,
     });
+
+    expect(result.ok).toBe(false);
+    expect(update).not.toHaveBeenCalled();
   });
 
   it("leaves every field untouched when omitted", async () => {

@@ -101,22 +101,22 @@ describe("buildPoiUpdateSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("accepts reassigning zoneId", () => {
+  it("refuses a zoneId out loud, rather than stripping it (SPEC-017 T6)", () => {
+    // A landmark's zone is its tree edge, and ADR-0012 gives the edge one
+    // writer: `placeLandmark`, which carries the attached entities'
+    // `zoneId` with it. Zod strips unknown keys by default, which would
+    // have made this silent — `.strict()` is what makes it a refusal.
     const result = buildPoiUpdateSchema().safeParse({ id: 1, zoneId: 7 });
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.zoneId).toBe(7);
-    }
+
+    expect(result.success).toBe(false);
   });
 
-  it("leaves zoneId untouched when omitted", () => {
+  it("still accepts an update that carries no zoneId at all", () => {
     const result = buildPoiUpdateSchema().safeParse({
       id: 1,
       title: "Renamed shrine",
     });
+
     expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.zoneId).toBeUndefined();
-    }
   });
 });

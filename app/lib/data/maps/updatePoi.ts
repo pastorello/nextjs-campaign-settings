@@ -14,6 +14,13 @@ import type { PoiUpdateInput } from "../../definitions/interfaces/maps/Poi";
  * spread into `data` only when the parsed payload actually carries it: an
  * omitted key leaves the column untouched.
  *
+ * **No `zoneId` here (SPEC-017 T6).** It moved out of the update schema
+ * entirely: a landmark's zone is its tree edge, and ADR-0012 gives the edge
+ * one writer — `placeLandmark`, which also carries every attached entity's
+ * `zoneId` along with it in the same transaction (ADR-0010). This function
+ * could write it and did not maintain that agreement; nothing ever sent the
+ * key, so deleting the capability costs nothing and closes the door.
+ *
  * Built field-by-field rather than `data: rest` for the same reason as
  * `createPoi`: under `exactOptionalPropertyTypes`, Zod's `.partial()`
  * infers every field as `T | undefined`, which does not structurally match
@@ -31,7 +38,7 @@ export default async function updatePoi(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  const { id, title, description, lat, lng, category, zoneId } = parsed.data;
+  const { id, title, description, lat, lng, category } = parsed.data;
 
   try {
     await prisma.poi.update({
@@ -42,7 +49,6 @@ export default async function updatePoi(
         ...(lat !== undefined && { lat }),
         ...(lng !== undefined && { lng }),
         ...(category !== undefined && { category }),
-        ...(zoneId !== undefined && { zoneId }),
       },
     });
   } catch (error) {

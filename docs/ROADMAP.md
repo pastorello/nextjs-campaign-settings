@@ -478,6 +478,18 @@ alone.
      it is a choice that belongs in writing. Related: TD-103, which stopped the
      entry from lying about availability but deliberately did not decide what the
      pool should contain.
+
+  **Now specced as [SPEC-017](./specs/017-one-unplaced-pool.md), drafted
+  2026-09-04 and agreed 2026-09-05.** It needs no schema change — the four consequences above
+  are all write-path work — and it carries
+  [ADR-0012](./adr/0012-placement-writes-the-tree-edge.md) as a prerequisite,
+  since "placing a place writes the tree edge" changes what a placement is.
+  Two things the drafting surfaced: a landmark has no un-place at all, so the
+  pool has no entrance for one (the spec builds it, T10, rather than assuming
+  it away), and `countUnpositionedPlaces` counts `zone` rows only while the
+  picker has offered unplaced landmarks since the `zone`/`poi` split — a live
+  undercount that one pool would make visible.
+
 - **Deleting a place should ask which kind of delete it is.** One confirmation
   offering "elimina definitivamente" (remove it and everything under it) or
   "rimuovi dalla mappa" (it returns to the unplaced pool). Half of this exists

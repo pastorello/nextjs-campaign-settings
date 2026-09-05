@@ -8,6 +8,7 @@ import requireSession from "@/app/lib/auth/requireSession";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { checkPointPlacement } from "./checkPlacement";
+import checkTreePlacement from "./checkTreePlacement";
 
 const inputSchema = z.object({
   id: z.coerce.number().int().positive(),
@@ -59,6 +60,12 @@ const inputSchema = z.object({
  * matters when the target parent is also its current one (the ordinary
  * case, and every case until T8 widens the pool).
  *
+ * Two refusals guard the edge itself, and they run before the spatial
+ * check: the root cannot be placed at all, and no place may be placed
+ * inside its own subtree (`checkTreePlacement`, T5). Structural before
+ * spatial on purpose — if the target sits inside the subtree being moved,
+ * "which siblings would it collide with" is not yet a meaningful question.
+ *
  * The root is refused outright. It is the one zone with no parent
  * (SPEC-009 §6) and nothing lists it as placeable — `fetchUnplacedPlaces`
  * and `countUnpositionedPlaces` both exclude it — but the guard belongs
@@ -105,6 +112,12 @@ export default async function placeZone(formData: {
       errors: { id: ["The root place cannot be placed on a map."] },
     };
   }
+
+  const cycle = await checkTreePlacement({
+    zoneId: data.id,
+    targetParentId: data.parentId,
+  });
+  if (cycle) return { ok: false, code: "wouldCycle", errors: cycle };
 
   const errors = await checkPointPlacement({
     parentId: data.parentId,

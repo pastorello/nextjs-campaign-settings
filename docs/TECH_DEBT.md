@@ -1,9 +1,9 @@
 # Technical Debt Register
 
-**Last updated:** 2026-08-31
+**Last updated:** 2026-09-05
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-105.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
+**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-105, TD-107.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -127,6 +127,8 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-103 | ✅ "Posiziona luogo" was enabled from a tree-wide count while listing only the current map — a dead click       | ~~🟠 High~~ done     | S      | 4     |
 | TD-104 | ✅ A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu  | ~~🟡 Medium~~ done   | M      | 4     |
 | TD-105 | 48 `revalidatePath` calls name a route structure that does not exist — and no page is cached, so they are inert | 🟢 Low               | S      | 4     |
+| TD-106 | ✅ A standing lint warning: the error boundary's "Vai alla home" leaves the page with a full document load      | ~~🟢 Low~~ done      | S      | 4     |
+| TD-107 | "Vai alla home" in the map error boundary drops the reader's locale — `/` always resolves to Italian            | 🟢 Low               | S      | 4     |
 
 ---
 
@@ -648,3 +650,100 @@ have supported it — `playwright.config.ts` starts `pnpm dev`, where Server
 Components re-render per request whatever the cache is told. Pointing
 `unplacePlace` at `revalidatePath("/td-105-nonsense-path")` leaves
 `map-unplace.spec` passing, count assertion included.
+
+### TD-106 ✅ A standing lint warning: the error boundary's "Vai alla home" leaves the page with a full document load — **DONE (2026-09-05)**
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-05, by `pnpm lint` reporting one warning where TD-22's policy says the count is zero
+
+`MapErrorBoundary.tsx` renders two recovery buttons. "Riprova" calls
+`handleReset`, which clears `hasError` and remounts the map subtree in place.
+"Vai alla home" assigned `window.location.href = "/"`, and
+`@next/next/no-location-assign-relative-destination` reported it: _"Use
+`redirect()` in the render phase, or `useRouter().push()` in Client
+Components' event handlers instead."_
+
+**The code did not change; the rule set did** — but not where it was first
+attributed, and the correction is the reason this paragraph is here. The
+warning was read as arriving with the `next` 16.3.3 bump (PR #239, `ac63000`,
+2026-09-01). It did not: `eslint-config-next` is a separate devDependency, and
+the lockfile at `ac63000^` already resolves it to 16.3.3. It reached 16.3.3 in
+PR #237 (`5dc70ed`, 2026-08-31) and 16.3.0 in `57f0410` (2026-08-10) — and the
+oldest plugin copy present in this checkout's store, 16.3.0, already ships the
+rule and marks it `recommended`, which is what `core-web-vitals` switches on.
+So the warning has stood since **2026-08-10 at the latest**, three weeks longer
+than the `next` bump suggests, and possibly longer still: 16.2.12's plugin is
+not in the store here, so "arrived at 16.3.0" is the earliest bound that could
+be checked rather than a confirmed first appearance.
+
+**Why one warning is worth an entry.** TD-22 took this repo from 293 warnings
+to 0 and put every rule back to `error`, so that a regression fails the build
+instead of accumulating quietly. A single standing warning is the start of
+exactly the pile that policy exists to prevent, and it is not free in the
+meantime: it makes `pnpm lint`'s output non-empty, which is where the next
+warning hides.
+
+**Resolved as a documented disable, not a behaviour change.** The rule's
+suggestion is wrong for this specific call site, on four counts:
+
+1. **The soft path already exists.** "Riprova" is the in-place retry. "Vai
+   alla home" is the harder option, for when that did not help. Making it a
+   `router.push()` gives the boundary two soft paths and no way out.
+2. **Leaflet keeps state outside React** — a map instance, panes attached to a
+   container, handlers bound to DOM nodes. A crash mid-lifecycle can leave
+   that half torn down. A client-side navigation keeps the same JS heap and
+   the same React root, i.e. exactly the state the crash happened in; a
+   document load discards it. The property the rule is protecting is the one
+   this button must not have.
+3. **The recovery path must not depend on the machinery that just failed.**
+   A document load is handled by the browser and does not care what state the
+   app's router is in.
+4. **`useRouter` is a hook, and this is a class component** — error-boundary
+   lifecycle methods have no hook equivalent. It could only be threaded in
+   from the `MapErrorBoundary` wrapper as a prop, which reintroduces (3).
+
+**What shipped.** The inline arrow became a `handleGoHome` class property, so
+that the disable comment has a legal home — a JSX attribute has nowhere to
+hang an `eslint-disable-next-line`, and `{/* … */}` between attributes is not
+valid JSX. The disable carries its reason inline per the project rule, with
+the long form as a doc comment on the method. A regression test in
+`MapErrorBoundary.test.tsx` stubs `window.location`, clicks the button and
+asserts `href` became `/`; it was confirmed red against a neutered handler
+before being kept.
+
+**One thing to know before touching this again:** the rule only reports a
+destination it can resolve statically to a relative string — read
+`no-location-assign-relative-destination.js`, which returns early from
+`getStaticStringPrefix` for anything non-constant. So making the href dynamic,
+which is exactly what TD-107's locale fix does, silences the warning as a side
+effect. That is evasion, not resolution. **Keep the disable comment and its
+reason when the literal `/` becomes a prop** — the decision it records is still
+what the code does, and without it the next reader has nothing to distinguish a
+deliberate document load from an oversight.
+
+### TD-107 — "Vai alla home" in the map error boundary drops the reader's locale
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-05, while deciding TD-106 — noticed, deliberately not fixed in that change, which was scoped to the lint warning alone
+
+`handleGoHome` navigates to the literal `/`. `i18n/routing.ts` sets
+`localePrefix: "as-needed"` with `localeDetection: false`, and next-intl's
+`resolveLocale` gates **both** the cookie (prio 2) and the `accept-language`
+header (prio 3) on `localeDetection`, falling through to `defaultLocale`. So an
+unprefixed `/` always resolves to `it`. A reader on `/en/dashboard/geography`
+who hits the error boundary and clicks "Go Home" lands on the Italian
+dashboard — and the `NEXT_LOCALE` cookie the LocaleSwitcher wrote does not save
+them, because that gate is off. Verified against
+`node_modules/next-intl/dist/esm/development/middleware/resolveLocale.js`, not
+inferred from the routing comment.
+
+**The fix keeps the document load.** `MapErrorBoundary`, the function-component
+wrapper that already resolves the labels through `useTranslations`, can read
+`useLocale()` and pass a `homeHref` down beside them; the class assigns that
+instead of the literal. Do **not** reach for next-intl's `useRouter().push()`:
+TD-106 settled that this button stays a full document load, and the hook cannot
+be called from the class anyway.
+
+**Low, and it should stay low.** This is a fallback UI reached only after a
+Leaflet crash, and the reader can switch locale back from the dashboard. It is
+filed so the locale loss is a known, chosen state rather than a surprise — not
+because it is worth a session on its own. Fold it into the next piece of work
+that touches this file.

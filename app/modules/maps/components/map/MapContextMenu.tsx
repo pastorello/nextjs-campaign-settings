@@ -3,7 +3,7 @@
 import { memo, useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { MapPin, Ruler, Star, Layers, Crosshair } from "lucide-react";
 import type { ContextMenuPosition } from "@/app/modules/maps/hooks/useMapContextMenu";
-import type { UnplacedChild } from "@/app/modules/maps/hooks/useUnplacedChildren";
+import type UnplacedPlace from "@/app/lib/definitions/interfaces/maps/UnplacedPlace";
 
 interface MapContextMenuProps {
   isOpen: boolean;
@@ -49,10 +49,11 @@ interface MapContextMenuProps {
   onAddSubMap?: () => void;
   addSubMapLabel?: string;
   // TD-85 — positions an existing unplaced place at the exact point the
-  // context menu was opened over. `unplacedPlaces` is this place's own
-  // unplaced children (`useUnplacedChildren`, scoped to the map currently
-  // open); it fills the dropdown *and* decides whether the entry is
-  // enabled, because those must be the same question.
+  // context menu was opened over. `unplacedPlaces` is the campaign's pool
+  // of unplaced places, minus the ones this particular map cannot accept
+  // (`useUnplacedPlaces` plus `WorldMap`'s ancestor filter, SPEC-017 T8);
+  // it fills the dropdown *and* decides whether the entry is enabled,
+  // because those must be the same question.
   //
   // TD-103: they were not. The entry used to be disabled on a tree-wide
   // count (`countUnpositionedPlaces`, SPEC-007 T2) while the dropdown was
@@ -67,7 +68,7 @@ interface MapContextMenuProps {
   // silently disappearing. Gated by the same `hideAddPlace` containment
   // rule as Add Place (SPEC-009 T4): ground already inside an area belongs
   // to that area's own map.
-  unplacedPlaces?: UnplacedChild[];
+  unplacedPlaces?: UnplacedPlace[];
   onPositionPlace?: (id: number, lat: number, lng: number) => void;
   positionPlaceLabel?: string;
   positionPlaceSublabel?: string;

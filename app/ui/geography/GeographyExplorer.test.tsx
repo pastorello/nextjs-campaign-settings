@@ -15,6 +15,7 @@ vi.mock("@/app/modules/maps/contexts/MapContext", () => ({
 
 interface CapturedWorldMapProps {
   parentId: number;
+  ancestorIds: number[];
   placeTitle: string;
   parentTitle: string;
   isRoot: boolean;
@@ -194,6 +195,19 @@ describe("GeographyExplorer (SPEC-004 M7)", () => {
     expect(screen.getByText("Aerivel")).toBeInTheDocument();
     expect(capturedProps?.parentId).toBe(1);
     expect(screen.queryByText("up")).not.toBeInTheDocument();
+  });
+
+  it("hands the map its own ancestor chain, growing as the DM descends (SPEC-017 T8)", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={0} />);
+
+    // The stack is the chain, itself last — which is exactly the set of
+    // places that must not be offered as placeable on this map, since each
+    // of them contains it.
+    expect(capturedProps?.ancestorIds).toEqual([root.id]);
+
+    descend(kang);
+
+    expect(capturedProps?.ancestorIds).toEqual([root.id, kang.id]);
   });
 
   it("descends into a navigable child, replacing the map and title", () => {

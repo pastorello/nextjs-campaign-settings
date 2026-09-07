@@ -230,8 +230,20 @@ describe("MapContextMenu", () => {
 
 describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
   const unplacedPlaces = [
-    { id: 5, title: "Kingdom of Kang", kind: "region" as const },
-    { id: 6, title: "Skreebars", kind: "city" as const },
+    {
+      id: 5,
+      title: "Kingdom of Kang",
+      kind: "region" as const,
+      parentId: 1,
+      parentTitle: "Terra",
+    },
+    {
+      id: 6,
+      title: "Skreebars",
+      kind: "city" as const,
+      parentId: 2,
+      parentTitle: "Regno di Kang",
+    },
   ];
 
   it("does not show the entry without onPositionPlace", () => {

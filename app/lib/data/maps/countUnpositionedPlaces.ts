@@ -4,7 +4,9 @@ import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 /**
  * How many places in the whole campaign have never been drawn on a map
  * (SPEC-007 T2) — a campaign-wide count, not one scoped to the place
- * currently being viewed the way `useUnplacedChildren` (TD-71) is.
+ * currently being viewed. Since SPEC-017 T8 the picker's own list is
+ * campaign-wide too, so this number and that list finally describe the same
+ * set — bar the ancestors a given map cannot accept (T5).
  *
  * **Both tables, since SPEC-017 T7.** This counted `zone` rows only, which
  * was true when it was written and quietly wrong after SPEC-008 T8 split

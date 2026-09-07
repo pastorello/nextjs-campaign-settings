@@ -102,6 +102,37 @@ describe("MapErrorBoundary", () => {
     expect(details!.textContent).toContain("kaboom");
   });
 
+  // TD-106: the lint rule `no-location-assign-relative-destination` wants this
+  // button to be a `useRouter().push()`. It must not become one — the point of
+  // "Vai alla home" is to discard the client state the Leaflet crash happened
+  // in, which a soft navigation would carry across. This test fails if someone
+  // swaps it for a router push.
+  it("leaves the page with a full document load, not a client-side navigation", () => {
+    const originalLocation = window.location;
+    const stub = { href: "" };
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: stub,
+    });
+
+    try {
+      render(
+        <MapErrorBoundary>
+          <Bomb />
+        </MapErrorBoundary>
+      );
+
+      fireEvent.click(screen.getByText("geography.errorBoundary.goHome"));
+
+      expect(stub.href).toBe("/");
+    } finally {
+      Object.defineProperty(window, "location", {
+        configurable: true,
+        value: originalLocation,
+      });
+    }
+  });
+
   it("falls back to the translated no-stack-trace copy when the error has no stack", () => {
     render(
       <MapErrorBoundary>

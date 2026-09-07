@@ -62,6 +62,25 @@ class MapErrorBoundaryClass extends Component<
     });
   };
 
+  /**
+   * A full document load, deliberately — not `useRouter().push()`.
+   *
+   * "Try Again" above is already the soft path: it clears `hasError` and
+   * remounts the map subtree in place. This button is the harder one, for
+   * when that did not help. Leaflet keeps its state outside React — a map
+   * instance, panes attached to a container, handlers bound to DOM nodes —
+   * and a crash mid-lifecycle can leave that half torn down. A client-side
+   * navigation keeps the same JS heap and the same React root, i.e. exactly
+   * the state the crash happened in; a document load discards it. The
+   * recovery path also must not depend on the render machinery that just
+   * failed, and `useRouter` is a hook this class component cannot call
+   * anyway — it would have to be threaded in as a prop. See TD-106.
+   */
+  handleGoHome = () => {
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- the point of this button is to discard client state after a crash, which is what the rule's suggested soft navigation would preserve. See the comment above and TD-106.
+    window.location.href = "/";
+  };
+
   override render() {
     if (this.state.hasError) {
       return (
@@ -100,7 +119,7 @@ class MapErrorBoundaryClass extends Component<
               </button>
 
               <button
-                onClick={() => (window.location.href = "/")}
+                onClick={this.handleGoHome}
                 className="w-full px-4 py-2 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-lg transition-colors font-medium"
               >
                 {this.props.goHome}

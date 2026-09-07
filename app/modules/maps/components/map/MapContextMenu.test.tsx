@@ -18,9 +18,9 @@ function renderMenu(
   const onStartMeasurement = vi.fn();
   const onAddPOI = vi.fn();
 
-  const utils = render(
+  const element = (isOpen: boolean) => (
     <MapContextMenu
-      isOpen
+      isOpen={isOpen}
       position={position}
       onClose={onClose}
       onAddMarker={onAddMarker}
@@ -29,8 +29,19 @@ function renderMenu(
       {...overrides}
     />
   );
+  const utils = render(element(true));
 
-  return { ...utils, onClose, onAddMarker, onStartMeasurement, onAddPOI };
+  return {
+    ...utils,
+    onClose,
+    onAddMarker,
+    onStartMeasurement,
+    onAddPOI,
+    // The component stays mounted between right-clicks — `isOpen` only
+    // gates what it renders — so a test about state surviving a close has
+    // to close it this way, not by unmounting.
+    setOpen: (isOpen: boolean) => utils.rerender(element(isOpen)),
+  };
 }
 
 beforeEach(() => {
@@ -229,21 +240,12 @@ describe("MapContextMenu", () => {
 });
 
 describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
-  const unplacedPlaces = [
-    {
-      id: 5,
-      title: "Kingdom of Kang",
-      kind: "region" as const,
-      parentId: 1,
-      parentTitle: "Terra",
-    },
-    {
-      id: 6,
-      title: "Skreebars",
-      kind: "city" as const,
-      parentId: 2,
-      parentTitle: "Regno di Kang",
-    },
+  // The caller splits the pool, since it is the only one that knows which
+  // map is in view (SPEC-017 T9). Keys, not ids: `zone` and `poi` numbering
+  // is independent (TD-102).
+  const unplacedHere = [{ key: "zone:5", title: "Kingdom of Kang" }];
+  const unplacedElsewhere = [
+    { key: "zone:6", title: "Skreebars", sublabel: "da «Regno di Kang»" },
   ];
 
   it("does not show the entry without onPositionPlace", () => {
@@ -254,7 +256,8 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
   it("shows the entry, translated, when onPositionPlace is provided", () => {
     renderMenu({
       onPositionPlace: vi.fn(),
-      unplacedPlaces,
+      unplacedHere,
+      unplacedElsewhere,
       positionPlaceLabel: "Posiziona luogo",
     });
     expect(screen.getByText("Posiziona luogo")).toBeInTheDocument();
@@ -263,7 +266,8 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
   it("hides the entry inside an existing area, the same containment rule as Add Place", () => {
     renderMenu({
       onPositionPlace: vi.fn(),
-      unplacedPlaces,
+      unplacedHere,
+      unplacedElsewhere,
       hideAddPlace: true,
     });
     expect(screen.queryByText("Position a place")).not.toBeInTheDocument();
@@ -272,7 +276,8 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
   it("is disabled when there is nothing here to place, so it stays visible rather than vanishing", () => {
     renderMenu({
       onPositionPlace: vi.fn(),
-      unplacedPlaces: [],
+      unplacedHere: [],
+      unplacedElsewhere: [],
     });
 
     const trigger = screen.getByText("Position a place").closest("button")!;
@@ -288,7 +293,8 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
   it("is disabled when the tree has unplaced places but this map has none of them", () => {
     renderMenu({
       onPositionPlace: vi.fn(),
-      unplacedPlaces: [],
+      unplacedHere: [],
+      unplacedElsewhere: [],
       positionPlaceSublabel: "41 luoghi non ancora posizionati",
     });
 
@@ -304,7 +310,8 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
   it("is enabled when this map has something to place", () => {
     renderMenu({
       onPositionPlace: vi.fn(),
-      unplacedPlaces,
+      unplacedHere,
+      unplacedElsewhere,
     });
 
     const trigger = screen.getByText("Position a place").closest("button")!;
@@ -314,7 +321,8 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
   it("shows the count as the entry's sublabel when given", () => {
     renderMenu({
       onPositionPlace: vi.fn(),
-      unplacedPlaces,
+      unplacedHere,
+      unplacedElsewhere,
       positionPlaceSublabel: "2 luoghi non ancora posizionati",
     });
     expect(
@@ -325,7 +333,8 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
   it("expands a dropdown of the unplaced places when clicked", () => {
     renderMenu({
       onPositionPlace: vi.fn(),
-      unplacedPlaces,
+      unplacedHere,
+      unplacedElsewhere,
     });
 
     expect(screen.queryByText("Kingdom of Kang")).not.toBeInTheDocument();
@@ -339,7 +348,8 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
   it("does nothing when the disabled entry is clicked — no dropdown opens", () => {
     renderMenu({
       onPositionPlace: vi.fn(),
-      unplacedPlaces: [],
+      unplacedHere: [],
+      unplacedElsewhere: [],
     });
 
     fireEvent.click(screen.getByText("Position a place"));
@@ -347,17 +357,111 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
     expect(screen.queryByText("Kingdom of Kang")).not.toBeInTheDocument();
   });
 
+  it("names the map a place comes from, but only for the ones that would move", () => {
+    renderMenu({ onPositionPlace: vi.fn(), unplacedHere, unplacedElsewhere });
+    fireEvent.click(screen.getByText("Position a place"));
+
+    // Picking "Skreebars" re-parents it; picking "Kingdom of Kang" does
+    // not, and a provenance line on a local child would be noise.
+    expect(screen.getByText("da «Regno di Kang»")).toBeInTheDocument();
+    expect(screen.queryByText("da «Terra»")).not.toBeInTheDocument();
+  });
+
+  it("groups the two halves only when both have rows", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedHere,
+      unplacedElsewhere,
+      positionPlaceHereLabel: "Su questa mappa",
+      positionPlaceElsewhereLabel: "Da altre mappe",
+    });
+    fireEvent.click(screen.getByText("Position a place"));
+
+    expect(screen.getByText("Su questa mappa")).toBeInTheDocument();
+    expect(screen.getByText("Da altre mappe")).toBeInTheDocument();
+  });
+
+  it("drops the headings when only one half has rows — the rows already say it", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedHere,
+      unplacedElsewhere: [],
+      positionPlaceHereLabel: "Su questa mappa",
+      positionPlaceElsewhereLabel: "Da altre mappe",
+    });
+    fireEvent.click(screen.getByText("Position a place"));
+
+    expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
+    expect(screen.queryByText("Su questa mappa")).not.toBeInTheDocument();
+  });
+
+  it("filters both halves by title, case-insensitively", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedHere,
+      unplacedElsewhere,
+      positionPlaceFilterPlaceholder: "Filtra per nome",
+    });
+    fireEvent.click(screen.getByText("Position a place"));
+
+    fireEvent.change(screen.getByLabelText("Filtra per nome"), {
+      target: { value: "skree" },
+    });
+
+    expect(screen.getByText("Skreebars")).toBeInTheDocument();
+    expect(screen.queryByText("Kingdom of Kang")).not.toBeInTheDocument();
+  });
+
+  it("says so when the filter matches nothing, rather than showing an empty box", () => {
+    renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedHere,
+      unplacedElsewhere,
+      positionPlaceFilterPlaceholder: "Filtra per nome",
+      positionPlaceNoMatchesLabel: "Nessun luogo corrisponde.",
+    });
+    fireEvent.click(screen.getByText("Position a place"));
+
+    fireEvent.change(screen.getByLabelText("Filtra per nome"), {
+      target: { value: "zzz" },
+    });
+
+    expect(screen.getByText("Nessun luogo corrisponde.")).toBeInTheDocument();
+  });
+
+  it("forgets the filter when the menu closes, so the next right-click starts clean", () => {
+    const { setOpen } = renderMenu({
+      onPositionPlace: vi.fn(),
+      unplacedHere,
+      unplacedElsewhere,
+      positionPlaceFilterPlaceholder: "Filtra per nome",
+    });
+    fireEvent.click(screen.getByText("Position a place"));
+    fireEvent.change(screen.getByLabelText("Filtra per nome"), {
+      target: { value: "skree" },
+    });
+
+    // The component stays mounted between right-clicks — `isOpen` only
+    // gates the render — so state left behind would carry over.
+    setOpen(false);
+    setOpen(true);
+
+    fireEvent.click(screen.getByText("Position a place"));
+    expect(screen.getByText("Kingdom of Kang")).toBeInTheDocument();
+  });
+
   it("positions the picked place at the point the menu was opened over, then closes", () => {
     const onPositionPlace = vi.fn();
     const { onClose } = renderMenu({
       onPositionPlace,
-      unplacedPlaces,
+      unplacedHere,
+      unplacedElsewhere,
     });
 
     fireEvent.click(screen.getByText("Position a place"));
     fireEvent.click(screen.getByText("Kingdom of Kang"));
 
-    expect(onPositionPlace).toHaveBeenCalledWith(5, 12.3456, 65.4321);
+    expect(onPositionPlace).toHaveBeenCalledWith("zone:5", 12.3456, 65.4321);
     expect(onClose).toHaveBeenCalled();
   });
 });

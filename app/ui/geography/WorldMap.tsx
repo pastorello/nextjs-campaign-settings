@@ -21,6 +21,8 @@ import {
   type NavigableChild,
 } from "@/app/modules/maps/hooks/useNavigableChildren";
 import { useUnplacedPlaces } from "@/app/modules/maps/hooks/useUnplacedPlaces";
+import type UnplacedPlace from "@/app/lib/definitions/interfaces/maps/UnplacedPlace";
+import type { UnplacedPickerRow } from "@/app/modules/maps/components/map/MapContextMenu";
 import { useDrawArea } from "@/app/modules/maps/hooks/useDrawArea";
 import type {
   POI,
@@ -75,6 +77,16 @@ import {
  * one attached to a landmark POI already renders at that POI's own marker,
  * one attached to a Zone directly renders nowhere on the map at all (§5).
  */
+
+/**
+ * A pooled place's identity across both tables. `zone` and `poi` ids come
+ * from independent sequences (TD-102), so the campaign-wide pool can hold
+ * two rows numbered alike and an id alone cannot say which one was picked.
+ */
+function unplacedPlaceKey(place: UnplacedPlace): string {
+  return `${place.kind === "poi" ? "poi" : "zone"}:${place.id}`;
+}
+
 function WorldMap({
   parentId,
   ancestorIds,
@@ -428,22 +440,42 @@ function WorldMap({
   // SPEC-005 §3).
   const unplacedPlaces = useUnplacedPlaces(placesRefetchToken, parentId);
 
-  // What may be placed *here*. A place that contains this map would break
-  // the tree, and `placeZone` refuses it (T5) — so it is left out rather
-  // than offered and rejected.
+  // What may be placed *here*, split the way the picker shows it (T9):
+  // this map's own unplaced children first, then the rest of the campaign,
+  // each of those naming where it currently lives — so that picking it, an
+  // act that moves it here, says so before the click rather than after.
   //
+  // A place that contains this map would break the tree, and `placeZone`
+  // refuses it (T5), so it is left out rather than offered and rejected.
   // The `kind` guard is not decoration: `zone` and `poi` ids come from
   // independent sequences (TD-102), so a landmark that happens to share a
-  // number with an ancestor zone would otherwise vanish from the pool for
-  // no reason at all. A landmark has no children and can never be an
-  // ancestor of anything.
-  const placeableUnplaced = useMemo(
-    () =>
-      unplacedPlaces.filter(
-        (place) => place.kind === "poi" || !ancestorIds.includes(place.id)
-      ),
-    [unplacedPlaces, ancestorIds]
-  );
+  // number with an ancestor zone would otherwise vanish for no reason at
+  // all. A landmark has no children and can never be an ancestor.
+  const picker = useMemo(() => {
+    const here: UnplacedPickerRow[] = [];
+    const elsewhere: UnplacedPickerRow[] = [];
+    const byKey = new Map<string, UnplacedPlace>();
+
+    for (const place of unplacedPlaces) {
+      if (place.kind !== "poi" && ancestorIds.includes(place.id)) continue;
+
+      const key = unplacedPlaceKey(place);
+      byKey.set(key, place);
+      if (place.parentId === parentId) {
+        here.push({ key, title: place.title });
+      } else {
+        elsewhere.push({
+          key,
+          title: place.title,
+          sublabel: tContextMenu("positionPlace.fromParent", {
+            parent: place.parentTitle,
+          }),
+        });
+      }
+    }
+
+    return { here, elsewhere, byKey };
+  }, [unplacedPlaces, ancestorIds, parentId, tContextMenu]);
 
   // Creates a navigable place under the current parent (SPEC-004 M5, T2).
   // `kind: "poi"` never reaches this — the panel keeps that on the original
@@ -563,23 +595,28 @@ function WorldMap({
   // gate it already applies to "Add Place" (SPEC-009 T4), so this handler
   // never needs its own containment check.
   const handleContextMenuPositionPlace = useCallback(
-    async (id: number, lat: number, lng: number) => {
-      const child = placeableUnplaced.find((candidate) => candidate.id === id);
+    async (key: string, lat: number, lng: number) => {
+      const child = picker.byKey.get(key);
       const title = child?.title ?? "";
 
-      // TD-102 — the id on its own does not say which table to write to.
-      // `fetchPlaceChildren` merges `zone` and `poi` rows into one list and
-      // the two id sequences are independent, so without the row that
-      // produced this entry there is nothing to route on. Refuse rather
-      // than default to a table: defaulting is what moved a place the DM
-      // never chose.
+      // TD-102 — an id on its own does not say which table to write to.
+      // The pool merges `zone` and `poi` rows and the two id sequences are
+      // independent, so the picker hands back `${table}:${id}` rather than
+      // a bare number: with a campaign-wide pool (T8) two rows numbered
+      // alike are no longer a coincidence to shrug at. Refuse rather than
+      // default to a table: defaulting is what moved a place the DM never
+      // chose.
       if (!child) {
-        console.error("No unplaced child matches the chosen id:", id);
+        console.error("No unplaced place matches the chosen key:", key);
         toast.error(t("placePositionFailed", { title }));
         return;
       }
 
       const isLandmark = child.kind === "poi";
+      // Picking from the second group re-parents (T4/T6). Worth saying out
+      // loud afterwards: the write is silent, and "posizionato" would not
+      // tell the DM their place had also changed map.
+      const isMove = child.parentId !== parentId;
 
       try {
         // `kind === "poi"` is a sound discriminator, not a convention:
@@ -588,8 +625,8 @@ function WorldMap({
         // SPEC-008 T8's migration copied only navigable-kind rows into
         // `zone`. No zone can carry it.
         const result = isLandmark
-          ? await placeLandmark({ id, zoneId: parentId, lat, lng })
-          : await placeZone({ id, parentId, lat, lng });
+          ? await placeLandmark({ id: child.id, zoneId: parentId, lat, lng })
+          : await placeZone({ id: child.id, parentId, lat, lng });
         if (result.ok) {
           setPlacesRefetchToken((token) => token + 1);
           // A landmark that gains coordinates has to be *loaded*, not just
@@ -603,6 +640,14 @@ function WorldMap({
           // persists and the marker appears only on the next reload
           // (TD-102).
           if (isLandmark) await reloadPOIs();
+          toast.success(
+            isMove
+              ? tContextMenu("positionPlace.movedToast", {
+                  title,
+                  from: child.parentTitle,
+                })
+              : tContextMenu("positionPlace.placedToast", { title })
+          );
         } else {
           // TD-93 — a refused second placement is not a failed one: the
           // write was rejected on purpose, and the DM needs to be told what
@@ -611,12 +656,19 @@ function WorldMap({
           // nei luoghi non posizionati" exists for navigable places only,
           // so telling a DM to un-place a landmark first would point at a
           // control that is not there (TD-102).
+          // `wouldCycle` (T5) has no recovery to offer, unlike
+          // `alreadyPlaced`: the destination is wrong, not the state of the
+          // thing being placed, so the message says what is wrong and stops
+          // there. "Try again" would be a lie — the same pick would be
+          // refused again, which is TD-93's reasoning one refusal over.
           toast.error(
             result.code === "alreadyPlaced"
               ? isLandmark
                 ? t("landmarkAlreadyPositioned", { title })
                 : t("placeAlreadyPositioned", { title })
-              : t("placePositionFailed", { title })
+              : result.code === "wouldCycle"
+                ? t("placeContainsThisMap", { title })
+                : t("placePositionFailed", { title })
           );
         }
       } catch (error) {
@@ -628,7 +680,7 @@ function WorldMap({
     // T4): `GeographyExplorer` does not key `WorldMap`, so descending swaps
     // the prop on a mounted component and a memoised handler holding the
     // old id would move the place onto the map the DM just left.
-    [placeableUnplaced, parentId, reloadPOIs, t]
+    [picker, parentId, reloadPOIs, t, tContextMenu]
   );
 
   // Handle POI location selection request. Also cancels draw-area mode
@@ -1201,7 +1253,12 @@ function WorldMap({
         addPlaceSublabel={tContextMenu("addPlace.sublabel")}
         onAddSubMap={handleToggleDrawArea}
         addSubMapLabel={tDrawArea("trigger")}
-        unplacedPlaces={placeableUnplaced}
+        unplacedHere={picker.here}
+        unplacedElsewhere={picker.elsewhere}
+        positionPlaceHereLabel={tContextMenu("positionPlace.here")}
+        positionPlaceElsewhereLabel={tContextMenu("positionPlace.elsewhere")}
+        positionPlaceFilterPlaceholder={tContextMenu("positionPlace.filter")}
+        positionPlaceNoMatchesLabel={tContextMenu("positionPlace.noMatches")}
         onPositionPlace={(id, lat, lng) =>
           void handleContextMenuPositionPlace(id, lat, lng)
         }

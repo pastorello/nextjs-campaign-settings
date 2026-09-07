@@ -3,7 +3,22 @@
 import { memo, useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { MapPin, Ruler, Star, Layers, Crosshair } from "lucide-react";
 import type { ContextMenuPosition } from "@/app/modules/maps/hooks/useMapContextMenu";
-import type UnplacedPlace from "@/app/lib/definitions/interfaces/maps/UnplacedPlace";
+/**
+ * One row of "Posiziona luogo"'s picker (SPEC-017 T9).
+ *
+ * `key`, not `id`: the pool merges two tables whose id sequences are
+ * independent (TD-102), so a campaign-wide pool can hold a zone and a
+ * landmark with the same number — `${table}:${id}` is what tells them
+ * apart, both for React and for the caller looking the pick back up.
+ *
+ * `sublabel` carries the row's provenance ("da «Regno di Kang»"), already
+ * formatted: this component takes strings, never message keys (ADR-0007).
+ */
+export interface UnplacedPickerRow {
+  key: string;
+  title: string;
+  sublabel?: string;
+}
 
 interface MapContextMenuProps {
   isOpen: boolean;
@@ -68,10 +83,61 @@ interface MapContextMenuProps {
   // silently disappearing. Gated by the same `hideAddPlace` containment
   // rule as Add Place (SPEC-009 T4): ground already inside an area belongs
   // to that area's own map.
-  unplacedPlaces?: UnplacedPlace[];
-  onPositionPlace?: (id: number, lat: number, lng: number) => void;
+  //
+  // Split in two by the caller, which is the only one that knows which map
+  // is in view (SPEC-017 T9): the map's own unplaced children first, then
+  // everything else in the campaign, each of those rows naming where it
+  // currently lives. Picking from the second group moves the place here.
+  unplacedHere?: UnplacedPickerRow[];
+  unplacedElsewhere?: UnplacedPickerRow[];
+  onPositionPlace?: (key: string, lat: number, lng: number) => void;
   positionPlaceLabel?: string;
   positionPlaceSublabel?: string;
+  positionPlaceHereLabel?: string;
+  positionPlaceElsewhereLabel?: string;
+  positionPlaceFilterPlaceholder?: string;
+  positionPlaceNoMatchesLabel?: string;
+}
+
+/**
+ * One labelled block of picker rows. A row carrying a `sublabel` is one
+ * from another map, and picking it moves the place here — which is why the
+ * provenance is rendered under the title rather than left to a heading.
+ */
+function PickerGroup({
+  label,
+  rows,
+  onPick,
+}: {
+  label?: string;
+  rows: UnplacedPickerRow[];
+  onPick: (key: string) => void;
+}) {
+  if (rows.length === 0) return null;
+
+  return (
+    <>
+      {label !== undefined && (
+        <p className="px-2 pt-1 text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
+          {label}
+        </p>
+      )}
+      {rows.map((row) => (
+        <button
+          key={row.key}
+          onClick={() => onPick(row.key)}
+          className="flex w-full flex-col items-start rounded-lg px-2 py-1 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+        >
+          <span>{row.title}</span>
+          {row.sublabel !== undefined && (
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {row.sublabel}
+            </span>
+          )}
+        </button>
+      ))}
+    </>
+  );
 }
 
 interface MenuItemProps {
@@ -155,10 +221,15 @@ export const MapContextMenu = memo(function MapContextMenu({
   addPlaceSublabel = "Create a place here",
   onAddSubMap,
   addSubMapLabel = "Add sub-map",
-  unplacedPlaces = [],
+  unplacedHere = [],
+  unplacedElsewhere = [],
   onPositionPlace,
   positionPlaceLabel = "Position a place",
   positionPlaceSublabel,
+  positionPlaceHereLabel = "On this map",
+  positionPlaceElsewhereLabel = "From other maps",
+  positionPlaceFilterPlaceholder = "Filter by name",
+  positionPlaceNoMatchesLabel = "No place matches.",
 }: MapContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   // Whether "Posiziona luogo"'s own dropdown of unplaced places is expanded
@@ -167,9 +238,33 @@ export const MapContextMenu = memo(function MapContextMenu({
   // component stays mounted between opens (`isOpen`/`position` just gate
   // its render), so this state would otherwise carry over.
   const [isPositionListOpen, setIsPositionListOpen] = useState(false);
+  // The filter text, reset with the list for the same reason: the menu
+  // stays mounted between right-clicks, and a filter left over from the
+  // last one would hide rows the DM never chose to hide.
+  const [filter, setFilter] = useState("");
   useEffect(() => {
-    if (!isOpen) setIsPositionListOpen(false);
+    if (!isOpen) {
+      setIsPositionListOpen(false);
+      setFilter("");
+    }
   }, [isOpen]);
+
+  const poolSize = unplacedHere.length + unplacedElsewhere.length;
+  const matches = useCallback(
+    (rows: UnplacedPickerRow[]) => {
+      const term = filter.trim().toLowerCase();
+      if (term === "") return rows;
+      return rows.filter((row) => row.title.toLowerCase().includes(term));
+    },
+    [filter]
+  );
+  const matchingHere = matches(unplacedHere);
+  const matchingElsewhere = matches(unplacedElsewhere);
+  // Headings only when both groups have something to show. With one group
+  // on screen a heading says nothing the rows do not — an "elsewhere" row
+  // already names the map it comes from, one per row.
+  const showGroupHeadings =
+    matchingHere.length > 0 && matchingElsewhere.length > 0;
 
   // Calculate adjusted position using useMemo instead of useEffect + setState
   const displayPosition = useMemo(() => {
@@ -239,9 +334,9 @@ export const MapContextMenu = memo(function MapContextMenu({
    * show, which is the same condition the entry is disabled on (TD-103).
    */
   const handleTogglePositionList = useCallback(() => {
-    if (unplacedPlaces.length === 0) return;
+    if (poolSize === 0) return;
     setIsPositionListOpen((open) => !open);
-  }, [unplacedPlaces]);
+  }, [poolSize]);
 
   /**
    * Positions the chosen place at the point the menu was opened over, then
@@ -249,9 +344,9 @@ export const MapContextMenu = memo(function MapContextMenu({
    * gesture, there's nothing left to confirm.
    */
   const handlePositionPlace = useCallback(
-    (id: number) => {
+    (key: string) => {
       if (!position || !onPositionPlace) return;
-      onPositionPlace(id, position.latlng.lat, position.latlng.lng);
+      onPositionPlace(key, position.latlng.lat, position.latlng.lng);
       setIsPositionListOpen(false);
       onClose();
     },
@@ -360,19 +455,41 @@ export const MapContextMenu = memo(function MapContextMenu({
               sublabel: positionPlaceSublabel,
             })}
             onClick={handleTogglePositionList}
-            disabled={unplacedPlaces.length === 0}
+            disabled={poolSize === 0}
           />
-          {isPositionListOpen && unplacedPlaces.length > 0 && (
+          {isPositionListOpen && poolSize > 0 && (
             <div className="ml-2 border-l border-gray-200 dark:border-gray-700 pl-2">
-              {unplacedPlaces.map((place) => (
-                <button
-                  key={place.id}
-                  onClick={() => handlePositionPlace(place.id)}
-                  className="flex w-full items-center rounded-lg px-2 py-1 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-                >
-                  {place.title}
-                </button>
-              ))}
+              <input
+                type="search"
+                value={filter}
+                onChange={(event) => setFilter(event.target.value)}
+                placeholder={positionPlaceFilterPlaceholder}
+                aria-label={positionPlaceFilterPlaceholder}
+                className="mb-1 w-full rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm text-gray-700 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+              />
+              {/* Capped and scrollable: the pool is the whole campaign now
+                  (SPEC-017 T8), and 41 rows is a real number on the DM's
+                  own database. */}
+              <div className="max-h-64 overflow-y-auto">
+                <PickerGroup
+                  {...(showGroupHeadings && { label: positionPlaceHereLabel })}
+                  rows={matchingHere}
+                  onPick={handlePositionPlace}
+                />
+                <PickerGroup
+                  {...(showGroupHeadings && {
+                    label: positionPlaceElsewhereLabel,
+                  })}
+                  rows={matchingElsewhere}
+                  onPick={handlePositionPlace}
+                />
+                {matchingHere.length === 0 &&
+                  matchingElsewhere.length === 0 && (
+                    <p className="px-2 py-1 text-sm text-gray-500 dark:text-gray-400">
+                      {positionPlaceNoMatchesLabel}
+                    </p>
+                  )}
+              </div>
             </div>
           )}
         </>

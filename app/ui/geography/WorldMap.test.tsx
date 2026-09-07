@@ -48,7 +48,7 @@ let onAddPOI: ((lat: number, lng: number) => void) | undefined;
 let onStartMeasurement: (() => void) | undefined;
 let onAddSubMap: (() => void) | undefined;
 let onContextMenuPositionPlace:
-  ((id: number, lat: number, lng: number) => void) | undefined;
+  ((key: string, lat: number, lng: number) => void) | undefined;
 vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
   MapContextMenu: (props: {
     onAddPOI: (lat: number, lng: number) => void;
@@ -56,9 +56,10 @@ vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
     isOpen: boolean;
     hideAddPlace?: boolean;
     onAddSubMap?: () => void;
-    unplacedPlaces?: { id: number; title: string; kind: string }[];
+    unplacedHere?: { key: string; title: string; sublabel?: string }[];
+    unplacedElsewhere?: { key: string; title: string; sublabel?: string }[];
     positionPlaceSublabel?: string;
-    onPositionPlace?: (id: number, lat: number, lng: number) => void;
+    onPositionPlace?: (key: string, lat: number, lng: number) => void;
   }) => {
     onAddPOI = props.onAddPOI;
     onStartMeasurement = props.onStartMeasurement;
@@ -69,7 +70,10 @@ vi.mock("@/app/modules/maps/components/map/MapContextMenu", () => ({
         data-testid="map-context-menu"
         data-open={props.isOpen}
         data-hide-add-place={props.hideAddPlace ?? false}
-        data-unplaced-places-count={props.unplacedPlaces?.length ?? 0}
+        data-unplaced-places-count={
+          (props.unplacedHere?.length ?? 0) +
+          (props.unplacedElsewhere?.length ?? 0)
+        }
         data-position-place-sublabel={props.positionPlaceSublabel ?? ""}
       />
     );
@@ -1360,7 +1364,7 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     await renderMap();
 
     act(() => {
-      onContextMenuPositionPlace?.(5, 10, 20);
+      onContextMenuPositionPlace?.("zone:5", 10, 20);
     });
 
     await waitFor(() => {
@@ -1482,7 +1486,7 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     );
 
     act(() => {
-      onContextMenuPositionPlace?.(5, 10, 20);
+      onContextMenuPositionPlace?.("zone:5", 10, 20);
     });
 
     await waitFor(() => {
@@ -1493,6 +1497,79 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
         lng: 20,
       });
     });
+  });
+
+  it("confirms an ordinary placement without claiming anything moved", async () => {
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 5,
+        title: "Kingdom of Kang",
+        kind: "region",
+        parentId: 1,
+        parentTitle: "Terra",
+      },
+    ]);
+    await renderMap();
+
+    act(() => {
+      onContextMenuPositionPlace?.("zone:5", 10, 20);
+    });
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("positionPlace.placedToast");
+    });
+  });
+
+  it("says where a place came from when the placement also moved it", async () => {
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 5,
+        title: "Kingdom of Kang",
+        kind: "region",
+        // Parked under another map entirely: picking it here re-parents it
+        // (T4), and the write is otherwise silent about that.
+        parentId: 99,
+        parentTitle: "Piani Esterni",
+      },
+    ]);
+    await renderMap();
+
+    act(() => {
+      onContextMenuPositionPlace?.("zone:5", 10, 20);
+    });
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("positionPlace.movedToast");
+    });
+  });
+
+  it("explains a refused cycle rather than inviting a retry (T5)", async () => {
+    placeZone.mockResolvedValue({
+      ok: false,
+      code: "wouldCycle",
+      errors: {},
+    });
+    useUnplacedPlaces.mockReturnValue([
+      {
+        id: 5,
+        title: "Terra",
+        kind: "region",
+        parentId: 99,
+        parentTitle: "Piani Esterni",
+      },
+    ]);
+    await renderMap();
+
+    act(() => {
+      onContextMenuPositionPlace?.("zone:5", 10, 20);
+    });
+
+    // Retrying the same pick would be refused again — the destination is
+    // wrong, not the state of the thing being placed.
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("placeContainsThisMap");
+    });
+    expect(toast.error).not.toHaveBeenCalledWith("placePositionFailed");
   });
 
   it("bumps the navigable refetch token after a successful context-menu positioning", async () => {
@@ -1509,7 +1586,7 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     const tokenBefore = useNavigableChildren.mock.calls.at(-1)?.[2];
 
     act(() => {
-      onContextMenuPositionPlace?.(5, 10, 20);
+      onContextMenuPositionPlace?.("zone:5", 10, 20);
     });
 
     await waitFor(() => {
@@ -1532,7 +1609,7 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     await renderMap();
 
     act(() => {
-      onContextMenuPositionPlace?.(5, 10, 20);
+      onContextMenuPositionPlace?.("zone:5", 10, 20);
     });
 
     await waitFor(() => {
@@ -1558,7 +1635,7 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     await renderMap();
 
     act(() => {
-      onContextMenuPositionPlace?.(5, 10, 20);
+      onContextMenuPositionPlace?.("zone:5", 10, 20);
     });
 
     // Not "try again": the write was refused on purpose, and retrying it
@@ -1586,7 +1663,7 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     await renderMap();
 
     act(() => {
-      onContextMenuPositionPlace?.(5, 10, 20);
+      onContextMenuPositionPlace?.("poi:5", 10, 20);
     });
 
     await waitFor(() => {
@@ -1618,7 +1695,7 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     await renderMap();
 
     act(() => {
-      onContextMenuPositionPlace?.(5, 10, 20);
+      onContextMenuPositionPlace?.("poi:5", 10, 20);
     });
 
     // Its own key, not the navigable place's: that one ends with "move it
@@ -1648,7 +1725,7 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     await renderMap();
 
     act(() => {
-      onContextMenuPositionPlace?.(999, 10, 20);
+      onContextMenuPositionPlace?.("zone:999", 10, 20);
     });
 
     await waitFor(() => {
@@ -1677,7 +1754,7 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     await renderMap();
 
     act(() => {
-      onContextMenuPositionPlace?.(5, 10, 20);
+      onContextMenuPositionPlace?.("poi:5", 10, 20);
     });
 
     await waitFor(() => {
@@ -1698,7 +1775,7 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     await renderMap();
 
     act(() => {
-      onContextMenuPositionPlace?.(5, 10, 20);
+      onContextMenuPositionPlace?.("zone:5", 10, 20);
     });
 
     await waitFor(() => {
@@ -1721,7 +1798,7 @@ describe("WorldMap — positioning a place from the context menu (TD-85)", () =>
     const tokenBefore = useNavigableChildren.mock.calls.at(-1)?.[2];
 
     act(() => {
-      onContextMenuPositionPlace?.(5, 10, 20);
+      onContextMenuPositionPlace?.("poi:5", 10, 20);
     });
 
     await waitFor(() => {

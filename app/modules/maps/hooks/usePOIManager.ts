@@ -17,6 +17,7 @@ import fetchPlaceChildren from "@/app/lib/data/maps/fetchPlaceChildren";
 import createPoi from "@/app/lib/data/maps/createPoi";
 import updatePoiAction from "@/app/lib/data/maps/updatePoi";
 import deletePoiAction from "@/app/lib/data/maps/deletePoi";
+import unplaceLandmarkAction from "@/app/lib/data/maps/unplaceLandmark";
 import type PlaceChild from "@/app/lib/definitions/interfaces/maps/PlaceChild";
 import type { Marker } from "leaflet";
 
@@ -158,6 +159,11 @@ export function usePOIManager(
       console.error("POI operation failed:", error);
     });
     operationsRef.current.set(clientId, next);
+    // Returned so a caller can wait for its own write to land — SPEC-017
+    // T10 needs it: the pool has to be re-read *after* the un-place, and
+    // bumping a refetch token the moment the queue accepts the task reads
+    // the database before it changed (caught by e2e, not by a unit test).
+    return next;
   }, []);
 
   /**
@@ -238,7 +244,7 @@ export function usePOIManager(
         )
       );
 
-      enqueue(id, async () => {
+      void enqueue(id, async () => {
         const serverId = serverIdsRef.current.get(id);
         // No server id means the create failed and this POI was already rolled
         // back out of the list. Nothing to update.
@@ -421,7 +427,7 @@ export function usePOIManager(
 
       commit((current) => [...current, newPOI]);
 
-      enqueue(newPOI.id, async () => {
+      void enqueue(newPOI.id, async () => {
         try {
           const result = await createPoi({
             title,
@@ -454,13 +460,27 @@ export function usePOIManager(
   /**
    * Delete POI
    */
-  const deletePOI = useCallback(
-    (id: string) => {
+  /**
+   * Takes a landmark off the map optimistically, persists that with
+   * `persist`, and puts it back exactly where it was if the write fails.
+   *
+   * Shared by `deletePOI` and `unplacePOI` (SPEC-017 T10). The two differ
+   * only in which write they make and what to say when it fails — the
+   * optimistic removal, the marker teardown, the per-id queue and the
+   * rollback are one mechanism, and a second copy of it would drift from
+   * this one (TD-77 is what that looks like).
+   */
+  const removeFromMap = useCallback(
+    (
+      id: string,
+      persist: (serverId: number) => Promise<void>,
+      failureKey: "poiDeleteFailed" | "placeUnplaceFailed"
+    ) => {
       const index = poisRef.current.findIndex((poi) => poi.id === id);
-      if (index === -1) return;
+      if (index === -1) return Promise.resolve();
 
       const removed = poisRef.current[index];
-      if (!removed) return;
+      if (!removed) return Promise.resolve();
 
       commit((current) => current.filter((poi) => poi.id !== id));
 
@@ -471,30 +491,71 @@ export function usePOIManager(
       }
       markersRef.current.delete(id);
 
-      enqueue(id, async () => {
+      return enqueue(id, async () => {
         const serverId = serverIdsRef.current.get(id);
         // Never persisted — either the create failed, or this POI only ever
-        // existed optimistically. Either way there is no row to delete.
+        // existed optimistically. Either way there is no row to write to,
+        // and the queue is per id, so the create has already resolved one
+        // way or the other by the time this runs.
         if (serverId === undefined) return;
 
         try {
-          await deletePoiAction(serverId);
-          serverIdsRef.current.delete(id);
+          await persist(serverId);
         } catch (error) {
-          console.error("Failed to delete POI:", error);
+          console.error("Failed to remove POI from the map:", error);
           // Put it back where it was, rather than at the end.
           commit((current) => {
             const restored = [...current];
             restored.splice(Math.min(index, restored.length), 0, removed);
             return restored;
           });
-          notifyError(
-            tRef.current("poiDeleteFailed", { title: removed.title })
-          );
+          notifyError(tRef.current(failureKey, { title: removed.title }));
         }
       });
     },
     [commit, enqueue, map]
+  );
+
+  const deletePOI = useCallback(
+    (id: string) => {
+      void removeFromMap(
+        id,
+        async (serverId) => {
+          await deletePoiAction(serverId);
+          serverIdsRef.current.delete(id);
+        },
+        "poiDeleteFailed"
+      );
+    },
+    [removeFromMap]
+  );
+
+  /**
+   * Sends a landmark back to the unpositioned pool (SPEC-017 T10) — the same
+   * disappearance from the map as a delete, and the opposite of it in the
+   * database: the row keeps its title, its description and its zone, and
+   * only loses its coordinates.
+   *
+   * Here rather than in `WorldMap` because the id mapping is here.
+   * `POI.id` is a client id that `addPOI` never swaps for the real one, so
+   * a landmark created in this session carries something like `poi-3f2a`
+   * until the next load — `Number(poi.id)` on it is `NaN`, which an e2e
+   * caught (the popover stayed open on a landmark created moments before).
+   * `serverIdsRef` is the only thing that knows the row's real id.
+   */
+  const unplacePOI = useCallback(
+    (id: string) =>
+      removeFromMap(
+        id,
+        async (serverId) => {
+          const result = await unplaceLandmarkAction({ id: serverId });
+          // A refusal is not an exception, but it wants the same rollback:
+          // the row still has its position, so the marker has to come back.
+          if (!result.ok) throw new Error("unplaceLandmark refused the write");
+        },
+        "placeUnplaceFailed"
+      ),
+    [removeFromMap]
   );
 
   /**
@@ -514,7 +575,7 @@ export function usePOIManager(
     markersRef.current.clear();
 
     for (const poi of cleared) {
-      enqueue(poi.id, async () => {
+      void enqueue(poi.id, async () => {
         const serverId = serverIdsRef.current.get(poi.id);
         if (serverId === undefined) return;
 
@@ -589,7 +650,7 @@ export function usePOIManager(
         commit((current) => [...current, ...importedPOIs]);
 
         for (const poi of importedPOIs) {
-          enqueue(poi.id, async () => {
+          void enqueue(poi.id, async () => {
             try {
               const result = await createPoi({
                 title: poi.title,
@@ -680,6 +741,7 @@ export function usePOIManager(
     addPOI,
     updatePOI,
     deletePOI,
+    unplacePOI,
     clearAllPOIs,
     getPOIsByCategory,
     exportGeoJSON,

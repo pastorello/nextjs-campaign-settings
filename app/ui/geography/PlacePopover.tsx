@@ -71,6 +71,14 @@ interface PlacePopoverProps {
    */
   onEditLandmark: (poi: POI) => void;
   /**
+   * "Sposta nei luoghi non posizionati" for a landmark (SPEC-017 T10) —
+   * the same act as `onUnplace` above, on the other table. Separate rather
+   * than widened because the two mutations are separate: a landmark's
+   * position lives in `poi`, and its marker is `usePOIManager`'s to drop,
+   * not `placesRefetchToken`'s.
+   */
+  onUnplaceLandmark: (poi: POI) => void;
+  /**
    * "Elimina" (T7) — the existing, unconfirmed `usePOIManager.deletePOI`
    * (§5: "deleting and re-creating a landmark is cheap," why this popover
    * adds no confirmation of its own, unlike the zone's "Rimuovi
@@ -132,6 +140,7 @@ export default function PlacePopover({
   onDeleted,
   onEditZone,
   onEditLandmark,
+  onUnplaceLandmark,
   onDeleteLandmark,
 }: PlacePopoverProps) {
   const map = useLeafletMap();
@@ -322,6 +331,19 @@ export default function PlacePopover({
               className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
             >
               {t("editLandmark")}
+            </button>
+            {/* "Sposta nei luoghi non posizionati" (SPEC-017 T10) — the
+                landmark parity SPEC-016 T5 left out, and the only way a
+                landmark can reach the pool other than as a side effect of
+                deleting its zone. Same position in the fragment as the
+                zone's, between editing and deleting; no confirmation, for
+                the same reason (it destroys nothing). */}
+            <button
+              type="button"
+              onClick={() => onUnplaceLandmark(poi)}
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+            >
+              {t("unplace")}
             </button>
             {/* "Elimina" (T7) — no confirmation, matching the machinery it
                 reuses (`usePOIManager.deletePOI`, already unconfirmed). */}

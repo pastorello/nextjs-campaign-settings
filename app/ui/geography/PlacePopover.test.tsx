@@ -128,6 +128,7 @@ const onUnplace = vi.fn();
 const onDeleted = vi.fn();
 const onEditZone = vi.fn();
 const onEditLandmark = vi.fn();
+const onUnplaceLandmark = vi.fn();
 const onDeleteLandmark = vi.fn();
 const parentId = 3;
 const parentTitle = "Kang";
@@ -147,6 +148,7 @@ function renderPopover(
       onDeleted={onDeleted}
       onEditZone={onEditZone}
       onEditLandmark={onEditLandmark}
+      onUnplaceLandmark={onUnplaceLandmark}
       onDeleteLandmark={onDeleteLandmark}
     />
   );
@@ -434,9 +436,11 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
     renderLandmarkPopover();
 
     expect(screen.queryByText("openMap")).not.toBeInTheDocument();
-    expect(screen.queryByText("unplace")).not.toBeInTheDocument();
     expect(screen.queryByText("delete")).not.toBeInTheDocument();
     expect(screen.queryByText("editZone")).not.toBeInTheDocument();
+    // "unplace" left this list in SPEC-017 T10, deliberately: it is the one
+    // zone action a landmark now shares, because a pool that only zones can
+    // enter cannot move a landmark anywhere.
   });
 
   // TD-104 — the gap this closed: a zone's popover offered attach, unplace,
@@ -471,6 +475,30 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
 
     expect(onEditLandmark).toHaveBeenCalledWith(currentPoi);
     expect(onEditLandmark).toHaveBeenCalledTimes(1);
+  });
+
+  it("offers a landmark the same un-place a zone has (SPEC-017 T10)", () => {
+    const currentPoi = { ...poi };
+    renderPopover({ kind: "poi", poi: currentPoi });
+
+    fireEvent.click(screen.getByText("unplace"));
+
+    // The parity SPEC-016 T5 left out: without it a landmark could only
+    // reach the pool as a side effect of deleting its zone, so moving one
+    // between maps was unreachable however good the picker got.
+    expect(onUnplaceLandmark).toHaveBeenCalledWith(currentPoi);
+    expect(onUnplaceLandmark).toHaveBeenCalledTimes(1);
+  });
+
+  it("un-places a landmark without asking, exactly as it does a zone", () => {
+    renderPopover({ kind: "poi", poi: { ...poi } });
+
+    fireEvent.click(screen.getByText("unplace"));
+
+    // No confirmation, for the reason the zone's has none (§9, agreed
+    // 2026-08-21): un-placing destroys nothing.
+    expect(deletePlaceProps).not.toHaveBeenCalled();
+    expect(screen.queryByText("delete")).not.toBeInTheDocument();
   });
 
   it("calls onDeleteLandmark with the clicked landmark when Elimina is clicked, without asking for confirmation", () => {

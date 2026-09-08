@@ -6,14 +6,14 @@ import type PlaceChild from "@/app/lib/definitions/interfaces/maps/PlaceChild";
 
 // The Server Actions the hook now persists through. `vi.hoisted` because the
 // mock factories below are hoisted above this file's own statements.
-const { fetchPlaceChildren, createPoi, updatePoi, deletePoi } = vi.hoisted(
-  () => ({
+const { fetchPlaceChildren, createPoi, updatePoi, deletePoi, unplaceLandmark } =
+  vi.hoisted(() => ({
     fetchPlaceChildren: vi.fn(),
     createPoi: vi.fn(),
     updatePoi: vi.fn(),
     deletePoi: vi.fn(),
-  })
-);
+    unplaceLandmark: vi.fn(),
+  }));
 
 vi.mock("@/app/lib/data/maps/fetchPlaceChildren", () => ({
   default: fetchPlaceChildren,
@@ -21,6 +21,9 @@ vi.mock("@/app/lib/data/maps/fetchPlaceChildren", () => ({
 vi.mock("@/app/lib/data/maps/createPoi", () => ({ default: createPoi }));
 vi.mock("@/app/lib/data/maps/updatePoi", () => ({ default: updatePoi }));
 vi.mock("@/app/lib/data/maps/deletePoi", () => ({ default: deletePoi }));
+vi.mock("@/app/lib/data/maps/unplaceLandmark", () => ({
+  default: unplaceLandmark,
+}));
 
 const { notifyError } = vi.hoisted(() => ({ notifyError: vi.fn() }));
 vi.mock("@/app/lib/notifications/notify", () => ({
@@ -385,6 +388,63 @@ describe("usePOIManager — optimistic writes (TD-14)", () => {
 
     expect(result.current.pois).toHaveLength(1);
     expect(notifyError).toHaveBeenCalledWith("poiDeleteFailed");
+  });
+
+  it("un-places a POI by its real id, taking its marker off the map", async () => {
+    fetchPlaceChildren.mockResolvedValue([storedRow]);
+    unplaceLandmark.mockResolvedValue({ ok: true });
+
+    const { result } = await renderLoaded();
+
+    await settle(() => {
+      void result.current.unplacePOI("7");
+    });
+
+    // Gone from the map, exactly like a delete — and still a row in the
+    // database, which is the whole difference (SPEC-017 T10).
+    expect(result.current.pois).toEqual([]);
+    expect(unplaceLandmark).toHaveBeenCalledWith({ id: 7 });
+    expect(deletePoi).not.toHaveBeenCalled();
+  });
+
+  it("un-places a POI created in the same session, which has no numeric id of its own", async () => {
+    createPoi.mockResolvedValue({ ok: true, id: 42 });
+    unplaceLandmark.mockResolvedValue({ ok: true });
+
+    const { result } = await renderLoaded();
+
+    let createdId = "";
+    await settle(() => {
+      createdId = result.current.addPOI("Tavern", 10, 20, "food-drink").id;
+    });
+
+    await settle(() => {
+      void result.current.unplacePOI(createdId);
+    });
+
+    // `addPOI` never swaps the client id for the server's, so `createdId`
+    // is something like `poi-3f2a` — `Number()` on it is `NaN`, and this
+    // mapping is the only thing that knows the row's real id. An e2e is
+    // what caught the version of this that lived in `WorldMap` and did the
+    // conversion by hand.
+    expect(createdId).not.toMatch(/^\d+$/);
+    expect(unplaceLandmark).toHaveBeenCalledWith({ id: 42 });
+  });
+
+  it("puts the marker back when the un-place is refused, not only when it throws", async () => {
+    fetchPlaceChildren.mockResolvedValue([storedRow]);
+    // A refusal is a resolved `MutationResult`, not an exception — but the
+    // row still has its position, so the map has to show it again.
+    unplaceLandmark.mockResolvedValue({ ok: false, errors: {} });
+
+    const { result } = await renderLoaded();
+
+    await settle(() => {
+      void result.current.unplacePOI("7");
+    });
+
+    expect(result.current.pois).toHaveLength(1);
+    expect(notifyError).toHaveBeenCalledWith("placeUnplaceFailed");
   });
 
   it("reverts an edit the server rejects", async () => {

@@ -747,3 +747,22 @@ Leaflet crash, and the reader can switch locale back from the dashboard. It is
 filed so the locale loss is a known, chosen state rather than a surprise — not
 because it is worth a session on its own. Fold it into the next piece of work
 that touches this file.
+
+### TD-108 — A landmark created in this session has no numeric id, and `PlacePopover` converts it as though it did
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-08, while building SPEC-017 T10 — an e2e caught the same mistake in new code, which is what sent me looking for older copies of it
+
+`usePOIManager.addPOI` gives a new landmark a client id (`poi-1788881303808-3f2a9`) and records the real one in `serverIdsRef` when the create lands. **It never swaps the id on the row itself**, so a landmark created in this session keeps its `poi-…` id until the next `loadPOIs`. `PlacePopover` converts that id twice:
+
+```ts
+: { poiId: Number(target.poi.id) };      // the entities-at-this-place key
+const attachPoiId = poi ? Number(poi.id) : null;   // AttachEntityButton's pre-fill
+```
+
+`Number("poi-1788…")` is `NaN`. Nothing guards the click that opens the popover (`handlePOIClick` checks only `isMeasuring`), so the window is reachable: create a landmark, click it without reloading, and the popover's entity list queries `poiId: NaN` while "Collega un'entità" pre-fills the same. SPEC-016 T4's attach then fails validation at the mutation.
+
+**Confirmed by construction, not by hitting it in the app.** SPEC-017 T10's own unit test asserts the id is non-numeric in that window (`expect(createdId).not.toMatch(/^\d+$/)`), and its e2e failed on exactly this conversion before the fix moved the write into the hook. What has not been done is opening the app, creating a landmark and trying to attach an NPC to it without reloading — worth doing before fixing, since the failure mode (an error toast, or a silently empty list) decides how loud the fix needs to be.
+
+**The fix has two shapes, and the second is better.** Either `PlacePopover` resolves the id through `usePOIManager` the way SPEC-017 T10's `unplacePOI` now does — the hook owns the mapping, so anything addressing a row server-side should go through it — or `addPOI` reconciles the id on the row once the create resolves, which removes the whole class of bug rather than one more instance of it. SPEC-002 §9 called that reconciliation "id reconciliation" and it is half-built: the map is there, the swap is not.
+
+**Related:** SPEC-017 T10 (where this was found and worked around for one caller), SPEC-016 T4 (the attach flow that would break), TD-102 (the other half of "an id alone does not say which row").

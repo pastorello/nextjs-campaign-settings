@@ -99,7 +99,7 @@ What does change is what those columns _mean_ while a row is unplaced, and it is
 - [x] Moving a landmark carries the `zoneId` of every NPC and deity attached to it, in the same transaction; `poiId` is unchanged
 - [x] A failed or refused move leaves every row exactly as it was
 - [x] The target parent, not the stored one, is what SPEC-009 §7's placement checks run against
-- [ ] A landmark can be sent back to the unpositioned places from its popover, and reappears in the pool
+- [x] A landmark can be sent back to the unpositioned places from its popover, and reappears in the pool
 - [x] The campaign-wide count counts what the list offers, landmarks included _(T7)_
 - [x] `placeLandmark` is the only writer of `poi.zoneId` outside creation and deletion
 - [ ] Every new or changed mutation rejects an unauthenticated request
@@ -162,7 +162,7 @@ What does change is what those columns _mean_ while a row is unplaced, and it is
 - [x] **T7** — `countUnpositionedPlaces` counts unplaced landmarks alongside unplaced zones _(test: unit — a `poi` with `lat: null` is counted; regression for the zones-only bug)_
 - [x] **T8** — `useUnplacedChildren` becomes campaign-wide `useUnplacedPlaces`; `WorldMap` excludes the ancestors of the map in view using the navigation stack it already holds _(test: unit — the hook returns places from other maps; an ancestor is filtered out)_
 - [x] **T9** — The picker: two groups, provenance label, filter box, scroll cap; the move toast and the cycle message, both catalogues _(test: unit — grouping and filtering render; e2e covers the flow in T11)_
-- [ ] **T10** — `unplaceLandmark` + the landmark popover entry, parity with SPEC-016 T5 _(test: unit + e2e — the landmark leaves the map and reappears in the pool)_
+- [x] **T10** — `unplaceLandmark` + the landmark popover entry, parity with SPEC-016 T5 _(test: unit + e2e — the landmark leaves the map and reappears in the pool)_
 - [ ] **T11** — E2E: place a pooled place from another map and find it there; the refusal of a cycle; an NPC's location after its landmark moves _(test: `e2e/map-move-between-maps.spec.ts`)_
 - [ ] **T12** — Docs: close the `ROADMAP.md` entry, retire TD-103's "interim" note, cross-note SPEC-007 §5 and SPEC-016, tick this spec's criteria _(no test)_
 

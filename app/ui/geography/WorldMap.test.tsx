@@ -287,6 +287,8 @@ let popoverOnEditZone:
   ((place: { id: number; title: string }) => void) | undefined;
 let popoverOnEditLandmark:
   ((poi: { id: string; title: string }) => void) | undefined;
+let popoverOnUnplaceLandmark:
+  ((poi: { id: string; title: string }) => void) | undefined;
 let popoverOnDeleteLandmark:
   ((poi: { id: string; title: string }) => void) | undefined;
 let popoverParentTitle: string | undefined;
@@ -305,6 +307,7 @@ vi.mock("@/app/ui/geography/PlacePopover", () => ({
     onDeleted: () => void;
     onEditZone: (place: { id: number; title: string }) => void;
     onEditLandmark: (poi: { id: string; title: string }) => void;
+    onUnplaceLandmark: (poi: { id: string; title: string }) => void;
     onDeleteLandmark: (poi: { id: string; title: string }) => void;
   }) => {
     popoverOnClose = props.onClose;
@@ -313,6 +316,7 @@ vi.mock("@/app/ui/geography/PlacePopover", () => ({
     popoverOnDeleted = props.onDeleted;
     popoverOnEditZone = props.onEditZone;
     popoverOnEditLandmark = props.onEditLandmark;
+    popoverOnUnplaceLandmark = props.onUnplaceLandmark;
     popoverOnDeleteLandmark = props.onDeleteLandmark;
     popoverParentTitle = props.parentTitle;
     popoverParentId = props.parentId;
@@ -362,6 +366,7 @@ const reloadPOIs = vi.fn();
 // no-op returns above): T7's popover-delete tests assert on it directly,
 // the same reason `exportGeoJSON`/`importGeoJSON` are already top-level.
 const deletePOI = vi.fn();
+const unplacePOI = vi.fn(() => Promise.resolve());
 // A spy wrapper, not a bare object return, so tests can read the
 // `onPOIClick` callback `WorldMap` passes (SPEC-016 T7) — the same shape
 // `useNavigableChildren`'s own mock below uses for `onPlaceClick`.
@@ -370,6 +375,7 @@ const usePOIManager = vi.fn((..._args: unknown[]) => ({
   addPOI: vi.fn(),
   updatePOI: vi.fn(),
   deletePOI,
+  unplacePOI,
   clearAllPOIs: vi.fn(),
   exportGeoJSON,
   importGeoJSON,
@@ -555,6 +561,7 @@ beforeEach(() => {
   popoverOnEditLandmark = undefined;
   zoneEditOnSaved = undefined;
   zoneEditOnRedrawArea = undefined;
+  popoverOnUnplaceLandmark = undefined;
   popoverOnDeleteLandmark = undefined;
   popoverParentTitle = undefined;
   popoverParentId = undefined;
@@ -2423,6 +2430,31 @@ describe("WorldMap — landmark popover (SPEC-016 T7)", () => {
     expect(panel).toHaveAttribute("data-mode", "edit");
     expect(panel).toHaveAttribute("data-edit-target-id", "42");
     expect(screen.queryByTestId("place-popover")).not.toBeInTheDocument();
+  });
+
+  it("un-places the clicked landmark through the hook that owns its id", async () => {
+    await renderMap();
+    clickPOI();
+    const tokenBefore = useUnplacedPlaces.mock.calls.at(-1)?.[0] as number;
+
+    act(() => {
+      popoverOnUnplaceLandmark?.(poi);
+    });
+
+    // The client id, not a number: `addPOI` never swaps it for the real
+    // one, so `usePOIManager` — which holds the mapping, the marker and
+    // the rollback — is the only thing that can address the row. An e2e
+    // caught the version of this that called the mutation directly with
+    // `Number(poi.id)`, on a landmark created moments before.
+    expect(unplacePOI).toHaveBeenCalledWith("42");
+    expect(screen.queryByTestId("place-popover")).not.toBeInTheDocument();
+    // The pool is a different list from the markers, so the token is this
+    // component's to bump — but only once the queued write has landed.
+    // Bumping alongside it re-reads the database before it changed, which
+    // is how the pool came back without the landmark in it (caught by e2e).
+    await waitFor(() => {
+      expect(useUnplacedPlaces.mock.calls.at(-1)?.[0]).toBe(tokenBefore + 1);
+    });
   });
 
   it("deletes the landmark and closes the popover, without any confirmation, when Elimina is invoked", async () => {

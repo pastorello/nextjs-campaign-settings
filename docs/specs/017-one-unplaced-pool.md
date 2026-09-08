@@ -163,7 +163,7 @@ What does change is what those columns _mean_ while a row is unplaced, and it is
 - [x] **T8** — `useUnplacedChildren` becomes campaign-wide `useUnplacedPlaces`; `WorldMap` excludes the ancestors of the map in view using the navigation stack it already holds _(test: unit — the hook returns places from other maps; an ancestor is filtered out)_
 - [x] **T9** — The picker: two groups, provenance label, filter box, scroll cap; the move toast and the cycle message, both catalogues _(test: unit — grouping and filtering render; e2e covers the flow in T11)_
 - [x] **T10** — `unplaceLandmark` + the landmark popover entry, parity with SPEC-016 T5 _(test: unit + e2e — the landmark leaves the map and reappears in the pool)_
-- [ ] **T11** — E2E: place a pooled place from another map and find it there; the refusal of a cycle; an NPC's location after its landmark moves _(test: `e2e/map-move-between-maps.spec.ts`)_
+- [x] **T11** — E2E: place a pooled place from another map and find it there; the refusal of a cycle; an NPC's location after its landmark moves _(test: `e2e/map-move-between-maps.spec.ts`)_ — the cycle stayed out of e2e: T9 leaves a map's own ancestors out of the picker, so the refusal is unreachable from the UI without going through cross-entity search; it is covered at the rule, the mutation and the list instead
 - [ ] **T12** — Docs: close the `ROADMAP.md` entry, retire TD-103's "interim" note, cross-note SPEC-007 §5 and SPEC-016, tick this spec's criteria _(no test)_
 
 ## 11. Outcome

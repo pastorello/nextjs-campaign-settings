@@ -270,6 +270,7 @@ function WorldMap({
     addPOI,
     updatePOI,
     deletePOI,
+    unplacePOI,
     clearAllPOIs,
     exportGeoJSON,
     importGeoJSON,
@@ -397,6 +398,30 @@ function WorldMap({
   // "Elimina" (SPEC-016 T7) — `usePOIManager.deletePOI` is synchronous
   // (optimistic, no server round trip to await) and already unconfirmed, so
   // this closes the popover immediately rather than waiting on anything.
+  /**
+   * "Sposta nei luoghi non posizionati" for a landmark (SPEC-017 T10) —
+   * `handleUnplace`'s counterpart on the other table, and shaped like
+   * `handleDeleteLandmark` rather than like its zone twin: the mutation,
+   * the marker's removal and the rollback if the write fails all belong to
+   * `usePOIManager`, which is also the only thing that knows the row's real
+   * id (`POI.id` is a client id `addPOI` never swaps).
+   *
+   * The token bump is this component's, though: the pool the landmark has
+   * just rejoined is a different list from the markers — and it waits for
+   * the write, rather than firing alongside it. `unplacePOI` queues its
+   * mutation, so bumping the token the moment the queue accepts the task
+   * re-reads the database before it has changed and the pool comes back
+   * without the landmark. An e2e caught exactly that.
+   */
+  const handleUnplaceLandmark = useCallback(
+    async (poi: POI) => {
+      setPopoverTarget(null);
+      await unplacePOI(poi.id);
+      setPlacesRefetchToken((token) => token + 1);
+    },
+    [unplacePOI]
+  );
+
   const handleDeleteLandmark = useCallback(
     (poi: POI) => {
       deletePOI(poi.id);
@@ -1231,6 +1256,7 @@ function WorldMap({
           onDeleted={handlePopoverPlaceDeleted}
           onEditZone={handleEditZone}
           onEditLandmark={handleEditLandmark}
+          onUnplaceLandmark={(poi) => void handleUnplaceLandmark(poi)}
           onDeleteLandmark={handleDeleteLandmark}
         />
       )}

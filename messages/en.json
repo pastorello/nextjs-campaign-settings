@@ -610,7 +610,14 @@
         "sublabel": "Create a place here"
       },
       "positionPlace": {
-        "trigger": "Position a place"
+        "trigger": "Position a place",
+        "here": "On this map",
+        "elsewhere": "From other maps",
+        "filter": "Filter by name",
+        "noMatches": "No place matches.",
+        "fromParent": "from “{parent}”",
+        "placedToast": "“{title}” positioned.",
+        "movedToast": "“{title}” moved here from “{from}”."
       }
     },
     "temporaryMarkers": {
@@ -656,7 +663,8 @@
       "placePositionFailed": "Could not position “{title}”. Try again.",
       "placeAlreadyPositioned": "“{title}” is already positioned. Move it back to the unpositioned places before placing it elsewhere.",
       "landmarkAlreadyPositioned": "“{title}” is already positioned on the map.",
-      "placeUnplaceFailed": "Could not move “{title}” back to unpositioned places. Try again."
+      "placeUnplaceFailed": "Could not move “{title}” back to unpositioned places. Try again.",
+      "placeContainsThisMap": "“{title}” contains this map: it cannot be placed inside itself."
     },
     "poiPanel": {
       "title": "Places of Interest",

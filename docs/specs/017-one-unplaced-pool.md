@@ -90,12 +90,12 @@ What does change is what those columns _mean_ while a row is unplaced, and it is
 ## 8. Acceptance criteria
 
 - [x] The "Posiziona luogo" dropdown on any map lists every unplaced place in the campaign, zones and landmarks alike, not only the children of that map
-- [ ] Each row from another map states which place it currently belongs to
-- [ ] The rows are grouped, with the map's own unplaced children first
-- [ ] A filter box narrows the list by title
+- [x] Each row from another map states which place it currently belongs to
+- [x] The rows are grouped, with the map's own unplaced children first _(headings appear only when both groups have rows — with one group on screen the per-row provenance already says it)_
+- [x] A filter box narrows the list by title
 - [x] Picking a place from another map positions it **and** writes `parentId` (zone) or `zoneId` (landmark) to the map in view, in one write
 - [x] Picking a local child behaves exactly as it does today
-- [ ] Placing a zone onto a map contained by that zone — or onto its own map — is refused, with a message naming the reason, and the offending rows are absent from that map's list _(refused at the mutation, T5; the message and the list filter are T9)_
+- [x] Placing a zone onto a map contained by that zone — or onto its own map — is refused, with a message naming the reason, and the offending rows are absent from that map's list _(refused at the mutation, T5; the message and the list filter are T9)_
 - [x] Moving a landmark carries the `zoneId` of every NPC and deity attached to it, in the same transaction; `poiId` is unchanged
 - [x] A failed or refused move leaves every row exactly as it was
 - [x] The target parent, not the stored one, is what SPEC-009 §7's placement checks run against
@@ -104,7 +104,7 @@ What does change is what those columns _mean_ while a row is unplaced, and it is
 - [x] `placeLandmark` is the only writer of `poi.zoneId` outside creation and deletion
 - [ ] Every new or changed mutation rejects an unauthenticated request
 - [ ] Every new or changed mutation rejects invalid input with field-level errors
-- [ ] Every new user-facing string exists in both `messages/it.json` and `messages/en.json`
+- [x] Every new user-facing string exists in both `messages/it.json` and `messages/en.json`
 - [ ] Coverage has not dropped
 
 ## 9. Implementation plan
@@ -161,7 +161,7 @@ What does change is what those columns _mean_ while a row is unplaced, and it is
 - [x] **T6** — `placeLandmark` takes a target `zoneId`; `poi.zoneId` and the `zoneId` of every NPC and deity with that `poiId` move together in one transaction _(test: unit — the invariant holds after the move; a refused placement writes nothing at all)_ — and `updatePoi` drops its unreachable `zoneId`, so the edge has one writer, not two _(test: unit — the update schema rejects it)_
 - [x] **T7** — `countUnpositionedPlaces` counts unplaced landmarks alongside unplaced zones _(test: unit — a `poi` with `lat: null` is counted; regression for the zones-only bug)_
 - [x] **T8** — `useUnplacedChildren` becomes campaign-wide `useUnplacedPlaces`; `WorldMap` excludes the ancestors of the map in view using the navigation stack it already holds _(test: unit — the hook returns places from other maps; an ancestor is filtered out)_
-- [ ] **T9** — The picker: two groups, provenance label, filter box, scroll cap; the move toast and the cycle message, both catalogues _(test: unit — grouping and filtering render; e2e covers the flow in T11)_
+- [x] **T9** — The picker: two groups, provenance label, filter box, scroll cap; the move toast and the cycle message, both catalogues _(test: unit — grouping and filtering render; e2e covers the flow in T11)_
 - [ ] **T10** — `unplaceLandmark` + the landmark popover entry, parity with SPEC-016 T5 _(test: unit + e2e — the landmark leaves the map and reappears in the pool)_
 - [ ] **T11** — E2E: place a pooled place from another map and find it there; the refusal of a cycle; an NPC's location after its landmark moves _(test: `e2e/map-move-between-maps.spec.ts`)_
 - [ ] **T12** — Docs: close the `ROADMAP.md` entry, retire TD-103's "interim" note, cross-note SPEC-007 §5 and SPEC-016, tick this spec's criteria _(no test)_

@@ -610,7 +610,14 @@
         "sublabel": "Crea un luogo qui"
       },
       "positionPlace": {
-        "trigger": "Posiziona luogo"
+        "trigger": "Posiziona luogo",
+        "here": "Su questa mappa",
+        "elsewhere": "Da altre mappe",
+        "filter": "Filtra per nome",
+        "noMatches": "Nessun luogo corrisponde.",
+        "fromParent": "da «{parent}»",
+        "placedToast": "«{title}» posizionato.",
+        "movedToast": "«{title}» spostato qui da «{from}»."
       }
     },
     "temporaryMarkers": {
@@ -656,7 +663,8 @@
       "placePositionFailed": "Impossibile posizionare «{title}». Riprova.",
       "placeAlreadyPositioned": "«{title}» è già posizionato. Spostalo nei luoghi non posizionati prima di collocarlo altrove.",
       "landmarkAlreadyPositioned": "«{title}» è già posizionato sulla mappa.",
-      "placeUnplaceFailed": "Impossibile spostare «{title}» tra i luoghi non posizionati. Riprova."
+      "placeUnplaceFailed": "Impossibile spostare «{title}» tra i luoghi non posizionati. Riprova.",
+      "placeContainsThisMap": "«{title}» contiene questa mappa: non puoi posizionarlo qui dentro."
     },
     "poiPanel": {
       "title": "Luoghi di interesse",

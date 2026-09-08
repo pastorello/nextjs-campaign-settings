@@ -37,9 +37,9 @@ function renderMenu(
     onAddMarker,
     onStartMeasurement,
     onAddPOI,
-    // The component stays mounted between right-clicks — `isOpen` only
-    // gates what it renders — so a test about state surviving a close has
-    // to close it this way, not by unmounting.
+    // `MapContextMenu` itself stays mounted between right-clicks — `isOpen`
+    // only gates what it renders — so a test about what survives a close
+    // has to close it this way rather than by unmounting the whole thing.
     setOpen: (isOpen: boolean) => utils.rerender(element(isOpen)),
   };
 }
@@ -441,8 +441,9 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
       target: { value: "skree" },
     });
 
-    // The component stays mounted between right-clicks — `isOpen` only
-    // gates the render — so state left behind would carry over.
+    // Closing unmounts the picker (it is a child of a menu that renders
+    // `null` while closed), which is what makes it come back clean — no
+    // effect resets anything.
     setOpen(false);
     setOpen(true);
 

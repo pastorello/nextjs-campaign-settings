@@ -100,6 +100,106 @@ interface MapContextMenuProps {
 }
 
 /**
+ * "Posiziona luogo" — the entry and, once expanded, the pool it can place
+ * here (TD-85, SPEC-017 T9).
+ *
+ * **Its own component so that its state has the right lifetime.** Which
+ * rows are expanded and what the filter says are true of one right-click,
+ * not of the session: the next menu should open collapsed and unfiltered.
+ * `MapContextMenu` renders `null` while closed, so a child of it is
+ * unmounted then and comes back fresh — where the parent, which stays
+ * mounted, had to reset the same state in an effect. That effect is also
+ * what `react-hooks/set-state-in-effect` refuses, and rightly: unmounting
+ * is the mechanism React already gives you for "forget this".
+ */
+function PositionPlaceEntry({
+  here,
+  elsewhere,
+  onPick,
+  label,
+  sublabel,
+  hereLabel,
+  elsewhereLabel,
+  filterPlaceholder,
+  noMatchesLabel,
+}: {
+  here: UnplacedPickerRow[];
+  elsewhere: UnplacedPickerRow[];
+  onPick: (key: string) => void;
+  label: string;
+  sublabel?: string;
+  hereLabel: string;
+  elsewhereLabel: string;
+  filterPlaceholder: string;
+  noMatchesLabel: string;
+}) {
+  const [isListOpen, setIsListOpen] = useState(false);
+  const [filter, setFilter] = useState("");
+
+  const poolSize = here.length + elsewhere.length;
+  const term = filter.trim().toLowerCase();
+  const matching = (rows: UnplacedPickerRow[]) =>
+    term === ""
+      ? rows
+      : rows.filter((row) => row.title.toLowerCase().includes(term));
+  const matchingHere = matching(here);
+  const matchingElsewhere = matching(elsewhere);
+  // Headings only when both groups have something to show. With one group
+  // on screen a heading says nothing the rows do not — an "elsewhere" row
+  // already names the map it comes from, one per row.
+  const showGroupHeadings =
+    matchingHere.length > 0 && matchingElsewhere.length > 0;
+
+  return (
+    <>
+      <div className="my-1.5 border-t border-gray-200 dark:border-gray-700" />
+
+      <MenuItem
+        icon={<Crosshair className="h-4 w-4" />}
+        label={label}
+        {...(sublabel !== undefined && { sublabel })}
+        // A no-op while disabled: an empty pool is nothing to expand, and
+        // it is the same condition the entry is disabled on (TD-103).
+        onClick={() => poolSize > 0 && setIsListOpen((open) => !open)}
+        disabled={poolSize === 0}
+      />
+      {isListOpen && poolSize > 0 && (
+        <div className="ml-2 border-l border-gray-200 dark:border-gray-700 pl-2">
+          <input
+            type="search"
+            value={filter}
+            onChange={(event) => setFilter(event.target.value)}
+            placeholder={filterPlaceholder}
+            aria-label={filterPlaceholder}
+            className="mb-1 w-full rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm text-gray-700 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+          />
+          {/* Capped and scrollable: the pool is the whole campaign now
+              (SPEC-017 T8), and 41 rows is a real number on the DM's own
+              database. */}
+          <div className="max-h-64 overflow-y-auto">
+            <PickerGroup
+              {...(showGroupHeadings && { label: hereLabel })}
+              rows={matchingHere}
+              onPick={onPick}
+            />
+            <PickerGroup
+              {...(showGroupHeadings && { label: elsewhereLabel })}
+              rows={matchingElsewhere}
+              onPick={onPick}
+            />
+            {matchingHere.length === 0 && matchingElsewhere.length === 0 && (
+              <p className="px-2 py-1 text-sm text-gray-500 dark:text-gray-400">
+                {noMatchesLabel}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+/**
  * One labelled block of picker rows. A row carrying a `sublabel` is one
  * from another map, and picking it moves the place here — which is why the
  * provenance is rendered under the title rather than left to a heading.
@@ -233,38 +333,6 @@ export const MapContextMenu = memo(function MapContextMenu({
 }: MapContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   // Whether "Posiziona luogo"'s own dropdown of unplaced places is expanded
-  // (TD-85). Reset whenever the menu closes, so the next right-click always
-  // opens collapsed rather than remembering the last interaction — the menu
-  // component stays mounted between opens (`isOpen`/`position` just gate
-  // its render), so this state would otherwise carry over.
-  const [isPositionListOpen, setIsPositionListOpen] = useState(false);
-  // The filter text, reset with the list for the same reason: the menu
-  // stays mounted between right-clicks, and a filter left over from the
-  // last one would hide rows the DM never chose to hide.
-  const [filter, setFilter] = useState("");
-  useEffect(() => {
-    if (!isOpen) {
-      setIsPositionListOpen(false);
-      setFilter("");
-    }
-  }, [isOpen]);
-
-  const poolSize = unplacedHere.length + unplacedElsewhere.length;
-  const matches = useCallback(
-    (rows: UnplacedPickerRow[]) => {
-      const term = filter.trim().toLowerCase();
-      if (term === "") return rows;
-      return rows.filter((row) => row.title.toLowerCase().includes(term));
-    },
-    [filter]
-  );
-  const matchingHere = matches(unplacedHere);
-  const matchingElsewhere = matches(unplacedElsewhere);
-  // Headings only when both groups have something to show. With one group
-  // on screen a heading says nothing the rows do not — an "elsewhere" row
-  // already names the map it comes from, one per row.
-  const showGroupHeadings =
-    matchingHere.length > 0 && matchingElsewhere.length > 0;
 
   // Calculate adjusted position using useMemo instead of useEffect + setState
   const displayPosition = useMemo(() => {
@@ -329,16 +397,6 @@ export const MapContextMenu = memo(function MapContextMenu({
   }, [onAddSubMap, onClose]);
 
   /**
-   * Toggles "Posiziona luogo"'s dropdown (TD-85). A no-op while disabled —
-   * an empty `unplacedPlaces` means there is nothing this dropdown could
-   * show, which is the same condition the entry is disabled on (TD-103).
-   */
-  const handleTogglePositionList = useCallback(() => {
-    if (poolSize === 0) return;
-    setIsPositionListOpen((open) => !open);
-  }, [poolSize]);
-
-  /**
    * Positions the chosen place at the point the menu was opened over, then
    * closes the whole menu (TD-85) — picking from the dropdown is the whole
    * gesture, there's nothing left to confirm.
@@ -347,7 +405,6 @@ export const MapContextMenu = memo(function MapContextMenu({
     (key: string) => {
       if (!position || !onPositionPlace) return;
       onPositionPlace(key, position.latlng.lat, position.latlng.lng);
-      setIsPositionListOpen(false);
       onClose();
     },
     [position, onPositionPlace, onClose]
@@ -445,54 +502,19 @@ export const MapContextMenu = memo(function MapContextMenu({
           stays legible. Withheld over an existing area by the same
           containment rule as Add Place (SPEC-009 T4). */}
       {onPositionPlace && !hideAddPlace && (
-        <>
-          <div className="my-1.5 border-t border-gray-200 dark:border-gray-700" />
-
-          <MenuItem
-            icon={<Crosshair className="h-4 w-4" />}
-            label={positionPlaceLabel}
-            {...(positionPlaceSublabel !== undefined && {
-              sublabel: positionPlaceSublabel,
-            })}
-            onClick={handleTogglePositionList}
-            disabled={poolSize === 0}
-          />
-          {isPositionListOpen && poolSize > 0 && (
-            <div className="ml-2 border-l border-gray-200 dark:border-gray-700 pl-2">
-              <input
-                type="search"
-                value={filter}
-                onChange={(event) => setFilter(event.target.value)}
-                placeholder={positionPlaceFilterPlaceholder}
-                aria-label={positionPlaceFilterPlaceholder}
-                className="mb-1 w-full rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm text-gray-700 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-              />
-              {/* Capped and scrollable: the pool is the whole campaign now
-                  (SPEC-017 T8), and 41 rows is a real number on the DM's
-                  own database. */}
-              <div className="max-h-64 overflow-y-auto">
-                <PickerGroup
-                  {...(showGroupHeadings && { label: positionPlaceHereLabel })}
-                  rows={matchingHere}
-                  onPick={handlePositionPlace}
-                />
-                <PickerGroup
-                  {...(showGroupHeadings && {
-                    label: positionPlaceElsewhereLabel,
-                  })}
-                  rows={matchingElsewhere}
-                  onPick={handlePositionPlace}
-                />
-                {matchingHere.length === 0 &&
-                  matchingElsewhere.length === 0 && (
-                    <p className="px-2 py-1 text-sm text-gray-500 dark:text-gray-400">
-                      {positionPlaceNoMatchesLabel}
-                    </p>
-                  )}
-              </div>
-            </div>
-          )}
-        </>
+        <PositionPlaceEntry
+          here={unplacedHere}
+          elsewhere={unplacedElsewhere}
+          onPick={handlePositionPlace}
+          label={positionPlaceLabel}
+          {...(positionPlaceSublabel !== undefined && {
+            sublabel: positionPlaceSublabel,
+          })}
+          hereLabel={positionPlaceHereLabel}
+          elsewhereLabel={positionPlaceElsewhereLabel}
+          filterPlaceholder={positionPlaceFilterPlaceholder}
+          noMatchesLabel={positionPlaceNoMatchesLabel}
+        />
       )}
     </div>
   );

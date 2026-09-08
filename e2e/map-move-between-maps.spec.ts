@@ -17,6 +17,15 @@ import {
  * seed a row — every state it needs is reached through the UI, which is why
  * the setup is long.
  *
+ * **Everything happens inside a workspace place of its own, deleted at the
+ * end, and that is not tidiness.** The suite is serial against one database,
+ * so whatever a spec leaves on the root map is still there for the next one:
+ * the first version of this test built its two maps on the root and broke
+ * `map-place-repositioning`, whose drag needs the ground it works on to be
+ * clear (the same failure shape TD-101 documents). Deleting the workspace
+ * sends its two children up to the root *without positions* (SPEC-010 rule
+ * 2), so what survives this test is pool rows, which occlude nothing.
+ *
  * It also proves the invariant no unit test can prove end to end
  * (ADR-0010): an NPC standing at a landmark carries that landmark's zone, so
  * when the landmark changes map the NPC's own `zoneId` has to follow. The
@@ -47,6 +56,7 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     page,
   }) => {
     const stamp = Date.now();
+    const workspaceTitle = `E2E move workspace ${stamp}`;
     const npcName = `E2E move npc ${stamp}`;
     const fromTitle = `E2E move from ${stamp}`;
     const toTitle = `E2E move to ${stamp}`;
@@ -107,6 +117,12 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
       return before;
     };
 
+    const goUp = async () => {
+      await page.getByRole("button", { name: messages.geography.up }).click();
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(300);
+    };
+
     const descendInto = async (index: number, title: string) => {
       await navigableMarkers.nth(index).click();
       const target = page.getByRole("dialog", { name: title });
@@ -118,6 +134,12 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
       await page.waitForLoadState("networkidle");
       await page.waitForTimeout(300);
     };
+
+    // One marker on the root map, and it does not stay: everything else is
+    // built inside it.
+    const rootMarkersBefore = await navigableMarkers.count();
+    const workspaceIndex = await addRegion(workspaceTitle, { x: 500, y: 200 });
+    await descendInto(workspaceIndex, workspaceTitle);
 
     const fromIndex = await addRegion(fromTitle, { x: 500, y: 200 });
     const toIndex = await addRegion(toTitle, { x: 260, y: 360 });
@@ -160,6 +182,7 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     await expect(map).toBeVisible();
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(300);
+    await descendInto(workspaceIndex, workspaceTitle);
     await descendInto(fromIndex, fromTitle);
 
     const landmarkPopover = page.getByRole("dialog", { name: landmarkTitle });
@@ -175,9 +198,7 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     // 6. Up, then into the *other* map, and the pool offers it there — the
     //    whole point: before this spec, that list held only this map's own
     //    children and the landmark was unreachable from here.
-    await page.getByRole("button", { name: messages.geography.up }).click();
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(300);
+    await goUp();
     await descendInto(toIndex, toTitle);
 
     const menu = await openContextMenu(page, { x: 400, y: 300 });
@@ -199,7 +220,26 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     //    being here *is* the tree edge having been rewritten.
     await expect(landmarkMarkers).toHaveCount(1);
 
-    // 8. And the NPC came with it. The location *column* would not prove
+    // 8. Put the root map back the way it was found. Its children lose
+    //    their positions rather than being deleted (SPEC-010 rule 2), which
+    //    is all this needs: a pool row is invisible to every other spec,
+    //    where a marker is not.
+    await goUp();
+    await goUp();
+    await navigableMarkers.nth(workspaceIndex).click();
+    const workspacePopover = page.getByRole("dialog", {
+      name: workspaceTitle,
+    });
+    await expect(workspacePopover).toBeVisible();
+    await workspacePopover
+      .getByRole("button", { name: messages.geography.popover.delete })
+      .click();
+    await page
+      .getByRole("button", { name: messages.geography.deletePlace.confirm })
+      .click();
+    await expect(navigableMarkers).toHaveCount(rootMarkersBefore);
+
+    // 9. And the NPC came with it. The location *column* would not prove
     //    this — it shows the landmark's title, which never changed — but the
     //    filter keys on `zoneId`, so the NPC can only appear under the new
     //    map if `placeLandmark` carried it there (ADR-0010, SPEC-017 T6).

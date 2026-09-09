@@ -478,6 +478,15 @@ there. That is re-parenting, cycle refusal and ADR-0010's entity invariant —
 recorded in [`ROADMAP.md`](./ROADMAP.md) as spec work. This item only stops
 the control from lying; it does not decide what the pool should contain.
 
+> **The interim ended on 2026-09-09** with
+> [SPEC-017](./specs/017-one-unplaced-pool.md): the pool is one list across
+> every map, so the entry's enabled state and its contents finally answer the
+> same question about the same set — bar a map's own ancestors, left out
+> because placing one there would break the tree (T5/T9). The tree-wide number
+> in the sublabel keeps the framing this item chose for it: information about
+> the campaign, never a claim about this map. The fix here stands unchanged;
+> what changed is that the two numbers now describe one pool.
+
 ### TD-104 ✅ A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu — **DONE (2026-08-30)**
 
 **Severity:** 🟡 Medium · **Effort:** M · **Found:** 2026-08-30, by the DM clicking a zone with a sub-map and looking for "Modifica area" where the other actions are

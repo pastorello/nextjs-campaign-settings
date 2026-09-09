@@ -479,7 +479,25 @@ alone.
      entry from lying about availability but deliberately did not decide what the
      pool should contain.
 
-  **Now specced as [SPEC-017](./specs/017-one-unplaced-pool.md), drafted
+  > **Shipped 2026-09-09 as [SPEC-017](./specs/017-one-unplaced-pool.md)**,
+  > twelve tasks across #241–#256. The pool is one list on every map, and
+  > picking from it writes the tree edge alongside the coordinates — so a
+  > place parked under the wrong parent is no longer stuck there. All four
+  > consequences listed above were dealt with: re-parenting is what a placement now
+  > does ([ADR-0012](./adr/0012-placement-writes-the-tree-edge.md)), a cycle
+  > is refused by a shared check and the offending rows are never offered,
+  > a moved landmark carries its entities' `zoneId` with it in one
+  > transaction, and the picker grew groups, provenance per row, a filter and
+  > a scroll cap for the 41. `parentId` on an unplaced row did stay as it
+  > was, with no migration — it is provenance now, and the picker is the one
+  > place that reads it. **Two things the drafting had not predicted:**
+  > `updatePoi` could already write `poi.zoneId` without maintaining
+  > ADR-0010's invariant (closed), and TD-108 came out of the same family of
+  > bug in `PlacePopover` (filed, not fixed).
+  >
+  > _The note this replaces, kept for the reasoning it carries:_
+
+  **Specced as [SPEC-017](./specs/017-one-unplaced-pool.md), drafted
   2026-09-04 and agreed 2026-09-05.** It needs no schema change — the four consequences above
   are all write-path work — and it carries
   [ADR-0012](./adr/0012-placement-writes-the-tree-edge.md) as a prerequisite,

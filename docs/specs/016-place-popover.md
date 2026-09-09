@@ -53,7 +53,7 @@ Clicking a place on the map opens a popover that shows what it is and who is the
 
 **Main flow — a landmark POI**
 
-Same popover, adjusted for what a landmark is: title and description; the entities attached **to this landmark**; the same X-to-detach and pre-filled attach control; **"Modifica"** and **"Elimina"** (the existing `MapPOIPanel` edit/delete machinery, finally reachable — TD-85); no "Apri mappa" (landmarks have no map) and no "sposta nei luoghi non posizionati" (deleting and re-creating a landmark is cheap; un-placing one has no meaning distinct from that today).
+Same popover, adjusted for what a landmark is: title and description; the entities attached **to this landmark**; the same X-to-detach and pre-filled attach control; **"Modifica"** and **"Elimina"** (the existing `MapPOIPanel` edit/delete machinery, finally reachable — TD-85); no "Apri mappa" (landmarks have no map) and no "sposta nei luoghi non posizionati" (deleting and re-creating a landmark is cheap; un-placing one has no meaning distinct from that today). _(That last judgement was correct while the pool was per-map and had nowhere to send a landmark. [SPEC-017](./017-one-unplaced-pool.md) T10 added the entry on 2026-09-09: once a landmark can be **placed** on another map, un-placing it stops being a slow delete and becomes the first half of a move — and without it the pool had a way out for landmarks and no way in.)_
 
 **After it ships, in the same spec:**
 

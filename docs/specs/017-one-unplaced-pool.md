@@ -102,10 +102,10 @@ What does change is what those columns _mean_ while a row is unplaced, and it is
 - [x] A landmark can be sent back to the unpositioned places from its popover, and reappears in the pool
 - [x] The campaign-wide count counts what the list offers, landmarks included _(T7)_
 - [x] `placeLandmark` is the only writer of `poi.zoneId` outside creation and deletion
-- [ ] Every new or changed mutation rejects an unauthenticated request
-- [ ] Every new or changed mutation rejects invalid input with field-level errors
+- [x] Every new or changed mutation rejects an unauthenticated request
+- [x] Every new or changed mutation rejects invalid input with field-level errors
 - [x] Every new user-facing string exists in both `messages/it.json` and `messages/en.json`
-- [ ] Coverage has not dropped
+- [x] Coverage has not dropped _(82.99% lines at close, measured 2026-09-09 — against the 70.09% Phase-2 exit figure of 2026-08-04, the last one recorded)_
 
 ## 9. Implementation plan
 
@@ -164,12 +164,33 @@ What does change is what those columns _mean_ while a row is unplaced, and it is
 - [x] **T9** — The picker: two groups, provenance label, filter box, scroll cap; the move toast and the cycle message, both catalogues _(test: unit — grouping and filtering render; e2e covers the flow in T11)_
 - [x] **T10** — `unplaceLandmark` + the landmark popover entry, parity with SPEC-016 T5 _(test: unit + e2e — the landmark leaves the map and reappears in the pool)_
 - [x] **T11** — E2E: place a pooled place from another map and find it there; the refusal of a cycle; an NPC's location after its landmark moves _(test: `e2e/map-move-between-maps.spec.ts`)_ — the cycle stayed out of e2e: T9 leaves a map's own ancestors out of the picker, so the refusal is unreachable from the UI without going through cross-entity search; it is covered at the rule, the mutation and the list instead
-- [ ] **T12** — Docs: close the `ROADMAP.md` entry, retire TD-103's "interim" note, cross-note SPEC-007 §5 and SPEC-016, tick this spec's criteria _(no test)_
+- [x] **T12** — Docs: close the `ROADMAP.md` entry, retire TD-103's "interim" note, cross-note SPEC-007 §5 and SPEC-016, tick this spec's criteria _(no test)_
 
 ## 11. Outcome
 
-_Fill in at close._
+**Shipped 2026-09-09**, twelve tasks across twelve pull requests (#241–#256), agreed 2026-09-05. A place can be moved from one map to another, which the application could not do at all.
 
-- Shipped: YYYY-MM-DD
-- Deviations from spec and why: …
-- Follow-up debt created: …
+**§6 held: no schema change, no migration.** The whole feature is write-path work on columns that already existed, which is the reason it was affordable.
+
+### Deviations from the spec, and why
+
+- **T4 grew a refusal the task did not name.** The root became placeable the moment the edge was writable — nothing lists it, but the list is a client snapshot (TD-93), so `placeZone` refuses it outright. T5's descendant check subsumes it (every zone descends from the root), and the explicit refusal stayed anyway because it names the reason better than "would break the tree" does.
+- **T6 grew a second half, and the ADR is what found it.** `updatePoi` could already write `poi.zoneId` while maintaining none of ADR-0010's entity follow-through — unreachable, since nothing sent the key, but a second door onto the same state change and the only one that broke the invariant. It is gone, and the schema is `.strict()` so sending it is refused rather than silently stripped.
+- **T7 was not in the first draft at all.** `countUnpositionedPlaces` counted `zone` rows only, while the picker beside it had listed unplaced landmarks since SPEC-008 T8 — a live undercount that only became visible because one pool made the two describe the same set.
+- **T9 carried a bug fix and a refactor neither of which it asked for.** The picker handed back a bare `id` and the caller resolved it with `.find(c => c.id === id)`: with a campaign-wide pool, a zone and a landmark numbered alike stopped being a coincidence to shrug at (TD-102's subject, one scale up), so rows now carry `${table}:${id}`. And the entry moved into a child component because `react-hooks/set-state-in-effect` — an error since the Next 16.3.4 bump — refused the effect that reset its expanded/filter state. Unmounting does that now, which is what React offers for "forget this".
+- **T10 landed in `usePOIManager`, not in `WorldMap` as §9's file table said.** `POI.id` is a client id `addPOI` never swaps for the real one, so `Number(poi.id)` is `NaN` for a landmark created in the same session — the one a DM is most likely to un-place. Only the hook holds the mapping. It also merged `deletePOI`'s optimistic-removal machinery with the new `unplacePOI` into one `removeFromMap`, and made `enqueue` return its queued promise, so the pool is re-read _after_ the write rather than alongside it.
+- **T8's hook silently lost a refresh.** `useUnplacedChildren` refetched whenever `parentId` changed, for free, because it scoped on it; the campaign-wide replacement does not scope on anything, so `mapInView` came back as an explicit refresh trigger — documented as a trigger and never a filter.
+- **T11 has no e2e for the cycle refusal**, deliberately: T9 leaves a map's own ancestors out of the picker, so the refusal is unreachable from the UI without going through cross-entity search. It is covered at the rule, the mutation and the list instead.
+
+### What the verification cost, since three of those came from tests and not from review
+
+Two CI failures, both mine, both from checking narrowly:
+
+- **The lint error in T9 was counted, not read.** `pnpm lint | grep -c` said "1 problem", which was assumed to be a standing warning that TD-106 had in fact already fixed. The rule was right and the fix was a better component.
+- **T11's first version was run alone rather than as the suite.** The e2e run is serial against one database, so the two maps it built on the root map were still there when `map-place-repositioning` dragged its marker — the failure shape TD-101 documents. It did not reproduce locally either way, because it depends on where a pixel lands. The spec now works inside a place it deletes at the end.
+
+E2E earned its place three times over, though: it caught the pool's lost refresh (T8), the `Number(poi.id)` conversion (T10) and the refetch-before-write ordering (T10) — none of which a unit test with a mocked hook can see.
+
+### Follow-up debt created
+
+- **[TD-108](../TECH_DEBT.md)** — the `Number(poi.id)` conversion T10 stopped making in one place still exists in two others, both in `PlacePopover`. The better fix is the one SPEC-002 §9 half-built: reconcile the id on the row when the create resolves, and the class of bug goes away rather than one more instance of it.

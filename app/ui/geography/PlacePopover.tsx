@@ -23,7 +23,19 @@ import type { POI } from "@/app/modules/maps/types/poi";
  * lose those fields or fake them.
  */
 export type PopoverTarget =
-  { kind: "zone"; place: NavigableChild } | { kind: "poi"; poi: POI };
+  | { kind: "zone"; place: NavigableChild }
+  /**
+   * `poiId` is the landmark's database id, resolved by `usePOIManager` and
+   * carried here rather than derived from `poi.id` (TD-108). `POI.id` is a
+   * client key the hook deliberately never swaps for the real one, so on a
+   * landmark created in this session it is `poi-<timestamp>-<random>` and
+   * `Number()` on it is `NaN` — which Prisma serialises to `null`, turning
+   * the entity query into `WHERE "poiId" IS NULL` and listing every
+   * unattached NPC and deity as present here. Carrying the resolved id
+   * makes that state unrepresentable at this boundary instead of relying on
+   * each consumer to convert correctly.
+   */
+  | { kind: "poi"; poi: POI; poiId: number };
 
 interface PlacePopoverProps {
   target: PopoverTarget;
@@ -231,14 +243,9 @@ export default function PlacePopover({
   const entityListTarget: EntityListTarget =
     target.kind === "zone"
       ? { zoneId: target.place.id }
-      : { poiId: Number(target.poi.id) };
+      : { poiId: target.poiId };
 
-  // `usePOIManager`'s `POI.id` is a client string key that happens to be
-  // the stringified database id once a POI has round-tripped through
-  // `loadPOIs` — true for every landmark this popover can ever be anchored
-  // to, since a marker only exists to click in the first place after that
-  // round trip (`usePOIManager`'s own doc comment, point 1).
-  const attachPoiId = poi ? Number(poi.id) : null;
+  const attachPoiId = target.kind === "poi" ? target.poiId : null;
 
   return (
     <div

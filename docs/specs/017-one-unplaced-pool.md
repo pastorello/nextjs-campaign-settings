@@ -193,4 +193,4 @@ E2E earned its place three times over, though: it caught the pool's lost refresh
 
 ### Follow-up debt created
 
-- **[TD-108](../TECH_DEBT.md)** — the `Number(poi.id)` conversion T10 stopped making in one place still exists in two others, both in `PlacePopover`. The better fix is the one SPEC-002 §9 half-built: reconcile the id on the row when the create resolves, and the class of bug goes away rather than one more instance of it.
+- **[TD-108](../TECH_DEBT.md)** — ✅ closed 2026-09-09. The `Number(poi.id)` conversion T10 stopped making in one place still existed in two others, both in `PlacePopover`. Reproduced against the real database first: in that window the popover listed all 119 NPCs and 5 deities as present at the landmark, because `NaN` reaches Prisma as `null` and the query becomes `WHERE "poiId" IS NULL`. Fixed the way T10 was — the hook resolves the id and hands it to the popover. **The reconciliation this line called "the better fix" was rejected:** SPEC-002 §9 does not prescribe the swap, it warns against it, and `usePOIManager`'s note 1 records the stable key as deliberate. See TD-108 for the full reasoning.

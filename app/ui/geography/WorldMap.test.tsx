@@ -295,7 +295,7 @@ let popoverParentTitle: string | undefined;
 let popoverParentId: number | undefined;
 type MockPopoverTarget =
   | { kind: "zone"; place: { id: number; title: string } }
-  | { kind: "poi"; poi: { id: string; title: string } };
+  | { kind: "poi"; poi: { id: string; title: string }; poiId: number };
 vi.mock("@/app/ui/geography/PlacePopover", () => ({
   default: (props: {
     target: MockPopoverTarget;
@@ -330,6 +330,11 @@ vi.mock("@/app/ui/geography/PlacePopover", () => ({
         data-place-id={id}
         data-place-title={title}
         data-target-kind={props.target.kind}
+        // The landmark's database id, which is not `data-place-id` — that
+        // one is the client key `usePOIManager` never swaps (TD-108).
+        data-poi-row-id={
+          props.target.kind === "poi" ? props.target.poiId : undefined
+        }
       />
     );
   },
@@ -2373,12 +2378,16 @@ describe("WorldMap — deleting from the popover (SPEC-016 T6)", () => {
 
 describe("WorldMap — landmark popover (SPEC-016 T7)", () => {
   const poi = { id: "42", title: "Fontana del Corvo", lat: 6, lng: 6 };
+  // The row's own id, which `usePOIManager` resolves and passes alongside
+  // the POI (TD-108). Deliberately not read off `poi.id`: the two agree
+  // only for a landmark that has round-tripped through `loadPOIs`.
+  const POI_ROW_ID = 42;
 
-  function clickPOI(target: unknown = poi) {
+  function clickPOI(target: unknown = poi, serverId: number = POI_ROW_ID) {
     const onPOIClick = usePOIManager.mock.calls.at(-1)?.[1] as
-      ((poi: unknown) => void) | undefined;
+      ((poi: unknown, serverId: number) => void) | undefined;
     act(() => {
-      onPOIClick?.(target);
+      onPOIClick?.(target, serverId);
     });
   }
 
@@ -2401,6 +2410,28 @@ describe("WorldMap — landmark popover (SPEC-016 T7)", () => {
     // of its own, so the popover's attach-control pre-fill (T7) needs this
     // from `WorldMap` directly.
     expect(popoverParentId).toBe(1);
+  });
+
+  /**
+   * TD-108 — `WorldMap`'s half. The hook resolves the row id and hands it to
+   * this callback; the callback's job is to put it on the target rather than
+   * leaving `PlacePopover` to convert `poi.id`, which is a client key on a
+   * landmark created in this session. The two ids are deliberately different
+   * here, which is the only arrangement that can tell the fix from the bug:
+   * with the usual fixture (`poi.id === "42"`, row 42) `Number(poi.id)`
+   * returns the right answer by accident.
+   */
+  it("puts the hook's resolved row id on the target, not a conversion of the client key", async () => {
+    await renderMap();
+
+    clickPOI(
+      { id: "poi-1788881303808-3f2a9", title: "Nuovo", lat: 6, lng: 6 },
+      4242
+    );
+
+    const popover = screen.getByTestId("place-popover");
+    expect(popover).toHaveAttribute("data-place-id", "poi-1788881303808-3f2a9");
+    expect(popover).toHaveAttribute("data-poi-row-id", "4242");
   });
 
   it("does not open the popover for a landmark click while measuring", async () => {

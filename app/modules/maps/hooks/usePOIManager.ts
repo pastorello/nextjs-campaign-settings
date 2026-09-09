@@ -57,7 +57,9 @@ function toClientPOI(
  * - Map marker rendering with category colors
  * - Proper cleanup on unmount
  * - `onPOIClick` (T7): a click on a marker opens the place popover, the same
- *   role `useNavigableChildren`'s `onPlaceClick` plays for zones
+ *   role `useNavigableChildren`'s `onPlaceClick` plays for zones. It receives
+ *   the row's database id as a second argument — see note 1 for why the
+ *   caller cannot derive it from the `POI` itself (TD-108).
  *
 
  * ## Persistence (TD-14 / SPEC-002)
@@ -94,7 +96,7 @@ function toClientPOI(
  */
 export function usePOIManager(
   parentId: number,
-  onPOIClick?: (poi: POI) => void
+  onPOIClick?: (poi: POI, serverId: number) => void
 ) {
   const map = useLeafletMap();
   const t = useTranslations("geography.errors");
@@ -387,10 +389,21 @@ export function usePOIManager(
         // in the brief optimistic window before its `createPoi` round trip
         // lands has no database id yet, and every consumer of this click
         // (`fetchEntitiesAtPlace`, the edit/delete machinery) needs one.
+        //
+        // The guard hands that id over rather than merely asserting it
+        // exists (TD-108). Checking `has` and then letting the caller read
+        // the id off `poi.id` was the shape that shipped, and it guards the
+        // wrong half: it refuses the harmless click — no row yet — and
+        // permits the broken one, because once the create resolves `POI.id`
+        // is still the client key note 1 keeps it as. `Number("poi-1788…")`
+        // is `NaN`, and Prisma serialises that to `null`, so the popover's
+        // entity query became `WHERE "poiId" IS NULL` and listed every
+        // unattached NPC and deity as present at the landmark.
         marker.on("click", () => {
           if (justDragged) return;
-          if (!serverIdsRef.current.has(poi.id)) return;
-          onPOIClickRef.current?.(poi);
+          const serverId = serverIdsRef.current.get(poi.id);
+          if (serverId === undefined) return;
+          onPOIClickRef.current?.(poi, serverId);
         });
 
         markersRef.current.set(poi.id, marker);

@@ -130,6 +130,8 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-106 | ✅ A standing lint warning: the error boundary's "Vai alla home" leaves the page with a full document load      | ~~🟢 Low~~ done      | S      | 4     |
 | TD-107 | "Vai alla home" in the map error boundary drops the reader's locale — `/` always resolves to Italian            | 🟢 Low               | S      | 4     |
 | TD-108 | ✅ A landmark created in this session had no numeric id, and `PlacePopover` converted it as though it did       | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-109 | No e2e covers the landmark popover's entity list — TD-108 is guarded by unit tests only                         | 🟢 Low               | S      | 4     |
+| TD-110 | "Too many re-renders" took the map down while picking an NPC to attach — seen once, unattributed                | 🟡 Medium            | S      | 4     |
 
 ---
 
@@ -758,7 +760,7 @@ filed so the locale loss is a known, chosen state rather than a surprise — not
 because it is worth a session on its own. Fold it into the next piece of work
 that touches this file.
 
-### TD-108 — ✅ A landmark created in this session had no numeric id, and `PlacePopover` converted it as though it did
+### TD-108 ✅ A landmark created in this session had no numeric id, and `PlacePopover` converted it as though it did — **DONE (2026-09-09)**
 
 **Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-08, while building SPEC-017 T10 — an e2e caught the same mistake in new code, which is what sent me looking for older copies of it
 
@@ -784,3 +786,35 @@ The second shape — reconciling the id onto the row inside `addPOI` — was des
 **Shipped:** `usePOIManager.ts`, `WorldMap.tsx`, `PlacePopover.tsx`, with three regression tests — the hook hands over the row id once the create resolves (`usePOIManager.test.ts`), `WorldMap` puts it on the target instead of converting the key, and the popover addresses the row for a landmark created in this session (`PlacePopover.test.tsx`). All three needed the client key and the row id to be **different** values to be able to fail: the existing fixtures used `poi.id === "42"` with row 42, where `Number(poi.id)` returns the right answer by accident, which is why nothing caught this before.
 
 **Related:** SPEC-017 T10 (where this was found and worked around for one caller), SPEC-016 T4 (the attach flow that would break), TD-102 (the other half of "an id alone does not say which row").
+
+### TD-109 — No e2e covers the landmark popover's entity list, so TD-108's fix is guarded by unit tests only
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-09, closing TD-108
+
+TD-108's bug was invisible at every boundary taken alone and appeared only where they met: the client key became `NaN` in `PlacePopover`, crossed a Server Action, and Prisma's JSON serialisation turned it into `null`, so `fetchEntitiesAtPlace`'s where collapsed to `{ poiId: null }`. The three regression tests TD-108 shipped each cover one boundary with the next one mocked — the hook, `WorldMap`, the popover. None crosses the Server Action and Prisma, which is exactly where `NaN` became a query that matched everything. A later change that reintroduces the conversion by another route — a new consumer of `poi.id`, say — would pass all three.
+
+`e2e/map-landmark-popover.spec.ts` has two cases (edit then delete; send back to the unpositioned places) and neither reads the entity list.
+
+**The spec, and the one condition that lets it fail.** Create a landmark through "Aggiungi luogo" with Kind `poi` (`e2e/helpers/mapContextMenu.ts` already drives the right-click), click its marker **without reloading**, and assert the popover renders `popover.entitiesEmpty` rather than a list. On its own that is vacuous: on the broken code the query is `WHERE "poiId" IS NULL`, and if the e2e database holds no NPC or deity without a landmark, that returns nothing too — the empty state renders and the test passes on the bug. So the spec must guarantee at least one entity with a null `poiId` exists before the click, and should create that row itself rather than trust the seed or another spec's debris. No helper creates an NPC today and there is no `npc-crud.spec.ts` to borrow from; `/dashboard/admin/npc/new` is the UI route. Delete both rows at the end, as the other CRUD specs do.
+
+Watch it fail before trusting it: reintroduce `Number(poi.id)` in `PlacePopover` locally and confirm it goes red. TD-101's spec was green on a vacuous assertion for want of exactly this check.
+
+**Related:** TD-108, TD-101 (an e2e that could not fail), SPEC-016 T1 (`fetchEntitiesAtPlace`).
+
+### TD-110 — "Too many re-renders" took the map down while picking an NPC to attach to a landmark — seen once, not reproduced, not attributed
+
+**Severity:** 🟡 Medium (provisional — see below) · **Effort:** S · **Found:** 2026-09-09, during TD-108's in-app reproduction
+
+**What happened.** On the DM's "Piani di Esistenza" map, a landmark created moments earlier — so still carrying its `poi-…` client key, the TD-108 window, before that fix — was clicked; "Collega personaggio" opened `AttachEntityButton`; Tipo was set to NPC; and the NPC `<select>` was set to Adalbert (id 561). The whole map collapsed into `MapErrorBoundary` with "Too many re-renders. React limits the number of renders to prevent an infinite loop.", component stack pointing at a minified `_t`. No write happened: Adalbert's row was unchanged afterwards.
+
+**Why it is not attributed to anything.**
+
+- The selects were driven by browser automation (`form_input`), not by a hand on the native control, so the automation is itself a candidate cause.
+- The comparison that would have settled it never ran. After a reload (numeric id, the healthy window) the same automation could not make the NPC `<select>` hold a value at all: it read back empty every time, and neither a native-setter `change` event nor keyboard focus got through. That the select would not keep a programmatically set value is itself unexplained — the automation, or a sign the picker's controlled value is not being stored.
+- So three candidates stand, none ruled out: the `NaN` `poiId` pre-fill TD-108 has since removed; a genuine render loop in `AttachEntityButton`'s picker, independent of the id; or an artefact of how the value was set.
+
+**First step — by hand, not by automation.** On current `main` (TD-108 fixed), create a landmark and, without reloading, attach an NPC to it by picking from the native select. Then do the same on a landmark after a reload. If neither crashes, the `NaN` pre-fill was the trigger and this closes with TD-108 as its fix. If either does, it is the picker's own loop — read `app/ui/geography/AttachEntityButton.tsx`'s effects and `onChange` handlers for a state update that re-triggers itself.
+
+The severity is a placeholder. If it reproduces it takes the whole map down, not just the dialog, and is High; if it does not, the item closes.
+
+**Related:** TD-108, SPEC-016 T4 (the attach flow), TD-107 (the same error boundary).

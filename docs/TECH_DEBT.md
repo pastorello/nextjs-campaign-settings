@@ -130,7 +130,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-106 | ✅ A standing lint warning: the error boundary's "Vai alla home" leaves the page with a full document load      | ~~🟢 Low~~ done      | S      | 4     |
 | TD-107 | "Vai alla home" in the map error boundary drops the reader's locale — `/` always resolves to Italian            | 🟢 Low               | S      | 4     |
 | TD-108 | ✅ A landmark created in this session had no numeric id, and `PlacePopover` converted it as though it did       | ~~🟡 Medium~~ done   | S      | 4     |
-| TD-109 | No e2e covers the landmark popover's entity list — TD-108 is guarded by unit tests only                         | 🟢 Low               | S      | 4     |
+| TD-109 | ✅ The landmark popover's entity list has an e2e now — seen red on TD-108's bug before being trusted            | ~~🟢 Low~~ done      | S      | 4     |
 | TD-110 | "Too many re-renders" took the map down while picking an NPC to attach — seen once, unattributed                | 🟡 Medium            | S      | 4     |
 
 ---
@@ -787,7 +787,7 @@ The second shape — reconciling the id onto the row inside `addPOI` — was des
 
 **Related:** SPEC-017 T10 (where this was found and worked around for one caller), SPEC-016 T4 (the attach flow that would break), TD-102 (the other half of "an id alone does not say which row").
 
-### TD-109 — No e2e covers the landmark popover's entity list, so TD-108's fix is guarded by unit tests only
+### TD-109 ✅ No e2e covers the landmark popover's entity list, so TD-108's fix is guarded by unit tests only — **DONE (2026-09-10)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-09, closing TD-108
 
@@ -798,6 +798,8 @@ TD-108's bug was invisible at every boundary taken alone and appeared only where
 **The spec, and the one condition that lets it fail.** Create a landmark through "Aggiungi luogo" with Kind `poi` (`e2e/helpers/mapContextMenu.ts` already drives the right-click), click its marker **without reloading**, and assert the popover renders `popover.entitiesEmpty` rather than a list. On its own that is vacuous: on the broken code the query is `WHERE "poiId" IS NULL`, and if the e2e database holds no NPC or deity without a landmark, that returns nothing too — the empty state renders and the test passes on the bug. So the spec must guarantee at least one entity with a null `poiId` exists before the click, and should create that row itself rather than trust the seed or another spec's debris. No helper creates an NPC today and there is no `npc-crud.spec.ts` to borrow from; `/dashboard/admin/npc/new` is the UI route. Delete both rows at the end, as the other CRUD specs do.
 
 Watch it fail before trusting it: reintroduce `Number(poi.id)` in `PlacePopover` locally and confirm it goes red. TD-101's spec was green on a vacuous assertion for want of exactly this check.
+
+**Shipped (2026-09-10):** a third case in `e2e/map-landmark-popover.spec.ts`. It creates an NPC through `/dashboard/admin/npc/new` — the landmark-less row the broken query would match — then a landmark, clicks it without reloading, and asserts the popover's empty state before asserting the NPC's name is absent (the empty state replaces the loading line only once the list has loaded, so the absence check cannot pass on a fetch still in flight). Both rows are deleted at the end. **Seen red first:** with `Number(target.poi.id)` restored in `PlacePopover`, the empty state never rendered, and the failure snapshot listed the new NPC — with its "Rimuovi … da questo luogo" button — among the entities present at a landmark created seconds earlier. **One correction to the card above:** `e2e/npc-crud.spec.ts` does exist; its create flow is the one the new case follows.
 
 **Related:** TD-108, TD-101 (an e2e that could not fail), SPEC-016 T1 (`fetchEntitiesAtPlace`).
 

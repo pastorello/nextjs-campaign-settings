@@ -150,4 +150,90 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
       .click();
     await expect(menu.getByText(title)).toBeVisible();
   });
+
+  /**
+   * TD-109 — TD-108's regression, across the boundary its unit tests mock. A
+   * landmark created in this session carries a `poi-…` client key; before
+   * TD-108 the popover ran `Number()` on it, and the `NaN` crossed the Server
+   * Action to reach Prisma as `null` — so the entity query became
+   * `WHERE "poiId" IS NULL` and listed every NPC and deity with no landmark.
+   * The hook, `WorldMap` and popover tests each stub the next boundary; only
+   * this one reaches the database.
+   *
+   * The NPC created first is what lets this fail. With no landmark-less
+   * entity in the database the broken query returns nothing either, the
+   * empty state renders, and the test passes on the bug — so the row is made
+   * here rather than trusted to the seed or to another spec's debris. Seen
+   * red with `Number(target.poi.id)` restored in `PlacePopover` before being
+   * trusted (TD-101's lesson: an e2e that cannot fail proves nothing).
+   */
+  test("a landmark clicked without a reload lists no entity it does not hold (TD-109)", async ({
+    page,
+  }) => {
+    const stamp = Date.now();
+    const npcName = `E2E TD-109 PNG ${stamp}`;
+    const title = `E2E landmark entities ${stamp}`;
+
+    await page.goto("/dashboard/admin/npc/new");
+    await page.getByLabel(messages.common.fields.name.label).fill(npcName);
+    await page
+      .getByRole("button", { name: messages.npc.form.createButton })
+      .click();
+    await page.waitForURL("**/dashboard/admin/npc");
+
+    await page.goto("/dashboard/geography");
+    const map = page.locator(".leaflet-container");
+    await expect(map).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(300);
+
+    const landmarkMarkers = page.locator(".custom-poi-marker");
+    const baselineCount = await landmarkMarkers.count();
+
+    await chooseFromContextMenu(
+      page,
+      { x: 440, y: 350 },
+      messages.geography.contextMenu.addPlace.trigger
+    );
+    await page.getByPlaceholder("Enter place name").fill(title);
+    await page.getByRole("button", { name: "Save" }).click();
+    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(landmarkMarkers).toHaveCount(baselineCount + 1);
+
+    // No reload between creating the landmark and clicking it: a reload is
+    // what hands the marker a numeric id and hides the bug. Same
+    // retry-the-click dance as above for `createPoi`'s round trip.
+    const popover = page.getByRole("dialog", { name: title });
+    await expect(async () => {
+      await landmarkMarkers.last().click();
+      await expect(popover).toBeVisible({ timeout: 500 });
+    }).toPass({ timeout: 10_000 });
+
+    // The empty state replaces the loading line only once the list has
+    // loaded, so the absence check after it cannot pass merely because the
+    // fetch has not come back yet.
+    await expect(
+      popover.getByText(messages.geography.popover.entitiesEmpty)
+    ).toBeVisible();
+    await expect(popover.getByText(npcName)).toHaveCount(0);
+
+    // Clean up both rows, as the CRUD specs do.
+    await popover
+      .getByRole("button", { name: messages.geography.popover.deleteLandmark })
+      .click();
+    await expect(landmarkMarkers).toHaveCount(baselineCount);
+
+    await page.goto(
+      `/dashboard/admin/npc?query=${encodeURIComponent(npcName)}`
+    );
+    const npcRow = page.getByRole("row").filter({ hasText: npcName });
+    await npcRow
+      .getByRole("button", { name: messages.common.form.delete })
+      .click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: messages.common.form.delete })
+      .click();
+    await expect(npcRow).toHaveCount(0);
+  });
 });

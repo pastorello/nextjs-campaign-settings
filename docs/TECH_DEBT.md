@@ -131,7 +131,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-107 | "Vai alla home" in the map error boundary drops the reader's locale — `/` always resolves to Italian            | 🟢 Low               | S      | 4     |
 | TD-108 | ✅ A landmark created in this session had no numeric id, and `PlacePopover` converted it as though it did       | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-109 | ✅ The landmark popover's entity list has an e2e now — seen red on TD-108's bug before being trusted            | ~~🟢 Low~~ done      | S      | 4     |
-| TD-110 | "Too many re-renders" took the map down while picking an NPC to attach — seen once, unattributed                | 🟡 Medium            | S      | 4     |
+| TD-110 | ✅ "Too many re-renders" was TD-108's `NaN` reaching Headless UI's `Listbox` — attributed, fixed by TD-108      | ~~🟡 Medium~~ done   | S      | 4     |
 
 ---
 
@@ -803,7 +803,7 @@ Watch it fail before trusting it: reintroduce `Number(poi.id)` in `PlacePopover`
 
 **Related:** TD-108, TD-101 (an e2e that could not fail), SPEC-016 T1 (`fetchEntitiesAtPlace`).
 
-### TD-110 — "Too many re-renders" took the map down while picking an NPC to attach to a landmark — seen once, not reproduced, not attributed
+### TD-110 ✅ "Too many re-renders" took the map down while picking an NPC to attach to a landmark — seen once, not reproduced, not attributed — **DONE (2026-09-10)**
 
 **Severity:** 🟡 Medium (provisional — see below) · **Effort:** S · **Found:** 2026-09-09, during TD-108's in-app reproduction
 
@@ -818,5 +818,14 @@ Watch it fail before trusting it: reintroduce `Number(poi.id)` in `PlacePopover`
 **First step — by hand, not by automation.** On current `main` (TD-108 fixed), create a landmark and, without reloading, attach an NPC to it by picking from the native select. Then do the same on a landmark after a reload. If neither crashes, the `NaN` pre-fill was the trigger and this closes with TD-108 as its fix. If either does, it is the picker's own loop — read `app/ui/geography/AttachEntityButton.tsx`'s effects and `onChange` handlers for a state update that re-triggers itself.
 
 The severity is a placeholder. If it reproduces it takes the whole map down, not just the dialog, and is High; if it does not, the item closes.
+
+**Attributed and closed (2026-09-10): TD-108's `NaN` pre-fill was the trigger, and TD-108 is the fix.** Settled deterministically rather than by hand, which also rules the automation out: a throwaway Vitest case rendered the real `Select` (`app/ui/forms/inputs/Select`, no mocks) with `value={NaN}`, and it threw exactly "Too many re-renders" on mount — closed, never opened. With `9` or `0` it rendered cleanly. `Select` holds no state of its own, so the render-phase loop is inside Headless UI 2.2's `Listbox`, the minified `_t` in the stack. The path: `attachPoiId = Number(poi.id)` was `NaN` → `AttachEntityButton`'s `poiId` → `AssignLocationModal`'s `useState(currentPoiId)` → `value={poiId ?? NO_LANDMARK}`, where `??` lets `NaN` through because it is not nullish. The modal mounts the moment an NPC is picked, which is why the crash came exactly then.
+
+- **The second candidate is ruled out.** Neither `AttachEntityButton` nor `AssignLocationModal` calls a setter during render, and the same `Select` with a real id does not loop.
+- **The read-back-empty after the reload is by design, not a lost value.** The NPC `<select>` is hardcoded `value=""`: picking an option closes the picker (`isOpen && selected === null`) and mounts `AssignLocationModal`, so the select reads back empty whatever is chosen. Whether the automation's `change` reached React after the reload was not established, and no longer needs to be.
+- **The regression test already exists.** TD-108's `PlacePopover.test.tsx` case "addresses the row, not the client key, for a landmark created in this session" asserts that the attach control receives the row id, not the key.
+- **No guard was added, deliberately.** A `NaN` check in the generic `Select` or in the modal would defend a value TD-108 made unreachable, and would turn a loud crash into a silently wrong pre-fill — the failure mode TD-108's write-up calls worse than an error. That the crash took the whole map down rather than just the dialog is a question about where `MapErrorBoundary` sits, not about this item.
+
+The by-hand check above was not run; the unit reproduction supersedes it.
 
 **Related:** TD-108, SPEC-016 T4 (the attach flow), TD-107 (the same error boundary).

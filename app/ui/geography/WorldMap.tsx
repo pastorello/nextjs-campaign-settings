@@ -257,9 +257,13 @@ function WorldMap({
   // hook's own `onPOIClick` argument — the same ordering constraint
   // `handleEditMode`/`createMarker` already impose inside that hook.
   const handlePOIClick = useCallback(
-    (poi: POI) => {
+    // `serverId` comes from the hook, which owns the client-id -> row-id
+    // mapping (TD-108). The popover needs the row's id and cannot get it
+    // from `poi.id`, which is a client key on a landmark created in this
+    // session.
+    (poi: POI, serverId: number) => {
       if (isMeasuring) return;
-      setPopoverTarget({ kind: "poi", poi });
+      setPopoverTarget({ kind: "poi", poi, poiId: serverId });
     },
     [isMeasuring]
   );

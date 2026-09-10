@@ -111,6 +111,15 @@ const place: NavigableChild = {
   gridScale: null,
 };
 
+/**
+ * The landmark row's own database id. Kept distinct from `poi.id` below on
+ * purpose (TD-108): the two agree only after a `loadPOIs` round trip, and
+ * this fixture used to rely on that agreement — `poi.id` was `"42"`, so a
+ * `Number(poi.id)` in the component produced the right answer and the
+ * conversion bug stayed invisible here.
+ */
+const LANDMARK_ROW_ID = 42;
+
 const poi: POI = {
   id: "42",
   title: "Fontana del Corvo",
@@ -158,8 +167,11 @@ function renderZonePopover(overrides: Partial<NavigableChild> = {}) {
   return renderPopover({ kind: "zone", place: { ...place, ...overrides } });
 }
 
-function renderLandmarkPopover(overrides: Partial<POI> = {}) {
-  return renderPopover({ kind: "poi", poi: { ...poi, ...overrides } });
+function renderLandmarkPopover(
+  overrides: Partial<POI> = {},
+  poiId: number = LANDMARK_ROW_ID
+) {
+  return renderPopover({ kind: "poi", poi: { ...poi, ...overrides }, poiId });
 }
 
 // The outside-click listener attaches after a 0ms timeout (to avoid closing
@@ -432,6 +444,31 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
     });
   });
 
+  /**
+   * TD-108 at this boundary. The popover used to derive the row id with
+   * `Number(poi.id)`, which is correct only while the client key happens to
+   * be the stringified database id — true after a `loadPOIs`, false for a
+   * landmark created in this session, where `POI.id` is the key
+   * `usePOIManager` deliberately never swaps. `Number("poi-1788…")` is
+   * `NaN`, Prisma serialises that to `null`, and the query became
+   * `WHERE "poiId" IS NULL`: reproduced against the real database on
+   * 2026-09-09, the popover listed all 119 NPCs and 5 deities as present at
+   * a landmark that had none.
+   */
+  it("addresses the row, not the client key, for a landmark created in this session", () => {
+    renderLandmarkPopover({ id: "poi-1788881303808-3f2a9" }, 4242);
+
+    expect(entityListProps).toHaveBeenCalledWith({ poiId: 4242 }, 0);
+
+    fireEvent.click(screen.getByText("attach"));
+
+    expect(attachEntityProps).toHaveBeenLastCalledWith({
+      zoneId: parentId,
+      poiId: 4242,
+      isOpen: true,
+    });
+  });
+
   it("renders no zone-only action", () => {
     renderLandmarkPopover();
 
@@ -469,7 +506,7 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
 
   it("calls onEditLandmark with the clicked landmark when Modifica is clicked", () => {
     const currentPoi = { ...poi };
-    renderPopover({ kind: "poi", poi: currentPoi });
+    renderPopover({ kind: "poi", poi: currentPoi, poiId: LANDMARK_ROW_ID });
 
     fireEvent.click(screen.getByText("editLandmark"));
 
@@ -479,7 +516,7 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
 
   it("offers a landmark the same un-place a zone has (SPEC-017 T10)", () => {
     const currentPoi = { ...poi };
-    renderPopover({ kind: "poi", poi: currentPoi });
+    renderPopover({ kind: "poi", poi: currentPoi, poiId: LANDMARK_ROW_ID });
 
     fireEvent.click(screen.getByText("unplace"));
 
@@ -491,7 +528,7 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
   });
 
   it("un-places a landmark without asking, exactly as it does a zone", () => {
-    renderPopover({ kind: "poi", poi: { ...poi } });
+    renderPopover({ kind: "poi", poi: { ...poi }, poiId: LANDMARK_ROW_ID });
 
     fireEvent.click(screen.getByText("unplace"));
 
@@ -503,7 +540,7 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
 
   it("calls onDeleteLandmark with the clicked landmark when Elimina is clicked, without asking for confirmation", () => {
     const currentPoi = { ...poi };
-    renderPopover({ kind: "poi", poi: currentPoi });
+    renderPopover({ kind: "poi", poi: currentPoi, poiId: LANDMARK_ROW_ID });
 
     fireEvent.click(screen.getByText("deleteLandmark"));
 

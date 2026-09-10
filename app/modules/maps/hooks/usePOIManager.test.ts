@@ -565,8 +565,12 @@ describe("usePOIManager — landmark click (SPEC-016 T7)", () => {
     });
 
     expect(onPOIClick).toHaveBeenCalledTimes(1);
+    // A loaded POI's client id *is* its stringified database id, so the two
+    // arguments agree here. They stop agreeing the moment the landmark was
+    // created in this session — the case the TD-108 test below covers.
     expect(onPOIClick).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "7", title: "Tavern" })
+      expect.objectContaining({ id: "7", title: "Tavern" }),
+      7
     );
   });
 
@@ -616,5 +620,38 @@ describe("usePOIManager — landmark click (SPEC-016 T7)", () => {
     });
 
     expect(onPOIClick).not.toHaveBeenCalled();
+  });
+
+  /**
+   * TD-108 — the same window seen from the other side. The test above covers
+   * the create still being in flight, where refusing the click is right:
+   * there is no row to address yet. Once the create resolves there is one,
+   * and `serverIdsRef` knows its id — but `POI.id` is still the client key
+   * `addPOI` deliberately never swaps (note 1). So the id the popover needs
+   * cannot be read off the POI it is handed, and the hook that owns the
+   * mapping hands it over alongside rather than leaving the caller to
+   * convert a string that is not a number.
+   */
+  it("hands the click the row's own id once the create resolves, not the client key", async () => {
+    fetchPlaceChildren.mockResolvedValue([]);
+    createPoi.mockResolvedValue({ ok: true, id: 4242 });
+    const onPOIClick = vi.fn();
+    const { result } = await renderLoadedWithClick(onPOIClick);
+
+    let created: { id: string } | undefined;
+    await settle(() => {
+      created = result.current.addPOI("Tavern", 10, 20, "food-drink");
+    });
+    await waitFor(() => expect(clickHandlers.size).toBe(1));
+
+    act(() => {
+      clickHandlers.values().next().value?.();
+    });
+
+    expect(created?.id).not.toMatch(/^\d+$/);
+    expect(onPOIClick).toHaveBeenCalledWith(
+      expect.objectContaining({ id: created?.id }),
+      4242
+    );
   });
 });

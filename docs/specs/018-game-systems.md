@@ -1,7 +1,7 @@
 # SPEC-018: Game systems — one world, several rule sets
 
 - **Status:** Draft — needs the DM's agreement
-- **Date:** 2026-09-11 (first three open questions decided the same day, §9)
+- **Date:** 2026-09-11 (four decisions recorded the same day, §9)
 - **Phase:** 4
 - **Related:** [ADR-0003](../adr/0003-metadata-driven-domain-configuration.md), [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md), [SPEC-012](./012-publishing-and-internet-exposure.md), [SPEC-013](./013-campaign-management.md), [SPEC-001](./001-combat-tracker.md); ADR-0013 to be written (how systems are modelled); Darrington Press Community Gaming License (DPCGL) 2.0; Daggerheart SRD 2.0
 
@@ -60,7 +60,7 @@ So shared entities have no per-system fields today. If a system ever needs a gen
 1. The active system is a segment of the URL, beside the locale (e.g. `/it/5e/dashboard/spells`; ADR-0013 fixes the exact shape). Spells, deities and the rest of the setting are viewed through a system, not through a campaign, so the system travels with every link and a bookmark reopens the same system. A switch in the dashboard changes it.
 2. World pages are visible under every system and show the same data. System catalogues appear only for the system in the URL.
 3. NPC and deity forms and cards are identical under every system, alignment included.
-4. Creating a campaign asks for its system; existing campaigns are 5e. A campaign opens under its own system's URL.
+4. Creating a campaign asks for its system; existing campaigns are 5e. The campaign list shows only the campaigns of the system in the URL, and a campaign opens under its own system's URL.
 5. Daggerheart catalogues behave like every existing domain: list with header filters, form, card and delete, all metadata-driven. Ordered features are edited inline, per ADR-0011.
 
 ### Edge cases
@@ -174,28 +174,28 @@ _Filled in per slice; each slice in §10 gets its own spec._
 - **The world is shared, and each campaign picks one system.** A campaign does not switch systems.
 - **The active system lives in the URL.** Spells, deities and the setting are viewed through a system, not through a campaign, so the system is not derived from the current campaign.
 - **Alignment is kept under every system** — compatibility, not correspondence (§5). This retired the question of where per-system fields of shared entities go: there are none.
+- **The campaign list is filtered by system.** Under a system, the list shows only that system's campaigns.
 
 **Open questions**
 
-1. **The campaign list under a system:** only that system's campaigns (recommended, since a campaign belongs to one), or all of them with a system badge?
-2. **The URL's shape and slugs** (`/it/5e/dashboard/…` or `/it/dashboard/5e/…`; `5e`, `pf2e`, `daggerheart`). ADR-0013.
-3. **Daggerheart features:** one polymorphic `feature` table (owner type + id, like ADR-0009's world tree) or one table per owner. An ADR in T4.
-4. **Pathfinder 2e:** when. Its licence is already checked (§5).
-5. **Daggerheart Battle Points:** computed from the SRD formula, or authored like SPEC-013's numbers?
-6. **Publication:** which format first, and free or sold? The answer decides whether §4.2 applies.
-7. **Transformations and campaign frames:** SRD 2.0 transformations, and the DM's own setting written as a campaign frame — which slice, if any.
+1. **The URL's shape and slugs** (`/it/5e/dashboard/…` or `/it/dashboard/5e/…`; `5e`, `pf2e`, `daggerheart`). ADR-0013.
+2. **Daggerheart features:** one polymorphic `feature` table (owner type + id, like ADR-0009's world tree) or one table per owner. An ADR in T4.
+3. **Pathfinder 2e:** when. Its licence is already checked (§5).
+4. **Daggerheart Battle Points:** computed from the SRD formula, or authored like SPEC-013's numbers?
+5. **Publication:** which format first, and free or sold? The answer decides whether §4.2 applies.
+6. **Transformations and campaign frames:** SRD 2.0 transformations, and the DM's own setting written as a campaign frame — which slice, if any.
 
 ## 10. Task breakdown
 
 - [ ] **T1** — Write ADR-0013 (modelling game systems: the URL segment, one table per catalogue, compatibility rather than correspondence). Point `docs/domain/README.md` at the licensing analysis. Write `docs/domain/daggerheart.md`: the mechanics restated, with the SRD and licence versions. _(check: review)_
 - [ ] **T2** — The system dimension, with 5e as the only system: `GameSystem`, the `[system]` URL segment with redirects from old URLs, the page `system` field, and the switch. No visible change beyond the URL. _(test: page-classification unit test; redirect tests; full e2e green)_
-- [ ] **T3** — `campaign.system`, backfilled to `dnd5e`. Creating a campaign asks for it, and a campaign opens under its own system. _(test: backfill; redirect)_
+- [ ] **T3** — `campaign.system`, backfilled to `dnd5e`. Creating a campaign asks for it, the campaign list is filtered by the URL's system, and a campaign opens under its own system. _(test: backfill; list filter; redirect)_
 - [ ] **T4** — Slice spec: Daggerheart domains, domain cards, classes, subclasses
 - [ ] **T5** — Slice spec: ancestries, communities
 - [ ] **T6** — Slice spec: adversaries, environments (environment ↔ place)
 - [ ] **T7** — Slice spec: weapons, armor, loot
 - [ ] **T8** — Slice spec: campaign management for Daggerheart
-- [ ] **Later** — PF2 catalogues (open question 4), export and publication, session tooling
+- [ ] **Later** — PF2 catalogues (open question 3), export and publication, session tooling
 
 ## 11. Outcome
 

@@ -3,7 +3,7 @@
 **Last updated:** 2026-09-05
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-79, TD-97, TD-98, TD-99, TD-105.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
+**Open items: TD-79, TD-97, TD-99, TD-105.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -119,7 +119,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-95  | ✅ POI panel + neighbours (`MapControls`, `MapLoadingSpinner`, `MapErrorBoundary`) swept into both catalogues  | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-96  | ✅ Both entries gone — "Copia coordinate" with PR #190, "Collega personaggio" with SPEC-016 T8                 | ~~🟢 Low~~ done      | S      | 4     |
 | TD-97  | `MagicItemType`'s nine members are still Italian identifiers — a TD-33 miss                                    | 🟢 Low               | S      | 4     |
-| TD-98  | `.prettierignore` doesn't exclude `.claude/`, so `format:check`/`--write` reach other sessions' worktrees      | 🟢 Low               | S      | 4     |
+| TD-98  | ✅ Prettier no longer reaches other sessions' worktrees under `.claude/`                                       | ~~🟢 Low~~ done      | S      | 4     |
 | TD-99  | A fresh worktree's `pnpm install` postinstall (`prisma generate`) fails for lack of `DATABASE_URL`             | 🟢 Low               | S      | 4     |
 | TD-100 | ✅ The context menu closes on the DM's `dragstart`/`zoomstart`, not on every `movestart`                       | ~~🟡 Medium~~ done   | M      | 4     |
 | TD-101 | ✅ Marker drag repositioning: the marker was under the panel, not undraggable; its e2e spec is real now        | ~~🟠 High~~ done     | M      | 4     |
@@ -312,7 +312,7 @@ touching nothing else. Do it after SPEC-013's metadata work on `magicitems`
 (T4) settles, so the rename doesn't collide with an in-flight `PageMeta` change
 to the same domain.
 
-### TD-98 — `.prettierignore` doesn't exclude `.claude/`, so `format:check`/`--write` reach other sessions' worktrees
+### TD-98 ✅ `.prettierignore` doesn't exclude `.claude/`, so `format:check`/`--write` reach other sessions' worktrees — **DONE (2026-09-11)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-08-18, running several worktree agents in parallel
 
@@ -328,6 +328,22 @@ working tree out from under it.
 `tailwind.config.ts`'s content glob and ESLint's ignore list have the same gap
 — found while debugging TD-85/96's CI failures, where several worktrees were
 live at once.
+
+**What shipped.** `.claude/` is in `.prettierignore`, with a comment saying
+why. The audit the fix asked for, checked rather than read off the configs:
+
+| tool     | reaches `.claude/`? | why                                                                                             |
+| -------- | ------------------- | ----------------------------------------------------------------------------------------------- |
+| Prettier | **did** — now fixed | `getFileInfo` returned `ignored: false` for a file under `.claude/worktrees/`                   |
+| ESLint   | no                  | `eslint.config.mjs` already ignores `.claude/**`, with a comment                                |
+| Vitest   | no                  | `vitest.config.ts` already excludes `**/.claude/**`, with a comment                             |
+| Tailwind | no                  | its `content` globs are anchored at `./app`, `./pages`, `./components`                          |
+| tsc      | no                  | `tsc --listFilesOnly` lists 0 files there: TypeScript's `**` skips directories named with a `.` |
+
+`prettierignore.test.ts` asks Prettier's own `getFileInfo` whether a worktree
+path is ignored (and that `app/` still is not); it was red before the line was
+added. `.claude/launch.json`, the one tracked file under `.claude/`, is now
+outside Prettier's reach too — as it already was outside ESLint's.
 
 ### TD-99 — A fresh worktree's `pnpm install` postinstall (`prisma generate`) fails for lack of `DATABASE_URL`
 

@@ -9,3 +9,5 @@ package-lock.json
 *.tsbuildinfo
 next-env.d.ts
 prisma/migrations
+# Agent worktrees: whole checkouts of this repo, mid-edit by other sessions (TD-98).
+.claude/

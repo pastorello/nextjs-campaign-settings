@@ -188,7 +188,7 @@ _Filled in per slice; each slice in §10 gets its own spec._
 
 ## 10. Task breakdown
 
-- [ ] **T1** — Write ADR-0013 (modelling game systems: the URL segment, one table per catalogue, compatibility rather than correspondence). Point `docs/domain/README.md` at the licensing analysis. Write `docs/domain/daggerheart.md`: the mechanics restated, with the SRD and licence versions. _(check: review)_
+- [x] **T1** — Write ADR-0013 (modelling game systems: the URL segment, one table per catalogue, compatibility rather than correspondence). Point `docs/domain/README.md` at the licensing analysis. Write `docs/domain/daggerheart.md`: the mechanics restated, with the SRD and licence versions. _(check: review)_
 - [ ] **T2** — The system dimension, with 5e as the only system: `GameSystem`, the `[system]` URL segment with redirects from old URLs, the page `system` field, and the switch. No visible change beyond the URL. _(test: page-classification unit test; redirect tests; full e2e green)_
 - [ ] **T3** — `campaign.system`, backfilled to `dnd5e`. Creating a campaign asks for it, the campaign list is filtered by the URL's system, and a campaign opens under its own system. _(test: backfill; list filter; redirect)_
 - [ ] **T4** — Slice spec: Daggerheart domains, domain cards, classes, subclasses

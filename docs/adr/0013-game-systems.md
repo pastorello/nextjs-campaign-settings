@@ -1,6 +1,6 @@
 # ADR-0013: Model game systems as a dashboard URL segment and per-system catalogues
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-09-11
 - **Deciders:** the DM (maintainer), with Claude Code
 - **Related:** [SPEC-018](../specs/018-game-systems.md), [ADR-0003](./0003-metadata-driven-domain-configuration.md), [ADR-0006](./0006-bilingual-ui.md), [`docs/domain/licensing.md`](../domain/licensing.md), [SPEC-011](../specs/011-cross-entity-search.md), [SPEC-013](../specs/013-campaign-management.md)

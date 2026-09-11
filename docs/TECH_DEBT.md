@@ -676,6 +676,12 @@ rewired, not deleted: the gesture, the `useDrawArea` instance and the
 > Effort revised S → M: an ADR, a browser check against a production build,
 > and ~50 call sites plus their test mocks — the substitution itself is
 > mechanical and does not need Opus.
+>
+> **Sequencing, noted 2026-09-11:** SPEC-018 T2 moves every dashboard page
+> under `app/[locale]/dashboard/[system]/`, so the corrected-path option would
+> become `revalidatePath("/[locale]/dashboard/[system]/<domain>", "page")` — one
+> more dynamic segment on every call. `refresh()` names no route and is
+> unaffected. Decide this after T2 part A lands, or take `refresh()`.
 
 **Two findings, and the second defuses the first.**
 

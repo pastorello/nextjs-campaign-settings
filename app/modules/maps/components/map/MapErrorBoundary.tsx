@@ -1,7 +1,9 @@
 "use client";
 
 import { Component, ReactNode } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+
+import { getPathname } from "@/i18n/navigation";
 
 interface MapErrorBoundaryLabels {
   title: string;
@@ -13,6 +15,8 @@ interface MapErrorBoundaryLabels {
 }
 
 interface MapErrorBoundaryClassProps extends MapErrorBoundaryLabels {
+  /** Locale-prefixed home path — the class can't call `useLocale`. TD-107. */
+  homeHref: string;
   children: ReactNode;
 }
 
@@ -77,8 +81,12 @@ class MapErrorBoundaryClass extends Component<
    * anyway — it would have to be threaded in as a prop. See TD-106.
    */
   handleGoHome = () => {
-    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- the point of this button is to discard client state after a crash, which is what the rule's suggested soft navigation would preserve. See the comment above and TD-106.
-    window.location.href = "/";
+    // Deliberately a document load, not the soft navigation that
+    // `@next/next/no-location-assign-relative-destination` asks for: the point
+    // is to discard the client state the crash happened in. The rule stopped
+    // reporting when this href became dynamic (TD-107), so its disable
+    // directive went with it — the decision did not. See above and TD-106.
+    window.location.href = this.props.homeHref;
   };
 
   override render() {
@@ -180,9 +188,13 @@ interface MapErrorBoundaryProps {
  */
 export function MapErrorBoundary({ children }: MapErrorBoundaryProps) {
   const t = useTranslations("geography.errorBoundary");
+  const locale = useLocale();
 
   return (
     <MapErrorBoundaryClass
+      // An unprefixed "/" always resolves to the default locale — the routing
+      // has `localeDetection: false`, so neither cookie nor header rescues it.
+      homeHref={getPathname({ href: "/", locale })}
       title={t("title")}
       defaultMessage={t("defaultMessage")}
       tryAgain={t("tryAgain")}

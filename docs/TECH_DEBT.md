@@ -3,7 +3,7 @@
 **Last updated:** 2026-09-05
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-79, TD-97, TD-98, TD-99, TD-105, TD-107.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
+**Open items: TD-79, TD-97, TD-98, TD-99, TD-105.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -128,7 +128,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-104 | ✅ A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu  | ~~🟡 Medium~~ done   | M      | 4     |
 | TD-105 | 48 `revalidatePath` calls name a route structure that does not exist — and no page is cached, so they are inert | 🟢 Low               | S      | 4     |
 | TD-106 | ✅ A standing lint warning: the error boundary's "Vai alla home" leaves the page with a full document load      | ~~🟢 Low~~ done      | S      | 4     |
-| TD-107 | "Vai alla home" in the map error boundary drops the reader's locale — `/` always resolves to Italian            | 🟢 Low               | S      | 4     |
+| TD-107 | ✅ "Vai alla home" in the map error boundary keeps the reader's locale                                          | ~~🟢 Low~~ done      | S      | 4     |
 | TD-108 | ✅ A landmark created in this session had no numeric id, and `PlacePopover` converted it as though it did       | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-109 | ✅ The landmark popover's entity list has an e2e now — seen red on TD-108's bug before being trusted            | ~~🟢 Low~~ done      | S      | 4     |
 | TD-110 | ✅ "Too many re-renders" was TD-108's `NaN` reaching Headless UI's `Listbox` — attributed, fixed by TD-108      | ~~🟡 Medium~~ done   | S      | 4     |
@@ -757,7 +757,14 @@ reason when the literal `/` becomes a prop** — the decision it records is stil
 what the code does, and without it the next reader has nothing to distinguish a
 deliberate document load from an oversight.
 
-### TD-107 — "Vai alla home" in the map error boundary drops the reader's locale
+> **Amended 2026-09-11 (TD-107):** the intent above held, the letter did not.
+> Once the rule stops reporting, the directive is _unused_, and ESLint flags an
+> unused disable directive as a warning — so keeping it would have re-created
+> the standing warning this item removed. The reason now lives on as a plain
+> comment on the same line, naming the rule; the doc comment and the
+> regression test are unchanged.
+
+### TD-107 ✅ "Vai alla home" in the map error boundary drops the reader's locale — **DONE (2026-09-11)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-05, while deciding TD-106 — noticed, deliberately not fixed in that change, which was scoped to the lint warning alone
 
@@ -784,6 +791,20 @@ Leaflet crash, and the reader can switch locale back from the dashboard. It is
 filed so the locale loss is a known, chosen state rather than a surprise — not
 because it is worth a session on its own. Fold it into the next piece of work
 that touches this file.
+
+**What shipped.** As planned above: the wrapper reads `useLocale()` and passes
+`homeHref={getPathname({ href: "/", locale })}` from `@/i18n/navigation`, so
+the prefix rule stays next-intl's rather than being restated here — `/` for
+`it`, `/en` for `en` (checked in `applyPathnamePrefix`/`prefixPathname`, which
+also strip the trailing slash). Still a document load. The regression test sets
+the locale to `en` and asserts the assigned href; it was red against the
+literal `/`. **Its `getPathname` is a fake** returning `en:/` — next-intl's
+`createNavigation` cannot load under Vitest (a bare `next/navigation` import in
+ESM), which is why every other test that touches `@/i18n/navigation` mocks it
+too. So the test pins that the boundary asks for home in the reader's locale,
+not the prefix rule itself. Not exercised in a browser: reaching the boundary
+needs a Leaflet crash. The TD-106 disable directive went unused and was
+replaced by a plain comment — see TD-106's amendment.
 
 ### TD-108 ✅ A landmark created in this session had no numeric id, and `PlacePopover` converted it as though it did — **DONE (2026-09-09)**
 

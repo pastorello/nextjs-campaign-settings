@@ -19,9 +19,10 @@ Why the line sits there is [`licensing.md`](./licensing.md) §5 and §7.
 | **What 2.0 adds on 1.0** | A tenth domain beyond the core set's nine, classes outside the core set, transformations (one optional card per character that pairs a benefit with a drawback), and a chapter of supplemental campaign mechanics (faction tracking among them). Only the first two touch SPEC-018's catalogues so far. |
 
 The SRD's first page declares the whole document **Public Game Content** under
-the DPCGL, _including_ the one campaign frame it contains. That does not relax
-[`licensing.md`](./licensing.md) §7 rule 1: the shared sections hold the DM's
-own world, whatever a licence would allow.
+the DPCGL, _including_ the one campaign frame it contains — which the licence
+text itself contradicts; [`licensing.md`](./licensing.md) §5 records how. Either
+way it does not relax §7 rule 1: the shared sections hold the DM's own world,
+whatever a licence would allow.
 
 **Re-check when the SRD changes.** Every number in this file was read from 2.0.
 A later SRD version is re-checked section by section against it, and the table

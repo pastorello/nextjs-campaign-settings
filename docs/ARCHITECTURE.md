@@ -79,7 +79,7 @@ app/lib/config/pagesConfig.ts           Record<PageType, MetaConfigKey[]>
 | ---------------------- | --------------------------------------------------------- | ---------------------------------------------------------------- |
 | Form rendering         | `app/ui/forms/PageForm.tsx` → `inputs/InputComponent.tsx` | `controlType`, `label`, `placeholder`, `defaultValue`, `options` |
 | Value display          | `app/ui/components/ItemMeta.tsx`, `XxxCard.tsx`           | `getDatum`                                                       |
-| List columns & sorting | `app/ui/components/EntityList.tsx`, `SortableHeader.tsx`  | `label`, `metaField`, via `listConfig`                           |
+| List columns & sorting | `app/ui/components/EntityList.tsx`, `SortableHeader.tsx`  | `label`, `metaField`, `options`/`optionTable`, via `listConfig`  |
 | Filtering              | `app/lib/hooks/useFilterController.ts`                    | `fieldType`, `options`                                           |
 | Query building         | `app/lib/data/getQuery.ts`                                | `fieldType` → `hasSome` for arrays, equality otherwise           |
 

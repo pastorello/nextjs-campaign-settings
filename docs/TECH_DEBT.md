@@ -3,7 +3,7 @@
 **Last updated:** 2026-09-05
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Open items: TD-78, TD-79, TD-82, TD-97, TD-98, TD-99, TD-105, TD-107.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
+**Open items: TD-79, TD-97, TD-98, TD-99, TD-105, TD-107.** Everything else in the summary table is closed. TD-85 and TD-96 were the two `part` items — shipped in half, with the remainder deferred to SPEC-016's popover; both closed on 2026-08-27 with T7–T9, so their write-ups have moved to the archive with the rest.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -99,7 +99,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-75  | ✅ `pnpm test` fails on a clean checkout — one suite needs a `DATABASE_URL` that only CI provides               | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-76  | ✅ `renderRichText` injects stored text as raw HTML with no sanitisation                                        | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-77  | ✅ An entity's location is resolved through two unreconciled read paths                                         | ~~🟡 Medium~~ done   | S      | 3     |
-| TD-78  | The NPC admin list lost its Fazione column filter when the field went table-backed                              | 🟢 Low               | M      | 3     |
+| TD-78  | ✅ The NPC admin list's Fazione header filters again, from the option bundle `EntityList` already resolved      | ~~🟢 Low~~ done      | M      | 3     |
 | TD-79  | The unpositioned-places count doesn't distinguish "blocked on the parent's map" from any other cause            | 🟢 Low               | S      | 3     |
 | TD-80  | ✅ Deity, magic-item, and faction create/update Server Actions lack unit and e2e test coverage                  | ~~🟡 Medium~~ done   | M      | 2     |
 | TD-81  | ✅ Maps framed to the image's own aspect ratio instead of a square default                                      | ~~🟠 High~~ done     | M      | 4     |
@@ -147,7 +147,7 @@ Everything the 2026-07-22 audit found, plus everything found while doing the wor
 
 ## Open items
 
-### TD-78 — The NPC admin list lost its Fazione column filter when the field went table-backed
+### TD-78 ✅ The NPC admin list lost its Fazione column filter when the field went table-backed — **DONE (2026-09-11)**
 
 **Severity:** 🟢 Low · **Effort:** M · **Found:** 2026-08-10, while building [SPEC-006](./specs/006-factions.md) T7
 
@@ -161,6 +161,27 @@ column degrades to sort-only rather than throwing (`isFiltrable: false`,
 correct defensive behaviour), but that is a real capability the DM had before
 this spec and does not have after it: filtering NPCs by faction from the admin
 list header no longer works.
+
+**Shipped (2026-09-11) — an S, not the M it was filed as: the premise was wrong.**
+This was not `LocationFilterControl`'s shape. That picker cascades and fetches
+client-side; faction is one flat list, and `EntityList` was already resolving
+it once per request (`fetchFieldOptions("faction")`, SPEC-006 §7 decision 10)
+for the cells and the edit form — the header just never received it.
+`SortableHeader` now takes the same `optionBundle` and resolves a filter's
+options in the order `resolveFieldValue` and `InputComponent` already use
+(`optionTable` from the bundle, else static `options`), and the column's
+`isFiltrable: false` is gone from `listConfig`. The query side needed nothing:
+`faction` was always in the NPC page's `pagesConfig`, so `?faction=<id>`
+narrowed through `getQuery` all along. No "no faction" filter option — `getQuery`
+has no `IS NULL` equality and nobody asked. Covered by `SortableHeader.test.tsx`
+and `EntityList.test.tsx` (both red without the fix) and `e2e/npc-list.spec.ts`.
+
+**Reach:** only `npc.faction` is both table-backed and a list column. The other
+`optionTable` fields — SPEC-013's scene, scene-creature and loot fields
+(`zone`, `npc`, `magicitems`, `treasure`) — sit outside the list pages
+(ADR-0011) and have no header. A future table-backed column gets the filter by
+declaring `optionTable`, as long as `EntityList` puts its table in the bundle —
+that resolution is still NPC-only.
 
 **Same shape as SPEC-008's "Location" column**, which needed its own bespoke
 `LocationFilterControl` for exactly this reason — a dynamic, async-resolved

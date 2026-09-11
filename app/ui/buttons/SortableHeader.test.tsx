@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import SpellMetaField from "@/app/lib/definitions/enums/spells/SpellMetaField";
+import NpcMetaField from "@/app/lib/definitions/enums/npc/NpcMetaField";
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string, values?: Record<string, unknown>) =>
@@ -98,5 +99,39 @@ describe("SortableHeader", () => {
     fireEvent.click(screen.getByText("spells.classes.bard"));
 
     expect(replace).toHaveBeenCalledWith("/dashboard/spells?classes=0&page=1");
+  });
+
+  // Regression test for TD-78: SPEC-006 T7 moved `npc.faction` from a static
+  // `options` list to `optionTable: "faction"`, and this header — which only
+  // read `options` — silently lost the NPC list's Fazione filter.
+  it("offers a table-backed field's rows from the bundle and filters by the chosen id", () => {
+    searchParams = new URLSearchParams();
+    render(
+      <SortableHeader
+        label="Fazione"
+        fieldKey={NpcMetaField.faction}
+        optionBundle={{
+          faction: [
+            { value: 3, label: "Gilda dei Ladri" },
+            { value: 5, label: "Ordine del Sole" },
+          ],
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Fazione" }));
+    expect(screen.getByText("Ordine del Sole")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Gilda dei Ladri"));
+
+    expect(replace).toHaveBeenCalledWith("/dashboard/spells?faction=3&page=1");
+  });
+
+  it("degrades a table-backed field with no bundle to the bare header option", () => {
+    searchParams = new URLSearchParams();
+    render(<SortableHeader label="Fazione" fieldKey={NpcMetaField.faction} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Fazione" }));
+
+    expect(screen.getAllByRole("option")).toHaveLength(1);
   });
 });

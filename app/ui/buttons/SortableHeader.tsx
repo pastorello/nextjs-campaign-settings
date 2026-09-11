@@ -19,12 +19,20 @@ import resolveOptions from "@/app/lib/utils/data/resolveOptions";
 import MetaValue from "@/app/lib/definitions/types/MetaValue";
 import SelectValueType from "@/app/lib/definitions/types/SelectValueType";
 import QueryParam from "@/app/lib/definitions/interfaces/pages/QueryParam";
+import OptionBundle from "@/app/lib/definitions/types/OptionBundle";
+import { ResolvedOption } from "@/app/lib/definitions/types/SelectOption";
 
 interface SortableHeaderProps {
   label: string;
   fieldKey: string;
   isSortable?: boolean;
   isFiltrable?: boolean;
+  /**
+   * The request's table-backed options (SPEC-006 §7, decision 10) — where a
+   * field declaring `optionTable` rather than static `options` finds its
+   * filter's rows (TD-78).
+   */
+  optionBundle?: OptionBundle | undefined;
 }
 
 const SortableHeader = ({
@@ -32,6 +40,7 @@ const SortableHeader = ({
   fieldKey,
   isSortable = true,
   isFiltrable = true,
+  optionBundle,
 }: SortableHeaderProps) => {
   const t = useTranslations();
   const searchParams = useSearchParams();
@@ -93,10 +102,16 @@ const SortableHeader = ({
 
   if (isFiltrable === true) {
     const filterConfig = fieldMeta[fieldKey];
-    const filterOptions =
-      filterConfig && isValidDataArray(filterConfig.options)
-        ? resolveOptions(filterConfig.options, t)
-        : [];
+    // Same order as `resolveFieldValue` and `InputComponent`: a table-backed
+    // field's rows come from the bundle, never its (undeclared) `options`.
+    // A bundle that doesn't carry the table degrades to the bare header
+    // option rather than throwing.
+    let filterOptions: ResolvedOption[] = [];
+    if (filterConfig?.optionTable !== undefined) {
+      filterOptions = optionBundle?.[filterConfig.optionTable] ?? [];
+    } else if (filterConfig && isValidDataArray(filterConfig.options)) {
+      filterOptions = resolveOptions(filterConfig.options, t);
+    }
 
     const filterProps = {
       value: isActive ? queryValue : -1,

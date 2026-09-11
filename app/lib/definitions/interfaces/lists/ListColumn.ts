@@ -28,8 +28,10 @@ interface ListColumn {
   sortable?: boolean;
 
   /**
-   * Whether `SortableHeader` renders its built-in, `PageMeta.options`-driven
-   * filter select. Defaults to true. `false` for a column whose filter UI is
+   * Whether `SortableHeader` renders its built-in filter select, fed by the
+   * field's `PageMeta.options` — or, for a table-backed field
+   * (`optionTable`), by the request's option bundle (TD-78). Defaults to
+   * true. `false` for a column whose filter UI is
    * bespoke and lives elsewhere on the page instead — SPEC-008 T6's
    * "Location" column, whose Zone/POI picker needs an async-fetched,
    * cascading list `PageMeta.options`'s static shape cannot express.

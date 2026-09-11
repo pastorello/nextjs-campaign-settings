@@ -327,17 +327,14 @@ function WorldMap({
   // whatever the server already did double-counted — that much was
   // observed, and it is the reason this code looks the way it does.
   //
-  // What this comment used to claim, and should not have (TD-105): that
-  // the refresh comes from `unplacePlace`'s
-  // `revalidatePath("/dashboard/geography")`, "confirmed live in e2e".
-  // The observation was real and the attribution was not. `revalidatePath`
-  // matches the route *file* structure, and these pages are
-  // `app/[locale]/dashboard/geography` — so the correct argument is
-  // `("/[locale]/dashboard/geography", "page")` and no call in this
-  // codebase is in that form. E2E cannot settle it either way: it runs
-  // `pnpm dev`, where Server Components re-render per request regardless.
-  // Pointing this mutation at a nonsense path leaves `map-unplace.spec`
-  // passing, count assertion included. See TD-105.
+  // What the server did is re-render this page: `unplacePlace` calls
+  // `revalidatePath`, and any such call — whatever path it names — flags
+  // the action as revalidated, which is what makes Next send a fresh render
+  // with the action's response. The path itself, `/dashboard/geography`,
+  // matches nothing (the route files live under `app/[locale]/`); the
+  // refresh comes from the flag alone, which is why pointing the call at a
+  // nonsense path left `map-unplace.spec` passing. Removing it would not.
+  // See TD-105.
   const handleUnplace = useCallback(
     async (child: NavigableChild) => {
       try {

@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import PageType from "@/app/lib/definitions/types/PageType";
+import type OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
 vi.mock("next-intl/server", () => ({
   getTranslations: () => Promise.resolve((key: string) => key),
@@ -12,9 +13,26 @@ vi.mock("next-intl/server", () => ({
 // EntityList's own responsibility — it is covered by SortableHeader's,
 // DeleteButton's and ModalButton's own suites — so they are stubbed to keep
 // this suite about EntityList's own branches: dispatch, empty state, the
-// name/subtitle cell, and the column list from listConfig.
+// name/subtitle cell, and the column list from listConfig. The header stub
+// echoes the two props EntityList itself decides — whether the column filters,
+// and the option bundle it filters from — so that wiring stays covered here.
 vi.mock("../buttons/SortableHeader", () => ({
-  default: ({ label }: { label: string }) => <span>{label}</span>,
+  default: ({
+    label,
+    isFiltrable,
+    optionBundle,
+  }: {
+    label: string;
+    isFiltrable?: boolean;
+    optionBundle?: OptionBundle | undefined;
+  }) => (
+    <span
+      data-filtrable={String(isFiltrable)}
+      data-bundle={JSON.stringify(optionBundle ?? null)}
+    >
+      {label}
+    </span>
+  ),
 }));
 vi.mock("../buttons/DeleteButton", () => ({
   default: ({ pageName }: { pageName: string }) => (
@@ -211,6 +229,23 @@ describe("EntityList", () => {
     expect(
       screen.getByText("magicItems.fields.attuned.shortLabel")
     ).toBeInTheDocument();
+  });
+
+  // Regression test for TD-78: the Fazione column was sort-only from SPEC-006
+  // T7 on, because its header never received the bundle the edit form did.
+  it("gives the NPC list's Fazione header a filter fed by the option bundle", async () => {
+    fetchFilteredNpc.mockResolvedValue([]);
+    fetchFieldOptions.mockResolvedValue([
+      { value: 3, label: "Gilda dei Ladri" },
+    ]);
+
+    render(await EntityList({ pageType: PageType.Npc }));
+
+    const header = screen.getByText("npc.fields.faction.label");
+    expect(header).toHaveAttribute("data-filtrable", "true");
+    expect(JSON.parse(header.getAttribute("data-bundle") ?? "null")).toEqual({
+      faction: [{ value: 3, label: "Gilda dei Ladri" }],
+    });
   });
 
   it("renders the assign-location button for an NPC row with its current summary", async () => {

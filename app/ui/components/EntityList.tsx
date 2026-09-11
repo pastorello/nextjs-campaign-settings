@@ -97,7 +97,8 @@ export default async function EntityList(props: {
   }
 
   // Resolved once per request and passed down as a prop (SPEC-006 §7,
-  // decision 10) — only the NPC list has a table-backed field today.
+  // decision 10) — to the cells, the edit form and, since TD-78, the column
+  // headers' filters. Only the NPC list has a table-backed field today.
   const optionBundle: OptionBundle | undefined =
     props.pageType === PageType.Npc
       ? { faction: await fetchFieldOptions("faction") }
@@ -132,6 +133,7 @@ export default async function EntityList(props: {
                         label={t(column.labelKey)}
                         fieldKey={column.fieldKey}
                         isFiltrable={column.isFiltrable ?? true}
+                        optionBundle={optionBundle}
                       />
                     )}
                   </th>

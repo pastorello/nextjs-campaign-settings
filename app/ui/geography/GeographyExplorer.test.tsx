@@ -1,5 +1,5 @@
 import { act, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/app/modules/maps/components/map", () => ({
   MapErrorBoundary: ({ children }: { children: React.ReactNode }) => (
@@ -115,6 +115,86 @@ function ascend() {
     screen.getByText("up").click();
   });
 }
+
+describe("GeographyExplorer — the place in view owns the URL (TD-82)", () => {
+  beforeEach(() => {
+    window.history.replaceState(null, "", "/dashboard/geography");
+  });
+
+  it("names a descended place in the query string", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={0} />);
+
+    descend(kang);
+
+    expect(window.location.search).toBe(`?place=${kang.id}`);
+  });
+
+  it("follows every hop down and up, and carries no param at the root", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={0} />);
+
+    descend(kang);
+    descend(skreebars);
+    expect(window.location.search).toBe(`?place=${skreebars.id}`);
+
+    ascend();
+    expect(window.location.search).toBe(`?place=${kang.id}`);
+
+    ascend();
+    expect(window.location.search).toBe("");
+    expect(window.location.pathname).toBe("/dashboard/geography");
+  });
+
+  it("replaces the history entry instead of pushing one, so back leaves the map", () => {
+    const pushState = vi.spyOn(window.history, "pushState");
+    const lengthBefore = window.history.length;
+    render(<GeographyExplorer root={root} unpositionedCount={0} />);
+
+    descend(kang);
+    descend(skreebars);
+    ascend();
+
+    expect(window.location.search).toBe(`?place=${kang.id}`);
+    expect(pushState).not.toHaveBeenCalled();
+    expect(window.history.length).toBe(lengthBefore);
+    pushState.mockRestore();
+  });
+
+  it("moves to the parent when the place in view is deleted", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={0} />);
+
+    descend(kang);
+    descend(skreebars);
+    act(() => {
+      capturedProps?.onDeleted();
+    });
+
+    expect(window.location.search).toBe(`?place=${kang.id}`);
+  });
+
+  it("keeps a deep link's param, since the stack it seeded ends on that place", () => {
+    window.history.replaceState(
+      null,
+      "",
+      `/dashboard/geography?place=${kang.id}`
+    );
+    render(
+      <GeographyExplorer
+        root={root}
+        unpositionedCount={0}
+        initialStack={[toStackEntry(root), toStackEntry(kang)]}
+      />
+    );
+
+    expect(window.location.search).toBe(`?place=${kang.id}`);
+  });
+
+  it("clears a param the page fell back to the root from", () => {
+    window.history.replaceState(null, "", "/dashboard/geography?place=abc");
+    render(<GeographyExplorer root={root} unpositionedCount={0} />);
+
+    expect(window.location.search).toBe("");
+  });
+});
 
 describe("GeographyExplorer — unpositioned count (SPEC-007 T2; moved off the header by TD-85)", () => {
   it("no longer renders the count as its own header label", () => {

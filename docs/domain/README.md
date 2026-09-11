@@ -35,7 +35,8 @@ depends on; the domain files describe no product decisions.
 
 ## Files
 
-| File                                                       | Covers                                                                                                             |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| [`5e-combat.md`](./5e-combat.md)                           | Turn structure, initiative, action economy, dice — _stub, to be filled from a research pass_                       |
-| [`campaign-design-method.md`](./campaign-design-method.md) | How the DM designs and runs a campaign: adventures per level, scene kinds, pacing budgets, what is system-specific |
+| File                                                       | Covers                                                                                                                    |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| [`5e-combat.md`](./5e-combat.md)                           | Turn structure, initiative, action economy, dice — _stub, to be filled from a research pass_                              |
+| [`campaign-design-method.md`](./campaign-design-method.md) | How the DM designs and runs a campaign: adventures per level, scene kinds, pacing budgets, what is system-specific        |
+| [`licensing.md`](./licensing.md)                           | What the SRD/CC-BY (5e), ORC and Paizo policies (PF2) and the DPCGL (Daggerheart) allow the app to hold, ship and publish |

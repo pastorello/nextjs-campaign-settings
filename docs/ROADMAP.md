@@ -530,8 +530,9 @@ alone.
 ### Asked for on 2026-09-11 — the same world under other rule sets
 
 The DM wants to play the setting under Daggerheart, and possibly Pathfinder 2e,
-as well as 5e, and to author original Daggerheart-compatible elements. **Drafted
-as [SPEC-018](./specs/018-game-systems.md), not yet agreed.** The world layer
+as well as 5e, and to author original Daggerheart-compatible elements. **Specified
+as [SPEC-018](./specs/018-game-systems.md), agreed the same day; the mechanism is
+[ADR-0013](./adr/0013-game-systems.md).** The world layer
 (geography, NPCs, deities, factions) stays shared; each system gets its own game
 layer. A fork was weighed the same day and rejected — see `CLAUDE.md`'s
 decisions. The spec's reading of the Daggerheart licence (DPCGL 2.0) binds every

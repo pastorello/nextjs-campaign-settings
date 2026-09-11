@@ -1,9 +1,9 @@
 # SPEC-018: Game systems — one world, several rule sets
 
-- **Status:** Draft — needs the DM's agreement
+- **Status:** Agreed 2026-09-11
 - **Date:** 2026-09-11 (four decisions recorded the same day, §9)
 - **Phase:** 4
-- **Related:** [ADR-0003](../adr/0003-metadata-driven-domain-configuration.md), [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md), [SPEC-012](./012-publishing-and-internet-exposure.md), [SPEC-013](./013-campaign-management.md), [SPEC-001](./001-combat-tracker.md); ADR-0013 to be written (how systems are modelled); Darrington Press Community Gaming License (DPCGL) 2.0; Daggerheart SRD 2.0
+- **Related:** [ADR-0003](../adr/0003-metadata-driven-domain-configuration.md), [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md), [SPEC-012](./012-publishing-and-internet-exposure.md), [SPEC-013](./013-campaign-management.md), [SPEC-001](./001-combat-tracker.md); [ADR-0013](../adr/0013-game-systems.md) (how systems are modelled); Darrington Press Community Gaming License (DPCGL) 2.0; Daggerheart SRD 2.0
 
 ---
 
@@ -57,7 +57,7 @@ So shared entities have no per-system fields today. If a system ever needs a gen
 
 ### Main flow
 
-1. The active system is a segment of the URL, beside the locale (e.g. `/it/5e/dashboard/spells`; ADR-0013 fixes the exact shape). Spells, deities and the rest of the setting are viewed through a system, not through a campaign, so the system travels with every link and a bookmark reopens the same system. A switch in the dashboard changes it.
+1. The active system is a segment of the URL, inside the dashboard: `/dashboard/dnd5e/spells`, `/en/dashboard/dnd5e/spells` (ADR-0013). Spells, deities and the rest of the setting are viewed through a system, not through a campaign, so the system travels with every link and a bookmark reopens the same system. A switch in the dashboard changes it.
 2. World pages are visible under every system and show the same data. System catalogues appear only for the system in the URL.
 3. NPC and deity forms and cards are identical under every system, alignment included.
 4. Creating a campaign asks for its system; existing campaigns are 5e. The campaign list shows only the campaigns of the system in the URL, and a campaign opens under its own system's URL.
@@ -70,6 +70,7 @@ So shared entities have no per-system fields today. If a system ever needs a gen
 | A URL without a system segment (an old bookmark, a link in the docs) | Redirects to the same page under 5e, the only system before T2           |
 | A URL with an unknown system                                         | Not found, as with an unknown locale                                     |
 | A campaign opened under another system's URL                         | Redirects to the campaign's own system                                   |
+| A catalogue page under a system it does not belong to                | Not found — `/dashboard/daggerheart/spells` is not the 5e list           |
 | A Daggerheart class given the same domain twice                      | Validation error on the second domain                                    |
 | Deleting a Daggerheart domain that cards reference                   | Refused (`onDelete: Restrict`), as for places today                      |
 | A horde adversary without a density                                  | Validation error; density is forbidden on every other type               |
@@ -99,7 +100,7 @@ The full analysis for all three systems, with sources and findings on the curren
 
 This is a proposal: ADR-0013 decides, and each slice spec finalises names and constraints.
 
-**The system is a closed vocabulary in code:** `GameSystem = 'dnd5e' | 'daggerheart' | 'pf2e'`. It is not a table, because each value needs code (catalogues, metadata); a system the DM created would have nothing to show.
+**The system is a closed vocabulary in code:** `GameSystem = 'dnd5e' | 'daggerheart' | 'pf2e'`. It is not a table, because each value needs code (catalogues, metadata); a system the DM created would have nothing to show. A value joins the vocabulary with its system's first slice (ADR-0013).
 
 **Catalogues are one table per system and domain, not one wide table with a `system` column.** A 5e spell and a Daggerheart card share a name and a description and nothing else. One table would be mostly nulls, with a validator per system. The table _is_ the system, and the page declares it (§7). The existing `spells`, `magicitems` and `treasure` tables are the 5e catalogues, unchanged.
 
@@ -138,7 +139,7 @@ Some rules the model follows rather than stores:
 ## 7. Metadata changes
 
 - **Page config** gains an optional `system`; absent means shared. Navigation and search filter on it. A test asserts that every page is either shared or belongs to exactly one known system.
-- **Routing.** A `[system]` segment beside `[locale]`, validated against `GameSystem` the way the locale is validated against the supported locales. Every internal link must carry it. Whether that happens through a wrapper around the navigation helpers or in the routing layer is ADR-0013's decision.
+- **Routing.** A `[system]` segment inside the dashboard (`app/[locale]/dashboard/[system]/`), validated against `GameSystem`. Every dashboard link is built by one system-aware helper, and a source test forbids hand-written `/dashboard` paths. ADR-0013 has the details.
 - **One `app/lib/config/<element>/<element>Meta.ts` per Daggerheart element**, composed into `pageMetaFields.ts` and ordered in `pagesConfig.ts`. Features are the ADR-0011 case: an ordered collection edited inside its parent's page, with no list page of its own. Its scalar fields still declare their `PageMeta`.
 - **The layer is string-keyed** (`CLAUDE.md`): a missed key silently stops filtering. Every slice extends the invariants in `pageMetaInvariants.testkit.ts` rather than trusting the compiler.
 
@@ -175,15 +176,15 @@ _Filled in per slice; each slice in §10 gets its own spec._
 - **The active system lives in the URL.** Spells, deities and the setting are viewed through a system, not through a campaign, so the system is not derived from the current campaign.
 - **Alignment is kept under every system** — compatibility, not correspondence (§5). This retired the question of where per-system fields of shared entities go: there are none.
 - **The campaign list is filtered by system.** Under a system, the list shows only that system's campaigns.
+- **The URL's shape and slugs** — `/[locale]/dashboard/[system]/…` with `dnd5e`, `daggerheart`, `pf2e` — are decided in [ADR-0013](../adr/0013-game-systems.md), together with how links carry the system.
 
 **Open questions**
 
-1. **The URL's shape and slugs** (`/it/5e/dashboard/…` or `/it/dashboard/5e/…`; `5e`, `pf2e`, `daggerheart`). ADR-0013.
-2. **Daggerheart features:** one polymorphic `feature` table (owner type + id, like ADR-0009's world tree) or one table per owner. An ADR in T4.
-3. **Pathfinder 2e:** when. Its licence is already checked (§5).
-4. **Daggerheart Battle Points:** computed from the SRD formula, or authored like SPEC-013's numbers?
-5. **Publication:** which format first, and free or sold? The answer decides whether §4.2 applies.
-6. **Transformations and campaign frames:** SRD 2.0 transformations, and the DM's own setting written as a campaign frame — which slice, if any.
+1. **Daggerheart features:** one polymorphic `feature` table (owner type + id, like ADR-0009's world tree) or one table per owner. An ADR in T4.
+2. **Pathfinder 2e:** when. Its licence is already checked (§5).
+3. **Daggerheart Battle Points:** computed from the SRD formula, or authored like SPEC-013's numbers?
+4. **Publication:** which format first, and free or sold? The answer decides whether §4.2 applies.
+5. **Transformations and campaign frames:** SRD 2.0 transformations, and the DM's own setting written as a campaign frame — which slice, if any.
 
 ## 10. Task breakdown
 
@@ -195,7 +196,7 @@ _Filled in per slice; each slice in §10 gets its own spec._
 - [ ] **T6** — Slice spec: adversaries, environments (environment ↔ place)
 - [ ] **T7** — Slice spec: weapons, armor, loot
 - [ ] **T8** — Slice spec: campaign management for Daggerheart
-- [ ] **Later** — PF2 catalogues (open question 3), export and publication, session tooling
+- [ ] **Later** — PF2 catalogues (open question 2), export and publication, session tooling
 
 ## 11. Outcome
 

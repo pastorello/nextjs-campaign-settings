@@ -26,7 +26,9 @@ export async function generateMetadata(): Promise<Metadata> {
  *
  * `?place=<id>` (SPEC-011 T4) seeds `GeographyExplorer`'s stack with that
  * place's full ancestor chain instead of starting at the root — the
- * landing spot for a cross-entity place search result. A missing param, a
+ * landing spot for a cross-entity place search result, and, since TD-82,
+ * the URL `GeographyExplorer` itself writes on every hop, so a reload
+ * reopens the same map. A missing param, a
  * non-numeric one, or an id that no longer resolves to a zone (deleted
  * between the search link being generated and clicked, or a hand-typed
  * garbage value) all fall back to today's root-only behaviour rather than

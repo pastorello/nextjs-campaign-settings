@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import {
@@ -62,6 +62,29 @@ export default function GeographyExplorer({
   // placing one onto it would cut its own subtree off the root (T5).
   // Memoised because `WorldMap` uses it in a dependency array.
   const ancestorIds = useMemo(() => stack.map((entry) => entry.id), [stack]);
+
+  // The address bar names the place in view (TD-82), so a map can be
+  // linked, bookmarked and reopened after a reload: the page's `?place=`
+  // read path (SPEC-011 T4) rebuilds this exact stack from it. The root
+  // carries no param, which also clears one the page fell back from.
+  // `replaceState`, not `pushState`, by the DM's choice: back leaves the map
+  // instead of walking it hop by hop — "up" already climbs the tree, and
+  // after a search deep link history and tree would disagree. Native
+  // history calls sync with the Next.js router without a server round trip.
+  const currentId = current?.id;
+  const isRoot = stack.length === 1;
+  useEffect(() => {
+    if (currentId === undefined) return;
+    const params = new URLSearchParams(window.location.search);
+    if (isRoot) params.delete("place");
+    else params.set("place", String(currentId));
+    const query = params.toString();
+    window.history.replaceState(
+      null,
+      "",
+      query ? `?${query}` : window.location.pathname
+    );
+  }, [currentId, isRoot]);
 
   const handleDescend = (child: NavigableChild) => {
     setStack((prev) => [...prev, toStackEntry(child)]);

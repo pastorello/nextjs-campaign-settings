@@ -103,7 +103,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-79  | The unpositioned-places count doesn't distinguish "blocked on the parent's map" from any other cause            | 🟢 Low               | S      | 3     |
 | TD-80  | ✅ Deity, magic-item, and faction create/update Server Actions lack unit and e2e test coverage                  | ~~🟡 Medium~~ done   | M      | 2     |
 | TD-81  | ✅ Maps framed to the image's own aspect ratio instead of a square default                                      | ~~🟠 High~~ done     | M      | 4     |
-| TD-82  | The place in view has no URL of its own — navigating the tree never changes the address bar                     | 🟡 Medium            | S      | 4     |
+| TD-82  | ✅ The place in view writes `?place=` on every hop; a reload reopens the same map, back leaves it               | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-83  | ✅ "Up" anchored to the map's own overlay container, not the scrolling page header                              | ~~🟠 High~~ done     | S      | 4     |
 | TD-84  | ✅ `WorldMap` sized to its container (`h-full`) instead of the viewport                                         | ~~🟠 High~~ done     | S      | 4     |
 | TD-85  | ✅ "Posiziona luogo" ships (PR #190); POI edit/delete reachable from SPEC-016's popover; list view kept         | ~~🟠 High~~ done     | M      | 4     |
@@ -231,7 +231,7 @@ unpositioned place's `parentId` chain to check whether any ancestor also
 lacks a map — not a single-query `WHERE` clause — so it is a real, if small,
 piece of work, not a one-line change.
 
-### TD-82 — The place in view has no URL of its own — navigating the tree never changes the address bar
+### TD-82 ✅ The place in view has no URL of its own — navigating the tree never changes the address bar — **DONE (2026-09-10)**
 
 **Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-08-17, requested by the DM
 
@@ -268,6 +268,10 @@ tree hop by hop (`push`) or leave the map entirely (`replace`). `push` is
 probably what the DM means by "poter navigare", but it makes back and the "up"
 button do subtly different things — back retraces _history_, up climbs the
 _tree_, and after a search-result deep link those two are not the same path.
+
+**Shipped (2026-09-10) — `replace`, by the DM's choice.** Back leaves the map rather than walking it; "up" is the only way to climb the tree, so history and tree never have to agree. `GeographyExplorer` syncs the URL from the top of its stack in one effect, with `window.history.replaceState` — which Next 16 integrates with its router without a server round trip — rather than `router.replace`, which would refetch the page's server component, and its three queries, on every hop. The root carries no param, which also clears a garbage or dangling `?place=` the page fell back from. Covered by six unit tests in `GeographyExplorer.test.tsx` (five seen red without the effect; the sixth guards a deep link's param against being overwritten, so it passes either way) and by `e2e/map-place-url.spec.ts`, which descends, reloads onto the same map, climbs back, and asserts that back leaves the map — the assertion that tells `replace` from `push`.
+
+**`push` was weighed and rejected** (recorded in `CLAUDE.md`'s decisions). It needs the stack rebuilt from the URL on `popstate`, including places no longer in it — back after "up", forward after back — and `fetchPlaceAncestryChain` is server-only, so it would mean a new read-side Server Action or a cache of popped entries. Revisit only if the DM asks for back to retrace hops, and then as a spec.
 
 ### TD-97 — `MagicItemType`'s nine members are still Italian identifiers — a TD-33 miss
 

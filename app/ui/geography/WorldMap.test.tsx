@@ -2298,12 +2298,10 @@ describe("WorldMap — un-placing from the popover (SPEC-016 T5)", () => {
     });
     // No assertion on the tree-wide count here any more (TD-103 stopped
     // passing it to the menu), and it was never this component's to update
-    // in any case. This comment used to say the refresh comes from
-    // `revalidatePath`, "confirmed live in e2e" — see TD-105 for why that
-    // attribution does not hold: no `revalidatePath` call in this codebase
-    // names the route file structure these pages actually have, and e2e
-    // runs against `pnpm dev`, which re-renders regardless. What this test
-    // is about is the refetch above and the popover below.
+    // in any case. The count refresh comes from the server: `unplacePlace`'s
+    // `revalidatePath` call flags the action as revalidated, whatever path it
+    // names, and Next re-renders the page with the response — see TD-105.
+    // What this test is about is the refetch above and the popover below.
     expect(screen.queryByTestId("place-popover")).not.toBeInTheDocument();
   });
 

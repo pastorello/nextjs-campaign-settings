@@ -3,9 +3,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MapErrorBoundary } from "./MapErrorBoundary";
 
+let locale = "it";
 vi.mock("next-intl", () => ({
   useTranslations: (namespace?: string) => (key: string) =>
     `${namespace}.${key}`,
+  useLocale: () => locale,
+}));
+
+// next-intl's real `createNavigation` cannot load under Vitest (its bare
+// `next/navigation` import does not resolve in ESM), so this fake stands in.
+// Its format is deliberately not a real path: the prefix rule is next-intl's,
+// and what these tests pin is that the boundary asks for home in the reader's
+// locale and assigns the answer.
+vi.mock("@/i18n/navigation", () => ({
+  getPathname: ({ href, locale }: { href: string; locale: string }) =>
+    `${locale}:${href}`,
 }));
 
 let shouldThrow = true;
@@ -25,6 +37,7 @@ function StacklessBomb(): never {
 describe("MapErrorBoundary", () => {
   beforeEach(() => {
     shouldThrow = true;
+    locale = "it";
     // React logs the caught error to console.error; keep test output clean.
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
@@ -107,7 +120,7 @@ describe("MapErrorBoundary", () => {
   // "Vai alla home" is to discard the client state the Leaflet crash happened
   // in, which a soft navigation would carry across. This test fails if someone
   // swaps it for a router push.
-  it("leaves the page with a full document load, not a client-side navigation", () => {
+  function clickGoHome(): string {
     const originalLocation = window.location;
     const stub = { href: "" };
     Object.defineProperty(window, "location", {
@@ -124,13 +137,27 @@ describe("MapErrorBoundary", () => {
 
       fireEvent.click(screen.getByText("geography.errorBoundary.goHome"));
 
-      expect(stub.href).toBe("/");
+      return stub.href;
     } finally {
       Object.defineProperty(window, "location", {
         configurable: true,
         value: originalLocation,
       });
     }
+  }
+
+  it("leaves the page with a full document load, not a client-side navigation", () => {
+    expect(clickGoHome()).toBe("it:/");
+  });
+
+  // TD-107: the href used to be the literal "/", and with `localePrefix:
+  // "as-needed"` plus `localeDetection: false` an unprefixed "/" always
+  // resolves to the default locale — so an English reader landed on the
+  // Italian dashboard.
+  it("keeps the reader's locale on the way home", () => {
+    locale = "en";
+
+    expect(clickGoHome()).toBe("en:/");
   });
 
   it("falls back to the translated no-stack-trace copy when the error has no stack", () => {

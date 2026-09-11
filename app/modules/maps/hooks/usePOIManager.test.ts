@@ -655,3 +655,130 @@ describe("usePOIManager — landmark click (SPEC-016 T7)", () => {
     );
   });
 });
+
+// TD-111: CI caught a POI vanishing from the list right after "Place added
+// successfully" — its create had succeeded. The map fires several loads while
+// it starts up, and Next sends a client's Server Actions one at a time, so a
+// load issued before the create reached the server first, came back without
+// the new row, and replaced the whole list. Each test here holds a load in
+// flight, makes a local write, then lets the load land.
+describe("usePOIManager — a load that a local write overtook (TD-111)", () => {
+  function deferred<T>() {
+    let resolve!: (value: T) => void;
+    const promise = new Promise<T>((r) => {
+      resolve = r;
+    });
+    return { promise, resolve };
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    fetchPlaceChildren.mockResolvedValue([]);
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  // Not `async`: returning the reload's promise from an async function would
+  // make the caller's `await` wait for the very load this test holds open.
+  function startSlowLoad(
+    result: { current: ReturnType<typeof usePOIManager> },
+    load: Promise<PlaceChild[]>
+  ) {
+    fetchPlaceChildren.mockReturnValueOnce(load);
+    let reload!: Promise<void>;
+    act(() => {
+      reload = result.current.reloadPOIs();
+    });
+    return { reload };
+  }
+
+  it("keeps a POI added while the load was in flight", async () => {
+    createPoi.mockResolvedValue({ ok: true, id: 42 });
+    const { result } = await renderLoaded();
+    const load = deferred<PlaceChild[]>();
+    const { reload } = startSlowLoad(result, load.promise);
+
+    await settle(() => {
+      result.current.addPOI("Tavern", 10, 20, "food-drink");
+    });
+    await act(async () => {
+      load.resolve([]);
+      await reload;
+    });
+
+    expect(result.current.pois.map((poi) => poi.title)).toEqual(["Tavern"]);
+  });
+
+  it("does not show a POI twice when the load already saw its create", async () => {
+    createPoi.mockResolvedValue({ ok: true, id: 42 });
+    const { result } = await renderLoaded();
+    const load = deferred<PlaceChild[]>();
+    const { reload } = startSlowLoad(result, load.promise);
+
+    await settle(() => {
+      result.current.addPOI("Tavern", 10, 20, "food-drink");
+    });
+    await act(async () => {
+      load.resolve([{ ...storedRow, id: 42 }]);
+      await reload;
+    });
+
+    expect(result.current.pois).toHaveLength(1);
+  });
+
+  it("keeps a move made while the load was in flight", async () => {
+    fetchPlaceChildren.mockResolvedValue([storedRow]);
+    updatePoi.mockResolvedValue({ ok: true });
+    const { result } = await renderLoaded();
+    const load = deferred<PlaceChild[]>();
+    const { reload } = startSlowLoad(result, load.promise);
+
+    await settle(() => {
+      result.current.updatePOI("7", { lat: 50, lng: 60 });
+    });
+    await act(async () => {
+      load.resolve([storedRow]);
+      await reload;
+    });
+
+    expect(result.current.pois[0]).toMatchObject({ lat: 50, lng: 60 });
+  });
+
+  it("does not bring back a POI deleted while the load was in flight", async () => {
+    fetchPlaceChildren.mockResolvedValue([storedRow]);
+    deletePoi.mockResolvedValue(undefined);
+    const { result } = await renderLoaded();
+    const load = deferred<PlaceChild[]>();
+    const { reload } = startSlowLoad(result, load.promise);
+
+    await settle(() => {
+      result.current.deletePOI("7");
+    });
+    await act(async () => {
+      load.resolve([storedRow]);
+      await reload;
+    });
+
+    expect(result.current.pois).toEqual([]);
+    expect(deletePoi).toHaveBeenCalledWith(7);
+  });
+
+  it("still lets a load replace what no write touched since it began", async () => {
+    fetchPlaceChildren.mockResolvedValue([storedRow]);
+    const { result } = await renderLoaded();
+    const load = deferred<PlaceChild[]>();
+    const { reload } = startSlowLoad(result, load.promise);
+
+    await act(async () => {
+      load.resolve([{ ...storedRow, title: "Renamed elsewhere" }]);
+      await reload;
+    });
+
+    expect(result.current.pois.map((poi) => poi.title)).toEqual([
+      "Renamed elsewhere",
+    ]);
+  });
+});

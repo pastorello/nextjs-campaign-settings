@@ -117,6 +117,16 @@ export function usePOIManager(
   // Client id -> the tail of that POI's operation chain. See note 2 above.
   const operationsRef = useRef<Map<string, Promise<void>>>(new Map());
 
+  // TD-111: a load's snapshot is read when its request reaches the server,
+  // and Next sends one client's Server Actions one at a time — so a load
+  // issued before a local write can come back without it, and used to replace
+  // the whole list with that older picture (a just-added POI vanished, a move
+  // snapped back, a delete came back). Every local write bumps `writeSeqRef`
+  // and stamps the POI it touched; a load that lands keeps the local version
+  // of anything stamped after it began, and takes the server's for the rest.
+  const writeSeqRef = useRef(0);
+  const lastWriteRef = useRef<Map<string, number>>(new Map());
+
   const renderGenerationRef = useRef(0);
 
   // Every `t(...)` call in this hook happens inside an async handler that
@@ -150,6 +160,12 @@ export function usePOIManager(
     setPOIs(next);
   }, []);
 
+  /** Stamps a local write on these POIs — see `writeSeqRef`. */
+  const touch = useCallback((ids: readonly string[]) => {
+    writeSeqRef.current += 1;
+    for (const id of ids) lastWriteRef.current.set(id, writeSeqRef.current);
+  }, []);
+
   /**
    * Queues work for one POI behind anything already queued for it.
    */
@@ -175,6 +191,7 @@ export function usePOIManager(
    * not managed here.
    */
   const loadPOIs = useCallback(async () => {
+    const startedAt = writeSeqRef.current;
     try {
       const rows = await fetchPlaceChildren(parentId);
 
@@ -210,8 +227,50 @@ export function usePOIManager(
         loaded.push(toClientPOI(row, clientId, row.category));
       }
 
+      const touched = new Set<string>();
+      for (const [id, seq] of lastWriteRef.current) {
+        if (seq > startedAt) touched.add(id);
+      }
+
+      if (touched.size === 0) {
+        serverIdsRef.current = serverIds;
+        commit(() => loaded);
+        return;
+      }
+
+      // Some POIs were written locally after this load began (TD-111).
+      // Their mapping is kept, and so is the row it names: a POI created in
+      // this session keeps its client key (note 1), so a snapshot read after
+      // its create lists the same row again under the database id.
+      const touchedRows = new Set<number>();
+      for (const id of touched) {
+        const serverId = serverIdsRef.current.get(id);
+        if (serverId === undefined) continue;
+        touchedRows.add(serverId);
+        serverIds.set(id, serverId);
+      }
+
+      const local = new Map(poisRef.current.map((poi) => [poi.id, poi]));
+      const merged: POI[] = [];
+      const mergedIds = new Set<string>();
+      for (const poi of loaded) {
+        const row = serverIds.get(poi.id);
+        if (touched.has(poi.id)) {
+          // Edited here since: the local version wins; deleted: stays gone.
+          const mine = local.get(poi.id);
+          if (mine) merged.push(mine);
+        } else if (row === undefined || !touchedRows.has(row)) {
+          merged.push(poi);
+        }
+      }
+      for (const poi of merged) mergedIds.add(poi.id);
+      for (const id of touched) {
+        const mine = local.get(id);
+        if (mine && !mergedIds.has(id)) merged.push(mine);
+      }
+
       serverIdsRef.current = serverIds;
-      commit(() => loaded);
+      commit(() => merged);
     } catch (error) {
       console.error("Failed to load POIs:", error);
       notifyError(tRef.current("poiLoadFailed"));
@@ -239,6 +298,8 @@ export function usePOIManager(
     (id: string, updates: Partial<Omit<POI, "id" | "createdAt">>) => {
       const previous = poisRef.current.find((poi) => poi.id === id);
       if (!previous) return;
+
+      touch([id]);
 
       commit((current) =>
         current.map((poi) =>
@@ -280,7 +341,7 @@ export function usePOIManager(
         }
       });
     },
-    [commit, enqueue]
+    [commit, enqueue, touch]
   );
 
   /**
@@ -438,6 +499,7 @@ export function usePOIManager(
         updatedAt: now,
       };
 
+      touch([newPOI.id]);
       commit((current) => [...current, newPOI]);
 
       void enqueue(newPOI.id, async () => {
@@ -467,7 +529,7 @@ export function usePOIManager(
 
       return newPOI;
     },
-    [commit, enqueue, generateId, parentId]
+    [commit, enqueue, generateId, parentId, touch]
   );
 
   /**
@@ -494,6 +556,8 @@ export function usePOIManager(
 
       const removed = poisRef.current[index];
       if (!removed) return Promise.resolve();
+
+      touch([id]);
 
       commit((current) => current.filter((poi) => poi.id !== id));
 
@@ -526,7 +590,7 @@ export function usePOIManager(
         }
       });
     },
-    [commit, enqueue, map]
+    [commit, enqueue, map, touch]
   );
 
   const deletePOI = useCallback(
@@ -576,6 +640,7 @@ export function usePOIManager(
    */
   const clearAllPOIs = useCallback(() => {
     const cleared = poisRef.current;
+    touch(cleared.map((poi) => poi.id));
 
     commit(() => []);
 
@@ -602,7 +667,7 @@ export function usePOIManager(
         }
       });
     }
-  }, [commit, enqueue, map]);
+  }, [commit, enqueue, map, touch]);
 
   /**
    * Get POIs by category
@@ -660,6 +725,7 @@ export function usePOIManager(
           updatedAt: feature.properties.updatedAt || Date.now(),
         }));
 
+        touch(importedPOIs.map((poi) => poi.id));
         commit((current) => [...current, ...importedPOIs]);
 
         for (const poi of importedPOIs) {
@@ -699,7 +765,7 @@ export function usePOIManager(
         throw new Error("Invalid GeoJSON format");
       }
     },
-    [commit, enqueue, generateId, parentId]
+    [commit, enqueue, generateId, parentId, touch]
   );
 
   /**

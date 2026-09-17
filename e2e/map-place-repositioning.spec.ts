@@ -66,7 +66,7 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
   }) => {
     const title = `E2E drag POI ${Date.now()}`;
 
-    await page.goto("/dashboard/geography");
+    await page.goto("/dashboard/dnd5e/geography");
     const map = page.locator(".leaflet-container");
     await expect(map).toBeVisible();
 

@@ -19,7 +19,7 @@ import messages from "@/messages/it.json";
 
 test.describe("deities admin list", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/admin/deities");
+    await page.goto("/dashboard/dnd5e/admin/deities");
     await page.waitForLoadState("networkidle");
   });
 
@@ -39,7 +39,9 @@ test.describe("deities admin list", () => {
 
   test("an empty result names deities, not NPCs", async ({ page }) => {
     // The empty state read "Nessun PNG trovato", copy-pasted from PngList.
-    await page.goto("/dashboard/admin/deities?query=zzz-nessun-risultato");
+    await page.goto(
+      "/dashboard/dnd5e/admin/deities?query=zzz-nessun-risultato"
+    );
 
     await expect(
       page.getByText(messages.deities.page.emptyMessage)

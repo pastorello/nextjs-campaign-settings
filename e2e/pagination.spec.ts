@@ -54,7 +54,7 @@ test.describe("pagination", () => {
   test("the first page is full, or holds everything if there is less than a page", async ({
     page,
   }) => {
-    await page.goto("/dashboard/admin/spells");
+    await page.goto("/dashboard/dnd5e/admin/spells");
 
     const filtered = await readCount(page);
     expect(filtered).toBeGreaterThan(0);
@@ -65,14 +65,14 @@ test.describe("pagination", () => {
   });
 
   test("the last page holds the remainder", async ({ page }) => {
-    await page.goto("/dashboard/admin/spells");
+    await page.goto("/dashboard/dnd5e/admin/spells");
     const filtered = await readCount(page);
 
     const lastPage = Math.ceil(filtered / DEFAULT_ITEMS_PER_PAGE);
     const expectedOnLastPage =
       filtered - (lastPage - 1) * DEFAULT_ITEMS_PER_PAGE;
 
-    await page.goto(`/dashboard/admin/spells?page=${lastPage}`);
+    await page.goto(`/dashboard/dnd5e/admin/spells?page=${lastPage}`);
 
     await expect(dataRows(page)).toHaveCount(expectedOnLastPage);
     // The count is a property of the filter, not of the page being viewed.
@@ -87,7 +87,7 @@ test.describe("pagination", () => {
     // count's was missing `name`. So this URL used to render "361 di 361
     // incantesimi trovati" above an empty table, with pagination offering
     // thirteen pages of nothing.
-    await page.goto("/dashboard/admin/spells?name=Dardo");
+    await page.goto("/dashboard/dnd5e/admin/spells?name=Dardo");
 
     const filtered = await readCount(page);
 
@@ -97,17 +97,17 @@ test.describe("pagination", () => {
   });
 
   test("a page beyond the last one renders no rows", async ({ page }) => {
-    await page.goto("/dashboard/admin/spells");
+    await page.goto("/dashboard/dnd5e/admin/spells");
     const filtered = await readCount(page);
     const beyond = Math.ceil(filtered / DEFAULT_ITEMS_PER_PAGE) + 1;
 
-    await page.goto(`/dashboard/admin/spells?page=${beyond}`);
+    await page.goto(`/dashboard/dnd5e/admin/spells?page=${beyond}`);
 
     await expect(dataRows(page)).toHaveCount(0);
   });
 
   test("a filtered count also matches its rows", async ({ page }) => {
-    await page.goto("/dashboard/admin/spells?query=Dardo");
+    await page.goto("/dashboard/dnd5e/admin/spells?query=Dardo");
 
     const filtered = await readCount(page);
     expect(filtered).toBeGreaterThan(0);

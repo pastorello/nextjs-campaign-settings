@@ -37,7 +37,7 @@ test.describe("un-placing a positioned place (SPEC-016 T5)", () => {
   }) => {
     const title = `E2E unplace region ${Date.now()}`;
 
-    await page.goto("/dashboard/geography");
+    await page.goto("/dashboard/dnd5e/geography");
     const map = page.locator(".leaflet-container");
     await expect(map).toBeVisible();
     // Let the image-overlay bootstrap's interim-then-corrective-refit

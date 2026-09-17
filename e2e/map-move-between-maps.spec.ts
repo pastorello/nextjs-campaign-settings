@@ -63,7 +63,7 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     const landmarkTitle = `E2E move landmark ${stamp}`;
 
     // 1. An NPC to stand at the landmark.
-    await page.goto("/dashboard/admin/npc");
+    await page.goto("/dashboard/dnd5e/admin/npc");
     await page
       .getByRole("link", { name: messages.npc.page.newItemButton })
       .click();
@@ -77,7 +77,7 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     await page.waitForURL("**/dashboard/dnd5e/admin/npc");
 
     // 2. Two maps to move between, both children of the root.
-    await page.goto("/dashboard/geography");
+    await page.goto("/dashboard/dnd5e/geography");
     const map = page.locator(".leaflet-container");
     await expect(map).toBeVisible();
     // The image overlay's interim-then-corrective refit (TD-81/TD-87) has to
@@ -159,7 +159,7 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     // 4. Stand the NPC at that landmark — zone *and* landmark, which is the
     //    pair ADR-0010 requires to stay in agreement.
     await page.goto(
-      `/dashboard/admin/npc?query=${encodeURIComponent(npcName)}`
+      `/dashboard/dnd5e/admin/npc?query=${encodeURIComponent(npcName)}`
     );
     const row = page.getByRole("row").filter({ hasText: npcName });
     await expect(row).toBeVisible();
@@ -178,7 +178,7 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
 
     // 5. Un-place the landmark (SPEC-017 T10) — the pool's only door for a
     //    landmark, and the first half of a move.
-    await page.goto("/dashboard/geography");
+    await page.goto("/dashboard/dnd5e/geography");
     await expect(map).toBeVisible();
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(300);
@@ -243,7 +243,7 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     //    this — it shows the landmark's title, which never changed — but the
     //    filter keys on `zoneId`, so the NPC can only appear under the new
     //    map if `placeLandmark` carried it there (ADR-0010, SPEC-017 T6).
-    await page.goto("/dashboard/admin/npc");
+    await page.goto("/dashboard/dnd5e/admin/npc");
     const zoneFilter = page.getByLabel(locationModal.zoneLabel);
     await zoneFilter.selectOption({ label: toTitle });
     const npcRow = page.getByRole("row").filter({ hasText: npcName });

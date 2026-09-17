@@ -30,17 +30,17 @@ import { chooseFromContextMenu } from "./helpers/mapContextMenu";
  * that has its own test below.
  */
 const PAGES = [
-  "/dashboard",
-  "/dashboard/spells",
-  "/dashboard/npc",
-  "/dashboard/deities",
-  "/dashboard/magicitems",
-  "/dashboard/admin/spells",
-  "/dashboard/admin/npc",
-  "/dashboard/admin/deities",
-  "/dashboard/admin/magicitems",
-  "/dashboard/admin/spells/new",
-  "/dashboard/admin/npc/new",
+  "/dashboard/dnd5e",
+  "/dashboard/dnd5e/spells",
+  "/dashboard/dnd5e/npc",
+  "/dashboard/dnd5e/deities",
+  "/dashboard/dnd5e/magicitems",
+  "/dashboard/dnd5e/admin/spells",
+  "/dashboard/dnd5e/admin/npc",
+  "/dashboard/dnd5e/admin/deities",
+  "/dashboard/dnd5e/admin/magicitems",
+  "/dashboard/dnd5e/admin/spells/new",
+  "/dashboard/dnd5e/admin/npc/new",
 ];
 
 for (const path of PAGES) {
@@ -85,13 +85,13 @@ for (const path of PAGES) {
 test("campaign and adventure pages have no accessibility violations", async ({
   page,
 }) => {
-  await page.goto("/dashboard/campaign");
+  await page.goto("/dashboard/dnd5e/campaign");
   await page.waitForLoadState("networkidle");
 
   const scan = async (label: string) => {
     // Wait for a non-empty `<title>` before axe runs, or `document-title`
     // fires on a page that has one. CI run 33113909995 failed here and was
-    // green on retry; `/dashboard/campaign` declares `generateMetadata`, so
+    // green on retry; `/dashboard/dnd5e/campaign` declares `generateMetadata`, so
     // the title is not missing, it is briefly out of the tree. Unlike the
     // `PAGES` loop above, both scans below run after a Server Action has
     // re-rendered the page rather than after a navigation, so
@@ -137,7 +137,7 @@ test("campaign and adventure pages have no accessibility violations", async ({
 
   // Campaign page: header, ladder with a row, and the add-adventure form.
   await addAdventureButton.click();
-  await scan("/dashboard/campaign");
+  await scan("/dashboard/dnd5e/campaign");
 
   await adventureLink.click();
   await expect(
@@ -169,7 +169,7 @@ test("campaign and adventure pages have no accessibility violations", async ({
   await page
     .getByRole("button", { name: messages.loot.list.addButton })
     .click();
-  await scan("/dashboard/campaign/[adventureId]");
+  await scan("/dashboard/dnd5e/campaign/[adventureId]");
 });
 
 // The three row/toolbar buttons this test tabs through to find, read from the
@@ -188,7 +188,7 @@ test("a keyboard user can see where the focus is", async ({ page }) => {
   // `.focus()`: programmatic focus does not match `:focus-visible`, and the
   // computed style then reports `outline-style: none` on a perfectly fine
   // button. Only a real keypress answers the question.
-  await page.goto("/dashboard/admin/spells");
+  await page.goto("/dashboard/dnd5e/admin/spells");
   await page.waitForLoadState("networkidle");
 
   for (let step = 0; step < 80; step += 1) {
@@ -230,7 +230,7 @@ test("a keyboard user can see where the focus is", async ({ page }) => {
 test("the map grid configuration panel has no accessibility violations", async ({
   page,
 }) => {
-  await page.goto("/dashboard/geography");
+  await page.goto("/dashboard/dnd5e/geography");
   await expect(page.locator(".leaflet-container")).toBeVisible();
 
   await page
@@ -298,7 +298,7 @@ const A11Y_PNG_FILE = {
 test("the place popover has no accessibility violations", async ({ page }) => {
   const title = `E2E a11y region ${Date.now()}`;
 
-  await page.goto("/dashboard/geography");
+  await page.goto("/dashboard/dnd5e/geography");
   const map = page.locator(".leaflet-container");
   await expect(map).toBeVisible();
   // The image-overlay bootstrap refits the camera once after an interim

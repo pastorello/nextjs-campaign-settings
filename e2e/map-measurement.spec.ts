@@ -21,7 +21,7 @@ test.describe("map measurement", () => {
   test("without a usable grid, measuring refuses with an explanation (SPEC-015 §5, TD-94)", async ({
     page,
   }) => {
-    await page.goto("/dashboard/geography");
+    await page.goto("/dashboard/dnd5e/geography");
     const map = page.locator(".leaflet-container");
     await expect(map).toBeVisible();
 

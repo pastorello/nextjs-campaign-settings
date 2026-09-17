@@ -37,7 +37,7 @@ test.describe("an entity's location is single-valued (TD-93)", () => {
   }) => {
     const name = `E2E TD93 PNG ${Date.now()}`;
 
-    await page.goto("/dashboard/admin/npc");
+    await page.goto("/dashboard/dnd5e/admin/npc");
     await page
       .getByRole("link", { name: messages.npc.page.newItemButton })
       .click();
@@ -55,7 +55,9 @@ test.describe("an entity's location is single-valued (TD-93)", () => {
 
     // See spells-crud.spec.ts: a new record is not on page 1 of a real
     // library, so the row is reached through the search query.
-    await page.goto(`/dashboard/admin/npc?query=${encodeURIComponent(name)}`);
+    await page.goto(
+      `/dashboard/dnd5e/admin/npc?query=${encodeURIComponent(name)}`
+    );
     const row = page.getByRole("row").filter({ hasText: name });
     await expect(row).toBeVisible();
 

@@ -13,7 +13,9 @@ const uniqueName = () => `E2E PNG ${Date.now()}`;
 
 /** See spells-crud.spec.ts: a new record is not on page 1 of a real library. */
 const gotoPng = async (page: Page, name: string) => {
-  await page.goto(`/dashboard/admin/npc?query=${encodeURIComponent(name)}`);
+  await page.goto(
+    `/dashboard/dnd5e/admin/npc?query=${encodeURIComponent(name)}`
+  );
 };
 
 const rowFor = (page: Page, name: string) =>
@@ -24,7 +26,7 @@ test.describe("NPC CRUD", () => {
     const name = uniqueName();
     const editedName = `${name} mod`;
 
-    await page.goto("/dashboard/admin/npc");
+    await page.goto("/dashboard/dnd5e/admin/npc");
     await page
       .getByRole("link", { name: messages.npc.page.newItemButton })
       .click();

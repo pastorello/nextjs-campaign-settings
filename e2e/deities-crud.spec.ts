@@ -17,7 +17,7 @@ import messages from "@/messages/it.json";
 const uniqueName = () => `E2E Divinità ${Date.now()}`;
 
 const gotoDeityAdmin = async (page: Page) => {
-  await page.goto("/dashboard/admin/deities");
+  await page.goto("/dashboard/dnd5e/admin/deities");
   await expect(
     page.getByRole("heading", { name: messages.deities.page.title })
   ).toBeVisible();
@@ -25,7 +25,9 @@ const gotoDeityAdmin = async (page: Page) => {
 
 /** See spells-crud.spec.ts: a new record is not on page 1 of a real library. */
 const gotoDeity = async (page: Page, name: string) => {
-  await page.goto(`/dashboard/admin/deities?query=${encodeURIComponent(name)}`);
+  await page.goto(
+    `/dashboard/dnd5e/admin/deities?query=${encodeURIComponent(name)}`
+  );
 };
 
 const rowFor = (page: Page, name: string) =>

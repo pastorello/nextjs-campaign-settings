@@ -109,6 +109,36 @@ describe("ModalButton", () => {
     expect(screen.getByText(expectedText)).toBeInTheDocument();
   });
 
+  // TD-136: an admin row's edit/delete buttons all read "Modifica"/"Elimina"
+  // with no item name, so a screen reader's button list names every row the
+  // same. ariaLabel lets a caller give each trigger a distinct name.
+  it("uses ariaLabel as the trigger's accessible name when given", () => {
+    render(
+      <ModalButton
+        buttonLabel="Edit"
+        ariaLabel="Edit Fireball"
+        modalTitle="Edit spell"
+        modalContent="spellform"
+      />
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Edit Fireball" })
+    ).toBeInTheDocument();
+  });
+
+  it("falls back to no aria-label when none is given", () => {
+    render(
+      <ModalButton
+        buttonLabel="Edit"
+        modalTitle="Edit spell"
+        modalContent="spellform"
+      />
+    );
+
+    expect(screen.getByRole("button")).not.toHaveAttribute("aria-label");
+  });
+
   it("closes the modal and forwards the saved item to onSave", () => {
     const onSave = vi.fn();
     render(

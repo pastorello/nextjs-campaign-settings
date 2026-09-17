@@ -52,6 +52,8 @@
       "name": "Nome",
       "actions": "Azioni",
       "edit": "Modifica",
+      "editItem": "Modifica {name}",
+      "deleteItem": "Elimina {name}",
       "location": "Posizione",
       "assignLocation": "Posiziona"
     },

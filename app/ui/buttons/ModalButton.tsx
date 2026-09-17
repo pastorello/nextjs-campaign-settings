@@ -27,6 +27,13 @@ interface ModalButtonProps {
   componentProps?: ListItem;
   /** Only `npcform` reads this today — every other variant ignores it. */
   optionBundle?: OptionBundle | undefined;
+  /**
+   * Accessible name for the trigger button, for callers whose `buttonLabel`
+   * reads identically on every row (e.g. an admin list's "Modifica"/"Edit")
+   * — without it, a screen reader's button list names every row the same
+   * (TD-136). Falls back to `buttonLabel` when omitted.
+   */
+  ariaLabel?: string | undefined;
 }
 
 const ModalButton = ({
@@ -39,6 +46,7 @@ const ModalButton = ({
   modalSize = "medium",
   componentProps,
   optionBundle,
+  ariaLabel,
 }: ModalButtonProps) => {
   const [isOpen, setOpen] = useState(false);
   const openModal = () => setOpen(true);
@@ -50,6 +58,7 @@ const ModalButton = ({
         onClick={openModal}
         size={ButtonSize.small}
         variant={buttonVariant}
+        ariaLabel={ariaLabel}
       >
         {buttonLabel}
       </BaseButton>

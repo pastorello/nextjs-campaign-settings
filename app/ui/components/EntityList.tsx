@@ -203,6 +203,9 @@ export default async function EntityList(props: {
                         )}
                       <ModalButton
                         buttonLabel={t("common.table.edit")}
+                        ariaLabel={t("common.table.editItem", {
+                          name: item.name as string,
+                        })}
                         modalTitle={t(config.editModalTitleKey)}
                         modalContent={config.modalContent}
                         componentProps={{ formData: item }}

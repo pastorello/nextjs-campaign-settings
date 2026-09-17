@@ -36,14 +36,23 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
       { x: 400, y: 250 },
       messages.geography.contextMenu.addPlace.trigger
     );
-    await page.getByPlaceholder("Enter place name").fill(title);
-    await page.getByRole("button", { name: "Save" }).click();
+    await page
+      .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)
+      .fill(title);
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.save.save })
+      .click();
 
     // The panel stays open in list view after save (desktop layout, absolute
     // over the map's own left edge) — close it, or the marker this test just
     // created there is occluded and unclickable (same reasoning
     // `map-unplace.spec.ts` documents for its own navigable place).
-    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.poiPanel.close,
+        exact: true,
+      })
+      .click();
 
     await expect(landmarkMarkers).toHaveCount(baselineCount + 1);
 
@@ -67,12 +76,21 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
     // `MapPOIPanel`'s edit form, pre-filled from the popover's own landmark
     // (T7's `editTarget` prop) rather than from a list row the DM never
     // clicked — nothing here goes through `POIListItem`.
-    const titleInput = page.getByPlaceholder("Enter place name");
+    const titleInput = page.getByPlaceholder(
+      messages.geography.poiPanel.placeholders.placeName
+    );
     await expect(titleInput).toHaveValue(title);
     await titleInput.fill(updatedTitle);
-    await page.getByRole("button", { name: "Update" }).click();
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.save.update })
+      .click();
     await page.waitForLoadState("networkidle");
-    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.poiPanel.close,
+        exact: true,
+      })
+      .click();
 
     // Same marker, new title — re-open the popover to confirm the edit
     // landed and to reach "Elimina" next.
@@ -119,9 +137,18 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
       { x: 420, y: 300 },
       messages.geography.contextMenu.addPlace.trigger
     );
-    await page.getByPlaceholder("Enter place name").fill(title);
-    await page.getByRole("button", { name: "Save" }).click();
-    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await page
+      .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)
+      .fill(title);
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.save.save })
+      .click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.poiPanel.close,
+        exact: true,
+      })
+      .click();
     await expect(landmarkMarkers).toHaveCount(baselineCount + 1);
 
     // Same retry-the-click dance as the test above: the popover refuses to
@@ -195,9 +222,18 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
       { x: 440, y: 350 },
       messages.geography.contextMenu.addPlace.trigger
     );
-    await page.getByPlaceholder("Enter place name").fill(title);
-    await page.getByRole("button", { name: "Save" }).click();
-    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await page
+      .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)
+      .fill(title);
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.save.save })
+      .click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.poiPanel.close,
+        exact: true,
+      })
+      .click();
     await expect(landmarkMarkers).toHaveCount(baselineCount + 1);
 
     // No reload between creating the landmark and clicking it: a reload is

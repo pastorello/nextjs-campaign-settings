@@ -319,7 +319,7 @@ test("the place popover has no accessibility violations", async ({ page }) => {
   // `<select>` too, and the panel shows Category alongside Kind while the
   // kind is still the default "poi".
   await page
-    .locator("label", { hasText: "Kind" })
+    .locator("label", { hasText: messages.geography.poiPanel.fields.kind })
     .locator("xpath=following-sibling::select[1]")
     .selectOption("region");
   // The panel's second, hidden file input is for GeoJSON import — scoped to
@@ -327,12 +327,21 @@ test("the place popover has no accessibility violations", async ({ page }) => {
   await page
     .locator('input[type="file"][accept*="image"]')
     .setInputFiles(A11Y_PNG_FILE);
-  await page.getByPlaceholder("Enter place name").fill(title);
-  await page.getByRole("button", { name: "Save" }).click();
+  await page
+    .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)
+    .fill(title);
+  await page
+    .getByRole("button", { name: messages.geography.poiPanel.save.save })
+    .click();
 
   // The panel stays open in list view after save, absolutely positioned over
   // the map's left edge — close it, or the new marker is occluded.
-  await page.getByRole("button", { name: "Close", exact: true }).click();
+  await page
+    .getByRole("button", {
+      name: messages.geography.poiPanel.close,
+      exact: true,
+    })
+    .click();
 
   // `.last()`: `fetchPlaceChildren` orders by `createdAt` ascending, so the
   // place created here is always the one rendered last.

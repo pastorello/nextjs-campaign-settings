@@ -31,8 +31,12 @@ test.describe("POI panel CRUD", () => {
       { x: 400, y: 250 },
       messages.geography.contextMenu.addPlace.trigger
     );
-    await page.getByPlaceholder("Enter place name").fill(title);
-    await page.getByRole("button", { name: "Save" }).click();
+    await page
+      .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)
+      .fill(title);
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.save.save })
+      .click();
 
     const listItem = page.locator("button", { hasText: title }).first();
     await expect(listItem).toBeVisible();
@@ -40,10 +44,14 @@ test.describe("POI panel CRUD", () => {
     // Edit
     const row = page.locator("div", { has: listItem }).last();
     await row.hover();
-    await row.getByTitle("Edit").click();
-    const titleInput = page.getByPlaceholder("Enter place name");
+    await row.getByTitle(messages.geography.poiPanel.item.edit).click();
+    const titleInput = page.getByPlaceholder(
+      messages.geography.poiPanel.placeholders.placeName
+    );
     await titleInput.fill(updatedTitle);
-    await page.getByRole("button", { name: "Update" }).click();
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.save.update })
+      .click();
 
     const updatedItem = page
       .locator("button", { hasText: updatedTitle })
@@ -56,7 +64,9 @@ test.describe("POI panel CRUD", () => {
     // Delete
     const updatedRow = page.locator("div", { has: updatedItem }).last();
     await updatedRow.hover();
-    await updatedRow.getByTitle("Delete").click();
+    await updatedRow
+      .getByTitle(messages.geography.poiPanel.item.delete)
+      .click();
     await expect(updatedItem).toHaveCount(0);
   });
 });

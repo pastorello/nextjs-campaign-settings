@@ -79,8 +79,12 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
       { x: 600, y: 300 },
       messages.geography.contextMenu.addPlace.trigger
     );
-    await page.getByPlaceholder("Enter place name").fill(title);
-    await page.getByRole("button", { name: "Save" }).click();
+    await page
+      .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)
+      .fill(title);
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.save.save })
+      .click();
 
     // Save returns the panel to list view, showing the row it just created —
     // read its coordinates now, before dragging, so the persisted position
@@ -153,7 +157,9 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
       { x: 300, y: 500 },
       messages.geography.contextMenu.addPlace.trigger
     );
-    await page.getByRole("button", { name: "Back" }).click();
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.back })
+      .click();
 
     const listItem = page.locator("button", { hasText: title }).first();
     const row = page.locator("div", { has: listItem }).last();
@@ -173,7 +179,7 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
 
     // Cleanup.
     await row.hover();
-    await row.getByTitle("Delete").click();
+    await row.getByTitle(messages.geography.poiPanel.item.delete).click();
     await expect(listItem).toHaveCount(0);
   });
 });

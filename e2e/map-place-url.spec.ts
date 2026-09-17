@@ -47,18 +47,27 @@ test.describe("the place in view has a URL of its own (TD-82)", () => {
       messages.geography.contextMenu.addPlace.trigger
     );
     await page
-      .locator("label", { hasText: "Kind" })
+      .locator("label", { hasText: messages.geography.poiPanel.fields.kind })
       .locator("xpath=following-sibling::select[1]")
       .selectOption("region");
     await page
       .locator('input[type="file"][accept*="image"]')
       .setInputFiles(PNG_FILE);
-    await page.getByPlaceholder("Enter place name").fill(title);
-    await page.getByRole("button", { name: "Save" }).click();
+    await page
+      .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)
+      .fill(title);
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.save.save })
+      .click();
     await expect(navigableMarkers).toHaveCount(baselineMarkerCount + 1);
     // The panel stays open over the map's left edge and would occlude the
     // marker just created.
-    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.poiPanel.close,
+        exact: true,
+      })
+      .click();
 
     const popover = page.getByRole("dialog", { name: title });
     await navigableMarkers.last().click();

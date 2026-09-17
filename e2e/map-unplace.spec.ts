@@ -77,7 +77,7 @@ test.describe("un-placing a positioned place (SPEC-016 T5)", () => {
     // still the default "poi". The label has no `htmlFor`, so this walks to
     // its sibling `<select>` directly rather than relying on ordering.
     await page
-      .locator("label", { hasText: "Kind" })
+      .locator("label", { hasText: messages.geography.poiPanel.fields.kind })
       .locator("xpath=following-sibling::select[1]")
       .selectOption("region");
     // The panel has a second, hidden `input[type="file"]` for GeoJSON
@@ -85,14 +85,20 @@ test.describe("un-placing a positioned place (SPEC-016 T5)", () => {
     await page
       .locator('input[type="file"][accept*="image"]')
       .setInputFiles(PNG_FILE);
-    await page.getByPlaceholder("Enter place name").fill(title);
-    await page.getByRole("button", { name: "Save" }).click();
+    await page
+      .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)
+      .fill(title);
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.save.save })
+      .click();
 
     // The panel (`MapPOIPanel`, desktop layout) is absolutely positioned
     // over the map's own left edge and stays open in list view after save —
     // close it, or the marker this test just created there is occluded and
     // unclickable.
-    await page.getByRole("button", { name: "Close" }).click();
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.close })
+      .click();
 
     // `.last()`, not the bare locator: `fetchPlaceChildren` orders by
     // `createdAt` ascending, so the place this test just created is always

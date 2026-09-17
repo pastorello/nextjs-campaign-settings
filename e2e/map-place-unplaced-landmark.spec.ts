@@ -67,19 +67,28 @@ test.describe("positioning an unplaced landmark (TD-102)", () => {
       messages.geography.contextMenu.addPlace.trigger
     );
     await page
-      .locator("label", { hasText: "Kind" })
+      .locator("label", { hasText: messages.geography.poiPanel.fields.kind })
       .locator("xpath=following-sibling::select[1]")
       .selectOption("region");
     await page
       .locator('input[type="file"][accept*="image"]')
       .setInputFiles(PNG_FILE);
-    await page.getByPlaceholder("Enter place name").fill(parentTitle);
-    await page.getByRole("button", { name: "Save" }).click();
+    await page
+      .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)
+      .fill(parentTitle);
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.save.save })
+      .click();
     await expect(navigableMarkers).toHaveCount(baselineNavigable + 1);
 
     // The panel stays open in list view over the map's left edge — close it
     // or the marker just created is occluded and unclickable.
-    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.poiPanel.close,
+        exact: true,
+      })
+      .click();
 
     // 2. Descend into it and put a landmark inside. `kind: "poi"` is the
     //    panel's own default, so no kind selection and no map image.
@@ -97,9 +106,18 @@ test.describe("positioning an unplaced landmark (TD-102)", () => {
       { x: 500, y: 200 },
       messages.geography.contextMenu.addPlace.trigger
     );
-    await page.getByPlaceholder("Enter place name").fill(landmarkTitle);
-    await page.getByRole("button", { name: "Save" }).click();
-    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await page
+      .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)
+      .fill(landmarkTitle);
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.save.save })
+      .click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.poiPanel.close,
+        exact: true,
+      })
+      .click();
     await expect(page.locator(".custom-poi-marker")).toHaveCount(1);
 
     // 3. Delete the place we are standing on. SPEC-010 rule 2: the landmark

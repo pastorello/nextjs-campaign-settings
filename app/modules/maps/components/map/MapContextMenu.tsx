@@ -281,6 +281,29 @@ const MenuItem = memo(function MenuItem({
 
 MenuItem.displayName = "MenuItem";
 
+/**
+ * Where arrow-key navigation lands (TD-133): Down/Up wrap, Home/End jump.
+ * `current` is -1 when focus is on no entry. `null` for any other key.
+ */
+export function getNextMenuIndex(
+  key: string,
+  current: number,
+  count: number
+): number | null {
+  switch (key) {
+    case "ArrowDown":
+      return (current + 1) % count;
+    case "ArrowUp":
+      return current <= 0 ? count - 1 : current - 1;
+    case "Home":
+      return 0;
+    case "End":
+      return count - 1;
+    default:
+      return null;
+  }
+}
+
 // Menu dimensions for position calculation (approximate)
 const MENU_WIDTH = 220;
 const MENU_HEIGHT = 180;
@@ -425,7 +448,61 @@ export const MapContextMenu = memo(function MapContextMenu({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen || !position) {
+  /**
+   * Focus management (TD-133). Opening moves focus to the first usable
+   * entry, so a menu opened from the keyboard (Shift+F10 / ContextMenu on
+   * the map) is operable at once; closing — Escape included, which
+   * `useMapContextMenu` handles — hands focus back to wherever it was, but
+   * only if it would otherwise be lost with the menu's own DOM. If whatever
+   * the chosen entry opened has already taken focus, it keeps it.
+   */
+  const isRendered = isOpen && position !== null;
+  useEffect(() => {
+    if (!isRendered) return;
+
+    const returnTo =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    const menu = menuRef.current;
+    menu?.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus();
+
+    return () => {
+      const active = document.activeElement;
+      const focusWasLost =
+        active === null ||
+        active === document.body ||
+        (menu?.contains(active) ?? false);
+      if (focusWasLost && returnTo?.isConnected) {
+        returnTo.focus({ preventScroll: true });
+      }
+    };
+  }, [isRendered]);
+
+  /**
+   * Arrow keys, Home and End move between the menu's enabled entries — the
+   * `role="menu"` keyboard contract. Left to the text field when it has
+   * focus, where those keys move the caret.
+   */
+  const handleMenuKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (event.target instanceof HTMLInputElement) return;
+      const menu = menuRef.current;
+      if (!menu) return;
+      const items = Array.from(
+        menu.querySelectorAll<HTMLButtonElement>("button:not([disabled])")
+      );
+      if (items.length === 0) return;
+      const current = items.indexOf(event.target as HTMLButtonElement);
+      const next = getNextMenuIndex(event.key, current, items.length);
+      if (next === null) return;
+      event.preventDefault();
+      items[next]?.focus();
+    },
+    []
+  );
+
+  if (!isRendered) {
     return null;
   }
 
@@ -439,6 +516,7 @@ export const MapContextMenu = memo(function MapContextMenu({
       }}
       role="menu"
       aria-label={ariaLabel}
+      onKeyDown={handleMenuKeyDown}
     >
       {/* Add Marker */}
       <MenuItem

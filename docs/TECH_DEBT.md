@@ -1876,7 +1876,7 @@ CLAUDE.md rule 8 now has a written exception for `PlacePopover.tsx`'s
 express it), explicitly scoped narrow enough that it doesn't retroactively
 excuse `Spinner.tsx`'s case, which turned out not to need it.
 
-### TD-133 — The map has no keyboard path to create a place or open an existing one
+### TD-133 — The map has no keyboard path to create a place or open an existing one — **keyboard entry points DONE (2026-09-17); typed coordinates need a spec**
 
 **Severity:** 🟠 High · **Effort:** L · **Found:** 2026-09-17, accessibility review (WCAG 2.1.1)
 
@@ -1892,6 +1892,27 @@ map centre, or via Shift+F10 / the context-menu key); let coordinates be typed
 before any click; give markers `tabIndex=0` and an Enter/Space handler that
 opens the same popover a click does. Because this touches SPEC-level
 interaction, it may need a short spec. **Related:** TD-15, TD-123.
+
+**Resolution:** The finding's marker half was partly wrong: Leaflet 1.9's
+`keyboard` option (default `true`) already gives a marker's icon
+`tabindex="0"` and `role="button"`. What was missing was a name and an action —
+Leaflet only answers Enter through `bindPopup`, and these markers have none.
+`app/modules/maps/lib/utils/keyboardActivation.ts` fills that: it sets
+`aria-label` to the place/landmark title and runs the click callback on
+Enter/Space through Leaflet's own `keydown` dispatch (no second DOM listener).
+`useNavigableChildren` uses it for pins _and_ SPEC-009 area rectangles (which it
+also makes focusable), `usePOIManager` for landmarks (same server-id guard as the
+click); the emoji inside each icon is `aria-hidden`. `useMapContextMenu` now
+opens the menu at the map's centre on ContextMenu or Shift+F10 while the map
+container itself has focus, swallows the browser's own `contextmenu` echo of that
+press, and advertises the keys with `aria-keyshortcuts`. `MapContextMenu` focuses
+its first enabled entry on open, moves with Arrow/Home/End, and on close (Escape
+already closed it) returns focus to where it was unless something else took it.
+No new copy. Tests: unit tests for each piece, and `e2e/map-keyboard.spec.ts`
+(Shift+F10 → Aggiungi luogo → Tab to the new marker → Enter opens its popover).
+**Left:** typed coordinates before any click — a spec candidate in
+`docs/ROADMAP.md`; the popover itself does not take focus when opened, so a
+keyboard user Tabs past the map's remaining markers and controls to reach it.
 
 ### TD-134 ✅ Filter chips don't expose their pressed state — **DONE (2026-09-17)**
 

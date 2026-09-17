@@ -527,6 +527,7 @@ alone.
   equivalent of "Sposta nei luoghi non posizionati" — which is why TD-102's
   refusal message had to stop short of naming a recovery path. Both are small
   next to the two items above, and both belong to whichever spec settles them.
+- **Typed coordinates for a new place** _(spec candidate, from TD-133, 2026-09-17)._ The keyboard can now open "Aggiungi luogo" at the map's centre (Shift+F10 / ContextMenu), but the POI panel still offers no way to type a position; a spec should decide the input (lat/lng, grid cell, or "centre of the view") and how it relates to containment (SPEC-009 T4).
 
 ### Asked for on 2026-09-11 — the same world under other rule sets
 

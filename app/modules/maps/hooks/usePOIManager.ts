@@ -12,6 +12,7 @@ import {
   getCategoryMarkerBgClass,
   isPOICategory,
 } from "@/app/modules/maps/constants/poi-categories";
+import { makeKeyboardActivatable } from "@/app/modules/maps/lib/utils/keyboardActivation";
 import { notifyError } from "@/app/lib/notifications/notify";
 import fetchPlaceChildren from "@/app/lib/data/maps/fetchPlaceChildren";
 import createPoi from "@/app/lib/data/maps/createPoi";
@@ -360,11 +361,14 @@ export function usePOIManager(
           // spot; `renderMarkers` wires the `dragend` handler once this
           // returns, since `updatePOI` isn't in scope here.
           draggable: true,
+          // TD-133 — Leaflet's default, stated: tabindex="0" and
+          // role="button" on the icon; `renderMarkers` names it.
+          keyboard: true,
           icon: L.divIcon({
             className: "custom-poi-marker",
             html: `
           <div class="w-8 h-8 flex items-center justify-center -rotate-45 shadow-[0_3px_8px_rgba(0,0,0,0.3)] border-3 border-white rounded-[50%_50%_50%_0] ${markerBgClass}">
-            <div class="rotate-45 text-sm">📍</div>
+            <div class="rotate-45 text-sm" aria-hidden="true">📍</div>
           </div>
         `,
             iconSize: [32, 32],
@@ -460,12 +464,17 @@ export function usePOIManager(
         // is `NaN`, and Prisma serialises that to `null`, so the popover's
         // entity query became `WHERE "poiId" IS NULL` and listed every
         // unattached NPC and deity as present at the landmark.
-        marker.on("click", () => {
-          if (justDragged) return;
+        const openPopover = () => {
           const serverId = serverIdsRef.current.get(poi.id);
           if (serverId === undefined) return;
           onPOIClickRef.current?.(poi, serverId);
+        };
+        marker.on("click", () => {
+          if (justDragged) return;
+          openPopover();
         });
+        // TD-133 — Enter/Space takes the same path, server-id guard included.
+        makeKeyboardActivatable(marker, poi.title, openPopover);
 
         markersRef.current.set(poi.id, marker);
       }

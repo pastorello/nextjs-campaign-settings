@@ -24,11 +24,7 @@ import { useUnplacedPlaces } from "@/app/modules/maps/hooks/useUnplacedPlaces";
 import type UnplacedPlace from "@/app/lib/definitions/interfaces/maps/UnplacedPlace";
 import type { UnplacedPickerRow } from "@/app/modules/maps/components/map/MapContextMenu";
 import { useDrawArea } from "@/app/modules/maps/hooks/useDrawArea";
-import type {
-  POI,
-  POICategory,
-  POIGeoJSON,
-} from "@/app/modules/maps/types/poi";
+import type { POI, POICategory } from "@/app/modules/maps/types/poi";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import createPlace from "@/app/lib/data/maps/createPlace";
 import placeLandmark from "@/app/lib/data/maps/placeLandmark";
@@ -51,6 +47,7 @@ import {
   type Footprint,
 } from "@/app/modules/maps/lib/utils/footprint";
 import { useMapImageOverlay } from "@/app/ui/geography/hooks/useMapImageOverlay";
+import { usePOIFileIO } from "@/app/ui/geography/hooks/usePOIFileIO";
 
 /**
  * WorldMap - the map view backing `/dashboard/geography`.
@@ -895,33 +892,8 @@ function WorldMap({
     setIsMeasuring(false);
   }
 
-  const handlePOIExport = useCallback(() => {
-    const geojson = exportGeoJSON();
-    const blob = new Blob([JSON.stringify(geojson, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `my-places-${Date.now()}.geojson`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [exportGeoJSON]);
-
-  const handlePOIImport = useCallback(
-    async (file: File) => {
-      try {
-        const text = await file.text();
-        const geojson = JSON.parse(text) as POIGeoJSON;
-        const count = importGeoJSON(geojson);
-        toast.success(t("importSuccess", { count }));
-      } catch (error) {
-        console.error("Failed to import POIs:", error);
-        toast.error(t("importFailed"));
-      }
-    },
-    [importGeoJSON, t]
-  );
+  const { handleExport: handlePOIExport, handleImport: handlePOIImport } =
+    usePOIFileIO({ exportGeoJSON, importGeoJSON });
 
   return (
     // `h-full`, not `h-screen` (TD-84) — this fills whatever height

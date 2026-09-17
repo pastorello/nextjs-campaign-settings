@@ -283,14 +283,14 @@
       "searchPlaceholder": "Cerca incantesimo...",
       "itemSingular": "incantesimo",
       "itemPlural": "incantesimi",
-      "newItemButton": "Nuovo Incantesimo",
-      "emptyMessage": "Nessun Incantesimo trovato"
+      "newItemButton": "Nuovo incantesimo",
+      "emptyMessage": "Nessun incantesimo trovato"
     },
     "form": {
-      "createTitle": "Crea nuovo Incantesimo",
-      "editTitle": "Modifica Incantesimo",
-      "createButton": "Crea Incantesimo",
-      "editButton": "Modifica Incantesimo"
+      "createTitle": "Crea nuovo incantesimo",
+      "editTitle": "Modifica incantesimo",
+      "createButton": "Crea incantesimo",
+      "editButton": "Modifica incantesimo"
     },
     "card": {
       "castingTime": "Tempo di lancio",
@@ -412,10 +412,10 @@
       "emptyMessage": "Nessuna divinità trovata"
     },
     "form": {
-      "createTitle": "Crea nuova Divinità",
-      "editTitle": "Modifica Divinità",
-      "createButton": "Crea Divinità",
-      "editButton": "Modifica Divinità"
+      "createTitle": "Crea nuova divinità",
+      "editTitle": "Modifica divinità",
+      "createButton": "Crea divinità",
+      "editButton": "Modifica divinità"
     },
     "card": {
       "residence": "Residenza",

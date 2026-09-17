@@ -77,6 +77,8 @@ const pageMetaFields = {
     placeholderKey: "common.fields.description.placeholder",
     validator: z.string(),
     getDatum: (datum: string) => renderRichText(datum),
+    // Long-form prose across every domain that has this field (TD-120).
+    tall: true,
   },
   id: {
     metaField: "id",

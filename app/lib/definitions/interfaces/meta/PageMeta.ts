@@ -59,6 +59,15 @@ interface PageMetaBase {
   placeholderKey?: string;
 
   /**
+   * Grows the textarea beyond its default height (TD-120). Only meaningful
+   * when `controlType` is `ControlType.Textarea` — declare it on a field
+   * that holds long-form prose (a description, "at higher levels" text),
+   * not a short one-liner. `InputComponent` reads this and hands it to
+   * `TextareaInput`; the control itself never guesses from the field name.
+   */
+  tall?: boolean;
+
+  /**
    * Value → display label, for fields that genuinely format (rich text,
    * booleans, identity). Optional: an option-backed field (`options` set)
    * displays by resolving through those options — see

@@ -87,7 +87,7 @@
     "filters": {
       "all": "Tutti",
       "allCount": "Tutti ({count})",
-      "reset": "Reset Filtri"
+      "reset": "Azzera filtri"
     },
     "sort": {
       "ariaLabel": "Ordina per {field}"

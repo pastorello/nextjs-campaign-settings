@@ -110,6 +110,9 @@ const InputComponent = ({
         ? t(placeholderKey)
         : "";
     }
+    if (meta.controlType === ControlType.Textarea) {
+      result.tall = fieldMeta[fieldName]?.tall ?? false;
+    }
     return result;
   };
 

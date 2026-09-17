@@ -31,6 +31,15 @@ describe("InputComponent", () => {
     expect(screen.getByRole("textbox")).toHaveValue("A ball of fire");
   });
 
+  it("grows the textarea for a field declared tall in its meta (TD-120)", () => {
+    const setField = vi.fn();
+    render(
+      <InputComponent fieldName="description" setField={setField} value="" />
+    );
+
+    expect(screen.getByRole("textbox")).toHaveClass("h-[280px]");
+  });
+
   it("renders a checkbox control for a boolean field", () => {
     const setField = vi.fn();
     render(

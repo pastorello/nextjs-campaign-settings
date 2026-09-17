@@ -12,12 +12,15 @@ interface TextareaInputProps {
   label: string;
   onChange: (value: MetaValue) => void;
   placeholder?: string;
+  /** See `PageMeta.tall` (TD-120) — a taller box for long-form content. */
+  tall?: boolean;
 }
 const TextareaInput = ({
   value,
   label,
   onChange,
   placeholder,
+  tall,
 }: TextareaInputProps) => {
   return (
     <Field className="w-full">
@@ -30,7 +33,8 @@ const TextareaInput = ({
               value={String(value ?? "")}
               placeholder={isValidString(placeholder) ? placeholder : ""}
               className={clsx(
-                "flex h-[150px] w-full resize-none! items-center rounded-md border px-[5px] focus:ring-indigo-500",
+                "flex w-full resize-none! items-center rounded-md border px-[5px] focus:ring-indigo-500",
+                tall ? "h-[280px]" : "h-[150px]",
                 {
                   "bg-blue-100": focus,
                   shadow: hover,

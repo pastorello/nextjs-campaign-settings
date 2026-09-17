@@ -8,7 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { ArrowRightIcon } from "@heroicons/react/20/solid";
 import { useTranslations } from "next-intl";
-import { Button } from "./button";
+import BaseButton from "@/app/ui/buttons/BaseButton";
 import { useActionState } from "react";
 import { authenticate } from "@/app/lib/actions/authenticate";
 import { useSearchParams } from "next/navigation";
@@ -76,10 +76,15 @@ export default function LoginForm() {
           </div>
         </div>
         <input type="hidden" name="redirectTo" value={callbackUrl} />
-        <Button className="mt-4 w-full" aria-disabled={isPending}>
+        {/* TD-117: was the tutorial's own blue-500 `Button` — the app's only
+            other primary action colour, next to `BaseButton`'s violet-600
+            everywhere else. `disabled` (not `aria-disabled`) also stops a
+            second submit landing mid-request, which the old aria-only
+            disable never did. */}
+        <BaseButton className="mt-4 w-full" disabled={isPending}>
           {t("submit")}{" "}
           <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
-        </Button>
+        </BaseButton>
         <div className="flex h-8 items-end space-x-1">
           {errorMessage && (
             <>

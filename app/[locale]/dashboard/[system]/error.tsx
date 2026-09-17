@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 
+import BaseButton from "@/app/ui/buttons/BaseButton";
 import DatabaseUnreachableError from "@/app/lib/errors/DatabaseUnreachableError";
 
 /**
@@ -38,12 +39,12 @@ export default function Error({
       <p className="max-w-md text-center text-sm text-gray-500">
         {isUnreachable ? t("unreachableBody") : t("genericBody")}
       </p>
-      <button
-        className="mt-4 rounded-md bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-400"
-        onClick={() => reset()}
-      >
+      {/* TD-117: was a hand-rolled blue-500 button, the same TD-112-broken
+          shade as the old tutorial `Button` — BaseButton's primary violet is
+          the app's one primary colour now. */}
+      <BaseButton className="mt-4" onClick={() => reset()}>
         {t("retry")}
-      </button>
+      </BaseButton>
     </main>
   );
 }

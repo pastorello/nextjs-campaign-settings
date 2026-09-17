@@ -1191,7 +1191,7 @@ function WorldMap({
         <button
           type="button"
           onClick={clearMarkers}
-          className="absolute top-4 right-4 z-[1000] flex items-center gap-2 rounded-lg bg-white dark:bg-slate-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-100 shadow-lg hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
+          className="absolute top-4 right-4 z-[1000] flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-lg hover:bg-gray-50 transition-colors"
         >
           {tTemporaryMarkers("clear", { count: markers.length })}
         </button>

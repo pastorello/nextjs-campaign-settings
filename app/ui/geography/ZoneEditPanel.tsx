@@ -184,8 +184,8 @@ export default function ZoneEditPanel({
             an area, which is a different operation nobody has specified,
             so the control is disabled and says why rather than silently
             absent. Same shape as the popover's "Apri mappa". */}
-        <div className="flex flex-col gap-1 border-t border-gray-200 pt-3 dark:border-gray-700">
-          <span className="text-sm font-bold uppercase text-gray-700 dark:text-gray-200">
+        <div className="flex flex-col gap-1 border-t border-gray-200 pt-3">
+          <span className="text-sm font-bold uppercase text-gray-700">
             {tPanel("area.label")}
           </span>
           <div>
@@ -201,7 +201,7 @@ export default function ZoneEditPanel({
               {tPanel("area.redraw")}
             </BaseButton>
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-xs text-gray-500">
             {hasFootprint ? tPanel("area.redrawHint") : tPanel("area.noArea")}
           </p>
         </div>

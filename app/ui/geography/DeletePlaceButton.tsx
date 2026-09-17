@@ -134,12 +134,10 @@ export default function DeletePlaceButton({
       size="small"
     >
       {isLoadingImpact ? (
-        <p className="text-sm text-gray-600 dark:text-gray-300">
-          {t("loading")}
-        </p>
+        <p className="text-sm text-gray-600">{t("loading")}</p>
       ) : (
         impact !== null && (
-          <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+          <div className="space-y-2 text-sm text-gray-600">
             {!hasImpact && <p>{t("noImpact")}</p>}
             {impact.placeCount > 0 && (
               <p>

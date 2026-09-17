@@ -159,7 +159,7 @@ const POIListItem = memo(function POIListItem({
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="flex items-center gap-3 w-full px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group"
+      className="flex items-center gap-3 w-full px-4 py-3 hover:bg-gray-50 transition-colors group"
     >
       {/* Category Icon - Clickable to fly to */}
       <button
@@ -173,10 +173,10 @@ const POIListItem = memo(function POIListItem({
 
       {/* Content - Clickable to fly to */}
       <button onClick={onFlyTo} className="flex-1 min-w-0 text-left">
-        <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
+        <div className="text-sm font-medium text-gray-900 truncate">
           {poi.title}
         </div>
-        <div className="text-xs text-gray-500 dark:text-gray-400">
+        <div className="text-xs text-gray-500">
           {formatDecimalDegrees([poi.lat, poi.lng], 4)}
         </div>
       </button>
@@ -189,20 +189,20 @@ const POIListItem = memo(function POIListItem({
               e.stopPropagation();
               onEdit();
             }}
-            className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            className="p-1.5 rounded hover:bg-gray-200 transition-colors"
             title={t("geography.poiPanel.item.edit")}
           >
-            <Edit2 className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+            <Edit2 className="h-4 w-4 text-gray-600" />
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation();
               onDelete();
             }}
-            className="p-1.5 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+            className="p-1.5 rounded hover:bg-red-100 transition-colors"
             title={t("geography.poiPanel.item.delete")}
           >
-            <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+            <Trash2 className="h-4 w-4 text-red-600" />
           </button>
         </div>
       )}
@@ -617,12 +617,12 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     // Form view (Add/Edit)
     if (viewMode === "add" || viewMode === "edit") {
       return (
-        <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-900 scrollbar-thin px-6 py-4">
+        <div className="flex-1 overflow-y-auto bg-white scrollbar-thin px-6 py-4">
           {/* Kind Selection — add mode only. Editing is always kind: "poi"
               (see handleEditMode), so changing kind mid-edit has no meaning. */}
           {viewMode === "add" && (
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t("geography.poiPanel.fields.kind")}
               </label>
               <select
@@ -635,7 +635,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                     mapFile: null,
                   }));
                 }}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm"
               >
                 {/* SPEC-009 T2 — a drawn area is always a navigable kind
                     (rule 1: a rectangle always means a map); a landmark
@@ -653,14 +653,14 @@ export const MapPOIPanel = memo(function MapPOIPanel({
 
           {/* Coordinates Section */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               {t("geography.poiPanel.fields.coordinates")}
             </label>
             {pendingFootprint ? (
               // SPEC-009 T2 — the footprint already fixes the position;
               // there is nothing to pick or type, just the derived centre
               // for confirmation.
-              <div className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm font-mono text-gray-600 dark:text-gray-400">
+              <div className="px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm font-mono text-gray-600">
                 {formatDecimalDegrees(footprintCentre(pendingFootprint), 4)}
               </div>
             ) : formData.lat && formData.lng && !isSelectingLocationProp ? (
@@ -673,7 +673,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                       setFormData((prev) => ({ ...prev, lat: e.target.value }))
                     }
                     placeholder={t("geography.poiPanel.placeholders.latitude")}
-                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                    className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm"
                   />
                   <input
                     type="text"
@@ -682,15 +682,15 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                       setFormData((prev) => ({ ...prev, lng: e.target.value }))
                     }
                     placeholder={t("geography.poiPanel.placeholders.longitude")}
-                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                    className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm"
                   />
                 </div>
                 <button
                   onClick={handleClearCoordinates}
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                   title={t("geography.poiPanel.clearCoordinates")}
                 >
-                  <XCircle className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  <XCircle className="h-5 w-5 text-gray-500" />
                 </button>
               </div>
             ) : (
@@ -699,8 +699,8 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                   onClick={handleToggleLocationSelection}
                   className={`w-full px-4 py-3 border-2 border-dashed rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                     isSelectingLocationProp
-                      ? "border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm"
-                      : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10"
+                      ? "border-blue-500 bg-blue-50 text-blue-600 shadow-sm"
+                      : "border-gray-300 bg-white text-gray-600 hover:border-blue-400 hover:bg-blue-50"
                   }`}
                 >
                   <MapPin
@@ -713,8 +713,8 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                     : t("geography.poiPanel.selectLocation.prompt")}
                 </button>
                 {isSelectingLocationProp && cursorLat && cursorLng && (
-                  <div className="mt-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                    <div className="text-xs text-blue-600 dark:text-blue-400 font-mono">
+                  <div className="mt-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="text-xs text-blue-600 font-mono">
                       {cursorLat.toFixed(6)}, {cursorLng.toFixed(6)}
                     </div>
                   </div>
@@ -726,7 +726,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           {/* Category Selection — kind: "poi" only */}
           {formData.kind === "poi" && (
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t("geography.poiPanel.fields.category")}
               </label>
               <select
@@ -737,7 +737,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                     category: e.target.value as POICategory,
                   }))
                 }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm"
               >
                 {POI_CATEGORIES.map((cat) => (
                   <option key={cat.id} value={cat.id}>
@@ -751,7 +751,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           {/* Map Image — navigable kinds only (region, plane, city, dungeon) */}
           {isNavigablePlaceKind(formData.kind) && (
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t("geography.poiPanel.fields.mapImage")}
               </label>
               <input
@@ -763,14 +763,14 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                     mapFile: e.target.files?.[0] ?? null,
                   }))
                 }
-                className="block w-full text-sm text-gray-900 dark:text-white"
+                className="block w-full text-sm text-gray-900"
               />
             </div>
           )}
 
           {/* Title Input */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               {t("geography.poiPanel.fields.title")}
             </label>
             <input
@@ -780,13 +780,13 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                 setFormData((prev) => ({ ...prev, title: e.target.value }))
               }
               placeholder={t("geography.poiPanel.placeholders.placeName")}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm"
             />
           </div>
 
           {/* Description Input */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               {t("geography.poiPanel.fields.description")}
             </label>
             <textarea
@@ -799,7 +799,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
               }
               placeholder={t("geography.poiPanel.placeholders.description")}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm resize-none"
             />
           </div>
         </div>
@@ -810,43 +810,43 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     return (
       <>
         {/* Action Buttons */}
-        <div className="px-6 py-4 border-b dark:border-gray-800">
+        <div className="px-6 py-4 border-b">
           <div className="grid grid-cols-4 gap-2">
             <button
               onClick={handleAddMode}
-              className="flex flex-col items-center gap-1.5 p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+              className="flex flex-col items-center gap-1.5 p-2 rounded-lg bg-blue-100 hover:bg-blue-200 transition-colors"
             >
-              <Plus className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300 leading-tight">
+              <Plus className="h-5 w-5 text-blue-600" />
+              <span className="text-[10px] font-medium text-gray-700 leading-tight">
                 {t("geography.poiPanel.addButton")}
               </span>
             </button>
             <button
               onClick={handleImportClick}
-              className="flex flex-col items-center gap-1.5 p-2 rounded-lg bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+              className="flex flex-col items-center gap-1.5 p-2 rounded-lg bg-green-100 hover:bg-green-200 transition-colors"
             >
-              <Upload className="h-5 w-5 text-green-600 dark:text-green-400" />
-              <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300 leading-tight">
+              <Upload className="h-5 w-5 text-green-600" />
+              <span className="text-[10px] font-medium text-gray-700 leading-tight">
                 {t("geography.poiPanel.importButton")}
               </span>
             </button>
             <button
               onClick={onExport}
               disabled={pois.length === 0}
-              className="flex flex-col items-center gap-1.5 p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex flex-col items-center gap-1.5 p-2 rounded-lg bg-purple-100 hover:bg-purple-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Download className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300 leading-tight">
+              <Download className="h-5 w-5 text-purple-600" />
+              <span className="text-[10px] font-medium text-gray-700 leading-tight">
                 {t("geography.poiPanel.exportButton")}
               </span>
             </button>
             <button
               onClick={handleClearAll}
               disabled={pois.length === 0}
-              className="flex flex-col items-center gap-1.5 p-2 rounded-lg bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex flex-col items-center gap-1.5 p-2 rounded-lg bg-red-100 hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400" />
-              <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300 leading-tight">
+              <Trash2 className="h-5 w-5 text-red-600" />
+              <span className="text-[10px] font-medium text-gray-700 leading-tight">
                 {t("geography.poiPanel.clear")}
               </span>
             </button>
@@ -854,19 +854,19 @@ export const MapPOIPanel = memo(function MapPOIPanel({
         </div>
 
         {/* POI List */}
-        <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-900 scrollbar-thin">
+        <div className="flex-1 overflow-y-auto bg-white scrollbar-thin">
           {displayPOIs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-              <MapPin className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" />
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+              <MapPin className="h-12 w-12 text-gray-300 mb-3" />
+              <p className="text-sm text-gray-500 mb-1">
                 {t("geography.poiPanel.emptyState.title")}
               </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500">
+              <p className="text-xs text-gray-400">
                 {t("geography.poiPanel.emptyState.subtitle")}
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200 dark:divide-gray-800">
+            <div className="divide-y divide-gray-200">
               {displayPOIs.map((poi) => (
                 <POIListItem
                   key={poi.id}
@@ -918,11 +918,11 @@ export const MapPOIPanel = memo(function MapPOIPanel({
 
       {/* Mobile Header / Top Bar */}
       {isMobile && viewMode === "list" && (
-        <div className="px-6 py-4 border-b dark:border-gray-800">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+        <div className="px-6 py-4 border-b">
+          <h2 className="text-2xl font-semibold text-gray-900">
             {categoryName}
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-sm text-gray-500 mt-1">
             {t("geography.poiPanel.placeCount", { count: displayPOIs.length })}
           </p>
         </div>
@@ -930,20 +930,20 @@ export const MapPOIPanel = memo(function MapPOIPanel({
 
       {/* Top Bar (for add/edit mode) */}
       {(viewMode === "add" || viewMode === "edit") && (
-        <div className="flex items-center justify-between px-6 py-3 border-b dark:border-gray-800 bg-white dark:bg-gray-900">
+        <div className="flex items-center justify-between px-6 py-3 border-b bg-white">
           <button
             onClick={() => {
               setViewMode("list");
               onFootprintConsumed?.();
             }}
-            className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
             <span className="text-sm font-medium">
               {t("geography.poiPanel.back")}
             </span>
           </button>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-lg font-semibold text-gray-900">
             {viewMode === "edit"
               ? t("geography.poiPanel.form.editTitle")
               : t("geography.poiPanel.form.addTitle")}
@@ -1021,10 +1021,10 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       >
         <Drawer.Portal>
           <Drawer.Content
-            className="fixed flex flex-col bg-white dark:bg-gray-900 rounded-t-[10px] bottom-0 left-0 right-0 h-full max-h-[97%] !z-[1100] shadow-[0_-10px_40px_rgba(0,0,0,0.2)]"
+            className="fixed flex flex-col bg-white rounded-t-[10px] bottom-0 left-0 right-0 h-full max-h-[97%] !z-[1100] shadow-[0_-10px_40px_rgba(0,0,0,0.2)]"
             aria-describedby={undefined}
           >
-            <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-gray-300 dark:bg-gray-600" />
+            <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-gray-300" />
             <div className="flex-1 overflow-hidden">
               <Drawer.Title className="sr-only">{categoryName}</Drawer.Title>
               {content}
@@ -1038,7 +1038,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
   // Desktop: Side Panel
   return (
     <div
-      className={`absolute top-0 left-0 h-full w-96 bg-white dark:bg-gray-900 shadow-2xl z-[1000] transform transition-transform duration-300 ${
+      className={`absolute top-0 left-0 h-full w-96 bg-white shadow-2xl z-[1000] transform transition-transform duration-300 ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
@@ -1047,10 +1047,10 @@ export const MapPOIPanel = memo(function MapPOIPanel({
         onClick={() => {
           onClose();
         }}
-        className="absolute top-4 right-4 z-20 p-2 rounded-full bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 shadow-lg transition-colors"
+        className="absolute top-4 right-4 z-20 p-2 rounded-full bg-white/90 hover:bg-white shadow-lg transition-colors"
         aria-label={t("geography.poiPanel.close")}
       >
-        <X className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+        <X className="h-5 w-5 text-gray-700" />
       </button>
 
       {content}

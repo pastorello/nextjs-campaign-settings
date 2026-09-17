@@ -168,15 +168,15 @@ export default function MapMeasureTool({
   if (!isActive) return null;
 
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-2 rounded-lg bg-white dark:bg-slate-700 px-3 py-2 text-sm text-gray-700 dark:text-gray-100 shadow-lg">
+    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm text-gray-700 shadow-lg">
       <span>{t("hint")}</span>
       <button
         onClick={onExit}
         aria-label={t("exit")}
         title={t("exit")}
-        className="rounded p-1 hover:bg-gray-100 dark:hover:bg-slate-600"
+        className="rounded p-1 hover:bg-gray-100"
       >
-        <X className="h-4 w-4 text-gray-600 dark:text-gray-100" />
+        <X className="h-4 w-4 text-gray-600" />
       </button>
     </div>
   );

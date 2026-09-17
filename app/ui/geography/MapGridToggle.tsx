@@ -42,13 +42,11 @@ export default function MapGridToggle({
       aria-pressed={isVisible}
       title={label}
       aria-label={label}
-      className={`flex h-9 w-9 items-center justify-center rounded shadow-lg hover:bg-gray-50 dark:hover:bg-slate-600 ${
-        isVisible
-          ? "bg-gray-100 dark:bg-slate-600"
-          : "bg-white dark:bg-slate-700"
+      className={`flex h-9 w-9 items-center justify-center rounded shadow-lg hover:bg-gray-50 ${
+        isVisible ? "bg-gray-100" : "bg-white"
       }`}
     >
-      <Grid3x3 className="h-5 w-5 text-gray-600 dark:text-gray-100" />
+      <Grid3x3 className="h-5 w-5 text-gray-600" />
     </button>
   );
 }

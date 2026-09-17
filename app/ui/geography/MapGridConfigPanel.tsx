@@ -169,7 +169,7 @@ export default function MapGridConfigPanel({
           <Select
             value={scale}
             onChange={(event) => setScale(toInitialScale(event.target.value))}
-            className="flex h-[32px] w-full items-center rounded-md border bg-white px-[5px] dark:bg-slate-700 dark:text-white"
+            className="flex h-[32px] w-full items-center rounded-md border bg-white px-[5px]"
           >
             {gridScales.map((option) => (
               <option key={option.value} value={option.value}>
@@ -178,7 +178,7 @@ export default function MapGridConfigPanel({
             ))}
           </Select>
         </Field>
-        <p className="text-sm text-gray-700 dark:text-gray-200">
+        <p className="text-sm text-gray-700">
           <span className="font-bold uppercase">
             {tPanel("derivedRows.label")}
           </span>{" "}

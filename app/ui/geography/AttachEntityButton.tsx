@@ -118,7 +118,7 @@ export default function AttachEntityButton({
               );
               setOptions([]);
             }}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm"
           >
             <option value="">{t("typePlaceholder")}</option>
             {LINKABLE_ENTITY_TYPES.map((type) => (
@@ -137,7 +137,7 @@ export default function AttachEntityButton({
                 );
                 if (option) setSelected(option);
               }}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm disabled:opacity-50"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm disabled:opacity-50"
             >
               <option value="">
                 {isLoading ? "…" : t("entityPlaceholder")}
@@ -151,7 +151,7 @@ export default function AttachEntityButton({
           )}
           <button
             onClick={reset}
-            className="self-end text-sm text-gray-500 dark:text-gray-400 hover:underline"
+            className="self-end text-sm text-gray-500 hover:underline"
           >
             {tForm("cancel")}
           </button>

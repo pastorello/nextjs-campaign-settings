@@ -32,6 +32,16 @@ interface BaseButtonProps {
    * sort controls in every table header used to do (TD-15).
    */
   ariaLabel?: string | undefined;
+
+  /**
+   * Marks this as a toggle button (e.g. a filter chip) rather than a
+   * momentary action, so `aria-pressed` reflects `buttonState` — true for
+   * `ButtonState.Active`, false otherwise. Without it, a screen reader has no
+   * way to tell the chip is currently selected beyond its colour (TD-134).
+   * Plain action buttons (save, delete, ...) leave this unset, since
+   * `aria-pressed` would misdescribe them as toggles.
+   */
+  isToggle?: boolean;
 }
 
 // Small inline spinner for the loading state. Kept local and dependency-free
@@ -70,12 +80,14 @@ const BaseButton = ({
   to,
   buttonState = ButtonState.Default,
   ariaLabel,
+  isToggle = false,
 }: BaseButtonProps) => {
   const isLoading = buttonState === ButtonState.Loading;
   // The `disabled` prop and ButtonState.Disabled are two doors to the same
   // state; loading is non-interactive too. Reconcile them into one flag.
   const isDisabled = disabled || buttonState === ButtonState.Disabled;
   const isNonInteractive = isDisabled || isLoading;
+  const ariaPressed = isToggle ? buttonState === ButtonState.Active : undefined;
 
   const { sizeClasses, base, stateClasses } = getCSSClasses(
     variant,
@@ -128,6 +140,7 @@ const BaseButton = ({
         href={to}
         aria-label={ariaLabel}
         aria-disabled={isNonInteractive || undefined}
+        aria-pressed={ariaPressed}
         tabIndex={isNonInteractive ? -1 : undefined}
       >
         {theButton}
@@ -147,6 +160,7 @@ const BaseButton = ({
         onClick={submitAction}
         className={buttonClasses}
         aria-label={ariaLabel}
+        aria-pressed={ariaPressed}
         disabled={isNonInteractive}
       >
         {theButton}
@@ -158,6 +172,7 @@ const BaseButton = ({
         type="submit"
         className={buttonClasses}
         aria-label={ariaLabel}
+        aria-pressed={ariaPressed}
         disabled={isNonInteractive}
       >
         {theButton}

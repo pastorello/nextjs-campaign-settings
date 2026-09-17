@@ -112,6 +112,26 @@ describe("LootList (SPEC-013 T8)", () => {
     expect(refresh).toHaveBeenCalled();
   });
 
+  it("catches a thrown reorder failure instead of leaving it unhandled (TD-125)", async () => {
+    reorderLoot.mockRejectedValue(new Error("database unreachable"));
+    render(
+      <LootList
+        sceneId={1}
+        loot={[coin, cloak]}
+        currencyUnit="silver"
+        magicItemOptions={[]}
+        treasureOptions={[]}
+      />
+    );
+
+    fireEvent.click(screen.getAllByLabelText(/moveDown/)[0]!);
+
+    await waitFor(() =>
+      expect(notifyError).toHaveBeenCalledWith("common.reorder.failed")
+    );
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
   it("deletes a loot row after confirmation and refreshes", async () => {
     deleteLootById.mockResolvedValue(undefined);
     render(

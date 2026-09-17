@@ -7,8 +7,8 @@ import { z } from "zod";
 
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
-import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
+import validateAndReorder from "./validateAndReorder";
 
 const reorderSchema = z.object({
   campaignId: z.coerce.number().int().positive(),
@@ -23,8 +23,10 @@ const reorderSchema = z.object({
  * partially-applied state.
  *
  * `orderedIds` must be exactly the campaign's current adventures, no more,
- * no fewer — caught before the transaction runs, since a stale client list
- * silently repositioning the wrong set would be worse than rejecting it.
+ * no fewer, no duplicates — see `validateAndReorder` (TD-125) for the
+ * shared check, caught before the transaction runs since a stale client
+ * list silently repositioning the wrong set would be worse than rejecting
+ * it.
  */
 export default async function reorderAdventures(
   campaignId: number,
@@ -37,46 +39,23 @@ export default async function reorderAdventures(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  let existing;
-  try {
-    existing = await prisma.adventure.findMany({
-      where: { campaignId: parsed.data.campaignId },
-      select: { id: true },
-    });
-  } catch (error) {
-    throw toDatabaseError("looking up adventures for reordering", error);
-  }
-
-  const existingIds = new Set(existing.map((adventure) => adventure.id));
-  const givenIds = parsed.data.orderedIds;
-  const matchesLadder =
-    givenIds.length === existingIds.size &&
-    givenIds.every((id) => existingIds.has(id));
-
-  if (!matchesLadder) {
-    return {
-      ok: false,
-      errors: {
-        orderedIds: [
-          "The given adventures do not match this campaign's current ladder.",
-        ],
-      },
-    };
-  }
-
-  try {
-    await prisma.$transaction(
-      givenIds.map((id, index) =>
-        prisma.adventure.update({
-          where: { id },
-          data: { position: index + 1 },
+  const result = await validateAndReorder({
+    findExistingIds: async () =>
+      (
+        await prisma.adventure.findMany({
+          where: { campaignId: parsed.data.campaignId },
+          select: { id: true },
         })
-      )
-    );
-  } catch (error) {
-    throw toDatabaseError("reordering adventures", error);
-  }
+      ).map((adventure) => adventure.id),
+    buildPositionUpdate: (id, position) =>
+      prisma.adventure.update({ where: { id }, data: { position } }),
+    orderedIds: parsed.data.orderedIds,
+    mismatchMessage:
+      "The given adventures do not match this campaign's current ladder.",
+  });
 
-  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
-  return { ok: true };
+  if (result.ok) {
+    revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
+  }
+  return result;
 }

@@ -61,6 +61,18 @@ describe("reorderLoot (SPEC-013 T6)", () => {
     expect(transaction).not.toHaveBeenCalled();
   });
 
+  // Regression for TD-125: {1,2,3} existing, [1,1,2] given used to pass
+  // `length === size && every(has)` — row 3 was silently never
+  // repositioned and ended up sharing a position with row 1.
+  it("rejects a duplicate id even when the list length matches the loot count", async () => {
+    findMany.mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }]);
+
+    const result = await reorderLoot(12, [1, 1, 2]);
+
+    expect(result.ok).toBe(false);
+    expect(transaction).not.toHaveBeenCalled();
+  });
+
   it("rejects an empty id list, without writing", async () => {
     const result = await reorderLoot(12, []);
 

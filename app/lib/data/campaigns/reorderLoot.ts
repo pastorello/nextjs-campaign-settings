@@ -7,8 +7,8 @@ import { z } from "zod";
 
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
-import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
+import validateAndReorder from "./validateAndReorder";
 
 const reorderSchema = z.object({
   sceneId: z.coerce.number().int().positive(),
@@ -18,7 +18,8 @@ const reorderSchema = z.object({
 /**
  * Rewrites every loot row's `position` within a scene to match
  * `orderedIds`' order, 1-indexed. Same shape and reasoning as
- * `reorderSceneCreatures`.
+ * `reorderSceneCreatures` — see `validateAndReorder` (TD-125) for the
+ * shared logic.
  */
 export default async function reorderLoot(
   sceneId: number,
@@ -31,43 +32,23 @@ export default async function reorderLoot(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  let existing;
-  try {
-    existing = await prisma.loot.findMany({
-      where: { sceneId: parsed.data.sceneId },
-      select: { id: true },
-    });
-  } catch (error) {
-    throw toDatabaseError("looking up loot for reordering", error);
+  const result = await validateAndReorder({
+    findExistingIds: async () =>
+      (
+        await prisma.loot.findMany({
+          where: { sceneId: parsed.data.sceneId },
+          select: { id: true },
+        })
+      ).map((loot) => loot.id),
+    buildPositionUpdate: (id, position) =>
+      prisma.loot.update({ where: { id }, data: { position } }),
+    orderedIds: parsed.data.orderedIds,
+    mismatchMessage:
+      "The given loot rows do not match this scene's current loot list.",
+  });
+
+  if (result.ok) {
+    revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   }
-
-  const existingIds = new Set(existing.map((loot) => loot.id));
-  const givenIds = parsed.data.orderedIds;
-  const matchesLootList =
-    givenIds.length === existingIds.size &&
-    givenIds.every((id) => existingIds.has(id));
-
-  if (!matchesLootList) {
-    return {
-      ok: false,
-      errors: {
-        orderedIds: [
-          "The given loot rows do not match this scene's current loot list.",
-        ],
-      },
-    };
-  }
-
-  try {
-    await prisma.$transaction(
-      givenIds.map((id, index) =>
-        prisma.loot.update({ where: { id }, data: { position: index + 1 } })
-      )
-    );
-  } catch (error) {
-    throw toDatabaseError("reordering loot", error);
-  }
-
-  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
-  return { ok: true };
+  return result;
 }

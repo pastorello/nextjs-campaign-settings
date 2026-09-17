@@ -31,6 +31,11 @@ vi.mock("@/app/lib/data/maps/countUnpositionedPlaces", () => ({
   default: () => countUnpositionedPlaces(),
 }));
 
+const countBlockedUnpositionedPlaces = vi.fn<() => unknown>();
+vi.mock("@/app/lib/data/maps/countBlockedUnpositionedPlaces", () => ({
+  default: () => countBlockedUnpositionedPlaces(),
+}));
+
 const fetchPlaceAncestryChain = vi.fn<(id: number) => unknown>();
 vi.mock("@/app/lib/data/maps/fetchPlaceAncestryChain", () => ({
   default: (id: number) => fetchPlaceAncestryChain(id),
@@ -47,15 +52,18 @@ vi.mock("@/app/ui/geography/GeographyExplorer", () => ({
   default: ({
     root,
     unpositionedCount,
+    blockedUnpositionedCount,
     initialStack,
   }: {
     root: { title: string };
     unpositionedCount: number;
+    blockedUnpositionedCount?: number;
     initialStack?: { id: number; title: string }[];
   }) => (
     <div
       data-testid="geography-explorer"
       data-unpositioned={unpositionedCount}
+      data-blocked-unpositioned={blockedUnpositionedCount}
       data-initial-stack={
         initialStack ? initialStack.map((entry) => entry.title).join(">") : ""
       }
@@ -92,6 +100,7 @@ describe("dashboard geography Page (SPEC-004 M7)", () => {
     );
     // No tree to count on an empty installation (SPEC-007 §5 edge cases).
     expect(countUnpositionedPlaces).not.toHaveBeenCalled();
+    expect(countBlockedUnpositionedPlaces).not.toHaveBeenCalled();
   });
 
   it("renders the tree explorer once a root exists, with the unpositioned count", async () => {
@@ -104,6 +113,9 @@ describe("dashboard geography Page (SPEC-004 M7)", () => {
       mapInitialZoom: null,
     });
     countUnpositionedPlaces.mockResolvedValue(42);
+    // TD-79 — of the 42 above, how many are blocked on a parent's missing
+    // map rather than simply not yet drawn.
+    countBlockedUnpositionedPlaces.mockResolvedValue(5);
 
     render(
       await GeographyPage({
@@ -118,6 +130,10 @@ describe("dashboard geography Page (SPEC-004 M7)", () => {
     expect(screen.getByTestId("geography-explorer")).toHaveAttribute(
       "data-unpositioned",
       "42"
+    );
+    expect(screen.getByTestId("geography-explorer")).toHaveAttribute(
+      "data-blocked-unpositioned",
+      "5"
     );
   });
 });
@@ -135,6 +151,7 @@ describe("dashboard geography Page — ?place= landing (SPEC-011 T4)", () => {
   beforeEach(() => {
     fetchRootPlace.mockResolvedValue(root);
     countUnpositionedPlaces.mockResolvedValue(42);
+    countBlockedUnpositionedPlaces.mockResolvedValue(0);
     fetchPlaceAncestryChain.mockReset();
   });
 

@@ -9,6 +9,7 @@ import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema
 import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 /**
  * Updates the DM's campaign — title, synopsis, party size. Outside the
@@ -30,10 +31,14 @@ export default async function updateCampaign(
   // the one assertion that narrows it back.
   const { id, ...data } = parsed.data as Partial<Campaign> & { id: number };
 
-  await prisma.campaign.update({
-    where: { id },
-    data,
-  });
+  try {
+    await prisma.campaign.update({
+      where: { id },
+      data,
+    });
+  } catch (error) {
+    throw toDatabaseError("updating campaign", error);
+  }
 
   revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };

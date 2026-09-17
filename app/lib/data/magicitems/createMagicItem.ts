@@ -7,6 +7,7 @@ import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildCreateSchema } from "../validation/buildEntitySchema";
 import MagicItem from "@/app/lib/definitions/interfaces/magicitem/MagicItem";
 import { revalidatePath } from "next/cache";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 export default async function createMagicItem(
   formData: MagicItem
@@ -24,16 +25,20 @@ export default async function createMagicItem(
   const { name, description, type, rarity, attuned, consumable } =
     parsed.data as Omit<MagicItem, "id">;
 
-  await prisma.magicitems.create({
-    data: {
-      name,
-      description,
-      type,
-      rarity,
-      attuned,
-      consumable,
-    },
-  });
+  try {
+    await prisma.magicitems.create({
+      data: {
+        name,
+        description,
+        type,
+        rarity,
+        attuned,
+        consumable,
+      },
+    });
+  } catch (error) {
+    throw toDatabaseError("creating magic item", error);
+  }
 
   revalidatePath("/magicitems");
   return { ok: true };

@@ -4,12 +4,12 @@ import { FormEvent, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { useRouter } from "@/i18n/navigation";
+import useMutationSubmit from "@/app/lib/hooks/useMutationSubmit";
 import createLoot from "@/app/lib/data/campaigns/createLoot";
 import updateLoot from "@/app/lib/data/campaigns/updateLoot";
 import lootMeta from "@/app/lib/config/campaigns/lootMeta";
 import LootMetaField from "@/app/lib/definitions/enums/campaign/LootMetaField";
 import Loot from "@/app/lib/definitions/interfaces/campaign/Loot";
-import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import {
   CurrencyUnit,
   toDisplayAmount,
@@ -71,10 +71,7 @@ export default function LootForm({
   const [treasureId, setTreasureId] = useState<number>(
     loot?.treasureId ?? NONE
   );
-  const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
-    {}
-  );
-  const [isSaving, setIsSaving] = useState(false);
+  const { errors, isSaving, submit } = useMutationSubmit();
 
   const magicItemSelectOptions = [
     { value: NONE, label: t("loot.fields.magicItemId.noneOption") },
@@ -87,8 +84,6 @@ export default function LootForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsSaving(true);
-
     const parsedValue = value.trim() === "" ? null : Number(value);
 
     const payload = {
@@ -102,18 +97,11 @@ export default function LootForm({
       treasureId: treasureId === NONE ? null : treasureId,
     } as Loot;
 
-    const result: MutationResult = isEditMode
-      ? await updateLoot(payload)
-      : await createLoot(payload);
+    const saved = await submit(() =>
+      isEditMode ? updateLoot(payload) : createLoot(payload)
+    );
+    if (!saved) return;
 
-    setIsSaving(false);
-
-    if (!result.ok) {
-      setErrors(result.errors);
-      return;
-    }
-
-    setErrors({});
     router.refresh();
     onSaved();
   }

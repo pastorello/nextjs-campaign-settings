@@ -7,6 +7,7 @@ import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildCreateSchema } from "../validation/buildEntitySchema";
 import Faction from "@/app/lib/definitions/interfaces/faction/Faction";
 import { revalidatePath } from "next/cache";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 export default async function createFaction(
   formData: Faction
@@ -23,12 +24,16 @@ export default async function createFaction(
   // its output type is widened; this assertion narrows it back.
   const { name, description } = parsed.data as Omit<Faction, "id">;
 
-  await prisma.faction.create({
-    data: {
-      name,
-      description,
-    },
-  });
+  try {
+    await prisma.faction.create({
+      data: {
+        name,
+        description,
+      },
+    });
+  } catch (error) {
+    throw toDatabaseError("creating faction", error);
+  }
 
   revalidatePath("/factions");
   return { ok: true };

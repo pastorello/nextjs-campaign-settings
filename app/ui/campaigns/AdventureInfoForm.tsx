@@ -4,12 +4,12 @@ import { FormEvent, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { useRouter } from "@/i18n/navigation";
+import useMutationSubmit from "@/app/lib/hooks/useMutationSubmit";
 import updateAdventure from "@/app/lib/data/campaigns/updateAdventure";
 import adventureMeta from "@/app/lib/config/campaigns/adventureMeta";
 import currencyUnits from "@/app/lib/config/campaigns/currency-units";
 import AdventureMetaField from "@/app/lib/definitions/enums/campaign/AdventureMetaField";
 import Adventure from "@/app/lib/definitions/interfaces/campaign/Adventure";
-import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import {
   CurrencyUnit,
   toDisplayAmount,
@@ -83,15 +83,10 @@ export default function AdventureInfoForm({
       ? ""
       : String(adventure.consumableTarget)
   );
-  const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
-    {}
-  );
-  const [isSaving, setIsSaving] = useState(false);
+  const { errors, isSaving, submit } = useMutationSubmit();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsSaving(true);
-
     const payload = {
       id: adventure.id,
       title,
@@ -107,15 +102,9 @@ export default function AdventureInfoForm({
         consumableTarget.trim() === "" ? null : Number(consumableTarget),
     } as Adventure;
 
-    const result: MutationResult = await updateAdventure(payload);
-    setIsSaving(false);
+    const saved = await submit(() => updateAdventure(payload));
+    if (!saved) return;
 
-    if (!result.ok) {
-      setErrors(result.errors);
-      return;
-    }
-
-    setErrors({});
     router.refresh();
     onSaved();
   }

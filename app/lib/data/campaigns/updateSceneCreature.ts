@@ -9,6 +9,7 @@ import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema
 import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 /**
  * Updates a creature row's own fields, including its position. Written
@@ -33,10 +34,14 @@ export default async function updateSceneCreature(
     id: number;
   };
 
-  await prisma.sceneCreature.update({
-    where: { id },
-    data,
-  });
+  try {
+    await prisma.sceneCreature.update({
+      where: { id },
+      data,
+    });
+  } catch (error) {
+    throw toDatabaseError("updating scene creature", error);
+  }
 
   revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };

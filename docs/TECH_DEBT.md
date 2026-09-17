@@ -1314,7 +1314,7 @@ the call. The four actions are near-copies of each other, as are the four
 that also rejects duplicate ids, a reorder-specific error message, and possibly
 a unique index on position.
 
-### TD-126 — Campaign forms stay on "saving" if a save throws, and most actions don't wrap database errors
+### TD-126 ✅ Campaign forms stay on "saving" if a save throws, and most actions don't wrap database errors — **DONE (2026-09-17)**
 
 **Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-17, tech-debt audit
 
@@ -1329,6 +1329,16 @@ database or session error throws unwrapped, the client doesn't catch it, and
 the user sees nothing. **The fix, in shape:** one shared submit hook with
 try/finally and an error toast for the six forms, and `toDatabaseError` in the
 actions. **Related:** TD-10, TD-13.
+
+**Resolution:** new `app/lib/hooks/useMutationSubmit.ts` owns the saving
+flag, the returned field errors and a `submit` with try/finally; a thrown
+action logs to the console and shows `common.form.saveFailed` (added to both
+catalogues). The six campaign forms use it and refresh only when it resolves
+`true`. The 20 create/update actions that lacked it (campaigns, spells,
+deities, magic items, factions, treasure) now wrap their Prisma write with
+`toDatabaseError`. Tests: the hook, a thrown-save regression in `SceneForm`,
+and a `DatabaseError` case in six action tests. The geography panels keep
+their own handling, deliberately.
 
 ### TD-127 — `WorldMap.tsx` is 1,329 lines and handles eight concerns
 

@@ -4,12 +4,12 @@ import { FormEvent, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { useRouter } from "@/i18n/navigation";
+import useMutationSubmit from "@/app/lib/hooks/useMutationSubmit";
 import createCampaign from "@/app/lib/data/campaigns/createCampaign";
 import updateCampaign from "@/app/lib/data/campaigns/updateCampaign";
 import campaignMeta from "@/app/lib/config/campaigns/campaignMeta";
 import CampaignMetaField from "@/app/lib/definitions/enums/campaign/CampaignMetaField";
 import Campaign from "@/app/lib/definitions/interfaces/campaign/Campaign";
-import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import TextInput from "@/app/ui/forms/inputs/TextInput";
 import TextareaInput from "@/app/ui/forms/inputs/TextareaInput";
 import BespokeFormErrorSummary from "@/app/ui/forms/BespokeFormErrorSummary";
@@ -51,15 +51,10 @@ export default function CampaignForm({
         campaignMeta[CampaignMetaField.partySize].defaultValue
     )
   );
-  const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
-    {}
-  );
-  const [isSaving, setIsSaving] = useState(false);
+  const { errors, isSaving, submit } = useMutationSubmit();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsSaving(true);
-
     const payload = {
       ...(isEditMode ? { id: campaign.id } : {}),
       title,
@@ -67,18 +62,11 @@ export default function CampaignForm({
       partySize: Number(partySize),
     } as Campaign;
 
-    const result: MutationResult = isEditMode
-      ? await updateCampaign(payload)
-      : await createCampaign(payload);
+    const saved = await submit(() =>
+      isEditMode ? updateCampaign(payload) : createCampaign(payload)
+    );
+    if (!saved) return;
 
-    setIsSaving(false);
-
-    if (!result.ok) {
-      setErrors(result.errors);
-      return;
-    }
-
-    setErrors({});
     router.refresh();
     onSaved?.();
   }

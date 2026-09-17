@@ -10,6 +10,7 @@ import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 import { z } from "zod";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 /**
  * Adds a scene to an adventure (SPEC-013 §5). `adventureId` is deliberately
@@ -44,18 +45,22 @@ export default async function createScene(
     zoneId,
   } = parsed.data as Omit<Scene, "id">;
 
-  await prisma.scene.create({
-    data: {
-      adventureId,
-      position,
-      kind,
-      title,
-      description,
-      xpAward,
-      grantsHeroPoint,
-      zoneId,
-    },
-  });
+  try {
+    await prisma.scene.create({
+      data: {
+        adventureId,
+        position,
+        kind,
+        title,
+        description,
+        xpAward,
+        grantsHeroPoint,
+        zoneId,
+      },
+    });
+  } catch (error) {
+    throw toDatabaseError("creating scene", error);
+  }
 
   revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };

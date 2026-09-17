@@ -7,6 +7,7 @@ import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildUpdateSchema } from "../validation/buildEntitySchema";
 import { revalidatePath } from "next/cache";
 import Faction from "../../definitions/interfaces/faction/Faction";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 export default async function updateFaction(
   formData: Faction
@@ -24,10 +25,14 @@ export default async function updateFaction(
   // the one assertion that narrows it back.
   const { id, ...data } = parsed.data as Partial<Faction> & { id: number };
 
-  await prisma.faction.update({
-    where: { id },
-    data,
-  });
+  try {
+    await prisma.faction.update({
+      where: { id },
+      data,
+    });
+  } catch (error) {
+    throw toDatabaseError("updating faction", error);
+  }
 
   revalidatePath("/factions");
   return { ok: true };

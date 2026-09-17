@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { useRouter } from "@/i18n/navigation";
+import useMutationSubmit from "@/app/lib/hooks/useMutationSubmit";
 import createScene from "@/app/lib/data/campaigns/createScene";
 import updateScene from "@/app/lib/data/campaigns/updateScene";
 import sceneMeta from "@/app/lib/config/campaigns/sceneMeta";
@@ -11,7 +12,6 @@ import sceneKinds from "@/app/lib/config/campaigns/scene-kinds";
 import SceneMetaField from "@/app/lib/definitions/enums/campaign/SceneMetaField";
 import SceneKind from "@/app/lib/definitions/enums/campaign/SceneKind";
 import Scene from "@/app/lib/definitions/interfaces/campaign/Scene";
-import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { ResolvedOption } from "@/app/lib/definitions/types/SelectOption";
 import resolveOptions from "@/app/lib/utils/data/resolveOptions";
 import TextInput from "@/app/ui/forms/inputs/TextInput";
@@ -70,10 +70,7 @@ export default function SceneForm({
     scene?.grantsHeroPoint ?? false
   );
   const [zoneId, setZoneId] = useState<number>(scene?.zoneId ?? NONE);
-  const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
-    {}
-  );
-  const [isSaving, setIsSaving] = useState(false);
+  const { errors, isSaving, submit } = useMutationSubmit();
 
   const zoneSelectOptions = [
     { value: NONE, label: t("scene.fields.zoneId.noneOption") },
@@ -82,8 +79,6 @@ export default function SceneForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsSaving(true);
-
     const payload = {
       ...(isEditMode ? { id: scene.id } : { adventureId }),
       position: isEditMode ? scene.position : nextPosition,
@@ -95,18 +90,11 @@ export default function SceneForm({
       zoneId: zoneId === NONE ? null : zoneId,
     } as Scene;
 
-    const result: MutationResult = isEditMode
-      ? await updateScene(payload)
-      : await createScene(payload);
+    const saved = await submit(() =>
+      isEditMode ? updateScene(payload) : createScene(payload)
+    );
+    if (!saved) return;
 
-    setIsSaving(false);
-
-    if (!result.ok) {
-      setErrors(result.errors);
-      return;
-    }
-
-    setErrors({});
     router.refresh();
     onSaved();
   }

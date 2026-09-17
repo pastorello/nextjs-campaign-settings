@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
 import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import DatabaseError from "@/app/lib/errors/DatabaseError";
 import validDeityFixture from "./validDeityFixture";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
@@ -92,5 +93,14 @@ describe("updateDeity (TD-80)", () => {
       where: { id: 42 },
       data: { name: "Renamed" },
     });
+  });
+
+  // TD-126: a failed write surfaces as a DatabaseError, not a raw Prisma one.
+  it("wraps a write failure in a DatabaseError", async () => {
+    update.mockRejectedValue(new Error("connection lost"));
+
+    await expect(updateDeity(validFormData)).rejects.toBeInstanceOf(
+      DatabaseError
+    );
   });
 });

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
 import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import DatabaseError from "@/app/lib/errors/DatabaseError";
 import Treasure from "@/app/lib/definitions/interfaces/treasure/Treasure";
 import firstOptionValue from "@/app/lib/config/firstOptionValue";
 import treasureCategories from "@/app/lib/config/treasure/treasure-categories";
@@ -119,5 +120,14 @@ describe("createTreasure (SPEC-013 T4b)", () => {
         value: null,
       },
     });
+  });
+
+  // TD-126: a failed write surfaces as a DatabaseError, not a raw Prisma one.
+  it("wraps a write failure in a DatabaseError", async () => {
+    create.mockRejectedValue(new Error("connection lost"));
+
+    await expect(createTreasure(validFormData)).rejects.toBeInstanceOf(
+      DatabaseError
+    );
   });
 });

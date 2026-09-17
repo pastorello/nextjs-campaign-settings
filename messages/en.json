@@ -64,7 +64,8 @@
       "saving": "Saving",
       "delete": "Delete",
       "deleting": "Deleting",
-      "errorPrefix": "Error: {message}"
+      "errorPrefix": "Error: {message}",
+      "saveFailed": "Saving failed. Try again."
     },
     "location": {
       "unknown": "Unknown"

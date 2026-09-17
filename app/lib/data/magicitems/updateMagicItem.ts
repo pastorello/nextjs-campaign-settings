@@ -7,6 +7,7 @@ import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildUpdateSchema } from "../validation/buildEntitySchema";
 import { revalidatePath } from "next/cache";
 import MagicItem from "../../definitions/interfaces/magicitem/MagicItem";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 export default async function updateMagicItem(
   formData: MagicItem
@@ -24,10 +25,14 @@ export default async function updateMagicItem(
   // the one assertion that narrows it back.
   const { id, ...data } = parsed.data as Partial<MagicItem> & { id: number };
 
-  await prisma.magicitems.update({
-    where: { id },
-    data,
-  });
+  try {
+    await prisma.magicitems.update({
+      where: { id },
+      data,
+    });
+  } catch (error) {
+    throw toDatabaseError("updating magic item", error);
+  }
 
   revalidatePath("/magicitems");
   return { ok: true };

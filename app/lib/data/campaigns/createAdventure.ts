@@ -10,6 +10,7 @@ import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 import { z } from "zod";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 /**
  * Creates an adventure on the campaign's ladder, or standalone when
@@ -50,22 +51,26 @@ export default async function createAdventure(
     consumableTarget,
   } = parsed.data as Omit<Adventure, "id">;
 
-  await prisma.adventure.create({
-    data: {
-      campaignId,
-      position,
-      targetLevel,
-      title,
-      synopsis,
-      timeline,
-      status,
-      xpTarget,
-      currencyTarget,
-      currencyUnit,
-      permanentItemTarget,
-      consumableTarget,
-    },
-  });
+  try {
+    await prisma.adventure.create({
+      data: {
+        campaignId,
+        position,
+        targetLevel,
+        title,
+        synopsis,
+        timeline,
+        status,
+        xpTarget,
+        currencyTarget,
+        currencyUnit,
+        permanentItemTarget,
+        consumableTarget,
+      },
+    });
+  } catch (error) {
+    throw toDatabaseError("creating adventure", error);
+  }
 
   revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };

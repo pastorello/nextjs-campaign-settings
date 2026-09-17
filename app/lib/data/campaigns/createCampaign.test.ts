@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
 import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import DatabaseError from "@/app/lib/errors/DatabaseError";
 import Campaign from "@/app/lib/definitions/interfaces/campaign/Campaign";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
@@ -63,5 +64,14 @@ describe("createCampaign (SPEC-013 T6)", () => {
 
     expect(result.ok).toBe(false);
     expect(create).not.toHaveBeenCalled();
+  });
+
+  // TD-126: a failed write surfaces as a DatabaseError, not a raw Prisma one.
+  it("wraps a write failure in a DatabaseError", async () => {
+    create.mockRejectedValue(new Error("connection lost"));
+
+    await expect(createCampaign(validFormData)).rejects.toBeInstanceOf(
+      DatabaseError
+    );
   });
 });

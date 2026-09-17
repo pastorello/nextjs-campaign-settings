@@ -8,6 +8,7 @@ import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildUpdateSchema } from "../validation/buildEntitySchema";
 
 import Deity from "../../definitions/interfaces/deities/Deity";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 export default async function updateDeity(
   formData: Deity
@@ -25,10 +26,14 @@ export default async function updateDeity(
   // the one assertion that narrows it back.
   const { id, ...data } = parsed.data as Partial<Deity> & { id: number };
 
-  await prisma.deities.update({
-    where: { id },
-    data,
-  });
+  try {
+    await prisma.deities.update({
+      where: { id },
+      data,
+    });
+  } catch (error) {
+    throw toDatabaseError("updating deity", error);
+  }
 
   revalidatePath("/deities");
   return { ok: true };

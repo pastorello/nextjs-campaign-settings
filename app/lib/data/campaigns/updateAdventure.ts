@@ -10,6 +10,7 @@ import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 import { z } from "zod";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 /**
  * Updates an adventure's own fields, including its position — the direct,
@@ -38,10 +39,14 @@ export default async function updateAdventure(
   // the one assertion that narrows it back.
   const { id, ...data } = parsed.data as Partial<Adventure> & { id: number };
 
-  await prisma.adventure.update({
-    where: { id },
-    data,
-  });
+  try {
+    await prisma.adventure.update({
+      where: { id },
+      data,
+    });
+  } catch (error) {
+    throw toDatabaseError("updating adventure", error);
+  }
 
   revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };

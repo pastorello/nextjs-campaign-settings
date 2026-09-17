@@ -35,7 +35,7 @@ export const ListPage = async ({
       <PageTitle>{title}</PageTitle>
       <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
         <Search placeholder={searchPlaceholder} />
-        <div className="flex shrink-0">
+        <div className="flex shrink-0" role="status">
           {t("count", {
             filtered: itemCount.filtered,
             total: itemCount.total,

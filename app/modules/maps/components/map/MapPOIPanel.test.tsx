@@ -241,7 +241,7 @@ describe("MapPOIPanel — add/edit form", () => {
     render(<MapPOIPanel {...props} />);
 
     fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
-    fireEvent.click(screen.getByText("Save"));
+    fireEvent.click(screen.getByText("geography.poiPanel.save.save"));
 
     expect(toast.error).toHaveBeenCalledWith(
       "geography.poiPanel.errors.titleRequired"
@@ -260,7 +260,7 @@ describe("MapPOIPanel — add/edit form", () => {
         target: { value: "New Place" },
       }
     );
-    fireEvent.click(screen.getByText("Save"));
+    fireEvent.click(screen.getByText("geography.poiPanel.save.save"));
 
     expect(toast.error).toHaveBeenCalledWith(
       "geography.poiPanel.errors.coordinatesRequired"
@@ -285,7 +285,7 @@ describe("MapPOIPanel — add/edit form", () => {
       screen.getByDisplayValue("🍽️ geography.poiCategories.foodDrink"),
       { target: { value: "tourism" } }
     );
-    fireEvent.click(screen.getByText("Save"));
+    fireEvent.click(screen.getByText("geography.poiPanel.save.save"));
 
     expect(props.onAddPOI).toHaveBeenCalledWith(
       "New Place",
@@ -312,7 +312,7 @@ describe("MapPOIPanel — add/edit form", () => {
         target: { value: "New Place" },
       }
     );
-    fireEvent.click(screen.getByText("Save"));
+    fireEvent.click(screen.getByText("geography.poiPanel.save.save"));
 
     expect(
       screen.getByText("geography.poiPanel.emptyState.title")
@@ -337,7 +337,7 @@ describe("MapPOIPanel — add/edit form", () => {
     fireEvent.change(screen.getByDisplayValue("Skreebars Market"), {
       target: { value: "Renamed Market" },
     });
-    fireEvent.click(screen.getByText("Update"));
+    fireEvent.click(screen.getByText("geography.poiPanel.save.update"));
 
     expect(props.onUpdatePOI).toHaveBeenCalledWith(
       "poi-1",
@@ -359,7 +359,7 @@ describe("MapPOIPanel — add/edit form", () => {
         target: { value: "Abandoned" },
       }
     );
-    fireEvent.click(screen.getByText("Back"));
+    fireEvent.click(screen.getByText("geography.poiPanel.back"));
 
     expect(
       screen.getByText("geography.poiPanel.emptyState.title")
@@ -405,7 +405,7 @@ describe("MapPOIPanel — externally requested edit (SPEC-016 T7)", () => {
     fireEvent.change(screen.getByDisplayValue("Skreebars Market"), {
       target: { value: "Renamed Market" },
     });
-    fireEvent.click(screen.getByText("Update"));
+    fireEvent.click(screen.getByText("geography.poiPanel.save.update"));
 
     expect(props.onUpdatePOI).toHaveBeenCalledWith(
       "poi-1",
@@ -447,7 +447,10 @@ describe("MapPOIPanel — externally requested edit (SPEC-016 T7)", () => {
 
 describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
   function kindSelect() {
-    return screen.getByText("Kind").closest("div")!.querySelector("select")!;
+    return screen
+      .getByText("geography.poiPanel.fields.kind")
+      .closest("div")!
+      .querySelector("select")!;
   }
 
   it("defaults to poi, with category visible", () => {
@@ -455,7 +458,9 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
     fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
 
     expect(kindSelect()).toHaveValue("poi");
-    expect(screen.getByText("Category")).toBeInTheDocument();
+    expect(
+      screen.getByText("geography.poiPanel.fields.category")
+    ).toBeInTheDocument();
   });
 
   it("switching to region hides category and shows the map image field", () => {
@@ -464,8 +469,12 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
 
     fireEvent.change(kindSelect(), { target: { value: "region" } });
 
-    expect(screen.queryByText("Category")).not.toBeInTheDocument();
-    expect(screen.getByText("Map image")).toBeInTheDocument();
+    expect(
+      screen.queryByText("geography.poiPanel.fields.category")
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText("geography.poiPanel.fields.mapImage")
+    ).toBeInTheDocument();
   });
 
   it("lists the T2 navigable kinds alongside region", () => {
@@ -486,8 +495,12 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
 
     fireEvent.change(kindSelect(), { target: { value: "city" } });
 
-    expect(screen.queryByText("Category")).not.toBeInTheDocument();
-    expect(screen.getByText("Map image")).toBeInTheDocument();
+    expect(
+      screen.queryByText("geography.poiPanel.fields.category")
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText("geography.poiPanel.fields.mapImage")
+    ).toBeInTheDocument();
   });
 
   it("no longer offers deity/npc as a creatable kind (SPEC-008 T5)", () => {
@@ -512,7 +525,7 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
         target: { value: "Kingdom of Kang" },
       }
     );
-    fireEvent.click(screen.getByText("Save"));
+    fireEvent.click(screen.getByText("geography.poiPanel.save.save"));
 
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
@@ -543,10 +556,13 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
     );
     const file = new File(["bytes"], "kang.png", { type: "image/png" });
     fireEvent.change(
-      screen.getByText("Map image").closest("div")!.querySelector("input")!,
+      screen
+        .getByText("geography.poiPanel.fields.mapImage")
+        .closest("div")!
+        .querySelector("input")!,
       { target: { files: [file] } }
     );
-    fireEvent.click(screen.getByText("Save"));
+    fireEvent.click(screen.getByText("geography.poiPanel.save.save"));
 
     await waitFor(() => expect(props.onAddPlace).toHaveBeenCalled());
     expect(fetch).toHaveBeenCalledWith(
@@ -592,10 +608,13 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
     );
     const file = new File(["bytes"], "nod.png", { type: "image/png" });
     fireEvent.change(
-      screen.getByText("Map image").closest("div")!.querySelector("input")!,
+      screen
+        .getByText("geography.poiPanel.fields.mapImage")
+        .closest("div")!
+        .querySelector("input")!,
       { target: { files: [file] } }
     );
-    fireEvent.click(screen.getByText("Save"));
+    fireEvent.click(screen.getByText("geography.poiPanel.save.save"));
 
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
@@ -613,7 +632,9 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
     fireEvent.mouseEnter(row);
     fireEvent.click(screen.getByTitle("geography.poiPanel.item.edit"));
 
-    expect(screen.queryByText("Kind")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("geography.poiPanel.fields.kind")
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -624,7 +645,10 @@ describe("MapPOIPanel — draw-an-area flow (SPEC-009 T2)", () => {
   ];
 
   function kindSelect() {
-    return screen.getByText("Kind").closest("div")!.querySelector("select")!;
+    return screen
+      .getByText("geography.poiPanel.fields.kind")
+      .closest("div")!
+      .querySelector("select")!;
   }
 
   it("restricts the kind selector to the navigable kinds", () => {
@@ -655,7 +679,7 @@ describe("MapPOIPanel — draw-an-area flow (SPEC-009 T2)", () => {
 
     expect(screen.getByText("5.0000, 10.0000")).toBeInTheDocument();
     expect(
-      screen.queryByText("Click to select location on map")
+      screen.queryByText("geography.poiPanel.selectLocation.prompt")
     ).not.toBeInTheDocument();
   });
 
@@ -685,10 +709,13 @@ describe("MapPOIPanel — draw-an-area flow (SPEC-009 T2)", () => {
     );
     const file = new File(["bytes"], "kang.png", { type: "image/png" });
     fireEvent.change(
-      screen.getByText("Map image").closest("div")!.querySelector("input")!,
+      screen
+        .getByText("geography.poiPanel.fields.mapImage")
+        .closest("div")!
+        .querySelector("input")!,
       { target: { files: [file] } }
     );
-    fireEvent.click(screen.getByText("Save"));
+    fireEvent.click(screen.getByText("geography.poiPanel.save.save"));
 
     await waitFor(() => expect(props.onAddPlace).toHaveBeenCalled());
     expect(props.onAddPlace).toHaveBeenCalledWith({
@@ -727,10 +754,13 @@ describe("MapPOIPanel — draw-an-area flow (SPEC-009 T2)", () => {
     );
     const file = new File(["bytes"], "kang.png", { type: "image/png" });
     fireEvent.change(
-      screen.getByText("Map image").closest("div")!.querySelector("input")!,
+      screen
+        .getByText("geography.poiPanel.fields.mapImage")
+        .closest("div")!
+        .querySelector("input")!,
       { target: { files: [file] } }
     );
-    fireEvent.click(screen.getByText("Save"));
+    fireEvent.click(screen.getByText("geography.poiPanel.save.save"));
 
     await waitFor(() => expect(props.onFootprintConsumed).toHaveBeenCalled());
   });
@@ -746,7 +776,7 @@ describe("MapPOIPanel — draw-an-area flow (SPEC-009 T2)", () => {
       />
     );
 
-    fireEvent.click(screen.getByText("Back"));
+    fireEvent.click(screen.getByText("geography.poiPanel.back"));
 
     expect(props.onFootprintConsumed).toHaveBeenCalled();
   });

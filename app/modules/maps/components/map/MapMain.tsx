@@ -16,8 +16,11 @@ import { useMapTileProvider } from "@/app/modules/maps/hooks/useMapTileProvider"
 import { useMapContextMenu } from "@/app/modules/maps/hooks/useMapContextMenu";
 import { useMapMarkers } from "@/app/modules/maps/hooks/useMapMarkers";
 import { usePOIManager } from "@/app/modules/maps/hooks/usePOIManager";
-import type { POICategory, POIGeoJSON } from "@/app/modules/maps/types/poi";
-import { poiGeoJSONSchema } from "@/app/modules/maps/types/poiSchema";
+import type { POICategory } from "@/app/modules/maps/types/poi";
+import {
+  downloadPOIGeoJSON,
+  readPOIGeoJSONFile,
+} from "@/app/modules/maps/lib/utils/poiGeoJSONFile";
 
 // Memoized style object to prevent unnecessary re-renders
 const GEOJSON_STYLE = {
@@ -174,32 +177,13 @@ export function MapMain() {
   );
 
   const handlePOIExport = useCallback(() => {
-    const geojson = exportGeoJSON();
-    const blob = new Blob([JSON.stringify(geojson, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `my-places-${Date.now()}.geojson`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadPOIGeoJSON(exportGeoJSON());
   }, [exportGeoJSON]);
 
   const handlePOIImport = useCallback(
     async (file: File) => {
       try {
-        const text = await file.text();
-        const parsed = poiGeoJSONSchema.safeParse(JSON.parse(text));
-
-        if (!parsed.success) {
-          throw new Error(`Invalid GeoJSON: ${parsed.error.message}`);
-        }
-
-        // `id` / `createdAt` / `updatedAt` are optional in the schema —
-        // importGeoJSON already fills them in when absent — but POIGeoJSON
-        // declares them required, matching the app's own export.
-        const count = importGeoJSON(parsed.data as POIGeoJSON);
+        const count = importGeoJSON(await readPOIGeoJSONFile(file));
         toast.success(
           `Successfully imported ${count} place${count !== 1 ? "s" : ""}!`
         );

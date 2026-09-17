@@ -710,7 +710,8 @@
   "world": {
     "page": {
       "title": "Create your world",
-      "exists": "Your world, “{title}”, already exists."
+      "exists": "Your world, “{title}”, already exists.",
+      "viewMapLink": "Go to the map"
     },
     "form": {
       "nameLabel": "World name",

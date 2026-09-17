@@ -1205,7 +1205,7 @@ or ghost variant, danger colour on hover only); public rows get a wider name
 column and a smaller place label. Unifying the public and admin _layouts_ is a
 design-system spec question, not this item.
 
-### TD-119 — `/world` is a dead end once the world exists
+### TD-119 ✅ `/world` is a dead end once the world exists — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, design critique
 
@@ -1214,7 +1214,13 @@ esiste già.» and nothing else: no link to the map (`/geography`), where the
 world actually is. **Fix:** link to `/geography` from that message, or redirect
 there, since the page has nothing else to do once the world exists.
 
-### TD-120 — Form layout: tiny all-caps labels, short description boxes, and "Reset Filtri" in the Italian UI
+**Resolution:** Added a "Vai alla mappa" / "Go to the map"
+(`world.page.viewMapLink`, both catalogues) link next to the "already exists"
+message, using the same `Link` + `dashboardPath` + `isGameSystem`/`notFound`
+pattern `geography/page.tsx` already uses for its reverse link. Nothing left
+undone.
+
+### TD-120 ✅ Form layout: tiny all-caps labels, short description boxes, and "Reset Filtri" in the Italian UI — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, design critique
 

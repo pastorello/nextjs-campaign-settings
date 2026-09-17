@@ -710,7 +710,8 @@
   "world": {
     "page": {
       "title": "Crea il tuo mondo",
-      "exists": "Il tuo mondo, «{title}», esiste già."
+      "exists": "Il tuo mondo, «{title}», esiste già.",
+      "viewMapLink": "Vai alla mappa"
     },
     "form": {
       "nameLabel": "Nome del mondo",

@@ -1457,7 +1457,7 @@ before any click; give markers `tabIndex=0` and an Enter/Space handler that
 opens the same popover a click does. Because this touches SPEC-level
 interaction, it may need a short spec. **Related:** TD-15, TD-123.
 
-### TD-134 — Filter chips don't expose their pressed state
+### TD-134 ✅ Filter chips don't expose their pressed state — **DONE (2026-09-17)**
 
 **Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-17, accessibility review (WCAG 4.1.2)
 
@@ -1468,7 +1468,17 @@ On `/spells`, an active class or level chip only gains `bg-violet-700`;
 `aria-pressed={buttonState === ButtonState.Active}` on toggle-style buttons,
 with a unit test.
 
-### TD-135 — Result counts change without being announced
+**Resolution:** Added an `isToggle` prop to `BaseButton` — when set,
+`aria-pressed` reflects `buttonState === ButtonState.Active` (true/false, on
+every render branch: link, onClick button, submit button); when unset (the
+default), no `aria-pressed` is rendered at all, so plain action buttons
+(save, delete, ...) are unaffected even when their own `buttonState` happens
+to be `Default`. `SelectButtonery`'s two chip usages (the "all" button and
+each option) now pass `isToggle`. Unit tests in
+`app/ui/buttons/BaseButton/index.test.tsx` (new) and an addition to
+`SelectButtonery.test.tsx`.
+
+### TD-135 ✅ Result counts change without being announced — **DONE (2026-09-17)**
 
 **Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-17, accessibility review (WCAG 4.1.3)
 
@@ -1478,7 +1488,14 @@ Typing in search (`app/ui/search.tsx:15-25`) re-renders
 applies to the list pages' "361 di 361 incantesimi trovati" counter.
 **The fix, in shape:** put the count in a `role="status"` element.
 
-### TD-136 — Admin row buttons all announce as "Modifica" / "Elimina"
+**Resolution:** Wrapped just the numeric count inside each search group's
+`<h2>` in a `<span role="status">`, so a screen reader announces the changed
+number without re-announcing the whole heading. `ListPage.tsx`'s "N of M
+found" counter div now carries `role="status"` directly (it holds nothing
+but the count). Unit tests added to `CrossEntitySearchResults.test.tsx` and
+a new `ListPage.test.tsx` (the component had none before).
+
+### TD-136 ✅ Admin row buttons all announce as "Modifica" / "Elimina" — **DONE (2026-09-17)**
 
 **Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-17, accessibility review (WCAG 2.4.6, 4.1.2)
 
@@ -1489,7 +1506,22 @@ row reads the same. **The fix, in shape:** add an `aria-label` carrying the
 item's name (new keys like `common.table.editItem` with `{name}`, in both
 catalogues). Pairs naturally with TD-118's move to icon buttons.
 
-### TD-137 — No `nav` landmark around the sidebar
+**Resolution:** Added `common.table.editItem`/`deleteItem` (`{name}`) to both
+catalogues, an `ariaLabel` prop on `ModalButton` (falls back to no
+`aria-label`, i.e. `buttonLabel` stays the accessible name, when omitted),
+and wired it from `EntityList` (edit) and `DeleteButton` (delete). Unit
+tests added/extended in `ModalButton.test.tsx`, `DeleteButton.test.tsx` and
+`EntityList.test.tsx`. Checked every e2e spec that locates these buttons by
+`getByRole('button', { name: messages.common.table.edit | form.delete })`
+(all row-scoped, e.g. via `rowFor(...)`) against Playwright's actual name
+matching (`queryRole` in `playwright-core`'s `coreBundle.js`): without
+`exact`, `name` matches case-insensitively as a **substring**, so
+"Modifica" still matches the new "Modifica Fireball" — no spec needed
+updating. `pnpm test:e2e` itself was not run (per the working brief, to
+keep :3000 free for parallel agents), so this is a static read of the
+matching logic, not an executed confirmation.
+
+### TD-137 ✅ No `nav` landmark around the sidebar — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, accessibility review (WCAG 1.3.1)
 
@@ -1498,7 +1530,19 @@ and the layout columns (`app/[locale]/dashboard/[system]/layout.tsx:19-23`)
 are plain `<div>`s. `<main>` exists. **The fix, in shape:** wrap the nav links
 in `<nav aria-label=…>` (a new catalogue key). No visual change.
 
-### TD-138 — The overview skips from `h1` to `h3`
+**Resolution:** `NavLinks` renders a `Fragment` of sibling `<div>`s (each a
+flex item alongside the spacer, `LocaleSwitcher` and the sign-out form), so
+wrapping only `<NavLinks />` in a `<nav>` would have regrouped those flex
+items and changed the sidebar's mobile row layout. Instead, the existing div
+that already wraps `NavLinks` + spacer + `LocaleSwitcher` + sign-out became
+the `<nav>` itself, keeping its `className` byte-for-byte identical — a tag
+swap, not a restructure, so there is no visual change. New catalogue key
+`common.nav.sidebarLabel`. Left the layout columns
+(`app/[locale]/dashboard/[system]/layout.tsx:19-23`) as plain divs — the TD's
+fix, in shape, named only the sidebar's nav links. Unit test added to
+`sidenav.test.tsx`.
+
+### TD-138 ✅ The overview skips from `h1` to `h3` — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, accessibility review (WCAG 1.3.1)
 
@@ -1508,13 +1552,30 @@ filter does not catch it. **The fix, in shape:** make the card titles `h2`
 (`app/ui/dashboard/cards.tsx`). Consider adding `best-practice` to the a11y
 spec's tags once this is clean.
 
-### TD-139 — Pagination doesn't mark the current page
+**Resolution:** Card titles are now `<h2>` (`CardWrapper`/`Card` is only
+used on the overview page, so there is no other heading to reconcile
+against). Unit test added to `cards.test.tsx`. **Did not** add
+`best-practice` to `e2e/a11y.spec.ts`'s axe tag list: that tag pulls in
+every best-practice rule (`landmark-unique`, `region`,
+`page-has-heading-one`, ...) across all eleven scanned pages plus the
+campaign/adventure and dialog-scoped scans, not just `heading-order`, and
+this change could not run `pnpm test:e2e` to confirm the rest of the app is
+clean under it (kept out of the working loop deliberately, to leave :3000
+free for other agents running in parallel). Left for whoever can run the
+full e2e suite and check.
+
+### TD-139 ✅ Pagination doesn't mark the current page — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, accessibility review (WCAG 4.1.2)
 
 The active page in `app/ui/components/pagination.tsx:86-96` is a `<div>` with a
 blue background and no `aria-current`. **The fix, in shape:**
 `aria-current={isActive ? "page" : undefined}`, with a unit test.
+
+**Resolution:** Added `aria-current={isActive ? "page" : undefined}` to
+`PaginationNumber`'s active/ellipsis `<div>` branch — only the truly active
+page gets `"page"`; the ellipsis (same branch, `position === "middle"`) gets
+`undefined`. Unit tests added to `pagination.test.tsx`.
 
 Not covered by this review: `/campaign/2`'s scene editors and the
 assign-location modal did not finish loading during the pass. Check both in a

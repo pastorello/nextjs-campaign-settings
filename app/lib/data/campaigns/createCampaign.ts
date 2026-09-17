@@ -30,12 +30,11 @@ export default async function createCampaign(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
+  // Read from `parsed.data`, never the raw payload (TD-122).
+  const { title, synopsis, partySize } = parsed.data as Omit<Campaign, "id">;
+
   await prisma.campaign.create({
-    data: {
-      title: formData.title,
-      synopsis: formData.synopsis,
-      partySize: formData.partySize,
-    },
+    data: { title, synopsis, partySize },
   });
 
   revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));

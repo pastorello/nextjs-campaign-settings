@@ -18,7 +18,10 @@ export default async function createFaction(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  const { name, description } = formData;
+  // Read from `parsed.data`, never the raw payload: its values are the
+  // coerced ones (TD-122). The schema is built from a runtime field list, so
+  // its output type is widened; this assertion narrows it back.
+  const { name, description } = parsed.data as Omit<Faction, "id">;
 
   await prisma.faction.create({
     data: {

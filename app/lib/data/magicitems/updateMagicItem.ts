@@ -7,7 +7,6 @@ import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildUpdateSchema } from "../validation/buildEntitySchema";
 import { revalidatePath } from "next/cache";
 import MagicItem from "../../definitions/interfaces/magicitem/MagicItem";
-import MagicItemMetaField from "../../definitions/enums/magicitem/MagicItemMetaField";
 
 export default async function updateMagicItem(
   formData: MagicItem
@@ -19,16 +18,15 @@ export default async function updateMagicItem(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
+  // Written from `parsed.data`, never the raw payload: it holds only the
+  // declared keys the payload carried, already coerced (TD-122). The schema is
+  // built from a runtime field list, so its output type is widened; this is
+  // the one assertion that narrows it back.
+  const { id, ...data } = parsed.data as Partial<MagicItem> & { id: number };
+
   await prisma.magicitems.update({
-    where: {
-      id: formData.id,
-    },
-    data: Object.keys(formData)
-      .filter((key) => key !== "id")
-      .reduce((acc, key) => {
-        const typedKey = key as MagicItemMetaField;
-        return { ...acc, [typedKey]: formData[typedKey] };
-      }, {} as MagicItem),
+    where: { id },
+    data,
   });
 
   revalidatePath("/magicitems");

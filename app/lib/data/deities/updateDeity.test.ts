@@ -57,4 +57,40 @@ describe("updateDeity (TD-80)", () => {
     expect(result.ok).toBe(false);
     expect(update).not.toHaveBeenCalled();
   });
+
+  // TD-122: an undeclared key must be stripped, not written — `zoneId` here
+  // would set a location while bypassing `assignLocation`'s rules (TD-93).
+  it("does not write a key the metadata does not declare", async () => {
+    update.mockResolvedValue({});
+
+    await updateDeity({
+      ...validFormData,
+      zoneId: 7,
+      poiId: 3,
+    } as typeof validFormData);
+
+    const { id, ...rest } = validFormData;
+    expect(update).toHaveBeenCalledWith({ where: { id }, data: rest });
+  });
+
+  it("uses the coerced id in the where clause", async () => {
+    update.mockResolvedValue({});
+
+    await updateDeity({ ...validFormData, id: "42" as unknown as number });
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 42 } })
+    );
+  });
+
+  it("writes only the fields the payload carries", async () => {
+    update.mockResolvedValue({});
+
+    await updateDeity({ id: 42, name: "Renamed" } as typeof validFormData);
+
+    expect(update).toHaveBeenCalledWith({
+      where: { id: 42 },
+      data: { name: "Renamed" },
+    });
+  });
 });

@@ -4,7 +4,6 @@ import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import Loot from "@/app/lib/definitions/interfaces/campaign/Loot";
-import LootMetaField from "@/app/lib/definitions/enums/campaign/LootMetaField";
 import lootMeta from "@/app/lib/config/campaigns/lootMeta";
 import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema";
 import { revalidatePath } from "next/cache";
@@ -37,12 +36,13 @@ export default async function updateLoot(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
+  // Written from `parsed.data`, never the raw payload: it holds only the
+  // declared keys the payload carried, already coerced (TD-122).
+  const { id, ...data } = parsed.data as Partial<Loot> & { id: number };
+
   await prisma.loot.update({
-    where: { id: formData.id },
-    data: Object.values(LootMetaField).reduce(
-      (acc, key) => ({ ...acc, [key]: formData[key] }),
-      {} as Partial<Loot>
-    ),
+    where: { id },
+    data,
   });
 
   revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));

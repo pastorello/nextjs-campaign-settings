@@ -30,8 +30,11 @@ export default async function createSceneCreature(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
+  // Read from `parsed.data`, never the raw payload: its values are the
+  // coerced ones (TD-122). The schema is built from a runtime field list, so
+  // its output type is widened; this assertion narrows it back.
   const { sceneId, position, name, level, xpEach, quantity, note, npcId } =
-    formData;
+    parsed.data as Omit<SceneCreature, "id">;
 
   await prisma.sceneCreature.create({
     data: { sceneId, position, name, level, xpEach, quantity, note, npcId },

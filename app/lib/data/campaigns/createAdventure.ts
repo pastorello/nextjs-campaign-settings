@@ -32,6 +32,9 @@ export default async function createAdventure(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
+  // Read from `parsed.data`, never the raw payload: its values are the
+  // coerced ones (TD-122). The schema is built from a runtime field list, so
+  // its output type is widened; this assertion narrows it back.
   const {
     campaignId,
     position,
@@ -45,7 +48,7 @@ export default async function createAdventure(
     currencyUnit,
     permanentItemTarget,
     consumableTarget,
-  } = formData;
+  } = parsed.data as Omit<Adventure, "id">;
 
   await prisma.adventure.create({
     data: {

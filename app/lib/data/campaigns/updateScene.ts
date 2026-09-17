@@ -4,7 +4,6 @@ import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import Scene from "@/app/lib/definitions/interfaces/campaign/Scene";
-import SceneMetaField from "@/app/lib/definitions/enums/campaign/SceneMetaField";
 import sceneMeta from "@/app/lib/config/campaigns/sceneMeta";
 import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema";
 import { revalidatePath } from "next/cache";
@@ -28,12 +27,13 @@ export default async function updateScene(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
+  // Written from `parsed.data`, never the raw payload: it holds only the
+  // declared keys the payload carried, already coerced (TD-122).
+  const { id, ...data } = parsed.data as Partial<Scene> & { id: number };
+
   await prisma.scene.update({
-    where: { id: formData.id },
-    data: Object.values(SceneMetaField).reduce(
-      (acc, key) => ({ ...acc, [key]: formData[key] }),
-      {} as Partial<Scene>
-    ),
+    where: { id },
+    data,
   });
 
   revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));

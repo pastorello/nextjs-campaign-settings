@@ -4,7 +4,6 @@ import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import Campaign from "@/app/lib/definitions/interfaces/campaign/Campaign";
-import CampaignMetaField from "@/app/lib/definitions/enums/campaign/CampaignMetaField";
 import campaignMeta from "@/app/lib/config/campaigns/campaignMeta";
 import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema";
 import { revalidatePath } from "next/cache";
@@ -25,14 +24,15 @@ export default async function updateCampaign(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
+  // Written from `parsed.data`, never the raw payload: it holds only the
+  // declared keys the payload carried, already coerced (TD-122). The schema is
+  // built from a runtime field list, so its output type is widened; this is
+  // the one assertion that narrows it back.
+  const { id, ...data } = parsed.data as Partial<Campaign> & { id: number };
+
   await prisma.campaign.update({
-    where: { id: formData.id },
-    data: Object.keys(formData)
-      .filter((key) => key !== "id")
-      .reduce((acc, key) => {
-        const typedKey = key as CampaignMetaField;
-        return { ...acc, [typedKey]: formData[typedKey] };
-      }, {} as Partial<Campaign>),
+    where: { id },
+    data,
   });
 
   revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));

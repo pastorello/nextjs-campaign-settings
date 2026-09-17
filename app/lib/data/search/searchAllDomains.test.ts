@@ -34,7 +34,12 @@ vi.mock("@/app/lib/data/maps/searchPlacesByTitle", () => ({
   default: searchPlacesByTitle,
 }));
 
-import searchAllDomains, { SEARCH_RESULT_CAP } from "./searchAllDomains";
+import { GAME_SYSTEMS } from "@/app/lib/definitions/GameSystem";
+import searchAllDomains, {
+  SEARCH_DOMAINS,
+  SEARCH_RESULT_CAP,
+  isSearchDomainInSystem,
+} from "./searchAllDomains";
 
 describe("searchAllDomains (SPEC-011 T1)", () => {
   beforeEach(() => {
@@ -48,7 +53,7 @@ describe("searchAllDomains (SPEC-011 T1)", () => {
   });
 
   it("returns all-empty groups without issuing any query for an empty term", async () => {
-    const result = await searchAllDomains("");
+    const result = await searchAllDomains("", "dnd5e");
 
     expect(result.spells).toEqual({ total: 0, items: [] });
     expect(result.places).toEqual({ total: 0, items: [] });
@@ -57,7 +62,7 @@ describe("searchAllDomains (SPEC-011 T1)", () => {
   });
 
   it("returns all-empty groups when a term matches nothing", async () => {
-    const result = await searchAllDomains("nonexistent");
+    const result = await searchAllDomains("nonexistent", "dnd5e");
 
     expect(result.spells).toEqual({ total: 0, items: [] });
     expect(result.magicItems).toEqual({ total: 0, items: [] });
@@ -75,7 +80,7 @@ describe("searchAllDomains (SPEC-011 T1)", () => {
       { id: 2, name: "Skreebars", deityTitle: "" },
     ]);
 
-    const result = await searchAllDomains("Skreebars");
+    const result = await searchAllDomains("Skreebars", "dnd5e");
 
     expect(result.npc).toEqual({
       total: 1,
@@ -96,7 +101,7 @@ describe("searchAllDomains (SPEC-011 T1)", () => {
     }));
     fetchFilteredSpells.mockResolvedValue(spells);
 
-    const result = await searchAllDomains("Spell");
+    const result = await searchAllDomains("Spell", "dnd5e");
 
     expect(result.spells.total).toBe(8);
     expect(result.spells.items).toHaveLength(SEARCH_RESULT_CAP);
@@ -108,12 +113,60 @@ describe("searchAllDomains (SPEC-011 T1)", () => {
   it("returns a matching place in the Places group", async () => {
     searchPlacesByTitle.mockResolvedValue([{ id: 3, title: "Aerivel" }]);
 
-    const result = await searchAllDomains("Aeri");
+    const result = await searchAllDomains("Aeri", "dnd5e");
 
     expect(result.places).toEqual({
       total: 1,
       items: [{ id: 3, name: "Aerivel" }],
     });
     expect(searchPlacesByTitle).toHaveBeenCalledWith("Aeri");
+  });
+});
+
+describe("searchAllDomains by game system (ADR-0013 rule 10)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    fetchFilteredSpells.mockResolvedValue([{ id: 1, name: "Fire Bolt" }]);
+    fetchFilteredMagicItems.mockResolvedValue([{ id: 2, name: "Fire Wand" }]);
+    fetchFilteredNpc.mockResolvedValue([{ id: 3, name: "Fire Priest" }]);
+    fetchFilteredDeities.mockResolvedValue([{ id: 4, name: "Fire God" }]);
+    fetchFilteredFactions.mockResolvedValue([{ id: 5, name: "Fire Guild" }]);
+    searchPlacesByTitle.mockResolvedValue([{ id: 6, title: "Fire Peak" }]);
+  });
+
+  it("searches every domain under every system while dnd5e is the only one", async () => {
+    for (const system of GAME_SYSTEMS) {
+      const result = await searchAllDomains("Fire", system);
+      for (const domain of SEARCH_DOMAINS) {
+        expect(result[domain].total).toBe(1);
+      }
+    }
+  });
+
+  it("leaves another system's catalogues out, without querying them", async () => {
+    const result = await searchAllDomains("Fire", "daggerheart");
+
+    expect(result.spells).toEqual({ total: 0, items: [] });
+    expect(result.magicItems).toEqual({ total: 0, items: [] });
+    expect(fetchFilteredSpells).not.toHaveBeenCalled();
+    expect(fetchFilteredMagicItems).not.toHaveBeenCalled();
+  });
+
+  it("always searches the shared world domains", async () => {
+    const result = await searchAllDomains("Fire", "daggerheart");
+
+    expect(result.npc.items).toEqual([{ id: 3, name: "Fire Priest" }]);
+    expect(result.deities.items).toEqual([{ id: 4, name: "Fire God" }]);
+    expect(result.factions.items).toEqual([{ id: 5, name: "Fire Guild" }]);
+    expect(result.places.items).toEqual([{ id: 6, name: "Fire Peak" }]);
+  });
+
+  it("classifies catalogues by their page's system and the world as shared", () => {
+    expect(isSearchDomainInSystem("spells", "dnd5e")).toBe(true);
+    expect(isSearchDomainInSystem("spells", "daggerheart")).toBe(false);
+    expect(isSearchDomainInSystem("magicItems", "daggerheart")).toBe(false);
+    for (const domain of ["npc", "deities", "factions", "places"] as const) {
+      expect(isSearchDomainInSystem(domain, "daggerheart")).toBe(true);
+    }
   });
 });

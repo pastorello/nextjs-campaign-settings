@@ -13,24 +13,27 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * The cross-entity search page (SPEC-011 T2) — one read across all six
- * domains via `searchAllDomains`, rendered as up to six grouped result
+ * The cross-entity search page (SPEC-011 T2) — one read across the world's
+ * domains and the route system's catalogues (ADR-0013 rule 10) via
+ * `searchAllDomains`, rendered as up to six grouped result
  * lists by `CrossEntitySearchResults`. Reuses `app/ui/search.tsx` for the
  * debounced input: the same 300ms-debounced `?query=` pattern every list
  * page already uses, writing to this page's own pathname.
  *
- * Sits under `/dashboard/search`, so it inherits the same proxy-matched
+ * Sits under `/dashboard/[system]/search`, so it inherits the same proxy-matched
  * auth gate as every other `/dashboard/**` page (`proxy.ts`) — no extra
  * guard needed here, since this is a read with no mutation (non-negotiable
  * rule #1 is about mutations).
  */
 export default async function SearchPage(props: {
+  params: Promise<{ system: string }>;
   searchParams?: Promise<SearchParams>;
 }) {
+  const { system } = await props.params;
   const t = await getTranslations("search.page");
   const searchParams = await props.searchParams;
   const term = searchParams?.query ?? "";
-  const results = await searchAllDomains(term);
+  const results = await searchAllDomains(term, system);
 
   return (
     <div className="w-full">

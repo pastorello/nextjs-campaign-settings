@@ -4,44 +4,15 @@ import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import AdventureMetaField from "@/app/lib/definitions/enums/campaign/AdventureMetaField";
 import AdventureStatus from "@/app/lib/definitions/enums/campaign/AdventureStatus";
 import firstOptionValue from "../firstOptionValue";
+import nullableAmountValidator from "@/app/lib/utils/validators/nullableAmountValidator";
+import nullableToOptional from "@/app/lib/utils/validators/nullableToOptional";
 import z from "zod";
 
 import adventureStatuses from "./adventure-statuses";
 import currencyUnits from "./currency-units";
 
-/**
- * An unset budget target reads "—", never `0` (SPEC-013 §5's edge cases) — an
- * empty input is preprocessed to `null` rather than coerced to zero, the same
- * shape `treasureMeta.value` already uses. Shared here because `adventure`
- * has four of these (xp, currency, permanent items, consumables) where
- * treasure has one.
- */
-function nullableAmountValidator() {
-  return z.preprocess(
-    (raw) => (raw === "" || raw === undefined ? null : raw),
-    z.coerce.number().int().gte(0).nullable()
-  );
-}
-
 function renderAmount(datum: number | null) {
   return datum === null ? "—" : datum;
-}
-
-/**
- * `synopsis`, `timeline` and `currencyUnit` map to nullable columns and
- * `Adventure`'s domain interface types them `string | null` accordingly —
- * not optional, so a caller that leaves one unset (T7's `AdventureForm`,
- * creating an adventure with only position/level/title per §5.2) supplies
- * an explicit `null` rather than omitting the key. `.optional()` alone only
- * tolerates `undefined`; this preprocesses `null` the same way before
- * handing off, the same shape `nullableAmountValidator` above already uses.
- * `PageMeta`'s `StringFieldMeta.validator` type is `ZodType<string |
- * undefined>` by design (a string field is never null elsewhere in the
- * metadata layer) — `z.preprocess` still satisfies it since its *output*
- * type is unchanged, only what it accepts on the way in.
- */
-function nullableToOptional<T extends z.ZodTypeAny>(schema: T) {
-  return z.preprocess((raw) => (raw === null ? undefined : raw), schema);
 }
 
 /**
@@ -83,6 +54,8 @@ const adventureMeta = {
     defaultValue: "",
     fieldType: FieldType.string,
     controlType: ControlType.Textarea,
+    // Nullable column, `string | null` domain type, same as `timeline` and
+    // `currencyUnit` below — see `nullableToOptional`'s own comment (TD-130).
     validator: nullableToOptional(z.string().optional()),
   },
   [AdventureMetaField.timeline]: {
@@ -111,6 +84,9 @@ const adventureMeta = {
     defaultValue: null,
     fieldType: FieldType.integer,
     controlType: ControlType.Text,
+    // "Unset is not zero" (SPEC-013 §5's edge cases), same convention as
+    // `currencyTarget`/`permanentItemTarget`/`consumableTarget` below — see
+    // `nullableAmountValidator`'s own comment (TD-130).
     validator: nullableAmountValidator(),
     getDatum: renderAmount,
   },

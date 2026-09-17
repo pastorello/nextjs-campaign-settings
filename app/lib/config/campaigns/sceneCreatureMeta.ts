@@ -2,27 +2,9 @@ import ControlType from "@/app/lib/definitions/types/ControlType";
 import FieldType from "@/app/lib/definitions/types/FieldType";
 import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import SceneCreatureMetaField from "@/app/lib/definitions/enums/campaign/SceneCreatureMetaField";
+import nullableAmountValidator from "@/app/lib/utils/validators/nullableAmountValidator";
+import nullableToOptional from "@/app/lib/utils/validators/nullableToOptional";
 import z from "zod";
-
-/**
- * `level`/`xpEach` are preserved as `null` rather than coerced to `0` when
- * left blank — same "unset is not zero" convention as `sceneMeta.xpAward`.
- */
-function nullableAmountValidator() {
-  return z.preprocess(
-    (raw) => (raw === "" || raw === undefined ? null : raw),
-    z.coerce.number().int().gte(0).nullable()
-  );
-}
-
-/**
- * `note` maps to a nullable column and `SceneCreature`'s domain interface
- * types it `string | null`, not optional — same gap and same fix as
- * `sceneMeta.description`'s own comment explains.
- */
-function nullableToOptional<T extends z.ZodTypeAny>(schema: T) {
-  return z.preprocess((raw) => (raw === null ? undefined : raw), schema);
-}
 
 /**
  * A scene creature row's own scalar fields (SPEC-013 §5/§6) — outside the
@@ -56,6 +38,8 @@ const sceneCreatureMeta = {
     defaultValue: null,
     fieldType: FieldType.integer,
     controlType: ControlType.Text,
+    // "Unset is not zero" — same convention as `sceneMeta.xpAward`. See
+    // `nullableAmountValidator` (TD-130).
     validator: nullableAmountValidator(),
     getDatum: (datum: number | null) => (datum === null ? "—" : datum),
   },
@@ -82,6 +66,8 @@ const sceneCreatureMeta = {
     defaultValue: "",
     fieldType: FieldType.string,
     controlType: ControlType.Textarea,
+    // Nullable column, `string | null` domain type — see
+    // `nullableToOptional`'s own comment (TD-130).
     validator: nullableToOptional(z.string().optional()),
   },
   [SceneCreatureMetaField.npcId]: {

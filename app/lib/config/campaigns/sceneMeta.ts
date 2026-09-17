@@ -4,37 +4,11 @@ import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import SceneMetaField from "@/app/lib/definitions/enums/campaign/SceneMetaField";
 import SceneKind from "@/app/lib/definitions/enums/campaign/SceneKind";
 import firstOptionValue from "../firstOptionValue";
+import nullableAmountValidator from "@/app/lib/utils/validators/nullableAmountValidator";
+import nullableToOptional from "@/app/lib/utils/validators/nullableToOptional";
 import z from "zod";
 
 import sceneKinds from "./scene-kinds";
-
-/**
- * `xpAward` is preserved as `null` rather than coerced to `0` when left
- * blank — the same "unset is not zero" convention `adventureMeta`'s budget
- * targets use, since an unawarded scene's XP still has to net out of the
- * "assigned" total honestly (SPEC-013 §6's counting rule) rather than
- * silently reading as zero XP offered.
- */
-function nullableAmountValidator() {
-  return z.preprocess(
-    (raw) => (raw === "" || raw === undefined ? null : raw),
-    z.coerce.number().int().gte(0).nullable()
-  );
-}
-
-/**
- * `description` maps to a nullable column and `Scene`'s domain interface
- * types it `string | null` accordingly, not optional — so a caller that
- * leaves it unset (the scene editor's create/edit form, T8) supplies an
- * explicit `null` rather than omitting the key. `.optional()` alone only
- * tolerates `undefined`; this preprocesses `null` the same way before
- * handing off, the same shape `adventureMeta.ts`'s own `nullableToOptional`
- * already uses for `synopsis`/`timeline`. Found and fixed in the browser
- * during T8, the same way T7 found `adventureMeta`'s version of this bug.
- */
-function nullableToOptional<T extends z.ZodTypeAny>(schema: T) {
-  return z.preprocess((raw) => (raw === null ? undefined : raw), schema);
-}
 
 /**
  * A scene's own scalar fields (SPEC-013 §5/§6) — outside the metadata layer
@@ -78,6 +52,8 @@ const sceneMeta = {
     defaultValue: "",
     fieldType: FieldType.string,
     controlType: ControlType.Textarea,
+    // Nullable column, `string | null` domain type — see
+    // `nullableToOptional`'s own comment (TD-130).
     validator: nullableToOptional(z.string().optional()),
   },
   [SceneMetaField.xpAward]: {
@@ -86,6 +62,9 @@ const sceneMeta = {
     defaultValue: null,
     fieldType: FieldType.integer,
     controlType: ControlType.Text,
+    // "Unset is not zero" — an unawarded scene's XP still has to net out of
+    // the "assigned" total honestly (SPEC-013 §6) rather than silently
+    // reading as zero XP offered. See `nullableAmountValidator` (TD-130).
     validator: nullableAmountValidator(),
     getDatum: (datum: number | null) => (datum === null ? "—" : datum),
   },

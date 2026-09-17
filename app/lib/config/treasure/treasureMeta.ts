@@ -3,8 +3,8 @@ import ControlType from "@/app/lib/definitions/types/ControlType";
 import FieldType from "@/app/lib/definitions/types/FieldType";
 import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import TreasureMetaField from "@/app/lib/definitions/enums/treasure/TreasureMetaField";
+import nullableAmountValidator from "@/app/lib/utils/validators/nullableAmountValidator";
 import optionValueValidator from "@/app/lib/utils/validators/optionValueValidator";
-import z from "zod";
 
 import treasureCategories from "./treasure-categories";
 
@@ -31,9 +31,8 @@ const treasureMeta = {
   // two displayed") — a plain nullable integer, not option-backed, so it is
   // entered as free text and rendered with an em dash when unset, the same
   // "no value" convention `resolveFieldValue` already uses for a table-backed
-  // field with no selection. A blank input reaches the validator as `""`
-  // (every `TextInput` emits a string), which the preprocess step below
-  // treats as "no value" rather than coercing to `0`.
+  // field with no selection. See `nullableAmountValidator`'s own comment
+  // (TD-130) for how a blank input becomes "no value" rather than `0`.
   [TreasureMetaField.value]: {
     metaField: "value",
     labelKey: "treasure.fields.value.label",
@@ -41,10 +40,7 @@ const treasureMeta = {
     fieldType: FieldType.integer,
     controlType: ControlType.Text,
     placeholderKey: "treasure.fields.value.placeholder",
-    validator: z.preprocess(
-      (raw) => (raw === "" || raw === undefined ? null : raw),
-      z.coerce.number().int().gte(0).nullable()
-    ),
+    validator: nullableAmountValidator(),
     getDatum: (datum: number | null) => (datum === null ? "—" : datum),
   },
 } satisfies Record<string, PageMeta>;

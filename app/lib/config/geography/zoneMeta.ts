@@ -2,19 +2,8 @@ import ControlType from "@/app/lib/definitions/types/ControlType";
 import FieldType from "@/app/lib/definitions/types/FieldType";
 import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import ZoneMetaField from "@/app/lib/definitions/enums/geography/ZoneMetaField";
+import nullableToOptional from "@/app/lib/utils/validators/nullableToOptional";
 import z from "zod";
-
-/**
- * `description` maps to a nullable column, so "cleared" arrives as an
- * explicit `null` rather than an omitted key; `.optional()` alone only
- * tolerates `undefined`. The fifth local copy of this helper —
- * `sceneMeta`, `sceneCreatureMeta`, `campaignMeta` and `adventureMeta` each
- * declare their own. Extracting the five into one shared helper is a
- * worthwhile tidy-up but a different change from this one.
- */
-function nullableToOptional<T extends z.ZodTypeAny>(schema: T) {
-  return z.preprocess((raw) => (raw === null ? undefined : raw), schema);
-}
 
 /**
  * A zone's two editable scalars (TD-104) — outside the metadata layer's

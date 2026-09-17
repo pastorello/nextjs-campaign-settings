@@ -1611,7 +1611,7 @@ rejects it (`zoneMeta.ts:62`, `.min(1)`), so "no description" can be stored two
 ways. **The fix, in shape:** build these schemas from `zoneMeta`'s validators,
 as `updateZoneDetails` already does. **Related:** TD-02, TD-104.
 
-### TD-130 — Validator helpers copied into five files
+### TD-130 ✅ Validator helpers copied into five files — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, tech-debt audit
 
@@ -1621,6 +1621,18 @@ as `updateZoneDetails` already does. **Related:** TD-02, TD-104.
 `nullableAmountValidator` is in four meta files, and `treasureMeta.ts:44-47`
 writes the same logic inline. **The fix, in shape:** move both into one shared
 validators module under `app/lib/utils/`.
+
+**Resolution:** Added `app/lib/utils/validators/nullableToOptional.ts` and
+`app/lib/utils/validators/nullableAmountValidator.ts` (with their own unit
+tests), same one-function-per-file shape as `optionValueValidator.ts` in the
+same directory. Removed all five local `nullableToOptional` copies
+(`sceneMeta`, `sceneCreatureMeta`, `campaignMeta`, `adventureMeta`,
+`zoneMeta`) and all four local `nullableAmountValidator` copies (`sceneMeta`,
+`sceneCreatureMeta`, `lootMeta`, `adventureMeta`), plus `treasureMeta.value`'s
+inline `z.preprocess` — all now import the shared functions. Pure refactor:
+no validator's accepted input or output type changed, confirmed by the
+existing meta/schema test suites passing unchanged plus the two new files'
+own tests.
 
 ### TD-131 — Unused vendored map utilities still include Earth-geometry maths (ask before deleting)
 

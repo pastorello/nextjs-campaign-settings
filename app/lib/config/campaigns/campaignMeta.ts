@@ -2,6 +2,7 @@ import ControlType from "@/app/lib/definitions/types/ControlType";
 import FieldType from "@/app/lib/definitions/types/FieldType";
 import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import CampaignMetaField from "@/app/lib/definitions/enums/campaign/CampaignMetaField";
+import nullableToOptional from "@/app/lib/utils/validators/nullableToOptional";
 import z from "zod";
 
 /**
@@ -15,19 +16,6 @@ import z from "zod";
  * them — the same "shared either way" half of ADR-0011's boundary that
  * `scene`/`sceneCreature`/`loot` already use.
  */
-/**
- * `Campaign.synopsis` is `string | null` in the domain interface, so
- * `CampaignForm` submits an unset synopsis as an explicit `null` rather than
- * omitting the key. `.optional()` alone only tolerates `undefined`; this
- * preprocesses `null` the same way before handing off — the same local
- * helper `adventureMeta.ts`, `sceneMeta.ts` and `sceneCreatureMeta.ts`
- * already carry for the same reason (found by T7's browser pass there; found
- * here by T10's a11y e2e, whose fixture setup is a minimal title-only create).
- */
-function nullableToOptional<T extends z.ZodTypeAny>(schema: T) {
-  return z.preprocess((raw) => (raw === null ? undefined : raw), schema);
-}
-
 const campaignMeta = {
   [CampaignMetaField.title]: {
     metaField: "title",
@@ -43,6 +31,8 @@ const campaignMeta = {
     defaultValue: "",
     fieldType: FieldType.string,
     controlType: ControlType.Textarea,
+    // Nullable column, `string | null` domain type — see
+    // `nullableToOptional`'s own comment (TD-130).
     validator: nullableToOptional(z.string().optional()),
   },
   [CampaignMetaField.partySize]: {

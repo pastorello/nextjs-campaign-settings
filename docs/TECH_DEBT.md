@@ -1452,7 +1452,7 @@ with the vendored library, so CLAUDE.md's "unused is not dead" applies.
 **Decision needed from the DM:** delete them, or mark them as vendored and not
 for use on pixel maps. **Related:** TD-94.
 
-### TD-132 — Leftover inline styles and Italian comments
+### TD-132 ✅ Leftover inline styles and Italian comments — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, tech-debt audit
 
@@ -1467,6 +1467,49 @@ for use on pixel maps. **Related:** TD-94.
 **The fix, in shape:** switch the first two to Tailwind classes, translate the
 comments, and add the runtime-position exception to CLAUDE.md rule 8.
 **Related:** TD-72.
+
+**Resolution:** `useGeolocation.ts`'s marker `<div>` switched to the same
+literal-class-in-a-`divIcon`-`html`-string pattern already used elsewhere in
+`app/modules/maps/hooks/` (`useMapMarkers.ts`, `useNavigableChildren.ts`,
+`usePOIManager.ts` all use `border-3 border-white`, matched here for
+consistency).
+
+`Spinner.tsx` turned out to need more than a literal swap: its `size` prop is
+a runtime pixel number, which Tailwind's static class extraction fundamentally
+can't turn into an arbitrary-value class (`w-[${size}px]` is never a complete
+string in the source, so the scanner never sees it). Two different fixes,
+depending on which style object:
+
+- The five bars' width/height/left/top were pixel math derived from `size`
+  (`size / 2.5`, `size / 2 - size / 5`, …) — every one of those reduces to a
+  fixed percentage of the container _regardless of `size`_ (40%, 12.5%, 30%,
+  43.75%), so they became ordinary static arbitrary-value classes
+  (`w-[40%] h-[12.5%] left-[30%] top-[43.75%]`) that scale with the container
+  instead of being recomputed from a prop.
+- The outer container's own `width`/`height` has no such trick — it's
+  genuinely `size` pixels — so `size` is now a `keyof` of a small
+  `SIZE_CLASSES` lookup (40/60/80/100/120/160/200 → literal `w-<n> h-<n>`
+  classes on Tailwind's 4px spacing scale) instead of an arbitrary number.
+  This does narrow the prop's type. Verified safe: grepped for every call
+  site (`<Spinner`) and the component is unused anywhere in the app today, so
+  nothing was passing a size outside that set, or any size at all.
+- The per-bar `rotate` baseline (driven by loop index, not `style`) moved to
+  framer-motion's `initial`/`animate` props instead — idiomatic for the
+  library, and not something rule 8 was ever meant to police (framer-motion's
+  own `motion.div`s legitimately carry a DOM `style` attribute for whatever
+  they're actively animating; confirmed by running the new test with a
+  blanket "no `[style]` anywhere" assertion, which failed against
+  framer-motion's own elements, not the code being fixed — narrowed to the
+  specific wrapper `Spinner.tsx` used to set `style` on directly).
+- Comments translated to English.
+
+Added `Spinner.test.tsx` (new — none existed) covering the container-sizing
+class and the absence of an inline style on the element this fix touched.
+
+CLAUDE.md rule 8 now has a written exception for `PlacePopover.tsx`'s
+`left`/`top` (a genuine runtime screen coordinate, no finite class set could
+express it), explicitly scoped narrow enough that it doesn't retroactively
+excuse `Spinner.tsx`'s case, which turned out not to need it.
 
 ### TD-133 — The map has no keyboard path to create a place or open an existing one
 

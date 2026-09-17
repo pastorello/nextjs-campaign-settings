@@ -132,6 +132,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-108 | ✅ A landmark created in this session had no numeric id, and `PlacePopover` converted it as though it did      | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-109 | ✅ The landmark popover's entity list has an e2e now — seen red on TD-108's bug before being trusted           | ~~🟢 Low~~ done      | S      | 4     |
 | TD-110 | ✅ "Too many re-renders" was TD-108's `NaN` reaching Headless UI's `Listbox` — attributed, fixed by TD-108     | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-111 | ✅ A late POI load no longer overwrites a place just added, moved or deleted on the map                        | ~~🟡 Medium~~ done   | M      | 4     |
 
 ---
 
@@ -675,6 +676,12 @@ rewired, not deleted: the gesture, the `useDrawArea` instance and the
 > Effort revised S → M: an ADR, a browser check against a production build,
 > and ~50 call sites plus their test mocks — the substitution itself is
 > mechanical and does not need Opus.
+>
+> **Sequencing, noted 2026-09-11:** SPEC-018 T2 moves every dashboard page
+> under `app/[locale]/dashboard/[system]/`, so the corrected-path option would
+> become `revalidatePath("/[locale]/dashboard/[system]/<domain>", "page")` — one
+> more dynamic segment on every call. `refresh()` names no route and is
+> unaffected. Decide this after T2 part A lands, or take `refresh()`.
 
 **Two findings, and the second defuses the first.**
 
@@ -938,3 +945,69 @@ The severity is a placeholder. If it reproduces it takes the whole map down, not
 The by-hand check above was not run; the unit reproduction supersedes it.
 
 **Related:** TD-108, SPEC-016 T4 (the attach flow), TD-107 (the same error boundary).
+
+### TD-111 ✅ A POI load that lands late overwrote places just added, moved or deleted on the map — **DONE (2026-09-11)**
+
+**Severity:** 🟡 Medium · **Effort:** M · **Found:** 2026-09-11, `map-place-repositioning.spec.ts` failing all three CI attempts on PR #267 (run 34620868268), a change that could not have touched it; `main` was green on identical code a minute earlier
+
+**The cause, read out of the CI trace rather than guessed.** Playwright keeps a
+trace for the first retry; its network log carries every Server Action's
+request and response body:
+
+1. The map fires `fetchPlaceChildren(1)` four times in its first ~1.5s.
+   `usePOIManager.loadPOIs` answered each one by replacing the whole list and
+   the whole `serverIdsRef` map.
+2. The test saved a POI at 25.743. The row appeared optimistically and
+   `createPoi` was queued — and Next sends one client's Server Actions **one
+   at a time**, so the last startup load, issued earlier, went first (25.806).
+3. That load read the database before the create existed and replaced the
+   list: the new row vanished.
+4. `createPoi` then succeeded (`{"ok":true,"id":6}`, 25.940). Nothing put the
+   row back, so the test waited 30s for a row that would never render.
+
+On a fast machine the startup loads settle before the first click; on the CI
+runner they overlapped it — the same "init tail on slow environments" family
+as TD-100. **For the DM this is real, not a test artefact:** a place added,
+moved or deleted right after the map opens could vanish, snap back or come
+back until the next reload, although the write itself was saved. Attempts 1
+and 3 failed on the drag instead (the row's coordinates never changed); no
+trace exists for them, so that they are the same overwrite of an optimistic
+_move_ is very likely but not proven.
+
+**Two wrong turns on the way, kept so they are not retaken.** First reading:
+the retries failed because the test cleans up only on success, leaving
+attempt 1's marker where the retry creates its own. A local probe (fail
+attempt 0 after the save, `--retries=1`) disproved it — the retry passed — and
+the trace shows the retry had clicked at different coordinates anyway. Second:
+that no request left the browser after Save — a misaligned clock; `createPoi`
+was sent. The cleanup-only-on-success pattern is still true of every spec in
+`e2e/` (none uses `finally` or `afterEach`) and still leaks rows into the e2e
+database when a test fails; it just did not cause this.
+
+**The fix.** Every local write stamps the POIs it touches (`touch`, a
+sequence counter in `writeSeqRef`/`lastWriteRef`). A load remembers the
+sequence it started at; when it lands, it takes the server's version of every
+POI nothing touched since, and the local one of everything touched — edited
+rows keep their edit, deleted rows stay gone, rows created in this session
+are kept even though the snapshot predates them. A snapshot that already saw a
+session-created row lists it under its database id; that row is skipped by
+id, so it does not show twice. `serverIdsRef` is merged, not replaced — a
+replacement also dropped the database id of a POI created during the load,
+which a later delete or move of it needs. `POI.id` is never re-keyed (the
+2026-09-09 decision in `CLAUDE.md`). A load with no write since it began
+behaves exactly as before.
+
+**Tests.** A `usePOIManager.test.ts` block holds a load open, writes, then
+lands the load: add, move and delete were red before the fix with exactly the
+CI symptoms; two guards (no duplicate row, an untouched load still replaces)
+were green before and after. `map-place-repositioning` and `map-poi-crud` pass
+locally — which proves no regression, not the fix: the race needs the CI
+runner's timing.
+
+**Not investigated:** why the map loads its POIs four times at startup.
+Fewer loads would narrow the window without closing it, so it is not a
+substitute for the fix above; worth a look if startup cost ever matters.
+
+**Related:** TD-100 (the same slow-environment init tail), TD-101 (this
+spec's earlier false green), TD-105 (the same trace shows `createPoi`'s
+response carrying `x-action-revalidated: 1` — the flag that entry is about).

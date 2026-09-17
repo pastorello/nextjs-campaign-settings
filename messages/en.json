@@ -584,7 +584,7 @@
       "attach": "Attach a character",
       "editZone": "Edit",
       "unplace": "Move to unpositioned places",
-      "delete": "Remove permanently",
+      "delete": "Delete permanently",
       "editLandmark": "Edit",
       "deleteLandmark": "Delete",
       "errors": {
@@ -633,6 +633,7 @@
     "deletePlace": {
       "trigger": "Delete this map",
       "confirmTitle": "Delete \"{title}\"?",
+      "confirmDescription": "This operation can't be undone.",
       "loading": "Working out the consequences…",
       "noImpact": "No consequences: this place has no children and no entities assigned.",
       "placesImpact": "{count, plural, one {# place will move up to \"{parentTitle}\" and lose its position} other {# places will move up to \"{parentTitle}\" and lose their position}}",

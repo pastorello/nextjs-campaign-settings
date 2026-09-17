@@ -1910,7 +1910,7 @@ Not covered by this review: `/campaign/2`'s scene editors and the
 assign-location modal did not finish loading during the pass. Check both in a
 follow-up.
 
-### TD-140 — Delete wording differs between a place's trigger and its confirmation, and deleting a landmark asks nothing
+### TD-140 — Delete wording differs between a place's trigger and its confirmation, and deleting a landmark asks nothing — **copy part DONE (2026-09-17); landmark confirm awaits DM decision**
 
 **Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-17, UX copy review
 
@@ -1929,6 +1929,33 @@ follow-up.
 "can't be undone" line to `deletePlace`. **Decision needed from the DM:** should
 deleting a landmark confirm first? If yes, that is a behaviour change with its
 own test, not a copy fix.
+
+**Resolution (copy part):** `geography.popover.delete` changed from "Rimuovi
+definitivamente" / "Remove permanently" to "Elimina definitivamente" / "Delete
+permanently", matching the "Elimina"/"Delete" verb `deletePlace.confirm`,
+`popover.deleteLandmark` and `common.deleteButton` already use — the
+confirmation's own title (`confirmTitle`, "Eliminare «{title}»?") already used
+that verb, so only the trigger needed to change. Added
+`geography.deletePlace.confirmDescription` ("Questa operazione non può essere
+annullata." / "This operation can't be undone.") to both catalogues, wired
+into `DeletePlaceButton.tsx` via `Modal`'s existing `description` prop.
+**Checked what actually cascades before wording it** (`app/lib/data/maps/deletePlace.ts`):
+deleting a place does **not** delete the places, NPCs or deities inside it —
+direct children (zones, landmarks) reparent to the deleted place's own
+parent and lose their position, and directly-assigned NPCs/deities lose their
+position (or reparent, if the assignment was via a landmark that moved up).
+Only the place itself is actually deleted. The original TD item's "cascades to
+children, NPCs and deities" was therefore imprecise; `confirmDescription`
+says only that the deletion itself can't be undone, and the existing
+`placesImpact`/`npcsImpact`/`deitiesImpact` lines (already accurate) continue
+to carry the reparenting/position-loss detail. Comments and test names in
+`PlacePopover.tsx`, `WorldMap.tsx`, `PlacePopover.test.tsx`, `a11y.spec.ts`,
+`map-unplace.spec.ts` and `map-place-url.spec.ts` that quoted the old trigger
+text were updated to match; the e2e assertions themselves read the trigger
+label from the message catalogue already, so none needed a logic change.
+**Left open, deliberately:** whether deleting a landmark should confirm first
+is a DM product decision, not a copy fix — `popover.deleteLandmark` is
+unchanged and still deletes with no confirmation.
 
 ### TD-141 ✅ English words left in Italian copy beyond TD-120 — **DONE (2026-09-17)**
 

@@ -292,7 +292,7 @@ describe("PlacePopover — zone", () => {
     expect(onUnplace).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps the delete confirmation closed until Rimuovi definitivamente is clicked", () => {
+  it("keeps the delete confirmation closed until Elimina definitivamente is clicked", () => {
     renderZonePopover();
 
     expect(deletePlaceProps).toHaveBeenCalledWith({
@@ -305,7 +305,7 @@ describe("PlacePopover — zone", () => {
     expect(screen.queryByText("simulate-delete")).not.toBeInTheDocument();
   });
 
-  it("opens the delete confirmation, pre-filled with the clicked place and its parent, when Rimuovi definitivamente is clicked", () => {
+  it("opens the delete confirmation, pre-filled with the clicked place and its parent, when Elimina definitivamente is clicked", () => {
     renderZonePopover();
 
     fireEvent.click(screen.getByText("delete"));

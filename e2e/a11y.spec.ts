@@ -277,11 +277,11 @@ test("the map grid configuration panel has no accessibility violations", async (
  *
  * The zone variant is the one scanned: it renders strictly more than the
  * landmark variant (the indigo "Apri mappa" primary, "Sposta nei luoghi non
- * posizionati" and "Rimuovi definitivamente" on top of the title, close
+ * posizionati" and "Elimina definitivamente" on top of the title, close
  * button, entities list and attach control the two share). Creating one costs
  * a map image at creation time, so this uploads the same minimal PNG
  * `world.setup.ts` and `map-unplace.spec.ts` already rely on, and deletes the
- * place again through the popover's own "Rimuovi definitivamente".
+ * place again through the popover's own "Elimina definitivamente".
  *
  * Not covered, deliberately: the landmark variant's two extra buttons
  * ("Modifica"/"Elimina" — same `<button>` classes as the zone actions beside

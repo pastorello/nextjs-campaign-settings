@@ -58,7 +58,7 @@ interface PlacePopoverProps {
    */
   onUnplace: (place: NavigableChild) => void;
   /**
-   * "Rimuovi definitivamente" (T6) succeeded — `WorldMap` closes the
+   * "Elimina definitivamente" (T6) succeeded — `WorldMap` closes the
    * popover and drops its marker, the same bookkeeping `onUnplace` does,
    * since the place this popover is anchored to no longer exists. Zone
    * only — a landmark's own deletion is `onDeleteLandmark` below.
@@ -129,7 +129,7 @@ interface PlacePopoverProps {
  * popover are all `WorldMap`'s, since un-placing removes the very place this
  * popover is anchored to.
  *
- * "Rimuovi definitivamente" (T6), by contrast, embeds `DeletePlaceButton`
+ * "Elimina definitivamente" (T6), by contrast, embeds `DeletePlaceButton`
  * directly — the same component `MapOptionsButton` already opens for the
  * place currently being viewed, unforked, retargeted at the clicked place.
  * Its confirmation dialog (impact counts, the SPEC-010 mutation itself) is
@@ -311,7 +311,7 @@ export default function PlacePopover({
             >
               {t("unplace")}
             </button>
-            {/* "Rimuovi definitivamente" (T6) — the SPEC-010 deletion flow,
+            {/* "Elimina definitivamente" (T6) — the SPEC-010 deletion flow,
                 behind the same confirmation dialog it has today
                 (`DeletePlaceButton`, reused unchanged). */}
             <button
@@ -390,7 +390,7 @@ export default function PlacePopover({
         onAttached={() => setEntitiesRefreshKey((key) => key + 1)}
       />
 
-      {/* "Rimuovi definitivamente" (T6) — reuses `DeletePlaceButton`
+      {/* "Elimina definitivamente" (T6) — reuses `DeletePlaceButton`
           unchanged, the same component `MapOptionsButton` opens for the
           place currently being viewed; here it targets the clicked place
           instead. Never rendered for the root, since the root never gets a

@@ -68,6 +68,22 @@ describe("DeletePlaceButton (SPEC-010 T3; externally controlled since the 2026-0
     expect(fetchPlaceDeletionImpact).not.toHaveBeenCalled();
   });
 
+  it("shows the can't-be-undone line whenever it is open (TD-140)", () => {
+    render(
+      <DeletePlaceButton
+        placeId={5}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        isOpen
+        onClose={vi.fn()}
+        onDeleted={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("confirmDescription")).toBeInTheDocument();
+  });
+
   it("fetches real counts for the place the moment it opens", async () => {
     render(
       <DeletePlaceButton

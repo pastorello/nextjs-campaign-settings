@@ -15,7 +15,7 @@ import { chooseFromContextMenu } from "./helpers/mapContextMenu";
  * instead of retracing each hop, which the last assertion pins down.
  *
  * Built on the root and deleted at the end through the popover's own
- * "Rimuovi definitivamente", the same cleanup `map-unplace.spec.ts` uses.
+ * "Elimina definitivamente", the same cleanup `map-unplace.spec.ts` uses.
  */
 const PNG_FILE = {
   name: "region.png",

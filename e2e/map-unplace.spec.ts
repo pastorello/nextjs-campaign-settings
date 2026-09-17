@@ -135,7 +135,7 @@ test.describe("un-placing a positioned place (SPEC-016 T5)", () => {
     // pairing action, TD-85): picking it positions it right back at the
     // point the menu is open over, no second click needed
     // (`handleContextMenuPositionPlace`). Then delete it straight from the
-    // popover's own "Rimuovi definitivamente" (SPEC-016 T6) — no need to
+    // popover's own "Elimina definitivamente" (SPEC-016 T6) — no need to
     // descend into the place and reach it through `MapOptionsButton`.
     await menu.getByText(title).click();
     await expect(menu).toBeHidden();

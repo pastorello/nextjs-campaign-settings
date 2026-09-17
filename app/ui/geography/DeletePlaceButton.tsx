@@ -131,6 +131,7 @@ export default function DeletePlaceButton({
         if (!open) closeDialog();
       }}
       title={t("confirmTitle", { title: placeTitle })}
+      description={t("confirmDescription")}
       size="small"
     >
       {isLoadingImpact ? (

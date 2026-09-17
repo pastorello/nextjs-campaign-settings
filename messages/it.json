@@ -627,7 +627,7 @@
       "attach": "Collega personaggio",
       "editZone": "Modifica",
       "unplace": "Sposta nei luoghi non posizionati",
-      "delete": "Rimuovi definitivamente",
+      "delete": "Elimina definitivamente",
       "editLandmark": "Modifica",
       "deleteLandmark": "Elimina",
       "errors": {
@@ -676,6 +676,7 @@
     "deletePlace": {
       "trigger": "Elimina questa mappa",
       "confirmTitle": "Eliminare «{title}»?",
+      "confirmDescription": "Questa operazione non può essere annullata.",
       "loading": "Calcolo delle conseguenze…",
       "noImpact": "Nessuna conseguenza: questo luogo non ha figli né personaggi assegnati.",
       "placesImpact": "{count, plural, one {# luogo passerà sotto «{parentTitle}» e perderà la sua posizione} other {# luoghi passeranno sotto «{parentTitle}» e perderanno la loro posizione}}",

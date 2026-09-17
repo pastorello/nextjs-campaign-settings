@@ -10,6 +10,8 @@ interface FormField {
   options?: ResolvedOption[];
   multiple?: boolean;
   placeholder?: string;
+  /** See `PageMeta.tall` (TD-120) — read only by `TextareaInput`. */
+  tall?: boolean;
 }
 
 export default FormField;

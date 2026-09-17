@@ -116,6 +116,9 @@ const spellsMeta = {
     placeholderKey: "spells.fields.upcast.placeholder",
     validator: z.string().optional(),
     getDatum: (datum: string) => renderRichText(datum),
+    // Long-form prose, same reasoning as the shared `description` field
+    // (TD-120).
+    tall: true,
   },
 } satisfies Record<string, PageMeta>;
 

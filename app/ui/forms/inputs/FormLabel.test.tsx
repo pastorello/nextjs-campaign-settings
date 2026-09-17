@@ -16,4 +16,16 @@ describe("FormLabel", () => {
 
     expect(screen.getByText("Nome")).toBeInTheDocument();
   });
+
+  it("renders normal-case, readable text, not tiny all-caps (TD-120)", () => {
+    render(
+      <Field>
+        <FormLabel label="Nome" />
+      </Field>
+    );
+
+    const label = screen.getByText("Nome");
+    expect(label).not.toHaveClass("uppercase");
+    expect(label).not.toHaveClass("font-bold");
+  });
 });

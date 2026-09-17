@@ -105,7 +105,9 @@ test.describe("spell filtering", () => {
     expect((await readCount(page)).filtered).toBeLessThanOrEqual(total);
   });
 
-  test("Reset Filtri clears every active filter", async ({ page }) => {
+  test("the reset-filters button clears every active filter", async ({
+    page,
+  }) => {
     await page.goto("/dashboard/dnd5e/spells");
     const { total } = await readCount(page);
 

@@ -1213,6 +1213,18 @@ undone.
 - The Italian catalogue's `reset` is "Reset Filtri" (`messages/it.json:86`),
   half English. Suggest "Azzera filtri".
 
+**Resolution:** `FormLabel.tsx` dropped `font-bold uppercase` for
+`text-sm font-medium text-gray-900` (normal case, readable). Added a `tall?:
+boolean` flag to `PageMeta`/`FormField`, read by `InputComponent` and
+`TextareaInput` — a taller box (`h-[280px]` vs `h-[150px]`) declared through
+the metadata layer, not hardcoded per domain. Set on the shared `description`
+field (`pageMetaFields.ts`, so every domain's description grows, not just
+spells') and on `spells.upcast` ("Ai livelli superiori"). `common.filters.reset`
+is now "Azzera filtri". Left undone: reordering fields so the long textareas
+aren't below the short selects — the TD's fix-in-shape only asked for height,
+and reordering touches per-domain form layout (`app/ui/<domain>/`), a
+separate, larger change.
+
 ### TD-121 — The world map opens with the image at about half the canvas
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, design critique; seen once

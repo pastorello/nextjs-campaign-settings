@@ -45,4 +45,18 @@ describe("TextareaInput", () => {
 
     expect(screen.getByPlaceholderText("Scrivi qui...")).toBeInTheDocument();
   });
+
+  it("uses the default height when not marked tall", () => {
+    render(<TextareaInput value="" onChange={vi.fn()} label="Descrizione" />);
+
+    expect(screen.getByRole("textbox")).toHaveClass("h-[150px]");
+  });
+
+  it("grows to a taller box when tall (TD-120, long-form fields)", () => {
+    render(
+      <TextareaInput value="" onChange={vi.fn()} label="Descrizione" tall />
+    );
+
+    expect(screen.getByRole("textbox")).toHaveClass("h-[280px]");
+  });
 });

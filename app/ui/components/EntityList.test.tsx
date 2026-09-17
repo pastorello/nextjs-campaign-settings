@@ -5,7 +5,10 @@ import PageType from "@/app/lib/definitions/types/PageType";
 import type OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
 vi.mock("next-intl/server", () => ({
-  getTranslations: () => Promise.resolve((key: string) => key),
+  getTranslations: () =>
+    Promise.resolve((key: string, values?: Record<string, unknown>) =>
+      values ? `${key}:${JSON.stringify(values)}` : key
+    ),
 }));
 
 // The row-level buttons pull in next/navigation, next-intl and the full
@@ -40,9 +43,13 @@ vi.mock("../buttons/DeleteButton", () => ({
   ),
 }));
 vi.mock("../buttons/ModalButton", () => ({
-  default: ({ buttonLabel }: { buttonLabel: string }) => (
-    <button>{buttonLabel}</button>
-  ),
+  default: ({
+    buttonLabel,
+    ariaLabel,
+  }: {
+    buttonLabel: string;
+    ariaLabel?: string;
+  }) => <button aria-label={ariaLabel}>{buttonLabel}</button>,
 }));
 vi.mock("../buttons/AssignLocationButton", () => ({
   default: ({ currentLocationLabel }: { currentLocationLabel: string }) => (
@@ -246,6 +253,30 @@ describe("EntityList", () => {
     expect(JSON.parse(header.getAttribute("data-bundle") ?? "null")).toEqual({
       faction: [{ value: 3, label: "Gilda dei Ladri" }],
     });
+  });
+
+  // TD-136: every row's Edit button announced as plain "Modifica" — this
+  // gives each one the item's name so a screen reader's button list can
+  // tell rows apart.
+  it("gives each row's Edit button an aria-label carrying the item's name", async () => {
+    fetchFilteredDeities.mockResolvedValue([
+      {
+        id: 1,
+        name: "Bahamut",
+        alignment: 1,
+        alignmentDomain: 1,
+        deityRank: 1,
+        deityType: 1,
+      },
+    ]);
+
+    render(await EntityList({ pageType: PageType.Deity }));
+
+    expect(
+      screen.getByRole("button", {
+        name: 'common.table.editItem:{"name":"Bahamut"}',
+      })
+    ).toBeInTheDocument();
   });
 
   it("renders the assign-location button for an NPC row with its current summary", async () => {

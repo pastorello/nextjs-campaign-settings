@@ -47,6 +47,7 @@ const DeleteButton = ({ pageName, pageId, pageType }: DeleteButtonProps) => {
     <ModalButton
       onSave={() => void handleDelete()}
       buttonLabel={t("form.delete")}
+      ariaLabel={t("table.deleteItem", { name: pageName })}
       modalTitle={t("deleteButton.confirmTitle", { name: pageName })}
       modalDescription={t("deleteButton.confirmDescription")}
       modalContent={"deleteform"}

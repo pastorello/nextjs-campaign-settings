@@ -28,8 +28,16 @@ vi.mock("@/app/lib/notifications/notify", () => ({
 // that: a button that fires `onSave`, the same contract ModalButton's real
 // "deleteform" branch offers.
 vi.mock("./ModalButton", () => ({
-  default: ({ onSave }: { onSave?: () => void }) => (
-    <button onClick={onSave}>confirm-delete</button>
+  default: ({
+    onSave,
+    ariaLabel,
+  }: {
+    onSave?: () => void;
+    ariaLabel?: string;
+  }) => (
+    <button onClick={onSave} aria-label={ariaLabel}>
+      confirm-delete
+    </button>
   ),
 }));
 
@@ -39,6 +47,19 @@ describe("DeleteButton", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     global.fetch = vi.fn();
+  });
+
+  // TD-136: every row's delete button announced as plain "Elimina" — this
+  // is what gives each one the item's name instead.
+  it("passes an aria-label carrying the item name to ModalButton", () => {
+    render(
+      <DeleteButton pageName="Fireball" pageId={1} pageType={PageType.Spell} />
+    );
+
+    expect(screen.getByText("confirm-delete")).toHaveAttribute(
+      "aria-label",
+      "table.deleteItem:Fireball"
+    );
   });
 
   it("deletes, notifies success and refreshes the route on a successful response", async () => {

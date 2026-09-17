@@ -329,7 +329,7 @@ _tree_, and after a search-result deep link those two are not the same path.
 
 **`push` was weighed and rejected** (recorded in `CLAUDE.md`'s decisions). It needs the stack rebuilt from the URL on `popstate`, including places no longer in it — back after "up", forward after back — and `fetchPlaceAncestryChain` is server-only, so it would mean a new read-side Server Action or a cache of popped entries. Revisit only if the DM asks for back to retrace hops, and then as a spec.
 
-### TD-97 — `MagicItemType`'s nine members are still Italian identifiers — a TD-33 miss
+### TD-97 ✅ `MagicItemType`'s nine members are still Italian identifiers — a TD-33 miss — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-08-18, while writing SPEC-013 T3's `TreasureCategory`
 
@@ -341,11 +341,18 @@ finding in the sense of unnoticed: T3's `TreasureCategory` was deliberately
 built to copy this file's _structural_ pattern (enum + numeric options array)
 while using English members, precisely to avoid extending the miss.
 
-**The fix, in shape:** rename the nine members to English, land it as its own
-pure-rename commit (`CLAUDE.md`'s own instruction for exactly this situation),
-touching nothing else. Do it after SPEC-013's metadata work on `magicitems`
-(T4) settles, so the rename doesn't collide with an in-flight `PageMeta` change
-to the same domain.
+**Resolution:** renamed the nine members to English —
+`Ring`, `Armor`, `Weapon`, `Wand`, `Staff`, `WondrousItem`, `Scroll`, `Potion`,
+`Rod` — matching `TreasureCategory`'s exact naming shape (member name equals
+its string value, no space in `WondrousItem`). Checked first whether the
+stored values would change: `magicitems.type` is a Prisma `Int` (`@map("tipo")`),
+populated from the numeric `value` in
+`app/lib/config/magicitem/item-types.ts`, never from this enum's string —
+`MagicItemType` is a code-layer tag only, not a catalogue key and not
+persisted, so this is a pure rename with no `@map`, no migration and no data
+risk. `item-types.ts` (the only other consumer) and a stale comment in
+`TreasureCategory.ts` were updated to match. `pnpm typecheck`, `pnpm lint` and
+the full `pnpm test` (2109/2109) all pass unchanged.
 
 ### TD-98 ✅ `.prettierignore` doesn't exclude `.claude/`, so `format:check`/`--write` reach other sessions' worktrees — **DONE (2026-09-11)**
 

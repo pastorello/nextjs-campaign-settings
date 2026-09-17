@@ -6,6 +6,7 @@ import Scene from "@/app/lib/definitions/interfaces/campaign/Scene";
 import SceneKind from "@/app/lib/definitions/enums/campaign/SceneKind";
 import SceneCreature from "@/app/lib/definitions/interfaces/campaign/SceneCreature";
 import Loot from "@/app/lib/definitions/interfaces/campaign/Loot";
+import GameSystem, { isGameSystem } from "@/app/lib/definitions/GameSystem";
 
 export interface SceneWithDetails extends Scene {
   creatures: SceneCreature[];
@@ -14,6 +15,21 @@ export interface SceneWithDetails extends Scene {
 
 export interface AdventureWithScenes extends Adventure {
   scenes: SceneWithDetails[];
+  /**
+   * The owning campaign's system (SPEC-018 T3), so the page can redirect to
+   * it. `null` for a standalone adventure, which has no system of its own.
+   */
+  campaignSystem: GameSystem | null;
+}
+
+/**
+ * `system` is a raw `String` column. `campaignMeta.system` only ever writes a
+ * `GAME_SYSTEMS` value, but a system dropped from the vocabulary would leave
+ * rows behind, and redirecting to a slug the layout 404s helps nobody — so
+ * an unknown value reads as "no system to redirect to".
+ */
+function toCampaignSystem(system: string | undefined): GameSystem | null {
+  return isGameSystem(system) ? system : null;
 }
 
 /**
@@ -47,6 +63,7 @@ export default async function fetchAdventureWithScenes(
         currencyUnit: true,
         permanentItemTarget: true,
         consumableTarget: true,
+        campaign: { select: { system: true } },
         scenes: {
           orderBy: { position: "asc" },
           select: {
@@ -115,6 +132,7 @@ export default async function fetchAdventureWithScenes(
     currencyUnit: row.currencyUnit,
     permanentItemTarget: row.permanentItemTarget,
     consumableTarget: row.consumableTarget,
+    campaignSystem: toCampaignSystem(row.campaign?.system),
     // `kind` is a raw `String` column (SPEC-013 §6); the six values written
     // to it are exactly `SceneKind`'s members, enforced at write time by
     // the scene editor's validator (T6).

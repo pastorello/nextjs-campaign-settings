@@ -5,9 +5,9 @@ vi.mock("next-intl/server", () => ({
   getTranslations: () => Promise.resolve((key: string) => key),
 }));
 
-const fetchCampaign = vi.fn<() => unknown>();
+const fetchCampaign = vi.fn<(...args: unknown[]) => unknown>();
 vi.mock("@/app/lib/data/campaigns/fetchCampaign", () => ({
-  default: () => fetchCampaign(),
+  default: (...args: unknown[]) => fetchCampaign(...args),
 }));
 
 const fetchAdventureSceneProgress = vi.fn<(...args: unknown[]) => unknown>();
@@ -27,7 +27,21 @@ vi.mock("@/app/ui/campaigns/AdventureLadder", () => ({
   default: () => <div data-testid="adventure-ladder" />,
 }));
 
+const notFound = vi.fn(() => {
+  throw new Error("NEXT_NOT_FOUND");
+});
+vi.mock("next/navigation", () => ({
+  notFound: () => notFound(),
+}));
+
 import CampaignPage, { generateMetadata } from "./page";
+
+function routeProps(system = "dnd5e") {
+  return {
+    params: Promise.resolve({ locale: "it", system }),
+    searchParams: Promise.resolve({}),
+  };
+}
 
 describe("Campaign page (SPEC-013 T7)", () => {
   it("titles the page from the campaign.page catalogue", async () => {
@@ -39,7 +53,7 @@ describe("Campaign page (SPEC-013 T7)", () => {
   it("offers the create-campaign form and nothing else on an empty installation", async () => {
     fetchCampaign.mockResolvedValue(null);
 
-    render(await CampaignPage());
+    render(await CampaignPage(routeProps()));
 
     expect(screen.getByTestId("campaign-form")).toBeInTheDocument();
     expect(screen.queryByTestId("adventure-ladder")).not.toBeInTheDocument();
@@ -56,11 +70,30 @@ describe("Campaign page (SPEC-013 T7)", () => {
     });
     fetchAdventureSceneProgress.mockResolvedValue({});
 
-    render(await CampaignPage());
+    render(await CampaignPage(routeProps()));
 
     expect(screen.queryByTestId("campaign-form")).not.toBeInTheDocument();
     expect(screen.getByTestId("campaign-header")).toBeInTheDocument();
     expect(screen.getByTestId("adventure-ladder")).toBeInTheDocument();
     expect(fetchAdventureSceneProgress).toHaveBeenCalledWith([10, 11]);
+  });
+
+  // SPEC-018 T3: the list is filtered by the URL's system.
+  it("reads only the route system's campaign", async () => {
+    fetchCampaign.mockResolvedValue(null);
+
+    render(await CampaignPage(routeProps("dnd5e")));
+
+    expect(fetchCampaign).toHaveBeenCalledWith("dnd5e");
+  });
+
+  it("is not found under an unknown system, without reading", async () => {
+    fetchCampaign.mockClear();
+
+    await expect(CampaignPage(routeProps("foo"))).rejects.toThrow(
+      "NEXT_NOT_FOUND"
+    );
+
+    expect(fetchCampaign).not.toHaveBeenCalled();
   });
 });

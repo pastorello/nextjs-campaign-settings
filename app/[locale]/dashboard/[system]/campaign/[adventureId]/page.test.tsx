@@ -39,7 +39,21 @@ vi.mock("@/app/ui/campaigns/SceneList", () => ({
   default: () => <div data-testid="scene-list" />,
 }));
 
+const redirect = vi.fn((_args: unknown) => {
+  throw new Error("NEXT_REDIRECT");
+});
+vi.mock("@/i18n/navigation", () => ({
+  redirect: (args: unknown) => redirect(args),
+}));
+
 import AdventurePage, { generateMetadata } from "./page";
+
+function routeProps(adventureId: string, system = "dnd5e") {
+  return {
+    params: Promise.resolve({ locale: "en", system, adventureId }),
+    searchParams: Promise.resolve({}),
+  };
+}
 
 describe("Adventure page (SPEC-013 T8)", () => {
   beforeEach(() => {
@@ -61,9 +75,7 @@ describe("Adventure page (SPEC-013 T8)", () => {
   });
 
   it("renders a 404 for a non-numeric adventure id", async () => {
-    await expect(
-      AdventurePage({ params: Promise.resolve({ adventureId: "abc" }) })
-    ).rejects.toThrow();
+    await expect(AdventurePage(routeProps("abc"))).rejects.toThrow();
 
     expect(notFound).toHaveBeenCalled();
     expect(fetchAdventureWithScenes).not.toHaveBeenCalled();
@@ -72,9 +84,7 @@ describe("Adventure page (SPEC-013 T8)", () => {
   it("renders a 404 when the adventure does not exist", async () => {
     fetchAdventureWithScenes.mockResolvedValue(null);
 
-    await expect(
-      AdventurePage({ params: Promise.resolve({ adventureId: "999" }) })
-    ).rejects.toThrow();
+    await expect(AdventurePage(routeProps("999"))).rejects.toThrow();
 
     expect(notFound).toHaveBeenCalled();
   });
@@ -84,15 +94,51 @@ describe("Adventure page (SPEC-013 T8)", () => {
       id: 10,
       currencyUnit: "gold",
       scenes: [],
+      campaignSystem: "dnd5e",
     });
 
-    render(
-      await AdventurePage({ params: Promise.resolve({ adventureId: "10" }) })
-    );
+    render(await AdventurePage(routeProps("10")));
 
     expect(getBudgetTotals).toHaveBeenCalledWith(10);
     expect(screen.getByTestId("adventure-header")).toBeInTheDocument();
     expect(screen.getByTestId("budget-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("scene-list")).toBeInTheDocument();
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  // SPEC-018 T3 — a campaign opens under its own system. Only `dnd5e` is in
+  // `GAME_SYSTEMS` today, so the route below is a stand-in for "another
+  // system's URL": the page compares the two slugs and nothing more.
+  it("redirects to the campaign's own system, keeping the locale", async () => {
+    fetchAdventureWithScenes.mockResolvedValue({
+      id: 10,
+      currencyUnit: null,
+      scenes: [],
+      campaignSystem: "dnd5e",
+    });
+
+    await expect(
+      AdventurePage(routeProps("10", "daggerheart"))
+    ).rejects.toThrow("NEXT_REDIRECT");
+
+    expect(redirect).toHaveBeenCalledWith({
+      href: "/dashboard/dnd5e/campaign/10",
+      locale: "en",
+    });
+    expect(getBudgetTotals).not.toHaveBeenCalled();
+  });
+
+  it("opens a standalone adventure under any system", async () => {
+    fetchAdventureWithScenes.mockResolvedValue({
+      id: 10,
+      currencyUnit: null,
+      scenes: [],
+      campaignSystem: null,
+    });
+
+    render(await AdventurePage(routeProps("10", "daggerheart")));
+
+    expect(redirect).not.toHaveBeenCalled();
     expect(screen.getByTestId("scene-list")).toBeInTheDocument();
   });
 });

@@ -20,6 +20,7 @@ const campaign = {
   title: "The Silver Coast",
   synopsis: "A poor coastline haunted by an old war.",
   partySize: 5,
+  system: "dnd5e" as const,
 };
 
 describe("CampaignHeader (SPEC-013 T7)", () => {

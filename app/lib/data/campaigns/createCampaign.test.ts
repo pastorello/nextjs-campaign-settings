@@ -20,6 +20,7 @@ const validFormData: Campaign = {
   title: "The Black Hand Rises",
   synopsis: "A shadow falls over the free cities.",
   partySize: 5,
+  system: "dnd5e",
 };
 
 describe("createCampaign (SPEC-013 T6)", () => {
@@ -48,8 +49,31 @@ describe("createCampaign (SPEC-013 T6)", () => {
         title: validFormData.title,
         synopsis: validFormData.synopsis,
         partySize: validFormData.partySize,
+        system: "dnd5e",
       },
     });
+  });
+
+  // SPEC-018 T3: the system is asked for, and only a known one is accepted.
+  it("rejects an unknown system, with a field error and without writing", async () => {
+    const result = await createCampaign({
+      ...validFormData,
+      system: "pf2e" as Campaign["system"],
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.ok === false && result.errors).toHaveProperty("system");
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing system, without writing", async () => {
+    const withoutSystem: Partial<Campaign> = { ...validFormData };
+    delete withoutSystem.system;
+
+    const result = await createCampaign(withoutSystem as Campaign);
+
+    expect(result.ok).toBe(false);
+    expect(create).not.toHaveBeenCalled();
   });
 
   it("rejects a blank title, without writing", async () => {

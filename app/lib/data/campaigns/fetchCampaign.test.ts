@@ -14,7 +14,7 @@ describe("fetchCampaign (SPEC-013 T5)", () => {
 
     const { default: fetchCampaign } = await import("./fetchCampaign");
 
-    expect(await fetchCampaign()).toBeNull();
+    expect(await fetchCampaign("dnd5e")).toBeNull();
   });
 
   it("returns the campaign with its adventures in position order", async () => {
@@ -43,7 +43,7 @@ describe("fetchCampaign (SPEC-013 T5)", () => {
     });
 
     const { default: fetchCampaign } = await import("./fetchCampaign");
-    const result = await fetchCampaign();
+    const result = await fetchCampaign("dnd5e");
 
     expect(result?.title).toBe("The Silver Coast");
     expect(result?.adventures).toHaveLength(1);
@@ -76,10 +76,29 @@ describe("fetchCampaign (SPEC-013 T5)", () => {
     });
 
     const { default: fetchCampaign } = await import("./fetchCampaign");
-    const result = await fetchCampaign();
+    const result = await fetchCampaign("dnd5e");
 
     expect(result?.adventures[0]?.xpTarget).toBeNull();
     expect(result?.adventures[0]?.currencyTarget).toBeNull();
+  });
+
+  // SPEC-018 T3: under a system, only that system's campaign is read.
+  it("reads only the given system's campaign, and reports that system", async () => {
+    findFirst.mockResolvedValue({
+      id: 1,
+      title: "The Silver Coast",
+      synopsis: null,
+      partySize: 5,
+      adventures: [],
+    });
+
+    const { default: fetchCampaign } = await import("./fetchCampaign");
+    const result = await fetchCampaign("dnd5e");
+
+    expect(findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { system: "dnd5e" } })
+    );
+    expect(result?.system).toBe("dnd5e");
   });
 
   it("wraps a Prisma failure in a DatabaseError", async () => {
@@ -87,6 +106,6 @@ describe("fetchCampaign (SPEC-013 T5)", () => {
 
     const { default: fetchCampaign } = await import("./fetchCampaign");
 
-    await expect(fetchCampaign()).rejects.toThrow(DatabaseError);
+    await expect(fetchCampaign("dnd5e")).rejects.toThrow(DatabaseError);
   });
 });

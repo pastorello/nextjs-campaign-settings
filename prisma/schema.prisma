@@ -218,6 +218,10 @@ model campaign {
   title     String
   synopsis  String?
   partySize Int      @default(4)
+  // SPEC-018 T3 / ADR-0013 rule 9: the game system's URL slug, a closed
+  // vocabulary in code (`GAME_SYSTEMS`), like `adventure.status`. The
+  // default backfills every campaign that existed before systems did.
+  system    String   @default("dnd5e")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

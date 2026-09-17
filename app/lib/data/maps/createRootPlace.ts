@@ -2,9 +2,7 @@
 
 import fieldError from "@/app/lib/data/validation/fieldError";
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
-import { revalidatePath } from "next/cache";
-import { dashboardPath } from "@/i18n/dashboardPath";
-import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
@@ -60,6 +58,6 @@ export default async function createRootPlace(
     throw toDatabaseError("creating the root place", error);
   }
 
-  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/world"));
+  revalidateDashboard("world");
   return { ok: true };
 }

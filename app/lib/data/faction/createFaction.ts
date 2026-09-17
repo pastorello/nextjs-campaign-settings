@@ -7,7 +7,7 @@ import PageType from "@/app/lib/definitions/types/PageType";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildCreateSchema } from "../validation/buildEntitySchema";
 import Faction from "@/app/lib/definitions/interfaces/faction/Faction";
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 export default async function createFaction(
@@ -36,6 +36,6 @@ export default async function createFaction(
     throw toDatabaseError("creating faction", error);
   }
 
-  revalidatePath("/factions");
+  revalidateDashboard("factions");
   return { ok: true };
 }

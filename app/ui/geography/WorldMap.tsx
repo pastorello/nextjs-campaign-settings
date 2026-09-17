@@ -337,13 +337,15 @@ function WorldMap({
   // observed, and it is the reason this code looks the way it does.
   //
   // What the server did is re-render this page: `unplacePlace` calls
-  // `revalidatePath`, and any such call — whatever path it names — flags
-  // the action as revalidated, which is what makes Next send a fresh render
-  // with the action's response. The path itself, `/dashboard/geography`,
-  // matches nothing (the route files live under `app/[locale]/`); the
-  // refresh comes from the flag alone, which is why pointing the call at a
-  // nonsense path left `map-unplace.spec` passing. Removing it would not.
-  // See TD-105.
+  // `revalidateDashboard("geography")`, and any `revalidatePath` call it
+  // makes — whatever path it names — flags the action as revalidated, which
+  // is what makes Next send a fresh render with the action's response. That
+  // flag, not a cache match, is why pointing the call at a nonsense path
+  // once left `map-unplace.spec` passing; removing the call would not. The
+  // helper now passes the route's real file location,
+  // `/[locale]/dashboard/[system]/geography`, which costs nothing and is
+  // what makes the call correct if a cache ever does apply here — see
+  // TD-105 and ADR-0014.
   const handleUnplace = useCallback(
     async (child: NavigableChild) => {
       try {

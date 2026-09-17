@@ -7,9 +7,7 @@ import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import Campaign from "@/app/lib/definitions/interfaces/campaign/Campaign";
 import campaignMeta from "@/app/lib/config/campaigns/campaignMeta";
 import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema";
-import { revalidatePath } from "next/cache";
-import { dashboardPath } from "@/i18n/dashboardPath";
-import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 /**
@@ -41,6 +39,6 @@ export default async function updateCampaign(
     throw toDatabaseError("updating campaign", error);
   }
 
-  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
+  revalidateDashboard("campaign");
   return { ok: true };
 }

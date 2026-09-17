@@ -1,7 +1,7 @@
 "use server";
 
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
@@ -56,6 +56,6 @@ export default async function updatePoi(
     throw toDatabaseError("updating poi", error);
   }
 
-  revalidatePath("/geography");
+  revalidateDashboard("geography");
   return { ok: true };
 }

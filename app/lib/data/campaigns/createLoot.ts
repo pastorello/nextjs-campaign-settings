@@ -8,9 +8,7 @@ import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import Loot from "@/app/lib/definitions/interfaces/campaign/Loot";
 import lootMeta from "@/app/lib/config/campaigns/lootMeta";
 import { buildBespokeCreateSchema } from "../validation/buildBespokeEntitySchema";
-import { revalidatePath } from "next/cache";
-import { dashboardPath } from "@/i18n/dashboardPath";
-import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import { z } from "zod";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
@@ -69,6 +67,6 @@ export default async function createLoot(
     throw toDatabaseError("creating loot", error);
   }
 
-  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
+  revalidateDashboard("campaign");
   return { ok: true };
 }

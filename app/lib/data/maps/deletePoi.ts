@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
@@ -37,5 +37,5 @@ export default async function deletePoi(id: number): Promise<void> {
     throw toDatabaseError("deleting poi", error);
   }
 
-  revalidatePath("/geography");
+  revalidateDashboard("geography");
 }

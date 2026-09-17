@@ -7,9 +7,7 @@ import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import Scene from "@/app/lib/definitions/interfaces/campaign/Scene";
 import sceneMeta from "@/app/lib/config/campaigns/sceneMeta";
 import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema";
-import { revalidatePath } from "next/cache";
-import { dashboardPath } from "@/i18n/dashboardPath";
-import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 /**
@@ -42,6 +40,6 @@ export default async function updateScene(
     throw toDatabaseError("updating scene", error);
   }
 
-  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
+  revalidateDashboard("campaign");
   return { ok: true };
 }

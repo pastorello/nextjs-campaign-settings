@@ -1687,7 +1687,7 @@ deities, magic items, factions, treasure) now wrap their Prisma write with
 and a `DatabaseError` case in six action tests. The geography panels keep
 their own handling, deliberately.
 
-### TD-127 — `WorldMap.tsx` is 1,329 lines and handles eight concerns
+### TD-127 ✅ `WorldMap.tsx` is 1,329 lines and handles eight concerns — **DONE (2026-09-17)**
 
 **Severity:** 🟡 Medium · **Effort:** L · **Found:** 2026-09-17, tech-debt audit
 
@@ -1701,7 +1701,32 @@ described it. `app/modules/maps/hooks/usePOIManager.ts` is 837 lines.
 `app/modules/maps/`'s structure. Do it before the next map feature, not
 alongside one. **Related:** TD-46, TD-131.
 
-### TD-128 — `WorldMap`'s GeoJSON import skips the schema that `MapMain`'s import uses
+**Resolution:** `WorldMap.tsx` went from 1,355 lines to about 700, one
+pure-move commit per hook, each hook with its own test file under
+`app/ui/geography/hooks/`: `useMapImageOverlay` (the overlay effect and
+framing), `useMeasureTool`, `usePlacePopover` (target, click handlers,
+zone actions), `usePOIPanel` (the drawer's controlled state and point
+picking), `useAreaDrawing` (both `useDrawArea` instances and the redraw
+save), `usePlacePositioning` (the unplaced pool, picker rows and the
+placement) and `usePOIFileIO`. They live in `app/ui/geography/hooks/`, not
+`app/modules/maps/hooks/`, because they depend on `app/ui/geography` types
+(`PopoverTarget`) and are `WorldMap`'s own, not the module's. Each hook
+that owned part of the old `parentId` reset block now resets its own slice,
+with the same "adjusting state during render" pattern; what each reset
+covers is unchanged (draw-an-area mode and point selection still survive a
+descend). What stays in `WorldMap` on purpose: the places refetch token,
+the wiring of the three mutually exclusive crosshair modes (`onArm` /
+`disarm`), the map-click containment check (it needs the area children,
+which need `useAreaDrawing`'s `editingArea`), `handleAddPlace`, and the
+three landmark popover actions — they need `usePOIManager`, which needs
+`usePlacePopover`'s `handlePOIClick` first. The map decisions in
+`CLAUDE.md` (stable `POI.id`, the removed "Modifica area" entry, the
+`revalidatePath` reasoning) moved with their comments; nothing about them
+changed. `WorldMap.test.tsx` passes unchanged apart from TD-128's two
+`waitFor`s. `usePOIManager.ts` was not touched. The map e2e specs were not
+run locally.
+
+### TD-128 ✅ `WorldMap`'s GeoJSON import skips the schema that `MapMain`'s import uses — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, tech-debt audit
 
@@ -1712,6 +1737,18 @@ produces one server rejection per feature instead of one clear error. The two
 files also duplicate the export/import handlers. **The fix, in shape:**
 validate with `poiGeoJSONSchema`, and share one import/export helper.
 **Related:** TD-14, TD-02b.
+
+**Resolution:** `app/modules/maps/lib/utils/poiGeoJSONFile.ts` holds
+`downloadPOIGeoJSON` and `readPOIGeoJSONFile`, which validates with
+`poiGeoJSONSchema` and throws on a malformed file. `WorldMap` (through
+`usePOIFileIO`, TD-127) and `MapMain` both use it. Each caller keeps its
+own toasts: `WorldMap`'s come from the catalogue, while `MapMain`'s
+hardcoded English strings were left as they are (vendored, and not
+rendered by any route). Regression test: `usePOIFileIO.test.ts` rejects a
+well-formed JSON file with a bad category and non-numeric coordinates
+before `importGeoJSON` runs. `WorldMap.test.tsx`'s two import tests now
+`waitFor` their assertions, because the extra validation step adds a tick
+after the `void` `onImport` wrapper returns.
 
 ### TD-129 ✅ Map place and POI schemas restate field rules instead of using `zoneMeta` — **DONE (2026-09-17)**
 

@@ -1,8 +1,10 @@
+import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import CardWrapper from "@/app/ui/dashboard/cards";
 import { lusitana } from "@/app/ui/fonts";
 import { Suspense } from "react";
 import { CardsSkeleton } from "@/app/ui/skeletons";
+import { isGameSystem } from "@/app/lib/definitions/GameSystem";
 
 // The cards below are live record counts. Without this the page has no dynamic
 // input — no searchParams, no cookies — so Next prerenders it at build time and
@@ -14,7 +16,12 @@ import { CardsSkeleton } from "@/app/ui/skeletons";
 // they read searchParams. This one has to say so.
 export const dynamic = "force-dynamic";
 
-export default async function Page() {
+export default async function Page(
+  props: PageProps<"/[locale]/dashboard/[system]">
+) {
+  const { system } = await props.params;
+  if (!isGameSystem(system)) notFound();
+
   const t = await getTranslations("common.dashboard");
 
   return (
@@ -24,7 +31,7 @@ export default async function Page() {
       </h1>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Suspense fallback={<CardsSkeleton />}>
-          <CardWrapper />
+          <CardWrapper system={system} />
         </Suspense>
       </div>
     </main>

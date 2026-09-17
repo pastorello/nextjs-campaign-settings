@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { Link, useRouter } from "@/i18n/navigation";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import useGameSystem from "@/app/lib/hooks/useGameSystem";
 import updateAdventure from "@/app/lib/data/campaigns/updateAdventure";
 import reorderAdventures from "@/app/lib/data/campaigns/reorderAdventures";
 import deleteAdventureById from "@/app/lib/data/campaigns/deleteAdventureById";
@@ -47,6 +49,7 @@ export default function AdventureLadder({
 }: AdventureLadderProps) {
   const t = useTranslations();
   const router = useRouter();
+  const system = useGameSystem();
 
   const [isAdding, setIsAdding] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<Adventure | null>(null);
@@ -163,7 +166,7 @@ export default function AdventureLadder({
                   <td className="px-3 py-3">{adventure.targetLevel}</td>
                   <td className="px-3 py-3">
                     <Link
-                      href={`/dashboard/campaign/${adventure.id}`}
+                      href={dashboardPath(system, `/campaign/${adventure.id}`)}
                       className="text-blue-600 underline"
                     >
                       {adventure.title}

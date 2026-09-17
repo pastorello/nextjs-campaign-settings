@@ -8,6 +8,8 @@ import CampaignMetaField from "@/app/lib/definitions/enums/campaign/CampaignMeta
 import campaignMeta from "@/app/lib/config/campaigns/campaignMeta";
 import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema";
 import { revalidatePath } from "next/cache";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 
 /**
  * Updates the DM's campaign — title, synopsis, party size. Outside the
@@ -33,6 +35,6 @@ export default async function updateCampaign(
       }, {} as Partial<Campaign>),
   });
 
-  revalidatePath("/dashboard/campaign");
+  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };
 }

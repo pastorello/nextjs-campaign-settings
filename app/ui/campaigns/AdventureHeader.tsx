@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { Link } from "@/i18n/navigation";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import useGameSystem from "@/app/lib/hooks/useGameSystem";
 import adventureMeta from "@/app/lib/config/campaigns/adventureMeta";
 import AdventureMetaField from "@/app/lib/definitions/enums/campaign/AdventureMetaField";
 import Adventure from "@/app/lib/definitions/interfaces/campaign/Adventure";
@@ -29,6 +31,7 @@ interface AdventureHeaderProps {
  */
 export default function AdventureHeader({ adventure }: AdventureHeaderProps) {
   const t = useTranslations();
+  const system = useGameSystem();
   const [isEditing, setIsEditing] = useState(false);
 
   if (isEditing) {
@@ -46,7 +49,7 @@ export default function AdventureHeader({ adventure }: AdventureHeaderProps) {
   return (
     <div>
       <Link
-        href="/dashboard/campaign"
+        href={dashboardPath(system, "/campaign")}
         className="mb-2 inline-block text-sm text-blue-600 underline"
       >
         {t("adventure.backToCampaign")}

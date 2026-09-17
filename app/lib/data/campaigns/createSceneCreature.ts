@@ -7,6 +7,8 @@ import SceneCreature from "@/app/lib/definitions/interfaces/campaign/SceneCreatu
 import sceneCreatureMeta from "@/app/lib/config/campaigns/sceneCreatureMeta";
 import { buildBespokeCreateSchema } from "../validation/buildBespokeEntitySchema";
 import { revalidatePath } from "next/cache";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 import { z } from "zod";
 
 /**
@@ -35,6 +37,6 @@ export default async function createSceneCreature(
     data: { sceneId, position, name, level, xpEach, quantity, note, npcId },
   });
 
-  revalidatePath("/dashboard/campaign");
+  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };
 }

@@ -39,7 +39,7 @@ describe("CardWrapper (TD-91)", () => {
       numberOfFactions: 6,
     });
 
-    render(await CardWrapper());
+    render(await CardWrapper({ system: "dnd5e" }));
 
     expect(screen.getByText("magicItems")).toBeInTheDocument();
     expect(screen.getByText("1")).toBeInTheDocument();
@@ -58,16 +58,16 @@ describe("CardWrapper (TD-91)", () => {
 
 describe("Card (TD-92)", () => {
   it.each([
-    ["magicitems", "/dashboard/magicitems"],
-    ["npc", "/dashboard/npc"],
-    ["spells", "/dashboard/spells"],
-    ["deities", "/dashboard/deities"],
-    ["places", "/dashboard/geography"],
-    ["factions", "/dashboard/factions"],
+    ["magicitems", "/dashboard/dnd5e/magicitems"],
+    ["npc", "/dashboard/dnd5e/npc"],
+    ["spells", "/dashboard/dnd5e/spells"],
+    ["deities", "/dashboard/dnd5e/deities"],
+    ["places", "/dashboard/dnd5e/geography"],
+    ["factions", "/dashboard/dnd5e/factions"],
   ] as const)(
     "links the %s card to its domain list page (%s)",
     (type, href) => {
-      render(<Card title="a title" value={1} type={type} />);
+      render(<Card title="a title" value={1} type={type} system="dnd5e" />);
 
       expect(screen.getByText("a title").closest("a")).toHaveAttribute(
         "href",

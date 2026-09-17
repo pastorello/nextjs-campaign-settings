@@ -8,6 +8,8 @@ import LootMetaField from "@/app/lib/definitions/enums/campaign/LootMetaField";
 import lootMeta from "@/app/lib/config/campaigns/lootMeta";
 import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema";
 import { revalidatePath } from "next/cache";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 
 /**
  * Updates a loot row's own fields, including its position. Written from
@@ -43,6 +45,6 @@ export default async function updateLoot(
     ),
   });
 
-  revalidatePath("/dashboard/campaign");
+  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };
 }

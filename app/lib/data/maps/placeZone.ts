@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 import { z } from "zod";
 
 import prisma from "@/app/lib/connections/prisma";
@@ -148,6 +150,6 @@ export default async function placeZone(formData: {
     };
   }
 
-  revalidatePath("/dashboard/geography");
+  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/geography"));
   return { ok: true };
 }

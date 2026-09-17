@@ -1,8 +1,10 @@
 import { getTranslations } from "next-intl/server";
+import { notFound } from "next/navigation";
 import { Metadata } from "next";
 
 import { Link } from "@/i18n/navigation";
-import SearchParams from "@/app/lib/definitions/interfaces/pages/SearchParams";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { isGameSystem } from "@/app/lib/definitions/GameSystem";
 import fetchRootPlace from "@/app/lib/data/maps/fetchRootPlace";
 import fetchPlaceAncestryChain from "@/app/lib/data/maps/fetchPlaceAncestryChain";
 import countUnpositionedPlaces from "@/app/lib/data/maps/countUnpositionedPlaces";
@@ -38,10 +40,11 @@ export async function generateMetadata(): Promise<Metadata> {
  * T2) even though that case reports `NotFoundError` because it's a write.
  */
 export default async function GeographyPage(
-  props: {
-    searchParams?: Promise<SearchParams>;
-  } = {}
+  props: PageProps<"/[locale]/dashboard/[system]/geography">
 ) {
+  const { system } = await props.params;
+  if (!isGameSystem(system)) notFound();
+
   const t = await getTranslations("geography");
   const root = await fetchRootPlace();
 
@@ -50,7 +53,10 @@ export default async function GeographyPage(
       <div>
         <PageTitle className="mb-4">{t("page.title")}</PageTitle>
         <p className="mb-4">{t("noWorldYet")}</p>
-        <Link href="/dashboard/world" className="text-blue-600 underline">
+        <Link
+          href={dashboardPath(system, "/world")}
+          className="text-blue-600 underline"
+        >
           {t("createWorldLink")}
         </Link>
       </div>

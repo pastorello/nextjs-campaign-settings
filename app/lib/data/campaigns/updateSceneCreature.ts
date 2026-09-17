@@ -8,6 +8,8 @@ import SceneCreatureMetaField from "@/app/lib/definitions/enums/campaign/SceneCr
 import sceneCreatureMeta from "@/app/lib/config/campaigns/sceneCreatureMeta";
 import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema";
 import { revalidatePath } from "next/cache";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 
 /**
  * Updates a creature row's own fields, including its position. Written
@@ -34,6 +36,6 @@ export default async function updateSceneCreature(
     ),
   });
 
-  revalidatePath("/dashboard/campaign");
+  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };
 }

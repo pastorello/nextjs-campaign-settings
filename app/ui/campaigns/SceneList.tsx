@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { Link, useRouter } from "@/i18n/navigation";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import useGameSystem from "@/app/lib/hooks/useGameSystem";
 import reorderScenes from "@/app/lib/data/campaigns/reorderScenes";
 import deleteSceneById from "@/app/lib/data/campaigns/deleteSceneById";
 import setSceneAwarded from "@/app/lib/data/campaigns/setSceneAwarded";
@@ -58,6 +60,7 @@ export default function SceneList({
 }: SceneListProps) {
   const t = useTranslations();
   const router = useRouter();
+  const system = useGameSystem();
 
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -165,7 +168,10 @@ export default function SceneList({
                       <p className="mt-1 text-sm">
                         {scene.zoneId !== null ? (
                           <Link
-                            href={`/dashboard/geography?place=${scene.zoneId}`}
+                            href={dashboardPath(
+                              system,
+                              `/geography?place=${scene.zoneId}`
+                            )}
                             className="text-blue-600 underline"
                           >
                             {zoneName(zoneOptions, scene.zoneId) ??

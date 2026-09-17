@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
@@ -90,6 +92,6 @@ export default async function createPlace(
     throw toDatabaseError("creating place", error);
   }
 
-  revalidatePath("/dashboard/geography");
+  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/geography"));
   return { ok: true, id: created.id };
 }

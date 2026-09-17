@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 import { z } from "zod";
 
 import { Prisma } from "@/generated/prisma/client";
@@ -64,6 +66,6 @@ export default async function unplacePlace(formData: {
     throw toDatabaseError("un-placing zone", error);
   }
 
-  revalidatePath("/dashboard/geography");
+  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/geography"));
   return { ok: true };
 }

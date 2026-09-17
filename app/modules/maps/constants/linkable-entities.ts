@@ -8,6 +8,6 @@
 import type { LinkableEntityTypeConfig } from "@/app/modules/maps/types/poi";
 
 export const LINKABLE_ENTITY_TYPES: LinkableEntityTypeConfig[] = [
-  { id: "npc", label: "NPC", path: "/dashboard/npc" },
-  { id: "deity", label: "Deity", path: "/dashboard/deities" },
+  { id: "npc", label: "NPC", path: "/npc" },
+  { id: "deity", label: "Deity", path: "/deities" },
 ];

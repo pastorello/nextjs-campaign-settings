@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 import { z } from "zod";
 
 import prisma from "@/app/lib/connections/prisma";
@@ -75,6 +77,6 @@ export default async function reorderAdventures(
     throw toDatabaseError("reordering adventures", error);
   }
 
-  revalidatePath("/dashboard/campaign");
+  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };
 }

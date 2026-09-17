@@ -2,6 +2,8 @@
 
 import NpcForm from "@/app/ui/npc/NpcForm";
 import { useRouter } from "@/i18n/navigation";
+import useGameSystem from "@/app/lib/hooks/useGameSystem";
+import { dashboardPath } from "@/i18n/dashboardPath";
 import OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
 export default function NewNpcForm({
@@ -10,11 +12,12 @@ export default function NewNpcForm({
   optionBundle: OptionBundle;
 }) {
   const router = useRouter();
+  const system = useGameSystem();
   const onCancel = () => {
-    router.push("/dashboard/admin/npc");
+    router.push(dashboardPath(system, "/admin/npc"));
   };
   const onSaveFinished = () => {
-    router.push("/dashboard/admin/npc");
+    router.push(dashboardPath(system, "/admin/npc"));
   };
 
   return (

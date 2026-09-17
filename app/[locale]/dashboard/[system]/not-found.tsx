@@ -1,7 +1,13 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { FaceFrownIcon } from "@heroicons/react/24/outline";
 
+import { Link } from "@/i18n/navigation";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
+
+// `not-found.js` components take no props (Next docs), so the route's own
+// `system` param isn't available here even though this file sits inside the
+// `[system]` segment — same reasoning as `app/not-found.tsx`.
 export default async function NotFound() {
   const t = await getTranslations("common.notFound");
 
@@ -11,7 +17,7 @@ export default async function NotFound() {
       <h2 className="text-xl font-semibold">{t("title")}</h2>
       <p>{t("description")}</p>
       <Link
-        href="/dashboard"
+        href={dashboardPath(DEFAULT_GAME_SYSTEM)}
         className="mt-4 rounded-md bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-400"
       >
         {t("goBack")}

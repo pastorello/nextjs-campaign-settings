@@ -7,6 +7,23 @@ vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }));
 
+vi.mock("@/app/lib/hooks/useGameSystem", () => ({ default: () => "dnd5e" }));
+
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({
+    href,
+    children,
+    ...rest
+  }: {
+    href: string;
+    children: React.ReactNode;
+  }) => (
+    <a href={href} {...rest}>
+      {children}
+    </a>
+  ),
+}));
+
 // Has its own suite (SPEC-008 T5, SPEC-007 T3) — stubbed here so this file
 // stays about NpcCard's own rendering, not the assignment modal's flow.
 vi.mock(

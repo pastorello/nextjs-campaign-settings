@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
@@ -56,6 +58,6 @@ export default async function createRootPlace(
     throw toDatabaseError("creating the root place", error);
   }
 
-  revalidatePath("/dashboard/world");
+  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/world"));
   return { ok: true };
 }

@@ -10,6 +10,7 @@ const push = vi.fn();
 vi.mock("@/i18n/navigation", () => ({
   useRouter: () => ({ push }),
 }));
+vi.mock("@/app/lib/hooks/useGameSystem", () => ({ default: () => "dnd5e" }));
 
 vi.mock("@/app/ui/spells/SpellForm", () => ({
   default: ({
@@ -34,7 +35,7 @@ describe("admin spells new Page (admin new-item page pattern)", () => {
 
     screen.getByText("cancel").click();
 
-    expect(push).toHaveBeenCalledWith("/dashboard/admin/spells");
+    expect(push).toHaveBeenCalledWith("/dashboard/dnd5e/admin/spells");
   });
 
   it("navigates back to the admin list once the save finishes", () => {
@@ -42,6 +43,6 @@ describe("admin spells new Page (admin new-item page pattern)", () => {
 
     screen.getByText("save").click();
 
-    expect(push).toHaveBeenCalledWith("/dashboard/admin/spells");
+    expect(push).toHaveBeenCalledWith("/dashboard/dnd5e/admin/spells");
   });
 });

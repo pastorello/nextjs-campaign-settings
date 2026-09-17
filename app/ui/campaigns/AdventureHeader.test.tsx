@@ -22,6 +22,8 @@ vi.mock("@/i18n/navigation", () => ({
   ),
 }));
 
+vi.mock("@/app/lib/hooks/useGameSystem", () => ({ default: () => "dnd5e" }));
+
 vi.mock("./AdventureInfoForm", () => ({
   default: ({ onCancel }: { onCancel: () => void }) => (
     <button onClick={onCancel} data-testid="adventure-info-form">
@@ -64,7 +66,7 @@ describe("AdventureHeader (SPEC-013 T8)", () => {
 
     expect(
       screen.getByRole("link", { name: "adventure.backToCampaign" })
-    ).toHaveAttribute("href", "/dashboard/campaign");
+    ).toHaveAttribute("href", "/dashboard/dnd5e/campaign");
   });
 
   it("switches to the edit form and back", () => {

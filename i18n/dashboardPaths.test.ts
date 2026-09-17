@@ -11,6 +11,10 @@ import { describe, expect, it } from "vitest";
  *
  * It walks the TypeScript AST rather than grepping, so a comment describing a
  * URL is not an offence and a literal split across a template is still one.
+ *
+ * Used to carry an `ALLOWLIST` of files that predated the system segment
+ * (SPEC-018 T2 part A); part B rewrote every one of them onto `dashboardPath`
+ * and removed it (2026-09-17), so this is now simply "no offenders".
  */
 const ROOT = join(__dirname, "..");
 const SKIPPED_DIRS = new Set([
@@ -24,64 +28,6 @@ const SKIPPED_DIRS = new Set([
   "public",
 ]);
 const HELPER = "i18n/dashboardPath.ts";
-
-/**
- * Files that spelled out a dashboard path when the system segment landed
- * (SPEC-018 T2, part A). They still work through the proxy's redirect.
- * Part B rewrites each onto `dashboardPath` and removes it from here; the
- * test fails on an entry that no longer offends, so this list only shrinks.
- */
-const ALLOWLIST = new Set([
-  "app/[locale]/dashboard/[system]/admin/deities/new/page.tsx",
-  "app/[locale]/dashboard/[system]/admin/factions/new/page.tsx",
-  "app/[locale]/dashboard/[system]/admin/magicitems/new/page.tsx",
-  "app/[locale]/dashboard/[system]/admin/npc/new/NewNpcForm.tsx",
-  "app/[locale]/dashboard/[system]/admin/spells/new/page.tsx",
-  "app/[locale]/dashboard/[system]/admin/treasures/new/page.tsx",
-  "app/[locale]/dashboard/[system]/geography/page.tsx",
-  "app/[locale]/dashboard/[system]/not-found.tsx",
-  "app/lib/data/campaigns/createAdventure.ts",
-  "app/lib/data/campaigns/createCampaign.ts",
-  "app/lib/data/campaigns/createLoot.ts",
-  "app/lib/data/campaigns/createScene.ts",
-  "app/lib/data/campaigns/createSceneCreature.ts",
-  "app/lib/data/campaigns/deleteAdventureById.ts",
-  "app/lib/data/campaigns/deleteLootById.ts",
-  "app/lib/data/campaigns/deleteSceneById.ts",
-  "app/lib/data/campaigns/deleteSceneCreatureById.ts",
-  "app/lib/data/campaigns/reorderAdventures.ts",
-  "app/lib/data/campaigns/reorderLoot.ts",
-  "app/lib/data/campaigns/reorderSceneCreatures.ts",
-  "app/lib/data/campaigns/reorderScenes.ts",
-  "app/lib/data/campaigns/setLootTaken.ts",
-  "app/lib/data/campaigns/setSceneAwarded.ts",
-  "app/lib/data/campaigns/setSceneCreatureAwarded.ts",
-  "app/lib/data/campaigns/updateAdventure.ts",
-  "app/lib/data/campaigns/updateCampaign.ts",
-  "app/lib/data/campaigns/updateLoot.ts",
-  "app/lib/data/campaigns/updateScene.ts",
-  "app/lib/data/campaigns/updateSceneCreature.ts",
-  "app/lib/data/maps/createPlace.ts",
-  "app/lib/data/maps/createRootPlace.ts",
-  "app/lib/data/maps/deletePlace.ts",
-  "app/lib/data/maps/placeLandmark.ts",
-  "app/lib/data/maps/placeZone.ts",
-  "app/lib/data/maps/unplaceLandmark.ts",
-  "app/lib/data/maps/unplacePlace.ts",
-  "app/lib/data/maps/updateZoneDetails.ts",
-  "app/lib/data/maps/updateZoneGrid.ts",
-  "app/lib/data/maps/updateZoneMap.ts",
-  "app/lib/data/maps/updateZonePosition.ts",
-  "app/modules/maps/constants/linkable-entities.ts",
-  "app/not-found.tsx",
-  "app/ui/campaigns/AdventureHeader.tsx",
-  "app/ui/campaigns/AdventureLadder.tsx",
-  "app/ui/campaigns/SceneList.tsx",
-  "app/ui/dashboard/cards.tsx",
-  "app/ui/factions/FactionCard.tsx",
-  "app/ui/npc/NpcCard.tsx",
-  "app/ui/search/CrossEntitySearchResults.tsx",
-]);
 
 function isSourceFile(name: string) {
   return /\.tsx?$/.test(name) && !/\.(test|spec)\.tsx?$/.test(name);
@@ -126,12 +72,6 @@ const offenders = [...sourceFiles(ROOT)]
 
 describe("dashboard paths (ADR-0013 rule 5)", () => {
   it("are built by dashboardPath, never spelled out", () => {
-    expect(offenders.filter((file) => !ALLOWLIST.has(file))).toEqual([]);
-  });
-
-  it("allowlists only files that still spell one out", () => {
-    expect([...ALLOWLIST].filter((file) => !offenders.includes(file))).toEqual(
-      []
-    );
+    expect(offenders).toEqual([]);
   });
 });

@@ -8,6 +8,8 @@ import AdventureMetaField from "@/app/lib/definitions/enums/campaign/AdventureMe
 import adventureMeta from "@/app/lib/config/campaigns/adventureMeta";
 import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema";
 import { revalidatePath } from "next/cache";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 import { z } from "zod";
 
 type AdventureUpdateField = AdventureMetaField | "campaignId";
@@ -43,6 +45,6 @@ export default async function updateAdventure(
       }, {} as Partial<Adventure>),
   });
 
-  revalidatePath("/dashboard/campaign");
+  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };
 }

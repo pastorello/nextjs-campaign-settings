@@ -43,9 +43,11 @@ export type LinkableEntityType = "npc" | "deity";
 export interface LinkableEntityTypeConfig {
   id: LinkableEntityType;
   label: string;
-  // Base list-page path; the entity is reached via that page's existing
-  // `?id=` exact-match filter (`getQuery.ts`), not a dedicated detail route
-  // — there isn't one for NPCs or deities today.
+  // Base list-page subpath, relative to the dashboard root (e.g. "/npc") —
+  // join with `dashboardPath(system, path)` at the call site (ADR-0013 rule
+  // 5). The entity is reached via that page's existing `?id=` exact-match
+  // filter (`getQuery.ts`), not a dedicated detail route — there isn't one
+  // for NPCs or deities today.
   path: string;
 }
 

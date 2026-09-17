@@ -7,6 +7,8 @@ import Campaign from "@/app/lib/definitions/interfaces/campaign/Campaign";
 import campaignMeta from "@/app/lib/config/campaigns/campaignMeta";
 import { buildBespokeCreateSchema } from "../validation/buildBespokeEntitySchema";
 import { revalidatePath } from "next/cache";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 
 /**
  * Creates the DM's campaign (SPEC-013 §5's empty-state flow: "on first use
@@ -36,6 +38,6 @@ export default async function createCampaign(
     },
   });
 
-  revalidatePath("/dashboard/campaign");
+  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };
 }

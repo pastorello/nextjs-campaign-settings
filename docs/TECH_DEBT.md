@@ -133,6 +133,16 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-109 | ✅ The landmark popover's entity list has an e2e now — seen red on TD-108's bug before being trusted           | ~~🟢 Low~~ done      | S      | 4     |
 | TD-110 | ✅ "Too many re-renders" was TD-108's `NaN` reaching Headless UI's `Listbox` — attributed, fixed by TD-108     | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-111 | ✅ A late POI load no longer overwrites a place just added, moved or deleted on the map                        | ~~🟡 Medium~~ done   | M      | 4     |
+| TD-112 | `tailwind.config.ts` is never loaded — shimmer, blues and the forms plugin are missing                         | 🟡 Medium            | S      | 4     |
+| TD-113 | Admin list pages show nothing on a phone — `hidden md:table` with no fallback                                  | 🟠 High              | M      | 4     |
+| TD-114 | Pages are wider than a phone: fixed 900px form, non-wrapping list header, overflowing icon nav                 | 🟠 High              | M      | 4     |
+| TD-115 | Dark mode is half there: map components follow the OS setting, the rest of the app does not                    | 🟡 Medium            | S      | 4     |
+| TD-116 | Two page-title styles — `PageTitle` (Lusitana) vs `EntityForm`'s bold Inter heading                            | 🟢 Low               | S      | 4     |
+| TD-117 | Two button components with different primary colours, plus eleven files of hand-rolled buttons                 | 🟢 Low               | M      | 4     |
+| TD-118 | Public and admin lists of one domain look unrelated; admin rows are dominated by buttons                       | 🟢 Low               | M      | 4     |
+| TD-119 | `/world` is a dead end once the world exists — no link to the map                                              | 🟢 Low               | S      | 4     |
+| TD-120 | Form layout: all-caps labels, short description boxes, "Reset Filtri" in the Italian UI                        | 🟢 Low               | S      | 4     |
+| TD-121 | The world map opens with the image at about half the canvas — seen once                                        | 🟢 Low               | S      | 4     |
 
 ---
 
@@ -1011,3 +1021,174 @@ substitute for the fix above; worth a look if startup cost ever matters.
 **Related:** TD-100 (the same slow-environment init tail), TD-101 (this
 spec's earlier false green), TD-105 (the same trace shows `createPoi`'s
 response carrying `x-action-revalidated: 1` — the flag that entry is about).
+
+### TD-112 — `tailwind.config.ts` is never loaded, so its shimmer, blues and forms plugin are missing from the built CSS
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-17, while drafting the design-system roadmap entry
+
+Tailwind v4 reads a JavaScript config only through an `@config` directive, and
+`app/ui/global.css` has none (it is `@import "tailwindcss"` and nothing else of
+Tailwind's). So everything `tailwind.config.ts` declares is silently absent.
+Checked against the dev build's CSS on 2026-09-17:
+
+- **`shimmer` keyframes** — absent. `skeletons.tsx` animates with
+  `animate-[shimmer_2s_infinite]`, so the loading skeletons very likely do not
+  shimmer at all. Not yet confirmed by watching one.
+- **`blue-400/500/600` overrides** — absent; `--color-blue-500` is v4's default
+  (`#3080ff`), not the config's `#0070F3`.
+- **`@tailwindcss/forms`** — not applied, so form controls get Preflight's
+  reset only.
+- **`gridTemplateColumns["13"]`** — v4 generates `grid-cols-13` natively anyway.
+
+**The fix, in shape:** move the three settings that matter into `global.css`
+(`@theme` for the keyframes and, if they are still wanted, the colours;
+`@plugin "@tailwindcss/forms"`) and delete the JS file, or add
+`@config "../../tailwind.config.ts"`. The first matches v4's CSS-first model,
+and it is where a design system's tokens would live (see `docs/ROADMAP.md`,
+Phase 5, "A design system"). **Check before merging:** turning the forms plugin
+on restyles every input, so look at a form and the map panels afterwards. The
+`content` glob that CLAUDE.md rule 8 describes is v3 behaviour too; v4 detects
+sources automatically, so that rule's wording should be updated with the fix.
+
+### TD-113 — Admin list pages show nothing on a phone: the table is `hidden md:table` with no fallback
+
+**Severity:** 🟠 High · **Effort:** M · **Found:** 2026-09-17, design critique at 375px
+
+`app/ui/components/EntityList.tsx:113` renders the admin table as
+`hidden min-w-full md:table`. The Next.js tutorial this app grew from paired
+that with an `md:hidden` card list; that half is gone. Below 768px, every admin
+list (spells, magic items, NPCs, deities, factions, treasures) shows an empty
+grey strip and the pagination, so there is no way to edit or delete from a
+phone. Seen on `/admin/spells`: the table measured 0px wide.
+
+**The fix, in shape:** a stacked row per item below `md` (name, the page's
+first two columns, edit and delete), built from the same `PageMeta` columns
+the table uses rather than a hand-written card. Add an e2e test at a phone
+viewport that checks a known row is visible.
+
+### TD-114 — Pages are wider than a phone screen: a fixed 900px form, a header row that doesn't wrap, and an icon nav that doesn't fit
+
+**Severity:** 🟠 High · **Effort:** M · **Found:** 2026-09-17, design critique at 375px
+
+At a 375px viewport the browser's layout width grew to 924px on
+`/admin/spells/new` and 784px on `/admin/spells`, so the page is zoomed out or
+cut off at the right edge. Three causes:
+
+- `app/ui/forms/EntityForm.tsx:146` — `w-[900px]` on the form wrapper. It
+  should be `w-full max-w-[900px]`.
+- The list header (search, "N di N trovati", "Nuovo …", "Reset Filtri") is one
+  non-wrapping row. At 375px the search box shrinks to its icon and "Nuovo
+  Incantesimo" is cut off; at 800px the search box already shows only "Cerca".
+- The top nav on small screens (`app/ui/dashboard/nav-links.tsx`) is one row of
+  ten icon tiles, several of them doubled with a pencil icon, which runs past
+  the right edge. Icons alone also do not say which tile is which domain.
+
+**The fix, in shape:** fix the width on the form, let the header row wrap
+(search on its own line below `sm`), and make the small-screen nav either
+scroll with a visible affordance or collapse into a menu. Add a phone-viewport
+e2e test that checks `document.documentElement.scrollWidth <= innerWidth` on
+one list, one form and the overview.
+
+### TD-115 — Dark mode is half there: map components follow the OS setting, the rest of the app does not
+
+**Severity:** 🟡 Medium · **Effort:** S (to remove) / L (to finish) · **Found:** 2026-09-17, design critique
+
+24 files have `dark:` classes: `app/ui/geography/*` and the vendored
+`app/modules/maps/components/**`. Tailwind v4's `dark:` variant follows
+`prefers-color-scheme`, so on a computer set to dark mode those map panels,
+menus and popovers turn dark while the page around them, and every other page,
+stay light. No page sets `color-scheme` or a dark background.
+
+(The in-app browser pane showed a black page background in dark mode, which
+made forms unreadable. That is probably the pane itself, since the page's
+`color-scheme` is `normal`, so it is not recorded as a finding. Check once in
+real Chrome with the OS in dark mode.)
+
+**The fix, in shape:** this is a decision, not a tweak. Either remove the
+`dark:` classes from `app/ui/geography/*` now and leave the vendored module
+alone (it is not wired to a theme; the 2026-07-22 "unused is not dead" rule
+applies to it), or make dark mode a goal in the design-system spec. The first is
+a small change and is the honest state until the spec exists.
+
+### TD-116 — Two page-title styles: `PageTitle` is Lusitana, `EntityForm`'s heading is bold Inter
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, design critique
+
+List, detail, search and map pages use `app/ui/typography/PageTitle.tsx`
+(Lusitana, `text-2xl`). The create and edit forms use their own
+`<h1 className="text-2xl font-bold mb-6">` in `app/ui/forms/EntityForm.tsx:147`,
+in Inter. The heading changes typeface when you move from a list to its form.
+Section headings (`Avventure`, `Scene`, `Budget dell'avventura`) are a third,
+unshared style. **Fix:** `EntityForm` uses `PageTitle`; add a `SectionTitle`
+beside it and use it for in-page `h2`s.
+
+### TD-117 — Two button components with different primary colours, plus hand-rolled buttons
+
+**Severity:** 🟢 Low · **Effort:** M · **Found:** 2026-09-17, design critique
+
+- `app/ui/buttons/BaseButton` — violet primary (`violet-600`, chosen for
+  contrast in TD-15), white secondary, rose danger. Used in about 40 files.
+- `app/ui/button.tsx` — the Next.js tutorial's `Button`, blue (`blue-500`, a
+  TD-112 casualty: its intended shade never loads). Still imported by
+  `login-form.tsx`, `EntityForm.tsx` and `sidenav.tsx`, so the login page's
+  primary action is blue and the rest of the app's is violet.
+- Eleven files write `<button>` directly (mostly `app/ui/geography/*`, plus
+  `NpcCard.tsx` and `AssignLocationButton.tsx`), each with its own classes.
+
+Not dead code, since it is imported, so this means merging, not deleting.
+**Fix:** move the three `button.tsx` callers onto `BaseButton` (adding a
+variant if one is missing), then delete `button.tsx`; move the hand-rolled
+buttons over where `BaseButton`'s variants fit, and leave the map-control icon
+buttons alone if they don't.
+
+### TD-118 — The same domain looks unrelated between its public and admin lists, and admin rows are dominated by buttons
+
+**Severity:** 🟢 Low · **Effort:** M · **Found:** 2026-09-17, design critique
+
+- `/spells` is a stack of dark navy accordion rows under two rows of violet
+  filter chips; `/admin/spells` is a white table with column filters. The same
+  361 spells look like two different apps.
+- On `/npc`, the name column is narrow enough that "Aldric Valmonte" and its
+  subtitle wrap over four lines, while the place name on the right is set
+  larger than the NPC's own name, so the eye goes to the place first.
+- Every admin row carries a solid violet "Modifica" and a solid rose "Elimina":
+  on a full page that is 20+ saturated buttons, and they outweigh the data.
+  Delete already asks for confirmation (`DeleteButton` → `ModalButton`), so a
+  quieter icon or ghost style costs no safety.
+
+**Fix, in shape:** row actions become icon buttons with `aria-label`s (secondary
+or ghost variant, danger colour on hover only); public rows get a wider name
+column and a smaller place label. Unifying the public and admin _layouts_ is a
+design-system spec question, not this item.
+
+### TD-119 — `/world` is a dead end once the world exists
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, design critique
+
+`app/[locale]/dashboard/[system]/world/page.tsx` shows «Il tuo mondo, «…»,
+esiste già.» and nothing else: no link to the map (`/geography`), where the
+world actually is. **Fix:** link to `/geography` from that message, or redirect
+there, since the page has nothing else to do once the world exists.
+
+### TD-120 — Form layout: tiny all-caps labels, short description boxes, and "Reset Filtri" in the Italian UI
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, design critique
+
+- Form labels are small, bold and all caps (`NOME`, `TEMPO DI LANCIO`). All caps
+  slows reading and adds little here, where the field is right below.
+- On the spell form, `Descrizione` and `Ai livelli superiori` are the long
+  content, but their textareas are about four lines tall, while the short
+  selects get the prominent top row. They should be taller (or grow with their
+  content).
+- The Italian catalogue's `reset` is "Reset Filtri" (`messages/it.json:86`),
+  half English. Suggest "Azzera filtri".
+
+### TD-121 — The world map opens with the image at about half the canvas
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, design critique; seen once
+
+On `/geography` ("Piani di Esistenza") at a 1280px viewport, the map image took
+about half the canvas width, with a wide grey margin on every side. Seen once
+and not investigated: the initial `fitBounds` padding may be deliberate, so read
+`WorldMap.tsx`'s initial view before changing it. If it isn't, fit the image to
+the canvas on first load.

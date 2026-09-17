@@ -34,6 +34,7 @@ export type { PlaceStackEntry };
 export default function GeographyExplorer({
   root,
   unpositionedCount,
+  blockedUnpositionedCount,
   initialStack,
 }: {
   root: RootPlace;
@@ -43,6 +44,12 @@ export default function GeographyExplorer({
   // (TD-85) rather than as a header label here — a number with no action
   // attached to it was noise (DM, 2026-08-18).
   unpositionedCount: number;
+  // Of the total above, how many are blocked on a parent's missing map
+  // rather than simply not yet drawn (TD-79). Optional, defaulting to 0,
+  // because that category is unreachable through today's UI — see
+  // `countBlockedUnpositionedPlaces`'s own comment — so every caller other
+  // than the real page can safely omit it.
+  blockedUnpositionedCount?: number;
   // A pre-built root-to-place chain (SPEC-011 T4), from a cross-entity
   // place search result — landing the DM directly on that place's own map
   // with the full "up" trail already in place, rather than at the root.
@@ -168,6 +175,7 @@ export default function GeographyExplorer({
               onGridChanged={handleGridChanged}
               onDeleted={handleDeleted}
               unpositionedCount={unpositionedCount}
+              blockedUnpositionedCount={blockedUnpositionedCount ?? 0}
             />
             <MapLoadingSpinner />
           </MapProvider>

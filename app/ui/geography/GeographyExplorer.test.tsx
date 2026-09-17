@@ -41,6 +41,7 @@ interface CapturedWorldMapProps {
   onGridChanged: (gridColumns: number, gridScale: string) => void;
   onDeleted: () => void;
   unpositionedCount: number;
+  blockedUnpositionedCount: number;
 }
 
 let capturedProps: CapturedWorldMapProps | null = null;
@@ -217,6 +218,25 @@ describe("GeographyExplorer — unpositioned count (SPEC-007 T2; moved off the h
 
     render(<GeographyExplorer root={root} unpositionedCount={0} />);
     expect(capturedProps?.unpositionedCount).toBe(0);
+  });
+
+  // TD-79 — of the total above, how many are blocked on a parent's missing
+  // map. Optional so every other test in this file (and every other caller)
+  // can omit it; WorldMap must still see a number, not `undefined`.
+  it("defaults the blocked count to 0 when the prop is omitted", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={42} />);
+    expect(capturedProps?.blockedUnpositionedCount).toBe(0);
+  });
+
+  it("passes the blocked count straight through to WorldMap when given", () => {
+    render(
+      <GeographyExplorer
+        root={root}
+        unpositionedCount={42}
+        blockedUnpositionedCount={5}
+      />
+    );
+    expect(capturedProps?.blockedUnpositionedCount).toBe(5);
   });
 });
 

@@ -8,6 +8,7 @@ import { isGameSystem } from "@/app/lib/definitions/GameSystem";
 import fetchRootPlace from "@/app/lib/data/maps/fetchRootPlace";
 import fetchPlaceAncestryChain from "@/app/lib/data/maps/fetchPlaceAncestryChain";
 import countUnpositionedPlaces from "@/app/lib/data/maps/countUnpositionedPlaces";
+import countBlockedUnpositionedPlaces from "@/app/lib/data/maps/countBlockedUnpositionedPlaces";
 import GeographyExplorer from "@/app/ui/geography/GeographyExplorer";
 import toStackEntry, {
   type PlaceStackEntry,
@@ -65,7 +66,13 @@ export default async function GeographyPage(
 
   // No tree to count on an empty installation (SPEC-007 §5 edge cases) — the
   // branch above already returns before this runs.
-  const unpositionedCount = await countUnpositionedPlaces();
+  const [unpositionedCount, blockedUnpositionedCount] = await Promise.all([
+    countUnpositionedPlaces(),
+    // TD-79 — of the total above, how many are unpositioned specifically
+    // because their own parent has no map yet, not because nobody has
+    // drawn them on one that exists.
+    countBlockedUnpositionedPlaces(),
+  ]);
 
   const searchParams = await props.searchParams;
   const placeId = Number(searchParams?.place);
@@ -79,6 +86,7 @@ export default async function GeographyPage(
     <GeographyExplorer
       root={root}
       unpositionedCount={unpositionedCount}
+      blockedUnpositionedCount={blockedUnpositionedCount}
       {...(initialStack ? { initialStack } : {})}
     />
   );

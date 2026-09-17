@@ -229,7 +229,7 @@ faction filtering on the admin list, and building it without being asked is
 exactly what SPEC-006 §3 and its own §9 open question 2 warn against. Pick
 this up if the DM asks for it back, not before.
 
-### TD-79 — The unpositioned-places count doesn't distinguish "blocked on the parent's map" from any other cause
+### TD-79 ✅ The unpositioned-places count doesn't distinguish "blocked on the parent's map" from any other cause — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-08-10, [SPEC-007](./specs/007-placement-backlog.md) T2 — filed 2026-08-17 during the Phase 3 closure audit, since it had only ever been recorded as prose in `ROADMAP.md`, with no number of its own
 
@@ -286,6 +286,33 @@ a second one) that distinguishes "blocked on an ancestor's missing map" from
 unpositioned place's `parentId` chain to check whether any ancestor also
 lacks a map — not a single-query `WHERE` clause — so it is a real, if small,
 piece of work, not a one-line change.
+
+**Resolution:** took the "(or add a second one)" branch rather than
+reshaping `countUnpositionedPlaces`'s existing, already-tested return —
+`app/lib/data/maps/countBlockedUnpositionedPlaces.ts` is a new function that
+counts the same two tables restricted to `parent.mapImage: null` (zones) /
+`zone.mapImage: null` (landmarks), one join-based query per table rather
+than a chain walk: a place's own parent is the only level that can block it
+(SPEC-007 T2's original test description agrees — "reported as blocked on
+the parent, not on itself"), so there is no deeper chain to walk in
+practice. `geography/page.tsx` fetches both counts and threads the new one
+through `GeographyExplorer` → `WorldMap` as an optional prop
+(`blockedUnpositionedCount`, defaulting to 0) so every existing test call
+site keeps working unchanged. `messages/{it,en}.json`'s
+`geography.unpositionedCount` gained a second `plural` block that appends a
+"(N blocked on a parent's map)" clause only when the new count is above
+zero — verified directly against `next-intl`'s real formatter in
+`app/ui/geography/unpositionedCountMessage.test.ts`, since `WorldMap`'s own
+tests mock `next-intl` down to the key. **Re-verified before writing any of
+this that the guarded category is still empty in practice** (`createPlace`'s
+only callers are still `WorldMap` and `MapPOIPanel`; `updateZoneMap` still
+rejects an empty `mapImage`) — so `blockedUnpositionedCount` reads 0 in the
+running app today, same as before this change, and the DM will see nothing
+different until a future feature makes the category reachable. Left as-is:
+no UI decision was made about _how_ to present a non-zero blocked count
+beyond the parenthetical, since that's still hypothetical; whoever ships the
+feature that makes it real should re-read this entry and `SPEC-007 §10`
+first, per the guard note above.
 
 ### TD-82 ✅ The place in view has no URL of its own — navigating the tree never changes the address bar — **DONE (2026-09-10)**
 

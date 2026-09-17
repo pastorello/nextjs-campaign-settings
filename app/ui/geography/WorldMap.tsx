@@ -104,6 +104,7 @@ function WorldMap({
   onGridChanged,
   onDeleted,
   unpositionedCount,
+  blockedUnpositionedCount = 0,
 }: {
   parentId: number;
   // This map's own ancestor chain, itself included — `GeographyExplorer`'s
@@ -151,6 +152,12 @@ function WorldMap({
   // was noise (DM, 2026-08-18). Reused as-is, not recomputed per place —
   // see the context menu's own prop comment for why that's still correct.
   unpositionedCount: number;
+  // Of `unpositionedCount`, how many are unpositioned because their own
+  // parent has no map yet rather than simply not being drawn on one that
+  // exists (TD-79, `countBlockedUnpositionedPlaces`). Optional, defaulting
+  // to 0: every test call site but the real page can omit it, and the
+  // sublabel text is unchanged from before TD-79 when it's 0.
+  blockedUnpositionedCount?: number;
 }) {
   const t = useTranslations("geography.errors");
   const tGeography = useTranslations("geography");
@@ -1292,6 +1299,7 @@ function WorldMap({
         positionPlaceLabel={tContextMenu("positionPlace.trigger")}
         positionPlaceSublabel={tGeography("unpositionedCount", {
           count: unpositionedCount,
+          blocked: blockedUnpositionedCount,
         })}
       />
 

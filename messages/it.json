@@ -544,7 +544,7 @@
       "hint": "Clicca il punto di partenza, poi quello di arrivo — Esc per uscire",
       "exit": "Esci dalla misurazione"
     },
-    "unpositionedCount": "{count, plural, =0 {Tutti i luoghi sono posizionati} one {# luogo non ancora posizionato} other {# luoghi non ancora posizionati}}",
+    "unpositionedCount": "{count, plural, =0 {Tutti i luoghi sono posizionati} one {# luogo non ancora posizionato} other {# luoghi non ancora posizionati}}{blocked, plural, =0 {} other { ({blocked, plural, one {# bloccato dalla mappa di un genitore} other {# bloccati dalla mappa di un genitore}})}}",
     "noWorldYet": "Non hai ancora creato il tuo mondo.",
     "createWorldLink": "Crea il tuo mondo",
     "attachEntity": {

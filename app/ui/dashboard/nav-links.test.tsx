@@ -53,11 +53,25 @@ describe("NavLinks", () => {
     );
   });
 
+  // TD-114: the label text is `hidden` below `md`, and `display: none`
+  // content has no accessible name — so an icon-only tile on a phone
+  // announced nothing at all. The explicit aria-label fixes that at every
+  // width, not just below `md`.
+  it("gives every nav link an accessible name, not just the admin pencil links", () => {
+    pathname = "/dashboard/dnd5e";
+    render(<NavLinks />);
+
+    expect(screen.getByLabelText("spells").closest("a")).toHaveAttribute(
+      "href",
+      "/dashboard/dnd5e/spells"
+    );
+  });
+
   it("highlights the current page's link, matching either the public or admin path", () => {
     pathname = "/dashboard/dnd5e/admin/spells";
     render(<NavLinks />);
 
-    expect(screen.getByText("spells").closest("div.w-full")).toHaveClass(
+    expect(screen.getByText("spells").closest("div.rounded-md")).toHaveClass(
       "bg-sky-100"
     );
   });

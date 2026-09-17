@@ -89,49 +89,71 @@ export default function NavLinks() {
   const t = useTranslations("common.nav");
 
   return (
-    <>
-      {links.map((link) => {
-        const name = t(link.key);
-        const LinkIcon = link.icon;
-        const href = dashboardPath(system, link.href);
-        const adminHref = link.admin && dashboardPath(system, link.admin);
-        return (
-          <div
-            key={link.key}
-            className={clsx(
-              "w-full flex rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3",
-              {
-                "bg-sky-100 text-blue-600":
-                  pathname === href || pathname === adminHref,
-              }
-            )}
-          >
-            <div className="flex flex-1">
-              <Link
-                href={href}
-                className="flex gap-2 h-[48px] grow items-center w-full"
-              >
-                <LinkIcon className="w-6" />
-                <p className="hidden md:block">{name}</p>
-              </Link>
-            </div>
-            {adminHref && (
-              <div className="flex flex-0 justify-end">
+    // A real box below `md` — `min-w-0` lets it shrink so its own
+    // `overflow-x-auto` can actually kick in inside the sidebar's flex row
+    // (TD-114: ten icon tiles in one row used to run past the right edge).
+    // `md:contents` un-boxes it at `md` and up, so the tiles become direct
+    // children of `<nav>` again and its `md:flex-col` stacks them exactly as
+    // before — this wrapper changes nothing on desktop.
+    <div className="relative min-w-0 md:contents">
+      <div className="flex gap-2 overflow-x-auto md:contents">
+        {links.map((link) => {
+          const name = t(link.key);
+          const LinkIcon = link.icon;
+          const href = dashboardPath(system, link.href);
+          const adminHref = link.admin && dashboardPath(system, link.admin);
+          return (
+            <div
+              key={link.key}
+              className={clsx(
+                "flex shrink-0 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:w-full md:flex-none md:justify-start md:p-2 md:px-3",
+                {
+                  "bg-sky-100 text-blue-600":
+                    pathname === href || pathname === adminHref,
+                }
+              )}
+            >
+              <div className="flex flex-1">
                 <Link
-                  href={adminHref}
-                  // Icon-only, so it needs a name of its own: a screen reader
-                  // announced four unlabelled links in the main navigation of
-                  // every page (TD-15).
-                  aria-label={t("manage", { section: name.toLowerCase() })}
-                  className="flex gap-2 h-12 grow items-center justify-center w-full"
+                  href={href}
+                  // The label text below is `hidden` under `md`, and
+                  // `display: none` content has no accessible name — so an
+                  // icon-only tile named nothing at all (TD-114). The
+                  // explicit aria-label covers both widths; it does not
+                  // change anything once the text is visible again at `md`.
+                  aria-label={name}
+                  className="flex gap-2 h-[48px] grow items-center w-full"
                 >
-                  <PencilSquareIcon className="w-6" aria-hidden="true" />
+                  <LinkIcon className="w-6" aria-hidden="true" />
+                  <p className="hidden md:block">{name}</p>
                 </Link>
               </div>
-            )}
-          </div>
-        );
-      })}
-    </>
+              {adminHref && (
+                <div className="flex flex-0 justify-end">
+                  <Link
+                    href={adminHref}
+                    // Icon-only, so it needs a name of its own: a screen reader
+                    // announced four unlabelled links in the main navigation of
+                    // every page (TD-15).
+                    aria-label={t("manage", { section: name.toLowerCase() })}
+                    className="flex gap-2 h-12 grow items-center justify-center w-full"
+                  >
+                    <PencilSquareIcon className="w-6" aria-hidden="true" />
+                  </Link>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {/* A static "more this way" cue (TD-114) rather than a scroll-position
+          -tracking one: the page has no explicit background, so this fades
+          against the same white the body already renders on, at rest or
+          mid-scroll alike. `md:hidden` — the row never scrolls at `md` and up. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white to-transparent md:hidden"
+      />
+    </div>
   );
 }

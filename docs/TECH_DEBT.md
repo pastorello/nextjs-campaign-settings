@@ -380,7 +380,7 @@ path is ignored (and that `app/` still is not); it was red before the line was
 added. `.claude/launch.json`, the one tracked file under `.claude/`, is now
 outside Prettier's reach too — as it already was outside ESLint's.
 
-### TD-99 — A fresh worktree's `pnpm install` postinstall (`prisma generate`) fails for lack of `DATABASE_URL`
+### TD-99 ✅ A fresh worktree's `pnpm install` postinstall (`prisma generate`) fails for lack of `DATABASE_URL` — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-08-18/19, across every worktree agent this session
 
@@ -391,12 +391,25 @@ worktree agent this session hit this and worked around it by generating once
 against `.env.example`'s placeholder connection string, undocumented, ad hoc,
 independently discovered each time.
 
-**The fix, in shape:** either make `prisma generate` tolerant of a missing
-`DATABASE_URL` (check whether `app/lib/config/env.ts`'s validation — the same
-mechanism TD-75 fixed for `pnpm test` — is what's actually forcing this, since
-that would make this the same class of bug, not a new one), or write the
-`.env.example`-fallback workaround into `docs/TESTING.md` once, next to TD-75's
-note, so it isn't rediscovered per agent.
+**Resolution:** not the same mechanism as TD-75. `app/lib/config/env.ts`
+(TD-75's culprit) is app code — `prisma generate` never imports it. The actual
+cause is `prisma.config.ts` itself: it built its `datasource.url` with
+`prisma/config`'s `env("DATABASE_URL")` helper, which throws
+`PrismaConfigEnvError` the moment the CLI _loads_ the config file, before any
+command runs — reproduced with `env -u DATABASE_URL pnpm exec prisma generate`
+→ `Failed to load config file ... Cannot resolve environment variable:
+DATABASE_URL`. Fixed in shape: `prisma.config.ts` now reads
+`process.env.DATABASE_URL` directly and falls back to the same placeholder
+connection string `vitest.config.ts`/CI already use for TD-75
+(`postgresql://admin:postgres@localhost:5432/placeholder`) when it's unset.
+`prisma generate` needs no live connection so the placeholder is enough; a
+command that does need the database (`migrate`, `db push`, `db seed`,
+`studio`) still fails on a genuinely missing `DATABASE_URL` — now with a
+normal Postgres connection/auth error instead of a config-load error, verified
+with `pnpm exec prisma migrate status`. Verified `env -u DATABASE_URL pnpm
+install --frozen-lockfile` succeeds end to end with no `.env` present. No
+`docs/TESTING.md` workaround note needed since the bug is fixed rather than
+documented.
 
 ### TD-100 ✅ The map context menu can die to the init tail on slow environments; `map.spec` raced it and lost on CI — **DONE (2026-08-31)**
 

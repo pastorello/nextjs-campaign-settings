@@ -9,6 +9,8 @@ import {
 import { getTranslations } from "next-intl/server";
 import { lusitana } from "@/app/ui/fonts";
 import { Link } from "@/i18n/navigation";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import type GameSystem from "@/app/lib/definitions/GameSystem";
 import fetchCardData from "@/app/lib/data/fetchCardData";
 
 type CardType =
@@ -25,16 +27,16 @@ const iconMap: Record<CardType, typeof TrophyIcon> = {
 
 // Places live under the "geography" route (TD-92) — the domain's list page
 // predates this card and was never renamed to match.
-const hrefMap: Record<CardType, string> = {
-  magicitems: "/dashboard/magicitems",
-  npc: "/dashboard/npc",
-  spells: "/dashboard/spells",
-  deities: "/dashboard/deities",
-  places: "/dashboard/geography",
-  factions: "/dashboard/factions",
+const pathMap: Record<CardType, `/${string}`> = {
+  magicitems: "/magicitems",
+  npc: "/npc",
+  spells: "/spells",
+  deities: "/deities",
+  places: "/geography",
+  factions: "/factions",
 };
 
-export default async function CardWrapper() {
+export default async function CardWrapper({ system }: { system: GameSystem }) {
   const t = await getTranslations("common.cards");
   const {
     numberOfmagicItems,
@@ -51,12 +53,33 @@ export default async function CardWrapper() {
         title={t("magicItems")}
         value={numberOfmagicItems}
         type="magicitems"
+        system={system}
       />
-      <Card title={t("npc")} value={numberOfNpc} type="npc" />
-      <Card title={t("spells")} value={numberOfSpells} type="spells" />
-      <Card title={t("deities")} value={numberOfDeities} type="deities" />
-      <Card title={t("places")} value={numberOfPlaces} type="places" />
-      <Card title={t("factions")} value={numberOfFactions} type="factions" />
+      <Card title={t("npc")} value={numberOfNpc} type="npc" system={system} />
+      <Card
+        title={t("spells")}
+        value={numberOfSpells}
+        type="spells"
+        system={system}
+      />
+      <Card
+        title={t("deities")}
+        value={numberOfDeities}
+        type="deities"
+        system={system}
+      />
+      <Card
+        title={t("places")}
+        value={numberOfPlaces}
+        type="places"
+        system={system}
+      />
+      <Card
+        title={t("factions")}
+        value={numberOfFactions}
+        type="factions"
+        system={system}
+      />
     </>
   );
 }
@@ -65,16 +88,18 @@ export function Card({
   title,
   value,
   type,
+  system,
 }: {
   title: string;
   value: number | string;
   type: CardType;
+  system: GameSystem;
 }) {
   const Icon = iconMap[type];
 
   return (
     <Link
-      href={hrefMap[type]}
+      href={dashboardPath(system, pathMap[type])}
       className="block rounded-xl bg-gray-50 p-2 shadow-sm transition-colors hover:bg-gray-100"
     >
       <div className="flex p-4">

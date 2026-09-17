@@ -36,6 +36,16 @@ vi.mock("../spells/SpellLibrary", () => ({
     <div>SpellLibrary:{items.length}</div>
   ),
 }));
+// FactionLibrary renders FactionCard, which (since SPEC-018 T2 part B) reaches
+// next-intl's `Link` from `@/i18n/navigation` — real next-intl navigation
+// cannot be imported in this test environment (see other suites that mock
+// this same module), so FactionLibrary is stubbed like its four siblings
+// above even though no case here exercises PageType.Faction yet.
+vi.mock("../factions/FactionLibrary", () => ({
+  default: ({ items }: { items: unknown[] }) => (
+    <div>FactionLibrary:{items.length}</div>
+  ),
+}));
 
 const fetchFilteredSpells = vi.fn<(...args: unknown[]) => unknown>();
 const fetchFilteredNpc = vi.fn<(...args: unknown[]) => unknown>();

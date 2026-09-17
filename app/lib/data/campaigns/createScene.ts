@@ -7,6 +7,8 @@ import Scene from "@/app/lib/definitions/interfaces/campaign/Scene";
 import sceneMeta from "@/app/lib/config/campaigns/sceneMeta";
 import { buildBespokeCreateSchema } from "../validation/buildBespokeEntitySchema";
 import { revalidatePath } from "next/cache";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 import { z } from "zod";
 
 /**
@@ -52,6 +54,6 @@ export default async function createScene(
     },
   });
 
-  revalidatePath("/dashboard/campaign");
+  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };
 }

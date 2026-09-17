@@ -3,9 +3,11 @@ import {
   DisclosureButton,
   DisclosurePanel,
 } from "@headlessui/react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 
+import { Link } from "@/i18n/navigation";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import useGameSystem from "@/app/lib/hooks/useGameSystem";
 import Icon from "../components/Icon";
 import IconType from "../buttons/BaseButton/IconType";
 import AssignLocationButton from "../buttons/AssignLocationButton";
@@ -24,6 +26,7 @@ const NpcCard = (props: {
   optionBundle?: OptionBundle | undefined;
 }) => {
   const t = useTranslations();
+  const system = useGameSystem();
   const markup = { __html: props.cardItem.description };
   const locationLabel = props.placement?.place ?? t("common.location.unknown");
   // Resolved directly from the bundle rather than through `resolveFieldValue`:
@@ -69,7 +72,10 @@ const NpcCard = (props: {
           <div className="w-[150px] self-center text-base">
             {faction ? (
               <Link
-                href={`/dashboard/factions?query=${encodeURIComponent(faction.label)}`}
+                href={dashboardPath(
+                  system,
+                  `/factions?query=${encodeURIComponent(faction.label)}`
+                )}
                 className="text-blue-300 hover:underline"
               >
                 {faction.label}

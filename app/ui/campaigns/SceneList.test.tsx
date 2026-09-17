@@ -35,6 +35,8 @@ vi.mock("@/i18n/navigation", () => ({
   ),
 }));
 
+vi.mock("@/app/lib/hooks/useGameSystem", () => ({ default: () => "dnd5e" }));
+
 const reorderScenes = vi.fn<(...args: unknown[]) => unknown>();
 vi.mock("@/app/lib/data/campaigns/reorderScenes", () => ({
   default: (...args: unknown[]) => reorderScenes(...args),
@@ -135,7 +137,7 @@ describe("SceneList (SPEC-013 T8)", () => {
     render(<SceneList {...baseProps} scenes={scenes} />);
 
     const link = screen.getByRole("link", { name: "The Sunken Keep" });
-    expect(link).toHaveAttribute("href", "/dashboard/geography?place=5");
+    expect(link).toHaveAttribute("href", "/dashboard/dnd5e/geography?place=5");
   });
 
   it("renders an explicit unassigned state when a scene has no place", () => {

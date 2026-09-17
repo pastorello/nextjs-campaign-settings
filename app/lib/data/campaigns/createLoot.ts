@@ -7,6 +7,8 @@ import Loot from "@/app/lib/definitions/interfaces/campaign/Loot";
 import lootMeta from "@/app/lib/config/campaigns/lootMeta";
 import { buildBespokeCreateSchema } from "../validation/buildBespokeEntitySchema";
 import { revalidatePath } from "next/cache";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 import { z } from "zod";
 
 /**
@@ -58,6 +60,6 @@ export default async function createLoot(
     },
   });
 
-  revalidatePath("/dashboard/campaign");
+  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };
 }

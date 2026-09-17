@@ -1,8 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 
+import { Link } from "@/i18n/navigation";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import useGameSystem from "@/app/lib/hooks/useGameSystem";
+import type GameSystem from "@/app/lib/definitions/GameSystem";
 import type {
   SearchAllDomainsResult,
   SearchDomain,
@@ -11,51 +14,52 @@ import type {
 
 /**
  * One entry per domain, in the spec's fixed render order (SPEC-011 §5.3):
- * Spells, Magic Items, NPCs, Deities, Factions, Places. `listHref` is the
- * domain's own list page, reused for both the "see all" link and each
- * result's own link — every domain but Places links to
- * `${listHref}?query=<name>`, the convention SPEC-006 established for
- * faction/NPC cross-links (`FactionCard`/`NpcCard`) in the absence of
- * per-entity detail routes. Places link to `/dashboard/geography?place=<id>`
- * instead (§5.5) — that param isn't read yet (SPEC-011 T4, built in a
- * parallel PR), so the link is correct but doesn't fully resolve until T4
- * lands too.
+ * Spells, Magic Items, NPCs, Deities, Factions, Places. `listPath` is the
+ * domain's own list page subpath (relative to the dashboard root — joined
+ * with `dashboardPath(system, ...)` at render time, ADR-0013 rule 5),
+ * reused for both the "see all" link and each result's own link — every
+ * domain but Places links to `${listPath}?query=<name>`, the convention
+ * SPEC-006 established for faction/NPC cross-links (`FactionCard`/`NpcCard`)
+ * in the absence of per-entity detail routes. Places link to
+ * `/geography?place=<id>` instead (§5.5) — that param isn't read yet
+ * (SPEC-011 T4, built in a parallel PR), so the link is correct but doesn't
+ * fully resolve until T4 lands too.
  */
 const DOMAIN_ORDER: {
   domain: SearchDomain;
   headingNamespace: string;
   headingKey: string;
-  listHref: string | null;
+  listPath: `/${string}` | null;
 }[] = [
   {
     domain: "spells",
     headingNamespace: "common.cards",
     headingKey: "spells",
-    listHref: "/dashboard/spells",
+    listPath: "/spells",
   },
   {
     domain: "magicItems",
     headingNamespace: "common.cards",
     headingKey: "magicItems",
-    listHref: "/dashboard/magicitems",
+    listPath: "/magicitems",
   },
   {
     domain: "npc",
     headingNamespace: "common.cards",
     headingKey: "npc",
-    listHref: "/dashboard/npc",
+    listPath: "/npc",
   },
   {
     domain: "deities",
     headingNamespace: "common.cards",
     headingKey: "deities",
-    listHref: "/dashboard/deities",
+    listPath: "/deities",
   },
   {
     domain: "factions",
     headingNamespace: "common.nav",
     headingKey: "factions",
-    listHref: "/dashboard/factions",
+    listPath: "/factions",
   },
   {
     // No list page to cap against (§5.4) — a Places group is never capped
@@ -64,35 +68,38 @@ const DOMAIN_ORDER: {
     domain: "places",
     headingNamespace: "search.page.groups",
     headingKey: "places",
-    listHref: null,
+    listPath: null,
   },
 ];
 
 function resultHref(
-  domain: SearchDomain,
-  listHref: string | null,
+  system: GameSystem,
+  listPath: `/${string}` | null,
   item: { id: number; name: string }
 ): string {
-  if (domain === "places") {
-    return `/dashboard/geography?place=${item.id}`;
+  if (listPath === null) {
+    // Only "places" (§5.4) has no list page to link back to.
+    return dashboardPath(system, `/geography?place=${item.id}`);
   }
-  return `${listHref}?query=${encodeURIComponent(item.name)}`;
+  return dashboardPath(
+    system,
+    `${listPath}?query=${encodeURIComponent(item.name)}`
+  );
 }
 
 function DomainGroup({
-  domain,
   group,
   heading,
-  listHref,
+  listPath,
   term,
 }: {
-  domain: SearchDomain;
   group: SearchDomainGroup;
   heading: string;
-  listHref: string | null;
+  listPath: `/${string}` | null;
   term: string;
 }) {
   const t = useTranslations("search.page");
+  const system = useGameSystem();
 
   if (group.total === 0) return null;
 
@@ -105,7 +112,7 @@ function DomainGroup({
         {group.items.map((item) => (
           <li key={item.id}>
             <Link
-              href={resultHref(domain, listHref, item)}
+              href={resultHref(system, listPath, item)}
               className="text-blue-600 hover:underline"
             >
               {item.name}
@@ -113,9 +120,12 @@ function DomainGroup({
           </li>
         ))}
       </ul>
-      {listHref && group.total > group.items.length && (
+      {listPath && group.total > group.items.length && (
         <Link
-          href={`${listHref}?query=${encodeURIComponent(term)}`}
+          href={dashboardPath(
+            system,
+            `${listPath}?query=${encodeURIComponent(term)}`
+          )}
           className="mt-1 inline-block text-sm text-blue-600 hover:underline"
         >
           {t("seeAll", { count: group.total, domain: heading })}
@@ -163,13 +173,12 @@ export default function CrossEntitySearchResults({
   return (
     <div>
       {DOMAIN_ORDER.map(
-        ({ domain, headingNamespace, headingKey, listHref }) => (
+        ({ domain, headingNamespace, headingKey, listPath }) => (
           <DomainGroup
             key={domain}
-            domain={domain}
             group={results[domain]}
             heading={headingFor(headingNamespace, headingKey)}
-            listHref={listHref}
+            listPath={listPath}
             term={term}
           />
         )

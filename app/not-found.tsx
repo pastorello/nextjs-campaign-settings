@@ -3,6 +3,8 @@ import { FaceFrownIcon } from "@heroicons/react/24/outline";
 import { getLocale } from "next-intl/server";
 
 import { routing } from "@/i18n/routing";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 
 import "@/app/ui/global.css";
 
@@ -27,8 +29,11 @@ const COPY = {
  */
 export default async function NotFound() {
   const locale = await getLocale();
+  const dashboardPathForDefaultSystem = dashboardPath(DEFAULT_GAME_SYSTEM);
   const dashboardHref =
-    locale === routing.defaultLocale ? "/dashboard" : `/${locale}/dashboard`;
+    locale === routing.defaultLocale
+      ? dashboardPathForDefaultSystem
+      : `/${locale}${dashboardPathForDefaultSystem}`;
 
   return (
     <main className="flex h-screen flex-col items-center justify-center gap-2">

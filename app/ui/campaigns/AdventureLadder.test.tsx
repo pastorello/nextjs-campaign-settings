@@ -34,6 +34,8 @@ vi.mock("@/i18n/navigation", () => ({
   ),
 }));
 
+vi.mock("@/app/lib/hooks/useGameSystem", () => ({ default: () => "dnd5e" }));
+
 const updateAdventure = vi.fn<(...args: unknown[]) => unknown>();
 vi.mock("@/app/lib/data/campaigns/updateAdventure", () => ({
   default: (...args: unknown[]) => updateAdventure(...args),

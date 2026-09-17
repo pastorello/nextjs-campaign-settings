@@ -3,9 +3,11 @@ import {
   DisclosureButton,
   DisclosurePanel,
 } from "@headlessui/react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 
+import { Link } from "@/i18n/navigation";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import useGameSystem from "@/app/lib/hooks/useGameSystem";
 import Icon from "../components/Icon";
 import IconType from "../buttons/BaseButton/IconType";
 import Faction from "@/app/lib/definitions/interfaces/faction/Faction";
@@ -13,6 +15,7 @@ import { RosterMember } from "@/app/lib/data/faction/fetchFactionRosters";
 
 const FactionCard = (props: { cardItem: Faction; roster: RosterMember[] }) => {
   const t = useTranslations("factions.card");
+  const system = useGameSystem();
   const markup = { __html: props.cardItem.description };
 
   return (
@@ -44,7 +47,10 @@ const FactionCard = (props: { cardItem: Faction; roster: RosterMember[] }) => {
                   {props.roster.map((member) => (
                     <li key={member.id}>
                       <Link
-                        href={`/dashboard/npc?query=${encodeURIComponent(member.name)}`}
+                        href={dashboardPath(
+                          system,
+                          `/npc?query=${encodeURIComponent(member.name)}`
+                        )}
                         className="text-blue-400 hover:underline"
                       >
                         {member.name}

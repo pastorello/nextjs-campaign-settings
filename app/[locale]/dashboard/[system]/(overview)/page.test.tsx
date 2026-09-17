@@ -16,7 +16,12 @@ describe("dashboard overview Page", () => {
   });
 
   it("renders the title and the record-count cards", async () => {
-    render(await Page());
+    render(
+      await Page({
+        params: Promise.resolve({ locale: "it", system: "dnd5e" }),
+        searchParams: Promise.resolve({}),
+      })
+    );
 
     expect(screen.getByText("title")).toBeInTheDocument();
     expect(screen.getByTestId("card-wrapper")).toBeInTheDocument();

@@ -77,13 +77,18 @@ describe("dashboard geography Page (SPEC-004 M7)", () => {
   it("offers the create-world prompt on an empty installation, not the explorer", async () => {
     fetchRootPlace.mockResolvedValue(null);
 
-    render(await GeographyPage());
+    render(
+      await GeographyPage({
+        params: Promise.resolve({ locale: "it", system: "dnd5e" }),
+        searchParams: Promise.resolve({}),
+      })
+    );
 
     expect(screen.queryByTestId("geography-explorer")).not.toBeInTheDocument();
     expect(screen.getByText("noWorldYet")).toBeInTheDocument();
     expect(screen.getByText("createWorldLink")).toHaveAttribute(
       "href",
-      "/dashboard/world"
+      "/dashboard/dnd5e/world"
     );
     // No tree to count on an empty installation (SPEC-007 §5 edge cases).
     expect(countUnpositionedPlaces).not.toHaveBeenCalled();
@@ -100,7 +105,12 @@ describe("dashboard geography Page (SPEC-004 M7)", () => {
     });
     countUnpositionedPlaces.mockResolvedValue(42);
 
-    render(await GeographyPage());
+    render(
+      await GeographyPage({
+        params: Promise.resolve({ locale: "it", system: "dnd5e" }),
+        searchParams: Promise.resolve({}),
+      })
+    );
 
     expect(screen.getByTestId("geography-explorer")).toHaveTextContent(
       "Aerivel"
@@ -129,7 +139,12 @@ describe("dashboard geography Page — ?place= landing (SPEC-011 T4)", () => {
   });
 
   it("passes no initial stack when ?place= is absent, preserving today's root-only behaviour", async () => {
-    render(await GeographyPage({ searchParams: Promise.resolve({}) }));
+    render(
+      await GeographyPage({
+        params: Promise.resolve({ locale: "it", system: "dnd5e" }),
+        searchParams: Promise.resolve({}),
+      })
+    );
 
     expect(fetchPlaceAncestryChain).not.toHaveBeenCalled();
     expect(screen.getByTestId("geography-explorer")).toHaveAttribute(
@@ -145,7 +160,10 @@ describe("dashboard geography Page — ?place= landing (SPEC-011 T4)", () => {
     ]);
 
     render(
-      await GeographyPage({ searchParams: Promise.resolve({ place: "2" }) })
+      await GeographyPage({
+        params: Promise.resolve({ locale: "it", system: "dnd5e" }),
+        searchParams: Promise.resolve({ place: "2" }),
+      })
     );
 
     expect(fetchPlaceAncestryChain).toHaveBeenCalledWith(2);
@@ -159,7 +177,10 @@ describe("dashboard geography Page — ?place= landing (SPEC-011 T4)", () => {
     fetchPlaceAncestryChain.mockResolvedValue(null);
 
     render(
-      await GeographyPage({ searchParams: Promise.resolve({ place: "999" }) })
+      await GeographyPage({
+        params: Promise.resolve({ locale: "it", system: "dnd5e" }),
+        searchParams: Promise.resolve({ place: "999" }),
+      })
     );
 
     expect(fetchPlaceAncestryChain).toHaveBeenCalledWith(999);
@@ -172,6 +193,7 @@ describe("dashboard geography Page — ?place= landing (SPEC-011 T4)", () => {
   it("falls back to root-only navigation on a garbage, non-numeric ?place= value, without querying", async () => {
     render(
       await GeographyPage({
+        params: Promise.resolve({ locale: "it", system: "dnd5e" }),
         searchParams: Promise.resolve({ place: "not-a-number" }),
       })
     );

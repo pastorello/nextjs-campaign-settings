@@ -6,6 +6,23 @@ vi.mock("next-intl", () => ({
     values ? `${key}:${JSON.stringify(values)}` : key,
 }));
 
+vi.mock("@/app/lib/hooks/useGameSystem", () => ({ default: () => "dnd5e" }));
+
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({
+    href,
+    children,
+    ...rest
+  }: {
+    href: string;
+    children: React.ReactNode;
+  }) => (
+    <a href={href} {...rest}>
+      {children}
+    </a>
+  ),
+}));
+
 import CrossEntitySearchResults from "./CrossEntitySearchResults";
 import type { SearchAllDomainsResult } from "@/app/lib/data/search/searchAllDomains";
 
@@ -104,7 +121,7 @@ describe("CrossEntitySearchResults (SPEC-011 T2)", () => {
     const seeAll = screen.getByText(/seeAll/);
     expect(seeAll.closest("a")).toHaveAttribute(
       "href",
-      "/dashboard/spells?query=Spell"
+      "/dashboard/dnd5e/spells?query=Spell"
     );
   });
 
@@ -133,7 +150,7 @@ describe("CrossEntitySearchResults (SPEC-011 T2)", () => {
 
     expect(screen.getByText("Fireball").closest("a")).toHaveAttribute(
       "href",
-      "/dashboard/spells?query=Fireball"
+      "/dashboard/dnd5e/spells?query=Fireball"
     );
   });
 
@@ -149,7 +166,7 @@ describe("CrossEntitySearchResults (SPEC-011 T2)", () => {
 
     expect(screen.getByText("Aerivel").closest("a")).toHaveAttribute(
       "href",
-      "/dashboard/geography?place=42"
+      "/dashboard/dnd5e/geography?place=42"
     );
   });
 

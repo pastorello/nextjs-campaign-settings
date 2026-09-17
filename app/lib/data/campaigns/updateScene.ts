@@ -8,6 +8,8 @@ import SceneMetaField from "@/app/lib/definitions/enums/campaign/SceneMetaField"
 import sceneMeta from "@/app/lib/config/campaigns/sceneMeta";
 import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema";
 import { revalidatePath } from "next/cache";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 
 /**
  * Updates a scene's own fields, including its position — the direct,
@@ -34,6 +36,6 @@ export default async function updateScene(
     ),
   });
 
-  revalidatePath("/dashboard/campaign");
+  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };
 }

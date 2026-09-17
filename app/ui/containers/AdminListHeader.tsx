@@ -37,7 +37,9 @@ export default function AdminListHeader({
         <Search placeholder={searchPlaceholder} />
       </div>
       <div className="flex w-full flex-wrap items-center justify-between gap-2 sm:w-auto sm:flex-nowrap sm:justify-end">
-        <div className="flex shrink-0">{countText}</div>
+        <div className="flex shrink-0" role="status">
+          {countText}
+        </div>
         <div className="flex shrink-0 items-center gap-2">
           <BaseButton to={newItemHref}>{newItemLabel}</BaseButton>
           <ResetButton />

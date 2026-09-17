@@ -39,4 +39,21 @@ describe("AdminListHeader", () => {
     ).toHaveAttribute("href", "spells/new");
     expect(screen.getByRole("button", { name: "reset" })).toBeInTheDocument();
   });
+
+  // TD-135 put the count in a live region; extracting this header (TD-114)
+  // dropped it for every admin list until 2026-09-17.
+  it("announces the count in a status region", () => {
+    render(
+      <AdminListHeader
+        searchPlaceholder="Cerca..."
+        countText="6 di 361 incantesimi trovati"
+        newItemHref="spells/new"
+        newItemLabel="Nuovo Incantesimo"
+      />
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "6 di 361 incantesimi trovati"
+    );
+  });
 });

@@ -143,6 +143,17 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-119 | `/world` is a dead end once the world exists — no link to the map                                              | 🟢 Low               | S      | 4     |
 | TD-120 | Form layout: all-caps labels, short description boxes, "Reset Filtri" in the Italian UI                        | 🟢 Low               | S      | 4     |
 | TD-121 | The world map opens with the image at about half the canvas — seen once                                        | 🟢 Low               | S      | 4     |
+| TD-122 | Create and update actions validate their input, then write the unvalidated copy                                | 🟠 High              | M      | 4     |
+| TD-123 | `MapPOIPanel` still has 18 hardcoded English strings, including the confirm before deleting every landmark     | 🟠 High              | S      | 4     |
+| TD-124 | Server-written error messages reach the Italian UI in English                                                  | 🟡 Medium            | M      | 4     |
+| TD-125 | The four reorder actions accept duplicate ids, and a failed reorder says "Delete failed"                       | 🟡 Medium            | S      | 4     |
+| TD-126 | Campaign forms stay on "saving" if a save throws, and most actions don't wrap database errors                  | 🟡 Medium            | S      | 4     |
+| TD-127 | `WorldMap.tsx` is 1,329 lines and handles eight concerns                                                       | 🟡 Medium            | L      | 4     |
+| TD-128 | `WorldMap`'s GeoJSON import skips the schema that `MapMain`'s import uses                                      | 🟢 Low               | S      | 4     |
+| TD-129 | Map place and POI schemas restate field rules instead of using `zoneMeta`                                      | 🟢 Low               | S      | 4     |
+| TD-130 | Validator helpers copied into five files                                                                       | 🟢 Low               | S      | 4     |
+| TD-131 | Unused vendored map utilities still include Earth-geometry maths (ask before deleting)                         | 🟢 Low               | S      | 4     |
+| TD-132 | Leftover inline styles and Italian comments                                                                    | 🟢 Low               | S      | 4     |
 
 ---
 
@@ -1192,3 +1203,184 @@ about half the canvas width, with a wide grey margin on every side. Seen once
 and not investigated: the initial `fitBounds` padding may be deliberate, so read
 `WorldMap.tsx`'s initial view before changing it. If it isn't, fit the image to
 the canvas on first load.
+
+### TD-122 — Create and update actions validate their input, then write the unvalidated copy
+
+**Severity:** 🟠 High · **Effort:** M · **Found:** 2026-09-17, tech-debt audit
+
+Every entity and campaign action runs `safeParse(formData)` and then writes
+from `formData`, not from `parsed.data`. Confirmed in
+`app/lib/data/treasure/createTreasure.ts:24-33` and
+`app/lib/data/deities/updateDeity.ts:24-33`; the same shape is in
+`updateSpell`, `updateMagicItem`, `updateFaction`, `updateNpc`,
+`campaigns/updateCampaign`, `campaigns/updateAdventure` and the create actions
+(`createScene.ts:28-41`, `createCampaign.ts:28-37`, …). Consequences:
+
+- **Undeclared keys are written.** `buildEntitySchema.ts:21-22` says unknown
+  keys "are stripped, not rejected", but that holds only for `parsed.data`.
+  The update actions copy every key of `formData`, so
+  `updateDeity({ id, zoneId, poiId })` would set a location while skipping
+  `assignLocation`'s rules (the exclusive pair, TD-93's guard).
+- **Coercions are thrown away.** `treasureMeta.ts:34-47` turns `""` into
+  `null` and `"20"` into `20`, but `createTreasure` writes the raw string to
+  `value Int?` (`schema.prisma:332`). The text input stores a string
+  (`TextInput.tsx:35`, `InputComponent.tsx:66-72`), so saving a treasure with
+  a value should be rejected by Prisma. Read from the code, not reproduced:
+  the unit tests pass numbers and `e2e/treasures-crud.spec.ts` never fills the
+  field. Reproduce it first, as the regression test.
+- `where: { id: formData.id }` uses the id before Zod has coerced it.
+- `createSpell`, `updateSpell` and `deleteSpellById` have no unit tests (TD-80
+  covered the other domains).
+
+CLAUDE.md rule 2 says validate before writing, and this satisfies it in
+letter only. **The fix, in shape:** every action writes from `parsed.data`,
+restricted to the declared keys. Add regression tests for `value: "20"` and
+for an extra `zoneId` key, and add the missing spell action tests.
+**Related:** TD-02, TD-80, TD-93.
+
+### TD-123 — `MapPOIPanel` still has 18 hardcoded English strings, including the confirm before deleting every landmark
+
+**Severity:** 🟠 High · **Effort:** S · **Found:** 2026-09-17, tech-debt audit and accessibility review (both found it)
+
+`app/modules/maps/components/map/MapPOIPanel.tsx` is live (`WorldMap.tsx`
+renders it), but under `/it` it shows English: toasts (lines 437, 452, 465,
+474, 481, 494, 518), `title=` attributes (165, 189, 199), placeholders (659,
+668, 766, 784), "Add"/"Import"/"Export" (805, 814, 824), "No places yet",
+"Edit Place"/"Add Place", and a `"Close"` `aria-label` (1004). Screen
+readers read these with an Italian voice (WCAG 3.1.2). TD-95 is marked done for
+this file but moved only five strings; the "Svuota" button on the same row
+already uses `t()`.
+
+The worst case is line 572: a native
+``confirm(`Are you sure you want to delete all ${pois.length} POIs?`)``
+guards `clearAllPOIs` (`usePOIManager.ts:641-669`), which permanently deletes
+every landmark on the map on the server. **The fix, in shape:** move all of
+these strings into both catalogues, and replace the native `confirm` with the app's
+confirm dialog (as `DeletePlaceButton` does). **Related:** TD-95, TD-21.
+
+### TD-124 — Server-written error messages reach the Italian UI in English
+
+**Severity:** 🟡 Medium · **Effort:** M · **Found:** 2026-09-17, tech-debt audit
+
+About 14 action sites return literal English messages:
+`checkPlacement.ts:73` (`Overlaps an existing area: ${title}.`),
+`createNpc.ts:60`, `updateNpc.ts:42`, `placeZone.ts:108,114`,
+`createRootPlace.ts:45`, `resolveLocationAssignment.ts:37,57`, and the
+`reorder*.ts` actions. `WorldMap.tsx:511-528` passes the first message to the
+panel as-is, and `FormErrorSummary.tsx:38` joins them as-is; Zod's own default
+messages take the same path. **The fix, in shape:** actions return message
+keys plus parameters, and the render boundary translates them, per
+[ADR-0007](./adr/0007-message-key-resolution-boundary.md).
+**Related:** TD-21, TD-62.
+
+### TD-125 — The four reorder actions accept duplicate ids, and a failed reorder says "Delete failed"
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-17, tech-debt audit
+
+`reorderScenes.ts:46-50`, `reorderLoot.ts:44-48`,
+`reorderSceneCreatures.ts:44-48` and `reorderAdventures.ts:50-54` check only
+`length === size && every(has)`. With existing rows `{1,2,3}`, the list
+`[1,1,2]` passes: row 3 is never updated and ends up sharing a position.
+Nothing in `schema.prisma` makes `(parent, position)` unique, and no test sends
+duplicates. On failure, `SceneList.tsx:86`, `LootList.tsx:78` and the other
+two lists show `common.deleteButton.deleteFailed`, with no try/catch around
+the call. The four actions are near-copies of each other, as are the four
+`move*` handlers. **The fix, in shape:** one shared validate-and-reorder helper
+that also rejects duplicate ids, a reorder-specific error message, and possibly
+a unique index on position.
+
+### TD-126 — Campaign forms stay on "saving" if a save throws, and most actions don't wrap database errors
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-17, tech-debt audit
+
+`SceneForm.tsx:97-106` runs `await createScene(...)`, then
+`setIsSaving(false)`, with no try/finally; the same holds in `LootForm`,
+`SceneCreatureForm`, `CampaignForm`, `AdventureForm` and `AdventureInfoForm`.
+The geography forms (`ZoneEditPanel`, `MapGridConfigPanel`) handle this
+correctly. Most create and update actions (campaigns, spells, deities, magic
+items, treasure, factions) don't wrap the Prisma call with
+`toDatabaseError`, unlike `createNpc.ts:37-63` and the map actions, so a
+database or session error throws unwrapped, the client doesn't catch it, and
+the user sees nothing. **The fix, in shape:** one shared submit hook with
+try/finally and an error toast for the six forms, and `toDatabaseError` in the
+actions. **Related:** TD-10, TD-13.
+
+### TD-127 — `WorldMap.tsx` is 1,329 lines and handles eight concerns
+
+**Severity:** 🟡 Medium · **Effort:** L · **Found:** 2026-09-17, tech-debt audit
+
+`app/ui/geography/WorldMap.tsx` has 57 hook calls, about 30 `handle*`
+callbacks (lines 259-920) and 9 open/mode flags (164-197). It covers the
+popover, measuring, upload, the grid, area drawing, positioning places, POI
+import/export and loading the map image. It was 114 lines when TD-46
+described it. `app/modules/maps/hooks/usePOIManager.ts` is 837 lines.
+**The fix, in shape:** extract focused hooks (`usePlacePopover`,
+`useAreaDrawing`, `usePlacePositioning`, `usePOIFileIO`), following
+`app/modules/maps/`'s structure. Do it before the next map feature, not
+alongside one. **Related:** TD-46, TD-131.
+
+### TD-128 — `WorldMap`'s GeoJSON import skips the schema that `MapMain`'s import uses
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, tech-debt audit
+
+`WorldMap.tsx:921-924` imports the result of `JSON.parse(text) as POIGeoJSON`
+directly; `MapMain.tsx:193` runs `poiGeoJSONSchema.safeParse` first. A
+malformed file fails deep in `usePOIManager.importGeoJSON` (712-778), or
+produces one server rejection per feature instead of one clear error. The two
+files also duplicate the export/import handlers. **The fix, in shape:**
+validate with `poiGeoJSONSchema`, and share one import/export helper.
+**Related:** TD-14, TD-02b.
+
+### TD-129 — Map place and POI schemas restate field rules instead of using `zoneMeta`
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, tech-debt audit
+
+`placeSchema.ts:18-19`, `poiSchema.ts:15-16` and `rootPlaceSchema.ts:12`
+declare their own `title`/`description` rules; `zoneMeta.ts:28-32` itself
+calls `placeSchema` "rule-2-non-compliant". The two already disagree: creating
+a place accepts `description: ""` (`createPlace.ts:78-79`), while editing
+rejects it (`zoneMeta.ts:62`, `.min(1)`), so "no description" can be stored two
+ways. **The fix, in shape:** build these schemas from `zoneMeta`'s validators,
+as `updateZoneDetails` already does. **Related:** TD-02, TD-104.
+
+### TD-130 — Validator helpers copied into five files
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, tech-debt audit
+
+`nullableToOptional` is defined in `sceneMeta.ts:35`,
+`sceneCreatureMeta.ts:23`, `campaignMeta.ts:27`, `adventureMeta.ts:43` and
+`zoneMeta.ts:15` (whose comment says it is "the fifth local copy").
+`nullableAmountValidator` is in four meta files, and `treasureMeta.ts:44-47`
+writes the same logic inline. **The fix, in shape:** move both into one shared
+validators module under `app/lib/utils/`.
+
+### TD-131 — Unused vendored map utilities still include Earth-geometry maths (ask before deleting)
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, tech-debt audit
+
+`app/modules/maps/lib/utils/coordinates.ts:140-159` still has a haversine
+`calculateDistance` (Earth radius 6371e3) and ±90/±180 clamping helpers. About
+40 exports across `coordinates.ts`, `maps.ts` and `validation.ts` have no
+caller outside their own tests; only `formatDecimalDegrees` and
+`isValidBounds` are used, and `isValidCoordinate` is defined twice.
+`poiSchema.ts:18-25` explains why geographic bounds are wrong for these pixel
+maps, so a later session reusing one of these helpers would add a bug. These came in
+with the vendored library, so CLAUDE.md's "unused is not dead" applies.
+**Decision needed from the DM:** delete them, or mark them as vendored and not
+for use on pixel maps. **Related:** TD-94.
+
+### TD-132 — Leftover inline styles and Italian comments
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, tech-debt audit
+
+- `app/modules/maps/hooks/useGeolocation.ts:111` builds marker HTML with
+  `style="width: 16px; …"`, the pattern TD-72 removed elsewhere (the hook is
+  used only by the vendored `MapControls`/`MapSearchBar`).
+- `app/ui/components/Spinner.tsx:9,25` uses `style={{…}}` and has Italian
+  comments at lines 10 and 20.
+- `app/ui/geography/PlacePopover.tsx:254` sets `style={{ left, top }}`. That is
+  a real runtime position, but rule 8 has no written exception for it.
+
+**The fix, in shape:** switch the first two to Tailwind classes, translate the
+comments, and add the runtime-position exception to CLAUDE.md rule 8.
+**Related:** TD-72.

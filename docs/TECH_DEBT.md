@@ -1066,7 +1066,7 @@ substitute for the fix above; worth a look if startup cost ever matters.
 spec's earlier false green), TD-105 (the same trace shows `createPoi`'s
 response carrying `x-action-revalidated: 1` — the flag that entry is about).
 
-### TD-112 — `tailwind.config.ts` is never loaded, so its shimmer, blues and forms plugin are missing from the built CSS
+### TD-112 ✅ `tailwind.config.ts` is never loaded, so its shimmer, blues and forms plugin are missing from the built CSS — **DONE (2026-09-17)**
 
 **Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-17, while drafting the design-system roadmap entry
 
@@ -1093,6 +1093,34 @@ Phase 5, "A design system"). **Check before merging:** turning the forms plugin
 on restyles every input, so look at a form and the map panels afterwards. The
 `content` glob that CLAUDE.md rule 8 describes is v3 behaviour too; v4 detects
 sources automatically, so that rule's wording should be updated with the fix.
+
+**Resolution:** `tailwind.config.ts` is deleted; `app/ui/global.css` now
+carries everything it declared, CSS-first. The `blue-400/500/600` overrides
+and the `shimmer` keyframes moved into an `@theme` block (verified emitted —
+`pnpm dlx @tailwindcss/cli -i app/ui/global.css -o /tmp/x.css` produces both
+`--color-blue-500: #0070f3` and a standalone `@keyframes shimmer` rule feeding
+skeletons.tsx's `animate-[shimmer_2s_infinite]`). `gridTemplateColumns["13"]`
+was dropped, not moved — v4 generates `grid-cols-13` natively, confirmed in
+the same CLI output.
+
+`@plugin "@tailwindcss/forms"` is loaded with `strategy: "class"`, not the
+default (global) strategy. Reasoning: the plugin was never actually active
+before this fix, so every native `input`/`select`/`textarea` in
+`app/ui/forms/inputs/**` and `app/modules/maps/components/map/MapPOIPanel.tsx`
+was hand-styled assuming Preflight alone — including Headless UI's `<Input>`,
+which renders a bare `<input>` with no `type` attribute, matched by the
+plugin's own `input:where(:not([type]))` base rule. Turning on the global
+reset would restyle all of them underneath their existing classes (border,
+focus-ring, background), and there's no running dev server in this workflow
+to check the result against. `class` strategy generates only opt-in
+`.form-*` classes; grepping the codebase found no component using one, so
+this closes the gap TD-112 identified (the plugin is loaded, its classes are
+available) without changing a single rendered pixel. Restyling inputs to use
+the plugin's classes, if wanted, is a deliberate follow-up, not a side effect
+of this fix.
+
+CLAUDE.md rule 8 reworded: no more `content` glob / `tailwind.config.ts`
+reference; points at `global.css`'s `@theme`/`@plugin` instead.
 
 ### TD-113 — Admin list pages show nothing on a phone: the table is `hidden md:table` with no fallback
 

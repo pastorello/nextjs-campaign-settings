@@ -2,6 +2,45 @@
 
 @import "tailwindcss";
 
+/* `class` strategy, not the plugin's default (`base` + `class`, i.e. every
+   native input/select/textarea restyled globally): the plugin was never
+   actually loaded before this fix (TD-112), so every input in
+   `app/ui/forms/inputs/**` and `app/modules/maps/components/map/MapPOIPanel.tsx`
+   was hand-styled against Preflight alone. Turning on the global reset now
+   would silently change their border, focus-ring and background styling
+   underneath those hand-written classes, and — without a running dev server
+   to check against — that's not a safe change to make blind. `class` styles
+   nothing that isn't already opted in via a `form-*` class, and none of the
+   above opt in today, so this enables the plugin (closing the TD-112 gap)
+   without touching a single rendered pixel. Revisit as a deliberate styling
+   pass, not a side effect of loading the plugin. */
+@plugin "@tailwindcss/forms" {
+  strategy: "class";
+}
+
+@theme {
+  /* tailwind.config.ts's `theme.extend.colors.blue` (TD-112): only these
+     three shades are overridden, the rest of the `blue` scale still comes
+     from Tailwind's default palette. */
+  --color-blue-400: #2589fe;
+  --color-blue-500: #0070f3;
+  --color-blue-600: #2f6feb;
+
+  /* tailwind.config.ts's `theme.keyframes.shimmer` (TD-112), used by
+     skeletons.tsx's arbitrary-value `before:animate-[shimmer_2s_infinite]`.
+     The arbitrary utility supplies its own duration/iteration-count, so it
+     only needs the `@keyframes shimmer` rule to exist in the output CSS;
+     `--animate-shimmer` additionally exposes a named `animate-shimmer`
+     utility that nothing currently uses. */
+  --animate-shimmer: shimmer 2s infinite;
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+}
+
 input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;

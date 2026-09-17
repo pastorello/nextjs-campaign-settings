@@ -1646,7 +1646,16 @@ Incantesimo", "Nessun Incantesimo trovato"), and `deities.form.*` does the same
 outliers. A catalogue test that flags mid-string capitals in `it.json`'s
 `form.*Title`/`*Button` values would keep them that way.
 
-### TD-143 — NPCs are called "PNG" on the card and "Personaggi conosciuti" on the page it opens
+**Resolution:** Lowercased the noun in `spells.form.*`, `spells.page.newItemButton`,
+`spells.page.emptyMessage` and `deities.form.*` in `messages/it.json`. Added
+`messages/messages.test.ts`'s "form.\*Title/\*Button values use sentence case,
+not Title Case" test: it walks every `it.json` key whose path has a `form`
+segment and ends `Title`/`Button`, and fails if any word after the first is
+Title Case (a leading capital followed by a lowercase letter) — an all-caps
+acronym like "PNG" (`npc.form.createTitle`: "Crea nuovo PNG") passes, since its
+second letter is uppercase too, not lowercase.
+
+### TD-143 ✅ NPCs are called "PNG" on the card and "Personaggi conosciuti" on the page it opens — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, UX copy review
 

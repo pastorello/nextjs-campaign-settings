@@ -1,7 +1,7 @@
 "use server";
 
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
 import PageType from "@/app/lib/definitions/types/PageType";
@@ -36,6 +36,6 @@ export default async function updateDeity(
     throw toDatabaseError("updating deity", error);
   }
 
-  revalidatePath("/deities");
+  revalidateDashboard("deities");
   return { ok: true };
 }

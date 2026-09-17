@@ -6,7 +6,7 @@ import requireSession from "@/app/lib/auth/requireSession";
 import PageType from "@/app/lib/definitions/types/PageType";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildUpdateSchema } from "../validation/buildEntitySchema";
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import MagicItem from "../../definitions/interfaces/magicitem/MagicItem";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
@@ -35,6 +35,6 @@ export default async function updateMagicItem(
     throw toDatabaseError("updating magic item", error);
   }
 
-  revalidatePath("/magicitems");
+  revalidateDashboard("magicitems");
   return { ok: true };
 }

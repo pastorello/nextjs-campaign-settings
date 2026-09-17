@@ -714,7 +714,7 @@ through the menu now arm it through the popover and panel. They were
 rewired, not deleted: the gesture, the `useDrawArea` instance and the
 `updateZonePosition` commit are all unchanged — only the way in moved.
 
-### TD-105 — 48 `revalidatePath` calls name a route structure that does not exist, and nothing is cached anyway
+### TD-105 ✅ 48 `revalidatePath` calls name a route structure that does not exist, and nothing is cached anyway — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** M (was S — see the correction) · **Found:** 2026-08-30, noticed while writing `placeLandmark` for TD-102 — `createPoi`/`updatePoi` revalidate `/geography` where every zone mutation revalidates `/dashboard/geography`
 
@@ -838,6 +838,32 @@ corrected again. The refresh **does** come from `unplacePlace`'s
 `revalidatePath` call — through the flag, not the path. And `pnpm dev` does
 not re-render the page after an action that sets no flag: the
 `skipPageRendering` branch is the same in dev.)_
+
+**Resolution:** Took the "correct the paths" option the 2026-09-11 correction
+left open, not `refresh()` — it keeps today's behaviour identical and needs
+no production-build browser check, which `refresh()`'s one behavioural
+difference (client prefetch-cache eviction on back/forward) still does. Every
+call site now goes through one helper, `revalidateDashboard(domain)` in
+`app/lib/utils/revalidateDashboard.ts`, instead of calling `revalidatePath`
+directly: `domain` is a closed `DashboardDomain` union (`campaign`,
+`deities`, `factions`, `geography`, `magicitems`, `npc`, `spells`,
+`treasures`, `world`), so a typo can't compile, and the helper builds
+`` `/[locale]/dashboard/[system]/${domain}` `` with `type: "page"` — the
+route's real file location per [ADR-0013](./adr/0013-game-systems.md)'s
+`[system]` segment, not the browser URL. All ~50 call sites in
+`app/lib/data/**` were switched (29 that built a value via `dashboardPath()`
+
+- `DEFAULT_GAME_SYSTEM` only to hand it to `revalidatePath`, plus the 19
+  raw-string ones), and both now-unused imports were dropped from the 29. The
+  `WorldMap.tsx`/`WorldMap.test.tsx` comments this entry's own history
+  corrected twice were updated once more to describe the corrected path
+  instead of the nonsense one. Existing unit tests needed no changes beyond
+  the call-site edits themselves — none asserted on `revalidatePath`'s
+  arguments, only mocked `next/cache` generically, and that mock still
+  satisfies the helper's own import of it. See
+  [ADR-0014](./adr/0014-corrected-revalidate-paths-behind-a-helper.md) for the
+  full reasoning, including why `refresh()` is deferred rather than adopted
+  now, and why a shared helper rather than 50 corrected literals.
 
 ### TD-106 ✅ A standing lint warning: the error boundary's "Vai alla home" leaves the page with a full document load — **DONE (2026-09-05)**
 

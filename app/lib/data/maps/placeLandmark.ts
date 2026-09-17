@@ -2,9 +2,7 @@
 
 import fieldError from "@/app/lib/data/validation/fieldError";
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
-import { revalidatePath } from "next/cache";
-import { dashboardPath } from "@/i18n/dashboardPath";
-import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import { z } from "zod";
 
 import prisma from "@/app/lib/connections/prisma";
@@ -154,6 +152,6 @@ export default async function placeLandmark(formData: {
     throw toDatabaseError("placing landmark", error);
   }
 
-  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/geography"));
+  revalidateDashboard("geography");
   return { ok: true };
 }

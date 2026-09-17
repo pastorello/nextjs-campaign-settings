@@ -7,7 +7,7 @@ import PageType from "@/app/lib/definitions/types/PageType";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildCreateSchema } from "../validation/buildEntitySchema";
 import MagicItem from "@/app/lib/definitions/interfaces/magicitem/MagicItem";
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 export default async function createMagicItem(
@@ -41,6 +41,6 @@ export default async function createMagicItem(
     throw toDatabaseError("creating magic item", error);
   }
 
-  revalidatePath("/magicitems");
+  revalidateDashboard("magicitems");
   return { ok: true };
 }

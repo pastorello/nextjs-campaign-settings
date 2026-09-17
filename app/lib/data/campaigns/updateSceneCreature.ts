@@ -7,9 +7,7 @@ import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import SceneCreature from "@/app/lib/definitions/interfaces/campaign/SceneCreature";
 import sceneCreatureMeta from "@/app/lib/config/campaigns/sceneCreatureMeta";
 import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema";
-import { revalidatePath } from "next/cache";
-import { dashboardPath } from "@/i18n/dashboardPath";
-import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 /**
@@ -44,6 +42,6 @@ export default async function updateSceneCreature(
     throw toDatabaseError("updating scene creature", error);
   }
 
-  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
+  revalidateDashboard("campaign");
   return { ok: true };
 }

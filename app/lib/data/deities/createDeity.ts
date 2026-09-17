@@ -6,7 +6,7 @@ import requireSession from "@/app/lib/auth/requireSession";
 import PageType from "@/app/lib/definitions/types/PageType";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildCreateSchema } from "../validation/buildEntitySchema";
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import Deity from "../../definitions/interfaces/deities/Deity";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
@@ -63,6 +63,6 @@ export default async function createDeity(
     throw toDatabaseError("creating deity", error);
   }
 
-  revalidatePath("/deities");
+  revalidateDashboard("deities");
   return { ok: true };
 }

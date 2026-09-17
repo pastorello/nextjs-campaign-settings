@@ -7,7 +7,7 @@ import PageType from "@/app/lib/definitions/types/PageType";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildCreateSchema } from "../validation/buildEntitySchema";
 import Treasure from "@/app/lib/definitions/interfaces/treasure/Treasure";
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 export default async function createTreasure(
@@ -41,6 +41,6 @@ export default async function createTreasure(
     throw toDatabaseError("creating treasure", error);
   }
 
-  revalidatePath("/treasures");
+  revalidateDashboard("treasures");
   return { ok: true };
 }

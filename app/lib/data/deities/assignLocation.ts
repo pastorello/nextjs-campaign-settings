@@ -2,7 +2,7 @@
 
 import fieldError from "@/app/lib/data/validation/fieldError";
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
@@ -59,7 +59,7 @@ export default async function assignDeityLocation(
       throw toDatabaseError("assigning deity location", error);
     }
 
-    revalidatePath("/deities");
+    revalidateDashboard("deities");
     return { ok: true };
   }
 
@@ -98,6 +98,6 @@ export default async function assignDeityLocation(
       : { ok: false, errors: { id: [fieldError("deityNotFound")] } };
   }
 
-  revalidatePath("/deities");
+  revalidateDashboard("deities");
   return { ok: true };
 }

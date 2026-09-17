@@ -6,7 +6,7 @@ import requireSession from "@/app/lib/auth/requireSession";
 import PageType from "@/app/lib/definitions/types/PageType";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildUpdateSchema } from "../validation/buildEntitySchema";
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import Treasure from "../../definitions/interfaces/treasure/Treasure";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
@@ -35,6 +35,6 @@ export default async function updateTreasure(
     throw toDatabaseError("updating treasure", error);
   }
 
-  revalidatePath("/treasures");
+  revalidateDashboard("treasures");
   return { ok: true };
 }

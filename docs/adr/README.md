@@ -37,3 +37,4 @@ Do **not** write one for routine implementation choices, naming, or anything a c
 | [0011](./0011-inline-collections-outside-the-metadata-layer.md) | Ordered inline collections outside the metadata layer             | Accepted | 2026-08-18 |
 | [0012](./0012-placement-writes-the-tree-edge.md)                | Placement writes the tree edge                                    | Accepted | 2026-09-04 |
 | [0013](./0013-game-systems.md)                                  | Game systems as a dashboard URL segment and per-system catalogues | Accepted | 2026-09-11 |
+| [0014](./0014-corrected-revalidate-paths-behind-a-helper.md)    | Corrected `revalidatePath` calls behind a single helper           | Accepted | 2026-09-17 |

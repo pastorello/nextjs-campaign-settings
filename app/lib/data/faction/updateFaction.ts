@@ -6,7 +6,7 @@ import requireSession from "@/app/lib/auth/requireSession";
 import PageType from "@/app/lib/definitions/types/PageType";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildUpdateSchema } from "../validation/buildEntitySchema";
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import Faction from "../../definitions/interfaces/faction/Faction";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
@@ -35,6 +35,6 @@ export default async function updateFaction(
     throw toDatabaseError("updating faction", error);
   }
 
-  revalidatePath("/factions");
+  revalidateDashboard("factions");
   return { ok: true };
 }

@@ -7,7 +7,7 @@ import requireSession from "@/app/lib/auth/requireSession";
 import PageType from "@/app/lib/definitions/types/PageType";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildUpdateSchema } from "../validation/buildEntitySchema";
-import { revalidatePath } from "next/cache";
+import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import NpcItem from "../../definitions/interfaces/npc/NpcItem";
 import isForeignKeyViolation from "@/app/lib/errors/isForeignKeyViolation";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
@@ -45,6 +45,6 @@ export default async function updateNpc(
     throw toDatabaseError("updating npc", error);
   }
 
-  revalidatePath("/npc");
+  revalidateDashboard("npc");
   return { ok: true };
 }

@@ -4,15 +4,12 @@ import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import Adventure from "@/app/lib/definitions/interfaces/campaign/Adventure";
-import AdventureMetaField from "@/app/lib/definitions/enums/campaign/AdventureMetaField";
 import adventureMeta from "@/app/lib/config/campaigns/adventureMeta";
 import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema";
 import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 import { z } from "zod";
-
-type AdventureUpdateField = AdventureMetaField | "campaignId";
 
 /**
  * Updates an adventure's own fields, including its position — the direct,
@@ -35,14 +32,15 @@ export default async function updateAdventure(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
+  // Written from `parsed.data`, never the raw payload: it holds only the
+  // declared keys the payload carried, already coerced (TD-122). The schema is
+  // built from a runtime field list, so its output type is widened; this is
+  // the one assertion that narrows it back.
+  const { id, ...data } = parsed.data as Partial<Adventure> & { id: number };
+
   await prisma.adventure.update({
-    where: { id: formData.id },
-    data: Object.keys(formData)
-      .filter((key) => key !== "id")
-      .reduce((acc, key) => {
-        const typedKey = key as AdventureUpdateField;
-        return { ...acc, [typedKey]: formData[typedKey] };
-      }, {} as Partial<Adventure>),
+    where: { id },
+    data,
   });
 
   revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));

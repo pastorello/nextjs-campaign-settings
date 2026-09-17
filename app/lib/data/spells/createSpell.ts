@@ -18,6 +18,9 @@ export default async function createSpell(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
+  // Read from `parsed.data`, never the raw payload: its values are the
+  // coerced ones (TD-122). The schema is built from a runtime field list, so
+  // its output type is widened; this assertion narrows it back.
   const {
     name,
     description,
@@ -32,7 +35,7 @@ export default async function createSpell(
     ritual,
     concentration,
     upcast,
-  } = formData;
+  } = parsed.data as Omit<Spell, "id">;
 
   await prisma.spells.create({
     data: {

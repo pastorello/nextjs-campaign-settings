@@ -84,4 +84,40 @@ describe("createTreasure (SPEC-013 T4b)", () => {
       },
     });
   });
+
+  // TD-122: the text input emits a string, and the validator coerces it — the
+  // write must use the coerced number, not the raw string Prisma rejects.
+  it("writes the coerced integer when the value arrives as a string", async () => {
+    create.mockResolvedValue({});
+
+    const result = await createTreasure({
+      ...validFormData,
+      value: "20" as unknown as number,
+    });
+
+    expect(result).toEqual({ ok: true });
+    expect(create).toHaveBeenCalledWith({
+      data: {
+        name: validFormData.name,
+        description: validFormData.description,
+        category: validFormData.category,
+        value: 20,
+      },
+    });
+  });
+
+  it("writes a blank value as null", async () => {
+    create.mockResolvedValue({});
+
+    await createTreasure({ ...validFormData, value: "" as unknown as number });
+
+    expect(create).toHaveBeenCalledWith({
+      data: {
+        name: validFormData.name,
+        description: validFormData.description,
+        category: validFormData.category,
+        value: null,
+      },
+    });
+  });
 });

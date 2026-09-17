@@ -18,7 +18,11 @@ export default async function createMagicItem(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  const { name, description, type, rarity, attuned, consumable } = formData;
+  // Read from `parsed.data`, never the raw payload: its values are the
+  // coerced ones (TD-122). The schema is built from a runtime field list, so
+  // its output type is widened; this assertion narrows it back.
+  const { name, description, type, rarity, attuned, consumable } =
+    parsed.data as Omit<MagicItem, "id">;
 
   await prisma.magicitems.create({
     data: {

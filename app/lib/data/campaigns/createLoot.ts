@@ -38,6 +38,9 @@ export default async function createLoot(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
+  // Read from `parsed.data`, never the raw payload: its values are the
+  // coerced ones (TD-122). The schema is built from a runtime field list, so
+  // its output type is widened; this assertion narrows it back.
   const {
     sceneId,
     position,
@@ -46,7 +49,7 @@ export default async function createLoot(
     value,
     magicItemId,
     treasureId,
-  } = formData;
+  } = parsed.data as Omit<Loot, "id">;
 
   await prisma.loot.create({
     data: {

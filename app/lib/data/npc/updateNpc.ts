@@ -7,7 +7,6 @@ import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildUpdateSchema } from "../validation/buildEntitySchema";
 import { revalidatePath } from "next/cache";
 import NpcItem from "../../definitions/interfaces/npc/NpcItem";
-import NpcMetaField from "../../definitions/enums/npc/NpcMetaField";
 import isForeignKeyViolation from "@/app/lib/errors/isForeignKeyViolation";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
@@ -21,17 +20,16 @@ export default async function updateNpc(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
+  // Written from `parsed.data`, never the raw payload: it holds only the
+  // declared keys the payload carried, already coerced (TD-122). The schema is
+  // built from a runtime field list, so its output type is widened; this is
+  // the one assertion that narrows it back.
+  const { id, ...data } = parsed.data as Partial<NpcItem> & { id: number };
+
   try {
     await prisma.npc.update({
-      where: {
-        id: formData.id,
-      },
-      data: Object.keys(formData)
-        .filter((key) => key !== "id")
-        .reduce((acc, key) => {
-          const typedKey = key as NpcMetaField;
-          return { ...acc, [typedKey]: formData[typedKey] };
-        }, {} as NpcItem),
+      where: { id },
+      data,
     });
   } catch (error) {
     // See createNpc — the same stale-faction-id case, reached on an edit

@@ -18,7 +18,13 @@ export default async function createTreasure(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  const { name, description, category, value } = formData;
+  // Read from `parsed.data`, never the raw payload: its values are the
+  // coerced ones (TD-122). The schema is built from a runtime field list, so
+  // its output type is widened; this assertion narrows it back.
+  const { name, description, category, value } = parsed.data as Omit<
+    Treasure,
+    "id"
+  >;
 
   await prisma.treasure.create({
     data: {

@@ -1217,7 +1217,7 @@ and not investigated: the initial `fitBounds` padding may be deliberate, so read
 `WorldMap.tsx`'s initial view before changing it. If it isn't, fit the image to
 the canvas on first load.
 
-### TD-122 — Create and update actions validate their input, then write the unvalidated copy
+### TD-122 ✅ Create and update actions validate their input, then write the unvalidated copy — **DONE (2026-09-17)**
 
 **Severity:** 🟠 High · **Effort:** M · **Found:** 2026-09-17, tech-debt audit
 
@@ -1250,6 +1250,18 @@ letter only. **The fix, in shape:** every action writes from `parsed.data`,
 restricted to the declared keys. Add regression tests for `value: "20"` and
 for an extra `zoneId` key, and add the missing spell action tests.
 **Related:** TD-02, TD-80, TD-93.
+
+**Resolution:** all six entity actions (`create*`/`update*` for spells,
+magic items, NPCs, deities, factions, treasure) and all ten campaign
+create/update actions now read from `parsed.data`. Zod strips undeclared keys
+and leaves absent optional keys absent, so an update writes exactly the
+declared fields the payload carried, coerced, and `where` uses the coerced
+`id`. Because the schemas are built from a runtime field list, their output
+type is widened; each action narrows it with one commented assertion
+(`as Partial<T> & { id: number }` / `as Omit<T, "id">`) rather than a new
+typed builder. Regression tests: `createTreasure` with `value: "20"` and
+`""`, `updateDeity` with extra `zoneId`/`poiId`, a string id, and a partial
+payload; new `createSpell`, `updateSpell`, `deleteSpellById` tests.
 
 ### TD-123 — `MapPOIPanel` still has 18 hardcoded English strings, including the confirm before deleting every landmark
 

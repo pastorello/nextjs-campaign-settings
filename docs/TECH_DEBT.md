@@ -154,6 +154,13 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-130 | Validator helpers copied into five files                                                                       | 🟢 Low               | S      | 4     |
 | TD-131 | Unused vendored map utilities still include Earth-geometry maths (ask before deleting)                         | 🟢 Low               | S      | 4     |
 | TD-132 | Leftover inline styles and Italian comments                                                                    | 🟢 Low               | S      | 4     |
+| TD-133 | The map has no keyboard path to create a place or open an existing one                                         | 🟠 High              | L      | 4     |
+| TD-134 | Filter chips don't expose their pressed state                                                                  | 🟡 Medium            | S      | 4     |
+| TD-135 | Result counts change without being announced                                                                   | 🟡 Medium            | S      | 4     |
+| TD-136 | Admin row buttons all announce as "Modifica" / "Elimina"                                                       | 🟡 Medium            | S      | 4     |
+| TD-137 | No `nav` landmark around the sidebar                                                                           | 🟢 Low               | S      | 4     |
+| TD-138 | The overview skips from `h1` to `h3`                                                                           | 🟢 Low               | S      | 4     |
+| TD-139 | Pagination doesn't mark the current page                                                                       | 🟢 Low               | S      | 4     |
 
 ---
 
@@ -1384,3 +1391,83 @@ for use on pixel maps. **Related:** TD-94.
 **The fix, in shape:** switch the first two to Tailwind classes, translate the
 comments, and add the runtime-position exception to CLAUDE.md rule 8.
 **Related:** TD-72.
+
+### TD-133 — The map has no keyboard path to create a place or open an existing one
+
+**Severity:** 🟠 High · **Effort:** L · **Found:** 2026-09-17, accessibility review (WCAG 2.1.1)
+
+On `/geography`, "Aggiungi luogo" opens only on right-click:
+`useMapContextMenu.ts:158` listens only to Leaflet's `contextmenu` mouse event.
+The POI panel's "Add" button doesn't help: until a location is set, its form
+offers only "Click to select location on map" (`MapPOIPanel.tsx:673-696`),
+with no fields for typing coordinates. Existing markers are `L.divIcon` `<div>`s
+with no `tabIndex` (`useNavigableChildren.ts:249-252`), so Tab never reaches
+them. A keyboard-only user can neither add a place nor open one.
+**The fix, in shape:** add a Tab-reachable "new place here" entry point (at the
+map centre, or via Shift+F10 / the context-menu key); let coordinates be typed
+before any click; give markers `tabIndex=0` and an Enter/Space handler that
+opens the same popover a click does. Because this touches SPEC-level
+interaction, it may need a short spec. **Related:** TD-15, TD-123.
+
+### TD-134 — Filter chips don't expose their pressed state
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-17, accessibility review (WCAG 4.1.2)
+
+On `/spells`, an active class or level chip only gains `bg-violet-700`;
+`aria-pressed` stays unset. `BaseButton/getCSSClasses.ts:26-32` defines the
+`selected` look, but `BaseButton/index.tsx` never maps `buttonState` to
+`aria-pressed`. **The fix, in shape:** set
+`aria-pressed={buttonState === ButtonState.Active}` on toggle-style buttons,
+with a unit test.
+
+### TD-135 — Result counts change without being announced
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-17, accessibility review (WCAG 4.1.3)
+
+Typing in search (`app/ui/search.tsx:15-25`) re-renders
+`CrossEntitySearchResults`, but its group headings ("Incantesimi (6)",
+`CrossEntitySearchResults.tsx:108-109`) have no `aria-live` ancestor. The same
+applies to the list pages' "361 di 361 incantesimi trovati" counter.
+**The fix, in shape:** put the count in a `role="status"` element.
+
+### TD-136 — Admin row buttons all announce as "Modifica" / "Elimina"
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-17, accessibility review (WCAG 2.4.6, 4.1.2)
+
+`EntityList.tsx:203-215` passes `t("common.table.edit")` and
+`DeleteButton.tsx:49` passes `t("form.delete")`, with no item name. The name
+reaches only the confirm modal's title. In a screen reader's button list, every
+row reads the same. **The fix, in shape:** add an `aria-label` carrying the
+item's name (new keys like `common.table.editItem` with `{name}`, in both
+catalogues). Pairs naturally with TD-118's move to icon buttons.
+
+### TD-137 — No `nav` landmark around the sidebar
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, accessibility review (WCAG 1.3.1)
+
+No page has a `<nav>` or `<header>`: the sidebar (`app/ui/dashboard/sidenav.tsx:12`)
+and the layout columns (`app/[locale]/dashboard/[system]/layout.tsx:19-23`)
+are plain `<div>`s. `<main>` exists. **The fix, in shape:** wrap the nav links
+in `<nav aria-label=…>` (a new catalogue key). No visual change.
+
+### TD-138 — The overview skips from `h1` to `h3`
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, accessibility review (WCAG 1.3.1)
+
+The dashboard overview goes `h1` "Dashboard" → `h3` card titles, with no `h2`.
+axe's `heading-order` rule is tagged best-practice, so `e2e/a11y.spec.ts`'s tag
+filter does not catch it. **The fix, in shape:** make the card titles `h2`
+(`app/ui/dashboard/cards.tsx`). Consider adding `best-practice` to the a11y
+spec's tags once this is clean.
+
+### TD-139 — Pagination doesn't mark the current page
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, accessibility review (WCAG 4.1.2)
+
+The active page in `app/ui/components/pagination.tsx:86-96` is a `<div>` with a
+blue background and no `aria-current`. **The fix, in shape:**
+`aria-current={isActive ? "page" : undefined}`, with a unit test.
+
+Not covered by this review: `/campaign/2`'s scene editors and the
+assign-location modal did not finish loading during the pass. Check both in a
+follow-up.

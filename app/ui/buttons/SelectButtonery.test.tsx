@@ -62,4 +62,17 @@ describe("SelectButtonery", () => {
 
     expect(replace).toHaveBeenCalledWith("/dashboard/dnd5e/spells?");
   });
+
+  // TD-134: chips only ever showed selection as a background colour.
+  it("marks the active chip aria-pressed=true and every other chip false", () => {
+    searchParams = new URLSearchParams({ classes: "0" });
+    render(<SelectButtonery fieldKey={SpellMetaField.classes} />);
+
+    expect(
+      screen.getByRole("button", { name: "spells.classes.bard" })
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.getByRole("button", { name: "common.filters.all" })
+    ).toHaveAttribute("aria-pressed", "false");
+  });
 });

@@ -58,7 +58,11 @@ const NpcCard = (props: {
                 )}
               </p>
             </div>
-            <div className="w-[600px] text-gray-400 text-left">
+            {/* Narrowed from 600px (TD-118): at that width the name block
+                beside it — flex-1 for the remaining space — was squeezed
+                narrow enough to wrap "Aldric Valmonte" and its subtitle over
+                four lines. */}
+            <div className="w-[360px] text-gray-400 text-left">
               {pageMetaFields[NpcMetaField.appearance].getDatum(
                 props.cardItem[NpcMetaField.appearance]
               )}
@@ -89,7 +93,9 @@ const NpcCard = (props: {
               "Sconosciuta" and clickable rather than blank when nobody has
               placed them yet (SPEC-007 T3) — a sibling of `DisclosureButton`,
               not nested inside it, since it is its own button. */}
-          <div className="w-[200px] text-xl">
+          {/* Was text-xl — the same size as the NPC's own name above, so the
+              eye went to the place first (TD-118). */}
+          <div className="w-[200px] text-sm">
             <AssignLocationButton
               pageType={PageType.Npc}
               entityId={props.cardItem.id}

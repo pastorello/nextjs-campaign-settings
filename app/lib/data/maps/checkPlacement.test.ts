@@ -105,7 +105,7 @@ describe("checkAreaPlacement", () => {
     });
 
     expect(result).toEqual({
-      footprint: ["Overlaps an existing area: Orc Kingdom."],
+      footprint: [{ key: "areaOverlaps", values: { title: "Orc Kingdom" } }],
     });
   });
 
@@ -143,7 +143,7 @@ describe("checkAreaPlacement", () => {
     });
 
     expect(result).toEqual({
-      footprint: ["Would cover existing place(s): Skreebars."],
+      footprint: [{ key: "areaCoversPlaces", values: { titles: "Skreebars" } }],
     });
   });
 
@@ -176,7 +176,7 @@ describe("checkAreaPlacement", () => {
     });
 
     expect(result).toEqual({
-      footprint: ["This area is too small to draw."],
+      footprint: [{ key: "areaTooSmall" }],
     });
   });
 });
@@ -203,7 +203,7 @@ describe("checkPointPlacement", () => {
     });
 
     expect(result).toEqual({
-      lat: ["This point is inside an existing area: Kang."],
+      lat: [{ key: "pointInsideArea", values: { title: "Kang" } }],
     });
   });
 

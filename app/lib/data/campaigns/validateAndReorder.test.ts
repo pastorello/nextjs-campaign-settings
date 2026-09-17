@@ -23,7 +23,7 @@ describe("validateAndReorder (TD-125)", () => {
       findExistingIds: () => Promise.resolve([1, 2]),
       buildPositionUpdate,
       orderedIds: [2, 1],
-      mismatchMessage: "mismatch",
+      mismatchMessage: "lootOrderMismatch",
     });
 
     expect(result).toEqual({ ok: true });
@@ -41,7 +41,7 @@ describe("validateAndReorder (TD-125)", () => {
       findExistingIds: () => Promise.resolve([1, 2, 3]),
       buildPositionUpdate,
       orderedIds: [1, 1, 2],
-      mismatchMessage: "mismatch",
+      mismatchMessage: "lootOrderMismatch",
     });
 
     expect(result.ok).toBe(false);
@@ -54,7 +54,7 @@ describe("validateAndReorder (TD-125)", () => {
       findExistingIds: () => Promise.resolve([1, 2, 3]),
       buildPositionUpdate,
       orderedIds: [1, 2],
-      mismatchMessage: "mismatch",
+      mismatchMessage: "lootOrderMismatch",
     });
 
     expect(result.ok).toBe(false);
@@ -66,24 +66,24 @@ describe("validateAndReorder (TD-125)", () => {
       findExistingIds: () => Promise.resolve([1, 2]),
       buildPositionUpdate,
       orderedIds: [1, 999],
-      mismatchMessage: "mismatch",
+      mismatchMessage: "lootOrderMismatch",
     });
 
     expect(result.ok).toBe(false);
     expect(transaction).not.toHaveBeenCalled();
   });
 
-  it("returns the given mismatch message under the orderedIds field", async () => {
+  it("returns the given mismatch key under the orderedIds field (TD-124)", async () => {
     const result = await validateAndReorder({
       findExistingIds: () => Promise.resolve([1, 2]),
       buildPositionUpdate,
       orderedIds: [1],
-      mismatchMessage: "custom mismatch message",
+      mismatchMessage: "sceneOrderMismatch",
     });
 
     expect(result).toEqual({
       ok: false,
-      errors: { orderedIds: ["custom mismatch message"] },
+      errors: { orderedIds: [{ key: "sceneOrderMismatch" }] },
     });
   });
 
@@ -93,7 +93,7 @@ describe("validateAndReorder (TD-125)", () => {
         findExistingIds: () => Promise.reject(new Error("connection refused")),
         buildPositionUpdate,
         orderedIds: [1],
-        mismatchMessage: "mismatch",
+        mismatchMessage: "lootOrderMismatch",
       })
     ).rejects.toThrow();
     expect(transaction).not.toHaveBeenCalled();
@@ -107,7 +107,7 @@ describe("validateAndReorder (TD-125)", () => {
         findExistingIds: () => Promise.resolve([1]),
         buildPositionUpdate,
         orderedIds: [1],
-        mismatchMessage: "mismatch",
+        mismatchMessage: "lootOrderMismatch",
       })
     ).rejects.toThrow();
   });

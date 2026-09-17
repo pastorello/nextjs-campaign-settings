@@ -50,14 +50,16 @@ describe("CampaignForm (SPEC-013 T7)", () => {
   it("shows field errors and does not refresh when creation is rejected", async () => {
     createCampaign.mockResolvedValue({
       ok: false,
-      errors: { title: ["Required"] },
+      errors: { title: [{ key: "invalidType" }] },
     });
     render(<CampaignForm />);
 
     fireEvent.click(screen.getByText("campaign.form.createButton"));
 
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("Required")
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "common.fieldErrors.invalidType"
+      )
     );
     expect(refresh).not.toHaveBeenCalled();
   });

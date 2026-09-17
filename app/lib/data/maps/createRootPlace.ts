@@ -1,5 +1,7 @@
 "use server";
 
+import fieldError from "@/app/lib/data/validation/fieldError";
+import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
@@ -26,7 +28,7 @@ export default async function createRootPlace(
 
   const parsed = buildRootPlaceSchema().safeParse(formData);
   if (!parsed.success) {
-    return { ok: false, errors: parsed.error.flatten().fieldErrors };
+    return { ok: false, errors: toFieldErrors(parsed.error) };
   }
 
   let existingRoot;
@@ -42,7 +44,7 @@ export default async function createRootPlace(
   if (existingRoot) {
     return {
       ok: false,
-      errors: { title: ["A world has already been created."] },
+      errors: { title: [fieldError("worldAlreadyExists")] },
     };
   }
 

@@ -36,6 +36,7 @@ import placeLandmark from "@/app/lib/data/maps/placeLandmark";
 import placeZone from "@/app/lib/data/maps/placeZone";
 import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
 import unplacePlace from "@/app/lib/data/maps/unplacePlace";
+import { resolveFirstFieldError } from "@/app/lib/utils/i18n/resolveFieldErrors";
 import PlacePopover, {
   type PopoverTarget,
 } from "@/app/ui/geography/PlacePopover";
@@ -160,6 +161,7 @@ function WorldMap({
   blockedUnpositionedCount?: number;
 }) {
   const t = useTranslations("geography.errors");
+  const tRoot = useTranslations();
   const tGeography = useTranslations("geography");
   const tContextMenu = useTranslations("geography.contextMenu");
   const tDrawArea = useTranslations("geography.drawArea");
@@ -516,9 +518,9 @@ function WorldMap({
   // present (SPEC-009 T2), rides straight through to `createPlace` — it
   // already validates and derives the centre (T1).
   //
-  // Returns the server's own refusal message on failure rather than a bare
-  // boolean: `createPlace` already names exactly what went wrong ("Overlaps
-  // an existing area: Kang.", "This area is too small to draw.") — without
+  // Returns the server's own refusal on failure rather than a bare boolean,
+  // translated here from its catalogue key (TD-124): `createPlace` already
+  // names exactly what went wrong (`areaOverlaps`, `areaTooSmall`) — without
   // threading it through, `MapPOIPanel` could only show a generic "could
   // not save," which makes a drawn-and-refused area look unexplained.
   const handleAddPlace = useCallback(
@@ -528,15 +530,13 @@ function WorldMap({
         setPlacesRefetchToken((token) => token + 1);
         return { ok: true };
       }
-      const firstError = Object.values(result.errors ?? {})
-        .flat()
-        .find((message): message is string => typeof message === "string");
+      const firstError = resolveFirstFieldError(result.errors ?? {}, tRoot);
       return {
         ok: false,
         ...(firstError !== undefined && { error: firstError }),
       };
     },
-    [parentId]
+    [parentId, tRoot]
   );
 
   const map = useLeafletMap();
@@ -771,9 +771,7 @@ function WorldMap({
         if (result.ok) {
           setPlacesRefetchToken((token) => token + 1);
         } else {
-          const firstError = Object.values(result.errors ?? {})
-            .flat()
-            .find((message): message is string => typeof message === "string");
+          const firstError = resolveFirstFieldError(result.errors ?? {}, tRoot);
           toast.error(firstError ?? t("placePositionFailed", { title }));
         }
       } catch (error) {
@@ -781,7 +779,7 @@ function WorldMap({
         toast.error(t("placePositionFailed", { title }));
       }
     },
-    [editingArea, t]
+    [editingArea, t, tRoot]
   );
 
   // A rectangle finished drawing (SPEC-009 T2) — opens the create form with

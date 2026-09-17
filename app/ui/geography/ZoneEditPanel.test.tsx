@@ -119,14 +119,16 @@ describe("ZoneEditPanel (TD-104)", () => {
   it("renders the mutation's field errors and stays open", async () => {
     updateZoneDetails.mockResolvedValue({
       ok: false,
-      errors: { title: ["Too short"] },
+      errors: { title: [{ key: "tooShort", values: { minimum: 1 } }] },
     });
     const { onClose, onSaved } = renderPanel();
 
     submitForm();
 
     await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
-    expect(screen.getByRole("alert")).toHaveTextContent("Too short");
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "common.fieldErrors.tooShort"
+    );
     expect(onSaved).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
   });
@@ -175,7 +177,7 @@ describe("ZoneEditPanel (TD-104)", () => {
     it("leaves the map alone when the save fails", async () => {
       updateZoneDetails.mockResolvedValue({
         ok: false,
-        errors: { title: ["Too short"] },
+        errors: { title: [{ key: "tooShort", values: { minimum: 1 } }] },
       });
       const { onRedrawArea, onClose } = renderPanel();
 

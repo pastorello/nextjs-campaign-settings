@@ -35,12 +35,15 @@ describe("useMutationSubmit (TD-126)", () => {
     let saved = true;
     await act(async () => {
       saved = await result.current.submit(() =>
-        Promise.resolve({ ok: false, errors: { title: ["Required"] } })
+        Promise.resolve({
+          ok: false,
+          errors: { title: [{ key: "invalidType" }] },
+        })
       );
     });
 
     expect(saved).toBe(false);
-    expect(result.current.errors).toEqual({ title: ["Required"] });
+    expect(result.current.errors).toEqual({ title: [{ key: "invalidType" }] });
     expect(result.current.isSaving).toBe(false);
     expect(notifyError).not.toHaveBeenCalled();
   });

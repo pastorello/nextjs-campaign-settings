@@ -1516,7 +1516,7 @@ underlying _interaction_ — no keyboard path reaches it yet — but the text
 itself no longer needs to wait on that rework, so it moved into the
 catalogues here rather than staying hardcoded until TD-133 lands.
 
-### TD-124 — Server-written error messages reach the Italian UI in English
+### TD-124 ✅ Server-written error messages reach the Italian UI in English — **DONE (2026-09-17)**
 
 **Severity:** 🟡 Medium · **Effort:** M · **Found:** 2026-09-17, tech-debt audit
 
@@ -1530,6 +1530,30 @@ messages take the same path. **The fix, in shape:** actions return message
 keys plus parameters, and the render boundary translates them, per
 [ADR-0007](./adr/0007-message-key-resolution-boundary.md).
 **Related:** TD-21, TD-62.
+
+**Resolution:** `MutationResult.errors` (and the `createPoi` / `createPlace` /
+`createRootPlace` results) is now `FieldErrors` — per field, a list of
+`{ key, values? }` whose `key` is a `FieldErrorKey`, listed once in
+`FIELD_ERROR_KEYS` and mirrored by `common.fieldErrors` in both catalogues
+(a test holds the three in step, placeholders included). Every
+`parsed.error.flatten().fieldErrors` became `toFieldErrors(parsed.error)`,
+which derives a key from Zod's issue code and bounds and discards Zod's
+English message; custom schema messages (`positiveAmount`, `lootLinksBoth`,
+`landmarkWithoutZone`) are keys themselves. All hand-written refusals —
+the sites listed above plus `createPlace`, `placeLandmark`,
+`unplaceLandmark`, `unplacePlace`, `updateZonePosition`,
+`checkTreePlacement` and both `assignLocation`s — use `fieldError(...)`;
+TD-125's `validateAndReorder` now takes its `mismatchMessage` as a
+`FieldErrorKey`.
+`FormErrorSummary`, `BespokeFormErrorSummary` and WorldMap's two toasts
+translate through `resolveFieldErrors` / `resolveFirstFieldError`
+(ADR-0007 addendum). `AssignLocationModal` no longer swaps in its own
+message by `code`: the server's `alreadyAtLocation` key now carries that
+copy (moved from `common.locationModal.alreadyPlaced`, and the e2e spec
+reads it from there), and `noZonesAvailable` moved alongside it.
+Deliberately left: path-less (form-level) Zod issues are still dropped,
+exactly as `flatten().fieldErrors` dropped them; route-handler JSON errors
+(`app/api/**`, `parseIdParam`) are not field errors and are out of scope.
 
 ### TD-125 ✅ The four reorder actions accept duplicate ids, and a failed reorder says "Delete failed" — **DONE (2026-09-17)**
 

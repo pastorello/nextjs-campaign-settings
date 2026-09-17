@@ -1,3 +1,5 @@
+import type FieldErrorMessage from "@/app/lib/definitions/types/FieldErrorMessage";
+import fieldError from "@/app/lib/data/validation/fieldError";
 import prisma from "@/app/lib/connections/prisma";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import {
@@ -11,7 +13,7 @@ import {
 } from "@/app/modules/maps/lib/utils/footprint";
 import { parsePlaceMapBounds } from "@/app/modules/maps/lib/utils/placeMapView";
 
-export type PlacementErrors = Record<string, string[]>;
+export type PlacementErrors = Record<string, FieldErrorMessage[]>;
 
 /**
  * SPEC-009 §7's two checks — shared by `createPlace`, `createPoi` and
@@ -58,7 +60,7 @@ export async function checkAreaPlacement({
     parent?.mapBounds
   ) as unknown as Footprint;
   if (isDegenerateFootprint(footprint, parentBounds)) {
-    return { footprint: ["This area is too small to draw."] };
+    return { footprint: [fieldError("areaTooSmall")] };
   }
 
   const areaSiblings = siblingZones
@@ -70,7 +72,7 @@ export async function checkAreaPlacement({
   const overlapping = findOverlappingSibling(footprint, areaSiblings);
   if (overlapping) {
     return {
-      footprint: [`Overlaps an existing area: ${overlapping.title}.`],
+      footprint: [fieldError("areaOverlaps", { title: overlapping.title })],
     };
   }
 
@@ -92,7 +94,9 @@ export async function checkAreaPlacement({
   if (swallowed.length > 0) {
     return {
       footprint: [
-        `Would cover existing place(s): ${swallowed.map((pin) => pin.title).join(", ")}.`,
+        fieldError("areaCoversPlaces", {
+          titles: swallowed.map((pin) => pin.title).join(", "),
+        }),
       ],
     };
   }
@@ -136,7 +140,7 @@ export async function checkPointPlacement({
   const containing = findContainingSibling(point, areaSiblings);
   if (containing) {
     return {
-      lat: [`This point is inside an existing area: ${containing.title}.`],
+      lat: [fieldError("pointInsideArea", { title: containing.title })],
     };
   }
 

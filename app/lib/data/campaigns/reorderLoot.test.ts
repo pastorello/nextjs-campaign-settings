@@ -57,7 +57,11 @@ describe("reorderLoot (SPEC-013 T6)", () => {
 
     const result = await reorderLoot(12, [1]);
 
-    expect(result.ok).toBe(false);
+    // A catalogue key, not English prose (TD-124).
+    expect(result).toEqual({
+      ok: false,
+      errors: { orderedIds: [{ key: "lootOrderMismatch" }] },
+    });
     expect(transaction).not.toHaveBeenCalled();
   });
 

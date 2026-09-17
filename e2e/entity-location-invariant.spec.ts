@@ -22,6 +22,7 @@ import messages from "@/messages/it.json";
  * that is not the "none" entry rather than naming one.
  */
 const locationModal = messages.common.locationModal;
+const fieldErrors = messages.common.fieldErrors;
 
 const zoneSelectButton = (dialog: Locator) =>
   dialog.getByTestId("form-select").first().getByRole("button");
@@ -87,7 +88,7 @@ test.describe("an entity's location is single-valued (TD-93)", () => {
     dialog = await openModal();
     await save(dialog);
     await expect(dialog.getByRole("alert")).toContainText(
-      locationModal.alreadyPlaced
+      fieldErrors.alreadyAtLocation
     );
     // Still mounted: a refusal keeps the modal open with the message in it,
     // it does not close as a successful save does. (`toHaveCount`, not

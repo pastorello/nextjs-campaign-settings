@@ -1,3 +1,5 @@
+import type FieldErrors from "@/app/lib/definitions/types/FieldErrors";
+
 /**
  * A POI as persisted (TD-14 / SPEC-002, reshaped by SPEC-008 T8) — matches
  * `prisma.poi`'s row shape exactly. Landmark-only since T8: every row
@@ -54,5 +56,4 @@ export interface PoiUpdateInput extends Partial<
  * real one once the write lands (SPEC-002 §9, "id reconciliation").
  */
 export type PoiCreateResult =
-  | { ok: true; id: number }
-  | { ok: false; errors: Record<string, string[] | undefined> };
+  { ok: true; id: number } | { ok: false; errors: FieldErrors };

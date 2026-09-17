@@ -86,7 +86,7 @@ describe("placeZone (SPEC-017 T3, extracted from updateZonePosition)", () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: { id: ["The root place cannot be placed on a map."] },
+      errors: { id: [{ key: "rootCannotBePlaced" }] },
     });
     expect(updateMany).not.toHaveBeenCalled();
   });
@@ -100,9 +100,7 @@ describe("placeZone (SPEC-017 T3, extracted from updateZonePosition)", () => {
       ok: false,
       code: "alreadyPlaced",
       errors: {
-        lat: [
-          "This place is already positioned. Move it back to the unpositioned places first.",
-        ],
+        lat: [{ key: "placeAlreadyPositioned" }],
       },
     });
   });
@@ -114,14 +112,14 @@ describe("placeZone (SPEC-017 T3, extracted from updateZonePosition)", () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: { id: ["This place does not exist."] },
+      errors: { id: [{ key: "placeNotFound" }] },
     });
     expect(updateMany).not.toHaveBeenCalled();
   });
 
   it("refuses a placement that would put a place inside its own subtree (T5)", async () => {
     checkTreePlacement.mockResolvedValue({
-      parentId: ["A place cannot be placed inside a place that it contains."],
+      parentId: [{ key: "placeInsideOwnSubtree" }],
     });
 
     const result = await placeZone({ id: 5, parentId: 9, lat: 20, lng: 20 });
@@ -130,7 +128,7 @@ describe("placeZone (SPEC-017 T3, extracted from updateZonePosition)", () => {
       ok: false,
       code: "wouldCycle",
       errors: {
-        parentId: ["A place cannot be placed inside a place that it contains."],
+        parentId: [{ key: "placeInsideOwnSubtree" }],
       },
     });
     expect(updateMany).not.toHaveBeenCalled();
@@ -165,7 +163,7 @@ describe("placeZone (SPEC-017 T3, extracted from updateZonePosition)", () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: { lat: ["This point is inside an existing area: Kang."] },
+      errors: { lat: [{ key: "pointInsideArea", values: { title: "Kang" } }] },
     });
     expect(updateMany).not.toHaveBeenCalled();
   });

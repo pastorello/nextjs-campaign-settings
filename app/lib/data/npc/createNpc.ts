@@ -1,5 +1,7 @@
 "use server";
 
+import fieldError from "@/app/lib/data/validation/fieldError";
+import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
 import PageType from "@/app/lib/definitions/types/PageType";
@@ -17,7 +19,7 @@ export default async function createNpc(
 
   const parsed = buildCreateSchema(PageType.Npc).safeParse(formData);
   if (!parsed.success) {
-    return { ok: false, errors: parsed.error.flatten().fieldErrors };
+    return { ok: false, errors: toFieldErrors(parsed.error) };
   }
 
   // Read from `parsed.data`, never the raw payload: its values are the
@@ -60,7 +62,7 @@ export default async function createNpc(
     if (isForeignKeyViolation(error)) {
       return {
         ok: false,
-        errors: { faction: ["That faction no longer exists."] },
+        errors: { faction: [fieldError("factionNotFound")] },
       };
     }
     throw toDatabaseError("creating npc", error);

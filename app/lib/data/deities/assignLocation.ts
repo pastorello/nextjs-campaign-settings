@@ -1,5 +1,7 @@
 "use server";
 
+import fieldError from "@/app/lib/data/validation/fieldError";
+import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidatePath } from "next/cache";
 
 import prisma from "@/app/lib/connections/prisma";
@@ -27,7 +29,7 @@ export default async function assignDeityLocation(
 
   const parsed = buildAssignLocationSchema().safeParse(formData);
   if (!parsed.success) {
-    return { ok: false, errors: parsed.error.flatten().fieldErrors };
+    return { ok: false, errors: toFieldErrors(parsed.error) };
   }
 
   const resolved = await resolveLocationAssignment(
@@ -90,12 +92,10 @@ export default async function assignDeityLocation(
           ok: false,
           code: "alreadyPlaced",
           errors: {
-            zoneId: [
-              "This deity is already at a location. Remove it from there first.",
-            ],
+            zoneId: [fieldError("alreadyAtLocation")],
           },
         }
-      : { ok: false, errors: { id: ["This deity does not exist."] } };
+      : { ok: false, errors: { id: [fieldError("deityNotFound")] } };
   }
 
   revalidatePath("/deities");

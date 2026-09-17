@@ -1,5 +1,6 @@
 "use server";
 
+import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
@@ -29,7 +30,7 @@ export default async function reorderLoot(
 
   const parsed = reorderSchema.safeParse({ sceneId, orderedIds });
   if (!parsed.success) {
-    return { ok: false, errors: parsed.error.flatten().fieldErrors };
+    return { ok: false, errors: toFieldErrors(parsed.error) };
   }
 
   const result = await validateAndReorder({
@@ -43,8 +44,7 @@ export default async function reorderLoot(
     buildPositionUpdate: (id, position) =>
       prisma.loot.update({ where: { id }, data: { position } }),
     orderedIds: parsed.data.orderedIds,
-    mismatchMessage:
-      "The given loot rows do not match this scene's current loot list.",
+    mismatchMessage: "lootOrderMismatch",
   });
 
   if (result.ok) {

@@ -126,7 +126,7 @@ describe("MapGridConfigPanel (SPEC-015 T5)", () => {
   it("shows the server's field-level errors and stays open", async () => {
     updateZoneGrid.mockResolvedValue({
       ok: false,
-      errors: { gridColumns: ["Too big"] },
+      errors: { gridColumns: [{ key: "tooBig", values: { maximum: 50 } }] },
     });
     const props = renderPanel();
 
@@ -134,7 +134,9 @@ describe("MapGridConfigPanel (SPEC-015 T5)", () => {
     fireEvent.change(input, { target: { value: "9999" } });
     fireEvent.submit(input.closest("form")!);
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Too big");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "common.fieldErrors.tooBig"
+    );
     expect(props.onSaved).not.toHaveBeenCalled();
     expect(props.onClose).not.toHaveBeenCalled();
   });

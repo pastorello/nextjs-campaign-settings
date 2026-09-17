@@ -65,7 +65,7 @@ describe("unplaceLandmark (SPEC-017 T10)", () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: { id: ["This landmark does not exist."] },
+      errors: { id: [{ key: "landmarkNotFound" }] },
     });
   });
 

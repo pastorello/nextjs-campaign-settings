@@ -1,5 +1,6 @@
 "use server";
 
+import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
@@ -31,7 +32,7 @@ export default async function reorderScenes(
 
   const parsed = reorderSchema.safeParse({ adventureId, orderedIds });
   if (!parsed.success) {
-    return { ok: false, errors: parsed.error.flatten().fieldErrors };
+    return { ok: false, errors: toFieldErrors(parsed.error) };
   }
 
   const result = await validateAndReorder({
@@ -45,8 +46,7 @@ export default async function reorderScenes(
     buildPositionUpdate: (id, position) =>
       prisma.scene.update({ where: { id }, data: { position } }),
     orderedIds: parsed.data.orderedIds,
-    mismatchMessage:
-      "The given scenes do not match this adventure's current scene list.",
+    mismatchMessage: "sceneOrderMismatch",
   });
 
   if (result.ok) {

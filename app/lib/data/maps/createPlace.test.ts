@@ -140,7 +140,10 @@ describe("createPlace", () => {
       expect(result.ok).toBe(false);
       expect(create).not.toHaveBeenCalled();
       if (!result.ok) {
-        expect(result.errors.lat?.[0]).toContain("Kang");
+        expect(result.errors.lat?.[0]).toEqual({
+          key: "pointInsideArea",
+          values: { title: "Kang" },
+        });
       }
     });
   });
@@ -213,7 +216,10 @@ describe("createPlace", () => {
       expect(result.ok).toBe(false);
       expect(create).not.toHaveBeenCalled();
       if (!result.ok) {
-        expect(result.errors.footprint?.[0]).toContain("Skreebars");
+        expect(result.errors.footprint?.[0]).toEqual({
+          key: "areaOverlaps",
+          values: { title: "Skreebars" },
+        });
       }
     });
 
@@ -247,7 +253,9 @@ describe("createPlace", () => {
       expect(result.ok).toBe(false);
       expect(create).not.toHaveBeenCalled();
       if (!result.ok) {
-        expect(result.errors.footprint?.[0]).toContain("Village");
+        expect(result.errors.footprint?.[0]?.values?.titles).toContain(
+          "Village"
+        );
       }
     });
 
@@ -259,7 +267,9 @@ describe("createPlace", () => {
       expect(result.ok).toBe(false);
       expect(create).not.toHaveBeenCalled();
       if (!result.ok) {
-        expect(result.errors.footprint?.[0]).toContain("Shrine");
+        expect(result.errors.footprint?.[0]?.values?.titles).toContain(
+          "Shrine"
+        );
       }
     });
 
@@ -274,8 +284,12 @@ describe("createPlace", () => {
       expect(result.ok).toBe(false);
       expect(create).not.toHaveBeenCalled();
       if (!result.ok) {
-        expect(result.errors.footprint?.[0]).toContain("Village A");
-        expect(result.errors.footprint?.[0]).toContain("Village B");
+        expect(result.errors.footprint?.[0]?.values?.titles).toContain(
+          "Village A"
+        );
+        expect(result.errors.footprint?.[0]?.values?.titles).toContain(
+          "Village B"
+        );
       }
     });
 
@@ -289,7 +303,9 @@ describe("createPlace", () => {
       expect(result.ok).toBe(false);
       expect(create).not.toHaveBeenCalled();
       if (!result.ok) {
-        expect(result.errors.footprint?.[0]).toContain("Border Post");
+        expect(result.errors.footprint?.[0]?.values?.titles).toContain(
+          "Border Post"
+        );
       }
     });
   });

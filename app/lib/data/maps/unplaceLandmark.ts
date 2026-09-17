@@ -1,5 +1,7 @@
 "use server";
 
+import fieldError from "@/app/lib/data/validation/fieldError";
+import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
@@ -52,7 +54,7 @@ export default async function unplaceLandmark(formData: {
 
   const parsed = inputSchema.safeParse(formData);
   if (!parsed.success) {
-    return { ok: false, errors: parsed.error.flatten().fieldErrors };
+    return { ok: false, errors: toFieldErrors(parsed.error) };
   }
 
   let count: number;
@@ -66,7 +68,7 @@ export default async function unplaceLandmark(formData: {
   }
 
   if (count === 0) {
-    return { ok: false, errors: { id: ["This landmark does not exist."] } };
+    return { ok: false, errors: { id: [fieldError("landmarkNotFound")] } };
   }
 
   revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/geography"));

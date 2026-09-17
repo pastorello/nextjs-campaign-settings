@@ -1,5 +1,6 @@
 "use client";
 
+import type FieldErrors from "@/app/lib/definitions/types/FieldErrors";
 import { ReactNode, useState } from "react";
 import Form from "next/form";
 import { useTranslations } from "next-intl";
@@ -103,9 +104,7 @@ export default function EntityForm<T extends object>({
     formData
   );
 
-  const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
-    {}
-  );
+  const [errors, setErrors] = useState<FieldErrors>({});
 
   const field: FieldRenderer = (fieldName) => (
     <InputComponent

@@ -126,9 +126,7 @@ describe("assignNpcLocation", () => {
       ok: false,
       code: "alreadyPlaced",
       errors: {
-        zoneId: [
-          "This NPC is already at a location. Remove it from there first.",
-        ],
+        zoneId: [{ key: "alreadyAtLocation" }],
       },
     });
   });
@@ -142,7 +140,7 @@ describe("assignNpcLocation", () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: { id: ["This NPC does not exist."] },
+      errors: { id: [{ key: "npcNotFound" }] },
     });
   });
 });

@@ -1,3 +1,5 @@
+import fieldError from "@/app/lib/data/validation/fieldError";
+import type FieldErrors from "@/app/lib/definitions/types/FieldErrors";
 import prisma from "@/app/lib/connections/prisma";
 
 interface ResolvedAssignment {
@@ -8,7 +10,7 @@ interface ResolvedAssignment {
 
 interface ResolveFailure {
   ok: false;
-  errors: Record<string, string[] | undefined>;
+  errors: FieldErrors;
 }
 
 /**
@@ -34,14 +36,14 @@ export default async function resolveLocationAssignment(
     if (!poi) {
       return {
         ok: false,
-        errors: { poiId: ["This landmark does not exist."] },
+        errors: { poiId: [fieldError("landmarkNotFound")] },
       };
     }
     if (poi.zoneId !== zoneId) {
       return {
         ok: false,
         errors: {
-          zoneId: ["This zone does not match the chosen landmark's own zone."],
+          zoneId: [fieldError("zoneLandmarkMismatch")],
         },
       };
     }
@@ -54,7 +56,7 @@ export default async function resolveLocationAssignment(
       select: { id: true },
     });
     if (!zone) {
-      return { ok: false, errors: { zoneId: ["This zone does not exist."] } };
+      return { ok: false, errors: { zoneId: [fieldError("zoneNotFound")] } };
     }
   }
 

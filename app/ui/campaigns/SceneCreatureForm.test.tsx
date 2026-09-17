@@ -64,7 +64,7 @@ describe("SceneCreatureForm (SPEC-013 T8)", () => {
   it("shows field errors and does not report success when rejected", async () => {
     createSceneCreature.mockResolvedValue({
       ok: false,
-      errors: { name: ["Required"] },
+      errors: { name: [{ key: "invalidType" }] },
     });
     render(
       <SceneCreatureForm
@@ -79,7 +79,9 @@ describe("SceneCreatureForm (SPEC-013 T8)", () => {
     fireEvent.click(screen.getByText("sceneCreature.form.createButton"));
 
     await vi.waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("Required")
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "common.fieldErrors.invalidType"
+      )
     );
     expect(onSaved).not.toHaveBeenCalled();
   });

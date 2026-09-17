@@ -1,3 +1,4 @@
+import type FieldErrors from "@/app/lib/definitions/types/FieldErrors";
 import {
   act,
   fireEvent,
@@ -152,7 +153,7 @@ const createPlace = vi.fn<
   (...args: unknown[]) => Promise<{
     ok: boolean;
     id?: number;
-    errors?: Record<string, string[] | undefined>;
+    errors?: FieldErrors;
   }>
 >();
 vi.mock("@/app/lib/data/maps/createPlace", () => ({
@@ -1008,7 +1009,9 @@ describe("WorldMap", () => {
   it("surfaces the server's own refusal message on failure", async () => {
     createPlace.mockResolvedValue({
       ok: false,
-      errors: { footprint: ["Overlaps an existing area: Kang."] },
+      errors: {
+        footprint: [{ key: "areaOverlaps", values: { title: "Kang" } }],
+      },
     });
     await renderMap();
 
@@ -1022,7 +1025,8 @@ describe("WorldMap", () => {
 
     expect(result).toEqual({
       ok: false,
-      error: "Overlaps an existing area: Kang.",
+      // Translated at the boundary (TD-124); the mock translator echoes keys.
+      error: "common.fieldErrors.areaOverlaps",
     });
   });
 });
@@ -1303,7 +1307,9 @@ describe("WorldMap — resizing and moving an existing area (SPEC-009 T5)", () =
   it("shows the server's own refusal message on failure, without writing", async () => {
     updateZonePosition.mockResolvedValue({
       ok: false,
-      errors: { footprint: ["Overlaps an existing area: Orc Kingdom."] },
+      errors: {
+        footprint: [{ key: "areaOverlaps", values: { title: "Orc Kingdom" } }],
+      },
     });
     await renderMap();
 
@@ -1317,7 +1323,7 @@ describe("WorldMap — resizing and moving an existing area (SPEC-009 T5)", () =
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
-        "Overlaps an existing area: Orc Kingdom."
+        "common.fieldErrors.areaOverlaps"
       );
     });
   });

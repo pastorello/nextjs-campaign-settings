@@ -110,7 +110,7 @@ describe("placeLandmark (TD-102)", () => {
     expect(result).toEqual({
       ok: false,
       code: "alreadyPlaced",
-      errors: { lat: ["This landmark is already positioned."] },
+      errors: { lat: [{ key: "landmarkAlreadyPositioned" }] },
     });
     expect(npcUpdateMany).not.toHaveBeenCalled();
     expect(deitiesUpdateMany).not.toHaveBeenCalled();
@@ -124,7 +124,7 @@ describe("placeLandmark (TD-102)", () => {
     expect(result).toEqual({
       ok: false,
       code: "alreadyPlaced",
-      errors: { lat: ["This landmark is already positioned."] },
+      errors: { lat: [{ key: "landmarkAlreadyPositioned" }] },
     });
   });
 
@@ -139,7 +139,7 @@ describe("placeLandmark (TD-102)", () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: { id: ["This landmark does not exist."] },
+      errors: { id: [{ key: "landmarkNotFound" }] },
     });
     expect(updateMany).not.toHaveBeenCalled();
   });
@@ -159,7 +159,7 @@ describe("placeLandmark (TD-102)", () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: { lat: ["This point is inside an existing area: Kang."] },
+      errors: { lat: [{ key: "pointInsideArea", values: { title: "Kang" } }] },
     });
     expect(updateMany).not.toHaveBeenCalled();
   });

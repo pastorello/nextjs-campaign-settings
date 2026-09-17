@@ -1,5 +1,7 @@
 "use server";
 
+import fieldError from "@/app/lib/data/validation/fieldError";
+import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
@@ -88,7 +90,7 @@ export default async function placeLandmark(formData: {
 
   const parsed = inputSchema.safeParse(formData);
   if (!parsed.success) {
-    return { ok: false, errors: parsed.error.flatten().fieldErrors };
+    return { ok: false, errors: toFieldErrors(parsed.error) };
   }
   const data = parsed.data;
 
@@ -103,7 +105,7 @@ export default async function placeLandmark(formData: {
   }
 
   if (landmark === null) {
-    return { ok: false, errors: { id: ["This landmark does not exist."] } };
+    return { ok: false, errors: { id: [fieldError("landmarkNotFound")] } };
   }
 
   // SPEC-009 §7 — a landmark, like any pin, may not land inside a sibling
@@ -146,7 +148,7 @@ export default async function placeLandmark(formData: {
       return {
         ok: false,
         code: "alreadyPlaced",
-        errors: { lat: ["This landmark is already positioned."] },
+        errors: { lat: [fieldError("landmarkAlreadyPositioned")] },
       };
     }
     throw toDatabaseError("placing landmark", error);

@@ -11,6 +11,8 @@ import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import fetchZones from "@/app/lib/data/maps/fetchZones";
 import fetchZoneLandmarks from "@/app/lib/data/maps/fetchZoneLandmarks";
 import type AssignLocationInput from "@/app/lib/definitions/interfaces/maps/AssignLocationInput";
+import fieldError from "@/app/lib/data/validation/fieldError";
+import type FieldErrors from "@/app/lib/definitions/types/FieldErrors";
 import type MutationResult from "@/app/lib/definitions/types/MutationResult";
 import type ZoneOption from "@/app/lib/definitions/interfaces/maps/ZoneOption";
 import type { ResolvedOption } from "@/app/lib/definitions/types/SelectOption";
@@ -84,19 +86,16 @@ function AssignLocationModalBody({
   const [zoneId, setZoneId] = useState<number | null>(currentZoneId);
   const [poiId, setPoiId] = useState<number | null>(currentPoiId);
   const [isSaving, setIsSaving] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
-    {}
-  );
+  const [errors, setErrors] = useState<FieldErrors>({});
 
   useEffect(() => {
     fetchZones()
       .then(setZones)
       .catch(() => {
-        setErrors({ zoneId: [t("noZonesAvailable")] });
+        setErrors({ zoneId: [fieldError("noZonesAvailable")] });
       });
     // Loads once per mount (i.e. once per time the modal opens) — no
     // dependency on anything that changes while it stays open.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally run only once on mount
   }, []);
 
   // Re-scope the POI options to whichever Zone is currently selected —
@@ -125,14 +124,11 @@ function AssignLocationModalBody({
     setIsSaving(false);
 
     if (!result.ok) {
-      // TD-93 — the refusal is a rule, not a validation failure, so it is
-      // shown from the catalogue (ADR-0007) rather than as the data layer's
-      // own English prose, which is all `result.errors` carries.
-      setErrors(
-        result.code === "alreadyPlaced"
-          ? { zoneId: [t("alreadyPlaced")] }
-          : result.errors
-      );
+      // TD-93's refusal arrives like any other: as a catalogue key
+      // (`alreadyAtLocation`) that `FormErrorSummary` translates. Before
+      // TD-124 the data layer wrote English prose here, so this branch
+      // swapped in a catalogue message by `result.code`; it no longer has to.
+      setErrors(result.errors);
       return;
     }
 

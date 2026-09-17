@@ -101,7 +101,7 @@ describe("SceneForm (SPEC-013 T8)", () => {
   it("shows field errors and does not report success when rejected", async () => {
     createScene.mockResolvedValue({
       ok: false,
-      errors: { title: ["Required"] },
+      errors: { title: [{ key: "invalidType" }] },
     });
     render(
       <SceneForm
@@ -116,7 +116,9 @@ describe("SceneForm (SPEC-013 T8)", () => {
     fireEvent.click(screen.getByText("scene.form.createButton"));
 
     await vi.waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("Required")
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "common.fieldErrors.invalidType"
+      )
     );
     expect(onSaved).not.toHaveBeenCalled();
   });

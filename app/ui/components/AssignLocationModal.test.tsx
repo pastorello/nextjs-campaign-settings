@@ -169,14 +169,12 @@ describe("AssignLocationModal", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it("shows the placement refusal from the catalogue, not the data layer's prose (TD-93)", async () => {
+  it("shows the placement refusal from the catalogue, not the data layer's prose (TD-93, TD-124)", async () => {
     const assignAction = vi.fn().mockResolvedValue({
       ok: false,
       code: "alreadyPlaced",
       errors: {
-        zoneId: [
-          "This NPC is already at a location. Remove it from there first.",
-        ],
+        zoneId: [{ key: "alreadyAtLocation" }],
       },
     });
 
@@ -195,10 +193,11 @@ describe("AssignLocationModal", () => {
     fireEvent.click(screen.getByText("save"));
 
     await waitFor(() => expect(assignAction).toHaveBeenCalled());
-    expect(screen.getByText(/alreadyPlaced/)).toBeInTheDocument();
-    // The mutation's own English message never reaches the DM: it is a
-    // developer-facing string, and this app ships bilingual (ADR-0006).
-    expect(screen.queryByText(/already at a location/)).toBeNull();
+    // The mutation returns a catalogue key, translated at the render
+    // boundary (ADR-0007) — never English prose (ADR-0006).
+    expect(
+      screen.getByText(/common\.fieldErrors\.alreadyAtLocation/)
+    ).toBeInTheDocument();
   });
 
   it("clears the location through the none option — TD-93's recovery path", async () => {

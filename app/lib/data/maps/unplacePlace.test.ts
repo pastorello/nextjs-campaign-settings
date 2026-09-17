@@ -1,3 +1,4 @@
+import type FieldErrors from "@/app/lib/definitions/types/FieldErrors";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Prisma } from "@/generated/prisma/client";
@@ -40,9 +41,9 @@ describe("unplacePlace", () => {
     const result = await unplacePlace({ id: -1 });
 
     expect(result.ok).toBe(false);
-    expect((result as { errors: Record<string, string[]> }).errors.id).toEqual(
-      expect.arrayContaining([expect.any(String)])
-    );
+    const idErrors = (result as { errors: FieldErrors }).errors.id ?? [];
+    expect(idErrors.length).toBeGreaterThan(0);
+    expect(idErrors[0]?.key).toBe("tooSmallExclusive");
     expect(findUnique).not.toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
   });
@@ -54,7 +55,7 @@ describe("unplacePlace", () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: { id: ["The root place cannot be un-placed."] },
+      errors: { id: [{ key: "rootCannotBeUnplaced" }] },
     });
     expect(update).not.toHaveBeenCalled();
   });

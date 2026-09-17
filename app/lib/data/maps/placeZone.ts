@@ -1,5 +1,7 @@
 "use server";
 
+import fieldError from "@/app/lib/data/validation/fieldError";
+import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
@@ -86,7 +88,7 @@ export default async function placeZone(formData: {
 
   const parsed = inputSchema.safeParse(formData);
   if (!parsed.success) {
-    return { ok: false, errors: parsed.error.flatten().fieldErrors };
+    return { ok: false, errors: toFieldErrors(parsed.error) };
   }
   const data = parsed.data;
 
@@ -105,13 +107,13 @@ export default async function placeZone(formData: {
   // no parent and skipped the sibling check anyway, and this way the read
   // and the thing it proves sit next to each other.
   if (zone === null) {
-    return { ok: false, errors: { id: ["This place does not exist."] } };
+    return { ok: false, errors: { id: [fieldError("placeNotFound")] } };
   }
 
   if (zone.parentId === null) {
     return {
       ok: false,
-      errors: { id: ["The root place cannot be placed on a map."] },
+      errors: { id: [fieldError("rootCannotBePlaced")] },
     };
   }
 
@@ -143,9 +145,7 @@ export default async function placeZone(formData: {
       ok: false,
       code: "alreadyPlaced",
       errors: {
-        lat: [
-          "This place is already positioned. Move it back to the unpositioned places first.",
-        ],
+        lat: [fieldError("placeAlreadyPositioned")],
       },
     };
   }

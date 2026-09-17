@@ -70,7 +70,9 @@ describe("updateZonePosition", () => {
 
       expect(result).toEqual({
         ok: false,
-        errors: { lat: ["This point is inside an existing area: Kang."] },
+        errors: {
+          lat: [{ key: "pointInsideArea", values: { title: "Kang" } }],
+        },
       });
       expect(update).not.toHaveBeenCalled();
     });
@@ -208,7 +210,11 @@ describe("updateZonePosition", () => {
 
       expect(result).toEqual({
         ok: false,
-        errors: { footprint: ["Would cover existing place(s): Skreebars."] },
+        errors: {
+          footprint: [
+            { key: "areaCoversPlaces", values: { titles: "Skreebars" } },
+          ],
+        },
       });
       expect(update).not.toHaveBeenCalled();
     });
@@ -248,7 +254,11 @@ describe("updateZonePosition", () => {
 
       expect(result).toEqual({
         ok: false,
-        errors: { footprint: ["Overlaps an existing area: Orc Kingdom."] },
+        errors: {
+          footprint: [
+            { key: "areaOverlaps", values: { title: "Orc Kingdom" } },
+          ],
+        },
       });
       expect(update).not.toHaveBeenCalled();
     });
@@ -261,7 +271,7 @@ describe("updateZonePosition", () => {
       expect(result).toEqual({
         ok: false,
         errors: {
-          footprint: ["The root place has no parent to draw an area against."],
+          footprint: [{ key: "rootHasNoParent" }],
         },
       });
       expect(update).not.toHaveBeenCalled();

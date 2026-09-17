@@ -104,11 +104,11 @@
       "confirmTitle": "Elimina definitivamente \"{name}\"?",
       "confirmDescription": "Questa operazione non può essere annullata",
       "deleted": "{name} eliminato",
-      "deleteFailed": "Errore durante la cancellazione",
-      "networkFailed": "Errore di rete"
+      "deleteFailed": "Eliminazione non riuscita. Riprova.",
+      "networkFailed": "Errore di rete. Riprova."
     },
     "checkOff": {
-      "failed": "Aggiornamento non riuscito"
+      "failed": "Aggiornamento non riuscito. Riprova."
     },
     "formErrors": {
       "title": "Controlla i campi segnalati:"

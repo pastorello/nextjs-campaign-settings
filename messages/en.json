@@ -104,11 +104,11 @@
       "confirmTitle": "Permanently delete \"{name}\"?",
       "confirmDescription": "This operation can't be undone",
       "deleted": "{name} deleted",
-      "deleteFailed": "Delete failed",
-      "networkFailed": "Network error"
+      "deleteFailed": "Delete failed. Try again.",
+      "networkFailed": "Network error. Try again."
     },
     "checkOff": {
-      "failed": "Update failed"
+      "failed": "Update failed. Try again."
     },
     "formErrors": {
       "title": "Check the flagged fields:"

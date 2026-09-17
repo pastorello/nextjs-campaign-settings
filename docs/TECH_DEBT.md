@@ -1579,7 +1579,7 @@ agree ("Assegnato" / "Awarded"). **Decision needed from the DM:** which one the
 check-off means. "Trovato"/"Found" matches `budget.columns.found`; "Preso"/
 "Taken" is the alternative.
 
-### TD-145 — Shared error messages don't say what to do next
+### TD-145 ✅ Shared error messages don't say what to do next — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, UX copy review
 
@@ -1590,3 +1590,12 @@ almost every `geography.*.errors.*` message ends with "Riprova." / "Try
 again." **The fix, in shape:** add the same ending in both catalogues
 ("Eliminazione non riuscita. Riprova." / "Delete failed. Try again.", and so
 on). Note TD-125 reuses `deleteFailed` for reorder failures; fix that there.
+
+**Resolution:** In both catalogues: `deleteFailed` → "Eliminazione non
+riuscita. Riprova." / "Delete failed. Try again."; `networkFailed` → "Errore
+di rete. Riprova." / "Network error. Try again."; `checkOff.failed` →
+"Aggiornamento non riuscito. Riprova." / "Update failed. Try again." Left
+undone, as noted here already: `deleteFailed`'s reuse for reorder failures
+(a wrong-domain message, "delete" for a reorder) is TD-125's fix, not this
+one's — a reorder-specific message key is a new key, out of TD-145's
+copy-only scope.

@@ -1137,7 +1137,7 @@ of this fix.
 CLAUDE.md rule 8 reworded: no more `content` glob / `tailwind.config.ts`
 reference; points at `global.css`'s `@theme`/`@plugin` instead.
 
-### TD-113 — Admin list pages show nothing on a phone: the table is `hidden md:table` with no fallback
+### TD-113 ✅ Admin list pages show nothing on a phone: the table is `hidden md:table` with no fallback — **DONE (2026-09-17)**
 
 **Severity:** 🟠 High · **Effort:** M · **Found:** 2026-09-17, design critique at 375px
 
@@ -1153,7 +1153,17 @@ first two columns, edit and delete), built from the same `PageMeta` columns
 the table uses rather than a hand-written card. Add an e2e test at a phone
 viewport that checks a known row is visible.
 
-### TD-114 — Pages are wider than a phone screen: a fixed 900px form, a header row that doesn't wrap, and an icon nav that doesn't fit
+**Resolution:** `EntityList.tsx` now renders a second, `md:hidden` `<ul>`
+alongside the (`hidden md:table`) table, built from the exact same
+`listConfig` — name, `subtitleField`, `columns.slice(0, 2)` — plus edit/delete.
+Both surfaces share one `renderRowActions` helper for the table's cell (the
+mobile row deliberately leaves out `AssignLocationButton`, per this item's own
+scope). `e2e/mobile-viewport.spec.ts` checks a seeded spell's row and its
+edit/delete controls are visible at 375×812. Not done: `AssignLocationButton`
+on the mobile row for NPC/Deity — out of this item's stated scope, not a gap
+in it.
+
+### TD-114 ✅ Pages are wider than a phone screen: a fixed 900px form, a header row that doesn't wrap, and an icon nav that doesn't fit — **DONE (2026-09-17)**
 
 **Severity:** 🟠 High · **Effort:** M · **Found:** 2026-09-17, design critique at 375px
 
@@ -1176,6 +1186,22 @@ scroll with a visible affordance or collapse into a menu. Add a phone-viewport
 e2e test that checks `document.documentElement.scrollWidth <= innerWidth` on
 one list, one form and the overview.
 
+**Resolution:** `EntityForm.tsx`'s wrapper is `w-full max-w-[900px]`. The six
+admin list pages' duplicated header block (search, count, "Nuovo …", reset) is
+now the shared `app/ui/containers/AdminListHeader.tsx`, `flex-wrap` below `sm`
+with the search field taking its own row. `nav-links.tsx`'s tiles are
+`overflow-x-auto` on their own (`min-w-0`/`md:contents`) wrapper rather than
+sharing the sidebar's row with the language switcher and sign-out, with a
+static edge-fade affordance (`md:hidden`) hinting there's more; every tile
+link also carries an explicit `aria-label` now, not just the admin "manage"
+ones — the visible label is `hidden` below `md`, and `display: none` content
+has no accessible name, so an icon-only tile named nothing at all.
+`e2e/mobile-viewport.spec.ts` checks `scrollWidth <= innerWidth` at 375×812 on
+`/admin/spells`, `/admin/spells/new` and the dashboard overview. Not
+independently visually verified — this PR was written without a running dev
+server (see its description); the reasoning per cause is in code comments at
+each site.
+
 ### TD-115 — Dark mode is half there: map components follow the OS setting, the rest of the app does not
 
 **Severity:** 🟡 Medium · **Effort:** S (to remove) / L (to finish) · **Found:** 2026-09-17, design critique
@@ -1197,7 +1223,7 @@ alone (it is not wired to a theme; the 2026-07-22 "unused is not dead" rule
 applies to it), or make dark mode a goal in the design-system spec. The first is
 a small change and is the honest state until the spec exists.
 
-### TD-116 — Two page-title styles: `PageTitle` is Lusitana, `EntityForm`'s heading is bold Inter
+### TD-116 ✅ Two page-title styles: `PageTitle` is Lusitana, `EntityForm`'s heading is bold Inter — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, design critique
 
@@ -1209,7 +1235,16 @@ Section headings (`Avventure`, `Scene`, `Budget dell'avventura`) are a third,
 unshared style. **Fix:** `EntityForm` uses `PageTitle`; add a `SectionTitle`
 beside it and use it for in-page `h2`s.
 
-### TD-117 — Two button components with different primary colours, plus hand-rolled buttons
+**Resolution:** `EntityForm.tsx` now renders `<PageTitle className="mb-6">`
+instead of its own `<h1>`. New `app/ui/typography/SectionTitle.tsx`
+(`text-lg font-bold`) replaces the three section `<h2>`s in
+`AdventureLadder.tsx`, `SceneList.tsx` and `BudgetPanel.tsx` — the first two
+were `text-xl`, one size down now, which is the unification this item asked
+for. Other unrelated `<h2>`s (`not-found.tsx`, `error.tsx`,
+`CrossEntitySearchResults.tsx`, the vendored map module) were left alone —
+this item names three specific headings, not every `h2` in the app.
+
+### TD-117 ✅ Two button components with different primary colours, plus hand-rolled buttons — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** M · **Found:** 2026-09-17, design critique
 
@@ -1228,7 +1263,28 @@ variant if one is missing), then delete `button.tsx`; move the hand-rolled
 buttons over where `BaseButton`'s variants fit, and leave the map-control icon
 buttons alone if they don't.
 
-### TD-118 — The same domain looks unrelated between its public and admin lists, and admin rows are dominated by buttons
+**Resolution:** only `login-form.tsx` still imported `button.tsx` by the time
+this landed — `EntityForm.tsx` was already on `BaseButton` (TD-114 touched the
+same file), and `sidenav.tsx` never imported `button.tsx` at all; its
+sign-out `<button>` is hand-rolled and stayed that way (see below). Both
+`login-form.tsx` (the submit button, now `disabled` rather than
+`aria-disabled` while pending, which also stops a double submit) and
+`app/[locale]/dashboard/[system]/error.tsx` (the retry button — same TD-112
+blue-500 as the old tutorial `Button`) now use `BaseButton`, and `button.tsx`
+is deleted. Of the ~10 files writing `<button>` directly: `sidenav.tsx`'s
+sign-out control was left alone — its classes exist to match `NavLinks`'
+tile look exactly, not a generic button, and none of `BaseButton`'s variants
+reproduce that. `AssignLocationButton.tsx`'s `variant="text"` trigger was
+left alone — it is deliberately plain underlined text (a card's own clickable
+location label, SPEC-007 T3), not a button in any variant BaseButton has.
+`app/ui/geography/*` (`PlaceEntityList.tsx`, `PlacePopover.tsx`,
+`MapMeasureTool.tsx`, `MapGridToggle.tsx`, `MapOptionsButton.tsx`,
+`WorldMap.tsx`, `AttachEntityButton.tsx`) were left alone as this item's own
+"map-control icon buttons" carve-out — visual changes to the map's own module
+weren't attempted without a running dev server. `NpcCard.tsx` has no actual
+`<button>` (the original count included a comment mentioning one).
+
+### TD-118 ✅ The same domain looks unrelated between its public and admin lists, and admin rows are dominated by buttons — **DONE (2026-09-17, partial)**
 
 **Severity:** 🟢 Low · **Effort:** M · **Found:** 2026-09-17, design critique
 
@@ -1247,6 +1303,21 @@ buttons alone if they don't.
 or ghost variant, danger colour on hover only); public rows get a wider name
 column and a smaller place label. Unifying the public and admin _layouts_ is a
 design-system spec question, not this item.
+
+**Resolution (partial — the two row-action/NPC-card bullets only; the
+public/admin visual mismatch is explicitly out of this item's scope, not
+left undone):** `EntityList.tsx`'s edit/delete row actions are icon buttons
+now (`PencilSquareIcon`/`TrashIcon`), keeping the exact `aria-label`s TD-136
+added (`common.table.editItem`/`deleteItem`) — the e2e suite matches row
+buttons by a "Modifica"/"Elimina" substring in the accessible name, which the
+aria-label still carries even with no visible text. Edit uses the existing
+`secondary` variant; delete uses a new `ButtonVariant.ghostDanger`
+(`getCSSClasses.ts`) — secondary at rest, rose only on `hover`/`active`,
+rather than solid rose always. `NpcCard.tsx`: the appearance column narrowed
+600px → 360px (more room for the flex-1 name block beside it), and the place
+label went `text-xl` → `text-sm` (was the same size as the NPC's own name).
+Not independently visually verified — no running dev server for this PR (see
+its description).
 
 ### TD-119 ✅ `/world` is a dead end once the world exists — **DONE (2026-09-17)**
 

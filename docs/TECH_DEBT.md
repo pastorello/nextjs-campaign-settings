@@ -1665,6 +1665,14 @@ conosciuti". `npc.page.searchPlaceholder` is "Cerca png...", lowercase, while
 every button keeps "PNG". **The fix, in shape:** the card uses the nav label,
 and the placeholder becomes "Cerca PNG...".
 
+**Resolution:** `messages/it.json`'s `common.cards.npc` now reads "Personaggi
+conosciuti" (matching `common.nav.npc`; English was already "NPCs" in both),
+and `npc.page.searchPlaceholder` is "Cerca PNG...". Catalogue-only change —
+`common.cards` is also `CrossEntitySearchResults.tsx`'s heading namespace, so
+the NPC group heading in cross-entity search results now reads "Personaggi
+conosciuti (N)" too, a deliberate, consistent side effect of sharing the key
+rather than a second copy to keep in sync.
+
 ### TD-144 — `loot.checkOff.label` means different things in it and en
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, UX copy review

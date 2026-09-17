@@ -170,6 +170,22 @@ describe("CrossEntitySearchResults (SPEC-011 T2)", () => {
     );
   });
 
+  // TD-135: the group heading's count re-renders on every keystroke, with no
+  // aria-live ancestor to announce it — a screen reader user typing a search
+  // term never heard the result count change.
+  it("puts each group's count in a role=status element", () => {
+    render(
+      <CrossEntitySearchResults
+        term="Fireball"
+        results={makeResults({
+          spells: { total: 6, items: [{ id: 1, name: "Fireball" }] },
+        })}
+      />
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent("6");
+  });
+
   it("never shows a see-all link for the places group even over the cap", () => {
     const items = Array.from({ length: 5 }, (_, i) => ({
       id: i + 1,

@@ -106,7 +106,7 @@ function DomainGroup({
   return (
     <section className="mb-6">
       <h2 className="mb-2 text-lg font-semibold">
-        {heading} ({group.total})
+        {heading} (<span role="status">{group.total}</span>)
       </h2>
       <ul className="list-disc pl-5">
         {group.items.map((item) => (

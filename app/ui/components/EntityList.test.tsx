@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import PageType from "@/app/lib/definitions/types/PageType";
@@ -147,8 +147,11 @@ describe("EntityList", () => {
     render(await EntityList({ pageType: PageType.Npc }));
 
     expect(screen.queryByText("npc.page.emptyMessage")).not.toBeInTheDocument();
-    expect(screen.getByText("Elminster")).toBeInTheDocument();
-    expect(screen.getByText("The Sage of Shadowdale")).toBeInTheDocument();
+    // Scoped to the table: the phone-viewport list (TD-113) renders the same
+    // name and subtitle in its own row, so an unscoped query would match twice.
+    const table = within(screen.getByTestId("entity-list-table"));
+    expect(table.getByText("Elminster")).toBeInTheDocument();
+    expect(table.getByText("The Sage of Shadowdale")).toBeInTheDocument();
   });
 
   it("does not render a subtitle line for a domain with no subtitleField", async () => {
@@ -166,10 +169,11 @@ describe("EntityList", () => {
 
     render(await EntityList({ pageType: PageType.Deity }));
 
-    expect(screen.getByText("Bahamut")).toBeInTheDocument();
+    const table = within(screen.getByTestId("entity-list-table"));
+    expect(table.getByText("Bahamut")).toBeInTheDocument();
     // A subtitle would be a second <br />-separated text node under the same
     // <p> — deities' listConfig declares no subtitleField, so there is none.
-    expect(screen.getByText("Bahamut").closest("p")?.textContent).toBe(
+    expect(table.getByText("Bahamut").closest("p")?.textContent).toBe(
       "Bahamut"
     );
   });
@@ -272,11 +276,14 @@ describe("EntityList", () => {
 
     render(await EntityList({ pageType: PageType.Deity }));
 
+    // Both the table row and the phone-viewport row (TD-113) carry the same
+    // per-item aria-label, so there are two matches — one edit control per
+    // surface, each still named for the item.
     expect(
-      screen.getByRole("button", {
+      screen.getAllByRole("button", {
         name: 'common.table.editItem:{"name":"Bahamut"}',
       })
-    ).toBeInTheDocument();
+    ).toHaveLength(2);
   });
 
   it("renders the assign-location button for an NPC row with its current summary", async () => {
@@ -346,7 +353,66 @@ describe("EntityList", () => {
 
     render(await EntityList({ pageType: PageType.Spell }));
 
-    expect(screen.getByText("common.table.edit")).toBeInTheDocument();
-    expect(screen.getByText("delete-Fireball")).toBeInTheDocument();
+    // One instance in the table, one in the phone-viewport row (TD-113).
+    expect(screen.getAllByText("common.table.edit")).toHaveLength(2);
+    expect(screen.getAllByText("delete-Fireball")).toHaveLength(2);
+  });
+
+  // TD-113: below `md` the table is `hidden`, so without this fallback a
+  // phone showed nothing but pagination. Built from the same `listConfig`
+  // columns as the table rather than a hand-written card.
+  describe("the phone-viewport fallback", () => {
+    it("shows the name, the domain's first two columns, and edit/delete for each row", async () => {
+      fetchFilteredNpc.mockResolvedValue([
+        {
+          id: 1,
+          name: "Elminster",
+          title: "The Sage of Shadowdale",
+          alignment: 1,
+          alignmentDomain: 1,
+          faction: 1,
+          location: 1,
+        },
+      ]);
+
+      render(await EntityList({ pageType: PageType.Npc }));
+
+      const mobile = within(screen.getByTestId("entity-list-mobile"));
+      expect(mobile.getByText("Elminster")).toBeInTheDocument();
+      // Npc's first two listConfig columns are alignment and
+      // alignmentDomain — location is its fourth and last, so it is not
+      // expected here.
+      expect(
+        mobile.getByText("npc.fields.alignment.label:")
+      ).toBeInTheDocument();
+      expect(
+        mobile.getByText("npc.fields.alignmentDomain.label:")
+      ).toBeInTheDocument();
+      expect(mobile.getByText("common.table.edit")).toBeInTheDocument();
+      expect(mobile.getByText("delete-Elminster")).toBeInTheDocument();
+    });
+
+    it("leaves out AssignLocationButton, unlike the table row", async () => {
+      fetchFilteredNpc.mockResolvedValue([
+        {
+          id: 42,
+          name: "Dexter Nemrod",
+          title: "",
+          alignment: 1,
+          alignmentDomain: 1,
+          faction: 1,
+        },
+      ]);
+      fetchDerivedAncestry.mockResolvedValue(
+        new Map([[42, [{ id: 5, title: "Skreebars", kind: "city" }]]])
+      );
+
+      render(await EntityList({ pageType: PageType.Npc }));
+
+      // The table row does render it (covered by the dedicated test above);
+      // the mobile row's own scope must not.
+      const mobile = within(screen.getByTestId("entity-list-mobile"));
+      expect(mobile.queryByText(/assign-location:/)).not.toBeInTheDocument();
+    });
   });
 });

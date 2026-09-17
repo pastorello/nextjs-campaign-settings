@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { PencilSquareIcon } from "@heroicons/react/24/outline";
 
 import renderFieldValue from "@/app/lib/utils/data/renderFieldValue";
 import listConfig from "@/app/lib/config/listConfig";
@@ -22,6 +23,7 @@ import type OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 import SortableHeader from "../buttons/SortableHeader";
 import DeleteButton from "../buttons/DeleteButton";
 import ModalButton from "../buttons/ModalButton";
+import ButtonVariant from "../buttons/BaseButton/ButtonVariant";
 import AssignLocationButton from "../buttons/AssignLocationButton";
 import LocationFilterControl from "./LocationFilterControl";
 
@@ -104,13 +106,58 @@ export default async function EntityList(props: {
       ? { faction: await fetchFieldOptions("faction") }
       : undefined;
 
+  // The desktop table's action cell. Icon buttons rather than labelled ones
+  // (TD-118) — the accessible name still carries the item's own name
+  // (TD-136), which is what the e2e suite matches row buttons by. The
+  // phone-viewport stacked row below (TD-113) repeats the edit/delete pair
+  // but deliberately leaves out AssignLocationButton, per that item's scope
+  // (name, the domain's first two columns, edit and delete).
+  const renderRowActions = (item: ListItem) => (
+    <>
+      {placements &&
+        (props.pageType === PageType.Npc ||
+          props.pageType === PageType.Deity) && (
+          <AssignLocationButton
+            pageType={props.pageType}
+            entityId={item.id as number}
+            currentZoneId={placements[item.id as number]?.zoneId ?? null}
+            currentPoiId={placements[item.id as number]?.poiId ?? null}
+            currentLocationLabel={
+              placements[item.id as number]?.place ??
+              t("common.location.unknown")
+            }
+          />
+        )}
+      <ModalButton
+        buttonLabel={t("common.table.edit")}
+        ariaLabel={t("common.table.editItem", {
+          name: item.name as string,
+        })}
+        modalTitle={t(config.editModalTitleKey)}
+        modalContent={config.modalContent}
+        componentProps={{ formData: item }}
+        optionBundle={optionBundle}
+        buttonVariant={ButtonVariant.secondary}
+        icon={<PencilSquareIcon className="h-4 w-4" aria-hidden="true" />}
+      />
+      <DeleteButton
+        pageName={item.name as string}
+        pageId={item.id as number}
+        pageType={props.pageType}
+      />
+    </>
+  );
+
   return (
     <div className="mt-6 flow-root">
       {placements && <LocationFilterControl />}
       <div className="inline-block min-w-full align-middle">
         <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
           {isArrayEmpty(items) && <p>{t(config.emptyMessageKey)}</p>}
-          <table className="hidden min-w-full text-gray-900 md:table">
+          <table
+            data-testid="entity-list-table"
+            className="hidden min-w-full text-gray-900 md:table"
+          >
             <thead className="rounded-lg text-left text-sm font-normal">
               <tr>
                 <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
@@ -183,45 +230,83 @@ export default async function EntityList(props: {
                   ))}
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex justify-end gap-3">
-                      {placements &&
-                        (props.pageType === PageType.Npc ||
-                          props.pageType === PageType.Deity) && (
-                          <AssignLocationButton
-                            pageType={props.pageType}
-                            entityId={item.id as number}
-                            currentZoneId={
-                              placements[item.id as number]?.zoneId ?? null
-                            }
-                            currentPoiId={
-                              placements[item.id as number]?.poiId ?? null
-                            }
-                            currentLocationLabel={
-                              placements[item.id as number]?.place ??
-                              t("common.location.unknown")
-                            }
-                          />
-                        )}
-                      <ModalButton
-                        buttonLabel={t("common.table.edit")}
-                        ariaLabel={t("common.table.editItem", {
-                          name: item.name as string,
-                        })}
-                        modalTitle={t(config.editModalTitleKey)}
-                        modalContent={config.modalContent}
-                        componentProps={{ formData: item }}
-                        optionBundle={optionBundle}
-                      />
-                      <DeleteButton
-                        pageName={item.name as string}
-                        pageId={item.id as number}
-                        pageType={props.pageType}
-                      />
+                      {renderRowActions(item)}
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {/* The phone-viewport fallback (TD-113): the table above is
+              `md:table`/`hidden` below that, so without this the admin lists
+              showed nothing but pagination under 768px. Built from the same
+              `listConfig` columns as the table — name, the domain's first two
+              columns, edit and delete — not a hand-written card, so it can't
+              drift from what the table shows. */}
+          <ul
+            data-testid="entity-list-mobile"
+            className="divide-y divide-gray-200 md:hidden"
+          >
+            {items?.map((item) => (
+              <li
+                key={item.id as number}
+                className="flex items-center justify-between gap-3 py-4"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-gray-900">
+                    {renderFieldValue(NAME_FIELD, item.name, t)}
+                  </p>
+                  {config.subtitleField && (
+                    <p className="truncate text-sm text-gray-500">
+                      {renderFieldValue(
+                        config.subtitleField,
+                        item[config.subtitleField],
+                        t
+                      )}
+                    </p>
+                  )}
+                  {config.columns.slice(0, 2).map((column) => (
+                    <p
+                      key={column.fieldKey}
+                      className="truncate text-sm text-gray-500"
+                    >
+                      <span className="font-medium">{t(column.labelKey)}:</span>{" "}
+                      {renderFieldValue(
+                        column.fieldKey,
+                        item[column.fieldKey],
+                        t,
+                        optionBundle
+                      )}
+                    </p>
+                  ))}
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <ModalButton
+                    buttonLabel={t("common.table.edit")}
+                    ariaLabel={t("common.table.editItem", {
+                      name: item.name as string,
+                    })}
+                    modalTitle={t(config.editModalTitleKey)}
+                    modalContent={config.modalContent}
+                    componentProps={{ formData: item }}
+                    optionBundle={optionBundle}
+                    buttonVariant={ButtonVariant.secondary}
+                    icon={
+                      <PencilSquareIcon
+                        className="h-4 w-4"
+                        aria-hidden="true"
+                      />
+                    }
+                  />
+                  <DeleteButton
+                    pageName={item.name as string}
+                    pageId={item.id as number}
+                    pageType={props.pageType}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </div>

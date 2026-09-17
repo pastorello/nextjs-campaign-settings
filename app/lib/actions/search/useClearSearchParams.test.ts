@@ -7,7 +7,7 @@ const replace = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace }),
-  usePathname: () => "/dashboard/spells",
+  usePathname: () => "/dashboard/dnd5e/spells",
 }));
 
 describe("useClearSearchParams", () => {
@@ -16,6 +16,6 @@ describe("useClearSearchParams", () => {
 
     result.current();
 
-    expect(replace).toHaveBeenCalledWith("/dashboard/spells");
+    expect(replace).toHaveBeenCalledWith("/dashboard/dnd5e/spells");
   });
 });

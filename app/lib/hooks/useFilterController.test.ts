@@ -10,7 +10,7 @@ let searchParams = new URLSearchParams();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace }),
-  usePathname: () => "/dashboard/spells",
+  usePathname: () => "/dashboard/dnd5e/spells",
   useSearchParams: () => searchParams,
 }));
 
@@ -68,7 +68,9 @@ describe("useFilterController", () => {
       result.current.onFilter(2);
     });
 
-    expect(replace).toHaveBeenCalledWith("/dashboard/spells?page=1&level=2");
+    expect(replace).toHaveBeenCalledWith(
+      "/dashboard/dnd5e/spells?page=1&level=2"
+    );
   });
 
   it("removes the param instead of setting it when the value is -1", () => {
@@ -84,6 +86,6 @@ describe("useFilterController", () => {
       result.current.onFilter(-1);
     });
 
-    expect(replace).toHaveBeenCalledWith("/dashboard/spells?page=1");
+    expect(replace).toHaveBeenCalledWith("/dashboard/dnd5e/spells?page=1");
   });
 });

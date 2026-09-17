@@ -4,15 +4,22 @@ import { describe, expect, it, vi } from "vitest";
 import type { Map as LeafletMap } from "leaflet";
 
 import { MapContext } from "@/app/modules/maps/contexts/MapContext";
-import { useMapContextMenu } from "./useMapContextMenu";
+import { isContextMenuKey, useMapContextMenu } from "./useMapContextMenu";
 
 /** A fake Leaflet map exposing just enough of on/off to drive the handlers. */
 type Handler = (...args: unknown[]) => void;
 
 function fakeMap() {
   const handlers = new Map<string, Set<Handler>>();
+  const container = document.createElement("div");
 
   return {
+    container,
+    getContainer: () => container,
+    getSize: () => ({
+      divideBy: (n: number) => ({ x: 800 / n, y: 600 / n }),
+    }),
+    getCenter: () => ({ lat: 45, lng: 9 }),
     on: vi.fn((event: string, handler: Handler) => {
       if (!handlers.has(event)) handlers.set(event, new Set());
       handlers.get(event)!.add(handler);
@@ -271,5 +278,139 @@ describe("useMapContextMenu", () => {
     expect(map.off).toHaveBeenCalledWith("click", expect.any(Function));
     expect(map.off).toHaveBeenCalledWith("dragstart", expect.any(Function));
     expect(map.off).toHaveBeenCalledWith("zoomstart", expect.any(Function));
+  });
+});
+
+describe("isContextMenuKey (TD-133)", () => {
+  it.each([
+    [{ key: "ContextMenu", shiftKey: false }, true],
+    [{ key: "F10", shiftKey: true }, true],
+    [{ key: "F10", shiftKey: false }, false],
+    [{ key: "Enter", shiftKey: true }, false],
+  ])("%j → %s", (event, expected) => {
+    expect(isContextMenuKey(event)).toBe(expected);
+  });
+});
+
+describe("useMapContextMenu — keyboard (TD-133)", () => {
+  function pressOn(
+    map: ReturnType<typeof fakeMap>,
+    target: EventTarget,
+    init: KeyboardEventInit
+  ) {
+    const originalEvent = new KeyboardEvent("keydown", {
+      cancelable: true,
+      ...init,
+    });
+    Object.defineProperty(originalEvent, "target", { value: target });
+    act(() => {
+      map.emit("keydown", { originalEvent });
+    });
+    return originalEvent;
+  }
+
+  it("opens at the map's centre on Shift+F10 while the container has focus", () => {
+    const map = fakeMap();
+    const { result } = renderHook(() => useMapContextMenu(), {
+      wrapper: wrapperWithMap(map as unknown as LeafletMap),
+    });
+
+    const event = pressOn(map, map.container, { key: "F10", shiftKey: true });
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(result.current.isOpen).toBe(true);
+    expect(result.current.position).toEqual({
+      x: 400,
+      y: 300,
+      latlng: { lat: 45, lng: 9 },
+    });
+  });
+
+  it("opens on the ContextMenu key", () => {
+    const map = fakeMap();
+    const { result } = renderHook(() => useMapContextMenu(), {
+      wrapper: wrapperWithMap(map as unknown as LeafletMap),
+    });
+
+    pressOn(map, map.container, { key: "ContextMenu" });
+
+    expect(result.current.isOpen).toBe(true);
+  });
+
+  it("ignores the keys when focus is on something inside the map, e.g. a marker", () => {
+    const map = fakeMap();
+    const marker = document.createElement("div");
+    map.container.appendChild(marker);
+    const { result } = renderHook(() => useMapContextMenu(), {
+      wrapper: wrapperWithMap(map as unknown as LeafletMap),
+    });
+
+    const event = pressOn(map, marker, { key: "ContextMenu" });
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(result.current.isOpen).toBe(false);
+  });
+
+  it("ignores other keys on the container", () => {
+    const map = fakeMap();
+    const { result } = renderHook(() => useMapContextMenu(), {
+      wrapper: wrapperWithMap(map as unknown as LeafletMap),
+    });
+
+    pressOn(map, map.container, { key: "F10" });
+    pressOn(map, map.container, { key: "Enter" });
+
+    expect(result.current.isOpen).toBe(false);
+  });
+
+  it("swallows the browser's own contextmenu echo of the key press, keeping the centre", () => {
+    const map = fakeMap();
+    const { result } = renderHook(() => useMapContextMenu(), {
+      wrapper: wrapperWithMap(map as unknown as LeafletMap),
+    });
+
+    pressOn(map, map.container, { key: "ContextMenu" });
+    const preventDefault = vi.fn();
+    act(() => {
+      map.emit("contextmenu", {
+        originalEvent: { preventDefault },
+        containerPoint: { x: 3, y: 4 },
+        latlng: { lat: 0, lng: 0 },
+      });
+    });
+
+    expect(preventDefault).toHaveBeenCalled();
+    expect(result.current.position).toEqual({
+      x: 400,
+      y: 300,
+      latlng: { lat: 45, lng: 9 },
+    });
+
+    // Only that one echo: the next right-click opens where it lands.
+    act(() => {
+      map.emit("contextmenu", {
+        originalEvent: { preventDefault },
+        containerPoint: { x: 3, y: 4 },
+        latlng: { lat: 1, lng: 2 },
+      });
+    });
+    expect(result.current.position).toEqual({
+      x: 3,
+      y: 4,
+      latlng: { lat: 1, lng: 2 },
+    });
+  });
+
+  it("advertises the shortcuts on the container and unregisters on unmount", () => {
+    const map = fakeMap();
+    const { unmount } = renderHook(() => useMapContextMenu(), {
+      wrapper: wrapperWithMap(map as unknown as LeafletMap),
+    });
+
+    expect(map.container.getAttribute("aria-keyshortcuts")).toBe(
+      "Shift+F10 ContextMenu"
+    );
+    unmount();
+    expect(map.off).toHaveBeenCalledWith("keydown", expect.any(Function));
   });
 });

@@ -13,6 +13,7 @@ import {
   isFootprint,
   type Footprint,
 } from "@/app/modules/maps/lib/utils/footprint";
+import { makeKeyboardActivatable } from "@/app/modules/maps/lib/utils/keyboardActivation";
 import type PlaceChild from "@/app/lib/definitions/interfaces/maps/PlaceChild";
 
 export interface NavigableChild {
@@ -238,6 +239,11 @@ export function useNavigableChildren(
           rectangle.on("click", () => {
             onPlaceClickRef.current(child);
           });
+          // TD-133 — an SVG path is not focusable by default; this makes it
+          // a named, Enter/Space-activated button like a pin.
+          makeKeyboardActivatable(rectangle, child.title, () => {
+            onPlaceClickRef.current(child);
+          });
           markersRef.current.push(rectangle);
           continue;
         }
@@ -249,11 +255,14 @@ export function useNavigableChildren(
         const marker = L.marker([child.lat, child.lng], {
           // TD-71, SPEC-005 §5.B — draggable to reposition.
           draggable: true,
+          // TD-133 — Leaflet's default, stated: the icon gets tabindex="0"
+          // and role="button"; `makeKeyboardActivatable` below names it.
+          keyboard: true,
           icon: L.divIcon({
             className: "custom-navigable-marker",
             html: `
           <div class="w-9 h-9 ${hasMap ? "bg-green-600" : "bg-gray-400 border-dashed"} border-3 border-white rounded-full shadow-[0_3px_8px_rgba(0,0,0,0.3)] flex items-center justify-center cursor-pointer">
-            <div class="text-base">${hasMap ? "🗺️" : "❔"}</div>
+            <div class="text-base" aria-hidden="true">${hasMap ? "🗺️" : "❔"}</div>
           </div>
         `,
             iconSize: [36, 36],
@@ -283,6 +292,11 @@ export function useNavigableChildren(
         });
         marker.on("click", () => {
           if (justDragged) return;
+          onPlaceClickRef.current(child);
+        });
+        // TD-133 — Enter/Space opens the same popover a click does. No drag
+        // guard: a key press never follows a drag.
+        makeKeyboardActivatable(marker, child.title, () => {
           onPlaceClickRef.current(child);
         });
         markersRef.current.push(marker);

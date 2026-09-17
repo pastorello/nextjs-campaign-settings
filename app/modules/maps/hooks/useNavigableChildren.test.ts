@@ -30,6 +30,16 @@ vi.mock("@/app/modules/maps/hooks/useLeafletMap", () => ({
 }));
 
 const clickHandlers = new Map<unknown, () => void>();
+// TD-133 — each fake layer's element and the `keydown` handler
+// `makeKeyboardActivatable` attaches, keyed like the maps above.
+type KeydownHandler = (event: { originalEvent: KeyboardEvent }) => void;
+const keydownHandlers = new Map<unknown, KeydownHandler>();
+const layerElements = new Map<unknown, HTMLElement>();
+function pressKey(instance: unknown, key: string) {
+  keydownHandlers.get(instance)?.({
+    originalEvent: new KeyboardEvent("keydown", { key, cancelable: true }),
+  });
+}
 const dragendHandlers = new Map<unknown, () => void>();
 const markerAddTo = vi.fn();
 const markerBindTooltip = vi.fn();
@@ -39,11 +49,14 @@ const marker = vi.fn((..._args: unknown[]) => {
     addTo: markerAddTo,
     bindTooltip: markerBindTooltip,
     getLatLng: markerGetLatLng,
+    getElement: () => layerElements.get(instance),
     on: vi.fn((event: string, handler: () => void) => {
       if (event === "click") clickHandlers.set(instance, handler);
       if (event === "dragend") dragendHandlers.set(instance, handler);
+      if (event === "keydown") keydownHandlers.set(instance, handler);
     }),
   };
+  layerElements.set(instance, document.createElement("div"));
   markerAddTo.mockReturnValue(instance);
   return instance;
 });
@@ -55,10 +68,13 @@ const rectangle = vi.fn((..._args: unknown[]) => {
   const instance = {
     addTo: rectangleAddTo,
     bindTooltip: rectangleBindTooltip,
+    getElement: () => layerElements.get(instance),
     on: vi.fn((event: string, handler: () => void) => {
       if (event === "click") rectangleClickHandlers.set(instance, handler);
+      if (event === "keydown") keydownHandlers.set(instance, handler);
     }),
   };
+  layerElements.set(instance, document.createElement("div"));
   rectangleAddTo.mockReturnValue(instance);
   return instance;
 });
@@ -195,6 +211,71 @@ describe("useNavigableChildren", () => {
       mapInitialZoom: null,
       footprint: null,
     });
+  });
+});
+
+describe("useNavigableChildren — keyboard (TD-133)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    clickHandlers.clear();
+    rectangleClickHandlers.clear();
+    keydownHandlers.clear();
+    layerElements.clear();
+  });
+
+  it("names a pin after its place and opens the popover on Enter or Space", async () => {
+    fetchPlaceChildren.mockResolvedValue([row({ id: 7, title: "Kang" })]);
+    const onPlaceClick = vi.fn();
+
+    renderHook(() => useNavigableChildren(1, onPlaceClick));
+
+    await waitFor(() => expect(keydownHandlers.size).toBe(1));
+    const instance = markerAddTo.mock.results[0]?.value as unknown;
+    expect(layerElements.get(instance)?.getAttribute("aria-label")).toBe(
+      "Kang"
+    );
+    expect(marker).toHaveBeenCalledWith(
+      [10, 20],
+      expect.objectContaining({ keyboard: true })
+    );
+
+    pressKey(instance, "Tab");
+    expect(onPlaceClick).not.toHaveBeenCalled();
+
+    pressKey(instance, "Enter");
+    pressKey(instance, " ");
+    expect(onPlaceClick).toHaveBeenCalledTimes(2);
+    expect(onPlaceClick).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 7, title: "Kang" })
+    );
+  });
+
+  it("makes an area focusable and opens its popover on Enter", async () => {
+    fetchPlaceChildren.mockResolvedValue([
+      row({
+        id: 3,
+        title: "Kingdom of Kang",
+        footprint: [
+          [0, 0],
+          [10, 20],
+        ],
+      }),
+    ]);
+    const onPlaceClick = vi.fn();
+
+    renderHook(() => useNavigableChildren(1, onPlaceClick));
+
+    await waitFor(() => expect(keydownHandlers.size).toBe(1));
+    const instance = rectangleAddTo.mock.results[0]?.value as unknown;
+    const element = layerElements.get(instance);
+    expect(element?.getAttribute("tabindex")).toBe("0");
+    expect(element?.getAttribute("role")).toBe("button");
+    expect(element?.getAttribute("aria-label")).toBe("Kingdom of Kang");
+
+    pressKey(instance, "Enter");
+    expect(onPlaceClick).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 3 })
+    );
   });
 });
 

@@ -2,7 +2,24 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useLeafletMap } from "./useLeafletMap";
-import type { LeafletMouseEvent } from "leaflet";
+import type { LeafletKeyboardEvent, LeafletMouseEvent } from "leaflet";
+
+/**
+ * The two keys that open a context menu from the keyboard (TD-133): the
+ * dedicated ContextMenu key and Shift+F10, the platform convention for
+ * keyboards without one.
+ */
+export function isContextMenuKey(
+  event: Pick<KeyboardEvent, "key" | "shiftKey">
+): boolean {
+  return event.key === "ContextMenu" || (event.key === "F10" && event.shiftKey);
+}
+
+/**
+ * How long after a keyboard open a native `contextmenu` event is taken to be
+ * the browser's own echo of that same key press, not a new right-click.
+ */
+const KEYBOARD_ECHO_WINDOW_MS = 500;
 
 export interface ContextMenuPosition {
   x: number;
@@ -45,6 +62,9 @@ export interface UseMapContextMenuReturn {
  * - Prevents default browser context menu on map
  * - Tracks click position in both screen and map coordinates
  * - Closes on map click, on the DM dragging or zooming the map, or on escape
+ * - Opens from the keyboard too (TD-133): with the map container focused,
+ *   the ContextMenu key or Shift+F10 opens it at the map's centre — the one
+ *   point a keyboard user can aim at, by panning with the arrow keys
  *
  * @returns Object with context menu state and controls
  */
@@ -59,6 +79,14 @@ export function useMapContextMenu(): UseMapContextMenuReturn {
   );
   const clickHandlerRef = useRef<(() => void) | null>(null);
   const userMoveHandlerRef = useRef<(() => void) | null>(null);
+  const keyDownHandlerRef = useRef<((e: LeafletKeyboardEvent) => void) | null>(
+    null
+  );
+
+  // When the menu was last opened from the keyboard. A browser may answer
+  // the same ContextMenu/Shift+F10 press with its own `contextmenu` event,
+  // whose coordinates are not the map's centre; that echo is swallowed.
+  const keyboardOpenedAtRef = useRef<number | null>(null);
 
   // Set for the duration of a `runWithoutClosing` call — see that function
   // and the `UseMapContextMenuReturn.runWithoutClosing` doc comment.
@@ -110,6 +138,15 @@ export function useMapContextMenu(): UseMapContextMenuReturn {
       // Prevent default browser context menu
       e.originalEvent.preventDefault();
 
+      const openedAt = keyboardOpenedAtRef.current;
+      keyboardOpenedAtRef.current = null;
+      if (
+        openedAt !== null &&
+        Date.now() - openedAt < KEYBOARD_ECHO_WINDOW_MS
+      ) {
+        return;
+      }
+
       // Get container position for accurate menu placement
       const containerPoint = e.containerPoint;
 
@@ -149,13 +186,32 @@ export function useMapContextMenu(): UseMapContextMenuReturn {
       }
     };
 
+    // TD-133 — the keyboard route in. Only when the container itself has
+    // focus: on a focused marker, Enter/Space already open its popover, and
+    // the menu's point would be ambiguous.
+    const container = map.getContainer();
+    const handleKeyDown = (e: LeafletKeyboardEvent) => {
+      const event = e.originalEvent;
+      if (event.target !== container || !isContextMenuKey(event)) return;
+      event.preventDefault();
+
+      const centre = map.getSize().divideBy(2);
+      const { lat, lng } = map.getCenter();
+      keyboardOpenedAtRef.current = Date.now();
+      setPosition({ x: centre.x, y: centre.y, latlng: { lat, lng } });
+      setIsOpen(true);
+    };
+    container.setAttribute("aria-keyshortcuts", "Shift+F10 ContextMenu");
+
     // Store references
     contextMenuHandlerRef.current = handleContextMenu;
     clickHandlerRef.current = handleClick;
     userMoveHandlerRef.current = handleUserMove;
+    keyDownHandlerRef.current = handleKeyDown;
 
     // Attach handlers
     map.on("contextmenu", handleContextMenu);
+    map.on("keydown", handleKeyDown);
     map.on("click", handleClick);
     map.on("dragstart", handleUserMove);
     map.on("zoomstart", handleUserMove);
@@ -174,6 +230,10 @@ export function useMapContextMenu(): UseMapContextMenuReturn {
         map.off("dragstart", userMoveHandlerRef.current);
         map.off("zoomstart", userMoveHandlerRef.current);
         userMoveHandlerRef.current = null;
+      }
+      if (keyDownHandlerRef.current) {
+        map.off("keydown", keyDownHandlerRef.current);
+        keyDownHandlerRef.current = null;
       }
     };
   }, [map, isOpen, close]);

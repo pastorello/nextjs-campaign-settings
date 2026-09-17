@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-import { MapContextMenu } from "./MapContextMenu";
+import { MapContextMenu, getNextMenuIndex } from "./MapContextMenu";
 import type { ContextMenuPosition } from "@/app/modules/maps/hooks/useMapContextMenu";
 
 const position: ContextMenuPosition = {
@@ -464,5 +464,84 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
 
     expect(onPositionPlace).toHaveBeenCalledWith("zone:5", 12.3456, 65.4321);
     expect(onClose).toHaveBeenCalled();
+  });
+});
+
+describe("getNextMenuIndex (TD-133)", () => {
+  it.each([
+    ["ArrowDown", -1, 0],
+    ["ArrowDown", 0, 1],
+    ["ArrowDown", 2, 0],
+    ["ArrowUp", 0, 2],
+    ["ArrowUp", -1, 2],
+    ["ArrowUp", 2, 1],
+    ["Home", 1, 0],
+    ["End", 0, 2],
+    ["Tab", 0, null],
+  ])("%s from %i of 3 → %s", (key, current, expected) => {
+    expect(getNextMenuIndex(key, current, 3)).toBe(expected);
+  });
+});
+
+describe("MapContextMenu — keyboard (TD-133)", () => {
+  it("focuses the first entry on open", () => {
+    renderMenu();
+
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: /Add Marker/ })
+    );
+  });
+
+  it("moves between entries with the arrow keys", () => {
+    renderMenu();
+    const menu = screen.getByRole("menu");
+
+    fireEvent.keyDown(document.activeElement!, { key: "ArrowDown" });
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: /Measure/ })
+    );
+
+    fireEvent.keyDown(document.activeElement!, { key: "End" });
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: /Add Place/ })
+    );
+
+    fireEvent.keyDown(document.activeElement!, { key: "ArrowDown" });
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: /Add Marker/ })
+    );
+    expect(menu).toBeInTheDocument();
+  });
+
+  it("gives focus back to where it was when the menu closes", () => {
+    const map = document.createElement("div");
+    map.tabIndex = 0;
+    document.body.appendChild(map);
+    map.focus();
+
+    const { setOpen } = renderMenu();
+    expect(document.activeElement).not.toBe(map);
+
+    // What Escape does, via `useMapContextMenu`: the parent closes it.
+    setOpen(false);
+
+    expect(document.activeElement).toBe(map);
+    map.remove();
+  });
+
+  it("does not take focus back from something the chosen entry focused", () => {
+    const map = document.createElement("div");
+    map.tabIndex = 0;
+    const panelField = document.createElement("input");
+    document.body.append(map, panelField);
+    map.focus();
+
+    const { setOpen } = renderMenu();
+    panelField.focus();
+    setOpen(false);
+
+    expect(document.activeElement).toBe(panelField);
+    map.remove();
+    panelField.remove();
   });
 });

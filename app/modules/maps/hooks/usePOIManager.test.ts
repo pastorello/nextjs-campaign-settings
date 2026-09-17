@@ -60,6 +60,11 @@ const dragendHandlers = new Map<unknown, () => void>();
 // T7 — the landmark popover's own click plumbing, the same map shape
 // `dragendHandlers` already uses.
 const clickHandlers = new Map<unknown, () => void>();
+// TD-133 — the `keydown` handler `makeKeyboardActivatable` attaches, and the
+// icon element it names.
+type KeydownHandler = (event: { originalEvent: KeyboardEvent }) => void;
+const keydownHandlers = new Map<unknown, KeydownHandler>();
+const markerElements = new Map<unknown, HTMLElement>();
 const markerGetLatLng = vi.fn(() => ({ lat: 99, lng: 88 }));
 const markerAddTo = vi.fn();
 const marker = vi.fn((..._args: unknown[]) => {
@@ -67,11 +72,14 @@ const marker = vi.fn((..._args: unknown[]) => {
     addTo: markerAddTo,
     bindPopup: vi.fn(),
     getLatLng: markerGetLatLng,
+    getElement: () => markerElements.get(instance),
     on: vi.fn((event: string, handler: () => void) => {
       if (event === "dragend") dragendHandlers.set(instance, handler);
       if (event === "click") clickHandlers.set(instance, handler);
+      if (event === "keydown") keydownHandlers.set(instance, handler);
     }),
   };
+  markerElements.set(instance, document.createElement("div"));
   markerAddTo.mockReturnValue(instance);
   return instance;
 });
@@ -537,6 +545,8 @@ describe("usePOIManager — landmark click (SPEC-016 T7)", () => {
     vi.clearAllMocks();
     dragendHandlers.clear();
     clickHandlers.clear();
+    keydownHandlers.clear();
+    markerElements.clear();
     fetchPlaceChildren.mockResolvedValue([storedRow]);
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
@@ -602,6 +612,59 @@ describe("usePOIManager — landmark click (SPEC-016 T7)", () => {
       clickHandlers.values().next().value?.();
     });
     expect(onPOIClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("names the marker and opens the popover on Enter, like a click (TD-133)", async () => {
+    const onPOIClick = vi.fn();
+    await renderLoadedWithClick(onPOIClick);
+    await waitFor(() => expect(keydownHandlers.size).toBe(1));
+    const [instance, keydown] = [...keydownHandlers.entries()][0]!;
+
+    expect(markerElements.get(instance)?.getAttribute("aria-label")).toBe(
+      "Tavern"
+    );
+    expect(marker).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ keyboard: true })
+    );
+
+    act(() => {
+      keydown({ originalEvent: new KeyboardEvent("keydown", { key: "a" }) });
+    });
+    expect(onPOIClick).not.toHaveBeenCalled();
+
+    act(() => {
+      keydown({
+        originalEvent: new KeyboardEvent("keydown", { key: "Enter" }),
+      });
+    });
+    expect(onPOIClick).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "7", title: "Tavern" }),
+      7
+    );
+  });
+
+  it("keeps the server-id guard on the keyboard path (TD-133)", async () => {
+    fetchPlaceChildren.mockResolvedValue([]);
+    createPoi.mockReturnValue(new Promise(() => {}));
+    const onPOIClick = vi.fn();
+    const { result } = await renderLoadedWithClick(onPOIClick);
+
+    act(() => {
+      result.current.addPOI("Tavern", 10, 20, "food-drink");
+    });
+    await waitFor(() => expect(keydownHandlers.size).toBe(1));
+
+    act(() => {
+      keydownHandlers
+        .values()
+        .next()
+        .value?.({
+          originalEvent: new KeyboardEvent("keydown", { key: " " }),
+        });
+    });
+
+    expect(onPOIClick).not.toHaveBeenCalled();
   });
 
   it("does not call onPOIClick for a POI whose create hasn't resolved a database id yet", async () => {

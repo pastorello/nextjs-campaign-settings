@@ -4,9 +4,7 @@
  * is stored as an `Int`, "static options, like magicitems.type" — so this
  * follows `MagicItemType`'s exact shape: the enum here, paired with a
  * numeric options array in `app/lib/config/treasure/treasure-categories.ts`.
- *
- * `MagicItemType`'s members are Italian (a TD-33 miss, not the convention to
- * copy) — this enum's members are English, per CLAUDE.md's language rules.
+ * (`MagicItemType`'s members were Italian until TD-97's pure rename.)
  */
 enum TreasureCategory {
   Coins = "Coins",

@@ -7,39 +7,43 @@ interface MagicItemTypeObject {
 }
 
 const itemTypes: MagicItemTypeObject[] = [
-  { value: 0, labelKey: "magicItems.types.ring", type: MagicItemType.Anello },
-  { value: 1, labelKey: "magicItems.types.weapon", type: MagicItemType.Arma },
+  { value: 0, labelKey: "magicItems.types.ring", type: MagicItemType.Ring },
+  {
+    value: 1,
+    labelKey: "magicItems.types.weapon",
+    type: MagicItemType.Weapon,
+  },
   {
     value: 2,
     labelKey: "magicItems.types.armor",
-    type: MagicItemType.Armatura,
+    type: MagicItemType.Armor,
   },
   {
     value: 3,
     labelKey: "magicItems.types.wand",
-    type: MagicItemType.Bacchetta,
+    type: MagicItemType.Wand,
   },
   {
     value: 4,
     labelKey: "magicItems.types.staff",
-    type: MagicItemType.Bastone,
+    type: MagicItemType.Staff,
   },
   {
     value: 5,
     labelKey: "magicItems.types.wondrousItem",
-    type: MagicItemType.OggettoMeraviglioso,
+    type: MagicItemType.WondrousItem,
   },
   {
     value: 6,
     labelKey: "magicItems.types.scroll",
-    type: MagicItemType.Pergamena,
+    type: MagicItemType.Scroll,
   },
   {
     value: 7,
     labelKey: "magicItems.types.potion",
-    type: MagicItemType.Pozione,
+    type: MagicItemType.Potion,
   },
-  { value: 8, labelKey: "magicItems.types.rod", type: MagicItemType.Verga },
+  { value: 8, labelKey: "magicItems.types.rod", type: MagicItemType.Rod },
 ];
 
 export default itemTypes;

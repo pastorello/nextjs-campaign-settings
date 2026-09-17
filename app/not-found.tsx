@@ -19,7 +19,7 @@ const COPY = {
  * `dashboard`) when `notFound()` is called explicitly from within it — an
  * unmatched URL always falls through to the nearest file that sits outside
  * every dynamic segment, which in this app is here rather than
- * `[locale]/dashboard/not-found.tsx`. Because that puts this file outside
+ * `[locale]/dashboard/[system]/not-found.tsx`. Because that puts this file outside
  * `[locale]/layout.tsx`, Next supplies its own implicit `<html>`/`<body>`
  * for it (rendering one here too would double them up and break
  * hydration), and it can only use next-intl's server-side helpers — no

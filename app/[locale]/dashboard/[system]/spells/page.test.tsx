@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import PageType from "@/app/lib/definitions/types/PageType";
 
 // Representative of the public list-page pattern shared by deities/,
-// magicitems/ and npc/ under app/[locale]/dashboard/**: a generateMetadata
+// magicitems/ and npc/ under app/[locale]/dashboard/[system]/**: a generateMetadata
 // call, an item-count fetch, and composition of ListPage + EntityLibrary.
 // One domain covers the shape; the others differ only in their own already-
 // tested data/UI pieces (TD-45).

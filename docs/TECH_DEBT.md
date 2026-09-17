@@ -1516,7 +1516,7 @@ follow-up.
 deleting a landmark confirm first? If yes, that is a behaviour change with its
 own test, not a copy fix.
 
-### TD-141 — English words left in Italian copy beyond TD-120
+### TD-141 ✅ English words left in Italian copy beyond TD-120 — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, UX copy review
 
@@ -1527,7 +1527,12 @@ own test, not a copy fix.
   "la ladder". Use "la scaletta" (the section itself is already titled
   "Avventure").
 
-### TD-142 — Title Case in Italian form titles and buttons
+**Resolution:** Both fixed as specified in `messages/it.json` — "Circolo della
+Terra" / "Circolo della Luna", and "la scaletta" in both
+`campaign.emptyState.description` and `adventure.ladder.emptyMessage`. English
+catalogue was already correct and untouched.
+
+### TD-142 ✅ Title Case in Italian form titles and buttons — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, UX copy review
 

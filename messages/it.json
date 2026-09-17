@@ -201,8 +201,8 @@
       "elementaristaFuoco": "Stregone - Magia del Vulcano",
       "elementaristaAcqua": "Stregone - Magia delle Tempeste",
       "fattucchiere": "Stregone - Magia Selvaggia",
-      "druidoTerra": "Druido - Circle della Terra",
-      "druidoLuna": "Druido - Circle della Luna",
+      "druidoTerra": "Druido - Circolo della Terra",
+      "druidoLuna": "Druido - Circolo della Luna",
       "warlockFatato": "Warlock - Patrono Fatato",
       "warlockAntico": "Warlock - Patrono Grande Antico",
       "warlockImmondo": "Warlock - Patrono Immondo",
@@ -908,7 +908,7 @@
       "title": "Campagna"
     },
     "emptyState": {
-      "description": "Non hai ancora una campagna. Creane una per iniziare a costruire la ladder delle avventure."
+      "description": "Non hai ancora una campagna. Creane una per iniziare a costruire la scaletta delle avventure."
     },
     "form": {
       "createButton": "Crea campagna",
@@ -982,7 +982,7 @@
     "ladder": {
       "title": "Avventure",
       "addButton": "Aggiungi avventura",
-      "emptyMessage": "Nessuna avventura ancora. Aggiungine una per iniziare la ladder.",
+      "emptyMessage": "Nessuna avventura ancora. Aggiungine una per iniziare la scaletta.",
       "columns": {
         "progress": "Progresso",
         "progressReadout": "{awarded}/{total} scene"

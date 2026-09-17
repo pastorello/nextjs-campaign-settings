@@ -19,12 +19,21 @@
 }
 
 @theme {
-  /* tailwind.config.ts's `theme.extend.colors.blue` (TD-112): only these
-     three shades are overridden, the rest of the `blue` scale still comes
-     from Tailwind's default palette. */
-  --color-blue-400: #2589fe;
-  --color-blue-500: #0070f3;
-  --color-blue-600: #2f6feb;
+  /* tailwind.config.ts's `theme.extend.colors.blue` (TD-112) is deliberately
+     NOT carried forward. Those three overrides (`#2589FE`/`#0070F3`/`#2F6FEB`)
+     were never actually applied in the app's history — the whole reason
+     TD-112 exists is that `tailwind.config.ts` was never loaded — so nobody
+     has ever seen them rendered. Carrying them forward now would have been a
+     new, first-time visual change, and CI caught the reason not to: text-blue-600
+     on bg-sky-100 (the active sidebar link, `nav-links.tsx`) measures 4.58:1
+     against v4's default blue-600 but 3.98:1 against the config's darker
+     `#2F6FEB` — under the 4.5:1 WCAG AA threshold for normal text
+     (e2e/a11y.spec.ts, `color-contrast` on every dashboard page). `blue-600`
+     alone has a dozen other call sites (pagination's active page, several
+     underlined links, `MapPOIPanel`/`MapSearchBar`'s blue accents); auditing
+     and re-tuning each one individually was judged riskier than just keeping
+     the palette nobody has ever seen changed. See CLAUDE.md's "Decisions and
+     rejected approaches" for the dated entry. */
 
   /* tailwind.config.ts's `theme.keyframes.shimmer` (TD-112), used by
      skeletons.tsx's arbitrary-value `before:animate-[shimmer_2s_infinite]`.

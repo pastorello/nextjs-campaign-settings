@@ -108,7 +108,7 @@ export function useGeolocation() {
         const marker = L.marker(e.latlng, {
           icon: L.divIcon({
             className: "custom-location-marker",
-            html: `<div style="width: 16px; height: 16px; background: #3b82f6; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+            html: `<div class="w-4 h-4 bg-blue-500 border-3 border-white rounded-full shadow-[0_2px_4px_rgba(0,0,0,0.3)]"></div>`,
             iconSize: [16, 16],
             iconAnchor: [8, 8],
           }),

@@ -3,12 +3,10 @@ import { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
 import Pagination from "@/app/ui/components/pagination";
-import Search from "@/app/ui/search";
 import { TableSkeleton } from "@/app/ui/skeletons";
 import EntityList from "@/app/ui/components/EntityList";
 import PageType from "@/app/lib/definitions/types/PageType";
-import BaseButton from "@/app/ui/buttons/BaseButton";
-import { ResetButton } from "@/app/ui/buttons/ResetSearchButton";
+import AdminListHeader from "@/app/ui/containers/AdminListHeader";
 import { getTreasuresCount } from "@/app/lib/data/treasure/getTreasuresCount";
 import PageTitle from "@/app/ui/typography/PageTitle";
 
@@ -33,19 +31,16 @@ export default async function Page(props: {
   return (
     <div className="w-full">
       <PageTitle>{t("title")}</PageTitle>
-      <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
-        <Search placeholder={t("searchPlaceholder")} />
-        <div className="flex shrink-0">
-          {tCommon("count", {
-            filtered: itemCount.filtered,
-            total: itemCount.total,
-            item:
-              itemCount.filtered === 1 ? t("itemSingular") : t("itemPlural"),
-          })}
-        </div>
-        <BaseButton to="treasures/new">{t("newItemButton")}</BaseButton>
-        <ResetButton />
-      </div>
+      <AdminListHeader
+        searchPlaceholder={t("searchPlaceholder")}
+        countText={tCommon("count", {
+          filtered: itemCount.filtered,
+          total: itemCount.total,
+          item: itemCount.filtered === 1 ? t("itemSingular") : t("itemPlural"),
+        })}
+        newItemHref="treasures/new"
+        newItemLabel={t("newItemButton")}
+      />
       <Suspense
         key={query + currentPage}
         fallback={<TableSkeleton pageType={PageType.Treasure} />}

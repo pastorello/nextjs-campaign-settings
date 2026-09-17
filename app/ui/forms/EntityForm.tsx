@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
+import PageTitle from "@/app/ui/typography/PageTitle";
 import FormErrorSummary from "@/app/ui/components/FormErrorSummary";
 import InputComponent from "@/app/ui/forms/inputs/InputComponent";
 import isValidDataArray from "@/app/lib/utils/validators/isValidDataArray";
@@ -143,10 +144,16 @@ export default function EntityForm<T extends object>({
   };
 
   return (
-    <div className="w-[900px] mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">
+    // TD-114: a fixed 900px pushed the page wider than a phone viewport;
+    // `max-w-[900px]` keeps the same cap on a wide screen while letting the
+    // form shrink to fit below it.
+    <div className="w-full max-w-[900px] mx-auto p-4">
+      {/* TD-116: was its own bold-Inter <h1> — every list/detail/search/map
+          page titles with `PageTitle` (Lusitana), so the heading used to
+          change typeface on the one navigation from a list to its form. */}
+      <PageTitle className="mb-6">
         {isEditMode ? copy.editTitle : copy.createTitle}
-      </h1>
+      </PageTitle>
       <Form action={onSubmit} className="space-y-6">
         <FormErrorSummary errors={errors} />
         {children(field)}

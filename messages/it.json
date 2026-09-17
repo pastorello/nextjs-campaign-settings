@@ -16,7 +16,8 @@
       "signOut": "Esci",
       "language": "Lingua",
       "treasure": "Tesori",
-      "campaign": "Campagna"
+      "campaign": "Campagna",
+      "sidebarLabel": "Navigazione principale"
     },
     "dashboard": {
       "title": "Dashboard"

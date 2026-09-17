@@ -16,7 +16,8 @@
       "signOut": "Sign Out",
       "language": "Language",
       "treasure": "Treasure",
-      "campaign": "Campaign"
+      "campaign": "Campaign",
+      "sidebarLabel": "Main navigation"
     },
     "dashboard": {
       "title": "Dashboard"

@@ -623,7 +623,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           {viewMode === "add" && (
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Kind
+                {t("geography.poiPanel.fields.kind")}
               </label>
               <select
                 value={formData.kind}
@@ -654,7 +654,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           {/* Coordinates Section */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Coordinates
+              {t("geography.poiPanel.fields.coordinates")}
             </label>
             {pendingFootprint ? (
               // SPEC-009 T2 — the footprint already fixes the position;
@@ -709,8 +709,8 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                     }`}
                   />
                   {isSelectingLocationProp
-                    ? "Click on map to select location"
-                    : "Click to select location on map"}
+                    ? t("geography.poiPanel.selectLocation.active")
+                    : t("geography.poiPanel.selectLocation.prompt")}
                 </button>
                 {isSelectingLocationProp && cursorLat && cursorLng && (
                   <div className="mt-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
@@ -727,7 +727,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           {formData.kind === "poi" && (
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Category
+                {t("geography.poiPanel.fields.category")}
               </label>
               <select
                 value={formData.category}
@@ -752,7 +752,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           {isNavigablePlaceKind(formData.kind) && (
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Map image
+                {t("geography.poiPanel.fields.mapImage")}
               </label>
               <input
                 type="file"
@@ -771,7 +771,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           {/* Title Input */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Title *
+              {t("geography.poiPanel.fields.title")}
             </label>
             <input
               type="text"
@@ -787,7 +787,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           {/* Description Input */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Description
+              {t("geography.poiPanel.fields.description")}
             </label>
             <textarea
               value={formData.description}
@@ -908,8 +908,9 @@ export const MapPOIPanel = memo(function MapPOIPanel({
               {categoryName}
             </h2>
             <p className="text-sm text-white/90 mt-1 drop-shadow">
-              {displayPOIs.length}{" "}
-              {displayPOIs.length === 1 ? "place" : "places"}
+              {t("geography.poiPanel.placeCount", {
+                count: displayPOIs.length,
+              })}
             </p>
           </div>
         </div>
@@ -922,7 +923,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
             {categoryName}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {displayPOIs.length} {displayPOIs.length === 1 ? "place" : "places"}
+            {t("geography.poiPanel.placeCount", { count: displayPOIs.length })}
           </p>
         </div>
       )}
@@ -938,7 +939,9 @@ export const MapPOIPanel = memo(function MapPOIPanel({
             className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
-            <span className="text-sm font-medium">Back</span>
+            <span className="text-sm font-medium">
+              {t("geography.poiPanel.back")}
+            </span>
           </button>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             {viewMode === "edit"
@@ -952,10 +955,10 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           >
             <Save className="h-4 w-4" />
             {isSavingPlace
-              ? "Saving…"
+              ? t("geography.poiPanel.save.saving")
               : viewMode === "edit"
-                ? "Update"
-                : "Save"}
+                ? t("geography.poiPanel.save.update")
+                : t("geography.poiPanel.save.save")}
           </button>
         </div>
       )}

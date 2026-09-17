@@ -715,6 +715,25 @@
         "description": "This can't be undone.",
         "cancel": "Cancel",
         "confirm": "Delete"
+      },
+      "back": "Back",
+      "placeCount": "{count, plural, one {# place} other {# places}}",
+      "fields": {
+        "kind": "Kind",
+        "coordinates": "Coordinates",
+        "category": "Category",
+        "mapImage": "Map image",
+        "title": "Title *",
+        "description": "Description"
+      },
+      "selectLocation": {
+        "prompt": "Click to select location on map",
+        "active": "Click on map to select location"
+      },
+      "save": {
+        "save": "Save",
+        "saving": "Saving…",
+        "update": "Update"
       }
     },
     "maps": {

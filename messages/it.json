@@ -715,6 +715,25 @@
         "description": "L'operazione non può essere annullata.",
         "cancel": "Annulla",
         "confirm": "Elimina"
+      },
+      "back": "Indietro",
+      "placeCount": "{count, plural, one {# luogo} other {# luoghi}}",
+      "fields": {
+        "kind": "Tipo",
+        "coordinates": "Coordinate",
+        "category": "Categoria",
+        "mapImage": "Immagine della mappa",
+        "title": "Titolo *",
+        "description": "Descrizione"
+      },
+      "selectLocation": {
+        "prompt": "Clicca per selezionare la posizione sulla mappa",
+        "active": "Clicca sulla mappa per selezionare la posizione"
+      },
+      "save": {
+        "save": "Salva",
+        "saving": "Salvataggio…",
+        "update": "Aggiorna"
       }
     },
     "maps": {

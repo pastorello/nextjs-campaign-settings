@@ -1374,15 +1374,19 @@ before `clearAllPOIs` is replaced with a `Modal` + Cancel/Delete `BaseButton`
 pair, the same shape `DeletePlaceButton` and `MapUploadControl`'s
 replace-confirmation use, gated on a new `isClearAllConfirmOpen` state; the
 confirm and cancel paths each have a test (`MapPOIPanel.test.tsx`), including
-that Cancel leaves `onClearAll` uncalled. **Deliberately left out:** the
-in-form field labels (Kind, Coordinates, Category, Map image, Title,
-Description), the Back/Save/Saving/Update button text, the place-count
-strings, and "Click to select location on map" are still hardcoded English —
-none of these were in the audit's enumerated list, the last is explicitly
-TD-133's territory (a keyboard-access rework, not a translation swap), and
-the rest would have doubled this change's size for a debt item scoped `S`.
-They remain hardcoded English strings in this same file if a follow-up wants
-to pick them up.
+that Cancel leaves `onClearAll` uncalled.
+
+A second pass (same PR, separate commit) finished the sweep so the panel
+shows no English under `/it` at all: the in-form field labels (Kind,
+Coordinates, Category, Map image, Title, Description), the
+Back/Save/Saving/Update button text, the place-count text (now one ICU
+plural key, `geography.poiPanel.placeCount`, replacing the two hand-built
+`{n} {n === 1 ? "place" : "places"}` sites), and the two
+"Click to select location on map"/"Click on map to select location" prompts
+are now translated too. The last one is still TD-133's territory for the
+underlying _interaction_ — no keyboard path reaches it yet — but the text
+itself no longer needs to wait on that rework, so it moved into the
+catalogues here rather than staying hardcoded until TD-133 lands.
 
 ### TD-124 — Server-written error messages reach the Italian UI in English
 

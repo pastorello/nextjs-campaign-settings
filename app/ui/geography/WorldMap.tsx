@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { LeafletMap } from "@/app/modules/maps/components/map/LeafletMap";
 import { MapControls } from "@/app/modules/maps/components/map/MapControls";
@@ -19,11 +18,9 @@ import {
   useNavigableChildren,
   type NavigableChild,
 } from "@/app/modules/maps/hooks/useNavigableChildren";
-import { useDrawArea } from "@/app/modules/maps/hooks/useDrawArea";
 import type { POI, POICategory } from "@/app/modules/maps/types/poi";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import createPlace from "@/app/lib/data/maps/createPlace";
-import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
 import { resolveFirstFieldError } from "@/app/lib/utils/i18n/resolveFieldErrors";
 import PlacePopover from "@/app/ui/geography/PlacePopover";
 import MapUploadControl from "@/app/ui/geography/MapUploadControl";
@@ -39,6 +36,7 @@ import {
 } from "@/app/modules/maps/lib/utils/footprint";
 import { useMapImageOverlay } from "@/app/ui/geography/hooks/useMapImageOverlay";
 import { usePOIFileIO } from "@/app/ui/geography/hooks/usePOIFileIO";
+import { useAreaDrawing } from "@/app/ui/geography/hooks/useAreaDrawing";
 import { usePlacePopover } from "@/app/ui/geography/hooks/usePlacePopover";
 import { useMeasureTool } from "@/app/ui/geography/hooks/useMeasureTool";
 import { usePlacePositioning } from "@/app/ui/geography/hooks/usePlacePositioning";
@@ -138,7 +136,6 @@ function WorldMap({
   // sublabel text is unchanged from before TD-79 when it's 0.
   blockedUnpositionedCount?: number;
 }) {
-  const t = useTranslations("geography.errors");
   const tRoot = useTranslations();
   const tGeography = useTranslations("geography");
   const tContextMenu = useTranslations("geography.contextMenu");
@@ -170,26 +167,11 @@ function WorldMap({
     lat: number;
     lng: number;
   } | null>(null);
-  // Draw-an-area mode (SPEC-009 T2) — armed by `MapContextMenu`'s "Add
-  // sub-map" entry (ex-`DrawAreaButton`, consolidated 2026-08-17), consumed
-  // by `useDrawArea`. `pendingFootprint` is the completed rectangle waiting for
-  // the create form; mutually exclusive with `isSelectingPOILocation` (see
-  // their handlers below), the same way the crosshair modes already exclude
-  // each other by being distinct.
-  const [isDrawingArea, setIsDrawingArea] = useState(false);
+  // The completed rectangle waiting for the create form (SPEC-009 T2) —
+  // drawn in `useAreaDrawing`'s draw-an-area mode.
   const [pendingFootprint, setPendingFootprint] = useState<Footprint | null>(
     null
   );
-  // The area currently armed for a redraw-to-replace resize/move (SPEC-009
-  // T5) — title is captured at arm time so a failure toast can name the area
-  // without re-reading `areaChildren`. A third crosshair mode, mutually
-  // exclusive with the other two the same way they already exclude each
-  // other.
-  const [editingArea, setEditingArea] = useState<{
-    id: number;
-    title: string;
-  } | null>(null);
-
   // The place whose "Modifica" panel is open (TD-104). Holds the whole
   // `NavigableChild` because the panel seeds three things from it — name,
   // description, and whether there is a footprint to redraw — and because
@@ -343,6 +325,36 @@ function WorldMap({
     [deletePOI, handleClosePopover]
   );
 
+  // Arming either of `useAreaDrawing`'s modes cancels point selection.
+  const cancelLocationSelection = useCallback(() => {
+    setIsSelectingPOILocation(false);
+    setCursorCoords(null);
+  }, []);
+
+  // A rectangle finished drawing (SPEC-009 T2) — opens the create form with
+  // the footprint attached, the same shape `handleContextMenuAddPOI` uses
+  // for a point.
+  const handleAreaDrawn = useCallback((footprint: Footprint) => {
+    setPendingFootprint(footprint);
+    setPOIFilterCategory(null);
+    setPOIPanelMode("add");
+    setIsPOIPanelOpen(true);
+  }, []);
+
+  const {
+    isDrawingArea,
+    editingArea,
+    toggleDrawArea: handleToggleDrawArea,
+    armAreaRedraw,
+    disarm: disarmAreaDrawing,
+  } = useAreaDrawing({
+    parentId,
+    bounds: effectiveBounds,
+    onArm: cancelLocationSelection,
+    onAreaDrawn: handleAreaDrawn,
+    onPlacesChanged: bumpPlacesRefetchToken,
+  });
+
   // Navigable `region` children, same scope — clicking one opens the
   // popover (SPEC-016 T2; used to call `onDescend` directly).
   const navigableChildren = useNavigableChildren(
@@ -445,111 +457,11 @@ function WorldMap({
   }, []);
 
   // Handle POI location selection request. Also cancels draw-area mode
-  // (SPEC-009 T2) — see `handleToggleDrawArea`.
+  // (SPEC-009 T2) — see `useAreaDrawing`'s `toggleDrawArea`.
   const handleRequestPOILocation = useCallback(() => {
-    setIsDrawingArea(false);
-    setEditingArea(null);
+    disarmAreaDrawing();
     setIsSelectingPOILocation((prev) => !prev);
-  }, []);
-
-  // Arms/disarms draw-area mode (SPEC-009 T2), cancelling the other
-  // crosshair modes the same way they cancel this one.
-  const handleToggleDrawArea = useCallback(() => {
-    setIsSelectingPOILocation(false);
-    setEditingArea(null);
-    setCursorCoords(null);
-    setIsDrawingArea((prev) => !prev);
-  }, []);
-
-  // Arms the redraw-to-replace gesture (SPEC-009 T5) — the mirror of
-  // `handleToggleDrawArea`, cancelling the other crosshair modes for the
-  // same reason. `ZoneEditPanel` is the one caller: the right-click menu
-  // used to arm this too, on the area the cursor was inside, and TD-104
-  // removed that entry (the DM, 2026-08-30) in favour of a single edit
-  // surface reached from the place itself. Still takes its target as an
-  // argument rather than reading `contextMenuOverArea`, which is the shape
-  // that let the popover reach it in the first place.
-  const armAreaRedraw = useCallback((area: { id: number; title: string }) => {
-    setIsDrawingArea(false);
-    setIsSelectingPOILocation(false);
-    setCursorCoords(null);
-    setEditingArea(area);
-  }, []);
-
-  // The hook aborted the redraw gesture itself (Escape, a too-small drag)
-  // and wants editing disarmed — the edit-mode counterpart of
-  // `handleDrawAreaCancelled`.
-  const handleAreaEditCancelled = useCallback(() => {
-    setEditingArea(null);
-  }, []);
-
-  // A replacement rectangle finished drawing over the area being edited
-  // (SPEC-009 T5) — re-runs both §7 checks server-side via
-  // `updateZonePosition`, excluding the area's own row from its sibling
-  // comparison. No optimistic update: the old rectangle stays hidden
-  // (`editingArea`'s id passed to `useNavigableChildren`) until the server
-  // confirms, then a refetch renders the new one.
-  const handleAreaEditDrawn = useCallback(
-    async (footprint: Footprint) => {
-      if (!editingArea) return;
-      const { id, title } = editingArea;
-      setEditingArea(null);
-      try {
-        const result = await updateZonePosition({ id, footprint });
-        if (result.ok) {
-          setPlacesRefetchToken((token) => token + 1);
-        } else {
-          const firstError = resolveFirstFieldError(result.errors ?? {}, tRoot);
-          toast.error(firstError ?? t("placePositionFailed", { title }));
-        }
-      } catch (error) {
-        console.error("Failed to resize/move area:", error);
-        toast.error(t("placePositionFailed", { title }));
-      }
-    },
-    [editingArea, t, tRoot]
-  );
-
-  // A rectangle finished drawing (SPEC-009 T2) — opens the create form with
-  // the footprint attached, the same shape `handleContextMenuAddPOI` uses
-  // for a point.
-  const handleAreaDrawn = useCallback((footprint: Footprint) => {
-    setPendingFootprint(footprint);
-    setIsDrawingArea(false);
-    setPOIFilterCategory(null);
-    setPOIPanelMode("add");
-    setIsPOIPanelOpen(true);
-  }, []);
-
-  // The hook aborted the gesture itself (Escape, a too-small drag) and
-  // wants the button disarmed (SPEC-009 T2).
-  const handleDrawAreaCancelled = useCallback(() => {
-    setIsDrawingArea(false);
-  }, []);
-
-  // Drag-to-draw an area on the current map (SPEC-009 T2) — armed by
-  // `isDrawingArea`, disarmed by `handleAreaDrawn` on a completed rectangle
-  // or by `handleDrawAreaCancelled`.
-  useDrawArea({
-    enabled: isDrawingArea,
-    bounds: effectiveBounds,
-    onComplete: handleAreaDrawn,
-    onCancel: handleDrawAreaCancelled,
-  });
-
-  // Redraw-to-replace an existing area's rectangle (SPEC-009 T5) — armed by
-  // `editingArea` (via the context menu's "Edit Area"), disarmed by
-  // `handleAreaEditDrawn` on a completed rectangle or by
-  // `handleAreaEditCancelled`. A second, independent `useDrawArea` instance
-  // rather than a mode flag on the one above: the two are mutually
-  // exclusive by construction (every handler that sets one clears the
-  // other), so only one is ever actually enabled.
-  useDrawArea({
-    enabled: editingArea !== null,
-    bounds: effectiveBounds,
-    onComplete: (footprint) => void handleAreaEditDrawn(footprint),
-    onCancel: handleAreaEditCancelled,
-  });
+  }, [disarmAreaDrawing]);
 
   // Handle clear POI coordinates
   const handleClearPOICoordinates = useCallback(() => {
@@ -621,7 +533,8 @@ function WorldMap({
   if (parentId !== prevParentId) {
     setPrevParentId(parentId);
     setCursorCoords(null);
-    setEditingArea(null);
+    // A redraw in progress is cancelled for the same reason, inside
+    // `useAreaDrawing`.
     // Same reasoning as the popover: the panel edits a place that belongs
     // to the map being left (TD-104).
     setEditingZone(null);

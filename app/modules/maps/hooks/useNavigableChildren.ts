@@ -13,7 +13,10 @@ import {
   isFootprint,
   type Footprint,
 } from "@/app/modules/maps/lib/utils/footprint";
-import { makeKeyboardActivatable } from "@/app/modules/maps/lib/utils/keyboardActivation";
+import {
+  makeKeyboardActivatable,
+  type FocusReturnTarget,
+} from "@/app/modules/maps/lib/utils/keyboardActivation";
 import type PlaceChild from "@/app/lib/definitions/interfaces/maps/PlaceChild";
 
 export interface NavigableChild {
@@ -73,7 +76,12 @@ export interface NavigableChild {
  */
 export function useNavigableChildren(
   parentId: number,
-  onPlaceClick: (child: NavigableChild) => void,
+  // `returnFocusTo` is set only for a keyboard activation (TD-133): the
+  // focused marker/area, for the popover to hand focus back to.
+  onPlaceClick: (
+    child: NavigableChild,
+    returnFocusTo?: FocusReturnTarget
+  ) => void,
   refetchToken: number = 0,
   editingChildId: number | null = null
 ): NavigableChild[] {
@@ -241,8 +249,8 @@ export function useNavigableChildren(
           });
           // TD-133 — an SVG path is not focusable by default; this makes it
           // a named, Enter/Space-activated button like a pin.
-          makeKeyboardActivatable(rectangle, child.title, () => {
-            onPlaceClickRef.current(child);
+          makeKeyboardActivatable(rectangle, child.title, (trigger) => {
+            onPlaceClickRef.current(child, trigger);
           });
           markersRef.current.push(rectangle);
           continue;
@@ -296,8 +304,8 @@ export function useNavigableChildren(
         });
         // TD-133 — Enter/Space opens the same popover a click does. No drag
         // guard: a key press never follows a drag.
-        makeKeyboardActivatable(marker, child.title, () => {
-          onPlaceClickRef.current(child);
+        makeKeyboardActivatable(marker, child.title, (trigger) => {
+          onPlaceClickRef.current(child, trigger);
         });
         markersRef.current.push(marker);
       }

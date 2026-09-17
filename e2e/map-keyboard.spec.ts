@@ -84,7 +84,21 @@ test.describe("map keyboard access (TD-133)", () => {
       await expect(popover).toBeVisible({ timeout: 1000 });
     }).toPass({ timeout: 15000 });
 
-    // Clean up through the popover's own delete, as the landmark spec does.
+    // Focus moves into the popover, onto its first action…
+    await expect(
+      popover.getByRole("button", { name: messages.geography.popover.attach })
+    ).toBeFocused();
+
+    // …and Escape closes it, handing focus back to the marker.
+    await page.keyboard.press("Escape");
+    await expect(popover).not.toBeVisible();
+    const marker = page.getByRole("button", { name: title, exact: true });
+    await expect(marker).toBeFocused();
+
+    // Enter again reopens it from there. Clean up through the popover's own
+    // delete, as the landmark spec does.
+    await page.keyboard.press("Enter");
+    await expect(popover).toBeVisible();
     await popover
       .getByRole("button", {
         name: messages.geography.popover.deleteLandmark,

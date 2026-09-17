@@ -90,6 +90,17 @@ describe("makeKeyboardActivatable", () => {
     expect(event.defaultPrevented).toBe(false);
   });
 
+  it("hands the activated element to the callback, for focus return", () => {
+    const onActivate = vi.fn();
+    const element = document.createElement("div");
+    const { layer, press } = fakeLayer(element);
+    makeKeyboardActivatable(layer, "Torre", onActivate);
+
+    press("Enter");
+
+    expect(onActivate).toHaveBeenCalledWith(element);
+  });
+
   it("still wires the key handler when the element is not rendered yet", () => {
     const onActivate = vi.fn();
     const { layer, press } = fakeLayer(undefined);

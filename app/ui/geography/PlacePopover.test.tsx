@@ -163,6 +163,94 @@ function renderPopover(
   );
 }
 
+function renderKeyboardOpened(returnFocusTo: HTMLElement | null) {
+  return render(
+    <PlacePopover
+      target={{ kind: "zone", place }}
+      returnFocusTo={returnFocusTo}
+      parentId={parentId}
+      parentTitle={parentTitle}
+      onClose={onClose}
+      onOpenMap={onOpenMap}
+      onUnplace={onUnplace}
+      onDeleted={onDeleted}
+      onEditZone={onEditZone}
+      onEditLandmark={onEditLandmark}
+      onUnplaceLandmark={onUnplaceLandmark}
+      onDeleteLandmark={onDeleteLandmark}
+    />
+  );
+}
+
+function focusedMarker() {
+  const marker = document.createElement("div");
+  marker.tabIndex = 0;
+  document.body.appendChild(marker);
+  marker.focus();
+  return marker;
+}
+
+describe("PlacePopover — keyboard focus (TD-133)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("moves focus to its first action, not the close button, when opened from the keyboard", () => {
+    const marker = focusedMarker();
+
+    renderKeyboardOpened(marker);
+
+    const [closeButton, firstAction] = screen.getAllByRole("button");
+    expect(document.activeElement).toBe(firstAction);
+    expect(document.activeElement).not.toBe(closeButton);
+    marker.remove();
+  });
+
+  it("gives focus back to the marker on close", () => {
+    const marker = focusedMarker();
+    const { unmount } = renderKeyboardOpened(marker);
+    expect(document.activeElement).not.toBe(marker);
+
+    unmount();
+
+    expect(document.activeElement).toBe(marker);
+    marker.remove();
+  });
+
+  it("closes on Escape from inside the popover", () => {
+    const marker = focusedMarker();
+    renderKeyboardOpened(marker);
+
+    fireEvent.keyDown(document.activeElement!, { key: "Escape" });
+
+    expect(onClose).toHaveBeenCalled();
+    marker.remove();
+  });
+
+  it("leaves focus alone when opened by a click", () => {
+    const marker = focusedMarker();
+
+    renderKeyboardOpened(null);
+
+    expect(document.activeElement).toBe(marker);
+    marker.remove();
+  });
+
+  it("does not take focus back from something an action focused", () => {
+    const marker = focusedMarker();
+    const panelField = document.createElement("input");
+    document.body.appendChild(panelField);
+    const { unmount } = renderKeyboardOpened(marker);
+
+    panelField.focus();
+    unmount();
+
+    expect(document.activeElement).toBe(panelField);
+    marker.remove();
+    panelField.remove();
+  });
+});
+
 function renderZonePopover(overrides: Partial<NavigableChild> = {}) {
   return renderPopover({ kind: "zone", place: { ...place, ...overrides } });
 }

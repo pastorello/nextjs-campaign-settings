@@ -245,8 +245,10 @@ describe("useNavigableChildren — keyboard (TD-133)", () => {
     pressKey(instance, "Enter");
     pressKey(instance, " ");
     expect(onPlaceClick).toHaveBeenCalledTimes(2);
+    // The focused element rides along, for the popover to return focus to.
     expect(onPlaceClick).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 7, title: "Kang" })
+      expect.objectContaining({ id: 7, title: "Kang" }),
+      layerElements.get(instance)
     );
   });
 
@@ -274,7 +276,8 @@ describe("useNavigableChildren — keyboard (TD-133)", () => {
 
     pressKey(instance, "Enter");
     expect(onPlaceClick).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 3 })
+      expect.objectContaining({ id: 3 }),
+      element
     );
   });
 });

@@ -1908,11 +1908,18 @@ container itself has focus, swallows the browser's own `contextmenu` echo of tha
 press, and advertises the keys with `aria-keyshortcuts`. `MapContextMenu` focuses
 its first enabled entry on open, moves with Arrow/Home/End, and on close (Escape
 already closed it) returns focus to where it was unless something else took it.
+A keyboard activation also hands the activated element to `onPlaceClick` /
+`onPOIClick` (a click passes nothing — a mouse click focuses the marker too, so
+`document.activeElement` cannot tell them apart); `usePlacePopover` keeps it as
+`returnFocusTo`, and `PlacePopover` then moves focus to its first action
+("Collega personaggio", not the close button) and, on close — Escape already
+closed it — returns focus to the marker unless an action moved focus elsewhere
+(e.g. into the edit panel). A click-opened popover leaves focus alone.
 No new copy. Tests: unit tests for each piece, and `e2e/map-keyboard.spec.ts`
-(Shift+F10 → Aggiungi luogo → Tab to the new marker → Enter opens its popover).
+(Shift+F10 → Aggiungi luogo → Tab to the new marker → Enter opens its popover
+with focus on its first action → Escape returns focus to the marker).
 **Left:** typed coordinates before any click — a spec candidate in
-`docs/ROADMAP.md`; the popover itself does not take focus when opened, so a
-keyboard user Tabs past the map's remaining markers and controls to reach it.
+`docs/ROADMAP.md`.
 
 ### TD-134 ✅ Filter chips don't expose their pressed state — **DONE (2026-09-17)**
 

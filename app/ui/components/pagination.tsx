@@ -84,7 +84,9 @@ function PaginationNumber({
   );
 
   return isActive || position === "middle" ? (
-    <div className={className}>{page}</div>
+    <div className={className} aria-current={isActive ? "page" : undefined}>
+      {page}
+    </div>
   ) : (
     <Link
       href={href}

@@ -24,6 +24,25 @@ describe("Pagination", () => {
     expect(screen.getByText("1").tagName).toBe("DIV");
   });
 
+  // TD-139: the active page was a coloured div with nothing marking it as
+  // the current page for assistive tech.
+  it("marks the active page aria-current=page, and no other page", () => {
+    searchParams = new URLSearchParams({ page: "3" });
+    render(<Pagination totalPages={5} />);
+
+    expect(screen.getByText("3")).toHaveAttribute("aria-current", "page");
+    expect(screen.getByText("2")).not.toHaveAttribute("aria-current");
+    expect(screen.getByText("4")).not.toHaveAttribute("aria-current");
+  });
+
+  it("does not mark an ellipsis as the current page", () => {
+    searchParams = new URLSearchParams({ page: "1" });
+    render(<Pagination totalPages={20} />);
+
+    const ellipsis = screen.getAllByText("...")[0];
+    expect(ellipsis).not.toHaveAttribute("aria-current");
+  });
+
   it("links every other page number to the URL carrying its page param", () => {
     searchParams = new URLSearchParams({ page: "1" });
     render(<Pagination totalPages={3} />);

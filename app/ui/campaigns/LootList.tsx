@@ -70,16 +70,20 @@ export default function LootList({
     if (!moved) return;
     reordered.splice(targetIndex, 0, moved);
 
-    const result = await reorderLoot(
-      sceneId,
-      reordered.map((row) => row.id)
-    );
+    try {
+      const result = await reorderLoot(
+        sceneId,
+        reordered.map((row) => row.id)
+      );
 
-    if (!result.ok) {
-      notifyError(t("common.deleteButton.deleteFailed"));
-      return;
+      if (!result.ok) {
+        notifyError(t("common.reorder.failed"));
+        return;
+      }
+      router.refresh();
+    } catch {
+      notifyError(t("common.reorder.failed"));
     }
-    router.refresh();
   }
 
   async function handleDelete() {

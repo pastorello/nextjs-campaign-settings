@@ -7,8 +7,8 @@ import { z } from "zod";
 
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
-import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
+import validateAndReorder from "./validateAndReorder";
 
 const reorderSchema = z.object({
   sceneId: z.coerce.number().int().positive(),
@@ -18,7 +18,7 @@ const reorderSchema = z.object({
 /**
  * Rewrites every creature row's `position` within a scene to match
  * `orderedIds`' order, 1-indexed. Same shape and reasoning as
- * `reorderScenes`.
+ * `reorderScenes` — see `validateAndReorder` (TD-125) for the shared logic.
  */
 export default async function reorderSceneCreatures(
   sceneId: number,
@@ -31,46 +31,23 @@ export default async function reorderSceneCreatures(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  let existing;
-  try {
-    existing = await prisma.sceneCreature.findMany({
-      where: { sceneId: parsed.data.sceneId },
-      select: { id: true },
-    });
-  } catch (error) {
-    throw toDatabaseError("looking up scene creatures for reordering", error);
-  }
-
-  const existingIds = new Set(existing.map((creature) => creature.id));
-  const givenIds = parsed.data.orderedIds;
-  const matchesCreatureList =
-    givenIds.length === existingIds.size &&
-    givenIds.every((id) => existingIds.has(id));
-
-  if (!matchesCreatureList) {
-    return {
-      ok: false,
-      errors: {
-        orderedIds: [
-          "The given creatures do not match this scene's current creature list.",
-        ],
-      },
-    };
-  }
-
-  try {
-    await prisma.$transaction(
-      givenIds.map((id, index) =>
-        prisma.sceneCreature.update({
-          where: { id },
-          data: { position: index + 1 },
+  const result = await validateAndReorder({
+    findExistingIds: async () =>
+      (
+        await prisma.sceneCreature.findMany({
+          where: { sceneId: parsed.data.sceneId },
+          select: { id: true },
         })
-      )
-    );
-  } catch (error) {
-    throw toDatabaseError("reordering scene creatures", error);
-  }
+      ).map((creature) => creature.id),
+    buildPositionUpdate: (id, position) =>
+      prisma.sceneCreature.update({ where: { id }, data: { position } }),
+    orderedIds: parsed.data.orderedIds,
+    mismatchMessage:
+      "The given creatures do not match this scene's current creature list.",
+  });
 
-  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
-  return { ok: true };
+  if (result.ok) {
+    revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
+  }
+  return result;
 }

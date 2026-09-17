@@ -161,6 +161,24 @@ describe("AdventureLadder (SPEC-013 T7)", () => {
     expect(refresh).toHaveBeenCalled();
   });
 
+  it("catches a thrown reorder failure instead of leaving it unhandled (TD-125)", async () => {
+    reorderAdventures.mockRejectedValue(new Error("database unreachable"));
+    render(
+      <AdventureLadder
+        campaignId={1}
+        adventures={[adventureA, adventureB]}
+        progress={{}}
+      />
+    );
+
+    fireEvent.click(screen.getAllByLabelText(/moveDown/)[0]!);
+
+    await waitFor(() =>
+      expect(notifyError).toHaveBeenCalledWith("common.reorder.failed")
+    );
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
   it("deletes an adventure after confirmation and refreshes", async () => {
     deleteAdventureById.mockResolvedValue(undefined);
     render(

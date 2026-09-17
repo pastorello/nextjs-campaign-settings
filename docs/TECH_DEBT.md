@@ -1474,7 +1474,7 @@ keys plus parameters, and the render boundary translates them, per
 [ADR-0007](./adr/0007-message-key-resolution-boundary.md).
 **Related:** TD-21, TD-62.
 
-### TD-125 — The four reorder actions accept duplicate ids, and a failed reorder says "Delete failed"
+### TD-125 ✅ The four reorder actions accept duplicate ids, and a failed reorder says "Delete failed" — **DONE (2026-09-17)**
 
 **Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-17, tech-debt audit
 
@@ -1489,6 +1489,28 @@ the call. The four actions are near-copies of each other, as are the four
 `move*` handlers. **The fix, in shape:** one shared validate-and-reorder helper
 that also rejects duplicate ids, a reorder-specific error message, and possibly
 a unique index on position.
+
+**Resolution:** Added `app/lib/data/campaigns/validateAndReorder.ts`, one
+shared helper `reorderScenes`/`reorderLoot`/`reorderSceneCreatures`/
+`reorderAdventures` now call — each action still owns its own Zod schema,
+`requireSession` and `revalidatePath`, but the lookup-check-transaction body
+is one function. The membership check is now `Set` size on both sides
+(`givenIds.size === orderedIds.length && givenIds.size === existingIds.size
+&& orderedIds.every(...)`), which catches a duplicate id as well as a
+mismatched list — `validateAndReorder.test.ts` reproduces the exact `{1,2,3}`
+/ `[1,1,2]` case from this card, plus one regression test per reorder action.
+Added `common.reorder.failed` ("Reorder failed" / "Riordino non riuscito") to
+both catalogues, and wrapped each list's `move*` call in a try/catch so a
+thrown `DatabaseError` (never wrapped before) shows the same message instead
+of going unhandled. **Deliberately not done: a `(parent, position)` unique
+index.** It would need a migration, and it complicates the in-transaction
+position swap — the transaction writes every row's position 1-indexed in one
+pass, and a unique index would make an intermediate state within that same
+transaction collide with the row it's about to move past (position 1 written
+to row A while row B temporarily still holds position 1 depends on statement
+ordering under a same-transaction unique constraint, which Postgres does not
+guarantee to defer without `DEFERRABLE INITIALLY DEFERRED`). The `Set`-based
+application-level check closes the actual bug without that migration.
 
 ### TD-126 ✅ Campaign forms stay on "saving" if a save throws, and most actions don't wrap database errors — **DONE (2026-09-17)**
 

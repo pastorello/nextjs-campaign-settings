@@ -57,16 +57,20 @@ export default function SceneCreatureList({
     if (!moved) return;
     reordered.splice(targetIndex, 0, moved);
 
-    const result = await reorderSceneCreatures(
-      sceneId,
-      reordered.map((creature) => creature.id)
-    );
+    try {
+      const result = await reorderSceneCreatures(
+        sceneId,
+        reordered.map((creature) => creature.id)
+      );
 
-    if (!result.ok) {
-      notifyError(t("common.deleteButton.deleteFailed"));
-      return;
+      if (!result.ok) {
+        notifyError(t("common.reorder.failed"));
+        return;
+      }
+      router.refresh();
+    } catch {
+      notifyError(t("common.reorder.failed"));
     }
-    router.refresh();
   }
 
   async function handleDelete() {

@@ -174,6 +174,43 @@ describe("SceneList (SPEC-013 T8)", () => {
     expect(refresh).toHaveBeenCalled();
   });
 
+  it("shows the reorder-specific error, not the delete one, when the action refuses", async () => {
+    reorderScenes.mockResolvedValue({
+      ok: false,
+      errors: { orderedIds: ["mismatch"] },
+    });
+    const scenes = [
+      makeScene({ id: 1, position: 1, title: "First" }),
+      makeScene({ id: 2, position: 2, title: "Second" }),
+    ];
+
+    render(<SceneList {...baseProps} scenes={scenes} />);
+
+    fireEvent.click(screen.getAllByLabelText(/moveDown/)[0]!);
+
+    await waitFor(() =>
+      expect(notifyError).toHaveBeenCalledWith("common.reorder.failed")
+    );
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("catches a thrown reorder failure instead of leaving it unhandled (TD-125)", async () => {
+    reorderScenes.mockRejectedValue(new Error("database unreachable"));
+    const scenes = [
+      makeScene({ id: 1, position: 1, title: "First" }),
+      makeScene({ id: 2, position: 2, title: "Second" }),
+    ];
+
+    render(<SceneList {...baseProps} scenes={scenes} />);
+
+    fireEvent.click(screen.getAllByLabelText(/moveDown/)[0]!);
+
+    await waitFor(() =>
+      expect(notifyError).toHaveBeenCalledWith("common.reorder.failed")
+    );
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
   it("deletes a scene after confirmation and refreshes", async () => {
     deleteSceneById.mockResolvedValue(undefined);
     const scenes = [makeScene({ id: 1, title: "Doomed scene" })];

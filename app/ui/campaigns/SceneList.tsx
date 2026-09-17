@@ -79,16 +79,20 @@ export default function SceneList({
     if (!moved) return;
     reordered.splice(targetIndex, 0, moved);
 
-    const result = await reorderScenes(
-      adventureId,
-      reordered.map((scene) => scene.id)
-    );
+    try {
+      const result = await reorderScenes(
+        adventureId,
+        reordered.map((scene) => scene.id)
+      );
 
-    if (!result.ok) {
-      notifyError(t("common.deleteButton.deleteFailed"));
-      return;
+      if (!result.ok) {
+        notifyError(t("common.reorder.failed"));
+        return;
+      }
+      router.refresh();
+    } catch {
+      notifyError(t("common.reorder.failed"));
     }
-    router.refresh();
   }
 
   async function handleDelete() {

@@ -114,6 +114,9 @@
     "checkOff": {
       "failed": "Aggiornamento non riuscito. Riprova."
     },
+    "reorder": {
+      "failed": "Riordino non riuscito"
+    },
     "formErrors": {
       "title": "Controlla i campi segnalati:"
     },
@@ -564,7 +567,7 @@
         "label": "Area sulla mappa del genitore",
         "redraw": "Ridisegna il rettangolo",
         "redrawHint": "Le modifiche qui sopra vengono salvate, poi trascina sulla mappa — Esc per annullare.",
-        "noArea": "Questo luogo è un punto, non un\u2019area: non ha un rettangolo da ridisegnare."
+        "noArea": "Questo luogo è un punto, non un’area: non ha un rettangolo da ridisegnare."
       },
       "errors": {
         "saveFailed": "Salvataggio del luogo non riuscito. Riprova."

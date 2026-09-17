@@ -7,8 +7,8 @@ import { z } from "zod";
 
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
-import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
+import validateAndReorder from "./validateAndReorder";
 
 const reorderSchema = z.object({
   adventureId: z.coerce.number().int().positive(),
@@ -20,7 +20,8 @@ const reorderSchema = z.object({
  * `orderedIds`' order, 1-indexed — the bulk half of "explicit integer
  * position, editable" (`updateScene` is the single-row half). One
  * transaction, and `orderedIds` must be exactly the adventure's current
- * scenes — see `reorderAdventures` for the same shape and reasoning.
+ * scenes — see `validateAndReorder` (TD-125) for the shared shape and
+ * `reorderAdventures` for the same reasoning applied to a different table.
  */
 export default async function reorderScenes(
   adventureId: number,
@@ -33,43 +34,23 @@ export default async function reorderScenes(
     return { ok: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  let existing;
-  try {
-    existing = await prisma.scene.findMany({
-      where: { adventureId: parsed.data.adventureId },
-      select: { id: true },
-    });
-  } catch (error) {
-    throw toDatabaseError("looking up scenes for reordering", error);
+  const result = await validateAndReorder({
+    findExistingIds: async () =>
+      (
+        await prisma.scene.findMany({
+          where: { adventureId: parsed.data.adventureId },
+          select: { id: true },
+        })
+      ).map((scene) => scene.id),
+    buildPositionUpdate: (id, position) =>
+      prisma.scene.update({ where: { id }, data: { position } }),
+    orderedIds: parsed.data.orderedIds,
+    mismatchMessage:
+      "The given scenes do not match this adventure's current scene list.",
+  });
+
+  if (result.ok) {
+    revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   }
-
-  const existingIds = new Set(existing.map((scene) => scene.id));
-  const givenIds = parsed.data.orderedIds;
-  const matchesSceneList =
-    givenIds.length === existingIds.size &&
-    givenIds.every((id) => existingIds.has(id));
-
-  if (!matchesSceneList) {
-    return {
-      ok: false,
-      errors: {
-        orderedIds: [
-          "The given scenes do not match this adventure's current scene list.",
-        ],
-      },
-    };
-  }
-
-  try {
-    await prisma.$transaction(
-      givenIds.map((id, index) =>
-        prisma.scene.update({ where: { id }, data: { position: index + 1 } })
-      )
-    );
-  } catch (error) {
-    throw toDatabaseError("reordering scenes", error);
-  }
-
-  revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
-  return { ok: true };
+  return result;
 }

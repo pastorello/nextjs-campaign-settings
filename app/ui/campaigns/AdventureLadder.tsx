@@ -80,16 +80,20 @@ export default function AdventureLadder({
     if (!moved) return;
     reordered.splice(targetIndex, 0, moved);
 
-    const result = await reorderAdventures(
-      campaignId,
-      reordered.map((adventure) => adventure.id)
-    );
+    try {
+      const result = await reorderAdventures(
+        campaignId,
+        reordered.map((adventure) => adventure.id)
+      );
 
-    if (!result.ok) {
-      notifyError(t("common.deleteButton.deleteFailed"));
-      return;
+      if (!result.ok) {
+        notifyError(t("common.reorder.failed"));
+        return;
+      }
+      router.refresh();
+    } catch {
+      notifyError(t("common.reorder.failed"));
     }
-    router.refresh();
   }
 
   async function handleDelete() {

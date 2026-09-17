@@ -10,6 +10,7 @@ import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 import { z } from "zod";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 /**
  * Adds a loot row to a scene (SPEC-013 §5). `sceneId` is deliberately not
@@ -51,17 +52,21 @@ export default async function createLoot(
     treasureId,
   } = parsed.data as Omit<Loot, "id">;
 
-  await prisma.loot.create({
-    data: {
-      sceneId,
-      position,
-      description,
-      quantity,
-      value,
-      magicItemId,
-      treasureId,
-    },
-  });
+  try {
+    await prisma.loot.create({
+      data: {
+        sceneId,
+        position,
+        description,
+        quantity,
+        value,
+        magicItemId,
+        treasureId,
+      },
+    });
+  } catch (error) {
+    throw toDatabaseError("creating loot", error);
+  }
 
   revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };

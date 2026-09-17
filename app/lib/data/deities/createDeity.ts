@@ -7,6 +7,7 @@ import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildCreateSchema } from "../validation/buildEntitySchema";
 import { revalidatePath } from "next/cache";
 import Deity from "../../definitions/interfaces/deities/Deity";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 export default async function createDeity(
   formData: Deity
@@ -38,24 +39,28 @@ export default async function createDeity(
     meaning,
   } = parsed.data as Omit<Deity, "id">;
 
-  await prisma.deities.create({
-    data: {
-      name,
-      deityTitle,
-      deityType,
-      deityRank,
-      tarotCard,
-      celestialBody,
-      element,
-      class: deityClass,
-      holidays,
-      color,
-      tradition,
-      alignment,
-      alignmentDomain,
-      meaning,
-    },
-  });
+  try {
+    await prisma.deities.create({
+      data: {
+        name,
+        deityTitle,
+        deityType,
+        deityRank,
+        tarotCard,
+        celestialBody,
+        element,
+        class: deityClass,
+        holidays,
+        color,
+        tradition,
+        alignment,
+        alignmentDomain,
+        meaning,
+      },
+    });
+  } catch (error) {
+    throw toDatabaseError("creating deity", error);
+  }
 
   revalidatePath("/deities");
   return { ok: true };

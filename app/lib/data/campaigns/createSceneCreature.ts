@@ -10,6 +10,7 @@ import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 import { z } from "zod";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 /**
  * Adds a creature to a scene (SPEC-013 §5). `sceneId` is deliberately not
@@ -36,9 +37,13 @@ export default async function createSceneCreature(
   const { sceneId, position, name, level, xpEach, quantity, note, npcId } =
     parsed.data as Omit<SceneCreature, "id">;
 
-  await prisma.sceneCreature.create({
-    data: { sceneId, position, name, level, xpEach, quantity, note, npcId },
-  });
+  try {
+    await prisma.sceneCreature.create({
+      data: { sceneId, position, name, level, xpEach, quantity, note, npcId },
+    });
+  } catch (error) {
+    throw toDatabaseError("creating scene creature", error);
+  }
 
   revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };

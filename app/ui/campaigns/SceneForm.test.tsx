@@ -12,6 +12,9 @@ vi.mock("@/i18n/navigation", () => ({
   useRouter: () => ({ refresh }),
 }));
 
+const { notifyError } = vi.hoisted(() => ({ notifyError: vi.fn() }));
+vi.mock("@/app/lib/notifications/notify", () => ({ notifyError }));
+
 const createScene = vi.fn<(...args: unknown[]) => unknown>();
 vi.mock("@/app/lib/data/campaigns/createScene", () => ({
   default: (...args: unknown[]) => createScene(...args),
@@ -115,6 +118,32 @@ describe("SceneForm (SPEC-013 T8)", () => {
     await vi.waitFor(() =>
       expect(screen.getByRole("alert")).toHaveTextContent("Required")
     );
+    expect(onSaved).not.toHaveBeenCalled();
+  });
+
+  // TD-126: a thrown action used to leave the form stuck on "saving", with
+  // Cancel disabled and nothing shown to the user.
+  it("recovers from a thrown save with an error toast", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    createScene.mockRejectedValue(new Error("connection lost"));
+    render(
+      <SceneForm
+        adventureId={1}
+        nextPosition={1}
+        zoneOptions={zoneOptions}
+        onCancel={onCancel}
+        onSaved={onSaved}
+      />
+    );
+
+    fireEvent.click(screen.getByText("scene.form.createButton"));
+
+    await vi.waitFor(() =>
+      expect(notifyError).toHaveBeenCalledWith("saveFailed")
+    );
+    expect(
+      screen.getByRole("button", { name: "common.form.cancel" })
+    ).toBeEnabled();
     expect(onSaved).not.toHaveBeenCalled();
   });
 });

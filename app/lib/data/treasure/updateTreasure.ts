@@ -7,6 +7,7 @@ import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildUpdateSchema } from "../validation/buildEntitySchema";
 import { revalidatePath } from "next/cache";
 import Treasure from "../../definitions/interfaces/treasure/Treasure";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 export default async function updateTreasure(
   formData: Treasure
@@ -24,10 +25,14 @@ export default async function updateTreasure(
   // the one assertion that narrows it back.
   const { id, ...data } = parsed.data as Partial<Treasure> & { id: number };
 
-  await prisma.treasure.update({
-    where: { id },
-    data,
-  });
+  try {
+    await prisma.treasure.update({
+      where: { id },
+      data,
+    });
+  } catch (error) {
+    throw toDatabaseError("updating treasure", error);
+  }
 
   revalidatePath("/treasures");
   return { ok: true };

@@ -4,12 +4,12 @@ import { FormEvent, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { useRouter } from "@/i18n/navigation";
+import useMutationSubmit from "@/app/lib/hooks/useMutationSubmit";
 import createSceneCreature from "@/app/lib/data/campaigns/createSceneCreature";
 import updateSceneCreature from "@/app/lib/data/campaigns/updateSceneCreature";
 import sceneCreatureMeta from "@/app/lib/config/campaigns/sceneCreatureMeta";
 import SceneCreatureMetaField from "@/app/lib/definitions/enums/campaign/SceneCreatureMetaField";
 import SceneCreature from "@/app/lib/definitions/interfaces/campaign/SceneCreature";
-import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { ResolvedOption } from "@/app/lib/definitions/types/SelectOption";
 import TextInput from "@/app/ui/forms/inputs/TextInput";
 import Select from "@/app/ui/forms/inputs/Select";
@@ -61,10 +61,7 @@ export default function SceneCreatureForm({
   const [quantity, setQuantity] = useState(String(creature?.quantity ?? 1));
   const [note, setNote] = useState(creature?.note ?? "");
   const [npcId, setNpcId] = useState<number>(creature?.npcId ?? NONE);
-  const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
-    {}
-  );
-  const [isSaving, setIsSaving] = useState(false);
+  const { errors, isSaving, submit } = useMutationSubmit();
 
   const npcSelectOptions = [
     { value: NONE, label: t("sceneCreature.fields.npcId.noneOption") },
@@ -73,8 +70,6 @@ export default function SceneCreatureForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsSaving(true);
-
     const payload = {
       ...(isEditMode ? { id: creature.id } : { sceneId }),
       position: isEditMode ? creature.position : nextPosition,
@@ -86,18 +81,11 @@ export default function SceneCreatureForm({
       npcId: npcId === NONE ? null : npcId,
     } as SceneCreature;
 
-    const result: MutationResult = isEditMode
-      ? await updateSceneCreature(payload)
-      : await createSceneCreature(payload);
+    const saved = await submit(() =>
+      isEditMode ? updateSceneCreature(payload) : createSceneCreature(payload)
+    );
+    if (!saved) return;
 
-    setIsSaving(false);
-
-    if (!result.ok) {
-      setErrors(result.errors);
-      return;
-    }
-
-    setErrors({});
     router.refresh();
     onSaved();
   }

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
 import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import DatabaseError from "@/app/lib/errors/DatabaseError";
 import Adventure from "@/app/lib/definitions/interfaces/campaign/Adventure";
 import AdventureStatus from "@/app/lib/definitions/enums/campaign/AdventureStatus";
 
@@ -81,5 +82,14 @@ describe("updateAdventure (SPEC-013 T6)", () => {
 
     expect(result.ok).toBe(false);
     expect(update).not.toHaveBeenCalled();
+  });
+
+  // TD-126: a failed write surfaces as a DatabaseError, not a raw Prisma one.
+  it("wraps a write failure in a DatabaseError", async () => {
+    update.mockRejectedValue(new Error("connection lost"));
+
+    await expect(updateAdventure(validFormData)).rejects.toBeInstanceOf(
+      DatabaseError
+    );
   });
 });

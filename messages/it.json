@@ -64,7 +64,8 @@
       "saving": "Salvataggio...",
       "delete": "Elimina",
       "deleting": "Eliminazione...",
-      "errorPrefix": "Errore: {message}"
+      "errorPrefix": "Errore: {message}",
+      "saveFailed": "Salvataggio non riuscito. Riprova."
     },
     "location": {
       "unknown": "Sconosciuta"

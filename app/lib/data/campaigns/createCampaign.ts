@@ -9,6 +9,7 @@ import { buildBespokeCreateSchema } from "../validation/buildBespokeEntitySchema
 import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 /**
  * Creates the DM's campaign (SPEC-013 §5's empty-state flow: "on first use
@@ -33,9 +34,13 @@ export default async function createCampaign(
   // Read from `parsed.data`, never the raw payload (TD-122).
   const { title, synopsis, partySize } = parsed.data as Omit<Campaign, "id">;
 
-  await prisma.campaign.create({
-    data: { title, synopsis, partySize },
-  });
+  try {
+    await prisma.campaign.create({
+      data: { title, synopsis, partySize },
+    });
+  } catch (error) {
+    throw toDatabaseError("creating campaign", error);
+  }
 
   revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };

@@ -9,6 +9,7 @@ import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema
 import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 /**
  * Updates a scene's own fields, including its position — the direct,
@@ -31,10 +32,14 @@ export default async function updateScene(
   // declared keys the payload carried, already coerced (TD-122).
   const { id, ...data } = parsed.data as Partial<Scene> & { id: number };
 
-  await prisma.scene.update({
-    where: { id },
-    data,
-  });
+  try {
+    await prisma.scene.update({
+      where: { id },
+      data,
+    });
+  } catch (error) {
+    throw toDatabaseError("updating scene", error);
+  }
 
   revalidatePath(dashboardPath(DEFAULT_GAME_SYSTEM, "/campaign"));
   return { ok: true };

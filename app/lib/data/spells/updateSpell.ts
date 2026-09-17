@@ -8,6 +8,7 @@ import Spell from "../../definitions/interfaces/spells/Spell";
 import PageType from "@/app/lib/definitions/types/PageType";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildUpdateSchema } from "../validation/buildEntitySchema";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 export default async function updateSpell(
   formData: Spell
@@ -25,10 +26,14 @@ export default async function updateSpell(
   // the one assertion that narrows it back.
   const { id, ...data } = parsed.data as Partial<Spell> & { id: number };
 
-  await prisma.spells.update({
-    where: { id },
-    data,
-  });
+  try {
+    await prisma.spells.update({
+      where: { id },
+      data,
+    });
+  } catch (error) {
+    throw toDatabaseError("updating spell", error);
+  }
 
   revalidatePath("/spells");
   return { ok: true };

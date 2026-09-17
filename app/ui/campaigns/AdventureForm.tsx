@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { useRouter } from "@/i18n/navigation";
+import useMutationSubmit from "@/app/lib/hooks/useMutationSubmit";
 import createAdventure from "@/app/lib/data/campaigns/createAdventure";
 import adventureMeta from "@/app/lib/config/campaigns/adventureMeta";
 import AdventureMetaField from "@/app/lib/definitions/enums/campaign/AdventureMetaField";
@@ -44,15 +45,10 @@ export default function AdventureForm({
     String(adventureMeta[AdventureMetaField.targetLevel].defaultValue)
   );
   const [title, setTitle] = useState("");
-  const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
-    {}
-  );
-  const [isSaving, setIsSaving] = useState(false);
+  const { errors, isSaving, submit } = useMutationSubmit();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setIsSaving(true);
-
     const payload: Omit<Adventure, "id"> = {
       campaignId,
       position: Number(position),
@@ -68,15 +64,9 @@ export default function AdventureForm({
       consumableTarget: null,
     };
 
-    const result = await createAdventure(payload as Adventure);
-    setIsSaving(false);
+    const saved = await submit(() => createAdventure(payload as Adventure));
+    if (!saved) return;
 
-    if (!result.ok) {
-      setErrors(result.errors);
-      return;
-    }
-
-    setErrors({});
     router.refresh();
     onSaved();
   }

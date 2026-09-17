@@ -7,6 +7,7 @@ import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildCreateSchema } from "../validation/buildEntitySchema";
 import Treasure from "@/app/lib/definitions/interfaces/treasure/Treasure";
 import { revalidatePath } from "next/cache";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 export default async function createTreasure(
   formData: Treasure
@@ -26,14 +27,18 @@ export default async function createTreasure(
     "id"
   >;
 
-  await prisma.treasure.create({
-    data: {
-      name,
-      description,
-      category,
-      value,
-    },
-  });
+  try {
+    await prisma.treasure.create({
+      data: {
+        name,
+        description,
+        category,
+        value,
+      },
+    });
+  } catch (error) {
+    throw toDatabaseError("creating treasure", error);
+  }
 
   revalidatePath("/treasures");
   return { ok: true };

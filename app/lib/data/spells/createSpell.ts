@@ -7,6 +7,7 @@ import Spell from "../../definitions/interfaces/spells/Spell";
 import PageType from "@/app/lib/definitions/types/PageType";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildCreateSchema } from "../validation/buildEntitySchema";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 export default async function createSpell(
   formData: Spell
@@ -37,23 +38,27 @@ export default async function createSpell(
     upcast,
   } = parsed.data as Omit<Spell, "id">;
 
-  await prisma.spells.create({
-    data: {
-      name,
-      description,
-      level,
-      circle,
-      classes,
-      castingTime,
-      range,
-      components,
-      duration,
-      savingThrow,
-      ritual,
-      concentration,
-      upcast,
-    },
-  });
+  try {
+    await prisma.spells.create({
+      data: {
+        name,
+        description,
+        level,
+        circle,
+        classes,
+        castingTime,
+        range,
+        components,
+        duration,
+        savingThrow,
+        ritual,
+        concentration,
+        upcast,
+      },
+    });
+  } catch (error) {
+    throw toDatabaseError("creating spell", error);
+  }
 
   revalidatePath("/spells");
   return { ok: true };

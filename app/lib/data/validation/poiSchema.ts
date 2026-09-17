@@ -15,7 +15,7 @@ const poiFields = {
   title: z.string().min(1),
   description: z.string().optional(),
   // `finite()`, not Earth's ±90/±180. These maps are image overlays, not a
-  // globe: `app/[locale]/dashboard/geography/page.tsx` declares bounds like
+  // globe: `app/[locale]/dashboard/[system]/geography/page.tsx` declares bounds like
   // `[[0, 0], [1000, 1333]]`, so a marker's "lat"/"lng" are pixel-space
   // coordinates that routinely run into the hundreds. Geographic bounds were
   // the first thing written here and they rejected every POI the app can

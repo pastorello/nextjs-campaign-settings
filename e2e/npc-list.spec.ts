@@ -67,6 +67,10 @@ const createNpc = async (page: Page, name: string, faction?: string) => {
 
 const deleteRow = async (page: Page, listUrl: string, name: string) => {
   await page.goto(`${listUrl}?query=${encodeURIComponent(name)}`);
+  // The delete button opens a client-side dialog; a click that lands before
+  // hydration is swallowed and the dialog never appears (seen on PR #298's
+  // CI, 2026-09-17).
+  await page.waitForLoadState("networkidle");
   await rowFor(page, name)
     .getByRole("button", { name: messages.common.form.delete })
     .click();

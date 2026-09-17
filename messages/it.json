@@ -1034,6 +1034,9 @@
       },
       "partySize": {
         "label": "Numero di giocatori"
+      },
+      "system": {
+        "label": "Sistema di gioco"
       }
     }
   },
@@ -1250,5 +1253,8 @@
       "consumables": "Consumabili"
     },
     "heroPoints": "Punti eroe guadagnati"
+  },
+  "gameSystems": {
+    "dnd5e": "D&D 5e"
   }
 }

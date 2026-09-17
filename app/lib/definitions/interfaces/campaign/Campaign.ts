@@ -1,3 +1,5 @@
+import GameSystem from "@/app/lib/definitions/GameSystem";
+
 /**
  * A campaign: the top-level container for a ladder of adventures
  * (SPEC-013 §6). `createdAt`/`updatedAt` are omitted, matching the
@@ -10,6 +12,8 @@ interface Campaign {
   title: string;
   synopsis: string | null;
   partySize: number;
+  /** Set at creation and never changed (SPEC-018 T3). */
+  system: GameSystem;
 }
 
 export default Campaign;

@@ -3,6 +3,7 @@ import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import Campaign from "@/app/lib/definitions/interfaces/campaign/Campaign";
 import Adventure from "@/app/lib/definitions/interfaces/campaign/Adventure";
 import AdventureStatus from "@/app/lib/definitions/enums/campaign/AdventureStatus";
+import GameSystem from "@/app/lib/definitions/GameSystem";
 
 export interface CampaignWithAdventures extends Campaign {
   adventures: Adventure[];
@@ -19,14 +20,21 @@ export interface CampaignWithAdventures extends Campaign {
  * different piece of work, not this spec's. Same reasoning `fetchRootPlace`
  * already uses for the map's single root.
  *
+ * Filtered by `system` (SPEC-018 T3, ADR-0013 rule 9): under a system only
+ * that system's campaign is shown, so a campaign of another system reads as
+ * the empty state here.
+ *
  * Outside the metadata layer (ADR-0011): a plain `select`-and-map read
  * rather than `getQuery`/`buildResultSchema`, which `campaign` and
  * `adventure` never register for.
  */
-export default async function fetchCampaign(): Promise<CampaignWithAdventures | null> {
+export default async function fetchCampaign(
+  system: GameSystem
+): Promise<CampaignWithAdventures | null> {
   let row;
   try {
     row = await prisma.campaign.findFirst({
+      where: { system },
       orderBy: { id: "asc" },
       select: {
         id: true,
@@ -64,6 +72,8 @@ export default async function fetchCampaign(): Promise<CampaignWithAdventures | 
     title: row.title,
     synopsis: row.synopsis,
     partySize: row.partySize,
+    // The row matched `where: { system }`, so its system is the argument.
+    system,
     // `status` is a raw `String` column (SPEC-013 §6); the three values
     // written to it are exactly `AdventureStatus`'s members, enforced at
     // write time by `adventureMeta.status`'s `z.nativeEnum` validator.

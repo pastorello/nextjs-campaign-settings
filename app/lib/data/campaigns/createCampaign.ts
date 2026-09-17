@@ -31,11 +31,14 @@ export default async function createCampaign(
   }
 
   // Read from `parsed.data`, never the raw payload (TD-122).
-  const { title, synopsis, partySize } = parsed.data as Omit<Campaign, "id">;
+  const { title, synopsis, partySize, system } = parsed.data as Omit<
+    Campaign,
+    "id"
+  >;
 
   try {
     await prisma.campaign.create({
-      data: { title, synopsis, partySize },
+      data: { title, synopsis, partySize, system },
     });
   } catch (error) {
     throw toDatabaseError("creating campaign", error);

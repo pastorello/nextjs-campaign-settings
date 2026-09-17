@@ -3,7 +3,10 @@ import FieldType from "@/app/lib/definitions/types/FieldType";
 import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import CampaignMetaField from "@/app/lib/definitions/enums/campaign/CampaignMetaField";
 import nullableToOptional from "@/app/lib/utils/validators/nullableToOptional";
+import { GAME_SYSTEMS } from "@/app/lib/definitions/GameSystem";
 import z from "zod";
+import firstOptionValue from "../firstOptionValue";
+import gameSystems from "./game-systems";
 
 /**
  * The campaign's own scalar fields (SPEC-013 §5/§6). Outside the metadata
@@ -42,6 +45,20 @@ const campaignMeta = {
     fieldType: FieldType.integer,
     controlType: ControlType.Text,
     validator: z.coerce.number().int().positive(),
+  },
+  // SPEC-018 T3 / ADR-0013 rule 9. A raw `String` column checked against
+  // the closed vocabulary here, like `adventureMeta.status`. Set once, at
+  // creation: a campaign does not switch systems, so `updateCampaign` drops
+  // this field. `CampaignForm` preselects the route's system; this default
+  // only covers a caller with no route.
+  [CampaignMetaField.system]: {
+    metaField: "system",
+    labelKey: "campaign.fields.system.label",
+    defaultValue: firstOptionValue(gameSystems),
+    fieldType: FieldType.string,
+    options: gameSystems,
+    controlType: ControlType.Select,
+    validator: z.enum(GAME_SYSTEMS),
   },
 } satisfies Record<string, PageMeta>;
 

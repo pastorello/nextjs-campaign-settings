@@ -14,7 +14,7 @@ vi.mock("@/app/lib/connections/prisma", () => ({
 
 import updateCampaign from "./updateCampaign";
 
-const validFormData: Campaign = {
+const validFormData: Omit<Campaign, "system"> = {
   id: 1,
   title: "The Black Hand Rises",
   synopsis: "A shadow falls over the free cities.",
@@ -46,6 +46,25 @@ describe("updateCampaign (SPEC-013 T6)", () => {
     expect(update).toHaveBeenCalledWith({
       where: { id },
       data: rest,
+    });
+  });
+
+  // SPEC-018 (decided 2026-09-11): a campaign does not switch systems. A
+  // `system` smuggled into the payload is stripped, never written.
+  it("never writes a submitted system", async () => {
+    update.mockResolvedValue({});
+    const payload = { ...validFormData, system: "pf2e" };
+
+    const result = await updateCampaign(payload);
+
+    expect(result).toEqual({ ok: true });
+    expect(update).toHaveBeenCalledWith({
+      where: { id: validFormData.id },
+      data: {
+        title: validFormData.title,
+        synopsis: validFormData.synopsis,
+        partySize: validFormData.partySize,
+      },
     });
   });
 

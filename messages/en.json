@@ -1034,6 +1034,9 @@
       },
       "partySize": {
         "label": "Party size"
+      },
+      "system": {
+        "label": "Game system"
       }
     }
   },
@@ -1250,5 +1253,8 @@
       "consumables": "Consumables"
     },
     "heroPoints": "Hero points earned"
+  },
+  "gameSystems": {
+    "dnd5e": "D&D 5e"
   }
 }

@@ -1,6 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
 
+import { isGameSystem } from "@/app/lib/definitions/GameSystem";
 import fetchCampaign from "@/app/lib/data/campaigns/fetchCampaign";
 import fetchAdventureSceneProgress from "@/app/lib/data/campaigns/fetchAdventureSceneProgress";
 import CampaignForm from "@/app/ui/campaigns/CampaignForm";
@@ -19,10 +21,19 @@ export async function generateMetadata(): Promise<Metadata> {
  * ladder once it exists. Outside the metadata layer (ADR-0011) — bespoke
  * components under `app/ui/campaigns/`, the same "root exists?" shape
  * `world/page.tsx` already uses for SPEC-004's single root place.
+ *
+ * Only the route system's campaign is shown (SPEC-018 T3), so another
+ * system's URL shows the empty state, with that system preselected.
  */
-export default async function CampaignPage() {
+export default async function CampaignPage({
+  params,
+}: PageProps<"/[locale]/dashboard/[system]/campaign">) {
+  const { system } = await params;
+  // `[system]/layout.tsx` has already 404ed this; the guard narrows the type.
+  if (!isGameSystem(system)) notFound();
+
   const t = await getTranslations("campaign");
-  const campaign = await fetchCampaign();
+  const campaign = await fetchCampaign(system);
 
   if (!campaign) {
     return (

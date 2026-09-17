@@ -10,6 +10,11 @@ import updateCampaign from "@/app/lib/data/campaigns/updateCampaign";
 import campaignMeta from "@/app/lib/config/campaigns/campaignMeta";
 import CampaignMetaField from "@/app/lib/definitions/enums/campaign/CampaignMetaField";
 import Campaign from "@/app/lib/definitions/interfaces/campaign/Campaign";
+import GameSystem, { isGameSystem } from "@/app/lib/definitions/GameSystem";
+import useGameSystem from "@/app/lib/hooks/useGameSystem";
+import resolveOptions from "@/app/lib/utils/data/resolveOptions";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import Select from "@/app/ui/forms/inputs/Select";
 import TextInput from "@/app/ui/forms/inputs/TextInput";
 import TextareaInput from "@/app/ui/forms/inputs/TextareaInput";
 import BespokeFormErrorSummary from "@/app/ui/forms/BespokeFormErrorSummary";
@@ -51,23 +56,36 @@ export default function CampaignForm({
         campaignMeta[CampaignMetaField.partySize].defaultValue
     )
   );
+  // SPEC-018 T3: asked on create only, preselected from the route. A
+  // campaign never switches systems, so edit mode neither shows nor sends it.
+  const routeSystem = useGameSystem();
+  const [system, setSystem] = useState<GameSystem>(routeSystem);
+  const systemMeta = campaignMeta[CampaignMetaField.system];
+  const systemOptions = resolveOptions(systemMeta.options, t);
   const { errors, isSaving, submit } = useMutationSubmit();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const payload = {
-      ...(isEditMode ? { id: campaign.id } : {}),
+    const fields = {
       title,
       synopsis: synopsis.trim() === "" ? null : synopsis,
       partySize: Number(partySize),
-    } as Campaign;
+    };
 
     const saved = await submit(() =>
-      isEditMode ? updateCampaign(payload) : createCampaign(payload)
+      isEditMode
+        ? updateCampaign({ ...fields, id: campaign.id })
+        : createCampaign({ ...fields, id: 0, system })
     );
     if (!saved) return;
 
-    router.refresh();
+    // A campaign created for another system is listed only under that
+    // system's URL, so go there rather than refresh into the empty state.
+    if (!isEditMode && system !== routeSystem) {
+      router.push(dashboardPath(system, "/campaign"));
+    } else {
+      router.refresh();
+    }
     onSaved?.();
   }
 
@@ -92,6 +110,16 @@ export default function CampaignForm({
         value={partySize}
         onChange={(value) => setPartySize(String(value))}
       />
+      {!isEditMode && (
+        <Select
+          label={t(systemMeta.labelKey)}
+          value={system}
+          options={systemOptions}
+          onChange={(value) => {
+            if (isGameSystem(value)) setSystem(value);
+          }}
+        />
+      )}
       <div className="flex justify-end gap-2">
         <BaseButton
           buttonState={isSaving ? ButtonState.Loading : ButtonState.Default}

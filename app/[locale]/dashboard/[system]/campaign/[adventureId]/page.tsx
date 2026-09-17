@@ -9,14 +9,12 @@ import { CurrencyUnit } from "@/app/lib/utils/currency/convertCurrency";
 import AdventureHeader from "@/app/ui/campaigns/AdventureHeader";
 import BudgetPanel from "@/app/ui/campaigns/BudgetPanel";
 import SceneList from "@/app/ui/campaigns/SceneList";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { redirect } from "@/i18n/navigation";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("adventure.page");
   return { title: t("title") };
-}
-
-interface AdventurePageProps {
-  params: Promise<{ adventureId: string }>;
 }
 
 /**
@@ -28,15 +26,29 @@ interface AdventurePageProps {
  * on every render — `CheckOffControl`'s `router.refresh()` re-runs this
  * server component, which is what makes the panel update without a full
  * page reload.
+ *
+ * An adventure of a campaign opens under that campaign's system (SPEC-018
+ * T3): under any other system's URL it redirects to its own, keeping the
+ * locale. A standalone adventure has no system and opens under any.
  */
-export default async function AdventurePage({ params }: AdventurePageProps) {
-  const { adventureId } = await params;
+export default async function AdventurePage({
+  params,
+}: PageProps<"/[locale]/dashboard/[system]/campaign/[adventureId]">) {
+  const { adventureId, system, locale } = await params;
   const id = Number(adventureId);
 
   if (!Number.isInteger(id) || id <= 0) notFound();
 
   const adventure = await fetchAdventureWithScenes(id);
   if (!adventure) notFound();
+
+  const { campaignSystem } = adventure;
+  if (campaignSystem !== null && campaignSystem !== system) {
+    redirect({
+      href: dashboardPath(campaignSystem, `/campaign/${id}`),
+      locale,
+    });
+  }
 
   const [zoneOptions, npcOptions, magicItemOptions, treasureOptions, totals] =
     await Promise.all([

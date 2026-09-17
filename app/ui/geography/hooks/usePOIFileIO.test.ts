@@ -69,4 +69,28 @@ describe("usePOIFileIO (TD-127)", () => {
     expect(importGeoJSON).not.toHaveBeenCalled();
     expect(toast.error).toHaveBeenCalledWith("importFailed");
   });
+
+  // TD-128 — valid JSON in the wrong shape used to reach `importGeoJSON`
+  // unchecked and fail deep inside it, or once per feature on the server.
+  it("rejects a malformed GeoJSON file before importing anything", async () => {
+    const result = render();
+    const malformed = {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: ["x", 1] },
+          properties: { title: "Kang", category: "not-a-category" },
+        },
+      ],
+    };
+
+    await act(() =>
+      result.current.handleImport(fileOf(JSON.stringify(malformed)))
+    );
+
+    expect(importGeoJSON).not.toHaveBeenCalled();
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalledWith("importFailed");
+  });
 });

@@ -907,9 +907,12 @@ describe("WorldMap", () => {
       text: () => Promise.resolve('{"type":"FeatureCollection","features":[]}'),
     } as unknown as File;
 
+    // `WorldMap` passes `onImport` as a `void`-returning wrapper, so the
+    // import settles after this call returns — wait for it (TD-128 added a
+    // validation step, and with it another tick).
     await onImport?.(file);
 
-    expect(importGeoJSON).toHaveBeenCalled();
+    await waitFor(() => expect(importGeoJSON).toHaveBeenCalled());
     expect(toast.success).toHaveBeenCalledWith("importSuccess");
   });
 
@@ -922,7 +925,9 @@ describe("WorldMap", () => {
 
     await onImport?.(badFile);
 
-    expect(toast.error).toHaveBeenCalledWith("importFailed");
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith("importFailed")
+    );
   });
 
   it("creates a place under the current parent (SPEC-004 M5)", async () => {

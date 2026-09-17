@@ -112,7 +112,9 @@ test.describe("world map", () => {
       messages.geography.contextMenu.addPlace.trigger
     );
 
-    const closeButton = page.getByRole("button", { name: "Close" });
+    const closeButton = page.getByRole("button", {
+      name: messages.geography.poiPanel.close,
+    });
     await expect(closeButton).toBeVisible();
 
     const panel = closeButton.locator("xpath=..");

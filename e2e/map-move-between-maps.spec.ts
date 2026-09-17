@@ -102,18 +102,27 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
         messages.geography.contextMenu.addPlace.trigger
       );
       await page
-        .locator("label", { hasText: "Kind" })
+        .locator("label", { hasText: messages.geography.poiPanel.fields.kind })
         .locator("xpath=following-sibling::select[1]")
         .selectOption("region");
       await page
         .locator('input[type="file"][accept*="image"]')
         .setInputFiles(PNG_FILE);
-      await page.getByPlaceholder("Enter place name").fill(title);
-      await page.getByRole("button", { name: "Save" }).click();
+      await page
+        .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)
+        .fill(title);
+      await page
+        .getByRole("button", { name: messages.geography.poiPanel.save.save })
+        .click();
       await expect(navigableMarkers).toHaveCount(before + 1);
       // The panel stays open over the map's left edge; leave it open and the
       // marker just created is occluded and unclickable.
-      await page.getByRole("button", { name: "Close", exact: true }).click();
+      await page
+        .getByRole("button", {
+          name: messages.geography.poiPanel.close,
+          exact: true,
+        })
+        .click();
       return before;
     };
 
@@ -151,9 +160,18 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
       { x: 420, y: 260 },
       messages.geography.contextMenu.addPlace.trigger
     );
-    await page.getByPlaceholder("Enter place name").fill(landmarkTitle);
-    await page.getByRole("button", { name: "Save" }).click();
-    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await page
+      .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)
+      .fill(landmarkTitle);
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.save.save })
+      .click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.poiPanel.close,
+        exact: true,
+      })
+      .click();
     await expect(landmarkMarkers).toHaveCount(1);
 
     // 4. Stand the NPC at that landmark — zone *and* landmark, which is the

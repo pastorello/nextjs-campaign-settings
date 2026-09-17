@@ -161,6 +161,12 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-137 | No `nav` landmark around the sidebar                                                                           | 🟢 Low               | S      | 4     |
 | TD-138 | The overview skips from `h1` to `h3`                                                                           | 🟢 Low               | S      | 4     |
 | TD-139 | Pagination doesn't mark the current page                                                                       | 🟢 Low               | S      | 4     |
+| TD-140 | Delete wording differs between a place's trigger and its confirmation, and deleting a landmark asks nothing    | 🟡 Medium            | S      | 4     |
+| TD-141 | English words left in Italian copy beyond TD-120                                                               | 🟢 Low               | S      | 4     |
+| TD-142 | Title Case in Italian form titles and buttons                                                                  | 🟢 Low               | S      | 4     |
+| TD-143 | NPCs are called "PNG" on the card and "Personaggi conosciuti" on the page it opens                             | 🟢 Low               | S      | 4     |
+| TD-144 | `loot.checkOff.label` means different things in it and en                                                      | 🟢 Low               | S      | 4     |
+| TD-145 | Shared error messages don't say what to do next                                                                | 🟢 Low               | S      | 4     |
 
 ---
 
@@ -1471,3 +1477,76 @@ blue background and no `aria-current`. **The fix, in shape:**
 Not covered by this review: `/campaign/2`'s scene editors and the
 assign-location modal did not finish loading during the pass. Check both in a
 follow-up.
+
+### TD-140 — Delete wording differs between a place's trigger and its confirmation, and deleting a landmark asks nothing
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-17, UX copy review
+
+- `geography.popover.delete` is "Rimuovi definitivamente" / "Remove
+  permanently", but the confirmation it opens asks "Eliminare «{title}»?" /
+  "Delete "{title}"?". The trigger and its confirmation use different verbs.
+- That confirmation (`geography.deletePlace.*`) never says the action can't be
+  undone, although it cascades to children, NPCs and deities, while the simpler
+  `common.deleteButton.confirmDescription` does say so.
+- `geography.popover.deleteLandmark` ("Elimina" / "Delete") deletes a landmark
+  with no confirmation (`usePOIManager.ts:596-608`). `PlacePopover.tsx:94`
+  records this as the existing, unconfirmed behaviour SPEC T7 reused, so it
+  may be deliberate.
+
+**The fix, in shape:** use one verb for trigger and confirmation, and add the
+"can't be undone" line to `deletePlace`. **Decision needed from the DM:** should
+deleting a landmark confirm first? If yes, that is a behaviour change with its
+own test, not a copy fix.
+
+### TD-141 — English words left in Italian copy beyond TD-120
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, UX copy review
+
+- `spells.subclasses.druidoTerra` / `druidoLuna`: "Druido - Circle della
+  Terra" / "Circle della Luna". This looks like TD-33's `Circolo` → `Circle`
+  identifier rename leaking into catalogue values. Use "Circolo della …".
+- `campaign.emptyState.description` and `adventure.ladder.emptyMessage` say
+  "la ladder". Use "la scaletta" (the section itself is already titled
+  "Avventure").
+
+### TD-142 — Title Case in Italian form titles and buttons
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, UX copy review
+
+`spells.form.*` and `spells.page.*` capitalise the noun ("Crea nuovo
+Incantesimo", "Nessun Incantesimo trovato"), and `deities.form.*` does the same
+("Modifica Divinità"), while `deities.page.*`, `magicItems`, `treasure` and
+`factions` already use sentence case. **The fix, in shape:** lowercase the two
+outliers. A catalogue test that flags mid-string capitals in `it.json`'s
+`form.*Title`/`*Button` values would keep them that way.
+
+### TD-143 — NPCs are called "PNG" on the card and "Personaggi conosciuti" on the page it opens
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, UX copy review
+
+The overview card `common.cards.npc` reads "PNG" and links to `/npc`, whose
+title (`npc.page.title`) and nav entry (`common.nav.npc`) read "Personaggi
+conosciuti". `npc.page.searchPlaceholder` is "Cerca png...", lowercase, while
+every button keeps "PNG". **The fix, in shape:** the card uses the nav label,
+and the placeholder becomes "Cerca PNG...".
+
+### TD-144 — `loot.checkOff.label` means different things in it and en
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, UX copy review
+
+Italian "Trovato" (found) vs English "Taken". The scene and creature check-offs
+agree ("Assegnato" / "Awarded"). **Decision needed from the DM:** which one the
+check-off means. "Trovato"/"Found" matches `budget.columns.found`; "Preso"/
+"Taken" is the alternative.
+
+### TD-145 — Shared error messages don't say what to do next
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, UX copy review
+
+`common.deleteButton.deleteFailed` ("Errore durante la cancellazione"),
+`common.deleteButton.networkFailed` ("Errore di rete") and
+`common.checkOff.failed` ("Aggiornamento non riuscito") stop there, while
+almost every `geography.*.errors.*` message ends with "Riprova." / "Try
+again." **The fix, in shape:** add the same ending in both catalogues
+("Eliminazione non riuscita. Riprova." / "Delete failed. Try again.", and so
+on). Note TD-125 reuses `deleteFailed` for reorder failures; fix that there.

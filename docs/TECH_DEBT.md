@@ -1599,7 +1599,7 @@ files also duplicate the export/import handlers. **The fix, in shape:**
 validate with `poiGeoJSONSchema`, and share one import/export helper.
 **Related:** TD-14, TD-02b.
 
-### TD-129 — Map place and POI schemas restate field rules instead of using `zoneMeta`
+### TD-129 ✅ Map place and POI schemas restate field rules instead of using `zoneMeta` — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, tech-debt audit
 
@@ -1610,6 +1610,23 @@ a place accepts `description: ""` (`createPlace.ts:78-79`), while editing
 rejects it (`zoneMeta.ts:62`, `.min(1)`), so "no description" can be stored two
 ways. **The fix, in shape:** build these schemas from `zoneMeta`'s validators,
 as `updateZoneDetails` already does. **Related:** TD-02, TD-104.
+
+**Resolution:** `placeSchema.ts`, `poiSchema.ts` and `rootPlaceSchema.ts` now
+use `zoneMeta.title.validator`/`zoneMeta.description.validator` directly,
+the same validators `updateZoneDetails` already built its schema from —
+`zone`/`poi` both write to a nullable `description` column, so the same
+"empty string refused, only `null`/`undefined` mean unset" rule applies to
+both. Resolved the "" disagreement in `zoneMeta`'s direction, not
+`placeSchema`'s: `""` is now refused on create the same way it already was
+on edit, so "no description" only ever reaches the column as `null` — never
+stored as an empty string beside it. This is a behaviour change (a direct
+`description: ""` payload to `createPlace`/`createPoi` now fails validation
+where it used to succeed), but every UI caller (`MapPOIPanel.tsx:460,470`)
+already sends `formData.description.trim() || undefined` for a blank box, so
+no in-app flow is affected — confirmed by reading both call sites, not by
+running e2e. Regression tests added to `placeSchema.test.ts` and
+`poiSchema.test.ts` covering the empty-string rejection, an omitted
+description, and a real description.
 
 ### TD-130 ✅ Validator helpers copied into five files — **DONE (2026-09-17)**
 

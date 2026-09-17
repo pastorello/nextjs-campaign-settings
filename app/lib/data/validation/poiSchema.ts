@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import zoneMeta from "@/app/lib/config/geography/zoneMeta";
 import { POI_CATEGORIES } from "@/app/modules/maps/constants/poi-categories";
 import type { POICategory } from "@/app/modules/maps/types/poi";
 
@@ -12,8 +13,12 @@ const categoryIds = POI_CATEGORIES.map((c) => c.id) as [
 ];
 
 const poiFields = {
-  title: z.string().min(1),
-  description: z.string().optional(),
+  // Same rule as `zone.title`/`zone.description` (TD-129) — both are
+  // nullable-column-backed text fields with the identical "empty string is
+  // refused, only null/undefined mean 'unset'" convention `zoneMeta` and
+  // `nullableToOptional` document.
+  title: zoneMeta.title.validator,
+  description: zoneMeta.description.validator,
   // `finite()`, not Earth's ±90/±180. These maps are image overlays, not a
   // globe: `app/[locale]/dashboard/[system]/geography/page.tsx` declares bounds like
   // `[[0, 0], [1000, 1333]]`, so a marker's "lat"/"lng" are pixel-space

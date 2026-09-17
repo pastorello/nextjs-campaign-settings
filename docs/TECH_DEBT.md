@@ -1095,13 +1095,28 @@ on restyles every input, so look at a form and the map panels afterwards. The
 sources automatically, so that rule's wording should be updated with the fix.
 
 **Resolution:** `tailwind.config.ts` is deleted; `app/ui/global.css` now
-carries everything it declared, CSS-first. The `blue-400/500/600` overrides
-and the `shimmer` keyframes moved into an `@theme` block (verified emitted —
-`pnpm dlx @tailwindcss/cli -i app/ui/global.css -o /tmp/x.css` produces both
-`--color-blue-500: #0070f3` and a standalone `@keyframes shimmer` rule feeding
-skeletons.tsx's `animate-[shimmer_2s_infinite]`). `gridTemplateColumns["13"]`
-was dropped, not moved — v4 generates `grid-cols-13` natively, confirmed in
-the same CLI output.
+carries everything it declared, CSS-first. The `shimmer` keyframes moved into
+an `@theme` block (verified emitted — `pnpm dlx @tailwindcss/cli -i
+app/ui/global.css -o /tmp/x.css` produces a standalone `@keyframes shimmer`
+rule feeding skeletons.tsx's `animate-[shimmer_2s_infinite]`).
+`gridTemplateColumns["13"]` was dropped, not moved — v4 generates
+`grid-cols-13` natively, confirmed in the same CLI output.
+
+**The `blue-400/500/600` overrides are deliberately NOT carried forward** —
+first landed, then reverted in the same PR after CI's `e2e/a11y.spec.ts`
+caught what "if they are still wanted" turned out to mean in practice.
+Because `tailwind.config.ts` had never been loaded, those overrides had never
+been rendered either, so restoring them was a first-time visual change, not a
+restoration. The active sidebar link (`nav-links.tsx`'s `bg-sky-100
+text-blue-600`) measures 4.58:1 against v4's default `blue-600` but 3.98:1
+against the config's darker `#2F6FEB` — under the 4.5:1 WCAG AA threshold for
+normal text — which failed `color-contrast` on every dashboard page (one node
+each: the one active link). `blue-600` alone has a dozen other call sites
+(pagination's active page, several underlined links, `MapPOIPanel`'s and
+`MapSearchBar`'s accents); re-auditing and re-tuning each individually was
+judged riskier, with no dev server available to verify against, than keeping
+the palette nobody has ever seen changed. See CLAUDE.md's "Decisions and
+rejected approaches" for the dated entry.
 
 `@plugin "@tailwindcss/forms"` is loaded with `strategy: "class"`, not the
 default (global) strategy. Reasoning: the plugin was never actually active

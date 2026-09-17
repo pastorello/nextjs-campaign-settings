@@ -30,8 +30,8 @@ test.describe("the place in view has a URL of its own (TD-82)", () => {
     const title = `E2E place url ${Date.now()}`;
 
     // A page before the map, so back has somewhere to go that is not it.
-    await page.goto("/dashboard");
-    await page.goto("/dashboard/geography");
+    await page.goto("/dashboard/dnd5e");
+    await page.goto("/dashboard/dnd5e/geography");
     const map = page.locator(".leaflet-container");
     await expect(map).toBeVisible();
     await page.waitForLoadState("networkidle");

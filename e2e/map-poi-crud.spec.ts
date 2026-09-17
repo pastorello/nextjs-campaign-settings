@@ -21,7 +21,7 @@ test.describe("POI panel CRUD", () => {
     const title = `E2E POI CRUD ${Date.now()}`;
     const updatedTitle = `${title} updated`;
 
-    await page.goto("/dashboard/geography");
+    await page.goto("/dashboard/dnd5e/geography");
     const map = page.locator(".leaflet-container");
     await expect(map).toBeVisible();
 

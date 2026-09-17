@@ -21,7 +21,7 @@ import messages from "@/messages/it.json";
 const uniqueName = () => `E2E Incantesimo ${Date.now()}`;
 
 const gotoSpellAdmin = async (page: Page) => {
-  await page.goto("/dashboard/admin/spells");
+  await page.goto("/dashboard/dnd5e/admin/spells");
   await expect(
     page.getByRole("heading", { name: messages.spells.page.title })
   ).toBeVisible();
@@ -36,7 +36,9 @@ const gotoSpellAdmin = async (page: Page) => {
  * Searching for it is both robust at any size and what a DM would actually do.
  */
 const gotoSpell = async (page: Page, name: string) => {
-  await page.goto(`/dashboard/admin/spells?query=${encodeURIComponent(name)}`);
+  await page.goto(
+    `/dashboard/dnd5e/admin/spells?query=${encodeURIComponent(name)}`
+  );
 };
 
 /** The table row whose name cell matches. */

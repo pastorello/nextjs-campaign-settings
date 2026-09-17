@@ -12,7 +12,7 @@ import {
  * the context menu a DM uses to drop a marker opens where they click.
  *
  * SPEC-004 M7 replaced the hardcoded four-map switcher with tree navigation:
- * `/dashboard/geography` now shows the root place `world.setup.ts` creates,
+ * `/dashboard/dnd5e/geography` now shows the root place `world.setup.ts` creates,
  * served through `/api/maps/[id]/image`, not a `/maps/*.jpg` file. The former
  * "switching world swaps the map image" test asserted on that switcher
  * button, which no longer exists, and is gone with it — a real "descend into
@@ -28,7 +28,7 @@ const imageLayer = ".leaflet-image-layer";
 
 test.describe("world map", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/dashboard/geography");
+    await page.goto("/dashboard/dnd5e/geography");
     await expect(page.locator(".leaflet-container")).toBeVisible();
   });
 

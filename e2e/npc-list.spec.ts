@@ -26,7 +26,7 @@ const rowFor = (page: Page, name: string) =>
   page.getByRole("row").filter({ hasText: name });
 
 const createFaction = async (page: Page, name: string) => {
-  await page.goto("/dashboard/admin/factions");
+  await page.goto("/dashboard/dnd5e/admin/factions");
   await page
     .getByRole("link", { name: messages.factions.page.newItemButton })
     .click();
@@ -43,7 +43,7 @@ const createFaction = async (page: Page, name: string) => {
 };
 
 const createNpc = async (page: Page, name: string, faction?: string) => {
-  await page.goto("/dashboard/admin/npc");
+  await page.goto("/dashboard/dnd5e/admin/npc");
   await page
     .getByRole("link", { name: messages.npc.page.newItemButton })
     .click();
@@ -86,7 +86,7 @@ test.describe("NPC admin list", () => {
     await createNpc(page, outsider);
 
     await page.goto(
-      `/dashboard/admin/npc?query=${encodeURIComponent(npcPrefix)}`
+      `/dashboard/dnd5e/admin/npc?query=${encodeURIComponent(npcPrefix)}`
     );
     // See filtering.spec.ts: the header is a client component, and a click
     // that lands before hydration is swallowed silently.
@@ -108,8 +108,8 @@ test.describe("NPC admin list", () => {
 
     // `npc.faction`'s foreign key is `onDelete: Restrict`: the member goes
     // before its faction can.
-    await deleteRow(page, "/dashboard/admin/npc", member);
-    await deleteRow(page, "/dashboard/admin/npc", outsider);
-    await deleteRow(page, "/dashboard/admin/factions", factionName);
+    await deleteRow(page, "/dashboard/dnd5e/admin/npc", member);
+    await deleteRow(page, "/dashboard/dnd5e/admin/npc", outsider);
+    await deleteRow(page, "/dashboard/dnd5e/admin/factions", factionName);
   });
 });

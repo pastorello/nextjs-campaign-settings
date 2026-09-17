@@ -4,7 +4,7 @@ import messages from "@/messages/it.json";
 
 /**
  * Creates the tree's root place before any spec that expects an interactive
- * map at `/dashboard/geography`. SPEC-004 M4-M7 turned that page from an
+ * map at `/dashboard/dnd5e/geography`. SPEC-004 M4-M7 turned that page from an
  * always-on hardcoded four-map switcher into a view that requires a root
  * place to exist first — `db:seed` deliberately does not create one (that
  * would be seeding a demo world into every real installation too), so the
@@ -14,7 +14,7 @@ import messages from "@/messages/it.json";
  * that would be filled here simply isn't there, and this is a no-op.
  */
 setup("create the world", async ({ page }) => {
-  await page.goto("/dashboard/world");
+  await page.goto("/dashboard/dnd5e/world");
 
   const nameInput = page.getByPlaceholder(messages.world.form.namePlaceholder);
   if (!(await nameInput.isVisible().catch(() => false))) {

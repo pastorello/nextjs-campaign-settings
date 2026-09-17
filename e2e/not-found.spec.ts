@@ -21,3 +21,20 @@ test.describe("unmatched dashboard route", () => {
     ).not.toBeVisible();
   });
 });
+
+/**
+ * SPEC-018 T2 part B: every spec now goes straight to `/dashboard/dnd5e/...`
+ * rather than relying on this redirect, so nothing else in the suite still
+ * exercises it end to end. This one assertion keeps `proxy.ts`'s
+ * `systemRedirectPath` (ADR-0013 rule 3) covered from the outside — a link
+ * that drops the system must still land the DM on a working page.
+ */
+test.describe("a dashboard URL without a system", () => {
+  test("307s to the default system, keeping the rest of the path", async ({
+    page,
+  }) => {
+    await page.goto("/dashboard/spells");
+
+    await expect(page).toHaveURL(/\/dashboard\/dnd5e\/spells$/);
+  });
+});

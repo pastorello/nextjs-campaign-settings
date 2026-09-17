@@ -41,7 +41,7 @@ test.describe("spell filtering", () => {
   test("a search term narrows the list and survives a reload", async ({
     page,
   }) => {
-    await page.goto("/dashboard/spells");
+    await page.goto("/dashboard/dnd5e/spells");
 
     const { total } = await readCount(page);
     expect(total).toBeGreaterThan(1);
@@ -65,7 +65,7 @@ test.describe("spell filtering", () => {
   });
 
   test("a level filter narrows the list to that level", async ({ page }) => {
-    await page.goto("/dashboard/spells");
+    await page.goto("/dashboard/dnd5e/spells");
 
     // Wait for hydration, not just for the button to exist. These filters are
     // client components: the markup ships from the server with no handler
@@ -106,10 +106,10 @@ test.describe("spell filtering", () => {
   });
 
   test("Reset Filtri clears every active filter", async ({ page }) => {
-    await page.goto("/dashboard/spells");
+    await page.goto("/dashboard/dnd5e/spells");
     const { total } = await readCount(page);
 
-    await page.goto("/dashboard/spells?query=Dardo");
+    await page.goto("/dashboard/dnd5e/spells?query=Dardo");
     expect((await readCount(page)).filtered).toBeLessThan(total);
 
     await page

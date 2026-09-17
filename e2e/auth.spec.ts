@@ -51,7 +51,7 @@ test.describe("authentication", () => {
   test("an unauthenticated visit to a dashboard page redirects to login", async ({
     page,
   }) => {
-    await page.goto("/dashboard/spells");
+    await page.goto("/dashboard/dnd5e/spells");
 
     await expect(page).toHaveURL(/\/login/);
   });

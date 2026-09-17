@@ -20,7 +20,7 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
     const title = `E2E landmark popover ${Date.now()}`;
     const updatedTitle = `${title} updated`;
 
-    await page.goto("/dashboard/geography");
+    await page.goto("/dashboard/dnd5e/geography");
     const map = page.locator(".leaflet-container");
     await expect(map).toBeVisible();
     await page.waitForLoadState("networkidle");
@@ -105,7 +105,7 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
   }) => {
     const title = `E2E landmark unplace ${Date.now()}`;
 
-    await page.goto("/dashboard/geography");
+    await page.goto("/dashboard/dnd5e/geography");
     const map = page.locator(".leaflet-container");
     await expect(map).toBeVisible();
     await page.waitForLoadState("networkidle");
@@ -174,14 +174,14 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
     const npcName = `E2E TD-109 PNG ${stamp}`;
     const title = `E2E landmark entities ${stamp}`;
 
-    await page.goto("/dashboard/admin/npc/new");
+    await page.goto("/dashboard/dnd5e/admin/npc/new");
     await page.getByLabel(messages.common.fields.name.label).fill(npcName);
     await page
       .getByRole("button", { name: messages.npc.form.createButton })
       .click();
     await page.waitForURL("**/dashboard/dnd5e/admin/npc");
 
-    await page.goto("/dashboard/geography");
+    await page.goto("/dashboard/dnd5e/geography");
     const map = page.locator(".leaflet-container");
     await expect(map).toBeVisible();
     await page.waitForLoadState("networkidle");
@@ -224,7 +224,7 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
     await expect(landmarkMarkers).toHaveCount(baselineCount);
 
     await page.goto(
-      `/dashboard/admin/npc?query=${encodeURIComponent(npcName)}`
+      `/dashboard/dnd5e/admin/npc?query=${encodeURIComponent(npcName)}`
     );
     const npcRow = page.getByRole("row").filter({ hasText: npcName });
     await npcRow

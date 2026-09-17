@@ -16,7 +16,7 @@ import messages from "@/messages/it.json";
 const uniqueName = () => `E2E Oggetto ${Date.now()}`;
 
 const gotoMagicItemAdmin = async (page: Page) => {
-  await page.goto("/dashboard/admin/magicitems");
+  await page.goto("/dashboard/dnd5e/admin/magicitems");
   await expect(
     page.getByRole("heading", { name: messages.magicItems.page.title })
   ).toBeVisible();
@@ -25,7 +25,7 @@ const gotoMagicItemAdmin = async (page: Page) => {
 /** See spells-crud.spec.ts: a new record is not on page 1 of a real library. */
 const gotoMagicItem = async (page: Page, name: string) => {
   await page.goto(
-    `/dashboard/admin/magicitems?query=${encodeURIComponent(name)}`
+    `/dashboard/dnd5e/admin/magicitems?query=${encodeURIComponent(name)}`
   );
 };
 

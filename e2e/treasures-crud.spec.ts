@@ -17,7 +17,7 @@ import messages from "@/messages/it.json";
 const uniqueName = () => `E2E Tesoro ${Date.now()}`;
 
 const gotoTreasureAdmin = async (page: Page) => {
-  await page.goto("/dashboard/admin/treasures");
+  await page.goto("/dashboard/dnd5e/admin/treasures");
   await expect(
     page.getByRole("heading", { name: messages.treasure.page.title })
   ).toBeVisible();
@@ -26,7 +26,7 @@ const gotoTreasureAdmin = async (page: Page) => {
 /** See spells-crud.spec.ts: a new record is not on page 1 of a real library. */
 const gotoTreasure = async (page: Page, name: string) => {
   await page.goto(
-    `/dashboard/admin/treasures?query=${encodeURIComponent(name)}`
+    `/dashboard/dnd5e/admin/treasures?query=${encodeURIComponent(name)}`
   );
 };
 

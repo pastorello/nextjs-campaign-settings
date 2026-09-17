@@ -42,7 +42,7 @@ test.describe("positioning an unplaced landmark (TD-102)", () => {
     const parentTitle = `E2E landmark parent ${Date.now()}`;
     const landmarkTitle = `E2E orphan landmark ${Date.now()}`;
 
-    await page.goto("/dashboard/geography");
+    await page.goto("/dashboard/dnd5e/geography");
     const map = page.locator(".leaflet-container");
     await expect(map).toBeVisible();
     // Let the image-overlay bootstrap's interim-then-corrective refit settle

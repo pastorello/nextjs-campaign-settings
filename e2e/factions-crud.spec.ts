@@ -11,7 +11,7 @@ import messages from "@/messages/it.json";
 const uniqueName = () => `E2E Fazione ${Date.now()}`;
 
 const gotoFactionAdmin = async (page: Page) => {
-  await page.goto("/dashboard/admin/factions");
+  await page.goto("/dashboard/dnd5e/admin/factions");
   await expect(
     page.getByRole("heading", { name: messages.factions.page.title })
   ).toBeVisible();
@@ -20,7 +20,7 @@ const gotoFactionAdmin = async (page: Page) => {
 /** See spells-crud.spec.ts: a new record is not on page 1 of a real library. */
 const gotoFaction = async (page: Page, name: string) => {
   await page.goto(
-    `/dashboard/admin/factions?query=${encodeURIComponent(name)}`
+    `/dashboard/dnd5e/admin/factions?query=${encodeURIComponent(name)}`
   );
 };
 

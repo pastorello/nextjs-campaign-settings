@@ -1001,6 +1001,19 @@ function WorldMap({
           // two are kept consistent).
           runWithoutClosing(() => {
             map.setMinZoom(-Infinity);
+            // TD-121: `LeafletMap`'s own `invalidateSize` (its mount effect)
+            // runs on a `requestAnimationFrame` + 100ms delay "to ensure
+            // proper tile rendering" — a vendored, generic reason that has
+            // nothing to do with *this* framing. `getBoundsZoom` below reads
+            // Leaflet's cached container size, and if that timer hasn't
+            // fired yet the cache still reflects whatever size the
+            // container had (or hadn't finished laying out to) at
+            // construction — every DM's actual report of this bug ("the
+            // image took about half the canvas") is that stale-cache race,
+            // not a wrong padding value. Forcing a fresh measurement here,
+            // right before it's read, makes the fit correct regardless of
+            // whether that other timer has fired yet.
+            map.invalidateSize({ animate: false });
             const minZoom = computeMinZoom(
               map.getBoundsZoom(bounds),
               initialZoom
@@ -1081,6 +1094,11 @@ function WorldMap({
             // rather than a flaky test.
             runWithoutClosing(() => {
               map.setMinZoom(-Infinity);
+              // TD-121, same reasoning as the interim framing above — the
+              // image's `load` event is exactly the asynchronous case where
+              // `LeafletMap`'s own delayed `invalidateSize` may not have
+              // fired yet.
+              map.invalidateSize({ animate: false });
               const fitZoom = map.getBoundsZoom(fittedBounds);
               map.setMinZoom(computeMinZoom(fitZoom, fitZoom));
               map.setMaxBounds(fittedBounds);

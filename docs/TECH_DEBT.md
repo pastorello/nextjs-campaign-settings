@@ -1315,7 +1315,7 @@ aren't below the short selects — the TD's fix-in-shape only asked for height,
 and reordering touches per-domain form layout (`app/ui/<domain>/`), a
 separate, larger change.
 
-### TD-121 — The world map opens with the image at about half the canvas
+### TD-121 ✅ The world map opens with the image at about half the canvas — **DONE (2026-09-17)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, design critique; seen once
 
@@ -1324,6 +1324,36 @@ about half the canvas width, with a wide grey margin on every side. Seen once
 and not investigated: the initial `fitBounds` padding may be deliberate, so read
 `WorldMap.tsx`'s initial view before changing it. If it isn't, fit the image to
 the canvas on first load.
+
+**Resolution: not by design — a stale container-size race, not a padding
+value.** `WorldMap.tsx`'s image-bootstrap effect never passes a `padding`
+option to `fitBounds` (nor to the interim `setView`), so a deliberate margin
+was never in the code to begin with; TD-81/TD-87's own comments and tests
+are entirely about _zoom_, not padding. The actual mechanism: `LeafletMap.tsx`
+(`app/modules/maps/components/map/LeafletMap.tsx:119-126`) — the vendored
+component that constructs the Leaflet instance — calls `map.invalidateSize()`
+itself, but only after a `requestAnimationFrame` plus a 100ms `setTimeout`,
+"to ensure proper tile rendering." `WorldMap.tsx`'s own `getBoundsZoom`/
+`fitBounds` calls, both at mount and on the image's `load` event, read
+Leaflet's cached container size — and if that 100ms timer hasn't fired yet
+(plausible for a cached image that loads almost immediately, which is
+consistent with this being "seen once" rather than every time), the fit is
+computed against whatever size the container had at construction, not its
+final laid-out size — same shape as the DM's report: too small, margin on
+every side, since the container in front of the DM is genuinely larger than
+the one the map fit itself to.
+
+**Fix:** `WorldMap.tsx` now calls `map.invalidateSize({ animate: false })`
+itself, inside the existing `runWithoutClosing` wrapper, immediately before
+each `getBoundsZoom` call (both the interim framing and the TD-81 corrective
+re-fit on image load) — forcing a fresh measurement at the exact moment it's
+needed, independent of `LeafletMap.tsx`'s own delayed call. `LeafletMap.tsx`
+itself is untouched (vendored, and its existing call is harmless, just not
+sufficient on its own for this timing). Regression test:
+`app/ui/geography/WorldMap.test.tsx`'s "re-measures the container's real
+size before fitting... (TD-121)" — confirmed to fail without the fix
+(`invalidateSize` called 0 times) before restoring it. No UI copy or message
+catalogue change; this is a rendering fix, not a copy one.
 
 ### TD-122 ✅ Create and update actions validate their input, then write the unvalidated copy — **DONE (2026-09-17)**
 

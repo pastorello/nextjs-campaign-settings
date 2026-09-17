@@ -422,6 +422,10 @@ const fitBounds = vi.fn();
 // seeing genuine headroom without having to know about this mock. Tests
 // that care about the actual computation override this per-case.
 const getBoundsZoom = vi.fn(() => -4);
+// TD-121 — forces a fresh container-size measurement right before the
+// zoom/bounds math that depends on it, rather than trusting `LeafletMap`'s
+// own delayed `invalidateSize` to have already fired.
+const invalidateSize = vi.fn();
 const fakeMap = {
   setView,
   setMinZoom,
@@ -430,6 +434,7 @@ const fakeMap = {
   setZoom,
   fitBounds,
   getBoundsZoom,
+  invalidateSize,
 };
 vi.mock("@/app/modules/maps/hooks/useLeafletMap", () => ({
   useLeafletMap: () => fakeMap,
@@ -733,6 +738,56 @@ describe("WorldMap", () => {
     // callback.
     expect(runWithoutClosing).toHaveBeenCalledTimes(2);
     expect(fitBounds).toHaveBeenCalled();
+  });
+
+  // TD-121: the map opened with the image at roughly half the canvas,
+  // margin on every side — `LeafletMap`'s own `invalidateSize` (its mount
+  // effect) runs on a delayed timer "to ensure proper tile rendering," so
+  // `getBoundsZoom`/`fitBounds` here could read a stale, pre-layout
+  // container size if that timer hadn't fired yet. Forcing a fresh
+  // measurement immediately before each zoom/bounds computation removes the
+  // race regardless of the other timer.
+  it("re-measures the container's real size before fitting, both at the interim framing and the TD-81 corrective re-fit (TD-121)", async () => {
+    render(
+      <WorldMap
+        parentId={1}
+        ancestorIds={[1]}
+        placeTitle="Terra"
+        parentTitle="Piani di Esistenza"
+        isRoot={false}
+        mapUrl="/maps/test.jpg"
+        bounds={bounds}
+        initialView={[500, 500]}
+        initialZoom={1}
+        onDescend={onDescend}
+        gridColumns={null}
+        gridScale={null}
+        onMapChanged={vi.fn()}
+        onGridChanged={vi.fn()}
+        onDeleted={vi.fn()}
+        unpositionedCount={0}
+      />
+    );
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
+
+    expect(invalidateSize).toHaveBeenCalledTimes(1);
+    // Re-measured before the fit is computed, not after — a call that
+    // landed later wouldn't fix a stale reading `getBoundsZoom` already
+    // took.
+    expect(invalidateSize.mock.invocationCallOrder[0]).toBeLessThan(
+      getBoundsZoom.mock.invocationCallOrder[0]!
+    );
+
+    act(() => {
+      imageOnLoad?.();
+    });
+
+    expect(invalidateSize).toHaveBeenCalledTimes(2);
+    expect(invalidateSize.mock.invocationCallOrder[1]).toBeLessThan(
+      getBoundsZoom.mock.invocationCallOrder[1]!
+    );
   });
 
   it("falls back to the stored bounds if the loaded image reports no natural size", async () => {

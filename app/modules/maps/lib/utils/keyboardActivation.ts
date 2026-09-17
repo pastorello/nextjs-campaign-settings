@@ -33,7 +33,24 @@ export interface KeyboardActivatableLayer {
 }
 
 /**
+ * An element focus can be handed back to — a marker's `<div>` or an area's
+ * `<path>`.
+ */
+export type FocusReturnTarget = HTMLElement | SVGElement;
+
+function isFocusReturnTarget(
+  element: Element | undefined
+): element is FocusReturnTarget {
+  return element instanceof HTMLElement || element instanceof SVGElement;
+}
+
+/**
  * Name `layer`'s element `label` and run `onActivate` on Enter/Space.
+ *
+ * `onActivate` receives the activated element, so whatever it opens can move
+ * focus in and hand it back on close. A click passes nothing — that is how a
+ * caller tells the two apart (a mouse click on a focusable marker focuses it
+ * too, so `document.activeElement` alone cannot).
  *
  * Call it after the layer is on the map — before `addTo`, `getElement()` is
  * still `undefined`. `tabindex`/`role` are only added where Leaflet has not
@@ -42,7 +59,7 @@ export interface KeyboardActivatableLayer {
 export function makeKeyboardActivatable(
   layer: KeyboardActivatableLayer,
   label: string,
-  onActivate: () => void
+  onActivate: (trigger: FocusReturnTarget | undefined) => void
 ): void {
   const element = layer.getElement();
   if (element) {
@@ -60,6 +77,7 @@ export function makeKeyboardActivatable(
     // Space would otherwise scroll the page; Enter has no default here, but
     // stopping both keeps the two keys identical.
     event.originalEvent.preventDefault();
-    onActivate();
+    const current = layer.getElement();
+    onActivate(isFocusReturnTarget(current) ? current : undefined);
   });
 }

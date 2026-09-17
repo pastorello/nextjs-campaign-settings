@@ -7,6 +7,7 @@ import type { POI } from "@/app/modules/maps/types/poi";
 import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildren";
 import unplacePlace from "@/app/lib/data/maps/unplacePlace";
 import type { PopoverTarget } from "@/app/ui/geography/PlacePopover";
+import type { FocusReturnTarget } from "@/app/modules/maps/lib/utils/keyboardActivation";
 
 /**
  * The place popover's state and its zone-side actions (SPEC-016 T2/T5/T6)
@@ -28,9 +29,17 @@ export function usePlacePopover({
   onPlacesChanged: () => void;
 }): {
   target: PopoverTarget | null;
+  returnFocusTo: FocusReturnTarget | null;
   close: () => void;
-  handlePOIClick: (poi: POI, serverId: number) => void;
-  handlePlaceClick: (child: NavigableChild) => void;
+  handlePOIClick: (
+    poi: POI,
+    serverId: number,
+    returnFocusTo?: FocusReturnTarget
+  ) => void;
+  handlePlaceClick: (
+    child: NavigableChild,
+    returnFocusTo?: FocusReturnTarget
+  ) => void;
   handleOpenMap: (child: NavigableChild) => void;
   handleUnplace: (child: NavigableChild) => Promise<void>;
   handlePlaceDeleted: () => void;
@@ -44,6 +53,12 @@ export function usePlacePopover({
   // respectively; now both open this instead, and "Apri mappa" inside the
   // popover is what actually descends (zone only — a landmark has none).
   const [target, setTarget] = useState<PopoverTarget | null>(null);
+  // The marker/area the popover was opened from *by keyboard* (TD-133), so
+  // `PlacePopover` moves focus in and hands it back on close. `null` for a
+  // click, which leaves focus alone. Only read while `target` is set.
+  const [returnFocusTo, setReturnFocusTo] = useState<FocusReturnTarget | null>(
+    null
+  );
 
   // The popover refers to a place on the map being left (SPEC-016 T2) —
   // `WorldMap` isn't remounted on `parentId` change, so without this it
@@ -67,9 +82,10 @@ export function usePlacePopover({
     // mapping (TD-108). The popover needs the row's id and cannot get it
     // from `poi.id`, which is a client key on a landmark created in this
     // session.
-    (poi: POI, serverId: number) => {
+    (poi: POI, serverId: number, focusReturn?: FocusReturnTarget) => {
       if (isMeasuring) return;
       setTarget({ kind: "poi", poi, poiId: serverId });
+      setReturnFocusTo(focusReturn ?? null);
     },
     [isMeasuring]
   );
@@ -81,9 +97,10 @@ export function usePlacePopover({
   // marker/rectangle click never reaches the map's own click handler those
   // modes listen on.
   const handlePlaceClick = useCallback(
-    (child: NavigableChild) => {
+    (child: NavigableChild, focusReturn?: FocusReturnTarget) => {
       if (isMeasuring) return;
       setTarget({ kind: "zone", place: child });
+      setReturnFocusTo(focusReturn ?? null);
     },
     [isMeasuring]
   );
@@ -157,6 +174,7 @@ export function usePlacePopover({
 
   return {
     target,
+    returnFocusTo,
     close,
     handlePOIClick,
     handlePlaceClick,

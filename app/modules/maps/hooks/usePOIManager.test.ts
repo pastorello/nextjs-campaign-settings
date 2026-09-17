@@ -640,7 +640,8 @@ describe("usePOIManager — landmark click (SPEC-016 T7)", () => {
     });
     expect(onPOIClick).toHaveBeenCalledWith(
       expect.objectContaining({ id: "7", title: "Tavern" }),
-      7
+      7,
+      markerElements.get(instance)
     );
   });
 

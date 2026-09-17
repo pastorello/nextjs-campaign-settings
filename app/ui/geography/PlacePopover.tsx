@@ -12,6 +12,7 @@ import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
 import DeletePlaceButton from "@/app/ui/geography/DeletePlaceButton";
 import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildren";
 import type { POI } from "@/app/modules/maps/types/poi";
+import type { FocusReturnTarget } from "@/app/modules/maps/lib/utils/keyboardActivation";
 
 /**
  * What the popover is anchored to (T7) — a navigable zone (marker or drawn
@@ -39,6 +40,12 @@ export type PopoverTarget =
 
 interface PlacePopoverProps {
   target: PopoverTarget;
+  /**
+   * Set when the popover was opened from the keyboard (TD-133): the marker
+   * or area that was activated. Focus then moves to the popover's first
+   * action, and returns here on close. `null`/absent for a click.
+   */
+  returnFocusTo?: FocusReturnTarget | null;
   /**
    * The place currently being viewed — this popover's target's own parent.
    * Named in the zone deletion dialog's reparent message (T6); pre-fills
@@ -144,6 +151,7 @@ interface PlacePopoverProps {
  */
 export default function PlacePopover({
   target,
+  returnFocusTo = null,
   parentId,
   parentTitle,
   onClose,
@@ -158,6 +166,7 @@ export default function PlacePopover({
   const map = useLeafletMap();
   const t = useTranslations("geography.popover");
   const popoverRef = useRef<HTMLDivElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
   const [isAttachOpen, setIsAttachOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [entitiesRefreshKey, setEntitiesRefreshKey] = useState(0);
@@ -236,6 +245,32 @@ export default function PlacePopover({
     };
   }, [onClose]);
 
+  // TD-133 — a keyboard-opened popover takes focus (its first action, not
+  // the close button) and, on close, gives it back to the marker — unless
+  // focus has already moved somewhere else on purpose, e.g. into the panel
+  // "Modifica" opened. A click-opened one leaves focus alone.
+  const isPositioned = screenPosition !== null;
+  useEffect(() => {
+    if (!returnFocusTo || !isPositioned) return;
+
+    const actions = actionsRef.current;
+    actions
+      ?.querySelector<HTMLButtonElement>("button:not([disabled])")
+      ?.focus();
+
+    const popover = popoverRef.current;
+    return () => {
+      const active = document.activeElement;
+      const focusWasLost =
+        active === null ||
+        active === document.body ||
+        (popover?.contains(active) ?? false);
+      if (focusWasLost && returnFocusTo.isConnected) {
+        returnFocusTo.focus({ preventScroll: true });
+      }
+    };
+  }, [returnFocusTo, isPositioned]);
+
   if (!screenPosition) return null;
 
   const hasMap = place !== null && place.mapImage !== null;
@@ -278,7 +313,7 @@ export default function PlacePopover({
         refreshKey={entitiesRefreshKey}
       />
 
-      <div className="mb-3 flex flex-col gap-1">
+      <div ref={actionsRef} className="mb-3 flex flex-col gap-1">
         <button
           type="button"
           onClick={() => setIsAttachOpen(true)}

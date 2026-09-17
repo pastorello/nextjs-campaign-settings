@@ -12,7 +12,10 @@ import {
   getCategoryMarkerBgClass,
   isPOICategory,
 } from "@/app/modules/maps/constants/poi-categories";
-import { makeKeyboardActivatable } from "@/app/modules/maps/lib/utils/keyboardActivation";
+import {
+  makeKeyboardActivatable,
+  type FocusReturnTarget,
+} from "@/app/modules/maps/lib/utils/keyboardActivation";
 import { notifyError } from "@/app/lib/notifications/notify";
 import fetchPlaceChildren from "@/app/lib/data/maps/fetchPlaceChildren";
 import createPoi from "@/app/lib/data/maps/createPoi";
@@ -97,7 +100,12 @@ function toClientPOI(
  */
 export function usePOIManager(
   parentId: number,
-  onPOIClick?: (poi: POI, serverId: number) => void
+  // `returnFocusTo`: see `useNavigableChildren`'s `onPlaceClick` (TD-133).
+  onPOIClick?: (
+    poi: POI,
+    serverId: number,
+    returnFocusTo?: FocusReturnTarget
+  ) => void
 ) {
   const map = useLeafletMap();
   const t = useTranslations("geography.errors");
@@ -464,10 +472,14 @@ export function usePOIManager(
         // is `NaN`, and Prisma serialises that to `null`, so the popover's
         // entity query became `WHERE "poiId" IS NULL` and listed every
         // unattached NPC and deity as present at the landmark.
-        const openPopover = () => {
+        const openPopover = (returnFocusTo?: FocusReturnTarget) => {
           const serverId = serverIdsRef.current.get(poi.id);
           if (serverId === undefined) return;
-          onPOIClickRef.current?.(poi, serverId);
+          if (returnFocusTo) {
+            onPOIClickRef.current?.(poi, serverId, returnFocusTo);
+          } else {
+            onPOIClickRef.current?.(poi, serverId);
+          }
         };
         marker.on("click", () => {
           if (justDragged) return;

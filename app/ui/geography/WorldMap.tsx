@@ -211,6 +211,7 @@ function WorldMap({
 
   const {
     target: popoverTarget,
+    returnFocusTo: popoverReturnFocusTo,
     close: handleClosePopover,
     handlePOIClick,
     handlePlaceClick,
@@ -619,6 +620,7 @@ function WorldMap({
       {popoverTarget && (
         <PlacePopover
           target={popoverTarget}
+          returnFocusTo={popoverReturnFocusTo}
           parentId={parentId}
           parentTitle={placeTitle}
           onClose={handleClosePopover}

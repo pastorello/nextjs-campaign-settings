@@ -50,6 +50,20 @@ describe("usePlacePopover (TD-127)", () => {
     expect(result.current.target).toBeNull();
   });
 
+  it("keeps the activated element for a keyboard open, and forgets it on a click (TD-133)", () => {
+    const { result } = render();
+    const marker = document.createElement("div");
+
+    act(() => result.current.handlePOIClick(poi, 42, marker));
+    expect(result.current.returnFocusTo).toBe(marker);
+
+    act(() => result.current.handlePlaceClick(child));
+    expect(result.current.returnFocusTo).toBeNull();
+
+    act(() => result.current.handlePlaceClick(child, marker));
+    expect(result.current.returnFocusTo).toBe(marker);
+  });
+
   it("stays shut while the measure tool owns map clicks", () => {
     const { result } = render({ isMeasuring: true });
 

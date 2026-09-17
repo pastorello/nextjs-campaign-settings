@@ -34,6 +34,9 @@ import {
   type Footprint,
 } from "@/app/modules/maps/lib/utils/footprint";
 import { ALLOWED_MAP_IMAGE_CONTENT_TYPES } from "@/app/lib/storage/mapImageUploadRules";
+import Modal from "@/app/ui/components/Modal";
+import BaseButton from "@/app/ui/buttons/BaseButton";
+import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 
 /**
  * A navigable place (`region`, `plane`, `city`, `dungeon`) under the current
@@ -147,6 +150,7 @@ const POIListItem = memo(function POIListItem({
   onDelete: () => void;
   onFlyTo: () => void;
 }) {
+  const t = useTranslations();
   const [isHovered, setIsHovered] = useState(false);
   const categoryColor = getCategoryColor(poi.category);
   const categoryBgColor = getCategoryBgColor(poi.category);
@@ -162,7 +166,7 @@ const POIListItem = memo(function POIListItem({
         onClick={onFlyTo}
         className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center hover:scale-110 transition-transform"
         style={{ backgroundColor: categoryBgColor }}
-        title="Fly to location"
+        title={t("geography.poiPanel.item.flyTo")}
       >
         <MapPin className="h-5 w-5" style={{ color: categoryColor }} />
       </button>
@@ -186,7 +190,7 @@ const POIListItem = memo(function POIListItem({
               onEdit();
             }}
             className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-            title="Edit"
+            title={t("geography.poiPanel.item.edit")}
           >
             <Edit2 className="h-4 w-4 text-gray-600 dark:text-gray-300" />
           </button>
@@ -196,7 +200,7 @@ const POIListItem = memo(function POIListItem({
               onDelete();
             }}
             className="p-1.5 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-            title="Delete"
+            title={t("geography.poiPanel.item.delete")}
           >
             <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
           </button>
@@ -434,7 +438,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     const title = formData.title.trim();
 
     if (!title) {
-      toast.error("Please enter a title");
+      toast.error(t("geography.poiPanel.errors.titleRequired"));
       return;
     }
 
@@ -449,7 +453,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       lat = parseFloat(formData.lat);
       lng = parseFloat(formData.lng);
       if (isNaN(lat) || isNaN(lng)) {
-        toast.error("Please enter valid coordinates");
+        toast.error(t("geography.poiPanel.errors.coordinatesRequired"));
         return;
       }
     }
@@ -462,7 +466,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
         lng,
         category: formData.category,
       });
-      toast.success("Place updated successfully");
+      toast.success(t("geography.poiPanel.success.updated"));
       resetFormAfterSave();
       return;
     }
@@ -471,14 +475,14 @@ export const MapPOIPanel = memo(function MapPOIPanel({
 
     if (formData.kind === "poi") {
       onAddPOI(title, lat, lng, formData.category, description);
-      toast.success("Place added successfully");
+      toast.success(t("geography.poiPanel.success.added"));
       resetFormAfterSave();
       return;
     }
 
     if (isNavigablePlaceKind(formData.kind)) {
       if (!formData.mapFile) {
-        toast.error("Please choose a map image");
+        toast.error(t("geography.poiPanel.errors.mapImageRequired"));
         return;
       }
 
@@ -491,7 +495,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           body: uploadBody,
         });
         if (!uploadResponse.ok) {
-          toast.error("Could not upload the map");
+          toast.error(t("geography.poiPanel.errors.uploadFailed"));
           return;
         }
         const { id: mapImage } = (await uploadResponse.json()) as {
@@ -508,14 +512,16 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           ...(pendingFootprint && { footprint: pendingFootprint }),
         });
         if (!result.ok) {
-          toast.error(result.error ?? "Could not save the place");
+          toast.error(
+            result.error ?? t("geography.poiPanel.errors.saveFailed")
+          );
           return;
         }
       } finally {
         setIsSavingPlace(false);
       }
 
-      toast.success("Place added successfully");
+      toast.success(t("geography.poiPanel.success.added"));
       resetFormAfterSave();
       return;
     }
@@ -528,6 +534,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     onUpdatePOI,
     onAddPlace,
     resetFormAfterSave,
+    t,
   ]);
 
   /**
@@ -557,9 +564,9 @@ export const MapPOIPanel = memo(function MapPOIPanel({
   const handleDeletePOI = useCallback(
     (id: string, title: string) => {
       onDeletePOI(id);
-      toast.success(`"${title}" deleted`);
+      toast.success(t("geography.poiPanel.success.deleted", { title }));
     },
-    [onDeletePOI]
+    [onDeletePOI, t]
   );
 
   /**
@@ -567,14 +574,23 @@ export const MapPOIPanel = memo(function MapPOIPanel({
    * English pluralisation (`place${n !== 1 ? "s" : ""}`) — next-intl's own
    * plural support (already used elsewhere in this catalogue, e.g.
    * `geography.unpositionedCount`) replaces it here (TD-95).
+   *
+   * The confirmation itself used to be a native `confirm()` (TD-123) — a
+   * permanent, server-side deletion of every landmark on the map guarded by
+   * a browser dialog that carries no translation, no styling and no test
+   * hook. Replaced with the same `Modal` + Cancel/Confirm pattern
+   * `DeletePlaceButton` and `MapUploadControl`'s replace-confirmation use.
    */
+  const [isClearAllConfirmOpen, setIsClearAllConfirmOpen] = useState(false);
+
   const handleClearAll = useCallback(() => {
-    if (confirm(`Are you sure you want to delete all ${pois.length} POIs?`)) {
-      onClearAll();
-      toast.success(
-        t("geography.poiPanel.clearedToast", { count: pois.length })
-      );
-    }
+    setIsClearAllConfirmOpen(true);
+  }, []);
+
+  const handleConfirmClearAll = useCallback(() => {
+    setIsClearAllConfirmOpen(false);
+    onClearAll();
+    toast.success(t("geography.poiPanel.clearedToast", { count: pois.length }));
   }, [pois.length, onClearAll, t]);
 
   /**
@@ -656,7 +672,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, lat: e.target.value }))
                     }
-                    placeholder="Latitude"
+                    placeholder={t("geography.poiPanel.placeholders.latitude")}
                     className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
                   />
                   <input
@@ -665,7 +681,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, lng: e.target.value }))
                     }
-                    placeholder="Longitude"
+                    placeholder={t("geography.poiPanel.placeholders.longitude")}
                     className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
                   />
                 </div>
@@ -763,7 +779,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, title: e.target.value }))
               }
-              placeholder="Enter place name"
+              placeholder={t("geography.poiPanel.placeholders.placeName")}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
             />
           </div>
@@ -781,7 +797,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                   description: e.target.value,
                 }))
               }
-              placeholder="Add notes or details (optional)"
+              placeholder={t("geography.poiPanel.placeholders.description")}
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm resize-none"
             />
@@ -802,7 +818,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
             >
               <Plus className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300 leading-tight">
-                Add
+                {t("geography.poiPanel.addButton")}
               </span>
             </button>
             <button
@@ -811,7 +827,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
             >
               <Upload className="h-5 w-5 text-green-600 dark:text-green-400" />
               <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300 leading-tight">
-                Import
+                {t("geography.poiPanel.importButton")}
               </span>
             </button>
             <button
@@ -821,7 +837,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
             >
               <Download className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300 leading-tight">
-                Export
+                {t("geography.poiPanel.exportButton")}
               </span>
             </button>
             <button
@@ -843,10 +859,10 @@ export const MapPOIPanel = memo(function MapPOIPanel({
             <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
               <MapPin className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" />
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                No places yet
+                {t("geography.poiPanel.emptyState.title")}
               </p>
               <p className="text-xs text-gray-400 dark:text-gray-500">
-                Add your first place to get started
+                {t("geography.poiPanel.emptyState.subtitle")}
               </p>
             </div>
           ) : (
@@ -925,7 +941,9 @@ export const MapPOIPanel = memo(function MapPOIPanel({
             <span className="text-sm font-medium">Back</span>
           </button>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {viewMode === "edit" ? "Edit Place" : "Add Place"}
+            {viewMode === "edit"
+              ? t("geography.poiPanel.form.editTitle")
+              : t("geography.poiPanel.form.addTitle")}
           </h3>
           <button
             onClick={() => void handleSave()}
@@ -953,6 +971,32 @@ export const MapPOIPanel = memo(function MapPOIPanel({
         onChange={handleFileChange}
         className="hidden"
       />
+
+      {/* Clear-all confirmation (TD-123) — replaces the native confirm() */}
+      <Modal
+        isOpen={isClearAllConfirmOpen}
+        setIsOpen={setIsClearAllConfirmOpen}
+        title={t("geography.poiPanel.clearAllConfirm.title", {
+          count: pois.length,
+        })}
+        description={t("geography.poiPanel.clearAllConfirm.description")}
+        size="small"
+      >
+        <div className="flex justify-end gap-2">
+          <BaseButton
+            variant={ButtonVariant.neutral}
+            onClick={() => setIsClearAllConfirmOpen(false)}
+          >
+            {t("geography.poiPanel.clearAllConfirm.cancel")}
+          </BaseButton>
+          <BaseButton
+            variant={ButtonVariant.danger}
+            onClick={handleConfirmClearAll}
+          >
+            {t("geography.poiPanel.clearAllConfirm.confirm")}
+          </BaseButton>
+        </div>
+      </Modal>
     </div>
   );
 
@@ -1001,7 +1045,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           onClose();
         }}
         className="absolute top-4 right-4 z-20 p-2 rounded-full bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 shadow-lg transition-colors"
-        aria-label="Close"
+        aria-label={t("geography.poiPanel.close")}
       >
         <X className="h-5 w-5 text-gray-700 dark:text-gray-300" />
       </button>

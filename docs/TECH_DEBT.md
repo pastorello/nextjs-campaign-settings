@@ -1344,7 +1344,7 @@ typed builder. Regression tests: `createTreasure` with `value: "20"` and
 `""`, `updateDeity` with extra `zoneId`/`poiId`, a string id, and a partial
 payload; new `createSpell`, `updateSpell`, `deleteSpellById` tests.
 
-### TD-123 — `MapPOIPanel` still has 18 hardcoded English strings, including the confirm before deleting every landmark
+### TD-123 ✅ `MapPOIPanel` still has 18 hardcoded English strings, including the confirm before deleting every landmark — **DONE (2026-09-17)**
 
 **Severity:** 🟠 High · **Effort:** S · **Found:** 2026-09-17, tech-debt audit and accessibility review (both found it)
 
@@ -1363,6 +1363,26 @@ guards `clearAllPOIs` (`usePOIManager.ts:641-669`), which permanently deletes
 every landmark on the map on the server. **The fix, in shape:** move all of
 these strings into both catalogues, and replace the native `confirm` with the app's
 confirm dialog (as `DeletePlaceButton` does). **Related:** TD-95, TD-21.
+
+**Resolution:** All of the enumerated strings (toasts, the three list-item
+`title=` attributes, the four placeholders, the Add/Import/Export button
+labels, the empty state, the Edit Place/Add Place form heading, and the Close
+`aria-label`) now read from `geography.poiPanel.*` in both `messages/en.json`
+and `messages/it.json`, added through `t()` (`POIListItem` now calls
+`useTranslations()` itself for its own tooltips). The native `confirm()`
+before `clearAllPOIs` is replaced with a `Modal` + Cancel/Delete `BaseButton`
+pair, the same shape `DeletePlaceButton` and `MapUploadControl`'s
+replace-confirmation use, gated on a new `isClearAllConfirmOpen` state; the
+confirm and cancel paths each have a test (`MapPOIPanel.test.tsx`), including
+that Cancel leaves `onClearAll` uncalled. **Deliberately left out:** the
+in-form field labels (Kind, Coordinates, Category, Map image, Title,
+Description), the Back/Save/Saving/Update button text, the place-count
+strings, and "Click to select location on map" are still hardcoded English —
+none of these were in the audit's enumerated list, the last is explicitly
+TD-133's territory (a keyboard-access rework, not a translation swap), and
+the rest would have doubled this change's size for a debt item scoped `S`.
+They remain hardcoded English strings in this same file if a follow-up wants
+to pick them up.
 
 ### TD-124 — Server-written error messages reach the Italian UI in English
 

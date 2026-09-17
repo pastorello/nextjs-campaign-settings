@@ -49,7 +49,9 @@ beforeEach(() => {
 describe("MapPOIPanel — list view", () => {
   it("shows an empty state with no POIs", () => {
     render(<MapPOIPanel {...baseProps()} />);
-    expect(screen.getByText("No places yet")).toBeInTheDocument();
+    expect(
+      screen.getByText("geography.poiPanel.emptyState.title")
+    ).toBeInTheDocument();
   });
 
   it("lists every POI with its title and coordinates", () => {
@@ -78,13 +80,17 @@ describe("MapPOIPanel — list view", () => {
 
   it("disables Export and Clear with no POIs, enables them with some", () => {
     const { rerender } = render(<MapPOIPanel {...baseProps()} pois={[]} />);
-    expect(screen.getByText("Export").closest("button")).toBeDisabled();
+    expect(
+      screen.getByText("geography.poiPanel.exportButton").closest("button")
+    ).toBeDisabled();
     expect(
       screen.getByText("geography.poiPanel.clear").closest("button")
     ).toBeDisabled();
 
     rerender(<MapPOIPanel {...baseProps()} pois={[poi]} />);
-    expect(screen.getByText("Export").closest("button")).not.toBeDisabled();
+    expect(
+      screen.getByText("geography.poiPanel.exportButton").closest("button")
+    ).not.toBeDisabled();
     expect(
       screen.getByText("geography.poiPanel.clear").closest("button")
     ).not.toBeDisabled();
@@ -93,27 +99,50 @@ describe("MapPOIPanel — list view", () => {
   it("calls onExport when Export is clicked", () => {
     const props = baseProps();
     render(<MapPOIPanel {...props} pois={[poi]} />);
-    fireEvent.click(screen.getByText("Export"));
+    fireEvent.click(screen.getByText("geography.poiPanel.exportButton"));
     expect(props.onExport).toHaveBeenCalled();
   });
 
   it("calls onClose when the close button is clicked", () => {
     const props = baseProps();
     render(<MapPOIPanel {...props} />);
-    fireEvent.click(screen.getByLabelText("Close"));
+    fireEvent.click(screen.getByLabelText("geography.poiPanel.close"));
     expect(props.onClose).toHaveBeenCalled();
   });
 
-  it("clears all POIs only after confirming, with a translated, plural-aware toast (TD-95)", () => {
+  it("opens the app's confirm dialog rather than deleting immediately, and Cancel deletes nothing (TD-123)", async () => {
     const props = baseProps();
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     render(<MapPOIPanel {...props} pois={[poi]} />);
 
     fireEvent.click(screen.getByText("geography.poiPanel.clear"));
+    // The dialog, not a native `confirm()` — nothing pending on `window.confirm`.
+    expect(
+      screen.getByText("geography.poiPanel.clearAllConfirm.title")
+    ).toBeInTheDocument();
     expect(props.onClearAll).not.toHaveBeenCalled();
 
-    confirmSpy.mockReturnValue(true);
+    fireEvent.click(
+      screen.getByText("geography.poiPanel.clearAllConfirm.cancel")
+    );
+    expect(props.onClearAll).not.toHaveBeenCalled();
+    // The Modal exits via a framer-motion animation, so it leaves the DOM
+    // asynchronously rather than on this same tick.
+    await waitFor(() =>
+      expect(
+        screen.queryByText("geography.poiPanel.clearAllConfirm.title")
+      ).not.toBeInTheDocument()
+    );
+  });
+
+  it("clears all POIs once the dialog is confirmed, with a translated, plural-aware toast (TD-95, TD-123)", () => {
+    const props = baseProps();
+    render(<MapPOIPanel {...props} pois={[poi]} />);
+
     fireEvent.click(screen.getByText("geography.poiPanel.clear"));
+    fireEvent.click(
+      screen.getByText("geography.poiPanel.clearAllConfirm.confirm")
+    );
+
     expect(props.onClearAll).toHaveBeenCalled();
     // Used to be a hand-built template literal
     // (`Cleared ${n} place${n !== 1 ? "s" : ""}`) with its own English
@@ -138,17 +167,19 @@ describe("MapPOIPanel — list view", () => {
       .getByText("Skreebars Market")
       .closest("div")!.parentElement!;
     fireEvent.mouseEnter(row);
-    fireEvent.click(screen.getByTitle("Delete"));
+    fireEvent.click(screen.getByTitle("geography.poiPanel.item.delete"));
 
     expect(props.onDeletePOI).toHaveBeenCalledWith("poi-1");
-    expect(toast.success).toHaveBeenCalledWith('"Skreebars Market" deleted');
+    expect(toast.success).toHaveBeenCalledWith(
+      "geography.poiPanel.success.deleted"
+    );
   });
 
   it("imports a file dropped into the hidden file input", () => {
     const props = baseProps();
     render(<MapPOIPanel {...props} />);
 
-    fireEvent.click(screen.getByText("Import"));
+    fireEvent.click(screen.getByText("geography.poiPanel.importButton"));
     const file = new File(["{}"], "places.geojson");
     const input = document.querySelector(
       'input[type="file"]'
@@ -178,7 +209,7 @@ describe("MapPOIPanel — hardcoded strings swept into the catalogues (TD-95)", 
     render(
       <MapPOIPanel {...props} initialLat={10.123456} initialLng={20.654321} />
     );
-    fireEvent.click(screen.getByText("Add"));
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
 
     expect(
       screen.getByTitle("geography.poiPanel.clearCoordinates")
@@ -209,10 +240,12 @@ describe("MapPOIPanel — add/edit form", () => {
     const props = baseProps();
     render(<MapPOIPanel {...props} />);
 
-    fireEvent.click(screen.getByText("Add"));
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
     fireEvent.click(screen.getByText("Save"));
 
-    expect(toast.error).toHaveBeenCalledWith("Please enter a title");
+    expect(toast.error).toHaveBeenCalledWith(
+      "geography.poiPanel.errors.titleRequired"
+    );
     expect(props.onAddPOI).not.toHaveBeenCalled();
   });
 
@@ -220,13 +253,18 @@ describe("MapPOIPanel — add/edit form", () => {
     const props = baseProps();
     render(<MapPOIPanel {...props} />);
 
-    fireEvent.click(screen.getByText("Add"));
-    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
-      target: { value: "New Place" },
-    });
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
+    fireEvent.change(
+      screen.getByPlaceholderText("geography.poiPanel.placeholders.placeName"),
+      {
+        target: { value: "New Place" },
+      }
+    );
     fireEvent.click(screen.getByText("Save"));
 
-    expect(toast.error).toHaveBeenCalledWith("Please enter valid coordinates");
+    expect(toast.error).toHaveBeenCalledWith(
+      "geography.poiPanel.errors.coordinatesRequired"
+    );
     expect(props.onAddPOI).not.toHaveBeenCalled();
   });
 
@@ -236,10 +274,13 @@ describe("MapPOIPanel — add/edit form", () => {
       <MapPOIPanel {...props} initialLat={10.123456} initialLng={20.654321} />
     );
 
-    fireEvent.click(screen.getByText("Add"));
-    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
-      target: { value: "New Place" },
-    });
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
+    fireEvent.change(
+      screen.getByPlaceholderText("geography.poiPanel.placeholders.placeName"),
+      {
+        target: { value: "New Place" },
+      }
+    );
     fireEvent.change(
       screen.getByDisplayValue("🍽️ geography.poiCategories.foodDrink"),
       { target: { value: "tourism" } }
@@ -253,7 +294,9 @@ describe("MapPOIPanel — add/edit form", () => {
       "tourism",
       undefined
     );
-    expect(toast.success).toHaveBeenCalledWith("Place added successfully");
+    expect(toast.success).toHaveBeenCalledWith(
+      "geography.poiPanel.success.added"
+    );
   });
 
   it("returns to the list view after a successful save", () => {
@@ -262,13 +305,18 @@ describe("MapPOIPanel — add/edit form", () => {
       <MapPOIPanel {...props} initialLat={10.123456} initialLng={20.654321} />
     );
 
-    fireEvent.click(screen.getByText("Add"));
-    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
-      target: { value: "New Place" },
-    });
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
+    fireEvent.change(
+      screen.getByPlaceholderText("geography.poiPanel.placeholders.placeName"),
+      {
+        target: { value: "New Place" },
+      }
+    );
     fireEvent.click(screen.getByText("Save"));
 
-    expect(screen.getByText("No places yet")).toBeInTheDocument();
+    expect(
+      screen.getByText("geography.poiPanel.emptyState.title")
+    ).toBeInTheDocument();
   });
 
   it("prefills the form when editing, and updates rather than adds on save", () => {
@@ -279,10 +327,12 @@ describe("MapPOIPanel — add/edit form", () => {
       .getByText("Skreebars Market")
       .closest("div")!.parentElement!;
     fireEvent.mouseEnter(row);
-    fireEvent.click(screen.getByTitle("Edit"));
+    fireEvent.click(screen.getByTitle("geography.poiPanel.item.edit"));
 
     expect(screen.getByDisplayValue("Skreebars Market")).toBeInTheDocument();
-    expect(screen.getByText("Edit Place")).toBeInTheDocument();
+    expect(
+      screen.getByText("geography.poiPanel.form.editTitle")
+    ).toBeInTheDocument();
 
     fireEvent.change(screen.getByDisplayValue("Skreebars Market"), {
       target: { value: "Renamed Market" },
@@ -293,20 +343,27 @@ describe("MapPOIPanel — add/edit form", () => {
       "poi-1",
       expect.objectContaining({ title: "Renamed Market" })
     );
-    expect(toast.success).toHaveBeenCalledWith("Place updated successfully");
+    expect(toast.success).toHaveBeenCalledWith(
+      "geography.poiPanel.success.updated"
+    );
   });
 
   it("returning Back from the form without saving discards changes", () => {
     const props = baseProps();
     render(<MapPOIPanel {...props} />);
 
-    fireEvent.click(screen.getByText("Add"));
-    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
-      target: { value: "Abandoned" },
-    });
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
+    fireEvent.change(
+      screen.getByPlaceholderText("geography.poiPanel.placeholders.placeName"),
+      {
+        target: { value: "Abandoned" },
+      }
+    );
     fireEvent.click(screen.getByText("Back"));
 
-    expect(screen.getByText("No places yet")).toBeInTheDocument();
+    expect(
+      screen.getByText("geography.poiPanel.emptyState.title")
+    ).toBeInTheDocument();
     expect(props.onAddPOI).not.toHaveBeenCalled();
   });
 });
@@ -328,7 +385,9 @@ describe("MapPOIPanel — externally requested edit (SPEC-016 T7)", () => {
     // "Modifica" (T7) hands this component the POI directly, since the row
     // it would otherwise come from is unreachable (TD-85).
     expect(screen.getByDisplayValue("Skreebars Market")).toBeInTheDocument();
-    expect(screen.getByText("Edit Place")).toBeInTheDocument();
+    expect(
+      screen.getByText("geography.poiPanel.form.editTitle")
+    ).toBeInTheDocument();
   });
 
   it("updates through onUpdatePOI, the same as an edit reached from the list", () => {
@@ -393,7 +452,7 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
 
   it("defaults to poi, with category visible", () => {
     render(<MapPOIPanel {...baseProps()} />);
-    fireEvent.click(screen.getByText("Add"));
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
 
     expect(kindSelect()).toHaveValue("poi");
     expect(screen.getByText("Category")).toBeInTheDocument();
@@ -401,7 +460,7 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
 
   it("switching to region hides category and shows the map image field", () => {
     render(<MapPOIPanel {...baseProps()} />);
-    fireEvent.click(screen.getByText("Add"));
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
 
     fireEvent.change(kindSelect(), { target: { value: "region" } });
 
@@ -411,7 +470,7 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
 
   it("lists the T2 navigable kinds alongside region", () => {
     render(<MapPOIPanel {...baseProps()} />);
-    fireEvent.click(screen.getByText("Add"));
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
 
     const values = [...kindSelect().querySelectorAll("option")].map((o) =>
       o.getAttribute("value")
@@ -423,7 +482,7 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
 
   it("switching to city (T2) hides category and shows the map image field", () => {
     render(<MapPOIPanel {...baseProps()} />);
-    fireEvent.click(screen.getByText("Add"));
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
 
     fireEvent.change(kindSelect(), { target: { value: "city" } });
 
@@ -433,7 +492,7 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
 
   it("no longer offers deity/npc as a creatable kind (SPEC-008 T5)", () => {
     render(<MapPOIPanel {...baseProps()} />);
-    fireEvent.click(screen.getByText("Add"));
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
 
     const values = [...kindSelect().querySelectorAll("option")].map((o) =>
       o.getAttribute("value")
@@ -445,15 +504,20 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
     const props = baseProps();
     render(<MapPOIPanel {...props} initialLat={1} initialLng={2} />);
 
-    fireEvent.click(screen.getByText("Add"));
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
     fireEvent.change(kindSelect(), { target: { value: "region" } });
-    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
-      target: { value: "Kingdom of Kang" },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText("geography.poiPanel.placeholders.placeName"),
+      {
+        target: { value: "Kingdom of Kang" },
+      }
+    );
     fireEvent.click(screen.getByText("Save"));
 
     await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith("Please choose a map image")
+      expect(toast.error).toHaveBeenCalledWith(
+        "geography.poiPanel.errors.mapImageRequired"
+      )
     );
     expect(props.onAddPlace).not.toHaveBeenCalled();
   });
@@ -469,11 +533,14 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
     const props = baseProps();
     render(<MapPOIPanel {...props} initialLat={1} initialLng={2} />);
 
-    fireEvent.click(screen.getByText("Add"));
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
     fireEvent.change(kindSelect(), { target: { value: "region" } });
-    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
-      target: { value: "Kingdom of Kang" },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText("geography.poiPanel.placeholders.placeName"),
+      {
+        target: { value: "Kingdom of Kang" },
+      }
+    );
     const file = new File(["bytes"], "kang.png", { type: "image/png" });
     fireEvent.change(
       screen.getByText("Map image").closest("div")!.querySelector("input")!,
@@ -494,7 +561,9 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
       mapImage: "kang.png",
     });
     await waitFor(() =>
-      expect(toast.success).toHaveBeenCalledWith("Place added successfully")
+      expect(toast.success).toHaveBeenCalledWith(
+        "geography.poiPanel.success.added"
+      )
     );
   });
 
@@ -513,11 +582,14 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
     });
     render(<MapPOIPanel {...props} initialLat={1} initialLng={2} />);
 
-    fireEvent.click(screen.getByText("Add"));
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
     fireEvent.change(kindSelect(), { target: { value: "region" } });
-    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
-      target: { value: "Nod" },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText("geography.poiPanel.placeholders.placeName"),
+      {
+        target: { value: "Nod" },
+      }
+    );
     const file = new File(["bytes"], "nod.png", { type: "image/png" });
     fireEvent.change(
       screen.getByText("Map image").closest("div")!.querySelector("input")!,
@@ -539,7 +611,7 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
       .getByText("Skreebars Market")
       .closest("div")!.parentElement!;
     fireEvent.mouseEnter(row);
-    fireEvent.click(screen.getByTitle("Edit"));
+    fireEvent.click(screen.getByTitle("geography.poiPanel.item.edit"));
 
     expect(screen.queryByText("Kind")).not.toBeInTheDocument();
   });
@@ -605,9 +677,12 @@ describe("MapPOIPanel — draw-an-area flow (SPEC-009 T2)", () => {
       />
     );
 
-    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
-      target: { value: "Kingdom of Kang" },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText("geography.poiPanel.placeholders.placeName"),
+      {
+        target: { value: "Kingdom of Kang" },
+      }
+    );
     const file = new File(["bytes"], "kang.png", { type: "image/png" });
     fireEvent.change(
       screen.getByText("Map image").closest("div")!.querySelector("input")!,
@@ -644,9 +719,12 @@ describe("MapPOIPanel — draw-an-area flow (SPEC-009 T2)", () => {
       />
     );
 
-    fireEvent.change(screen.getByPlaceholderText("Enter place name"), {
-      target: { value: "Kingdom of Kang" },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText("geography.poiPanel.placeholders.placeName"),
+      {
+        target: { value: "Kingdom of Kang" },
+      }
+    );
     const file = new File(["bytes"], "kang.png", { type: "image/png" });
     fireEvent.change(
       screen.getByText("Map image").closest("div")!.querySelector("input")!,
@@ -677,7 +755,7 @@ describe("MapPOIPanel — draw-an-area flow (SPEC-009 T2)", () => {
     const props = baseProps();
     render(<MapPOIPanel {...props} pendingFootprint={footprint} />);
 
-    fireEvent.click(screen.getByText("Add"));
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
 
     expect(props.onFootprintConsumed).toHaveBeenCalled();
   });

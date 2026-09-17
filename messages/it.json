@@ -674,7 +674,48 @@
       "title": "Luoghi di interesse",
       "clear": "Svuota",
       "clearCoordinates": "Cancella le coordinate",
-      "clearedToast": "{count, plural, one {Eliminato # luogo} other {Eliminati # luoghi}}"
+      "clearedToast": "{count, plural, one {Eliminato # luogo} other {Eliminati # luoghi}}",
+      "close": "Chiudi",
+      "addButton": "Aggiungi",
+      "importButton": "Importa",
+      "exportButton": "Esporta",
+      "item": {
+        "flyTo": "Vai a questa posizione",
+        "edit": "Modifica",
+        "delete": "Elimina"
+      },
+      "emptyState": {
+        "title": "Nessun luogo",
+        "subtitle": "Aggiungi il tuo primo luogo per iniziare"
+      },
+      "form": {
+        "editTitle": "Modifica luogo",
+        "addTitle": "Aggiungi luogo"
+      },
+      "placeholders": {
+        "latitude": "Latitudine",
+        "longitude": "Longitudine",
+        "placeName": "Inserisci il nome del luogo",
+        "description": "Aggiungi note o dettagli (opzionale)"
+      },
+      "errors": {
+        "titleRequired": "Inserisci un titolo",
+        "coordinatesRequired": "Inserisci coordinate valide",
+        "mapImageRequired": "Scegli un'immagine della mappa",
+        "uploadFailed": "Impossibile caricare la mappa",
+        "saveFailed": "Impossibile salvare il luogo"
+      },
+      "success": {
+        "updated": "Luogo aggiornato con successo",
+        "added": "Luogo aggiunto con successo",
+        "deleted": "«{title}» eliminato"
+      },
+      "clearAllConfirm": {
+        "title": "{count, plural, one {Eliminare questo luogo?} other {Eliminare tutti i # luoghi?}}",
+        "description": "L'operazione non può essere annullata.",
+        "cancel": "Annulla",
+        "confirm": "Elimina"
+      }
     },
     "maps": {
       "planesOfExistence": "Piani di Esistenza",

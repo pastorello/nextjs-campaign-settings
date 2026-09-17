@@ -674,7 +674,48 @@
       "title": "Places of Interest",
       "clear": "Clear",
       "clearCoordinates": "Clear coordinates",
-      "clearedToast": "{count, plural, one {Cleared # place} other {Cleared # places}}"
+      "clearedToast": "{count, plural, one {Cleared # place} other {Cleared # places}}",
+      "close": "Close",
+      "addButton": "Add",
+      "importButton": "Import",
+      "exportButton": "Export",
+      "item": {
+        "flyTo": "Fly to location",
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "emptyState": {
+        "title": "No places yet",
+        "subtitle": "Add your first place to get started"
+      },
+      "form": {
+        "editTitle": "Edit Place",
+        "addTitle": "Add Place"
+      },
+      "placeholders": {
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "placeName": "Enter place name",
+        "description": "Add notes or details (optional)"
+      },
+      "errors": {
+        "titleRequired": "Please enter a title",
+        "coordinatesRequired": "Please enter valid coordinates",
+        "mapImageRequired": "Please choose a map image",
+        "uploadFailed": "Could not upload the map",
+        "saveFailed": "Could not save the place"
+      },
+      "success": {
+        "updated": "Place updated successfully",
+        "added": "Place added successfully",
+        "deleted": "\"{title}\" deleted"
+      },
+      "clearAllConfirm": {
+        "title": "{count, plural, one {Delete this place?} other {Delete all # places?}}",
+        "description": "This can't be undone.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      }
     },
     "maps": {
       "planesOfExistence": "Planes of Existence",

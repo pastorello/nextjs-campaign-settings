@@ -101,4 +101,43 @@ describe("placeSchema", () => {
       expect(result.data.parentId).toBe(5);
     }
   });
+
+  // Regression for TD-129: `description` now comes from `zoneMeta`, the
+  // same validator `updateZoneDetails` uses, so creation can no longer
+  // accept and store an empty-string description while editing refuses
+  // one — "no description" is one value (`undefined` here, `null` in the
+  // column) rather than two.
+  describe("description (TD-129)", () => {
+    it("rejects an empty-string description, consistent with zoneMeta/updateZoneDetails", () => {
+      const result = placeSchema.safeParse({
+        ...commonFields,
+        kind: "region",
+        mapImage: "generated-id.png",
+        description: "",
+      });
+
+      expect(result.success).toBe(false);
+    });
+
+    it("accepts an omitted description", () => {
+      const result = placeSchema.safeParse({
+        ...commonFields,
+        kind: "region",
+        mapImage: "generated-id.png",
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it("accepts a non-empty description", () => {
+      const result = placeSchema.safeParse({
+        ...commonFields,
+        kind: "region",
+        mapImage: "generated-id.png",
+        description: "A quiet fishing village.",
+      });
+
+      expect(result.success).toBe(true);
+    });
+  });
 });

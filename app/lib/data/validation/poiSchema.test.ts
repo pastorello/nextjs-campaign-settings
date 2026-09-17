@@ -55,6 +55,22 @@ describe("buildPoiCreateSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  // Regression for TD-129: `description` now comes from `zoneMeta`, the
+  // same validator `placeSchema`/`updateZoneDetails` use, so a poi and a
+  // place can no longer disagree on what "no description" means.
+  it("rejects an empty-string description, consistent with zoneMeta/placeSchema (TD-129)", () => {
+    const result = buildPoiCreateSchema().safeParse({
+      ...validPoi,
+      description: "",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts an omitted description", () => {
+    const result = buildPoiCreateSchema().safeParse(validPoi);
+    expect(result.success).toBe(true);
+  });
+
   // Regression: geographic bounds here rejected every coordinate the app's
   // image-overlay maps produce. Coordinates run to the far corner of the
   // largest declared bounds and beyond, and must pass.

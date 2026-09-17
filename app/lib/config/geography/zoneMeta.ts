@@ -15,10 +15,10 @@ import z from "zod";
  *
  * Until TD-104 there was no `PageMeta` for these at all, and no mutation
  * wrote them: a region could not be renamed anywhere in the application.
- * `createPlace` validates them through literals restated in
- * `placeSchema.ts`, which is the older, rule-2-non-compliant precedent —
- * left alone here deliberately, since changing what creation accepts is a
- * behaviour change and this is not the commit for it.
+ * `createPlace`/`createPoi`/`createRootPlace` build `placeSchema.ts` /
+ * `poiSchema.ts` / `rootPlaceSchema.ts` from these same validators
+ * (TD-129) rather than restating the rule, so create and edit cannot
+ * disagree on what a legal title or description is.
  */
 const zoneMeta = {
   [ZoneMetaField.title]: {

@@ -17,7 +17,26 @@ vi.mock("@/app/ui/geography/CreateWorldForm", () => ({
   default: () => <div data-testid="create-world-form" />,
 }));
 
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({
+    href,
+    children,
+    className,
+  }: {
+    href: string;
+    children: React.ReactNode;
+    className?: string;
+  }) => (
+    <a href={href} className={className}>
+      {children}
+    </a>
+  ),
+}));
+
 import WorldPage, { generateMetadata } from "./page";
+
+const params = Promise.resolve({ locale: "it", system: "dnd5e" });
+const searchParams = Promise.resolve({});
 
 describe("world Page (SPEC-004 M4)", () => {
   it("titles the page from the world.page catalogue", async () => {
@@ -29,21 +48,25 @@ describe("world Page (SPEC-004 M4)", () => {
   it("offers the create-world form and nothing else on an empty installation", async () => {
     fetchRootPlace.mockResolvedValue(null);
 
-    render(await WorldPage());
+    render(await WorldPage({ params, searchParams }));
 
     expect(screen.getByTestId("create-world-form")).toBeInTheDocument();
   });
 
-  it("does not offer the create-world form once a root exists", async () => {
+  it("does not offer the create-world form once a root exists, and links to the map instead (TD-119)", async () => {
     fetchRootPlace.mockResolvedValue({
       id: 1,
       title: "Aerivel",
       mapImage: "uploaded-id.png",
     });
 
-    render(await WorldPage());
+    render(await WorldPage({ params, searchParams }));
 
     expect(screen.queryByTestId("create-world-form")).not.toBeInTheDocument();
     expect(screen.getByText('exists {"title":"Aerivel"}')).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "viewMapLink" })).toHaveAttribute(
+      "href",
+      "/dashboard/dnd5e/geography"
+    );
   });
 });

@@ -24,7 +24,7 @@ test.describe("authentication", () => {
       .getByRole("button", { name: messages.common.auth.submit })
       .click();
 
-    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page).toHaveURL(/\/dashboard\/dnd5e$/);
   });
 
   test("invalid credentials show an error and stay on /login", async ({

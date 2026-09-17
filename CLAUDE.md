@@ -210,7 +210,7 @@ Reference the debt ID where one applies: `fix(auth): require session on delete e
 
 ```
 app/api/**                    route handlers (DELETE, GeoJSON, map images)
-app/[locale]/dashboard/**     authenticated pages (locale segment added by TD-21)
+app/[locale]/dashboard/[system]/**  authenticated pages (locale: TD-21; system: ADR-0013)
 app/lib/config/**             ← metadata declarations (start here for field changes)
 app/lib/data/<domain>/**      ← data access, one function per file
 app/lib/definitions/**        enums / interfaces / types, one per file

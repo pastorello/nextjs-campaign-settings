@@ -63,7 +63,7 @@ test.describe("spells CRUD", () => {
       .getByRole("button", { name: messages.spells.form.createButton })
       .click();
 
-    await page.waitForURL("**/dashboard/admin/spells");
+    await page.waitForURL("**/dashboard/dnd5e/admin/spells");
 
     await gotoSpell(page, name);
     await expect(rowFor(page, name)).toBeVisible();
@@ -137,7 +137,7 @@ test.describe("spells CRUD", () => {
     await page
       .getByRole("button", { name: messages.spells.form.createButton })
       .click();
-    await page.waitForURL("**/dashboard/admin/spells");
+    await page.waitForURL("**/dashboard/dnd5e/admin/spells");
 
     await gotoSpell(page, name);
     const target = rowFor(page, name);

@@ -12,11 +12,17 @@ import { Button } from "./button";
 import { useActionState } from "react";
 import { authenticate } from "@/app/lib/actions/authenticate";
 import { useSearchParams } from "next/navigation";
+import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
+import { dashboardPath } from "@/i18n/dashboardPath";
 
 export default function LoginForm() {
   const t = useTranslations("common.auth");
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  // Must already name a system: sign-in redirects from a Server Action, and
+  // Next resolves that target server-side, so proxy.ts's system redirect
+  // would render the page but leave the address bar on the legacy URL.
+  const callbackUrl =
+    searchParams.get("callbackUrl") || dashboardPath(DEFAULT_GAME_SYSTEM);
   const [errorMessage, formAction, isPending] = useActionState(
     authenticate,
     undefined

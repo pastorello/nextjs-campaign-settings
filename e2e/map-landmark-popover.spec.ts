@@ -179,7 +179,7 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
     await page
       .getByRole("button", { name: messages.npc.form.createButton })
       .click();
-    await page.waitForURL("**/dashboard/admin/npc");
+    await page.waitForURL("**/dashboard/dnd5e/admin/npc");
 
     await page.goto("/dashboard/geography");
     const map = page.locator(".leaflet-container");

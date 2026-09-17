@@ -38,7 +38,7 @@ test.describe("NPC CRUD", () => {
       .getByRole("button", { name: messages.npc.form.createButton })
       .click();
 
-    await page.waitForURL("**/dashboard/admin/npc");
+    await page.waitForURL("**/dashboard/dnd5e/admin/npc");
 
     await gotoPng(page, name);
     await expect(rowFor(page, name)).toBeVisible();

@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import NavLinks from "@/app/ui/dashboard/nav-links";
 import LocaleSwitcher from "@/app/ui/dashboard/LocaleSwitcher";
 import { PowerIcon } from "@heroicons/react/24/outline";
+import { Link } from "@/i18n/navigation";
 import { signOut } from "@/auth";
 import CampaignSettingsLogo from "../icons/CampaignSettingsLogo";
 

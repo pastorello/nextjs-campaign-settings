@@ -7,6 +7,11 @@ vi.mock("next-intl/server", () => ({
 vi.mock("@/auth", () => ({
   signOut: vi.fn(),
 }));
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({ href, ...props }: React.ComponentProps<"a">) => (
+    <a href={href} {...props} />
+  ),
+}));
 vi.mock("./nav-links", () => ({
   default: () => <div data-testid="nav-links" />,
 }));

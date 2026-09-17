@@ -57,7 +57,7 @@ test.describe("treasure catalogue CRUD", () => {
       .getByRole("button", { name: messages.treasure.form.createButton })
       .click();
 
-    await page.waitForURL("**/dashboard/admin/treasures");
+    await page.waitForURL("**/dashboard/dnd5e/admin/treasures");
 
     await gotoTreasure(page, name);
     await expect(rowFor(page, name)).toBeVisible();

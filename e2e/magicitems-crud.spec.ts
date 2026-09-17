@@ -54,7 +54,7 @@ test.describe("magic items CRUD", () => {
       .getByRole("button", { name: messages.magicItems.form.createButton })
       .click();
 
-    await page.waitForURL("**/dashboard/admin/magicitems");
+    await page.waitForURL("**/dashboard/dnd5e/admin/magicitems");
 
     await gotoMagicItem(page, name);
     await expect(rowFor(page, name)).toBeVisible();

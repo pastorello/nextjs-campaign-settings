@@ -74,7 +74,7 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     await page
       .getByRole("button", { name: messages.npc.form.createButton })
       .click();
-    await page.waitForURL("**/dashboard/admin/npc");
+    await page.waitForURL("**/dashboard/dnd5e/admin/npc");
 
     // 2. Two maps to move between, both children of the root.
     await page.goto("/dashboard/geography");

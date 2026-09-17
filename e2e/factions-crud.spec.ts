@@ -47,7 +47,7 @@ test.describe("factions CRUD", () => {
       .getByRole("button", { name: messages.factions.form.createButton })
       .click();
 
-    await page.waitForURL("**/dashboard/admin/factions");
+    await page.waitForURL("**/dashboard/dnd5e/admin/factions");
 
     await gotoFaction(page, name);
     await expect(rowFor(page, name)).toBeVisible();

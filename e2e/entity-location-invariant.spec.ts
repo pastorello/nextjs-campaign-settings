@@ -51,7 +51,7 @@ test.describe("an entity's location is single-valued (TD-93)", () => {
     await page
       .getByRole("button", { name: messages.npc.form.createButton })
       .click();
-    await page.waitForURL("**/dashboard/admin/npc");
+    await page.waitForURL("**/dashboard/dnd5e/admin/npc");
 
     // See spells-crud.spec.ts: a new record is not on page 1 of a real
     // library, so the row is reached through the search query.

@@ -1,5 +1,6 @@
 import PageType from "@/app/lib/definitions/types/PageType";
 import MetaConfigKey from "@/app/lib/definitions/types/MetaConfigKey";
+import GameSystem from "@/app/lib/definitions/GameSystem";
 
 import SpellMetaField from "@/app/lib/definitions/enums/spells/SpellMetaField";
 import NpcMetaField from "@/app/lib/definitions/enums/npc/NpcMetaField";
@@ -26,75 +27,99 @@ import TreasureMetaField from "@/app/lib/definitions/enums/treasure/TreasureMeta
  * rather than in a domain meta, so they are plain string keys. `alignment`
  * and `alignmentDomain` are declared in `npcMeta` and shared with deities,
  * which is why the deity list reaches for `NpcMetaField`.
+ *
+ * `system` marks a catalogue page as belonging to one game system; absent
+ * means the page is shared by every system (ADR-0013 rule 4). A catalogue
+ * route enforces it with `assertPageSystem`.
  */
-const pagesConfig: Record<PageType, MetaConfigKey[]> = {
-  [PageType.Spell]: [
-    "id",
-    "name",
-    "description",
-    SpellMetaField.level,
-    SpellMetaField.circle,
-    SpellMetaField.classes,
-    SpellMetaField.castingTime,
-    SpellMetaField.range,
-    SpellMetaField.components,
-    SpellMetaField.duration,
-    SpellMetaField.savingThrow,
-    SpellMetaField.ritual,
-    SpellMetaField.upcast,
-    SpellMetaField.concentration,
-  ],
-  [PageType.MagicItem]: [
-    "id",
-    "description",
-    "name",
-    MagicItemMetaField.rarity,
-    MagicItemMetaField.type,
-    MagicItemMetaField.attuned,
-    MagicItemMetaField.consumable,
-  ],
-  [PageType.Npc]: [
-    "id",
-    "description",
-    "name",
-    NpcMetaField.title,
-    NpcMetaField.alignment,
-    NpcMetaField.alignmentDomain,
-    NpcMetaField.position,
-    NpcMetaField.faction,
-    NpcMetaField.appearance,
-    NpcMetaField.personality,
-    NpcMetaField.motivations,
-    NpcMetaField.secrets,
-  ],
-  [PageType.Deity]: [
-    "id",
-    "name",
-    DeityMetaField.deityTitle,
-    DeityMetaField.deityType,
-    DeityMetaField.deityRank,
-    DeityMetaField.tarotCard,
-    DeityMetaField.celestialBody,
-    DeityMetaField.element,
-    DeityMetaField.deityClass,
-    DeityMetaField.holidays,
-    DeityMetaField.color,
-    DeityMetaField.tradition,
-    NpcMetaField.alignment,
-    NpcMetaField.alignmentDomain,
-    DeityMetaField.meaning,
-  ],
+export interface PageConfig {
+  fields: MetaConfigKey[];
+  system?: GameSystem;
+}
+
+const pagesConfig: Record<PageType, PageConfig> = {
+  [PageType.Spell]: {
+    fields: [
+      "id",
+      "name",
+      "description",
+      SpellMetaField.level,
+      SpellMetaField.circle,
+      SpellMetaField.classes,
+      SpellMetaField.castingTime,
+      SpellMetaField.range,
+      SpellMetaField.components,
+      SpellMetaField.duration,
+      SpellMetaField.savingThrow,
+      SpellMetaField.ritual,
+      SpellMetaField.upcast,
+      SpellMetaField.concentration,
+    ],
+    system: "dnd5e",
+  },
+  [PageType.MagicItem]: {
+    fields: [
+      "id",
+      "description",
+      "name",
+      MagicItemMetaField.rarity,
+      MagicItemMetaField.type,
+      MagicItemMetaField.attuned,
+      MagicItemMetaField.consumable,
+    ],
+    system: "dnd5e",
+  },
+  [PageType.Npc]: {
+    fields: [
+      "id",
+      "description",
+      "name",
+      NpcMetaField.title,
+      NpcMetaField.alignment,
+      NpcMetaField.alignmentDomain,
+      NpcMetaField.position,
+      NpcMetaField.faction,
+      NpcMetaField.appearance,
+      NpcMetaField.personality,
+      NpcMetaField.motivations,
+      NpcMetaField.secrets,
+    ],
+  },
+  [PageType.Deity]: {
+    fields: [
+      "id",
+      "name",
+      DeityMetaField.deityTitle,
+      DeityMetaField.deityType,
+      DeityMetaField.deityRank,
+      DeityMetaField.tarotCard,
+      DeityMetaField.celestialBody,
+      DeityMetaField.element,
+      DeityMetaField.deityClass,
+      DeityMetaField.holidays,
+      DeityMetaField.color,
+      DeityMetaField.tradition,
+      NpcMetaField.alignment,
+      NpcMetaField.alignmentDomain,
+      DeityMetaField.meaning,
+    ],
+  },
   // No domain meta: `id`, `name` and `description` are declared directly in
   // `pageMetaFields`, and a faction has no field beyond them (SPEC-006 §7).
-  [PageType.Faction]: ["id", "name", "description"],
+  [PageType.Faction]: {
+    fields: ["id", "name", "description"],
+  },
   // The seventh domain (SPEC-013 §6/§7) — same shape as magic items.
-  [PageType.Treasure]: [
-    "id",
-    "name",
-    "description",
-    TreasureMetaField.category,
-    TreasureMetaField.value,
-  ],
+  [PageType.Treasure]: {
+    fields: [
+      "id",
+      "name",
+      "description",
+      TreasureMetaField.category,
+      TreasureMetaField.value,
+    ],
+    system: "dnd5e",
+  },
 };
 
 export default pagesConfig;

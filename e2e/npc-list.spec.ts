@@ -39,7 +39,7 @@ const createFaction = async (page: Page, name: string) => {
   await page
     .getByRole("button", { name: messages.factions.form.createButton })
     .click();
-  await page.waitForURL("**/dashboard/admin/factions");
+  await page.waitForURL("**/dashboard/dnd5e/admin/factions");
 };
 
 const createNpc = async (page: Page, name: string, faction?: string) => {
@@ -62,7 +62,7 @@ const createNpc = async (page: Page, name: string, faction?: string) => {
   await page
     .getByRole("button", { name: messages.npc.form.createButton })
     .click();
-  await page.waitForURL("**/dashboard/admin/npc");
+  await page.waitForURL("**/dashboard/dnd5e/admin/npc");
 };
 
 const deleteRow = async (page: Page, listUrl: string, name: string) => {

@@ -190,6 +190,9 @@ _Filled in per slice; each slice in §10 gets its own spec._
 
 - [x] **T1** — Write ADR-0013 (modelling game systems: the URL segment, one table per catalogue, compatibility rather than correspondence). Point `docs/domain/README.md` at the licensing analysis. Write `docs/domain/daggerheart.md`: the mechanics restated, with the SRD and licence versions. _(check: review)_
 - [ ] **T2** — The system dimension, with 5e as the only system: `GameSystem`, the `[system]` URL segment with redirects from old URLs, the page `system` field, and the switch. No visible change beyond the URL. _(test: page-classification unit test; redirect tests; full e2e green)_
+  - [x] _Part A_ — `GameSystem`, the `[system]` segment and its layout, the proxy's 307, `pagesConfig.system` with `assertPageSystem`, `dashboardPath` + `useGameSystem`, and the source scan (`i18n/dashboardPaths.test.ts`). The e2e URL _assertions_ moved to `dnd5e`; `login-form.tsx` and `[locale]/page.tsx` already use the helper, because a Server Action redirect to a legacy path renders under the old address.
+  - [ ] _Part B_ — rewrite every file in the scan's allowlist onto `dashboardPath` until it is empty, then the unit tests and e2e `goto`s that still spell `/dashboard/…`. Full e2e once at the end.
+  - [ ] _Part C_ — the switch (ADR-0013 rule 6) and search filtered by the page's `system` (rule 10). Ask the DM first whether the switch is hidden or shown disabled while `dnd5e` is the only system.
 - [ ] **T3** — `campaign.system`, backfilled to `dnd5e`. Creating a campaign asks for it, the campaign list is filtered by the URL's system, and a campaign opens under its own system. _(test: backfill; list filter; redirect)_
 - [ ] **T4** — Slice spec: Daggerheart domains, domain cards, classes, subclasses
 - [ ] **T5** — Slice spec: ancestries, communities

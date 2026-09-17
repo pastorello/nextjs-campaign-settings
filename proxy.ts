@@ -3,7 +3,12 @@ import createMiddleware from "next-intl/middleware";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+import {
+  DEFAULT_GAME_SYSTEM,
+  isGameSystem,
+} from "./app/lib/definitions/GameSystem";
 import { authConfig } from "./auth.config";
+import { DASHBOARD_ROOT } from "./i18n/dashboardPath";
 import { routing } from "./i18n/routing";
 
 const handleI18nRouting = createMiddleware(routing);
@@ -30,6 +35,26 @@ function splitLocale(pathname: string) {
     : { locale: routing.defaultLocale, rest: pathname };
 }
 
+// ADR-0013 rule 3: a dashboard path whose next segment is not a game system
+// (an old bookmark, a link that dropped the system) is the same path under
+// the default system. Deterministic on purpose — no cookie, no "last system
+// used" — so a link missing its system lands visibly on the default instead
+// of silently on whatever was open. An unknown system gets the same
+// treatment and ends in a 404 (`/dashboard/dnd5e/foo/spells`). Returns the
+// redirect target, or null when the path needs none.
+export function systemRedirectPath(pathname: string): string | null {
+  const { rest } = splitLocale(pathname);
+  if (rest !== DASHBOARD_ROOT && !rest.startsWith(`${DASHBOARD_ROOT}/`)) {
+    return null;
+  }
+  const [segment] = rest.slice(DASHBOARD_ROOT.length + 1).split("/");
+  if (isGameSystem(segment)) return null;
+
+  const prefix = pathname.slice(0, pathname.length - rest.length);
+  const tail = rest.slice(DASHBOARD_ROOT.length);
+  return `${prefix}${DASHBOARD_ROOT}/${DEFAULT_GAME_SYSTEM}${tail}`;
+}
+
 export default async function proxy(req: NextRequest) {
   const intlResponse = handleI18nRouting(req);
   // Let next-intl's own locale redirect (e.g. a stored locale cookie
@@ -41,6 +66,19 @@ export default async function proxy(req: NextRequest) {
   // against each other.
   if (isRedirect(intlResponse)) {
     return intlResponse;
+  }
+
+  // Before the auth gate, so the login page's callbackUrl already names a
+  // system: sign-in redirects from a Server Action, whose target Next
+  // resolves server-side — a legacy callbackUrl would render the right page
+  // under the wrong address. 307, not 308: a browser must not cache the
+  // default system for a URL that may name another one later. `clone()`
+  // keeps the query string.
+  const systemPath = systemRedirectPath(req.nextUrl.pathname);
+  if (systemPath) {
+    const systemUrl = req.nextUrl.clone();
+    systemUrl.pathname = systemPath;
+    return NextResponse.redirect(systemUrl, 307);
   }
 
   // NextAuth's `auth()` wrapper redirects internally, but its check is a

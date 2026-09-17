@@ -7,7 +7,7 @@ import pagesConfig from "@/app/lib/config/pagesConfig";
 // `id` is excluded here: the database generates it on create, and it is added
 // back, required, on update.
 function entityFieldKeys(pageType: PageType) {
-  return pagesConfig[pageType].filter((key) => key !== "id");
+  return pagesConfig[pageType].fields.filter((key) => key !== "id");
 }
 
 function fieldValidators(pageType: PageType): ZodRawShape {

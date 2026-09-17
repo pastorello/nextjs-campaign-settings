@@ -51,7 +51,7 @@ test.describe("deities CRUD", () => {
       .getByRole("button", { name: messages.deities.form.createButton })
       .click();
 
-    await page.waitForURL("**/dashboard/admin/deities");
+    await page.waitForURL("**/dashboard/dnd5e/admin/deities");
 
     await gotoDeity(page, name);
     await expect(rowFor(page, name)).toBeVisible();

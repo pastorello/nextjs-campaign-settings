@@ -101,6 +101,6 @@ test.describe("the place in view has a URL of its own (TD-82)", () => {
     // Every hop replaced the history entry rather than pushing one, so back
     // leaves the map instead of returning to the place.
     await page.goBack();
-    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page).toHaveURL(/\/dashboard\/dnd5e$/);
   });
 });

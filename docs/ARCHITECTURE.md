@@ -14,7 +14,7 @@ Campaign Settings is a Next.js App Router application with no separate backend. 
 Browser
   │
   ├── RSC payload ────────► Server Components ──► Data layer ──► Prisma ──► Postgres
-  │                      (app/[locale]/dashboard/**)  (app/lib/data)
+  │               (app/[locale]/dashboard/[system]/**)  (app/lib/data)
   │
   ├── Server Action POST ─► Mutations ───────────► Prisma ──► Postgres
   │                          (createX/updateX)
@@ -24,6 +24,14 @@ Browser
 ```
 
 Auth is enforced by `proxy.ts` (Next.js 16's renamed middleware) at the edge, before any of the above runs.
+
+### Routing: locale, then game system ([ADR-0006](./adr/0006-bilingual-ui.md), [ADR-0013](./adr/0013-game-systems.md))
+
+Every dashboard URL names a locale and a game system: `/dashboard/dnd5e/spells` (Italian, unprefixed under next-intl's `localePrefix: "as-needed"`) and `/en/dashboard/dnd5e/spells`. The pages live in `app/[locale]/dashboard/[system]/**`; `[system]/layout.tsx` 404s a param that is not in `GAME_SYSTEMS` (`app/lib/definitions/GameSystem.ts`, `dnd5e` only until the first Daggerheart slice) and renders `SideNav`.
+
+- **Building links.** `dashboardPath(system, "/spells")` in `i18n/dashboardPath.ts` is the only place a dashboard path is spelled out; hand its result to next-intl's `Link` / `redirect` / `useRouter` (`i18n/navigation.ts`), which add the locale. Server components take the system from `params`, client components from `useGameSystem()` (`app/lib/hooks/`). `i18n/dashboardPaths.test.ts` scans the source AST and fails on any other `"/dashboard…` literal; its allowlist holds the files that predate the segment (SPEC-018 T2 part B empties it).
+- **URLs without a system.** `proxy.ts` runs next-intl's middleware, then `systemRedirectPath`, then the auth gate: a `/dashboard` path whose next segment is not a system gets a **307** to the same path with `DEFAULT_GAME_SYSTEM` inserted, query string kept. No cookie — a link that dropped its system lands visibly on the default. It runs before the auth gate so the login page's `callbackUrl` already carries the system: sign-in redirects from a Server Action, whose target Next resolves server-side, so a legacy callback would render the right page under the old address. An unknown system (`/dashboard/foo/spells`) ends in a 404 the same way.
+- **Catalogues.** A `pagesConfig` entry with a `system` belongs to that system; one without is shared. The catalogue route directories (`spells`, `magicitems`, `treasures` and their `admin/` twins) each have a one-line `layout.tsx` calling `assertPageSystem`, which 404s the page under any other system.
 
 ---
 
@@ -97,7 +105,7 @@ The test to apply to something new, so the case is checked rather than the argum
 | Exists only inside a parent's page                    | no             | yes                  |
 | A Prisma `where` clause is built from it              | yes            | no                   |
 
-SPEC-013's `treasure` catalogue is a flat domain and sits on the left. `campaign`, `adventure`, `scene`, `sceneCreature` and `loot` all sit on the right: a campaign is a single record created once from an empty state and shown as a position-ordered ladder, not a filterable admin list, and `adventure` follows it for the same reason (ADR-0011, amended 2026-08-19 — the ADR's first version put these two on the left, which contradicted SPEC-013 §5 from the day it was written). `app/ui/campaigns/CampaignForm.tsx`/`AdventureForm.tsx`/`AdventureLadder.tsx`/`CampaignHeader.tsx` (T7) are the dedicated components for the first two; `AdventureInfoForm.tsx`/`AdventureHeader.tsx`/`SceneForm.tsx`/`SceneList.tsx`/`SceneCreatureForm.tsx`/`SceneCreatureList.tsx`/`LootForm.tsx`/`LootList.tsx` (T8) are the scene/creature/loot editor, on `app/[locale]/dashboard/campaign/[adventureId]/page.tsx`. `BudgetPanel.tsx` (T9, a server component reading `getBudgetTotals` fresh on every render) and `CheckOffControl.tsx` (T9, a client wrapper around the generic `CheckboxInput` plus `setSceneAwarded`/`setSceneCreatureAwarded`/`setLootTaken` and `router.refresh()`) complete the adventure page.
+SPEC-013's `treasure` catalogue is a flat domain and sits on the left. `campaign`, `adventure`, `scene`, `sceneCreature` and `loot` all sit on the right: a campaign is a single record created once from an empty state and shown as a position-ordered ladder, not a filterable admin list, and `adventure` follows it for the same reason (ADR-0011, amended 2026-08-19 — the ADR's first version put these two on the left, which contradicted SPEC-013 §5 from the day it was written). `app/ui/campaigns/CampaignForm.tsx`/`AdventureForm.tsx`/`AdventureLadder.tsx`/`CampaignHeader.tsx` (T7) are the dedicated components for the first two; `AdventureInfoForm.tsx`/`AdventureHeader.tsx`/`SceneForm.tsx`/`SceneList.tsx`/`SceneCreatureForm.tsx`/`SceneCreatureList.tsx`/`LootForm.tsx`/`LootList.tsx` (T8) are the scene/creature/loot editor, on `app/[locale]/dashboard/[system]/campaign/[adventureId]/page.tsx`. `BudgetPanel.tsx` (T9, a server component reading `getBudgetTotals` fresh on every render) and `CheckOffControl.tsx` (T9, a client wrapper around the generic `CheckboxInput` plus `setSceneAwarded`/`setSceneCreatureAwarded`/`setLootTaken` and `router.refresh()`) complete the adventure page.
 
 **Shared either way:** the Zod `validator` and the label key of every scalar field. A bespoke editor consumes those declarations; it may not invent its own. Nothing in the compiler enforces that half — a label or a validator restated by hand inside a component is exactly the drift ADR-0011 says to watch for, and it is the signal to revisit the decision.
 
@@ -228,6 +236,9 @@ Request
   │
   ▼
 proxy.ts  matcher: everything except /api, /_next/static, /_next/image, favicon.ico, *.png, *.jpg, *.jpeg
+  │
+  ▼
+systemRedirectPath  →  307 to /dashboard/dnd5e/… when the system segment is missing
   │
   ▼
 authConfig.callbacks.authorized  →  !!auth?.user  (true / false)

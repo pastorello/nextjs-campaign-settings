@@ -16,7 +16,7 @@ setup("authenticate", async ({ page }) => {
   await page.getByLabel(messages.common.auth.password).fill(TEST_USER.password);
   await page.getByRole("button", { name: messages.common.auth.submit }).click();
 
-  await page.waitForURL("**/dashboard");
+  await page.waitForURL("**/dashboard/dnd5e");
 
   // Proves the session is real rather than just a redirect: the dashboard nav
   // only renders for an authenticated user.

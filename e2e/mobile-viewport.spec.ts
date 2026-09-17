@@ -12,8 +12,10 @@ import messages from "@/messages/it.json";
  *   itself — a fixed 900px form, a list header row that couldn't wrap, and a
  *   ten-tile nav row with no way to reach the tiles past the right edge.
  */
+const PHONE_WIDTH = 375;
+
 test.describe("phone viewport (375×812)", () => {
-  test.use({ viewport: { width: 375, height: 812 } });
+  test.use({ viewport: { width: PHONE_WIDTH, height: 812 } });
 
   test("TD-113: the admin spells list shows a row and its edit/delete actions on a phone", async ({
     page,
@@ -34,15 +36,27 @@ test.describe("phone viewport (375×812)", () => {
     await expect(
       row.getByRole("button", { name: new RegExp(messages.common.table.edit) })
     ).toBeVisible();
-    await expect(
-      row.getByRole("button", { name: new RegExp(messages.common.form.delete) })
-    ).toBeVisible();
+    const deleteButton = row.getByRole("button", {
+      name: new RegExp(messages.common.form.delete),
+    });
+    await expect(deleteButton).toBeVisible();
+    // Visible is not enough: on 2026-09-17 the list was 20px wider than the
+    // screen and this button was half cut off at the right edge while
+    // `toBeVisible` still passed.
+    const box = await deleteButton.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x + box!.width).toBeLessThanOrEqual(PHONE_WIDTH);
   });
 
   const PAGES: Array<[string, string]> = [
     ["a list", "/dashboard/dnd5e/admin/spells"],
     ["a form", "/dashboard/dnd5e/admin/spells/new"],
     ["the overview", "/dashboard/dnd5e"],
+    // The public lists and the campaign page overflowed too (filter chips
+    // that did not wrap, fixed-width NPC columns, the adventure table).
+    ["the public spells list", "/dashboard/dnd5e/spells"],
+    ["the public NPC list", "/dashboard/dnd5e/npc"],
+    ["the campaigns page", "/dashboard/dnd5e/campaign"],
   ];
 
   for (const [label, path] of PAGES) {
@@ -52,12 +66,14 @@ test.describe("phone viewport (375×812)", () => {
       await page.goto(path);
       await page.waitForLoadState("networkidle");
 
-      const { scrollWidth, innerWidth } = await page.evaluate(() => ({
-        scrollWidth: document.documentElement.scrollWidth,
-        innerWidth: window.innerWidth,
-      }));
+      // Against the fixed viewport width, not `window.innerWidth`: under
+      // mobile emulation the layout viewport grows with overflowing content,
+      // so comparing the page with itself can pass while it overflows.
+      const scrollWidth = await page.evaluate(
+        () => document.documentElement.scrollWidth
+      );
 
-      expect(scrollWidth).toBeLessThanOrEqual(innerWidth);
+      expect(scrollWidth).toBeLessThanOrEqual(PHONE_WIDTH);
     });
   }
 });

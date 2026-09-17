@@ -151,7 +151,7 @@ export default async function EntityList(props: {
   return (
     <div className="mt-6 flow-root">
       {placements && <LocationFilterControl />}
-      <div className="inline-block min-w-full align-middle">
+      <div className="block min-w-full align-middle md:inline-block">
         <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
           {isArrayEmpty(items) && <p>{t(config.emptyMessageKey)}</p>}
           <table

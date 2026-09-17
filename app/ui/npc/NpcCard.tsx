@@ -39,9 +39,9 @@ const NpcCard = (props: {
   return (
     <Disclosure>
       <div className="my-2 w-full gap-x-4 rounded-xl bg-slate-800 p-4 text-sm text-white outline outline-offset-1 outline-white/10">
-        <div className="mb-2 flex w-full">
-          <DisclosureButton className="flex flex-1 text-left">
-            <div className="flex-1 text-left">
+        <div className="mb-2 flex w-full flex-wrap items-center gap-x-4 gap-y-1 md:flex-nowrap">
+          <DisclosureButton className="flex min-w-0 flex-1 flex-col gap-1 text-left md:flex-row">
+            <div className="text-left md:w-48 md:shrink-0">
               <h3 className="text-xl">
                 {pageMetaFields[NpcMetaField.name].getDatum(
                   props.cardItem[NpcMetaField.name]
@@ -58,11 +58,12 @@ const NpcCard = (props: {
                 )}
               </p>
             </div>
-            {/* Narrowed from 600px (TD-118): at that width the name block
-                beside it — flex-1 for the remaining space — was squeezed
-                narrow enough to wrap "Aldric Valmonte" and its subtitle over
-                four lines. */}
-            <div className="w-[360px] text-gray-400 text-left">
+            {/* The name block has a fixed width and this takes the rest
+                (TD-118). With the widths the other way round — a fixed
+                600px, then 360px, here and flex-1 on the name — the name was
+                squeezed until "Aldric Valmonte" and its subtitle wrapped over
+                four lines. Stacked below `md` (TD-114). */}
+            <div className="min-w-0 flex-1 text-gray-400 text-left">
               {pageMetaFields[NpcMetaField.appearance].getDatum(
                 props.cardItem[NpcMetaField.appearance]
               )}
@@ -73,7 +74,7 @@ const NpcCard = (props: {
               a `<button>` is invalid HTML, and its click would also toggle
               the disclosure (SPEC-006 T8). An em dash for no faction
               (decision 8), not a link to nowhere. */}
-          <div className="w-[150px] self-center text-base">
+          <div className="self-center text-base md:w-[150px]">
             {faction ? (
               <Link
                 href={dashboardPath(
@@ -95,7 +96,7 @@ const NpcCard = (props: {
               not nested inside it, since it is its own button. */}
           {/* Was text-xl — the same size as the NPC's own name above, so the
               eye went to the place first (TD-118). */}
-          <div className="w-[200px] text-sm">
+          <div className="text-sm md:w-[200px]">
             <AssignLocationButton
               pageType={PageType.Npc}
               entityId={props.cardItem.id}

@@ -33,8 +33,12 @@ export const ListPage = async ({
   return (
     <div className="w-full">
       <PageTitle>{title}</PageTitle>
-      <div className="mt-4 flex items-center justify-between gap-2 md:mt-8">
-        <Search placeholder={searchPlaceholder} />
+      {/* Wraps below `sm` so the search box keeps a usable width on a phone
+          (TD-114), the same shape as `AdminListHeader`. */}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 md:mt-8 md:flex-nowrap">
+        <div className="w-full sm:w-auto sm:flex-1">
+          <Search placeholder={searchPlaceholder} />
+        </div>
         <div className="flex shrink-0" role="status">
           {t("count", {
             filtered: itemCount.filtered,

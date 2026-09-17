@@ -63,4 +63,13 @@ describe("SideNav", () => {
 
     expect(screen.getByRole("button", { name: "signOut" })).toBeInTheDocument();
   });
+
+  // TD-137: the sidebar had no nav or header landmark, only plain divs — a
+  // screen reader user had no quick way to jump to or skip it.
+  it("wraps the nav links in a labelled nav landmark", async () => {
+    render(await SideNav());
+
+    const nav = screen.getByRole("navigation", { name: "sidebarLabel" });
+    expect(nav).toContainElement(screen.getByTestId("nav-links"));
+  });
 });

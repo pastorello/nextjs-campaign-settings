@@ -19,6 +19,7 @@ import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonSize from "@/app/ui/buttons/BaseButton/ButtonSize";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import IconType from "@/app/ui/buttons/BaseButton/IconType";
+import SectionTitle from "@/app/ui/typography/SectionTitle";
 
 import SceneForm from "./SceneForm";
 import SceneCreatureList from "./SceneCreatureList";
@@ -110,7 +111,7 @@ export default function SceneList({
   return (
     <div className="mt-8">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold">{t("scene.list.title")}</h2>
+        <SectionTitle>{t("scene.list.title")}</SectionTitle>
         <BaseButton onClick={() => setIsAdding(true)} size={ButtonSize.small}>
           {t("scene.list.addButton")}
         </BaseButton>

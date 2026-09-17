@@ -5,6 +5,7 @@ import {
   CurrencyUnit,
   toDisplayAmount,
 } from "@/app/lib/utils/currency/convertCurrency";
+import SectionTitle from "@/app/ui/typography/SectionTitle";
 
 interface BudgetPanelProps {
   totals: BudgetTotals;
@@ -88,7 +89,7 @@ export default async function BudgetPanel({
 
   return (
     <div className="mb-6 rounded-md border p-4">
-      <h2 className="mb-3 text-lg font-bold">{t("budget.title")}</h2>
+      <SectionTitle className="mb-3">{t("budget.title")}</SectionTitle>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>

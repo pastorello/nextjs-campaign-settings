@@ -118,7 +118,7 @@ function ascend() {
 
 describe("GeographyExplorer — the place in view owns the URL (TD-82)", () => {
   beforeEach(() => {
-    window.history.replaceState(null, "", "/dashboard/geography");
+    window.history.replaceState(null, "", "/dashboard/dnd5e/geography");
   });
 
   it("names a descended place in the query string", () => {
@@ -141,7 +141,7 @@ describe("GeographyExplorer — the place in view owns the URL (TD-82)", () => {
 
     ascend();
     expect(window.location.search).toBe("");
-    expect(window.location.pathname).toBe("/dashboard/geography");
+    expect(window.location.pathname).toBe("/dashboard/dnd5e/geography");
   });
 
   it("replaces the history entry instead of pushing one, so back leaves the map", () => {
@@ -175,7 +175,7 @@ describe("GeographyExplorer — the place in view owns the URL (TD-82)", () => {
     window.history.replaceState(
       null,
       "",
-      `/dashboard/geography?place=${kang.id}`
+      `/dashboard/dnd5e/geography?place=${kang.id}`
     );
     render(
       <GeographyExplorer
@@ -189,7 +189,11 @@ describe("GeographyExplorer — the place in view owns the URL (TD-82)", () => {
   });
 
   it("clears a param the page fell back to the root from", () => {
-    window.history.replaceState(null, "", "/dashboard/geography?place=abc");
+    window.history.replaceState(
+      null,
+      "",
+      "/dashboard/dnd5e/geography?place=abc"
+    );
     render(<GeographyExplorer root={root} unpositionedCount={0} />);
 
     expect(window.location.search).toBe("");

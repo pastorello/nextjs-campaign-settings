@@ -11,7 +11,7 @@ const replace = vi.fn();
 let searchParams = new URLSearchParams();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace }),
-  usePathname: () => "/dashboard/spells",
+  usePathname: () => "/dashboard/dnd5e/spells",
   useSearchParams: () => searchParams,
 }));
 
@@ -49,7 +49,9 @@ describe("SelectButtonery", () => {
       screen.getByRole("button", { name: "spells.classes.bard" })
     );
 
-    expect(replace).toHaveBeenCalledWith("/dashboard/spells?classes=0&page=1");
+    expect(replace).toHaveBeenCalledWith(
+      "/dashboard/dnd5e/spells?classes=0&page=1"
+    );
   });
 
   it("clicking 'all' clears the filter", () => {
@@ -58,6 +60,6 @@ describe("SelectButtonery", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "common.filters.all" }));
 
-    expect(replace).toHaveBeenCalledWith("/dashboard/spells?");
+    expect(replace).toHaveBeenCalledWith("/dashboard/dnd5e/spells?");
   });
 });

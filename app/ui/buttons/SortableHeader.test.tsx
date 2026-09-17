@@ -20,7 +20,7 @@ const replace = vi.fn();
 let searchParams = new URLSearchParams();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace }),
-  usePathname: () => "/dashboard/spells",
+  usePathname: () => "/dashboard/dnd5e/spells",
   useSearchParams: () => searchParams,
 }));
 
@@ -98,7 +98,9 @@ describe("SortableHeader", () => {
     fireEvent.click(screen.getByRole("button", { name: "Classes" }));
     fireEvent.click(screen.getByText("spells.classes.bard"));
 
-    expect(replace).toHaveBeenCalledWith("/dashboard/spells?classes=0&page=1");
+    expect(replace).toHaveBeenCalledWith(
+      "/dashboard/dnd5e/spells?classes=0&page=1"
+    );
   });
 
   // Regression test for TD-78: SPEC-006 T7 moved `npc.faction` from a static
@@ -123,7 +125,9 @@ describe("SortableHeader", () => {
     expect(screen.getByText("Ordine del Sole")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Gilda dei Ladri"));
 
-    expect(replace).toHaveBeenCalledWith("/dashboard/spells?faction=3&page=1");
+    expect(replace).toHaveBeenCalledWith(
+      "/dashboard/dnd5e/spells?faction=3&page=1"
+    );
   });
 
   it("degrades a table-backed field with no bundle to the bare header option", () => {

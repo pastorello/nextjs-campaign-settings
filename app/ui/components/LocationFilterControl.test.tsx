@@ -11,7 +11,7 @@ const replace = vi.fn();
 let searchParams = new URLSearchParams();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace }),
-  usePathname: () => "/dashboard/npc",
+  usePathname: () => "/dashboard/dnd5e/npc",
   useSearchParams: () => searchParams,
 }));
 
@@ -54,7 +54,9 @@ describe("LocationFilterControl", () => {
       }
     );
 
-    expect(replace).toHaveBeenCalledWith("/dashboard/npc?zoneId=5&page=1");
+    expect(replace).toHaveBeenCalledWith(
+      "/dashboard/dnd5e/npc?zoneId=5&page=1"
+    );
   });
 
   it("shows the POI select scoped to the chosen zone once one is picked", async () => {
@@ -78,7 +80,9 @@ describe("LocationFilterControl", () => {
       }
     );
 
-    expect(replace).toHaveBeenCalledWith("/dashboard/npc?zoneId=none&page=1");
+    expect(replace).toHaveBeenCalledWith(
+      "/dashboard/dnd5e/npc?zoneId=none&page=1"
+    );
     expect(
       screen.queryByRole("combobox", { name: "common.locationModal.poiLabel" })
     ).not.toBeInTheDocument();
@@ -96,7 +100,7 @@ describe("LocationFilterControl", () => {
       }
     );
 
-    expect(replace).toHaveBeenCalledWith("/dashboard/npc?page=1");
+    expect(replace).toHaveBeenCalledWith("/dashboard/dnd5e/npc?page=1");
   });
 
   it("selecting a POI layers poiId on top of the existing zoneId", async () => {
@@ -112,7 +116,7 @@ describe("LocationFilterControl", () => {
     );
 
     expect(replace).toHaveBeenCalledWith(
-      "/dashboard/npc?zoneId=5&poiId=9&page=1"
+      "/dashboard/dnd5e/npc?zoneId=5&poiId=9&page=1"
     );
   });
 });

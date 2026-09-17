@@ -15,7 +15,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/i18n/navigation", () => ({
-  usePathname: () => "/dashboard/spells",
+  usePathname: () => "/dashboard/dnd5e/spells",
   useRouter: () => ({ replace }),
 }));
 
@@ -43,7 +43,7 @@ describe("LocaleSwitcher", () => {
     });
 
     expect(replace).toHaveBeenCalledWith(
-      { pathname: "/dashboard/spells", query: {} },
+      { pathname: "/dashboard/dnd5e/spells", query: {} },
       { locale: "en" }
     );
   });

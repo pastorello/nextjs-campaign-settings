@@ -8,7 +8,7 @@ vi.mock("next-intl", () => ({
 
 let searchParams = new URLSearchParams();
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/dashboard/spells",
+  usePathname: () => "/dashboard/dnd5e/spells",
   useSearchParams: () => searchParams,
 }));
 
@@ -31,7 +31,7 @@ describe("Pagination", () => {
     const page2 = screen.getByText("2");
     expect(page2.closest("a")).toHaveAttribute(
       "href",
-      "/dashboard/spells?page=2"
+      "/dashboard/dnd5e/spells?page=2"
     );
   });
 

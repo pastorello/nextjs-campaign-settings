@@ -13,7 +13,7 @@ const replace = vi.fn();
 let searchParams = new URLSearchParams();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace }),
-  usePathname: () => "/dashboard/spells",
+  usePathname: () => "/dashboard/dnd5e/spells",
   useSearchParams: () => searchParams,
 }));
 
@@ -36,7 +36,7 @@ describe("Search", () => {
     });
 
     expect(replace).toHaveBeenCalledWith(
-      "/dashboard/spells?query=ice+storm&page=1"
+      "/dashboard/dnd5e/spells?query=ice+storm&page=1"
     );
   });
 
@@ -48,6 +48,6 @@ describe("Search", () => {
       target: { value: "" },
     });
 
-    expect(replace).toHaveBeenCalledWith("/dashboard/spells?page=2");
+    expect(replace).toHaveBeenCalledWith("/dashboard/dnd5e/spells?page=2");
   });
 });

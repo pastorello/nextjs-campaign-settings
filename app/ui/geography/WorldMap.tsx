@@ -24,11 +24,8 @@ import type { POI, POICategory } from "@/app/modules/maps/types/poi";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import createPlace from "@/app/lib/data/maps/createPlace";
 import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
-import unplacePlace from "@/app/lib/data/maps/unplacePlace";
 import { resolveFirstFieldError } from "@/app/lib/utils/i18n/resolveFieldErrors";
-import PlacePopover, {
-  type PopoverTarget,
-} from "@/app/ui/geography/PlacePopover";
+import PlacePopover from "@/app/ui/geography/PlacePopover";
 import MapUploadControl from "@/app/ui/geography/MapUploadControl";
 import DeletePlaceButton from "@/app/ui/geography/DeletePlaceButton";
 import MapOptionsButton from "@/app/ui/geography/MapOptionsButton";
@@ -42,6 +39,7 @@ import {
 } from "@/app/modules/maps/lib/utils/footprint";
 import { useMapImageOverlay } from "@/app/ui/geography/hooks/useMapImageOverlay";
 import { usePOIFileIO } from "@/app/ui/geography/hooks/usePOIFileIO";
+import { usePlacePopover } from "@/app/ui/geography/hooks/usePlacePopover";
 import { useMeasureTool } from "@/app/ui/geography/hooks/useMeasureTool";
 import { usePlacePositioning } from "@/app/ui/geography/hooks/usePlacePositioning";
 
@@ -201,16 +199,6 @@ function WorldMap({
   // clearing dance of the kind `poiEditTarget` needs below.
   const [editingZone, setEditingZone] = useState<NavigableChild | null>(null);
 
-  // The place popover (SPEC-016 T2, widened to landmarks in T7) — one at a
-  // time by construction, a single state slot rather than a set. Clicking a
-  // marker/rectangle (`useNavigableChildren`) or a landmark marker
-  // (`usePOIManager`) used to descend/open a native Leaflet popup
-  // respectively; now both open this instead, and "Apri mappa" inside the
-  // popover is what actually descends (zone only — a landmark has none).
-  const [popoverTarget, setPopoverTarget] = useState<PopoverTarget | null>(
-    null
-  );
-
   // The landmark `MapPOIPanel`'s edit form is pre-filled for (SPEC-016 T7,
   // "Modifica") — `null` whenever the panel isn't in an externally-requested
   // edit, cleared by `handlePOIModeChange` the moment the panel leaves edit
@@ -248,23 +236,28 @@ function WorldMap({
   // was the simpler of the two dismiss shapes TD-86 proposed.
   const { markers, addMarker, clearMarkers } = useMapMarkers();
 
-  // A landmark marker click opens the popover (SPEC-016 T7), the same
-  // `isMeasuring` guard `handlePlaceClick` uses below for the identical
-  // reason (§5's edge-case table: map clicks belong to the measure tool
-  // while it's active). Declared ahead of `usePOIManager` — it's this
-  // hook's own `onPOIClick` argument — the same ordering constraint
-  // `handleEditMode`/`createMarker` already impose inside that hook.
-  const handlePOIClick = useCallback(
-    // `serverId` comes from the hook, which owns the client-id -> row-id
-    // mapping (TD-108). The popover needs the row's id and cannot get it
-    // from `poi.id`, which is a client key on a landmark created in this
-    // session.
-    (poi: POI, serverId: number) => {
-      if (isMeasuring) return;
-      setPopoverTarget({ kind: "poi", poi, poiId: serverId });
-    },
-    [isMeasuring]
-  );
+  // Bumped after a successful region create so `useNavigableChildren`
+  // reloads — its own effect only reruns on `parentId`/`refetchToken`
+  // changing, and creating a place changes neither.
+  const [placesRefetchToken, setPlacesRefetchToken] = useState(0);
+  const bumpPlacesRefetchToken = useCallback(() => {
+    setPlacesRefetchToken((token) => token + 1);
+  }, []);
+
+  const {
+    target: popoverTarget,
+    close: handleClosePopover,
+    handlePOIClick,
+    handlePlaceClick,
+    handleOpenMap,
+    handleUnplace,
+    handlePlaceDeleted: handlePopoverPlaceDeleted,
+  } = usePlacePopover({
+    parentId,
+    isMeasuring,
+    onDescend,
+    onPlacesChanged: bumpPlacesRefetchToken,
+  });
 
   // POI Manager hook, scoped to the place currently being viewed
   const {
@@ -280,105 +273,20 @@ function WorldMap({
     reloadPOIs,
   } = usePOIManager(parentId, handlePOIClick);
 
-  // Bumped after a successful region create so `useNavigableChildren`
-  // reloads — its own effect only reruns on `parentId`/`refetchToken`
-  // changing, and creating a place changes neither.
-  const [placesRefetchToken, setPlacesRefetchToken] = useState(0);
-  const bumpPlacesRefetchToken = useCallback(() => {
-    setPlacesRefetchToken((token) => token + 1);
-  }, []);
-
-  // A marker/rectangle click opens the popover instead of descending
-  // directly (SPEC-016 T2) — suppressed while measuring, since map clicks
-  // belong to the measure tool then (§5's edge-case table). Other crosshair
-  // modes (positioning, drawing an area) don't need a guard here: a Leaflet
-  // marker/rectangle click never reaches the map's own click handler those
-  // modes listen on.
-  const handlePlaceClick = useCallback(
-    (child: NavigableChild) => {
-      if (isMeasuring) return;
-      setPopoverTarget({ kind: "zone", place: child });
-    },
-    [isMeasuring]
-  );
-
-  // "Apri mappa" (SPEC-016 T2) — the popover's own descend action, now the
-  // only path into `onDescend`.
-  const handleOpenMap = useCallback(
-    (child: NavigableChild) => {
-      onDescend(child);
-      setPopoverTarget(null);
-    },
-    [onDescend]
-  );
-
-  const handleClosePopover = useCallback(() => {
-    setPopoverTarget(null);
-  }, []);
-
-  // "Sposta nei luoghi non posizionati" (SPEC-016 T5) — no confirmation
-  // (§9's open question, agreed 2026-08-21). Clears the place's position
-  // (and, for an area, its footprint — `unplacePlace` handles both) and
-  // sends it back to the unpositioned pool. Success bumps
-  // `placesRefetchToken`, the same convention `handleContextMenuPositionPlace`
-  // uses in the other direction, so `unplacedChildren` picks up the child and
-  // `navigableChildren` drops its marker; the popover closes since there is
-  // nothing left at this position to show. `unpositionedCount` itself gets
-  // no equivalent bump here, because a client-side "bonus" on top of
-  // whatever the server already did double-counted — that much was
-  // observed, and it is the reason this code looks the way it does.
-  //
-  // What the server did is re-render this page: `unplacePlace` calls
-  // `revalidateDashboard("geography")`, and any `revalidatePath` call it
-  // makes — whatever path it names — flags the action as revalidated, which
-  // is what makes Next send a fresh render with the action's response. That
-  // flag, not a cache match, is why pointing the call at a nonsense path
-  // once left `map-unplace.spec` passing; removing the call would not. The
-  // helper now passes the route's real file location,
-  // `/[locale]/dashboard/[system]/geography`, which costs nothing and is
-  // what makes the call correct if a cache ever does apply here — see
-  // TD-105 and ADR-0014.
-  const handleUnplace = useCallback(
-    async (child: NavigableChild) => {
-      try {
-        const result = await unplacePlace({ id: child.id });
-        if (result.ok) {
-          setPlacesRefetchToken((token) => token + 1);
-          setPopoverTarget(null);
-        } else {
-          toast.error(t("placeUnplaceFailed", { title: child.title }));
-        }
-      } catch (error) {
-        console.error("Failed to un-place the place:", error);
-        toast.error(t("placeUnplaceFailed", { title: child.title }));
-      }
-    },
-    [t]
-  );
-
-  // "Elimina definitivamente" (SPEC-016 T6) — `PlacePopover` embeds
-  // `DeletePlaceButton` itself (the confirmation dialog and the SPEC-010
-  // mutation are entirely its own); this only runs once it reports success.
-  // Same bookkeeping `handleUnplace` does, for the same reason: the deleted
-  // place is a child of the one currently being viewed, not the one
-  // currently being viewed itself, so there is no navigation stack to pop —
-  // just a marker to drop and a popover with nothing left to show.
-  const handlePopoverPlaceDeleted = useCallback(() => {
-    setPlacesRefetchToken((token) => token + 1);
-    setPopoverTarget(null);
-  }, []);
-
   // "Modifica" (SPEC-016 T7) — opens the shared `MapPOIPanel` drawer already
   // in edit mode, pre-filled with the clicked landmark (`editTarget`,
   // consumed by the panel's own seeding effect). The popover closes: the
   // DM's focus has moved to the edit form, the same way "Apri mappa"
   // already closes it for a zone.
-  const handleEditLandmark = useCallback((poi: POI) => {
-    setPoiEditTarget(poi);
-    setPOIPanelMode("edit");
-    setIsPOIPanelOpen(true);
-    setPopoverTarget(null);
-  }, []);
+  const handleEditLandmark = useCallback(
+    (poi: POI) => {
+      setPoiEditTarget(poi);
+      setPOIPanelMode("edit");
+      setIsPOIPanelOpen(true);
+      handleClosePopover();
+    },
+    [handleClosePopover]
+  );
 
   // "Modifica" (TD-104) — opens `ZoneEditPanel` for the clicked place. The
   // popover closes for the same reason it does for a landmark: the DM's
@@ -386,22 +294,20 @@ function WorldMap({
   // popover's own outside-click listener both bind `mousedown`, so a
   // popover left open would be dismissed by the first drag of a redraw
   // anyway.
-  const handleEditZone = useCallback((place: NavigableChild) => {
-    setEditingZone(place);
-    setPopoverTarget(null);
-  }, []);
+  const handleEditZone = useCallback(
+    (place: NavigableChild) => {
+      setEditingZone(place);
+      handleClosePopover();
+    },
+    [handleClosePopover]
+  );
 
   // The panel committed a name/description. Nothing here holds those two
   // directly — `useNavigableChildren` owns the list the map draws from — so
   // a refetch is the whole update, the same bookkeeping every other place
   // mutation on this component does.
-  const handleZoneEdited = useCallback(() => {
-    setPlacesRefetchToken((token) => token + 1);
-  }, []);
+  const handleZoneEdited = bumpPlacesRefetchToken;
 
-  // "Elimina" (SPEC-016 T7) — `usePOIManager.deletePOI` is synchronous
-  // (optimistic, no server round trip to await) and already unconfirmed, so
-  // this closes the popover immediately rather than waiting on anything.
   /**
    * "Sposta nei luoghi non posizionati" for a landmark (SPEC-017 T10) —
    * `handleUnplace`'s counterpart on the other table, and shaped like
@@ -419,19 +325,22 @@ function WorldMap({
    */
   const handleUnplaceLandmark = useCallback(
     async (poi: POI) => {
-      setPopoverTarget(null);
+      handleClosePopover();
       await unplacePOI(poi.id);
-      setPlacesRefetchToken((token) => token + 1);
+      bumpPlacesRefetchToken();
     },
-    [unplacePOI]
+    [unplacePOI, handleClosePopover, bumpPlacesRefetchToken]
   );
 
+  // "Elimina" (SPEC-016 T7) — `usePOIManager.deletePOI` is synchronous
+  // (optimistic, no server round trip to await) and already unconfirmed, so
+  // this closes the popover immediately rather than waiting on anything.
   const handleDeleteLandmark = useCallback(
     (poi: POI) => {
       deletePOI(poi.id);
-      setPopoverTarget(null);
+      handleClosePopover();
     },
-    [deletePOI]
+    [deletePOI, handleClosePopover]
   );
 
   // Navigable `region` children, same scope — clicking one opens the
@@ -713,13 +622,11 @@ function WorldMap({
     setPrevParentId(parentId);
     setCursorCoords(null);
     setEditingArea(null);
-    // Same reasoning as the popover below: the panel edits a place that
-    // belongs to the map being left (TD-104).
+    // Same reasoning as the popover: the panel edits a place that belongs
+    // to the map being left (TD-104).
     setEditingZone(null);
-    // The popover refers to a place on the map being left (SPEC-016 T2) —
-    // `WorldMap` isn't remounted on `parentId` change, so without this it
-    // would survive the navigation open, anchored to nothing on the new map.
-    setPopoverTarget(null);
+    // The popover closes for the same reason, inside `usePlacePopover`
+    // (SPEC-016 T2).
     // "Off on every load" (SPEC-015 §9) includes navigating to another
     // place — `WorldMap` isn't remounted on `parentId` change, so without
     // this the previous map's toggle state would carry over. The measure

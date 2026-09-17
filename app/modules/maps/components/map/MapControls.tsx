@@ -58,24 +58,24 @@ export const MapControls = memo(function MapControls({
       {extraControls}
 
       {/* Zoom Controls */}
-      <div className="flex flex-col overflow-hidden rounded-lg bg-white dark:bg-slate-700 shadow-lg">
+      <div className="flex flex-col overflow-hidden rounded-lg bg-white shadow-lg">
         <button
           onClick={zoomIn}
           disabled={!map}
-          className="flex h-9 w-9 items-center justify-center border-b border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex h-9 w-9 items-center justify-center border-b border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           title={t("zoomIn")}
           aria-label={t("zoomIn")}
         >
-          <Plus className="h-5 w-5 text-gray-600 dark:text-gray-100" />
+          <Plus className="h-5 w-5 text-gray-600" />
         </button>
         <button
           onClick={zoomOut}
           disabled={!map}
-          className="flex h-9 w-9 items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex h-9 w-9 items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           title={t("zoomOut")}
           aria-label={t("zoomOut")}
         >
-          <Minus className="h-5 w-5 text-gray-600 dark:text-gray-100" />
+          <Minus className="h-5 w-5 text-gray-600" />
         </button>
       </div>
 
@@ -85,12 +85,12 @@ export const MapControls = memo(function MapControls({
       <button
         onClick={resetView}
         disabled={!map}
-        className="flex h-9 w-9 items-center justify-center rounded bg-white dark:bg-slate-700 shadow-lg hover:bg-gray-50 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex h-9 w-9 items-center justify-center rounded bg-white shadow-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
         title={t("resetView")}
         aria-label={t("resetView")}
       >
         <svg
-          className="h-5 w-5 text-gray-600 dark:text-gray-100"
+          className="h-5 w-5 text-gray-600"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -106,14 +106,14 @@ export const MapControls = memo(function MapControls({
       {/* Fullscreen Button */}
       <button
         onClick={toggleFullscreen}
-        className="flex h-9 w-9 items-center justify-center rounded bg-white dark:bg-slate-700 shadow-lg hover:bg-gray-50 dark:hover:bg-slate-600"
+        className="flex h-9 w-9 items-center justify-center rounded bg-white shadow-lg hover:bg-gray-50"
         title={isFullscreen ? t("exitFullscreen") : t("enterFullscreen")}
         aria-label={isFullscreen ? t("exitFullscreen") : t("enterFullscreen")}
       >
         {isFullscreen ? (
-          <Minimize2 className="h-5 w-5 text-gray-600 dark:text-gray-100" />
+          <Minimize2 className="h-5 w-5 text-gray-600" />
         ) : (
-          <Maximize2 className="h-5 w-5 text-gray-600 dark:text-gray-100" />
+          <Maximize2 className="h-5 w-5 text-gray-600" />
         )}
       </button>
     </div>

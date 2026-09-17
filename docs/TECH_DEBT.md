@@ -1202,7 +1202,7 @@ independently visually verified — this PR was written without a running dev
 server (see its description); the reasoning per cause is in code comments at
 each site.
 
-### TD-115 — Dark mode is half there: map components follow the OS setting, the rest of the app does not
+### TD-115 ✅ Dark mode is half there: map components follow the OS setting, the rest of the app does not — **DONE (2026-09-17)**
 
 **Severity:** 🟡 Medium · **Effort:** S (to remove) / L (to finish) · **Found:** 2026-09-17, design critique
 
@@ -1222,6 +1222,28 @@ real Chrome with the OS in dark mode.)
 alone (it is not wired to a theme; the 2026-07-22 "unused is not dead" rule
 applies to it), or make dark mode a goal in the design-system spec. The first is
 a small change and is the honest state until the spec exists.
+
+**Resolution:** Took the first option. Removed every `dark:` class from all 12
+files under `app/ui/geography/*`, and from the 5 vendored
+`app/modules/maps/components/map/**` files that are actually live inside the
+app — `MapControls.tsx`, `MapContextMenu.tsx`, `MapPOIPanel.tsx`,
+`MapErrorBoundary.tsx`, `MapLoadingSpinner.tsx` — since these render inside the
+light app the same as `app/ui/geography/*` does and were turning dark under
+`prefers-color-scheme: dark` exactly as reported. Left alone, per the
+2026-07-22 "unused is not dead" rule: `MapDetailsPanel.tsx`, `MapTileSwitcher.tsx`,
+`MapTopBar.tsx`, `MapSearchBar.tsx`, `MapThemeSwitcher.tsx`, `MapUser.tsx` and
+`app/modules/maps/components/ui/dropdown-menu.tsx` — all seven are reachable
+only through `MapMain.tsx`, which nothing imports (the same dead country-search
+subsystem TD-46 already found unreachable), so they never render and cannot
+turn dark in practice. Pure class removal, no other restyling — verified by
+diffing that only `dark:*` tokens (and the whitespace around them) changed,
+confirmed with `pnpm typecheck`/`pnpm lint`/`pnpm test` all green. Added
+`app/ui/noDarkClasses.test.ts`, a static scan that fails if any `.ts`/`.tsx`/`.css`
+file under `app/ui/**` contains a `dark:` token, so a reintroduced class fails
+the suite rather than shipping quietly. **Dark mode itself is deferred to the
+design-system spec** (`docs/ROADMAP.md` Phase 5) — this item only made the
+current state honest (light-only, consistently), it did not decide whether
+dark mode is ever built.
 
 ### TD-116 ✅ Two page-title styles: `PageTitle` is Lusitana, `EntityForm`'s heading is bold Inter — **DONE (2026-09-17)**
 

@@ -152,7 +152,7 @@ function PositionPlaceEntry({
 
   return (
     <>
-      <div className="my-1.5 border-t border-gray-200 dark:border-gray-700" />
+      <div className="my-1.5 border-t border-gray-200" />
 
       <MenuItem
         icon={<Crosshair className="h-4 w-4" />}
@@ -164,14 +164,14 @@ function PositionPlaceEntry({
         disabled={poolSize === 0}
       />
       {isListOpen && poolSize > 0 && (
-        <div className="ml-2 border-l border-gray-200 dark:border-gray-700 pl-2">
+        <div className="ml-2 border-l border-gray-200 pl-2">
           <input
             type="search"
             value={filter}
             onChange={(event) => setFilter(event.target.value)}
             placeholder={filterPlaceholder}
             aria-label={filterPlaceholder}
-            className="mb-1 w-full rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm text-gray-700 placeholder:text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+            className="mb-1 w-full rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm text-gray-700 placeholder:text-gray-400"
           />
           {/* Capped and scrollable: the pool is the whole campaign now
               (SPEC-017 T8), and 41 rows is a real number on the DM's own
@@ -188,7 +188,7 @@ function PositionPlaceEntry({
               onPick={onPick}
             />
             {matchingHere.length === 0 && matchingElsewhere.length === 0 && (
-              <p className="px-2 py-1 text-sm text-gray-500 dark:text-gray-400">
+              <p className="px-2 py-1 text-sm text-gray-500">
                 {noMatchesLabel}
               </p>
             )}
@@ -218,7 +218,7 @@ function PickerGroup({
   return (
     <>
       {label !== undefined && (
-        <p className="px-2 pt-1 text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
+        <p className="px-2 pt-1 text-xs font-medium uppercase tracking-wide text-gray-400">
           {label}
         </p>
       )}
@@ -226,13 +226,11 @@ function PickerGroup({
         <button
           key={row.key}
           onClick={() => onPick(row.key)}
-          className="flex w-full flex-col items-start rounded-lg px-2 py-1 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+          className="flex w-full flex-col items-start rounded-lg px-2 py-1 text-left text-sm text-gray-700 hover:bg-gray-100"
         >
           <span>{row.title}</span>
           {row.sublabel !== undefined && (
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {row.sublabel}
-            </span>
+            <span className="text-xs text-gray-500">{row.sublabel}</span>
           )}
         </button>
       ))}
@@ -265,22 +263,16 @@ const MenuItem = memo(function MenuItem({
       onClick={onClick}
       disabled={disabled}
       className={`flex items-center gap-3 w-full px-2 py-1 text-left transition-colors rounded-lg group ${
-        disabled
-          ? "opacity-50 cursor-not-allowed"
-          : "hover:bg-gray-100 dark:hover:bg-gray-700"
+        disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"
       }`}
     >
-      <span className="flex-shrink-0 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200">
+      <span className="flex-shrink-0 text-gray-500 group-hover:text-gray-700">
         {icon}
       </span>
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-gray-700 dark:text-gray-200">
-          {label}
-        </div>
+        <div className="text-sm font-medium text-gray-700">{label}</div>
         {sublabel && (
-          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-            {sublabel}
-          </div>
+          <div className="text-xs text-gray-500 truncate">{sublabel}</div>
         )}
       </div>
     </button>
@@ -440,7 +432,7 @@ export const MapContextMenu = memo(function MapContextMenu({
   return (
     <div
       ref={menuRef}
-      className="absolute z-[1100] min-w-[200px] bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-1.5 px-1.5 animate-in fade-in-0 zoom-in-95 duration-150"
+      className="absolute z-[1100] min-w-[200px] bg-white rounded-xl shadow-xl border border-gray-200 py-1.5 px-1.5 animate-in fade-in-0 zoom-in-95 duration-150"
       style={{
         left: displayPosition.x,
         top: displayPosition.y,
@@ -471,7 +463,7 @@ export const MapContextMenu = memo(function MapContextMenu({
       {onAddPOI && !hideAddPlace && (
         <>
           {/* Divider */}
-          <div className="my-1.5 border-t border-gray-200 dark:border-gray-700" />
+          <div className="my-1.5 border-t border-gray-200" />
 
           <MenuItem
             icon={<Star className="h-4 w-4" />}
@@ -487,7 +479,7 @@ export const MapContextMenu = memo(function MapContextMenu({
           area belongs to that area's own map. */}
       {onAddSubMap && !hideAddPlace && (
         <>
-          <div className="my-1.5 border-t border-gray-200 dark:border-gray-700" />
+          <div className="my-1.5 border-t border-gray-200" />
 
           <MenuItem
             icon={<Layers className="h-4 w-4" />}

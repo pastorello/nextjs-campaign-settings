@@ -52,19 +52,19 @@ export default function MapOptionsButton({
         onClick={() => setIsOpen((open) => !open)}
         aria-label={t("trigger")}
         title={t("trigger")}
-        className="flex h-9 w-9 items-center justify-center rounded bg-white dark:bg-slate-700 shadow-lg hover:bg-gray-50 dark:hover:bg-slate-600"
+        className="flex h-9 w-9 items-center justify-center rounded bg-white shadow-lg hover:bg-gray-50"
       >
-        <Pencil className="h-5 w-5 text-gray-600 dark:text-gray-100" />
+        <Pencil className="h-5 w-5 text-gray-600" />
       </button>
 
       {isOpen && (
-        <div className="absolute bottom-0 right-full mr-2 flex w-56 flex-col gap-1 rounded-lg bg-white dark:bg-gray-800 p-2 shadow-md">
+        <div className="absolute bottom-0 right-full mr-2 flex w-56 flex-col gap-1 rounded-lg bg-white p-2 shadow-md">
           <button
             onClick={() => {
               setIsOpen(false);
               onReplaceMap();
             }}
-            className="rounded px-3 py-2 text-left text-sm text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="rounded px-3 py-2 text-left text-sm text-gray-900 hover:bg-gray-100"
           >
             {hasMap ? tMapUpload("replaceSubmit") : tMapUpload("uploadSubmit")}
           </button>
@@ -74,7 +74,7 @@ export default function MapOptionsButton({
                 setIsOpen(false);
                 onConfigureGrid();
               }}
-              className="rounded px-3 py-2 text-left text-sm text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="rounded px-3 py-2 text-left text-sm text-gray-900 hover:bg-gray-100"
             >
               {tGeography("gridConfig.trigger")}
             </button>
@@ -85,7 +85,7 @@ export default function MapOptionsButton({
                 setIsOpen(false);
                 onDeleteMap();
               }}
-              className="rounded px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
+              className="rounded px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
             >
               {tDeletePlace("trigger")}
             </button>

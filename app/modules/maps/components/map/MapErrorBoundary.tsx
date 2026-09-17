@@ -92,8 +92,8 @@ class MapErrorBoundaryClass extends Component<
   override render() {
     if (this.state.hasError) {
       return (
-        <div className="flex items-center justify-center w-full h-full bg-zinc-100 dark:bg-zinc-900">
-          <div className="max-w-md p-8 bg-white dark:bg-zinc-800 rounded-lg shadow-lg text-center">
+        <div className="flex items-center justify-center w-full h-full bg-zinc-100">
+          <div className="max-w-md p-8 bg-white rounded-lg shadow-lg text-center">
             <div className="mb-4">
               <svg
                 className="w-16 h-16 mx-auto text-red-500"
@@ -110,11 +110,11 @@ class MapErrorBoundaryClass extends Component<
               </svg>
             </div>
 
-            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+            <h2 className="text-2xl font-bold text-zinc-900 mb-2">
               {this.props.title}
             </h2>
 
-            <p className="text-zinc-600 dark:text-zinc-400 mb-6">
+            <p className="text-zinc-600 mb-6">
               {this.state.error?.message || this.props.defaultMessage}
             </p>
 
@@ -128,17 +128,17 @@ class MapErrorBoundaryClass extends Component<
 
               <button
                 onClick={this.handleGoHome}
-                className="w-full px-4 py-2 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-900 dark:text-zinc-100 rounded-lg transition-colors font-medium"
+                className="w-full px-4 py-2 bg-zinc-200 hover:bg-zinc-300 text-zinc-900 rounded-lg transition-colors font-medium"
               >
                 {this.props.goHome}
               </button>
             </div>
 
             <details className="mt-6 text-left">
-              <summary className="cursor-pointer text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300">
+              <summary className="cursor-pointer text-sm text-zinc-500 hover:text-zinc-700">
                 {this.props.technicalDetails}
               </summary>
-              <pre className="mt-2 p-3 bg-zinc-100 dark:bg-zinc-900 rounded text-xs overflow-auto text-zinc-800 dark:text-zinc-200">
+              <pre className="mt-2 p-3 bg-zinc-100 rounded text-xs overflow-auto text-zinc-800">
                 {this.state.error?.stack || this.props.noStackTrace}
               </pre>
             </details>

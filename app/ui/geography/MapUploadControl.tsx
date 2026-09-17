@@ -125,7 +125,7 @@ export default function MapUploadControl({
               type="file"
               accept={ALLOWED_MAP_IMAGE_CONTENT_TYPES.join(",")}
               onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-gray-900 dark:text-white"
+              className="block w-full text-sm text-gray-900"
             />
           </Field>
           <BaseButton

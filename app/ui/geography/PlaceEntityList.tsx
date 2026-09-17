@@ -134,18 +134,14 @@ export default function PlaceEntityList({
 
   return (
     <section className="mb-3">
-      <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+      <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
         {t("entities")}
       </h4>
 
       {isLoading ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          {t("entitiesLoading")}
-        </p>
+        <p className="text-sm text-gray-500">{t("entitiesLoading")}</p>
       ) : entities.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          {t("entitiesEmpty")}
-        </p>
+        <p className="text-sm text-gray-500">{t("entitiesEmpty")}</p>
       ) : (
         // Scrolls within the popover so the actions below stay visible
         // however long the list gets (§5 edge cases).
@@ -155,7 +151,7 @@ export default function PlaceEntityList({
               key={rowKey(entity)}
               className="flex items-center justify-between gap-2 py-0.5"
             >
-              <span className="truncate text-sm text-gray-700 dark:text-gray-200">
+              <span className="truncate text-sm text-gray-700">
                 {entity.name}
               </span>
               <button
@@ -163,7 +159,7 @@ export default function PlaceEntityList({
                 disabled={detachingKey === rowKey(entity)}
                 onClick={() => void handleDetach(entity)}
                 aria-label={t("detach", { name: entity.name })}
-                className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-700"
+                className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <X className="h-3.5 w-3.5" />
               </button>

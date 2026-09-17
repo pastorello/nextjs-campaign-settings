@@ -250,29 +250,25 @@ export default function PlacePopover({
   return (
     <div
       ref={popoverRef}
-      className="absolute z-[1100] w-72 rounded-xl border border-gray-200 bg-white p-3 shadow-xl dark:border-gray-700 dark:bg-gray-800"
+      className="absolute z-[1100] w-72 rounded-xl border border-gray-200 bg-white p-3 shadow-xl"
       style={{ left: screenPosition.x, top: screenPosition.y }}
       role="dialog"
       aria-label={title}
     >
       <div className="mb-2 flex items-start justify-between gap-2">
-        <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-          {title}
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
         <button
           type="button"
           onClick={onClose}
           aria-label={t("close")}
-          className="rounded p-1 text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+          className="rounded p-1 text-gray-500 hover:bg-gray-100"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
 
       {description && (
-        <p className="mb-3 text-sm text-gray-600 dark:text-gray-300">
-          {description}
-        </p>
+        <p className="mb-3 text-sm text-gray-600">{description}</p>
       )}
 
       {/* Keyed by `zoneId` for a zone, `poiId` for a landmark — the only
@@ -286,7 +282,7 @@ export default function PlacePopover({
         <button
           type="button"
           onClick={() => setIsAttachOpen(true)}
-          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
         >
           {t("attach")}
         </button>
@@ -302,7 +298,7 @@ export default function PlacePopover({
             <button
               type="button"
               onClick={() => onEditZone(place)}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
               {t("editZone")}
             </button>
@@ -311,7 +307,7 @@ export default function PlacePopover({
             <button
               type="button"
               onClick={() => onUnplace(place)}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
               {t("unplace")}
             </button>
@@ -321,7 +317,7 @@ export default function PlacePopover({
             <button
               type="button"
               onClick={() => setIsDeleteOpen(true)}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-gray-600 dark:text-red-400 dark:hover:bg-red-900/30"
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
             >
               {t("delete")}
             </button>
@@ -335,7 +331,7 @@ export default function PlacePopover({
             <button
               type="button"
               onClick={() => onEditLandmark(poi)}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
               {t("editLandmark")}
             </button>
@@ -348,7 +344,7 @@ export default function PlacePopover({
             <button
               type="button"
               onClick={() => onUnplaceLandmark(poi)}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
               {t("unplace")}
             </button>
@@ -357,7 +353,7 @@ export default function PlacePopover({
             <button
               type="button"
               onClick={() => onDeleteLandmark(poi)}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-gray-600 dark:text-red-400 dark:hover:bg-red-900/30"
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
             >
               {t("deleteLandmark")}
             </button>
@@ -371,14 +367,12 @@ export default function PlacePopover({
             type="button"
             disabled={!hasMap}
             onClick={() => hasMap && onOpenMap(place)}
-            className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 dark:disabled:bg-gray-700 dark:disabled:text-gray-400"
+            className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
           >
             {t("openMap")}
           </button>
           {!hasMap && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {t("openMapUnavailable")}
-            </p>
+            <p className="text-xs text-gray-500">{t("openMapUnavailable")}</p>
           )}
         </div>
       )}

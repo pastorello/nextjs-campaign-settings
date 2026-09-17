@@ -62,6 +62,14 @@ import { usePlacePositioning } from "@/app/ui/geography/hooks/usePlacePositionin
  * carries its own coordinates now, so it never gets an independent marker —
  * one attached to a landmark POI already renders at that POI's own marker,
  * one attached to a Zone directly renders nowhere on the map at all (§5).
+ *
+ * Each concern this component used to hold inline lives in its own hook
+ * under `./hooks/` (TD-127): the image overlay, the measure tool, the
+ * popover, the POI panel, area drawing, positioning unplaced places, and
+ * GeoJSON file IO. What stays here is the wiring between them — the places
+ * refetch token, the crosshair modes' mutual exclusion, the map-click
+ * containment check — plus the landmark popover actions, which need
+ * `usePOIManager`, which in turn needs `usePlacePopover`'s click handler.
  */
 
 function WorldMap({

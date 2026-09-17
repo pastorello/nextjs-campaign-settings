@@ -9,7 +9,6 @@ import { MapContextMenu } from "@/app/modules/maps/components/map/MapContextMenu
 import {
   MapPOIPanel,
   type AddPlaceInput,
-  type ViewMode,
 } from "@/app/modules/maps/components/map/MapPOIPanel";
 import { useMapContextMenu } from "@/app/modules/maps/hooks/useMapContextMenu";
 import { useMapMarkers } from "@/app/modules/maps/hooks/useMapMarkers";
@@ -18,7 +17,7 @@ import {
   useNavigableChildren,
   type NavigableChild,
 } from "@/app/modules/maps/hooks/useNavigableChildren";
-import type { POI, POICategory } from "@/app/modules/maps/types/poi";
+import type { POI } from "@/app/modules/maps/types/poi";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import createPlace from "@/app/lib/data/maps/createPlace";
 import { resolveFirstFieldError } from "@/app/lib/utils/i18n/resolveFieldErrors";
@@ -36,6 +35,7 @@ import {
 } from "@/app/modules/maps/lib/utils/footprint";
 import { useMapImageOverlay } from "@/app/ui/geography/hooks/useMapImageOverlay";
 import { usePOIFileIO } from "@/app/ui/geography/hooks/usePOIFileIO";
+import { usePOIPanel } from "@/app/ui/geography/hooks/usePOIPanel";
 import { useAreaDrawing } from "@/app/ui/geography/hooks/useAreaDrawing";
 import { usePlacePopover } from "@/app/ui/geography/hooks/usePlacePopover";
 import { useMeasureTool } from "@/app/ui/geography/hooks/useMeasureTool";
@@ -154,39 +154,14 @@ function WorldMap({
   // The grid overlay's toggle (SPEC-015 §5 step 5) — off on every load and
   // never persisted (§9, decided 2026-08-20; do not add storage for it).
   const [isGridVisible, setIsGridVisible] = useState(false);
-  const [isPOIPanelOpen, setIsPOIPanelOpen] = useState(false);
-  const [poiFilterCategory, setPOIFilterCategory] =
-    useState<POICategory | null>(null);
-  const [poiInitialCoords, setPOIInitialCoords] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
-  const [poiPanelMode, setPOIPanelMode] = useState<ViewMode>("list");
-  const [isSelectingPOILocation, setIsSelectingPOILocation] = useState(false);
-  const [cursorCoords, setCursorCoords] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
-  // The completed rectangle waiting for the create form (SPEC-009 T2) —
-  // drawn in `useAreaDrawing`'s draw-an-area mode.
-  const [pendingFootprint, setPendingFootprint] = useState<Footprint | null>(
-    null
-  );
   // The place whose "Modifica" panel is open (TD-104). Holds the whole
   // `NavigableChild` because the panel seeds three things from it — name,
   // description, and whether there is a footprint to redraw — and because
   // mounting on this value rather than gating a permanently-mounted panel
   // with `isOpen` is what makes the seeding correct for free: editing place
   // A and then place B mounts a fresh form, so there is no stale-target
-  // clearing dance of the kind `poiEditTarget` needs below.
+  // clearing dance of the kind `usePOIPanel`'s `editTarget` needs.
   const [editingZone, setEditingZone] = useState<NavigableChild | null>(null);
-
-  // The landmark `MapPOIPanel`'s edit form is pre-filled for (SPEC-016 T7,
-  // "Modifica") — `null` whenever the panel isn't in an externally-requested
-  // edit, cleared by `handlePOIModeChange` the moment the panel leaves edit
-  // mode (cancelled or saved) so re-editing the same landmark later still
-  // transitions `null` → POI rather than being a no-op re-render.
-  const [poiEditTarget, setPoiEditTarget] = useState<POI | null>(null);
 
   // Context menu hook
   const {
@@ -255,6 +230,18 @@ function WorldMap({
     reloadPOIs,
   } = usePOIManager(parentId, handlePOIClick);
 
+  const poiPanel = usePOIPanel({ parentId });
+  // Destructured where a callback below depends on it; the JSX reads the
+  // rest straight off `poiPanel`.
+  const {
+    isSelectingLocation: isSelectingPOILocation,
+    cancelLocationSelection,
+    toggleLocationSelection,
+    pickLocation,
+    openAddForFootprint,
+    openEdit: openPOIPanelForEdit,
+  } = poiPanel;
+
   // "Modifica" (SPEC-016 T7) — opens the shared `MapPOIPanel` drawer already
   // in edit mode, pre-filled with the clicked landmark (`editTarget`,
   // consumed by the panel's own seeding effect). The popover closes: the
@@ -262,12 +249,10 @@ function WorldMap({
   // already closes it for a zone.
   const handleEditLandmark = useCallback(
     (poi: POI) => {
-      setPoiEditTarget(poi);
-      setPOIPanelMode("edit");
-      setIsPOIPanelOpen(true);
+      openPOIPanelForEdit(poi);
       handleClosePopover();
     },
-    [handleClosePopover]
+    [openPOIPanelForEdit, handleClosePopover]
   );
 
   // "Modifica" (TD-104) — opens `ZoneEditPanel` for the clicked place. The
@@ -325,22 +310,6 @@ function WorldMap({
     [deletePOI, handleClosePopover]
   );
 
-  // Arming either of `useAreaDrawing`'s modes cancels point selection.
-  const cancelLocationSelection = useCallback(() => {
-    setIsSelectingPOILocation(false);
-    setCursorCoords(null);
-  }, []);
-
-  // A rectangle finished drawing (SPEC-009 T2) — opens the create form with
-  // the footprint attached, the same shape `handleContextMenuAddPOI` uses
-  // for a point.
-  const handleAreaDrawn = useCallback((footprint: Footprint) => {
-    setPendingFootprint(footprint);
-    setPOIFilterCategory(null);
-    setPOIPanelMode("add");
-    setIsPOIPanelOpen(true);
-  }, []);
-
   const {
     isDrawingArea,
     editingArea,
@@ -351,7 +320,7 @@ function WorldMap({
     parentId,
     bounds: effectiveBounds,
     onArm: cancelLocationSelection,
-    onAreaDrawn: handleAreaDrawn,
+    onAreaDrawn: openAddForFootprint,
     onPlacesChanged: bumpPlacesRefetchToken,
   });
 
@@ -426,64 +395,12 @@ function WorldMap({
     [addMarker]
   );
 
-  const handleContextMenuAddPOI = useCallback((lat: number, lng: number) => {
-    // Always set fresh coordinates - this ensures updates even if panel is already open
-    setPOIInitialCoords({ lat, lng });
-    setPOIFilterCategory(null);
-    setPOIPanelMode("add");
-    setIsPOIPanelOpen(true);
-  }, []);
-
-  // POI Panel handlers
-  const handleClosePOIPanel = useCallback(() => {
-    setIsPOIPanelOpen(false);
-    setIsSelectingPOILocation(false);
-    setPOIPanelMode("list");
-    setPendingFootprint(null);
-    setPoiEditTarget(null);
-    // Reset coordinates and category after a brief delay to allow panel to close smoothly
-    setTimeout(() => {
-      setPOIFilterCategory(null);
-      setPOIInitialCoords(null);
-    }, 100);
-  }, []);
-
-  // A drawn rectangle is "spent" once the create form no longer needs it —
-  // a successful save, backing out to the list, or starting a fresh
-  // (non-area) add (SPEC-009 T2). Without this, a stale footprint could
-  // otherwise attach itself to an unrelated point-based place.
-  const handleFootprintConsumed = useCallback(() => {
-    setPendingFootprint(null);
-  }, []);
-
   // Handle POI location selection request. Also cancels draw-area mode
   // (SPEC-009 T2) — see `useAreaDrawing`'s `toggleDrawArea`.
   const handleRequestPOILocation = useCallback(() => {
     disarmAreaDrawing();
-    setIsSelectingPOILocation((prev) => !prev);
-  }, [disarmAreaDrawing]);
-
-  // Handle clear POI coordinates
-  const handleClearPOICoordinates = useCallback(() => {
-    setPOIInitialCoords(null);
-    setCursorCoords(null);
-    setIsSelectingPOILocation(false);
-  }, []);
-
-  // Handle POI panel mode change. Used to store this with a
-  // `mode as "list" | "add"` cast, silently dropping a real "edit" value
-  // the compiler was never told could happen — `poiPanelMode`'s declared
-  // type now matches this callback's own parameter type, so there's
-  // nothing left to lie about (TD-85).
-  const handlePOIModeChange = useCallback((mode: ViewMode) => {
-    setPOIPanelMode(mode);
-    // Leaving edit mode — cancelled back to the list, or a successful save
-    // (`MapPOIPanel.resetFormAfterSave`) — either way (SPEC-016 T7):
-    // `poiEditTarget` cleared so re-editing the same landmark later is a
-    // `null` → POI transition the panel's seeding effect actually fires on,
-    // not a no-op re-render.
-    if (mode !== "edit") setPoiEditTarget(null);
-  }, []);
+    toggleLocationSelection();
+  }, [disarmAreaDrawing, toggleLocationSelection]);
 
   // Handle map click for POI location selection.
   const handleMapClick = useCallback(
@@ -497,28 +414,21 @@ function WorldMap({
         // typed survives and the same click can be made one level down.
         const containingArea = findContainingSibling([lat, lng], areaChildren);
         if (containingArea) {
-          setIsSelectingPOILocation(false);
-          setCursorCoords(null);
+          cancelLocationSelection();
           onDescend(containingArea);
           return;
         }
 
-        setPOIInitialCoords({ lat, lng });
-        setIsSelectingPOILocation(false);
-        setCursorCoords(null);
+        pickLocation(lat, lng);
       }
     },
-    [isSelectingPOILocation, areaChildren, onDescend]
-  );
-
-  // Handle map mouse move for cursor tracking
-  const handleMapMouseMove = useCallback(
-    (lat: number, lng: number) => {
-      if (isSelectingPOILocation) {
-        setCursorCoords({ lat, lng });
-      }
-    },
-    [isSelectingPOILocation]
+    [
+      isSelectingPOILocation,
+      areaChildren,
+      onDescend,
+      cancelLocationSelection,
+      pickLocation,
+    ]
   );
 
   // Cancel any in-progress crosshair gesture when the DM navigates to a
@@ -532,9 +442,8 @@ function WorldMap({
   const [prevParentId, setPrevParentId] = useState(parentId);
   if (parentId !== prevParentId) {
     setPrevParentId(parentId);
-    setCursorCoords(null);
-    // A redraw in progress is cancelled for the same reason, inside
-    // `useAreaDrawing`.
+    // The crosshair's cursor readout and a redraw in progress are cleared
+    // for the same reason, inside `usePOIPanel` and `useAreaDrawing`.
     // Same reasoning as the popover: the panel edits a place that belongs
     // to the map being left (TD-104).
     setEditingZone(null);
@@ -567,7 +476,7 @@ function WorldMap({
       <LeafletMap
         className="w-full h-full"
         onClick={handleMapClick}
-        onMouseMove={handleMapMouseMove}
+        onMouseMove={poiPanel.trackCursor}
         cursorStyle={
           isSelectingPOILocation || isDrawingArea || editingArea || isMeasuring
             ? "crosshair"
@@ -722,7 +631,7 @@ function WorldMap({
         onClose={closeContextMenu}
         onAddMarker={handleAddMarker}
         onStartMeasurement={handleContextMenuMeasurement}
-        onAddPOI={handleContextMenuAddPOI}
+        onAddPOI={poiPanel.openAddAt}
         hideAddPlace={!!contextMenuOverArea}
         ariaLabel={tContextMenu("ariaLabel")}
         addMarkerLabel={tContextMenu("addMarker.trigger")}
@@ -751,10 +660,10 @@ function WorldMap({
 
       {/* POI Panel */}
       <MapPOIPanel
-        isOpen={isPOIPanelOpen}
-        onClose={handleClosePOIPanel}
+        isOpen={poiPanel.isOpen}
+        onClose={poiPanel.close}
         pois={pois}
-        filterCategory={poiFilterCategory}
+        filterCategory={poiPanel.filterCategory}
         onAddPOI={addPOI}
         onUpdatePOI={updatePOI}
         onDeletePOI={deletePOI}
@@ -763,18 +672,18 @@ function WorldMap({
         onImport={(file) => void handlePOIImport(file)}
         onFlyTo={flyToPOI}
         onRequestLocation={handleRequestPOILocation}
-        onClearCoordinates={handleClearPOICoordinates}
-        onModeChange={handlePOIModeChange}
+        onClearCoordinates={poiPanel.clearCoordinates}
+        onModeChange={poiPanel.changeMode}
         isSelectingLocation={isSelectingPOILocation}
-        initialLat={poiInitialCoords?.lat}
-        initialLng={poiInitialCoords?.lng}
-        cursorLat={cursorCoords?.lat}
-        cursorLng={cursorCoords?.lng}
-        mode={poiPanelMode}
+        initialLat={poiPanel.initialCoords?.lat}
+        initialLng={poiPanel.initialCoords?.lng}
+        cursorLat={poiPanel.cursorCoords?.lat}
+        cursorLng={poiPanel.cursorCoords?.lng}
+        mode={poiPanel.mode}
         onAddPlace={handleAddPlace}
-        pendingFootprint={pendingFootprint}
-        onFootprintConsumed={handleFootprintConsumed}
-        editTarget={poiEditTarget}
+        pendingFootprint={poiPanel.pendingFootprint}
+        onFootprintConsumed={poiPanel.consumeFootprint}
+        editTarget={poiPanel.editTarget}
       />
     </div>
   );

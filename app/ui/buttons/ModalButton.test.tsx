@@ -127,6 +127,27 @@ describe("ModalButton", () => {
     ).toBeInTheDocument();
   });
 
+  // TD-118: the admin list's row actions became icon buttons — the icon
+  // replaces the visible label, but the accessible name (ariaLabel) still
+  // has to carry the item name, since an icon alone names nothing.
+  it("renders the icon instead of buttonLabel's text when icon is given", () => {
+    render(
+      <ModalButton
+        buttonLabel="Edit"
+        ariaLabel="Edit Fireball"
+        modalTitle="Edit spell"
+        modalContent="spellform"
+        icon={<span data-testid="edit-icon" />}
+      />
+    );
+
+    expect(screen.getByTestId("edit-icon")).toBeInTheDocument();
+    expect(screen.queryByText("Edit")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Edit Fireball" })
+    ).toBeInTheDocument();
+  });
+
   it("falls back to no aria-label when none is given", () => {
     render(
       <ModalButton

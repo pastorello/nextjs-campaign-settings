@@ -31,17 +31,27 @@ vi.mock("./ModalButton", () => ({
   default: ({
     onSave,
     ariaLabel,
+    icon,
+    buttonVariant,
   }: {
     onSave?: () => void;
     ariaLabel?: string;
+    icon?: React.ReactNode;
+    buttonVariant?: string;
   }) => (
-    <button onClick={onSave} aria-label={ariaLabel}>
+    <button
+      onClick={onSave}
+      aria-label={ariaLabel}
+      data-variant={buttonVariant}
+    >
       confirm-delete
+      {icon}
     </button>
   ),
 }));
 
 import DeleteButton from "./DeleteButton";
+import ButtonVariant from "./BaseButton/ButtonVariant";
 
 describe("DeleteButton", () => {
   beforeEach(() => {
@@ -60,6 +70,19 @@ describe("DeleteButton", () => {
       "aria-label",
       "table.deleteItem:Fireball"
     );
+  });
+
+  // TD-118: the row action is an icon button now, so it needs the quiet
+  // ghostDanger variant (secondary at rest, danger only on hover) plus a
+  // trash icon rather than the visible "Elimina" text.
+  it("renders as a ghostDanger icon button", () => {
+    render(
+      <DeleteButton pageName="Fireball" pageId={1} pageType={PageType.Spell} />
+    );
+
+    const button = screen.getByText("confirm-delete").closest("button");
+    expect(button).toHaveAttribute("data-variant", ButtonVariant.ghostDanger);
+    expect(button?.querySelector("svg")).not.toBeNull();
   });
 
   it("deletes, notifies success and refreshes the route on a successful response", async () => {

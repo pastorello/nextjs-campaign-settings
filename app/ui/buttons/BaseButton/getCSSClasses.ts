@@ -42,6 +42,13 @@ const getCSSClasses = (
       base: "text-black bg-white hover:text-sky-600 active:text-sky-700",
       selected: "text-sky-600",
     },
+    // Same resting look as `secondary`; only the hover/active colour differs,
+    // so a row of these reads as quiet until the destructive one is actually
+    // interacted with (TD-118).
+    ghostDanger: {
+      base: "text-black bg-white hover:bg-rose-600 hover:text-white active:bg-rose-900 active:text-white",
+      selected: "bg-rose-700 text-white",
+    },
   };
 
   const sizeRules = {

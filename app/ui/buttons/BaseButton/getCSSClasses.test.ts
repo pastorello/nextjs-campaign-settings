@@ -20,6 +20,7 @@ describe("getCSSClasses", () => {
       [ButtonVariant.secondary, "bg-zinc-600 text-white"],
       [ButtonVariant.danger, "bg-rose-700"],
       [ButtonVariant.neutral, "text-sky-600"],
+      [ButtonVariant.ghostDanger, "bg-rose-700 text-white"],
     ];
 
     for (const [variant, expected] of cases) {
@@ -60,6 +61,15 @@ describe("getCSSClasses", () => {
     expect(base).toContain("bg-rose-600");
     expect(base).toContain("px-1 py-px text-sm");
     expect(sizeClasses).toBe("h-[32px]");
+  });
+
+  it("ghostDanger reads as secondary at rest and only turns danger-coloured on hover", () => {
+    const { base } = getCSSClasses(ButtonVariant.ghostDanger, ButtonSize.small);
+    expect(base).toContain("bg-white");
+    expect(base).toContain("hover:bg-rose-600");
+    // Unlike `danger`, the resting background is not rose — only the
+    // `hover:`/`active:` classes carry the colour.
+    expect(base).not.toContain("text-white bg-rose-600");
   });
 
   it("falls back to primary / medium for unknown variant or size", () => {

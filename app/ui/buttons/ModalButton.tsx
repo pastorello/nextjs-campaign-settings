@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 
 import BaseButton from "./BaseButton";
 import Modal from "../components/Modal";
@@ -34,6 +34,13 @@ interface ModalButtonProps {
    * (TD-136). Falls back to `buttonLabel` when omitted.
    */
   ariaLabel?: string | undefined;
+
+  /**
+   * Renders instead of `buttonLabel`'s text when given, for a row action
+   * that reads as an icon rather than a label (TD-118). `ariaLabel` still
+   * carries the accessible name — an icon alone names nothing.
+   */
+  icon?: ReactNode | undefined;
 }
 
 const ModalButton = ({
@@ -47,6 +54,7 @@ const ModalButton = ({
   componentProps,
   optionBundle,
   ariaLabel,
+  icon,
 }: ModalButtonProps) => {
   const [isOpen, setOpen] = useState(false);
   const openModal = () => setOpen(true);
@@ -60,7 +68,7 @@ const ModalButton = ({
         variant={buttonVariant}
         ariaLabel={ariaLabel}
       >
-        {buttonLabel}
+        {icon ?? buttonLabel}
       </BaseButton>
       {isOpen && (
         <Modal

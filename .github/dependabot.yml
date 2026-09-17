@@ -23,6 +23,18 @@ updates:
         patterns:
           - prisma
           - "@prisma/*"
+      # react and react-dom must be the exact same version — React throws
+      # "Incompatible React versions" at runtime otherwise — and their @types
+      # follow them. Before this group, react was excluded from
+      # prod-dependencies but react-dom was not, so one release produced two
+      # PRs (#271, #272) that each broke the test suite alone.
+      react:
+        applies-to: version-updates
+        patterns:
+          - react
+          - react-dom
+          - "@types/react"
+          - "@types/react-dom"
       dev-dependencies:
         applies-to: version-updates
         dependency-type: development
@@ -32,6 +44,8 @@ updates:
           - typescript
           - eslint
           - prisma
+          - "@types/react"
+          - "@types/react-dom"
       prod-dependencies:
         applies-to: version-updates
         dependency-type: production
@@ -40,12 +54,15 @@ updates:
         exclude-patterns:
           - next
           - react
+          - react-dom
           - "@prisma/*"
     # Never bump major versions of these — they need human changelog reads.
     ignore:
       - dependency-name: next
         update-types: ["version-update:semver-major"]
       - dependency-name: react
+        update-types: ["version-update:semver-major"]
+      - dependency-name: react-dom
         update-types: ["version-update:semver-major"]
       - dependency-name: prisma
         update-types: ["version-update:semver-major"]

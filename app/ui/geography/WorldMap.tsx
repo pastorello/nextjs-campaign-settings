@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl";
 import { LeafletMap } from "@/app/modules/maps/components/map/LeafletMap";
 import { MapControls } from "@/app/modules/maps/components/map/MapControls";
 import MapMeasureTool from "@/app/ui/geography/MapMeasureTool";
-import parseGridScale from "@/app/lib/config/geography/parseGridScale";
 import { MapContextMenu } from "@/app/modules/maps/components/map/MapContextMenu";
 import {
   MapPOIPanel,
@@ -43,6 +42,7 @@ import {
 } from "@/app/modules/maps/lib/utils/footprint";
 import { useMapImageOverlay } from "@/app/ui/geography/hooks/useMapImageOverlay";
 import { usePOIFileIO } from "@/app/ui/geography/hooks/usePOIFileIO";
+import { useMeasureTool } from "@/app/ui/geography/hooks/useMeasureTool";
 import { usePlacePositioning } from "@/app/ui/geography/hooks/usePlacePositioning";
 
 /**
@@ -146,11 +146,6 @@ function WorldMap({
   const tContextMenu = useTranslations("geography.contextMenu");
   const tDrawArea = useTranslations("geography.drawArea");
   const tTemporaryMarkers = useTranslations("geography.temporaryMarkers");
-  const tMeasure = useTranslations("geography.measure");
-  // Click–track–click measurement (SPEC-015 T7) — armed from the context
-  // menu, only when the grid is configured; off on every load, like the
-  // grid toggle.
-  const [isMeasuring, setIsMeasuring] = useState(false);
   // Consolidated map controls (usability fix, 2026-08-17): these used to be
   // always-visible floating buttons of their own; now each is a controlled
   // dialog/picker opened from `MapOptionsButton`'s "administer this map"
@@ -230,6 +225,20 @@ function WorldMap({
     close: closeContextMenu,
     runWithoutClosing,
   } = useMapContextMenu();
+
+  const { effectiveBounds, imageSize } = useMapImageOverlay({
+    mapUrl,
+    bounds,
+    initialView,
+    initialZoom,
+    runWithoutClosing,
+  });
+
+  const {
+    isMeasuring,
+    start: handleContextMenuMeasurement,
+    exit: handleMeasureExit,
+  } = useMeasureTool({ parentId, gridColumns, gridScale, imageSize });
 
   // User markers hook — ephemeral, table-talk scratch pins (TD-86): no
   // persistence anywhere by design, so `clearMarkers` is this component's
@@ -488,19 +497,6 @@ function WorldMap({
     [parentId, tRoot]
   );
 
-  const { effectiveBounds, imageSize } = useMapImageOverlay({
-    mapUrl,
-    bounds,
-    initialView,
-    initialZoom,
-    runWithoutClosing,
-  });
-
-  // Memoized callbacks to prevent unnecessary re-renders
-  const handleMeasureExit = useCallback(() => {
-    setIsMeasuring(false);
-  }, []);
-
   // Context menu handlers
   const handleAddMarker = useCallback(
     (lat: number, lng: number) => {
@@ -508,23 +504,6 @@ function WorldMap({
     },
     [addMarker]
   );
-
-  const handleContextMenuMeasurement = useCallback(() => {
-    // No grid, no distances (§5's edge-case table): measurement never
-    // starts, and the DM gets the one-line explanation rather than a
-    // guessed number. `imageSize === null` (image still loading or
-    // undecodable) blocks for the same reason — there is no pixel width
-    // to convert through yet.
-    if (
-      gridColumns === null ||
-      parseGridScale(gridScale) === null ||
-      imageSize === null
-    ) {
-      toast.info(tMeasure("unavailable"));
-      return;
-    }
-    setIsMeasuring(true);
-  }, [gridColumns, gridScale, imageSize, tMeasure]);
 
   const handleContextMenuAddPOI = useCallback((lat: number, lng: number) => {
     // Always set fresh coordinates - this ensures updates even if panel is already open
@@ -744,9 +723,9 @@ function WorldMap({
     // "Off on every load" (SPEC-015 §9) includes navigating to another
     // place — `WorldMap` isn't remounted on `parentId` change, so without
     // this the previous map's toggle state would carry over. The measure
-    // tool disarms for the same reason: its grid is the previous map's.
+    // tool disarms for the same reason, inside `useMeasureTool`: its grid
+    // is the previous map's.
     setIsGridVisible(false);
-    setIsMeasuring(false);
   }
 
   const { handleExport: handlePOIExport, handleImport: handlePOIImport } =

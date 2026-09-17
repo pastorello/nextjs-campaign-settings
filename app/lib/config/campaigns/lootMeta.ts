@@ -2,21 +2,8 @@ import ControlType from "@/app/lib/definitions/types/ControlType";
 import FieldType from "@/app/lib/definitions/types/FieldType";
 import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import LootMetaField from "@/app/lib/definitions/enums/campaign/LootMetaField";
+import nullableAmountValidator from "@/app/lib/utils/validators/nullableAmountValidator";
 import z from "zod";
-
-/**
- * `value` is preserved as `null` rather than coerced to `0` when left
- * blank — same "unset is not zero" convention as `treasureMeta.value`, and
- * the same reason: a null `value` here means "supplies nothing, defer to
- * the linked catalogue treasure's own value" (SPEC-013 §6), not "worth
- * zero."
- */
-function nullableAmountValidator() {
-  return z.preprocess(
-    (raw) => (raw === "" || raw === undefined ? null : raw),
-    z.coerce.number().int().gte(0).nullable()
-  );
-}
 
 /**
  * A loot row's own scalar fields (SPEC-013 §5/§6) — outside the metadata
@@ -59,6 +46,10 @@ const lootMeta = {
     defaultValue: null,
     fieldType: FieldType.integer,
     controlType: ControlType.Text,
+    // A null `value` here means "supplies nothing, defer to the linked
+    // catalogue treasure's own value" (SPEC-013 §6), not "worth zero" — same
+    // "unset is not zero" convention as `treasureMeta.value`. See
+    // `nullableAmountValidator`'s own comment (TD-130).
     validator: nullableAmountValidator(),
     getDatum: (datum: number | null) => (datum === null ? "—" : datum),
   },

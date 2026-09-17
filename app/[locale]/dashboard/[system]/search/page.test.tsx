@@ -11,10 +11,12 @@ vi.mock("@/app/ui/search", () => ({
   ),
 }));
 
-const searchAllDomains = vi.fn<(term: string) => unknown>();
+const searchAllDomains = vi.fn<(term: string, system: string) => unknown>();
 vi.mock("@/app/lib/data/search/searchAllDomains", () => ({
-  default: (term: string) => searchAllDomains(term),
+  default: (term: string, system: string) => searchAllDomains(term, system),
 }));
+
+const params = Promise.resolve({ system: "dnd5e" });
 
 vi.mock("@/app/ui/search/CrossEntitySearchResults", () => ({
   default: ({ term }: { term: string }) => (
@@ -34,9 +36,9 @@ describe("dashboard search Page (SPEC-011 T2)", () => {
   it("passes an empty term to searchAllDomains and the results component when no query param is present", async () => {
     searchAllDomains.mockResolvedValue({});
 
-    render(await SearchPage({ searchParams: Promise.resolve({}) }));
+    render(await SearchPage({ params, searchParams: Promise.resolve({}) }));
 
-    expect(searchAllDomains).toHaveBeenCalledWith("");
+    expect(searchAllDomains).toHaveBeenCalledWith("", "dnd5e");
     expect(screen.getByTestId("results")).toHaveAttribute("data-term", "");
   });
 
@@ -45,11 +47,12 @@ describe("dashboard search Page (SPEC-011 T2)", () => {
 
     render(
       await SearchPage({
+        params,
         searchParams: Promise.resolve({ query: "Fireball" }),
       })
     );
 
-    expect(searchAllDomains).toHaveBeenCalledWith("Fireball");
+    expect(searchAllDomains).toHaveBeenCalledWith("Fireball", "dnd5e");
     expect(screen.getByTestId("results")).toHaveAttribute(
       "data-term",
       "Fireball"
@@ -59,11 +62,22 @@ describe("dashboard search Page (SPEC-011 T2)", () => {
   it("renders the search input with the catalogue's placeholder", async () => {
     searchAllDomains.mockResolvedValue({});
 
-    render(await SearchPage({ searchParams: Promise.resolve({}) }));
+    render(await SearchPage({ params, searchParams: Promise.resolve({}) }));
 
     expect(screen.getByLabelText("search-input")).toHaveAttribute(
       "placeholder",
       "searchPlaceholder"
     );
+  });
+
+  it("narrows the search to the route's game system (ADR-0013 rule 10)", async () => {
+    searchAllDomains.mockResolvedValue({});
+
+    await SearchPage({
+      params: Promise.resolve({ system: "daggerheart" }),
+      searchParams: Promise.resolve({ query: "Fire" }),
+    });
+
+    expect(searchAllDomains).toHaveBeenCalledWith("Fire", "daggerheart");
   });
 });

@@ -171,6 +171,8 @@ Five skills from [addyosmani/agent-skills](https://github.com/addyosmani/agent-s
 | `debugging-and-error-recovery` | Any failing test or unexpected behaviour                      |
 | `incremental-implementation`   | TD-19, TD-09, TD-21 — the wide refactors                      |
 
+**Keeping them current.** The skills are vendored copies, plus the `.agents/references/` files they link to; `.agents/UPSTREAM` records the upstream commit. `scripts/sync-agent-skills.sh` re-syncs them (pass a skill name to add one), and `.github/workflows/sync-agent-skills.yml` runs it every Monday and opens a PR when upstream changed — Dependabot cannot track vendored markdown, and a git submodule was rejected because every clone and agent session would have to initialise it or silently lose the skills. Do not hand-edit vendored files; the next sync overwrites them.
+
 **Precedence.** The pack supplies _method_ — how to do TDD, how to run a security review, how to slice a refactor. This file and `docs/` supply _constraints_ — what is true about this codebase specifically.
 
 **Where they conflict, this file wins.** The pack cannot know that the metadata layer is string-keyed, that a partial rename silently breaks filters, or that `app/ui/forms/` holds dead duplicates. Do not let a generic workflow override a project rule in the _Non-negotiable rules_ section above.

@@ -1,0 +1,37 @@
+name: Sync agent skills
+
+# Dependabot cannot track vendored markdown, so this plays its role for
+# .agents/: re-sync from addyosmani/agent-skills and open a PR when upstream
+# changed. See CLAUDE.md "External skill packs".
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Mondays 09:00 UTC, alongside Dependabot
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: pnpm
+      # Prettier is the only dependency the script needs.
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: scripts/sync-agent-skills.sh
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/sync-agent-skills
+          delete-branch: true
+          commit-message: "chore(deps): sync agent skills from addyosmani/agent-skills"
+          title: "chore(deps): sync agent skills from addyosmani/agent-skills"
+          body: |
+            Automated re-sync of `.agents/` from upstream main (commit in `.agents/UPSTREAM`).
+
+            Review the diff before merging: upstream advice can conflict with `CLAUDE.md`, which wins.

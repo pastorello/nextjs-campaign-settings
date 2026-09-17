@@ -23,7 +23,7 @@
     },
     "cards": {
       "magicItems": "Oggetti magici",
-      "npc": "PNG",
+      "npc": "Personaggi conosciuti",
       "spells": "Incantesimi",
       "deities": "Divinità",
       "places": "Luoghi",
@@ -736,7 +736,7 @@
     "page": {
       "title": "Personaggi conosciuti",
       "adminTitle": "PNG",
-      "searchPlaceholder": "Cerca png...",
+      "searchPlaceholder": "Cerca PNG...",
       "itemSingular": "PNG",
       "itemPlural": "PNG",
       "newItemButton": "Nuovo PNG",

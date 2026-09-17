@@ -100,7 +100,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-76  | ✅ `renderRichText` injects stored text as raw HTML with no sanitisation                                       | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-77  | ✅ An entity's location is resolved through two unreconciled read paths                                        | ~~🟡 Medium~~ done   | S      | 3     |
 | TD-78  | ✅ The NPC admin list's Fazione header filters again, from the option bundle `EntityList` already resolved     | ~~🟢 Low~~ done      | M      | 3     |
-| TD-79  | The unpositioned-places count doesn't distinguish "blocked on the parent's map" from any other cause           | 🟢 Low               | S      | 3     |
+| TD-79  | ✅ The unpositioned-places count doesn't distinguish "blocked on the parent's map" from any other cause        | ~~🟢 Low~~ done      | S      | 3     |
 | TD-80  | ✅ Deity, magic-item, and faction create/update Server Actions lack unit and e2e test coverage                 | ~~🟡 Medium~~ done   | M      | 2     |
 | TD-81  | ✅ Maps framed to the image's own aspect ratio instead of a square default                                     | ~~🟠 High~~ done     | M      | 4     |
 | TD-82  | ✅ The place in view writes `?place=` on every hop; a reload reopens the same map, back leaves it              | ~~🟡 Medium~~ done   | S      | 4     |
@@ -118,55 +118,55 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-94  | ✅ Closed by SPEC-015 T7 — measurement rebuilt on the grid, haversine path deleted, regression test in place   | ~~🟠 High~~ done     | M      | 4     |
 | TD-95  | ✅ POI panel + neighbours (`MapControls`, `MapLoadingSpinner`, `MapErrorBoundary`) swept into both catalogues  | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-96  | ✅ Both entries gone — "Copia coordinate" with PR #190, "Collega personaggio" with SPEC-016 T8                 | ~~🟢 Low~~ done      | S      | 4     |
-| TD-97  | `MagicItemType`'s nine members are still Italian identifiers — a TD-33 miss                                    | 🟢 Low               | S      | 4     |
+| TD-97  | ✅ `MagicItemType`'s nine members are still Italian identifiers — a TD-33 miss                                 | ~~🟢 Low~~ done      | S      | 4     |
 | TD-98  | ✅ Prettier no longer reaches other sessions' worktrees under `.claude/`                                       | ~~🟢 Low~~ done      | S      | 4     |
-| TD-99  | A fresh worktree's `pnpm install` postinstall (`prisma generate`) fails for lack of `DATABASE_URL`             | 🟢 Low               | S      | 4     |
+| TD-99  | ✅ A fresh worktree's `pnpm install` postinstall (`prisma generate`) fails for lack of `DATABASE_URL`          | ~~🟢 Low~~ done      | S      | 4     |
 | TD-100 | ✅ The context menu closes on the DM's `dragstart`/`zoomstart`, not on every `movestart`                       | ~~🟡 Medium~~ done   | M      | 4     |
 | TD-101 | ✅ Marker drag repositioning: the marker was under the panel, not undraggable; its e2e spec is real now        | ~~🟠 High~~ done     | M      | 4     |
 | TD-102 | ✅ Landmarks route to `placeLandmark`; picking one no longer addresses whichever zone shares its id            | ~~🟠 High~~ done     | M      | 4     |
 | TD-103 | ✅ "Posiziona luogo" was enabled from a tree-wide count while listing only the current map — a dead click      | ~~🟠 High~~ done     | S      | 4     |
 | TD-104 | ✅ A zone has no edit surface: not renamable anywhere, and "Modifica area" is stranded in the right-click menu | ~~🟡 Medium~~ done   | M      | 4     |
-| TD-105 | 48 `revalidatePath` calls name a route structure that does not exist — they work only as a refresh trigger     | 🟢 Low               | M      | 4     |
+| TD-105 | ✅ 48 `revalidatePath` calls name a route structure that does not exist — they work only as a refresh trigger  | ~~🟢 Low~~ done      | M      | 4     |
 | TD-106 | ✅ A standing lint warning: the error boundary's "Vai alla home" leaves the page with a full document load     | ~~🟢 Low~~ done      | S      | 4     |
 | TD-107 | ✅ "Vai alla home" in the map error boundary keeps the reader's locale                                         | ~~🟢 Low~~ done      | S      | 4     |
 | TD-108 | ✅ A landmark created in this session had no numeric id, and `PlacePopover` converted it as though it did      | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-109 | ✅ The landmark popover's entity list has an e2e now — seen red on TD-108's bug before being trusted           | ~~🟢 Low~~ done      | S      | 4     |
 | TD-110 | ✅ "Too many re-renders" was TD-108's `NaN` reaching Headless UI's `Listbox` — attributed, fixed by TD-108     | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-111 | ✅ A late POI load no longer overwrites a place just added, moved or deleted on the map                        | ~~🟡 Medium~~ done   | M      | 4     |
-| TD-112 | `tailwind.config.ts` is never loaded — shimmer, blues and the forms plugin are missing                         | 🟡 Medium            | S      | 4     |
-| TD-113 | Admin list pages show nothing on a phone — `hidden md:table` with no fallback                                  | 🟠 High              | M      | 4     |
-| TD-114 | Pages are wider than a phone: fixed 900px form, non-wrapping list header, overflowing icon nav                 | 🟠 High              | M      | 4     |
-| TD-115 | Dark mode is half there: map components follow the OS setting, the rest of the app does not                    | 🟡 Medium            | S      | 4     |
-| TD-116 | Two page-title styles — `PageTitle` (Lusitana) vs `EntityForm`'s bold Inter heading                            | 🟢 Low               | S      | 4     |
-| TD-117 | Two button components with different primary colours, plus eleven files of hand-rolled buttons                 | 🟢 Low               | M      | 4     |
-| TD-118 | Public and admin lists of one domain look unrelated; admin rows are dominated by buttons                       | 🟢 Low               | M      | 4     |
-| TD-119 | `/world` is a dead end once the world exists — no link to the map                                              | 🟢 Low               | S      | 4     |
-| TD-120 | Form layout: all-caps labels, short description boxes, "Reset Filtri" in the Italian UI                        | 🟢 Low               | S      | 4     |
-| TD-121 | The world map opens with the image at about half the canvas — seen once                                        | 🟢 Low               | S      | 4     |
-| TD-122 | Create and update actions validate their input, then write the unvalidated copy                                | 🟠 High              | M      | 4     |
-| TD-123 | `MapPOIPanel` still has 18 hardcoded English strings, including the confirm before deleting every landmark     | 🟠 High              | S      | 4     |
-| TD-124 | Server-written error messages reach the Italian UI in English                                                  | 🟡 Medium            | M      | 4     |
-| TD-125 | The four reorder actions accept duplicate ids, and a failed reorder says "Delete failed"                       | 🟡 Medium            | S      | 4     |
-| TD-126 | Campaign forms stay on "saving" if a save throws, and most actions don't wrap database errors                  | 🟡 Medium            | S      | 4     |
-| TD-127 | `WorldMap.tsx` is 1,329 lines and handles eight concerns                                                       | 🟡 Medium            | L      | 4     |
-| TD-128 | `WorldMap`'s GeoJSON import skips the schema that `MapMain`'s import uses                                      | 🟢 Low               | S      | 4     |
-| TD-129 | Map place and POI schemas restate field rules instead of using `zoneMeta`                                      | 🟢 Low               | S      | 4     |
-| TD-130 | Validator helpers copied into five files                                                                       | 🟢 Low               | S      | 4     |
+| TD-112 | ✅ `tailwind.config.ts` is never loaded — shimmer, blues and the forms plugin are missing                      | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-113 | ✅ Admin list pages show nothing on a phone — `hidden md:table` with no fallback                               | ~~🟠 High~~ done     | M      | 4     |
+| TD-114 | ✅ Pages are wider than a phone: fixed 900px form, non-wrapping list header, overflowing icon nav              | ~~🟠 High~~ done     | M      | 4     |
+| TD-115 | ✅ Dark mode is half there: map components follow the OS setting, the rest of the app does not                 | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-116 | ✅ Two page-title styles — `PageTitle` (Lusitana) vs `EntityForm`'s bold Inter heading                         | ~~🟢 Low~~ done      | S      | 4     |
+| TD-117 | ✅ Two button components with different primary colours, plus eleven files of hand-rolled buttons              | ~~🟢 Low~~ done      | M      | 4     |
+| TD-118 | ✅ Public and admin lists of one domain look unrelated; admin rows are dominated by buttons                    | ~~🟢 Low~~ done      | M      | 4     |
+| TD-119 | ✅ `/world` is a dead end once the world exists — no link to the map                                           | ~~🟢 Low~~ done      | S      | 4     |
+| TD-120 | ✅ Form layout: all-caps labels, short description boxes, "Reset Filtri" in the Italian UI                     | ~~🟢 Low~~ done      | S      | 4     |
+| TD-121 | ✅ The world map opens with the image at about half the canvas — seen once                                     | ~~🟢 Low~~ done      | S      | 4     |
+| TD-122 | ✅ Create and update actions validate their input, then write the unvalidated copy                             | ~~🟠 High~~ done     | M      | 4     |
+| TD-123 | ✅ `MapPOIPanel` still has 18 hardcoded English strings, including the confirm before deleting every landmark  | ~~🟠 High~~ done     | S      | 4     |
+| TD-124 | ✅ Server-written error messages reach the Italian UI in English                                               | ~~🟡 Medium~~ done   | M      | 4     |
+| TD-125 | ✅ The four reorder actions accept duplicate ids, and a failed reorder says "Delete failed"                    | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-126 | ✅ Campaign forms stay on "saving" if a save throws, and most actions don't wrap database errors               | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-127 | ✅ `WorldMap.tsx` is 1,329 lines and handles eight concerns                                                    | ~~🟡 Medium~~ done   | L      | 4     |
+| TD-128 | ✅ `WorldMap`'s GeoJSON import skips the schema that `MapMain`'s import uses                                   | ~~🟢 Low~~ done      | S      | 4     |
+| TD-129 | ✅ Map place and POI schemas restate field rules instead of using `zoneMeta`                                   | ~~🟢 Low~~ done      | S      | 4     |
+| TD-130 | ✅ Validator helpers copied into five files                                                                    | ~~🟢 Low~~ done      | S      | 4     |
 | TD-131 | Unused vendored map utilities still include Earth-geometry maths (ask before deleting)                         | 🟢 Low               | S      | 4     |
-| TD-132 | Leftover inline styles and Italian comments                                                                    | 🟢 Low               | S      | 4     |
-| TD-133 | The map has no keyboard path to create a place or open an existing one                                         | 🟠 High              | L      | 4     |
-| TD-134 | Filter chips don't expose their pressed state                                                                  | 🟡 Medium            | S      | 4     |
-| TD-135 | Result counts change without being announced                                                                   | 🟡 Medium            | S      | 4     |
-| TD-136 | Admin row buttons all announce as "Modifica" / "Elimina"                                                       | 🟡 Medium            | S      | 4     |
-| TD-137 | No `nav` landmark around the sidebar                                                                           | 🟢 Low               | S      | 4     |
-| TD-138 | The overview skips from `h1` to `h3`                                                                           | 🟢 Low               | S      | 4     |
-| TD-139 | Pagination doesn't mark the current page                                                                       | 🟢 Low               | S      | 4     |
-| TD-140 | Delete wording differs between a place's trigger and its confirmation, and deleting a landmark asks nothing    | 🟡 Medium            | S      | 4     |
-| TD-141 | English words left in Italian copy beyond TD-120                                                               | 🟢 Low               | S      | 4     |
-| TD-142 | Title Case in Italian form titles and buttons                                                                  | 🟢 Low               | S      | 4     |
-| TD-143 | NPCs are called "PNG" on the card and "Personaggi conosciuti" on the page it opens                             | 🟢 Low               | S      | 4     |
+| TD-132 | ✅ Leftover inline styles and Italian comments                                                                 | ~~🟢 Low~~ done      | S      | 4     |
+| TD-133 | The map has no keyboard path to create a place or open an existing one                                         | 🟠 High — part       | L      | 4     |
+| TD-134 | ✅ Filter chips don't expose their pressed state                                                               | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-135 | ✅ Result counts change without being announced                                                                | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-136 | ✅ Admin row buttons all announce as "Modifica" / "Elimina"                                                    | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-137 | ✅ No `nav` landmark around the sidebar                                                                        | ~~🟢 Low~~ done      | S      | 4     |
+| TD-138 | ✅ The overview skips from `h1` to `h3`                                                                        | ~~🟢 Low~~ done      | S      | 4     |
+| TD-139 | ✅ Pagination doesn't mark the current page                                                                    | ~~🟢 Low~~ done      | S      | 4     |
+| TD-140 | Delete wording differs between a place's trigger and its confirmation, and deleting a landmark asks nothing    | 🟡 Medium — part     | S      | 4     |
+| TD-141 | ✅ English words left in Italian copy beyond TD-120                                                            | ~~🟢 Low~~ done      | S      | 4     |
+| TD-142 | ✅ Title Case in Italian form titles and buttons                                                               | ~~🟢 Low~~ done      | S      | 4     |
+| TD-143 | ✅ NPCs are called "PNG" on the card and "Personaggi conosciuti" on the page it opens                          | ~~🟢 Low~~ done      | S      | 4     |
 | TD-144 | `loot.checkOff.label` means different things in it and en                                                      | 🟢 Low               | S      | 4     |
-| TD-145 | Shared error messages don't say what to do next                                                                | 🟢 Low               | S      | 4     |
+| TD-145 | ✅ Shared error messages don't say what to do next                                                             | ~~🟢 Low~~ done      | S      | 4     |
 
 ---
 

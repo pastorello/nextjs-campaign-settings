@@ -56,6 +56,18 @@ describe("CardWrapper (TD-91)", () => {
   });
 });
 
+// TD-138: the overview page's only other heading is its h1 "Dashboard", so
+// the card titles skipped straight to h3 with no h2 in between.
+describe("Card (TD-138)", () => {
+  it("renders the card title as an h2, not an h3", () => {
+    render(<Card title="a title" value={1} type="spells" system="dnd5e" />);
+
+    expect(
+      screen.getByRole("heading", { level: 2, name: "a title" })
+    ).toBeInTheDocument();
+  });
+});
+
 describe("Card (TD-92)", () => {
   it.each([
     ["magicitems", "/dashboard/dnd5e/magicitems"],

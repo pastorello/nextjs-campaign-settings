@@ -1223,11 +1223,31 @@ static edge-fade affordance (`md:hidden`) hinting there's more; every tile
 link also carries an explicit `aria-label` now, not just the admin "manage"
 ones — the visible label is `hidden` below `md`, and `display: none` content
 has no accessible name, so an icon-only tile named nothing at all.
-`e2e/mobile-viewport.spec.ts` checks `scrollWidth <= innerWidth` at 375×812 on
+`e2e/mobile-viewport.spec.ts` checked `scrollWidth <= innerWidth` at 375×812 on
 `/admin/spells`, `/admin/spells/new` and the dashboard overview. Not
 independently visually verified — this PR was written without a running dev
 server (see its description); the reasoning per cause is in code comments at
 each site.
+
+**Follow-up, 2026-09-17, checked in a browser at 375px.** The first pass left
+four overflows, found by measuring every dashboard page:
+
+- `/admin/spells` was still 395px wide: `EntityList`'s wrapper was
+  `inline-block min-w-full`, which sizes to its content, so the phone list
+  outgrew its container and the delete icons were cut off at the right edge.
+  It is `block` below `md` now.
+- `/spells` (467px): the class and level filter chips did not wrap.
+- `/npc` (691px): `NpcCard`'s fixed 360/150/200px columns. They stack below
+  `md`; on desktop the name has a fixed `w-48` and the appearance text takes
+  the rest, which also finishes TD-118's "name wraps over four lines".
+- `/campaign` (674px): the adventure table now scrolls in its own container.
+- `ListPage`'s header (public lists) wraps like `AdminListHeader`'s.
+
+The e2e check compared `scrollWidth` with `innerWidth`, which grows with the
+content under mobile emulation, so it now compares with the fixed 375px and
+covers the three public pages above; the TD-113 test also checks that the
+delete button's box ends inside the screen. The extraction had also dropped
+TD-135's `role="status"` from the admin count; it is back, with a unit test.
 
 ### TD-115 ✅ Dark mode is half there: map components follow the OS setting, the rest of the app does not — **DONE (2026-09-17)**
 

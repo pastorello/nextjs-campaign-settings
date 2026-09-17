@@ -136,98 +136,103 @@ export default function AdventureLadder({
       {adventures.length === 0 ? (
         <p>{t("adventure.ladder.emptyMessage")}</p>
       ) : (
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b">
-              <th scope="col" className="px-3 py-2 font-medium">
-                {t("adventure.fields.position.label")}
-              </th>
-              <th scope="col" className="px-3 py-2 font-medium">
-                {t("adventure.fields.targetLevel.label")}
-              </th>
-              <th scope="col" className="px-3 py-2 font-medium">
-                {t("adventure.fields.title.label")}
-              </th>
-              <th scope="col" className="px-3 py-2 font-medium">
-                {t("adventure.fields.status.label")}
-              </th>
-              <th scope="col" className="px-3 py-2 font-medium">
-                {t("adventure.ladder.columns.progress")}
-              </th>
-              <th scope="col" className="px-3 py-2 font-medium">
-                {t("common.table.actions")}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {adventures.map((adventure, index) => {
-              const rowProgress = progress[adventure.id] ?? {
-                total: 0,
-                awarded: 0,
-              };
-              return (
-                <tr key={adventure.id} className="border-b last:border-none">
-                  <td className="px-3 py-3">{adventure.position}</td>
-                  <td className="px-3 py-3">{adventure.targetLevel}</td>
-                  <td className="px-3 py-3">
-                    <Link
-                      href={dashboardPath(system, `/campaign/${adventure.id}`)}
-                      className="text-blue-600 underline"
-                    >
-                      {adventure.title}
-                    </Link>
-                  </td>
-                  <td className="px-3 py-3">
-                    <Select
-                      value={adventure.status}
-                      options={statusOptions}
-                      onChange={(value) =>
-                        void handleStatusChange(adventure, String(value))
-                      }
-                    />
-                  </td>
-                  <td className="px-3 py-3">
-                    {t("adventure.ladder.columns.progressReadout", {
-                      awarded: rowProgress.awarded,
-                      total: rowProgress.total,
-                    })}
-                  </td>
-                  <td className="px-3 py-3">
-                    <div className="flex items-center gap-2">
-                      <BaseButton
-                        onClick={() => void moveAdventure(index, -1)}
-                        disabled={index === 0}
-                        size={ButtonSize.small}
-                        variant={ButtonVariant.secondary}
-                        icon={IconType.chevronUp}
-                        ariaLabel={t("adventure.ladder.moveUp", {
-                          title: adventure.title,
-                        })}
-                      />
-                      <BaseButton
-                        onClick={() => void moveAdventure(index, 1)}
-                        disabled={index === adventures.length - 1}
-                        size={ButtonSize.small}
-                        variant={ButtonVariant.secondary}
-                        icon={IconType.chevronDown}
-                        ariaLabel={t("adventure.ladder.moveDown", {
-                          title: adventure.title,
-                        })}
-                      />
-                      <BaseButton
-                        onClick={() => setPendingDelete(adventure)}
-                        size={ButtonSize.small}
-                        variant={ButtonVariant.danger}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b">
+                <th scope="col" className="px-3 py-2 font-medium">
+                  {t("adventure.fields.position.label")}
+                </th>
+                <th scope="col" className="px-3 py-2 font-medium">
+                  {t("adventure.fields.targetLevel.label")}
+                </th>
+                <th scope="col" className="px-3 py-2 font-medium">
+                  {t("adventure.fields.title.label")}
+                </th>
+                <th scope="col" className="px-3 py-2 font-medium">
+                  {t("adventure.fields.status.label")}
+                </th>
+                <th scope="col" className="px-3 py-2 font-medium">
+                  {t("adventure.ladder.columns.progress")}
+                </th>
+                <th scope="col" className="px-3 py-2 font-medium">
+                  {t("common.table.actions")}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {adventures.map((adventure, index) => {
+                const rowProgress = progress[adventure.id] ?? {
+                  total: 0,
+                  awarded: 0,
+                };
+                return (
+                  <tr key={adventure.id} className="border-b last:border-none">
+                    <td className="px-3 py-3">{adventure.position}</td>
+                    <td className="px-3 py-3">{adventure.targetLevel}</td>
+                    <td className="px-3 py-3">
+                      <Link
+                        href={dashboardPath(
+                          system,
+                          `/campaign/${adventure.id}`
+                        )}
+                        className="text-blue-600 underline"
                       >
-                        {t("common.form.delete")}
-                      </BaseButton>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                        {adventure.title}
+                      </Link>
+                    </td>
+                    <td className="px-3 py-3">
+                      <Select
+                        value={adventure.status}
+                        options={statusOptions}
+                        onChange={(value) =>
+                          void handleStatusChange(adventure, String(value))
+                        }
+                      />
+                    </td>
+                    <td className="px-3 py-3">
+                      {t("adventure.ladder.columns.progressReadout", {
+                        awarded: rowProgress.awarded,
+                        total: rowProgress.total,
+                      })}
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="flex items-center gap-2">
+                        <BaseButton
+                          onClick={() => void moveAdventure(index, -1)}
+                          disabled={index === 0}
+                          size={ButtonSize.small}
+                          variant={ButtonVariant.secondary}
+                          icon={IconType.chevronUp}
+                          ariaLabel={t("adventure.ladder.moveUp", {
+                            title: adventure.title,
+                          })}
+                        />
+                        <BaseButton
+                          onClick={() => void moveAdventure(index, 1)}
+                          disabled={index === adventures.length - 1}
+                          size={ButtonSize.small}
+                          variant={ButtonVariant.secondary}
+                          icon={IconType.chevronDown}
+                          ariaLabel={t("adventure.ladder.moveDown", {
+                            title: adventure.title,
+                          })}
+                        />
+                        <BaseButton
+                          onClick={() => setPendingDelete(adventure)}
+                          size={ButtonSize.small}
+                          variant={ButtonVariant.danger}
+                        >
+                          {t("common.form.delete")}
+                        </BaseButton>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {pendingDelete && (

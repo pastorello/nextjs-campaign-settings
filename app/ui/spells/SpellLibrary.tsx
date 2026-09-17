@@ -9,17 +9,17 @@ import SpellCard from "./SpellCard";
 export default function SpellLibrary(props: { items: Spell[] }) {
   return (
     <div className="w-full pt-5">
-      <div className="grid gap-2 grid-cols-8">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
         <SelectButtonery
           fieldKey={SpellMetaField.classes}
           omitAllButton={true}
         />
       </div>
       <hr className="mb-4" />
-      <div className="mb-4 flex w-full">
+      <div className="mb-4 flex w-full flex-wrap">
         <SelectButtonery
           fieldKey={SpellMetaField.level}
-          buttonClassName="mx-1 flex w-[10%] p-1"
+          buttonClassName="mx-1 flex min-w-14 flex-1 p-1"
           buttonSize={ButtonSize.squaredSmall}
         />
       </div>

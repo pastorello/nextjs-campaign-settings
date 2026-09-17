@@ -1,5 +1,7 @@
 "use server";
 
+import fieldError from "@/app/lib/data/validation/fieldError";
+import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
@@ -63,7 +65,7 @@ export default async function updateZonePosition(
 
   const parsed = inputSchema.safeParse(formData);
   if (!parsed.success) {
-    return { ok: false, errors: parsed.error.flatten().fieldErrors };
+    return { ok: false, errors: toFieldErrors(parsed.error) };
   }
   const data = parsed.data;
 
@@ -85,7 +87,7 @@ export default async function updateZonePosition(
       return {
         ok: false,
         errors: {
-          footprint: ["The root place has no parent to draw an area against."],
+          footprint: [fieldError("rootHasNoParent")],
         },
       };
     }

@@ -1,5 +1,7 @@
 "use server";
 
+import type FieldErrorKey from "@/app/lib/definitions/types/FieldErrorKey";
+import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
@@ -30,13 +32,12 @@ export default async function createLoot(
   const schema = buildBespokeCreateSchema(lootMeta)
     .extend({ sceneId: z.coerce.number().int().positive() })
     .refine((data) => !(data.magicItemId != null && data.treasureId != null), {
-      message:
-        "A loot row cannot link to both a magic item and a catalogue treasure.",
+      message: "lootLinksBoth" satisfies FieldErrorKey,
       path: ["treasureId"],
     });
   const parsed = schema.safeParse(formData);
   if (!parsed.success) {
-    return { ok: false, errors: parsed.error.flatten().fieldErrors };
+    return { ok: false, errors: toFieldErrors(parsed.error) };
   }
 
   // Read from `parsed.data`, never the raw payload: its values are the

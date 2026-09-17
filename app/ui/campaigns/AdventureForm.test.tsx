@@ -75,7 +75,7 @@ describe("AdventureForm (SPEC-013 T7)", () => {
   it("shows field errors and does not report success when rejected", async () => {
     createAdventure.mockResolvedValue({
       ok: false,
-      errors: { title: ["Required"] },
+      errors: { title: [{ key: "invalidType" }] },
     });
     render(
       <AdventureForm
@@ -89,7 +89,9 @@ describe("AdventureForm (SPEC-013 T7)", () => {
     fireEvent.click(screen.getByText("adventure.form.createButton"));
 
     await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent("Required")
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "common.fieldErrors.invalidType"
+      )
     );
     expect(onSaved).not.toHaveBeenCalled();
     expect(refresh).not.toHaveBeenCalled();

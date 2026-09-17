@@ -146,7 +146,7 @@ describe("PlaceEntityList", () => {
   it("keeps the row and reports the failure when the mutation is rejected", async () => {
     assignNpcLocation.mockResolvedValue({
       ok: false,
-      errors: { id: ["Invalid"] },
+      errors: { id: [{ key: "invalid" }] },
     });
     render(<PlaceEntityList target={{ zoneId: 7 }} />);
     await screen.findByText("Aelar");

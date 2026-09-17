@@ -1,10 +1,12 @@
 import { useTranslations } from "next-intl";
 
 import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
+import type FieldErrors from "@/app/lib/definitions/types/FieldErrors";
+import resolveFieldErrors from "@/app/lib/utils/i18n/resolveFieldErrors";
 
 interface BespokeFormErrorSummaryProps {
-  /** Zod's field-keyed error map, as returned by a failed MutationResult. */
-  errors: Record<string, string[] | undefined>;
+  /** The key-based field errors a failed MutationResult carries (TD-124). */
+  errors: FieldErrors;
   /** The domain's own meta record — `campaignMeta`, `adventureMeta`, … */
   meta: Record<string, PageMeta>;
 }
@@ -23,9 +25,7 @@ export default function BespokeFormErrorSummary({
   meta,
 }: BespokeFormErrorSummaryProps) {
   const t = useTranslations();
-  const entries = Object.entries(errors).filter(
-    ([, messages]) => messages && messages.length > 0
-  );
+  const entries = Object.entries(resolveFieldErrors(errors, t));
 
   if (entries.length === 0) return null;
 
@@ -42,7 +42,7 @@ export default function BespokeFormErrorSummary({
               {meta[field]?.labelKey ? t(meta[field].labelKey) : field}
             </span>
             {": "}
-            {messages?.join(", ")}
+            {messages.join(", ")}
           </li>
         ))}
       </ul>

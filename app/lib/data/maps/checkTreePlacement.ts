@@ -1,3 +1,4 @@
+import fieldError from "@/app/lib/data/validation/fieldError";
 import fetchZoneDescendantIds from "./fetchZoneDescendantIds";
 import type { PlacementErrors } from "./checkPlacement";
 
@@ -39,8 +40,8 @@ export default async function checkTreePlacement({
   return {
     parentId: [
       targetParentId === zoneId
-        ? "A place cannot be placed on its own map."
-        : "A place cannot be placed inside a place that it contains.",
+        ? fieldError("placeOnOwnMap")
+        : fieldError("placeInsideOwnSubtree"),
     ],
   };
 }

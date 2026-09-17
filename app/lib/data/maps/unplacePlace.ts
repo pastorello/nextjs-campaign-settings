@@ -1,5 +1,7 @@
 "use server";
 
+import fieldError from "@/app/lib/data/validation/fieldError";
+import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
@@ -36,7 +38,7 @@ export default async function unplacePlace(formData: {
 
   const parsed = inputSchema.safeParse(formData);
   if (!parsed.success) {
-    return { ok: false, errors: parsed.error.flatten().fieldErrors };
+    return { ok: false, errors: toFieldErrors(parsed.error) };
   }
 
   let parentId: number | null;
@@ -53,7 +55,7 @@ export default async function unplacePlace(formData: {
   if (parentId === null) {
     return {
       ok: false,
-      errors: { id: ["The root place cannot be un-placed."] },
+      errors: { id: [fieldError("rootCannotBeUnplaced")] },
     };
   }
 

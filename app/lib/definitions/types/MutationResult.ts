@@ -1,3 +1,4 @@
+import type FieldErrors from "./FieldErrors";
 import type MutationRefusalCode from "./MutationRefusalCode";
 
 /**
@@ -10,7 +11,7 @@ type MutationResult =
   | { ok: true }
   | {
       ok: false;
-      errors: Record<string, string[] | undefined>;
+      errors: FieldErrors;
       code?: MutationRefusalCode;
     };
 

@@ -107,9 +107,7 @@ describe("LootForm (SPEC-013 T8)", () => {
     createLoot.mockResolvedValue({
       ok: false,
       errors: {
-        treasureId: [
-          "A loot row cannot link to both a magic item and a catalogue treasure.",
-        ],
+        treasureId: [{ key: "lootLinksBoth" }],
       },
     });
     render(
@@ -127,7 +125,9 @@ describe("LootForm (SPEC-013 T8)", () => {
     fireEvent.click(screen.getByText("loot.form.createButton"));
 
     await vi.waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent(/cannot link to both/)
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "common.fieldErrors.lootLinksBoth"
+      )
     );
     expect(onSaved).not.toHaveBeenCalled();
   });

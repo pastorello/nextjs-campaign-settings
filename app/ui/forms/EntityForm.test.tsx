@@ -190,7 +190,7 @@ describe("EntityForm", () => {
 
   it("shows field errors and does not call onSaveFinished when the mutation fails", async () => {
     const create = vi.fn<(page: StubSpell) => Promise<MutationResult>>(() =>
-      Promise.resolve({ ok: false, errors: { name: ["is required"] } })
+      Promise.resolve({ ok: false, errors: { name: [{ key: "invalidType" }] } })
     );
     const onSaveFinished = vi.fn();
 

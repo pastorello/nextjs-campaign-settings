@@ -1,5 +1,6 @@
 "use client";
 
+import type FieldErrors from "@/app/lib/definitions/types/FieldErrors";
 import { FormEvent, useState } from "react";
 import { useTranslations } from "next-intl";
 
@@ -84,9 +85,7 @@ export default function ZoneEditPanel({
 
   const [name, setName] = useState(title);
   const [notes, setNotes] = useState(description ?? "");
-  const [errors, setErrors] = useState<Record<string, string[] | undefined>>(
-    {}
-  );
+  const [errors, setErrors] = useState<FieldErrors>({});
   const [isSaving, setIsSaving] = useState(false);
 
   // Re-seed the fields from the stored values each time the panel opens —

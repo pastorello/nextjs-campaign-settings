@@ -113,9 +113,7 @@ describe("assignDeityLocation", () => {
       ok: false,
       code: "alreadyPlaced",
       errors: {
-        zoneId: [
-          "This deity is already at a location. Remove it from there first.",
-        ],
+        zoneId: [{ key: "alreadyAtLocation" }],
       },
     });
   });
@@ -133,7 +131,7 @@ describe("assignDeityLocation", () => {
 
     expect(result).toEqual({
       ok: false,
-      errors: { id: ["This deity does not exist."] },
+      errors: { id: [{ key: "deityNotFound" }] },
     });
   });
 });

@@ -1,5 +1,6 @@
 "use server";
 
+import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidatePath } from "next/cache";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
@@ -36,7 +37,7 @@ export default async function reorderAdventures(
 
   const parsed = reorderSchema.safeParse({ campaignId, orderedIds });
   if (!parsed.success) {
-    return { ok: false, errors: parsed.error.flatten().fieldErrors };
+    return { ok: false, errors: toFieldErrors(parsed.error) };
   }
 
   const result = await validateAndReorder({
@@ -50,8 +51,7 @@ export default async function reorderAdventures(
     buildPositionUpdate: (id, position) =>
       prisma.adventure.update({ where: { id }, data: { position } }),
     orderedIds: parsed.data.orderedIds,
-    mismatchMessage:
-      "The given adventures do not match this campaign's current ladder.",
+    mismatchMessage: "adventureOrderMismatch",
   });
 
   if (result.ok) {

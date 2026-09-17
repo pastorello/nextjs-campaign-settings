@@ -3,6 +3,8 @@ import { Prisma } from "@/generated/prisma/client";
 import prisma from "@/app/lib/connections/prisma";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
+import type FieldErrorKey from "@/app/lib/definitions/types/FieldErrorKey";
+import fieldError from "@/app/lib/data/validation/fieldError";
 
 /**
  * Shared body of the four position-reorder actions (`reorderScenes`,
@@ -36,7 +38,8 @@ export default async function validateAndReorder({
     position: number
   ) => Prisma.PrismaPromise<unknown>;
   orderedIds: number[];
-  mismatchMessage: string;
+  /** A catalogue key, never prose (TD-124). */
+  mismatchMessage: FieldErrorKey;
 }): Promise<MutationResult> {
   let existingIdList;
   try {
@@ -53,7 +56,7 @@ export default async function validateAndReorder({
     orderedIds.every((id) => existingIds.has(id));
 
   if (!matches) {
-    return { ok: false, errors: { orderedIds: [mismatchMessage] } };
+    return { ok: false, errors: { orderedIds: [fieldError(mismatchMessage)] } };
   }
 
   try {

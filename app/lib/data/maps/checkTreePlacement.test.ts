@@ -28,7 +28,7 @@ describe("checkTreePlacement (SPEC-017 T5)", () => {
     await expect(
       checkTreePlacement({ zoneId: 1, targetParentId: 1 })
     ).resolves.toEqual({
-      parentId: ["A place cannot be placed on its own map."],
+      parentId: [{ key: "placeOnOwnMap" }],
     });
   });
 
@@ -38,7 +38,7 @@ describe("checkTreePlacement (SPEC-017 T5)", () => {
     await expect(
       checkTreePlacement({ zoneId: 1, targetParentId: 2 })
     ).resolves.toEqual({
-      parentId: ["A place cannot be placed inside a place that it contains."],
+      parentId: [{ key: "placeInsideOwnSubtree" }],
     });
   });
 
@@ -48,7 +48,7 @@ describe("checkTreePlacement (SPEC-017 T5)", () => {
     await expect(
       checkTreePlacement({ zoneId: 1, targetParentId: 3 })
     ).resolves.toEqual({
-      parentId: ["A place cannot be placed inside a place that it contains."],
+      parentId: [{ key: "placeInsideOwnSubtree" }],
     });
   });
 

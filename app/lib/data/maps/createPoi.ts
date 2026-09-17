@@ -1,5 +1,6 @@
 "use server";
 
+import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidatePath } from "next/cache";
 
 import prisma from "@/app/lib/connections/prisma";
@@ -26,7 +27,7 @@ export default async function createPoi(
 
   const parsed = buildPoiCreateSchema().safeParse(formData);
   if (!parsed.success) {
-    return { ok: false, errors: parsed.error.flatten().fieldErrors };
+    return { ok: false, errors: toFieldErrors(parsed.error) };
   }
 
   const { title, lat, lng, category, zoneId, description } = parsed.data;

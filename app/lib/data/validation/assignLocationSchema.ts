@@ -1,3 +1,4 @@
+import type FieldErrorKey from "@/app/lib/definitions/types/FieldErrorKey";
 import { z } from "zod";
 
 const assignLocationFields = {
@@ -17,8 +18,7 @@ export function buildAssignLocationSchema() {
   return z
     .object(assignLocationFields)
     .refine((data) => !(data.poiId !== null && data.zoneId === null), {
-      message:
-        "poiId cannot be set without a zoneId — a POI always belongs to a zone.",
+      message: "landmarkWithoutZone" satisfies FieldErrorKey,
       path: ["zoneId"],
     });
 }

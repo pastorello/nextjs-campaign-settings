@@ -103,3 +103,11 @@ Genuinely tempting when it looked as though the setting's own lists would stay u
 `resolveOptions` shows up in a profile. It runs per render per option-backed field, which is fine at the current scale (largest list ~20 entries) and would be the first thing to memoise if a list ever grew by an order of magnitude.
 
 Or if a future option list genuinely cannot be translated — an invented proper noun with no English rendering, unlike the three settled above. One such list is a catalogue entry repeated across locales; several would reopen the union alternative.
+
+## Addendum (2026-09-17, TD-124): mutation errors follow the same split
+
+Server Actions used to return English sentences in `MutationResult.errors`, and Zod's own default messages took the same path, so a refusal reached the Italian UI in English. The fix is this ADR's pattern applied to errors: the authored shape is a `FieldErrorMessage` (`{ key, values? }`, `key` typed as `FieldErrorKey`), the render-ready shape is a string, and the one bridge is the pure `resolveFieldErrors(errors, t)`.
+
+- **Zod's defaults are replaced, not translated.** `toFieldErrors` derives a key from each issue's `code` and bounds (`tooShort` with `{ minimum }`, `invalidType`, …); the English `issue.message` is discarded. A schema that wants a specific message passes a `FieldErrorKey` as its `message` (`"lootLinksBoth" satisfies FieldErrorKey`), which `toFieldErrors` recognises by membership in `FIELD_ERROR_KEYS`. Anything else falls back to `invalid`, so no prose can leak.
+- **Rejected: a global `z.config({ customError })` that emits keys.** It would reach every schema, including `env.ts`'s startup validation, whose messages are for the operator's terminal, not the UI — and it would still leave the data layer's own refusals untyped strings.
+- **Rejected: keeping `string[]` and storing keys in it.** Typing is the point: with `FieldErrorMessage`, a hand-written English refusal is a compile error.

@@ -1,5 +1,6 @@
 "use server";
 
+import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
@@ -28,7 +29,7 @@ export default async function createScene(
   });
   const parsed = schema.safeParse(formData);
   if (!parsed.success) {
-    return { ok: false, errors: parsed.error.flatten().fieldErrors };
+    return { ok: false, errors: toFieldErrors(parsed.error) };
   }
 
   // Read from `parsed.data`, never the raw payload: its values are the

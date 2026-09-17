@@ -1,3 +1,5 @@
+import type FieldErrors from "@/app/lib/definitions/types/FieldErrors";
+
 /**
  * The tree's single root — a `poi` row with `kind: "region"` and no parent
  * (SPEC-004 §5.1/§10 M4). Only the fields the "create your world" flow
@@ -33,4 +35,4 @@ export interface CreateRootPlaceInput {
  * confirms the write happened.
  */
 export type CreateRootPlaceResult =
-  { ok: true } | { ok: false; errors: Record<string, string[] | undefined> };
+  { ok: true } | { ok: false; errors: FieldErrors };

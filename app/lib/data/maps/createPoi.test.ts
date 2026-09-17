@@ -84,7 +84,10 @@ describe("createPoi", () => {
     expect(result.ok).toBe(false);
     expect(create).not.toHaveBeenCalled();
     if (!result.ok) {
-      expect(result.errors.lat?.[0]).toContain("Kang");
+      expect(result.errors.lat?.[0]).toEqual({
+        key: "pointInsideArea",
+        values: { title: "Kang" },
+      });
     }
   });
 });

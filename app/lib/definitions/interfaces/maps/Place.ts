@@ -1,3 +1,5 @@
+import type FieldErrors from "@/app/lib/definitions/types/FieldErrors";
+
 /**
  * `createPlace`'s return type (SPEC-004 §10 M5) — mirrors `PoiCreateResult`:
  * the caller needs the new row's id back for the same reason `usePOIManager`
@@ -5,5 +7,4 @@
  * region/deity/npc kinds.
  */
 export type CreatePlaceResult =
-  | { ok: true; id: number }
-  | { ok: false; errors: Record<string, string[] | undefined> };
+  { ok: true; id: number } | { ok: false; errors: FieldErrors };

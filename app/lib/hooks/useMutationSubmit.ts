@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { notifyError } from "@/app/lib/notifications/notify";
 
-type FieldErrors = Record<string, string[] | undefined>;
+import type FieldErrors from "@/app/lib/definitions/types/FieldErrors";
 
 /**
  * The save half of a bespoke campaign form (TD-126): the saving flag, the

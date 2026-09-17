@@ -1,3 +1,4 @@
+import type FieldErrorKey from "@/app/lib/definitions/types/FieldErrorKey";
 import z from "zod";
 
 import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
@@ -89,7 +90,7 @@ const pageMetaFields = {
     placeholderKey: "common.fields.id.placeholder",
     validator: z.coerce
       .number()
-      .gt(-1, { message: "Please enter a positive amount" }),
+      .gt(-1, { message: "positiveAmount" satisfies FieldErrorKey }),
     getDatum: (datum: number) => datum,
   },
   name: {

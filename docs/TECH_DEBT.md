@@ -152,7 +152,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-128 | ✅ `WorldMap`'s GeoJSON import skips the schema that `MapMain`'s import uses                                   | ~~🟢 Low~~ done      | S      | 4     |
 | TD-129 | ✅ Map place and POI schemas restate field rules instead of using `zoneMeta`                                   | ~~🟢 Low~~ done      | S      | 4     |
 | TD-130 | ✅ Validator helpers copied into five files                                                                    | ~~🟢 Low~~ done      | S      | 4     |
-| TD-131 | Unused vendored map utilities still include Earth-geometry maths (ask before deleting)                         | 🟢 Low               | S      | 4     |
+| TD-131 | ✅ Unused vendored map utilities still include Earth-geometry maths (ask before deleting)                      | ~~🟢 Low~~ done      | S      | 4     |
 | TD-132 | ✅ Leftover inline styles and Italian comments                                                                 | ~~🟢 Low~~ done      | S      | 4     |
 | TD-133 | The map has no keyboard path to create a place or open an existing one                                         | 🟠 High — part       | L      | 4     |
 | TD-134 | ✅ Filter chips don't expose their pressed state                                                               | ~~🟡 Medium~~ done   | S      | 4     |
@@ -161,11 +161,11 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-137 | ✅ No `nav` landmark around the sidebar                                                                        | ~~🟢 Low~~ done      | S      | 4     |
 | TD-138 | ✅ The overview skips from `h1` to `h3`                                                                        | ~~🟢 Low~~ done      | S      | 4     |
 | TD-139 | ✅ Pagination doesn't mark the current page                                                                    | ~~🟢 Low~~ done      | S      | 4     |
-| TD-140 | Delete wording differs between a place's trigger and its confirmation, and deleting a landmark asks nothing    | 🟡 Medium — part     | S      | 4     |
+| TD-140 | ✅ Delete wording differs between a place's trigger and its confirmation, and deleting a landmark asks nothing | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-141 | ✅ English words left in Italian copy beyond TD-120                                                            | ~~🟢 Low~~ done      | S      | 4     |
 | TD-142 | ✅ Title Case in Italian form titles and buttons                                                               | ~~🟢 Low~~ done      | S      | 4     |
 | TD-143 | ✅ NPCs are called "PNG" on the card and "Personaggi conosciuti" on the page it opens                          | ~~🟢 Low~~ done      | S      | 4     |
-| TD-144 | `loot.checkOff.label` means different things in it and en                                                      | 🟢 Low               | S      | 4     |
+| TD-144 | ✅ `loot.checkOff.label` means different things in it and en                                                   | ~~🟢 Low~~ done      | S      | 4     |
 | TD-145 | ✅ Shared error messages don't say what to do next                                                             | ~~🟢 Low~~ done      | S      | 4     |
 
 ---

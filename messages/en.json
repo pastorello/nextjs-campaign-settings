@@ -165,7 +165,13 @@
       "sceneOrderMismatch": "The given scenes do not match this adventure's current scene list.",
       "sceneCreatureOrderMismatch": "The given creatures do not match this scene's current creature list.",
       "lootOrderMismatch": "The given loot rows do not match this scene's current loot list.",
-      "noZonesAvailable": "No zones available."
+      "noZonesAvailable": "No zones available.",
+      "monthNamesCount": "Needs exactly 12 month names.",
+      "weekdayNamesCount": "Needs exactly 7 weekday names.",
+      "dateSystemNotFound": "This date system does not exist.",
+      "universalDateSystemFixed": "The universal count cannot be re-anchored.",
+      "universalDateSystemUndeletable": "The universal count cannot be deleted.",
+      "defaultDateSystemUndeletable": "The default date system cannot be deleted. Choose another default first."
     },
     "errorPage": {
       "genericTitle": "Something went wrong",
@@ -828,7 +834,8 @@
     "page": {
       "title": "Create your world",
       "exists": "Your world, “{title}”, already exists.",
-      "viewMapLink": "Go to the map"
+      "viewMapLink": "Go to the map",
+      "calendarLink": "Calendar: date systems and the moon"
     },
     "form": {
       "nameLabel": "World name",
@@ -1283,6 +1290,49 @@
     },
     "toggle": {
       "label": "Show dates in"
+    },
+    "systems": {
+      "title": "Date systems",
+      "intro": "Every date is stored once, as a day of the universal count; a date system only changes how its year is labelled.",
+      "empty": "No other date systems yet. Add one to count years from an event of your world.",
+      "universalBadge": "Universal count",
+      "defaultBadge": "Default",
+      "universalNote": "Its year 0 is the dawn of time: it cannot be re-anchored or deleted.",
+      "universalYearLabel": "Years: {afterLabel} ({afterAbbrev})",
+      "anchor": "Year 0: {event}, universal year {year}",
+      "yearLabels": "{afterLabel} ({afterAbbrev}) · {beforeLabel} ({beforeAbbrev})",
+      "addButton": "Add a date system",
+      "setDefaultButton": "Make default",
+      "setDefaultDone": "“{name}” is now the default date system.",
+      "setDefaultFailed": "Could not change the default date system. Try again.",
+      "deleteRefused": "Could not delete: {reason}",
+      "fields": {
+        "name": "Name",
+        "anchorEvent": "Anchor event",
+        "anchorYear": "Universal year of the anchor event",
+        "afterLabel": "Label for years after",
+        "afterAbbrev": "Abbreviation for years after",
+        "beforeLabel": "Label for years before",
+        "beforeAbbrev": "Abbreviation for years before",
+        "monthNames": "Month names",
+        "weekdayNames": "Weekday names"
+      },
+      "form": {
+        "createTitle": "New date system",
+        "editTitle": "Edit “{name}”",
+        "createButton": "Create",
+        "monthName": "Month {number}",
+        "weekdayName": "Weekday {number}",
+        "anchorWarning": "Changing the anchor year re-labels the year of every date in this system. No event moves: dates are stored on the universal count."
+      }
+    },
+    "moon": {
+      "title": "The moon",
+      "label": "Reference new moon",
+      "description": "Every moon phase is counted from this day, on a 28-day cycle. Until it is set, no phase is shown.",
+      "current": "Currently:",
+      "notSet": "Not set: no moon phases are shown.",
+      "clearButton": "Clear"
     }
   }
 }

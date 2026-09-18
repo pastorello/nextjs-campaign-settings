@@ -165,7 +165,13 @@
       "sceneOrderMismatch": "Le scene indicate non corrispondono all'elenco attuale delle scene dell'avventura.",
       "sceneCreatureOrderMismatch": "Le creature indicate non corrispondono all'elenco attuale delle creature della scena.",
       "lootOrderMismatch": "I bottini indicati non corrispondono all'elenco attuale dei bottini della scena.",
-      "noZonesAvailable": "Nessuna zona disponibile."
+      "noZonesAvailable": "Nessuna zona disponibile.",
+      "monthNamesCount": "Servono esattamente 12 nomi di mese.",
+      "weekdayNamesCount": "Servono esattamente 7 nomi di giorno.",
+      "dateSystemNotFound": "Questo sistema di datazione non esiste.",
+      "universalDateSystemFixed": "Il calendario universale non può essere riancorato.",
+      "universalDateSystemUndeletable": "Il calendario universale non può essere eliminato.",
+      "defaultDateSystemUndeletable": "Il sistema di datazione predefinito non può essere eliminato. Scegline prima un altro come predefinito."
     },
     "errorPage": {
       "genericTitle": "Qualcosa è andato storto",
@@ -828,7 +834,8 @@
     "page": {
       "title": "Crea il tuo mondo",
       "exists": "Il tuo mondo, «{title}», esiste già.",
-      "viewMapLink": "Vai alla mappa"
+      "viewMapLink": "Vai alla mappa",
+      "calendarLink": "Calendario: sistemi di datazione e luna"
     },
     "form": {
       "nameLabel": "Nome del mondo",
@@ -1283,6 +1290,49 @@
     },
     "toggle": {
       "label": "Mostra le date in"
+    },
+    "systems": {
+      "title": "Sistemi di datazione",
+      "intro": "Ogni data è salvata una volta sola, come giorno del calendario universale; un sistema di datazione cambia solo come ne viene etichettato l'anno.",
+      "empty": "Nessun altro sistema di datazione. Aggiungine uno per contare gli anni da un evento del tuo mondo.",
+      "universalBadge": "Calendario universale",
+      "defaultBadge": "Predefinito",
+      "universalNote": "Il suo anno 0 è l'alba dei tempi: non si può riancorare né eliminare.",
+      "universalYearLabel": "Anni: {afterLabel} ({afterAbbrev})",
+      "anchor": "Anno 0: {event}, anno universale {year}",
+      "yearLabels": "{afterLabel} ({afterAbbrev}) · {beforeLabel} ({beforeAbbrev})",
+      "addButton": "Aggiungi un sistema di datazione",
+      "setDefaultButton": "Rendi predefinito",
+      "setDefaultDone": "“{name}” è ora il sistema di datazione predefinito.",
+      "setDefaultFailed": "Impossibile cambiare il sistema di datazione predefinito. Riprova.",
+      "deleteRefused": "Impossibile eliminare: {reason}",
+      "fields": {
+        "name": "Nome",
+        "anchorEvent": "Evento di riferimento",
+        "anchorYear": "Anno universale dell'evento di riferimento",
+        "afterLabel": "Etichetta degli anni dopo",
+        "afterAbbrev": "Abbreviazione degli anni dopo",
+        "beforeLabel": "Etichetta degli anni prima",
+        "beforeAbbrev": "Abbreviazione degli anni prima",
+        "monthNames": "Nomi dei mesi",
+        "weekdayNames": "Nomi dei giorni della settimana"
+      },
+      "form": {
+        "createTitle": "Nuovo sistema di datazione",
+        "editTitle": "Modifica “{name}”",
+        "createButton": "Crea",
+        "monthName": "Mese {number}",
+        "weekdayName": "Giorno {number}",
+        "anchorWarning": "Cambiare l'anno di riferimento rietichetta l'anno di ogni data in questo sistema. Nessun evento si sposta: le date sono salvate sul calendario universale."
+      }
+    },
+    "moon": {
+      "title": "La luna",
+      "label": "Luna nuova di riferimento",
+      "description": "Ogni fase lunare si conta da questo giorno, su un ciclo di 28 giorni. Finché non è impostato, nessuna fase viene mostrata.",
+      "current": "Attuale:",
+      "notSet": "Non impostata: nessuna fase lunare viene mostrata.",
+      "clearButton": "Rimuovi"
     }
   }
 }

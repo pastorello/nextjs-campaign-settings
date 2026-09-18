@@ -1,7 +1,8 @@
 import { revalidatePath } from "next/cache";
 
 /**
- * Domain segments that exist under `app/[locale]/dashboard/[system]/`.
+ * Domain segments that exist under `app/[locale]/dashboard/[system]/` —
+ * nested ones (`world/calendar`) spelled as their path below it.
  * Keep this in sync with that directory listing — a domain missing here is
  * a compile error at the call site, not a silently-ignored typo (TD-105
  * found 19 of the original 48 calls naming a path that matched nothing).
@@ -15,7 +16,8 @@ export type DashboardDomain =
   | "npc"
   | "spells"
   | "treasures"
-  | "world";
+  | "world"
+  | "world/calendar";
 
 /**
  * Revalidates the dashboard page for `domain` after a mutating Server

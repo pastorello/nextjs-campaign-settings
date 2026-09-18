@@ -1,6 +1,6 @@
 # SPEC-014: The calendar and the timeline
 
-- **Status:** Agreed 2026-09-18 — written from an interview with the DM the same day; read through by the DM, who changed only the moon's cycle to 28 days (§5.3)
+- **Status:** **Shipped 2026-09-18; see §11.** Previously: Agreed 2026-09-18 — written from an interview with the DM the same day; read through by the DM, who changed only the moon's cycle to 28 days (§5.3)
 - **Date:** 2026-09-18
 - **Phase:** 4
 - **Related:** [SPEC-013](./013-campaign-management.md) (campaigns, adventures, scenes; its provisional `adventure.timeline` field, which this supersedes) · [`campaign-design-method.md`](../domain/campaign-design-method.md) §5 (planned events) · [SPEC-018](./018-game-systems.md) / [ADR-0013](../adr/0013-game-systems.md) (the calendar is world-level, shared by every game system) · [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md) (where bespoke editors are allowed) · [ADR-0015](../adr/0015-time-as-a-universal-day-number.md) (time as a universal day number) · [`calendar.md`](../domain/calendar.md) (the calendar's rules and the zodiac table)
@@ -271,23 +271,23 @@ model calendarEvent {
 
 ## 8. Acceptance criteria
 
-- [ ] Converting a date in any system to a universal day and back returns the same date, for every day of a year, across the anchor (years −1, 0, 1)
-- [ ] Weekday, moon phase and zodiac sign of a universal day are computed in pure functions, unit-tested against hand-worked examples
-- [ ] The universal count exists after the migration, is the default, and cannot be deleted
-- [ ] A date system with fewer or more than 12 month names or 7 weekday names is rejected
-- [ ] The default date system cannot be deleted
-- [ ] A campaign event's scene must belong to its adventure / campaign
-- [ ] A world history event can link places, NPCs, deities and factions; a campaign event cannot
-- [ ] Events before the campaign's current day are shown as past on that campaign's views
-- [ ] A yearly event appears on the same day of every year from its start year on, and its next occurrence counts as upcoming
-- [ ] Year −330 reads "330 a.C.", year 0 reads "0 d.C."
-- [ ] The toggle shows every date in another system without changing stored data
-- [ ] The month grid shows weekday names, moon phase and zodiac sign for each day
+- [x] Converting a date in any system to a universal day and back returns the same date, for every day of a year, across the anchor (years −1, 0, 1)
+- [x] Weekday, moon phase and zodiac sign of a universal day are computed in pure functions, unit-tested against hand-worked examples
+- [x] The universal count exists after the migration, is the default, and cannot be deleted
+- [x] A date system with fewer or more than 12 month names or 7 weekday names is rejected
+- [x] The default date system cannot be deleted
+- [x] A campaign event's scene must belong to its adventure / campaign
+- [x] A world history event can link places, NPCs, deities and factions; a campaign event cannot
+- [x] Events before the campaign's current day are shown as past on that campaign's views
+- [x] A yearly event appears on the same day of every year from its start year on, and its next occurrence counts as upcoming
+- [x] Year −330 reads "330 a.C.", year 0 reads "0 d.C."
+- [x] The toggle shows every date in another system without changing stored data
+- [x] The month grid shows weekday names, moon phase and zodiac sign for each day
 - [x] `adventure.timeline` shown read-only with a move note from T6, dropped by T8's guarded migration only after the DM confirmed its text had moved
-- [ ] New UI copy lands in both `messages/it.json` and `messages/en.json`
-- [ ] Every new mutation rejects an unauthenticated request
-- [ ] Every new mutation rejects invalid input with field-level errors
-- [ ] Coverage has not dropped
+- [x] New UI copy lands in both `messages/it.json` and `messages/en.json`
+- [x] Every new mutation rejects an unauthenticated request
+- [x] Every new mutation rejects invalid input with field-level errors
+- [ ] Coverage has not dropped _(not measured at close: every task shipped with tests for its new code, but no before/after coverage run was compared)_
 
 ## 9. Implementation plan
 
@@ -327,8 +327,21 @@ _Filled in per task once agreed._
       — **Done 2026-09-18.** Pure: `buildMonthView` (weeks from weekday 0 with leading/trailing blanks, moon phase, zodiac sign, events per day — a multi-day one on each day it spans, clipped and marked continuing; a yearly one on every year's occurrence via `occurrencesBetween`, however early it started; start hour on the first day, end hour on the last), `monthRange`, `adjacentMonth`, `monthOf`, `parseMonthGridParams`. **URL:** `?view=grid&year=<universal>&month=<1–12>`; the year is universal, so a month survives the toggle; list stays the default (`CalendarViewSwitch`). With no month named, world history opens on its latest (filtered) event's month, the campaign on today's, else its first event's; else the display system's year 0. **Reads only the month:** `eventsInRangeWhere` (range overlap, plus yearly events started by the month's end) behind `fetchWorldHistoryMonth` (link filters shared with the list via `worldHistoryWhere`), `fetchCampaignEvents(…, range)` and `fetchWorldHistoryBetween(…, true)`; `findEdgeEventDay` for the default month. **UI:** `MonthGrid` — a plain `<table>` (caption in the displayed system, weekday `<th scope="col">`s; no `role="grid"`, so no arrow-key navigation — T9's call), moon/zodiac glyphs with words for screen readers (`calendar.moonPhases.*`, `calendar.zodiacSigns.*`), editable events as buttons opening the list's form in a modal; today `aria-current="date"`, earlier days dimmed (campaign only); world history dashed and labelled on the campaign grid, read-only. `MonthGridNavigation`: previous/next, jump via `WorldDateInput`, today (campaign). `CampaignMonthGrid`/`WorldHistoryMonthGrid` wrap it; `toCampaignCalendarItems` is now shared with the list. This closes T6's gap for the grid; the campaign **list** still shows a yearly history event only where it starts. Tests: `monthView.test.ts`, the reads, `MonthGrid`, `MonthGridNavigation` (+ view switch), the campaign page; `e2e/calendar-month-grid.spec.ts`.
 - [x] **T8** — `adventure.timeline`: shown read-only with a "move into events" note from T6 on; dropped by a separate migration **only after the DM confirms** its text has been moved. _(test: migration; nothing reads the column)_
       — **Done 2026-09-18.** The DM confirmed on 2026-09-18 to go ahead; the orchestrator checked the DM's database first — 0 of 2 adventures still had timeline text. Removed every reader/writer: `AdventureMetaField.timeline`, `adventureMeta`'s field declaration, `Adventure.timeline`, the create/update/fetch data functions' `timeline` handling, `AdventureHeader`'s read-only note and `AdventureInfoForm`'s textarea, and the `adventure.fields.timeline` key (both catalogues). Schema: `prisma/migrations/20260918100000_spec014_t8_drop_adventure_timeline` — a hand-written `DO $$ ... RAISE EXCEPTION ... END $$;` guard (non-null, non-blank `timeline` on any row aborts the deploy, message points at moving the text into calendar events) precedes `ALTER TABLE "adventure" DROP COLUMN "timeline"`; `prisma/spec014T8DropAdventureTimeline.test.ts` asserts the guard precedes the drop and that only `timeline` on `adventure` is touched, the same migration-SQL-assertion approach `spec014CalendarSchema.test.ts` uses (no DB-backed unit tier). Not run against any database. Docs: SPEC-013 §3/§5 carry a dated supersession note, original text kept per the project's practice for superseded spec text (see CLAUDE.md's SPEC-009 entry).
-- [ ] **T9** — i18n audit, a11y pass (grid keyboard navigation, axe), docs.
+- [x] **T9** — i18n audit, a11y pass (grid keyboard navigation, axe), docs.
+      — **Done 2026-09-18.** **i18n:** no hardcoded copy in `app/ui/calendar/`, `app/lib/data/calendar/` or the three pages (the two `throw new Error` invariants are developer errors, not UI); every literal key resolves in both catalogues; the data layer refuses with `FieldErrorKey`s only (ADR-0007). `glyphLabels.test.ts` pins words for every `MOON_PHASES`/`ZODIAC_SIGNS` member in both locales, since those keys are built at runtime. **a11y:** `MonthGrid` is now `role="grid"` (`row`/`columnheader`/`gridcell`, named by its caption) with one roving Tab stop — today, else the 1st — and `monthGridKeyTarget` (arrows a day/week, Home/End the row's ends, PageUp/PageDown the adjacent month, keeping the URL's filters; a move off the month stays put). Only the focused day's event buttons are tabbable. Today's word is now visible and a past day's number struck through, so neither is colour-only. `e2e/a11y.spec.ts` scans `/world/calendar`, `/world/history` (list, grid) in `PAGES` and `/campaign/calendar` (list, grid) in its own test after `ensureCampaign` (now `e2e/helpers/`). **T6's gap closed:** the campaign list reads world history `withEarlierYearly` and expands it with `yearlyOccurrencesIn` (over `occurrencesBetween`, as the grid), so a yearly event shows in each year shown; the list keys by start day. **Docs:** `ARCHITECTURE.md` §4 "The calendar", `PROJECT_STATE.md` §1, the ROADMAP entry's implementation state. Tests: `monthGridKeyTarget.test.ts`, `MonthGrid.test.tsx` (keyboard, non-colour cues), `yearlyOccurrencesIn.test.ts`, the campaign page test. The axe scans were written, not run locally (CI runs e2e).
 
 ## 11. Outcome
 
-_Fill in at close._
+_Shipped 2026-09-18: all nine tasks done the same day. Each task's entry in
+§10 carries its detail, including where the build departed from the text
+above; this is the summary._
+
+- **Shipped:** date systems over a universal day count (ADR-0015), world
+  history, the campaign calendar with its current day and past/upcoming, a
+  keyboard-navigable month grid shared by both, the per-viewer date system
+  cookie, and the drop of `adventure.timeline` (T8, after the DM confirmed).
+- **Deviations** are recorded in the §10 notes, chiefly: the date control is
+  bespoke rather than a `PageMeta` control type (T4), none of the three pages
+  is a `pagesConfig` page (T5), the display system is a cookie (T4), and the
+  DB guards T2 added beyond §6.
+- **Follow-ups:** none known.

@@ -227,6 +227,30 @@ POIs are persisted in Postgres, not `localStorage` — `usePOIManager.ts` writes
 
 Places themselves — including the tree's navigable nodes — are **deliberately outside the metadata layer** (`pagesConfig`/`formFields`/`listConfig`): a place is a map annotation edited from a panel, not a browsable, filterable catalogue page.
 
+### The calendar (SPEC-014)
+
+**Time is one number.** Every date is stored as a **universal day** — an integer day count from the dawn of time, plus a nullable hour — never as a year/month/day triple ([ADR-0015](./adr/0015-time-as-a-universal-day-number.md)). A **date system** (`dateSystem`: 12 month names, 7 weekday names, an anchor year and era labels) is only a way of _reading_ that number; the seeded universal count cannot be deleted, and exactly one system is the default. Years are 365 days in every system, so a date system shifts the year number and renames, never re-divides.
+
+```
+app/lib/calendar/        pure maths, no Prisma, no copy: universal day ↔ date, weekday,
+                         moon phase, zodiac sign (ranges in docs/domain/calendar.md),
+                         formatWorldDate, eventTiming (past/current/upcoming),
+                         occurrencesBetween / yearlyOccurrencesIn (yearly events),
+                         buildMonthView (the grid's weeks), parseMonthGridParams
+app/lib/config/calendar/ date system, settings and campaign-today validators and label keys
+app/lib/config/calendarEvent/  calendarEventMeta (shared by both event kinds),
+                         worldHistoryLinkMeta, campaignEventOwnerMeta
+app/lib/data/calendar/   the actions (auth → Zod → ownership/link checks) and reads
+app/ui/calendar/         WorldDate, WorldDateInput, DateSystemToggle, EventList,
+                         MonthGrid and the per-page wrappers around them
+```
+
+**One table, two kinds of event.** `calendarEvent` with `campaignId = null` is **world history** (`/world/history`; links to places, NPCs, deities, factions); with a campaign it is a **campaign event** (`/campaign/calendar`; optional adventure and scene, no world links). Each page's actions find only their own kind (`findWorldHistoryEvent` / `findCampaignEvent`), so neither can touch the other's rows. `/world/calendar` edits the date systems and the moon's reference day. None of the three is a `pagesConfig` page: the lists group by year and month in the displayed system, filter by link rather than by column, and need the bespoke date control — but every field still declares its `PageMeta` validator and label key, which the bespoke forms consume (ADR-0011's rule, as `docs/specs/014-calendar-and-timeline.md` §10 T4/T5 record).
+
+**Which system dates are shown in is a cookie, not stored data.** `DateSystemToggle` writes `worldDateSystem` (a system id, one year, `SameSite=Lax`) and calls `router.refresh()`; Server Components read it through `readDisplayDateSystemId` and `resolveDisplayDateSystem` (a stale id falls back to the default), so the first render is already in the chosen system. `localStorage` was rejected because it forces client-only rendering and a flash of the default.
+
+**Two views, one URL.** `?view=grid&year=<universal>&month=<1–12>` shows `MonthGrid`; the year is universal, so the month survives the toggle. The grid reads only its month (`eventsInRangeWhere`, which also brings yearly events first held earlier) and places a yearly event on every year's occurrence; the campaign list does the same over the years it shows through `yearlyOccurrencesIn`. `MonthGrid` is an ARIA grid with one roving Tab stop — arrows, Home/End, PageUp/PageDown (`monthGridKeyTarget`) — and its moon and zodiac glyphs are `aria-hidden` beside their words.
+
 ---
 
 ## 5. Auth flow

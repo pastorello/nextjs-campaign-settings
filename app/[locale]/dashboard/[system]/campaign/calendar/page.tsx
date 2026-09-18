@@ -10,6 +10,7 @@ import { monthRange } from "@/app/lib/calendar/monthRange";
 import { parseMonthGridParams } from "@/app/lib/calendar/parseMonthGridParams";
 import { resolveDisplayDateSystem } from "@/app/lib/calendar/resolveDisplayDateSystem";
 import { yearSpan } from "@/app/lib/calendar/yearSpan";
+import { yearlyOccurrencesIn } from "@/app/lib/calendar/yearlyOccurrencesIn";
 import fetchCampaign from "@/app/lib/data/campaigns/fetchCampaign";
 import fetchCalendarSettings from "@/app/lib/data/calendar/fetchCalendarSettings";
 import fetchCampaignEvents from "@/app/lib/data/calendar/fetchCampaignEvents";
@@ -177,8 +178,14 @@ export default async function CampaignCalendarPage(
     ...events.flatMap(({ startDay, endDay }) => [startDay, endDay ?? startDay]),
     ...(campaign.currentDay === null ? [] : [campaign.currentDay]),
   ]);
+  // A yearly world history event is listed in every year shown, as the
+  // grid does, not only in the year it was first held (T9).
   const history = span
-    ? await fetchWorldHistoryBetween(span.firstDay, span.lastDay)
+    ? yearlyOccurrencesIn(
+        await fetchWorldHistoryBetween(span.firstDay, span.lastDay, true),
+        span.firstDay,
+        span.lastDay
+      )
     : [];
 
   return (

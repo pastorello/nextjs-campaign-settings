@@ -106,7 +106,8 @@ export default function CampaignCalendarList({
     <EventList
       events={items}
       displaySystem={displaySystem}
-      itemKey={(item) => `${item.kind}-${item.id}`}
+      // A yearly history event is listed once per year, under one id.
+      itemKey={(item) => `${item.kind}-${item.id}-${item.startDay}`}
       itemAttributes={itemAttributes}
       isEditable={(item) => item.kind === "campaign"}
       addLabel={t("calendar.campaign.list.addButton")}

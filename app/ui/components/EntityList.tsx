@@ -201,7 +201,10 @@ export default async function EntityList(props: {
                 >
                   <td className="whitespace-nowrap py-3 pl-6 pr-3">
                     <div className="flex items-center gap-3">
-                      <p>
+                      {/* A div, not a p: a rich-text value renders its own
+                          div, and a div inside a p is invalid HTML that
+                          breaks hydration (2026-09-18). */}
+                      <div>
                         <strong>
                           {renderFieldValue(NAME_FIELD, item.name, t)}
                         </strong>
@@ -215,7 +218,7 @@ export default async function EntityList(props: {
                             )}
                           </>
                         )}
-                      </p>
+                      </div>
                     </div>
                   </td>
                   {config.columns.map((column) => (
@@ -253,20 +256,20 @@ export default async function EntityList(props: {
                 className="flex items-center justify-between gap-3 py-4"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-gray-900">
+                  <div className="truncate font-medium text-gray-900">
                     {renderFieldValue(NAME_FIELD, item.name, t)}
-                  </p>
+                  </div>
                   {config.subtitleField && (
-                    <p className="truncate text-sm text-gray-500">
+                    <div className="truncate text-sm text-gray-500">
                       {renderFieldValue(
                         config.subtitleField,
                         item[config.subtitleField],
                         t
                       )}
-                    </p>
+                    </div>
                   )}
                   {config.columns.slice(0, 2).map((column) => (
-                    <p
+                    <div
                       key={column.fieldKey}
                       className="truncate text-sm text-gray-500"
                     >
@@ -277,7 +280,7 @@ export default async function EntityList(props: {
                         t,
                         optionBundle
                       )}
-                    </p>
+                    </div>
                   ))}
                 </div>
                 <div className="flex shrink-0 items-center gap-3">

@@ -6,14 +6,13 @@ import { useTranslations } from "next-intl";
 
 import { adjacentMonth } from "@/app/lib/calendar/adjacentMonth";
 import type CalendarMonth from "@/app/lib/calendar/CalendarMonth";
-import { monthGridParams } from "@/app/lib/calendar/parseMonthGridParams";
 import { monthRange } from "@/app/lib/calendar/monthRange";
 import { universalDayToDate } from "@/app/lib/calendar/universalDayToDate";
 import DateSystem from "@/app/lib/definitions/interfaces/calendar/DateSystem";
-import useSearchParamsHref from "@/app/lib/hooks/useSearchParamsHref";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonSize from "@/app/ui/buttons/BaseButton/ButtonSize";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
+import useMonthGridHref from "./useMonthGridHref";
 import WorldDateInput from "./WorldDateInput";
 
 interface MonthGridNavigationProps {
@@ -43,11 +42,8 @@ export default function MonthGridNavigation({
 }: MonthGridNavigationProps) {
   const t = useTranslations("calendar.grid");
   const router = useRouter();
-  const hrefWith = useSearchParamsHref();
+  const hrefFor = useMonthGridHref();
   const { firstDay } = monthRange(month);
-
-  const hrefFor = (target: CalendarMonth) =>
-    hrefWith({ view: "grid", ...monthGridParams(target), page: null });
 
   const previous = adjacentMonth(month, -1);
   const next = adjacentMonth(month, 1);

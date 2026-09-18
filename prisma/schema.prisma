@@ -37,6 +37,9 @@ model deities {
   poiId  Int?
   poi    poi?  @relation(fields: [poiId], references: [id], onDelete: Restrict)
 
+  // SPEC-014 T2 — world history events that name this deity.
+  calendarEvents calendarEvent[]
+
   @@index([name])
 }
 
@@ -98,6 +101,9 @@ model npc {
   // SPEC-013 T2 — back-relation required by sceneCreature.npc.
   sceneCreatures sceneCreature[]
 
+  // SPEC-014 T2 — world history events that name this NPC.
+  calendarEvents calendarEvent[]
+
   @@index([name])
 }
 
@@ -107,6 +113,9 @@ model faction {
   description String? @map("descrizione")
 
   npc npc[]
+
+  // SPEC-014 T2 — world history events that name this faction.
+  calendarEvents calendarEvent[]
 }
 
 // The containment tree (§6/ADR-0010) — `region`/`plane`/`city`/`dungeon`,
@@ -147,6 +156,8 @@ model zone {
   poi     poi[]
   // SPEC-013 T2 — back-relation required by scene.zone.
   scenes  scene[]
+  // SPEC-014 T2 — world history events that name this place.
+  calendarEvents calendarEvent[]
 
   @@index([parentId])
 }
@@ -222,10 +233,14 @@ model campaign {
   // vocabulary in code (`GAME_SYSTEMS`), like `adventure.status`. The
   // default backfills every campaign that existed before systems did.
   system    String   @default("dnd5e")
+  // SPEC-014 T2 — the campaign's "today", a universal day number (§5.5).
+  // Null = no today set, so nothing reads as past.
+  currentDay Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  adventures adventure[]
+  adventures     adventure[]
+  calendarEvents calendarEvent[]
 }
 
 model adventure {
@@ -249,7 +264,8 @@ model adventure {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  scenes scene[]
+  scenes         scene[]
+  calendarEvents calendarEvent[]
 
   @@index([campaignId])
 }
@@ -276,8 +292,9 @@ model scene {
   // Corrected from §6's draft, which named this `treasures treasure[]`: a
   // scene's rows are `loot`, which is what carries `sceneId`; `treasure` is
   // the catalogue and has no back-relation to `scene` (see the PR body).
-  creatures sceneCreature[]
-  loot      loot[]
+  creatures      sceneCreature[]
+  loot           loot[]
+  calendarEvents calendarEvent[]
 
   @@index([adventureId])
   @@index([zoneId])
@@ -340,4 +357,84 @@ model treasure {
   loot loot[]
 
   @@index([name])
+}
+
+// SPEC-014 T2 — the calendar. Every date is a universal day number: day 0 is
+// the first day of year 0 of the universal count (§5.1). English column
+// names, no `@map`, as on the SPEC-013 tables.
+//
+// The migration adds guards the schema language cannot express. They are raw
+// SQL, so `prisma migrate diff` does not know them: check that a later
+// generated migration does not drop them.
+// - `dateSystem_one_universal` / `dateSystem_one_default`: partial unique
+//   indexes, at most one row with `isUniversal = true` and at most one with
+//   `isDefault = true`. The actions keep it "exactly one" (switching the
+//   default clears the old row before setting the new, in one transaction);
+//   the index turns a bug there into an error instead of two defaults that
+//   every date display would then have to choose between.
+// - CHECKs: exactly 12 month names and 7 weekday names (§5.2).
+// It also inserts the universal count, as the default, with Italian
+// placeholder names the DM edits (§6).
+model dateSystem {
+  id           Int      @id @default(autoincrement())
+  isUniversal  Boolean  @default(false) // exactly one row, created by the migration
+  isDefault    Boolean  @default(false) // exactly one row; enforced in the actions
+  name         String
+  anchorEvent  String? // null for the universal count
+  anchorYear   Int      @default(0) // universal year of the anchor; 0 for the universal count
+  afterLabel   String // "Dopo Cataclisma"
+  afterAbbrev  String // "d.C."
+  beforeLabel  String? // null for the universal count, which has no "before"
+  beforeAbbrev String?
+  monthNames   String[] // exactly 12 (CHECK in the migration)
+  weekdayNames String[] // exactly 7 (CHECK in the migration)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// A singleton: the migration inserts row 1 and nothing creates another.
+model calendarSettings {
+  id             Int  @id @default(1)
+  moonNewMoonDay Int? // a universal day; null = no moon phases shown (§5.3)
+}
+
+// Campaign events (`campaignId` set; may name an adventure and a scene) and
+// world history events (`campaignId` null; may link places, NPCs, deities and
+// factions) share one table (§5.4). Which kind may carry which links, and
+// that the scene belongs to the adventure, are the validator's rules, not the
+// schema's. CHECKs in the migration: `startDay >= 0` (nothing precedes the
+// dawn of time), `endDay >= startDay`, hours in 0–23.
+model calendarEvent {
+  id            Int     @id @default(autoincrement())
+  title         String
+  description   String?
+  startDay      Int // universal day
+  startHour     Int? // 0–23
+  endDay        Int? // universal day; null = a one-day event
+  endHour       Int? // 0–23
+  repeatsYearly Boolean @default(false)
+
+  campaignId  Int? // null = world history
+  campaign    campaign?  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  adventureId Int?
+  adventure   adventure? @relation(fields: [adventureId], references: [id], onDelete: SetNull)
+  sceneId     Int?
+  scene       scene?     @relation(fields: [sceneId], references: [id], onDelete: SetNull)
+
+  // World history only. Implicit many-to-many: deleting a place, NPC, deity
+  // or faction removes its join rows and leaves the event (§5, edge cases).
+  zones    zone[]
+  npcs     npc[]
+  deities  deities[]
+  factions faction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([campaignId, startDay])
+  @@index([startDay])
+  // Not in §6's draft: the FK columns a SetNull scans on an adventure or
+  // scene delete, indexed like the other FKs here (`scene.zoneId`, ...).
+  @@index([adventureId])
+  @@index([sceneId])
 }

@@ -1,6 +1,6 @@
 # SPEC-014: The calendar and the timeline
 
-- **Status:** Draft — written 2026-09-18 from an interview with the DM; every design question answered the same day (§9), awaiting the DM's read-through
+- **Status:** Agreed 2026-09-18 — written from an interview with the DM the same day; read through by the DM, who changed only the moon's cycle to 28 days (§5.3)
 - **Date:** 2026-09-18
 - **Phase:** 4
 - **Related:** [SPEC-013](./013-campaign-management.md) (campaigns, adventures, scenes; its provisional `adventure.timeline` field, which this supersedes) · [`campaign-design-method.md`](../domain/campaign-design-method.md) §5 (planned events) · [SPEC-018](./018-game-systems.md) / [ADR-0013](../adr/0013-game-systems.md) (the calendar is world-level, shared by every game system) · [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md) (where bespoke editors are allowed) · ADR-0015 (to be written in T1: time as a universal day number)
@@ -99,10 +99,12 @@ still to come.
 
 ### 5.3 The moon and the zodiac
 
-- **One moon**, synodic period 29.530588 days. The DM sets one reference new moon
+- **One moon** on an exact 28-day cycle — a fantasy world needs no astronomical
+  precision (the DM, 2026-09-18). The DM sets one reference new moon
   (a universal day) in the calendar settings; every day's phase is computed from
   it, as one of eight phases (new, waxing crescent, first quarter, waxing
-  gibbous, full, waning gibbous, last quarter, waning crescent). Until a
+  gibbous, full, waning gibbous, last quarter, waning crescent), each 3½ days
+  long. Until a
   reference is set, no phase is shown.
 - **The zodiac** is the thirteen astronomical signs, Ophiuchus included, with the
   real sun-in-constellation ranges mapped onto the 365-day year (Ophiuchus ≈ 29

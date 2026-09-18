@@ -1441,6 +1441,49 @@
         "openCalendar": "Open the calendar"
       },
       "link": "Calendar"
+    },
+    "grid": {
+      "viewLabel": "View",
+      "list": "List",
+      "month": "Month",
+      "caption": "{month} {year}",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "jumpLegend": "Go to a date",
+      "jumpButton": "Go",
+      "today": "Today",
+      "isToday": "today",
+      "isPast": "past",
+      "continuesFromBefore": "continued from the day before",
+      "continuesAfter": "continues the next day",
+      "worldHistory": "World history",
+      "moon": "Moon: {phase}",
+      "zodiac": "Sign: {sign}"
+    },
+    "moonPhases": {
+      "new": "New moon",
+      "waxingCrescent": "Waxing crescent",
+      "firstQuarter": "First quarter",
+      "waxingGibbous": "Waxing gibbous",
+      "full": "Full moon",
+      "waningGibbous": "Waning gibbous",
+      "lastQuarter": "Last quarter",
+      "waningCrescent": "Waning crescent"
+    },
+    "zodiacSigns": {
+      "aries": "Aries",
+      "taurus": "Taurus",
+      "gemini": "Gemini",
+      "cancer": "Cancer",
+      "leo": "Leo",
+      "virgo": "Virgo",
+      "libra": "Libra",
+      "scorpio": "Scorpio",
+      "ophiuchus": "Ophiuchus",
+      "sagittarius": "Sagittarius",
+      "capricorn": "Capricorn",
+      "aquarius": "Aquarius",
+      "pisces": "Pisces"
     }
   }
 }

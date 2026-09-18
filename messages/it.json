@@ -1441,6 +1441,49 @@
         "openCalendar": "Apri il calendario"
       },
       "link": "Calendario"
+    },
+    "grid": {
+      "viewLabel": "Vista",
+      "list": "Elenco",
+      "month": "Mese",
+      "caption": "{month} {year}",
+      "previousMonth": "Mese precedente",
+      "nextMonth": "Mese successivo",
+      "jumpLegend": "Vai a una data",
+      "jumpButton": "Vai",
+      "today": "Oggi",
+      "isToday": "oggi",
+      "isPast": "passato",
+      "continuesFromBefore": "prosegue dal giorno prima",
+      "continuesAfter": "prosegue il giorno dopo",
+      "worldHistory": "Storia del mondo",
+      "moon": "Luna: {phase}",
+      "zodiac": "Segno: {sign}"
+    },
+    "moonPhases": {
+      "new": "Luna nuova",
+      "waxingCrescent": "Falce crescente",
+      "firstQuarter": "Primo quarto",
+      "waxingGibbous": "Gibbosa crescente",
+      "full": "Luna piena",
+      "waningGibbous": "Gibbosa calante",
+      "lastQuarter": "Ultimo quarto",
+      "waningCrescent": "Falce calante"
+    },
+    "zodiacSigns": {
+      "aries": "Ariete",
+      "taurus": "Toro",
+      "gemini": "Gemelli",
+      "cancer": "Cancro",
+      "leo": "Leone",
+      "virgo": "Vergine",
+      "libra": "Bilancia",
+      "scorpio": "Scorpione",
+      "ophiuchus": "Ofiuco",
+      "sagittarius": "Sagittario",
+      "capricorn": "Capricorno",
+      "aquarius": "Acquario",
+      "pisces": "Pesci"
     }
   }
 }

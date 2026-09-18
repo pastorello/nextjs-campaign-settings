@@ -5,19 +5,27 @@ import { Metadata } from "next";
 import { Link } from "@/i18n/navigation";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { isGameSystem } from "@/app/lib/definitions/GameSystem";
+import { monthOf } from "@/app/lib/calendar/monthOf";
+import { monthRange } from "@/app/lib/calendar/monthRange";
+import { parseMonthGridParams } from "@/app/lib/calendar/parseMonthGridParams";
 import { resolveDisplayDateSystem } from "@/app/lib/calendar/resolveDisplayDateSystem";
 import { yearSpan } from "@/app/lib/calendar/yearSpan";
 import fetchCampaign from "@/app/lib/data/campaigns/fetchCampaign";
+import fetchCalendarSettings from "@/app/lib/data/calendar/fetchCalendarSettings";
 import fetchCampaignEvents from "@/app/lib/data/calendar/fetchCampaignEvents";
 import fetchCampaignScenes from "@/app/lib/data/calendar/fetchCampaignScenes";
 import fetchDateSystems from "@/app/lib/data/calendar/fetchDateSystems";
 import fetchWorldHistoryBetween from "@/app/lib/data/calendar/fetchWorldHistoryBetween";
+import findEdgeEventDay from "@/app/lib/data/calendar/findEdgeEventDay";
 import readDisplayDateSystemId from "@/app/lib/data/calendar/readDisplayDateSystemId";
 import positiveIdParam from "@/app/lib/utils/positiveIdParam";
+import CalendarViewSwitch from "@/app/ui/calendar/CalendarViewSwitch";
 import CampaignCalendarFilters from "@/app/ui/calendar/CampaignCalendarFilters";
 import CampaignCalendarList from "@/app/ui/calendar/CampaignCalendarList";
+import CampaignMonthGrid from "@/app/ui/calendar/CampaignMonthGrid";
 import CurrentDayForm from "@/app/ui/calendar/CurrentDayForm";
 import DateSystemToggle from "@/app/ui/calendar/DateSystemToggle";
+import MonthGridNavigation from "@/app/ui/calendar/MonthGridNavigation";
 import PageTitle from "@/app/ui/typography/PageTitle";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -35,7 +43,12 @@ export async function generateMetadata(): Promise<Metadata> {
  * The world history shown is every event in the whole years the campaign's
  * events and its current day fall in (`yearSpan`), since the list is
  * grouped by year. Dates are read in the viewer's chosen system (the
- * toggle's cookie), else the world default. The month grid is T7.
+ * toggle's cookie), else the world default.
+ *
+ * `?view=grid` shows one month instead (T7): `?year=&month=` or, absent,
+ * today's month, else the first event's (else the display system's year
+ * 0) — reading only the events, and the world history, that can fall in
+ * that month, yearly ones that started earlier included.
  */
 export default async function CampaignCalendarPage(
   props: PageProps<"/[locale]/dashboard/[system]/campaign/calendar">
@@ -83,21 +96,9 @@ export default async function CampaignCalendarPage(
     ? requested
     : null;
 
-  const [events, scenes] = await Promise.all([
-    fetchCampaignEvents(campaign.id, adventureId),
-    fetchCampaignScenes(campaign.id),
-  ]);
-
-  const span = yearSpan([
-    ...events.flatMap(({ startDay, endDay }) => [startDay, endDay ?? startDay]),
-    ...(campaign.currentDay === null ? [] : [campaign.currentDay]),
-  ]);
-  const history = span
-    ? await fetchWorldHistoryBetween(span.firstDay, span.lastDay)
-    : [];
-
-  return (
-    <div>
+  const grid = parseMonthGridParams(searchParams);
+  const header = (
+    <>
       <Link
         href={dashboardPath(system, "/campaign")}
         className="mb-2 inline-block text-sm text-blue-600 underline"
@@ -118,6 +119,71 @@ export default async function CampaignCalendarPage(
         adventureId={adventureId}
         adventures={adventures}
       />
+      <CalendarViewSwitch view={grid.view} />
+    </>
+  );
+
+  if (grid.view === "grid") {
+    const month =
+      grid.month ??
+      monthOf(
+        campaign.currentDay ??
+          (await findEdgeEventDay(
+            {
+              campaignId: campaign.id,
+              ...(adventureId !== null && { adventureId }),
+            },
+            "first"
+          )),
+        displaySystem
+      );
+    const range = monthRange(month);
+    const [events, history, scenes, settings] = await Promise.all([
+      fetchCampaignEvents(campaign.id, adventureId, range),
+      fetchWorldHistoryBetween(range.firstDay, range.lastDay, true),
+      fetchCampaignScenes(campaign.id),
+      fetchCalendarSettings(),
+    ]);
+    return (
+      <div>
+        {header}
+        <MonthGridNavigation
+          month={month}
+          systems={systems}
+          displaySystem={displaySystem}
+          today={campaign.currentDay}
+        />
+        <CampaignMonthGrid
+          campaignId={campaign.id}
+          month={month}
+          events={events}
+          history={history}
+          today={campaign.currentDay}
+          moonReferenceDay={settings.moonNewMoonDay}
+          systems={systems}
+          displaySystem={displaySystem}
+          ownerOptions={{ adventures, scenes }}
+        />
+      </div>
+    );
+  }
+
+  const [events, scenes] = await Promise.all([
+    fetchCampaignEvents(campaign.id, adventureId),
+    fetchCampaignScenes(campaign.id),
+  ]);
+
+  const span = yearSpan([
+    ...events.flatMap(({ startDay, endDay }) => [startDay, endDay ?? startDay]),
+    ...(campaign.currentDay === null ? [] : [campaign.currentDay]),
+  ]);
+  const history = span
+    ? await fetchWorldHistoryBetween(span.firstDay, span.lastDay)
+    : [];
+
+  return (
+    <div>
+      {header}
       <CampaignCalendarList
         campaignId={campaign.id}
         events={events}

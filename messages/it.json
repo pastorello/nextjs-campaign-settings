@@ -173,7 +173,11 @@
       "dateSystemNotFound": "Questo sistema di datazione non esiste.",
       "universalDateSystemFixed": "Il calendario universale non può essere riancorato.",
       "universalDateSystemUndeletable": "Il calendario universale non può essere eliminato.",
-      "defaultDateSystemUndeletable": "Il sistema di datazione predefinito non può essere eliminato. Scegline prima un altro come predefinito."
+      "defaultDateSystemUndeletable": "Il sistema di datazione predefinito non può essere eliminato. Scegline prima un altro come predefinito.",
+      "campaignEventNoLinks": "Un evento della campagna non può collegare luoghi, PNG, divinità o fazioni: può farlo solo la storia del mondo.",
+      "adventureNotInCampaign": "Scegli una delle avventure di questa campagna.",
+      "sceneNotInAdventure": "Scegli una scena dell'avventura scelta.",
+      "sceneNotInCampaign": "Scegli una scena di una delle avventure di questa campagna."
     },
     "errorPage": {
       "genericTitle": "Qualcosa è andato storto",
@@ -1079,7 +1083,8 @@
         "label": "Sinossi"
       },
       "timeline": {
-        "label": "Cronologia prevista"
+        "label": "Cronologia prevista",
+        "moveNote": "Sposta questo testo negli eventi del calendario: questo campo verrà rimosso."
       },
       "status": {
         "label": "Stato"
@@ -1371,12 +1376,20 @@
         },
         "factionIds": {
           "label": "Fazioni"
+        },
+        "adventureId": {
+          "label": "Avventura"
+        },
+        "sceneId": {
+          "label": "Scena"
         }
       },
       "form": {
         "hasEnd": "Ha una data di fine",
         "createButton": "Aggiungi evento",
-        "editButton": "Salva evento"
+        "editButton": "Salva evento",
+        "noAdventure": "Nessuna avventura",
+        "noScene": "Nessuna scena"
       }
     },
     "history": {
@@ -1398,6 +1411,36 @@
         "any": "Qualsiasi",
         "clear": "Rimuovi filtri"
       }
+    },
+    "campaign": {
+      "page": {
+        "title": "Calendario della campagna"
+      },
+      "noCampaign": "Non c'è ancora una campagna per questo sistema di gioco.",
+      "goToCampaign": "Vai alla campagna",
+      "backToCampaign": "Torna alla campagna",
+      "today": {
+        "label": "Oggi nella campagna",
+        "unset": "Nessun giorno corrente impostato: niente risulta passato.",
+        "clearButton": "Cancella oggi",
+        "advanceButton": "Avanza di un giorno"
+      },
+      "filters": {
+        "adventure": "Avventura",
+        "any": "Tutte le avventure"
+      },
+      "list": {
+        "addButton": "Nuovo evento",
+        "emptyMessage": "Ancora nessun evento nel calendario di questa campagna.",
+        "past": "Passato",
+        "current": "Oggi",
+        "worldHistory": "Storia del mondo"
+      },
+      "upcoming": {
+        "title": "In arrivo",
+        "openCalendar": "Apri il calendario"
+      },
+      "link": "Calendario"
     }
   }
 }

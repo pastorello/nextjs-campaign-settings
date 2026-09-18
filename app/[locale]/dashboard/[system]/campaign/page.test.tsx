@@ -1,8 +1,16 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { universalCountFixture as universal } from "@/app/lib/calendar/dateSystemFixtures";
 
 vi.mock("next-intl/server", () => ({
   getTranslations: () => Promise.resolve((key: string) => key),
+}));
+
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({ href, children }: { href: string; children: React.ReactNode }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 const fetchCampaign = vi.fn<(...args: unknown[]) => unknown>();
@@ -15,6 +23,19 @@ vi.mock("@/app/lib/data/campaigns/fetchAdventureSceneProgress", () => ({
   default: (...args: unknown[]) => fetchAdventureSceneProgress(...args),
 }));
 
+const fetchCampaignEvents = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/calendar/fetchCampaignEvents", () => ({
+  default: (...args: unknown[]) => fetchCampaignEvents(...args),
+}));
+
+vi.mock("@/app/lib/data/calendar/fetchDateSystems", () => ({
+  default: () => Promise.resolve([universal]),
+}));
+
+vi.mock("@/app/lib/data/calendar/readDisplayDateSystemId", () => ({
+  default: () => Promise.resolve(null),
+}));
+
 vi.mock("@/app/ui/campaigns/CampaignForm", () => ({
   default: () => <div data-testid="campaign-form" />,
 }));
@@ -25,6 +46,20 @@ vi.mock("@/app/ui/campaigns/CampaignHeader", () => ({
 
 vi.mock("@/app/ui/campaigns/AdventureLadder", () => ({
   default: () => <div data-testid="adventure-ladder" />,
+}));
+
+vi.mock("@/app/ui/calendar/UpcomingEvents", () => ({
+  default: ({
+    upcoming,
+  }: {
+    upcoming: { event: { title: string }; startDay: number }[];
+  }) => (
+    <ul data-testid="upcoming-events">
+      {upcoming.map(({ event, startDay }) => (
+        <li key={event.title}>{`${event.title}@${startDay}`}</li>
+      ))}
+    </ul>
+  ),
 }));
 
 const notFound = vi.fn(() => {
@@ -43,7 +78,34 @@ function routeProps(system = "dnd5e") {
   };
 }
 
+const campaign = {
+  id: 1,
+  title: "The Silver Coast",
+  synopsis: null,
+  partySize: 5,
+  currentDay: null,
+  adventures: [{ id: 10 }, { id: 11 }],
+};
+
+const event = (id: number, startDay: number, repeatsYearly = false) => ({
+  id,
+  title: `Event ${id}`,
+  description: null,
+  startDay,
+  startHour: null,
+  endDay: null,
+  endHour: null,
+  repeatsYearly,
+  adventure: null,
+  scene: null,
+});
+
 describe("Campaign page (SPEC-013 T7)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    fetchAdventureSceneProgress.mockResolvedValue({});
+  });
+
   it("titles the page from the campaign.page catalogue", async () => {
     const metadata = await generateMetadata();
 
@@ -61,14 +123,7 @@ describe("Campaign page (SPEC-013 T7)", () => {
   });
 
   it("shows the campaign header and its adventure ladder once a campaign exists", async () => {
-    fetchCampaign.mockResolvedValue({
-      id: 1,
-      title: "The Silver Coast",
-      synopsis: null,
-      partySize: 5,
-      adventures: [{ id: 10 }, { id: 11 }],
-    });
-    fetchAdventureSceneProgress.mockResolvedValue({});
+    fetchCampaign.mockResolvedValue(campaign);
 
     render(await CampaignPage(routeProps()));
 
@@ -88,12 +143,57 @@ describe("Campaign page (SPEC-013 T7)", () => {
   });
 
   it("is not found under an unknown system, without reading", async () => {
-    fetchCampaign.mockClear();
-
     await expect(CampaignPage(routeProps("foo"))).rejects.toThrow(
       "NEXT_NOT_FOUND"
     );
 
     expect(fetchCampaign).not.toHaveBeenCalled();
+  });
+});
+
+describe("Campaign page — calendar (SPEC-014 T6)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    fetchAdventureSceneProgress.mockResolvedValue({});
+  });
+
+  it("links to the campaign calendar", async () => {
+    fetchCampaign.mockResolvedValue(campaign);
+
+    render(await CampaignPage(routeProps()));
+
+    expect(
+      screen.getByRole("link", { name: "calendar.campaign.link" })
+    ).toHaveAttribute("href", "/dashboard/dnd5e/campaign/calendar");
+  });
+
+  it("shows no upcoming events, and reads no calendar, without a current day", async () => {
+    fetchCampaign.mockResolvedValue(campaign);
+
+    render(await CampaignPage(routeProps()));
+
+    expect(screen.queryByTestId("upcoming-events")).not.toBeInTheDocument();
+    expect(fetchCampaignEvents).not.toHaveBeenCalled();
+  });
+
+  it("shows the next three events after the current day, a yearly one by its next date", async () => {
+    fetchCampaign.mockResolvedValue({ ...campaign, currentDay: 400 });
+    fetchCampaignEvents.mockResolvedValue([
+      event(1, 100), // past
+      event(2, 30, true), // yearly: next on day 30 + 2·365 = 760
+      event(3, 500),
+      event(4, 410),
+      event(5, 900),
+    ]);
+
+    render(await CampaignPage(routeProps()));
+
+    expect(fetchCampaignEvents).toHaveBeenCalledWith(1);
+    const items = screen.getByTestId("upcoming-events").querySelectorAll("li");
+    expect([...items].map((item) => item.textContent)).toEqual([
+      "Event 4@410",
+      "Event 3@500",
+      "Event 2@760",
+    ]);
   });
 });

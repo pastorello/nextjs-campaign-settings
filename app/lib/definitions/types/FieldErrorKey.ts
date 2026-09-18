@@ -37,6 +37,7 @@ export const FIELD_ERROR_KEYS = [
   "weekdayNamesCount",
   "endBeforeStart",
   "repeatSpansOverAYear",
+  "campaignEventNoLinks",
   // Data-layer refusals
   "areaTooSmall",
   "areaOverlaps",
@@ -68,6 +69,9 @@ export const FIELD_ERROR_KEYS = [
   "universalDateSystemFixed",
   "universalDateSystemUndeletable",
   "defaultDateSystemUndeletable",
+  "adventureNotInCampaign",
+  "sceneNotInAdventure",
+  "sceneNotInCampaign",
 ] as const;
 
 type FieldErrorKey = (typeof FIELD_ERROR_KEYS)[number];

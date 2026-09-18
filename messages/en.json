@@ -173,7 +173,11 @@
       "dateSystemNotFound": "This date system does not exist.",
       "universalDateSystemFixed": "The universal count cannot be re-anchored.",
       "universalDateSystemUndeletable": "The universal count cannot be deleted.",
-      "defaultDateSystemUndeletable": "The default date system cannot be deleted. Choose another default first."
+      "defaultDateSystemUndeletable": "The default date system cannot be deleted. Choose another default first.",
+      "campaignEventNoLinks": "A campaign event cannot link places, NPCs, deities or factions — only world history can.",
+      "adventureNotInCampaign": "Choose one of this campaign's adventures.",
+      "sceneNotInAdventure": "Choose a scene of the chosen adventure.",
+      "sceneNotInCampaign": "Choose a scene of one of this campaign's adventures."
     },
     "errorPage": {
       "genericTitle": "Something went wrong",
@@ -1079,7 +1083,8 @@
         "label": "Synopsis"
       },
       "timeline": {
-        "label": "Planned timeline"
+        "label": "Planned timeline",
+        "moveNote": "Move this into calendar events: this field will be removed."
       },
       "status": {
         "label": "Status"
@@ -1371,12 +1376,20 @@
         },
         "factionIds": {
           "label": "Factions"
+        },
+        "adventureId": {
+          "label": "Adventure"
+        },
+        "sceneId": {
+          "label": "Scene"
         }
       },
       "form": {
         "hasEnd": "It has an end date",
         "createButton": "Add event",
-        "editButton": "Save event"
+        "editButton": "Save event",
+        "noAdventure": "No adventure",
+        "noScene": "No scene"
       }
     },
     "history": {
@@ -1398,6 +1411,36 @@
         "any": "Any",
         "clear": "Clear filters"
       }
+    },
+    "campaign": {
+      "page": {
+        "title": "Campaign calendar"
+      },
+      "noCampaign": "There is no campaign under this game system yet.",
+      "goToCampaign": "Go to the campaign",
+      "backToCampaign": "Back to the campaign",
+      "today": {
+        "label": "Today in the campaign",
+        "unset": "No current day is set, so nothing reads as past.",
+        "clearButton": "Clear today",
+        "advanceButton": "Advance one day"
+      },
+      "filters": {
+        "adventure": "Adventure",
+        "any": "All adventures"
+      },
+      "list": {
+        "addButton": "New event",
+        "emptyMessage": "No events in this campaign's calendar yet.",
+        "past": "Past",
+        "current": "Today",
+        "worldHistory": "World history"
+      },
+      "upcoming": {
+        "title": "Coming up",
+        "openCalendar": "Open the calendar"
+      },
+      "link": "Calendar"
     }
   }
 }

@@ -18,6 +18,9 @@ vi.mock("./nav-links", () => ({
 vi.mock("./LocaleSwitcher", () => ({
   default: () => <div data-testid="locale-switcher" />,
 }));
+vi.mock("./SystemSwitcher", () => ({
+  default: () => <div data-testid="system-switcher" />,
+}));
 vi.mock("../icons/CampaignSettingsLogo", () => ({
   default: () => <div data-testid="logo" />,
 }));
@@ -51,9 +54,11 @@ describe("SideNav", () => {
     const spacer = navLinks.nextElementSibling;
     expect(spacer).toHaveClass("grow");
 
-    // Locale switcher and the sign-out form come after the spacer, in that
-    // order, so they land at the bottom of the column.
-    expect(spacer?.nextElementSibling).toBe(
+    // The system switch, the locale switcher and the sign-out form come after
+    // the spacer, in that order, so they land at the bottom of the column.
+    const systemSwitcher = spacer?.nextElementSibling;
+    expect(systemSwitcher).toBe(screen.getByTestId("system-switcher"));
+    expect(systemSwitcher?.nextElementSibling).toBe(
       screen.getByTestId("locale-switcher")
     );
   });

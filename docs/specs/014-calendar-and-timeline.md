@@ -287,7 +287,7 @@ model calendarEvent {
 - [x] New UI copy lands in both `messages/it.json` and `messages/en.json`
 - [x] Every new mutation rejects an unauthenticated request
 - [x] Every new mutation rejects invalid input with field-level errors
-- [ ] Coverage has not dropped _(not measured at close: every task shipped with tests for its new code, but no before/after coverage run was compared)_
+- [x] Coverage has not dropped _(measured 2026-09-18, `vitest --coverage` on the commit before T1 vs `main` after T9: statements 83.53% → 84.54%, branches 80.35% → 82.13%, functions 80.95% → 82.25%, lines 84.34% → 85.31%)_
 
 ## 9. Implementation plan
 

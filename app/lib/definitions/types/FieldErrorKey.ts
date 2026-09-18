@@ -35,6 +35,8 @@ export const FIELD_ERROR_KEYS = [
   "dayNotInMonth",
   "monthNamesCount",
   "weekdayNamesCount",
+  "endBeforeStart",
+  "repeatSpansOverAYear",
   // Data-layer refusals
   "areaTooSmall",
   "areaOverlaps",

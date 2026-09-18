@@ -32,6 +32,7 @@ describe("revalidateDashboard (TD-105)", () => {
     "treasures",
     "world",
     "world/calendar",
+    "world/history",
   ] as const)("builds the path for domain %s", (domain) => {
     revalidateDashboard(domain);
 

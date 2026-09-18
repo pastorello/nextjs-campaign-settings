@@ -168,6 +168,8 @@
       "noZonesAvailable": "No zones available.",
       "monthNamesCount": "Needs exactly 12 month names.",
       "weekdayNamesCount": "Needs exactly 7 weekday names.",
+      "endBeforeStart": "The end cannot be before the start.",
+      "repeatSpansOverAYear": "A yearly event cannot last more than a year.",
       "dateSystemNotFound": "This date system does not exist.",
       "universalDateSystemFixed": "The universal count cannot be re-anchored.",
       "universalDateSystemUndeletable": "The universal count cannot be deleted.",
@@ -835,7 +837,8 @@
       "title": "Create your world",
       "exists": "Your world, “{title}”, already exists.",
       "viewMapLink": "Go to the map",
-      "calendarLink": "Calendar: date systems and the moon"
+      "calendarLink": "Calendar: date systems and the moon",
+      "historyLink": "World history"
     },
     "form": {
       "nameLabel": "World name",
@@ -1333,6 +1336,68 @@
       "current": "Currently:",
       "notSet": "Not set: no moon phases are shown.",
       "clearButton": "Clear"
+    },
+    "event": {
+      "fields": {
+        "title": {
+          "label": "Title"
+        },
+        "description": {
+          "label": "Description"
+        },
+        "start": {
+          "label": "Start"
+        },
+        "startHour": {
+          "label": "Start hour"
+        },
+        "end": {
+          "label": "End"
+        },
+        "endHour": {
+          "label": "End hour"
+        },
+        "repeatsYearly": {
+          "label": "Repeats every year"
+        },
+        "zoneIds": {
+          "label": "Places"
+        },
+        "npcIds": {
+          "label": "NPCs"
+        },
+        "deityIds": {
+          "label": "Deities"
+        },
+        "factionIds": {
+          "label": "Factions"
+        }
+      },
+      "form": {
+        "hasEnd": "It has an end date",
+        "createButton": "Add event",
+        "editButton": "Save event"
+      }
+    },
+    "history": {
+      "page": {
+        "title": "World history"
+      },
+      "list": {
+        "addButton": "New event",
+        "emptyMessage": "No events in the world’s history yet.",
+        "yearly": "Yearly",
+        "rangeSeparator": "–"
+      },
+      "filters": {
+        "title": "Filter by",
+        "place": "Place",
+        "npc": "NPC",
+        "deity": "Deity",
+        "faction": "Faction",
+        "any": "Any",
+        "clear": "Clear filters"
+      }
     }
   }
 }

@@ -168,6 +168,8 @@
       "noZonesAvailable": "Nessuna zona disponibile.",
       "monthNamesCount": "Servono esattamente 12 nomi di mese.",
       "weekdayNamesCount": "Servono esattamente 7 nomi di giorno.",
+      "endBeforeStart": "La fine non può precedere l’inizio.",
+      "repeatSpansOverAYear": "Un evento annuale non può durare più di un anno.",
       "dateSystemNotFound": "Questo sistema di datazione non esiste.",
       "universalDateSystemFixed": "Il calendario universale non può essere riancorato.",
       "universalDateSystemUndeletable": "Il calendario universale non può essere eliminato.",
@@ -835,7 +837,8 @@
       "title": "Crea il tuo mondo",
       "exists": "Il tuo mondo, «{title}», esiste già.",
       "viewMapLink": "Vai alla mappa",
-      "calendarLink": "Calendario: sistemi di datazione e luna"
+      "calendarLink": "Calendario: sistemi di datazione e luna",
+      "historyLink": "Storia del mondo"
     },
     "form": {
       "nameLabel": "Nome del mondo",
@@ -1333,6 +1336,68 @@
       "current": "Attuale:",
       "notSet": "Non impostata: nessuna fase lunare viene mostrata.",
       "clearButton": "Rimuovi"
+    },
+    "event": {
+      "fields": {
+        "title": {
+          "label": "Titolo"
+        },
+        "description": {
+          "label": "Descrizione"
+        },
+        "start": {
+          "label": "Inizio"
+        },
+        "startHour": {
+          "label": "Ora di inizio"
+        },
+        "end": {
+          "label": "Fine"
+        },
+        "endHour": {
+          "label": "Ora di fine"
+        },
+        "repeatsYearly": {
+          "label": "Si ripete ogni anno"
+        },
+        "zoneIds": {
+          "label": "Luoghi"
+        },
+        "npcIds": {
+          "label": "PNG"
+        },
+        "deityIds": {
+          "label": "Divinità"
+        },
+        "factionIds": {
+          "label": "Fazioni"
+        }
+      },
+      "form": {
+        "hasEnd": "Ha una data di fine",
+        "createButton": "Aggiungi evento",
+        "editButton": "Salva evento"
+      }
+    },
+    "history": {
+      "page": {
+        "title": "Storia del mondo"
+      },
+      "list": {
+        "addButton": "Nuovo evento",
+        "emptyMessage": "Nessun evento nella storia del mondo.",
+        "yearly": "Annuale",
+        "rangeSeparator": "–"
+      },
+      "filters": {
+        "title": "Filtra per",
+        "place": "Luogo",
+        "npc": "PNG",
+        "deity": "Divinità",
+        "faction": "Fazione",
+        "any": "Qualsiasi",
+        "clear": "Rimuovi filtri"
+      }
     }
   }
 }

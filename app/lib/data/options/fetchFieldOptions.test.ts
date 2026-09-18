@@ -8,12 +8,14 @@ const {
   npcFindMany,
   magicitemsFindMany,
   treasureFindMany,
+  deitiesFindMany,
 } = vi.hoisted(() => ({
   findMany: vi.fn(),
   zoneFindMany: vi.fn(),
   npcFindMany: vi.fn(),
   magicitemsFindMany: vi.fn(),
   treasureFindMany: vi.fn(),
+  deitiesFindMany: vi.fn(),
 }));
 vi.mock("@/app/lib/connections/prisma", () => ({
   default: {
@@ -22,6 +24,7 @@ vi.mock("@/app/lib/connections/prisma", () => ({
     npc: { findMany: npcFindMany },
     magicitems: { findMany: magicitemsFindMany },
     treasure: { findMany: treasureFindMany },
+    deities: { findMany: deitiesFindMany },
   },
 }));
 
@@ -86,5 +89,18 @@ describe("fetchFieldOptions (SPEC-006 T6)", () => {
     const result = await fetchFieldOptions("treasure");
 
     expect(result).toEqual([{ value: 6, label: "Tharun d'argento" }]);
+  });
+
+  it("maps deity rows to {value, label} (SPEC-014 T5)", async () => {
+    deitiesFindMany.mockResolvedValue([{ id: 4, name: "Aurel" }]);
+
+    const { default: fetchFieldOptions } = await import("./fetchFieldOptions");
+    const result = await fetchFieldOptions("deities");
+
+    expect(result).toEqual([{ value: 4, label: "Aurel" }]);
+    expect(deitiesFindMany).toHaveBeenCalledWith({
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    });
   });
 });

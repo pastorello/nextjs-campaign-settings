@@ -3,7 +3,6 @@ enum AdventureMetaField {
   targetLevel = "targetLevel",
   title = "title",
   synopsis = "synopsis",
-  timeline = "timeline",
   status = "status",
   xpTarget = "xpTarget",
   currencyTarget = "currencyTarget",

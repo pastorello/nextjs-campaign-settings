@@ -42,7 +42,6 @@ const adventure = {
   targetLevel: 3,
   title: "Into the Mire",
   synopsis: "A poor coastline haunted by an old war.",
-  timeline: null,
   status: AdventureStatus.Active,
   xpTarget: null,
   currencyTarget: 100,

@@ -16,7 +16,6 @@ const baseAdventureRow = {
   targetLevel: 3,
   title: "Into the Mire",
   synopsis: null,
-  timeline: null,
   status: "active",
   xpTarget: null,
   currencyTarget: null,

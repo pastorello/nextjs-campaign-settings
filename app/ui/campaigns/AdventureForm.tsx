@@ -26,8 +26,8 @@ interface AdventureFormProps {
 /**
  * Adds an adventure to the campaign's ladder — SPEC-013 §5.2: "An adventure
  * is added with a position, a target level and a title." Everything else an
- * adventure can carry (synopsis, timeline, budgets) belongs to the
- * adventure's own page (T8), not this ladder-level create step. `status`
+ * adventure can carry (synopsis, budgets) belongs to the adventure's own
+ * page (T8), not this ladder-level create step. `status`
  * always starts `planned` — the ladder's status control (`AdventureLadder`)
  * is where it moves on from there.
  */
@@ -55,7 +55,6 @@ export default function AdventureForm({
       targetLevel: Number(targetLevel),
       title,
       synopsis: null,
-      timeline: null,
       status: AdventureStatus.Planned,
       xpTarget: null,
       currencyTarget: null,

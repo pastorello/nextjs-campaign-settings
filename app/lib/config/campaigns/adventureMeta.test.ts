@@ -67,7 +67,7 @@ describe("adventureMeta (SPEC-013 T4)", () => {
   // three as an explicit `null` rather than omitting them. `.optional()`
   // alone only tolerates `undefined`; a real `createAdventure` call with a
   // bare-minimum adventure failed validation in the browser before this.
-  it.each(["synopsis", "timeline"] as const)(
+  it.each(["synopsis"] as const)(
     "accepts a null %s, the same as an unset optional string column",
     (field) => {
       expect(adventureMeta[field].validator.safeParse(null).success).toBe(true);

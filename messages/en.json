@@ -1082,10 +1082,6 @@
       "synopsis": {
         "label": "Synopsis"
       },
-      "timeline": {
-        "label": "Planned timeline",
-        "moveNote": "Move this into calendar events: this field will be removed."
-      },
       "status": {
         "label": "Status"
       },

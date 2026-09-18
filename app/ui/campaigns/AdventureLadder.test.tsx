@@ -75,7 +75,6 @@ const adventureA = {
   targetLevel: 3,
   title: "Into the Mire",
   synopsis: null,
-  timeline: null,
   status: AdventureStatus.Active,
   xpTarget: null,
   currencyTarget: null,

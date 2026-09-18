@@ -54,16 +54,8 @@ const adventureMeta = {
     defaultValue: "",
     fieldType: FieldType.string,
     controlType: ControlType.Textarea,
-    // Nullable column, `string | null` domain type, same as `timeline` and
-    // `currencyUnit` below — see `nullableToOptional`'s own comment (TD-130).
-    validator: nullableToOptional(z.string().optional()),
-  },
-  [AdventureMetaField.timeline]: {
-    metaField: "timeline",
-    labelKey: "adventure.fields.timeline.label",
-    defaultValue: "",
-    fieldType: FieldType.string,
-    controlType: ControlType.Textarea,
+    // Nullable column, `string | null` domain type, same as `currencyUnit`
+    // below — see `nullableToOptional`'s own comment (TD-130).
     validator: nullableToOptional(z.string().optional()),
   },
   [AdventureMetaField.status]: {

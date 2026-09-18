@@ -44,7 +44,8 @@ describe("sceneMeta (SPEC-013 T6)", () => {
   // blank description rather than omitting the key. `.optional()` alone
   // only tolerates `undefined`; a real `createScene` call with a blank
   // description failed validation in the browser before this, the same gap
-  // T7 found and fixed for `adventureMeta.synopsis`/`timeline`.
+  // T7 found and fixed for `adventureMeta.synopsis` (`timeline` had the
+  // same gap but was dropped in SPEC-014 T8).
   it("accepts a null description, the same as an unset optional string column", () => {
     expect(sceneMeta.description.validator.safeParse(null).success).toBe(true);
   });

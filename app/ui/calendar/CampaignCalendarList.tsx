@@ -14,13 +14,13 @@ import DateSystem from "@/app/lib/definitions/interfaces/calendar/DateSystem";
 import EventTiming from "@/app/lib/definitions/types/EventTiming";
 import EventList, { EventItemAttributes } from "./EventList";
 import EventSummary, { EventBadge } from "./EventSummary";
+import {
+  CampaignCalendarItem,
+  toCampaignCalendarItems,
+} from "./campaignCalendarItems";
 import CampaignEventForm, {
   CampaignEventOwnerOptions,
 } from "./CampaignEventForm";
-
-type CalendarItem =
-  | (CampaignEvent & { kind: "campaign" })
-  | (CalendarEventBase & { kind: "history" });
 
 interface CampaignCalendarListProps {
   campaignId: number;
@@ -45,16 +45,6 @@ const ITEM_CLASS: Record<EventTiming | "none", string> = {
 const HISTORY_CLASS =
   "rounded-md border border-dashed border-amber-400 bg-amber-50 p-4";
 
-/** Both kinds in one chronological order: start day, untimed first. */
-function byStart(a: CalendarItem, b: CalendarItem): number {
-  return (
-    a.startDay - b.startDay ||
-    (a.startHour ?? -1) - (b.startHour ?? -1) ||
-    (a.kind === b.kind ? 0 : a.kind === "history" ? -1 : 1) ||
-    a.id - b.id
-  );
-}
-
 /**
  * A campaign's calendar as a chronological list (SPEC-014 §5.5/§5.6, T6):
  * its own events — past ones dimmed, the one(s) spanning today
@@ -77,17 +67,14 @@ export default function CampaignCalendarList({
   const t = useTranslations();
   const system = useGameSystem();
 
-  const items: CalendarItem[] = [
-    ...events.map((event) => ({ ...event, kind: "campaign" as const })),
-    ...history.map((event) => ({ ...event, kind: "history" as const })),
-  ].sort(byStart);
+  const items = toCampaignCalendarItems(events, history);
 
-  const timingOf = (item: CalendarItem) =>
+  const timingOf = (item: CampaignCalendarItem) =>
     item.kind === "campaign"
       ? (eventTiming(item, today)?.timing ?? null)
       : null;
 
-  function itemAttributes(item: CalendarItem): EventItemAttributes {
+  function itemAttributes(item: CampaignCalendarItem): EventItemAttributes {
     if (item.kind === "history") {
       return { className: HISTORY_CLASS, testId: "calendar-history-event" };
     }
@@ -99,7 +86,7 @@ export default function CampaignCalendarList({
     };
   }
 
-  function badges(item: CalendarItem) {
+  function badges(item: CampaignCalendarItem) {
     if (item.kind === "history") {
       return (
         <EventBadge>{t("calendar.campaign.list.worldHistory")}</EventBadge>

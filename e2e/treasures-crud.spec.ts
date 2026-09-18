@@ -18,6 +18,9 @@ const uniqueName = () => `E2E Tesoro ${Date.now()}`;
 
 const gotoTreasureAdmin = async (page: Page) => {
   await page.goto("/dashboard/dnd5e/admin/treasures");
+  // Row buttons open client-side dialogs; a click that lands before
+  // hydration is swallowed (seen on CI, 2026-09-18).
+  await page.waitForLoadState("networkidle");
   await expect(
     page.getByRole("heading", { name: messages.treasure.page.title })
   ).toBeVisible();
@@ -28,6 +31,9 @@ const gotoTreasure = async (page: Page, name: string) => {
   await page.goto(
     `/dashboard/dnd5e/admin/treasures?query=${encodeURIComponent(name)}`
   );
+  // Row buttons open client-side dialogs; a click that lands before
+  // hydration is swallowed (seen on CI, 2026-09-18).
+  await page.waitForLoadState("networkidle");
 };
 
 const rowFor = (page: Page, name: string) =>

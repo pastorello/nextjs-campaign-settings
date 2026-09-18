@@ -22,6 +22,9 @@ const uniqueName = () => `E2E Incantesimo ${Date.now()}`;
 
 const gotoSpellAdmin = async (page: Page) => {
   await page.goto("/dashboard/dnd5e/admin/spells");
+  // Row buttons open client-side dialogs; a click that lands before
+  // hydration is swallowed (seen on CI, 2026-09-18).
+  await page.waitForLoadState("networkidle");
   await expect(
     page.getByRole("heading", { name: messages.spells.page.title })
   ).toBeVisible();
@@ -39,6 +42,9 @@ const gotoSpell = async (page: Page, name: string) => {
   await page.goto(
     `/dashboard/dnd5e/admin/spells?query=${encodeURIComponent(name)}`
   );
+  // Row buttons open client-side dialogs; a click that lands before
+  // hydration is swallowed (seen on CI, 2026-09-18).
+  await page.waitForLoadState("networkidle");
 };
 
 /** The table row whose name cell matches. */

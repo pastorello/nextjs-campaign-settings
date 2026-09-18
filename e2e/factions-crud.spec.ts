@@ -12,6 +12,9 @@ const uniqueName = () => `E2E Fazione ${Date.now()}`;
 
 const gotoFactionAdmin = async (page: Page) => {
   await page.goto("/dashboard/dnd5e/admin/factions");
+  // Row buttons open client-side dialogs; a click that lands before
+  // hydration is swallowed (seen on CI, 2026-09-18).
+  await page.waitForLoadState("networkidle");
   await expect(
     page.getByRole("heading", { name: messages.factions.page.title })
   ).toBeVisible();
@@ -22,6 +25,9 @@ const gotoFaction = async (page: Page, name: string) => {
   await page.goto(
     `/dashboard/dnd5e/admin/factions?query=${encodeURIComponent(name)}`
   );
+  // Row buttons open client-side dialogs; a click that lands before
+  // hydration is swallowed (seen on CI, 2026-09-18).
+  await page.waitForLoadState("networkidle");
 };
 
 const rowFor = (page: Page, name: string) =>

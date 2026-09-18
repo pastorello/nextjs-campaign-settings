@@ -171,9 +171,9 @@ describe("EntityList", () => {
 
     const table = within(screen.getByTestId("entity-list-table"));
     expect(table.getByText("Bahamut")).toBeInTheDocument();
-    // A subtitle would be a second <br />-separated text node under the same
-    // <p> — deities' listConfig declares no subtitleField, so there is none.
-    expect(table.getByText("Bahamut").closest("p")?.textContent).toBe(
+    // A subtitle would be a second <br />-separated text node in the name
+    // cell — deities' listConfig declares no subtitleField, so there is none.
+    expect(table.getByText("Bahamut").closest("td")?.textContent).toBe(
       "Bahamut"
     );
   });
@@ -390,6 +390,25 @@ describe("EntityList", () => {
       ).toBeInTheDocument();
       expect(mobile.getByText("common.table.edit")).toBeInTheDocument();
       expect(mobile.getByText("delete-Elminster")).toBeInTheDocument();
+    });
+
+    // Factions list their description, which renders through
+    // renderRichText as a <div>; inside a <p> that is invalid HTML and a
+    // hydration error on every admin factions page (seen in CI, 2026-09-18).
+    it("never nests a block-level value inside a paragraph", async () => {
+      fetchFilteredFactions.mockResolvedValue([
+        {
+          id: 7,
+          name: "Custodi della Fiamma",
+          description: "Line one\nLine two",
+        },
+      ]);
+
+      const { container } = render(
+        await EntityList({ pageType: PageType.Faction })
+      );
+
+      expect(container.querySelectorAll("p div")).toHaveLength(0);
     });
 
     it("leaves out AssignLocationButton, unlike the table row", async () => {

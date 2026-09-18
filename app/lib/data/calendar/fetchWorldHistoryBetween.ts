@@ -1,6 +1,7 @@
 import prisma from "@/app/lib/connections/prisma";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import CalendarEventBase from "@/app/lib/definitions/interfaces/calendar/CalendarEventBase";
+import eventsInRangeWhere from "./eventsInRangeWhere";
 
 /**
  * The world history events that fall inside a range of universal days
@@ -10,23 +11,21 @@ import CalendarEventBase from "@/app/lib/definitions/interfaces/calendar/Calenda
  * start. Without their links — the campaign calendar shows them as
  * context, and editing them is the world history page's job.
  *
- * A yearly history event is matched on its own dates, like the world
- * history list, which lists it once where it starts; its later
- * occurrences are the month grid's (T7).
+ * By default a yearly history event is matched on its own dates, like the
+ * world history list, which lists it once where it starts. The month grid
+ * (T7) passes `withEarlierYearly` to read every yearly event that started
+ * by `lastDay` too, since its later occurrences may fall in the month.
  */
 export default async function fetchWorldHistoryBetween(
   firstDay: number,
-  lastDay: number
+  lastDay: number,
+  withEarlierYearly = false
 ): Promise<CalendarEventBase[]> {
   try {
     return await prisma.calendarEvent.findMany({
       where: {
         campaignId: null,
-        startDay: { lte: lastDay },
-        OR: [
-          { endDay: { gte: firstDay } },
-          { endDay: null, startDay: { gte: firstDay } },
-        ],
+        ...eventsInRangeWhere(firstDay, lastDay, withEarlierYearly),
       },
       orderBy: [
         { startDay: "asc" },

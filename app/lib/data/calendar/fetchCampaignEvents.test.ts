@@ -55,6 +55,26 @@ describe("fetchCampaignEvents (SPEC-014 T6)", () => {
     );
   });
 
+  it("reads only a month's events, earlier yearly ones included, given a range (T7)", async () => {
+    findMany.mockResolvedValue([]);
+
+    await fetchCampaignEvents(1, null, { firstDay: 31, lastDay: 58 });
+
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          campaignId: 1,
+          startDay: { lte: 58 },
+          OR: [
+            { repeatsYearly: true },
+            { endDay: { gte: 31 } },
+            { endDay: null, startDay: { gte: 31 } },
+          ],
+        },
+      })
+    );
+  });
+
   it("wraps a Prisma failure in a DatabaseError", async () => {
     findMany.mockRejectedValue(new Error("connection lost"));
 

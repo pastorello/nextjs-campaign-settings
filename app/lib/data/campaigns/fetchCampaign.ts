@@ -53,7 +53,6 @@ export default async function fetchCampaign(
             targetLevel: true,
             title: true,
             synopsis: true,
-            timeline: true,
             status: true,
             xpTarget: true,
             currencyTarget: true,

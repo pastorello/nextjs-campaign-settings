@@ -15,7 +15,6 @@ interface Adventure {
   targetLevel: number;
   title: string;
   synopsis: string | null;
-  timeline: string | null;
   status: AdventureStatus;
   xpTarget: number | null;
   currencyTarget: number | null;

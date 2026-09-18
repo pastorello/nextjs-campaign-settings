@@ -1082,10 +1082,6 @@
       "synopsis": {
         "label": "Sinossi"
       },
-      "timeline": {
-        "label": "Cronologia prevista",
-        "moveNote": "Sposta questo testo negli eventi del calendario: questo campo verrà rimosso."
-      },
       "status": {
         "label": "Stato"
       },

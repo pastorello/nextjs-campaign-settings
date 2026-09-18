@@ -22,12 +22,13 @@ interface AdventureHeaderProps {
 }
 
 /**
- * The adventure's own fields (title, target level, synopsis, timeline,
- * budget targets), read-only until the DM asks to edit them (SPEC-013 §5.3,
- * T8) — same "read-only until asked" shape `CampaignHeader` uses.
- * `position`/`status` are deliberately absent — `AdventureLadder` owns
- * those. The budget panel (target vs. assigned vs. found) is T9's, not
- * this header's.
+ * The adventure's own fields (title, target level, synopsis, budget
+ * targets), read-only until the DM asks to edit them (SPEC-013 §5.3, T8) —
+ * same "read-only until asked" shape `CampaignHeader` uses. `position`/
+ * `status` are deliberately absent — `AdventureLadder` owns those. The
+ * budget panel (target vs. assigned vs. found) is T9's, not this header's.
+ * The free-text `timeline` field this used to show, with a note to move it
+ * into calendar events, was dropped in SPEC-014 T8 — see that spec's §10.
  */
 export default function AdventureHeader({ adventure }: AdventureHeaderProps) {
   const t = useTranslations();
@@ -63,25 +64,6 @@ export default function AdventureHeader({ adventure }: AdventureHeaderProps) {
         <p className="mb-2 whitespace-pre-line text-gray-700">
           {adventure.synopsis}
         </p>
-      )}
-      {adventure.timeline && (
-        <div className="mb-2 text-sm text-gray-600">
-          <p className="whitespace-pre-line">
-            {t(adventureMeta[AdventureMetaField.timeline].labelKey ?? "")}:{" "}
-            {adventure.timeline}
-          </p>
-          {/* SPEC-014 T6/T8: the free-text timeline is superseded by
-              calendar events and dropped once its text is moved. */}
-          <p className="mt-1 italic" data-testid="timeline-move-note">
-            {t("adventure.fields.timeline.moveNote")}{" "}
-            <Link
-              href={dashboardPath(system, "/campaign/calendar")}
-              className="text-blue-600 underline"
-            >
-              {t("calendar.campaign.upcoming.openCalendar")}
-            </Link>
-          </p>
-        </div>
       )}
       <p className="mb-4 text-sm text-gray-600">
         {t(adventureMeta[AdventureMetaField.currencyUnit].labelKey ?? "")}:{" "}

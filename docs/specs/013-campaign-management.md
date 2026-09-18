@@ -54,6 +54,12 @@ keeps totalled.
   gives an adventure one free-text `timeline` field and nothing more: it costs
   almost nothing, it is what the DM does by hand today, and SPEC-014 will
   supersede it. Do not grow it into a calendar here.
+  **Superseded 2026-09-18 (SPEC-014 T8):** the DM confirmed every adventure's
+  timeline text had been moved into calendar events (0 of 2 adventures still
+  had any), and the provisional `timeline` field — the domain field, the form
+  control, the read-only note pointing at the calendar, and the `adventure`
+  table column — was removed by a guarded migration. This bullet's original
+  text stays above, deliberately, as the record of why the field existed.
 - **Not campaign scoping.** No `campaignId` goes on `spells`, `npc`, `deities`,
   `magicitems` or `zone`. The Phase 3 decision stands: a campaign is a storyline
   inside the one universe, not a boundary around every record.
@@ -102,8 +108,9 @@ keeps totalled.
 2. The campaign page shows its adventures as an ordered ladder — position, target
    level, title, status (planned / active / completed) and a progress readout.
    An adventure is added with a position, a target level and a title.
-3. The adventure page shows the adventure's own information (synopsis, planned
-   timeline, budgets) and its scenes in order.
+3. The adventure page shows the adventure's own information (synopsis,
+   budgets) and its scenes in order. _(The provisional planned-timeline field
+   described here was removed 2026-09-18 — see §3's supersession note.)_
 4. A scene is added with a kind (`fight` · `explore` · `clue` · `goal` ·
    `dungeon` · `break`), a title, a description, an optional XP award, an
    optional hero-point flag, and an optional **place** chosen from the world tree.

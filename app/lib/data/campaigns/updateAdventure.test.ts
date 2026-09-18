@@ -23,7 +23,6 @@ const validFormData: Adventure = {
   targetLevel: 4,
   title: "The Sunken Vault",
   synopsis: "A drowned tomb wakes.",
-  timeline: "Midsummer",
   status: AdventureStatus.Active,
   xpTarget: 1200,
   currencyTarget: 600,

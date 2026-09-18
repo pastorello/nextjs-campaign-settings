@@ -41,8 +41,8 @@ function fromAmountInput(raw: string, unit: CurrencyUnit): number | null {
 
 /**
  * Edits an adventure's own fields (SPEC-013 §5.3, T8) — everything the
- * ladder-level `AdventureForm` deliberately leaves out: synopsis, timeline
- * and the four budget targets, plus title and target level. `position` and
+ * ladder-level `AdventureForm` deliberately leaves out: synopsis and the
+ * four budget targets, plus title and target level. `position` and
  * `status` stay `AdventureLadder`'s business (reorder buttons, inline
  * status Select) and are not part of this form, the same split
  * `CampaignHeader`/`CampaignForm` use. `currencyTarget` is entered and
@@ -65,7 +65,6 @@ export default function AdventureInfoForm({
   const [title, setTitle] = useState(adventure.title);
   const [targetLevel, setTargetLevel] = useState(String(adventure.targetLevel));
   const [synopsis, setSynopsis] = useState(adventure.synopsis ?? "");
-  const [timeline, setTimeline] = useState(adventure.timeline ?? "");
   const [xpTarget, setXpTarget] = useState(
     adventure.xpTarget === null ? "" : String(adventure.xpTarget)
   );
@@ -92,7 +91,6 @@ export default function AdventureInfoForm({
       title,
       targetLevel: Number(targetLevel),
       synopsis: synopsis.trim() === "" ? null : synopsis,
-      timeline: timeline.trim() === "" ? null : timeline,
       xpTarget: xpTarget.trim() === "" ? null : Number(xpTarget),
       currencyTarget: fromAmountInput(currencyTarget, currencyUnit),
       currencyUnit,
@@ -129,11 +127,6 @@ export default function AdventureInfoForm({
         label={t(adventureMeta[AdventureMetaField.synopsis].labelKey ?? "")}
         value={synopsis}
         onChange={(value) => setSynopsis(String(value))}
-      />
-      <TextareaInput
-        label={t(adventureMeta[AdventureMetaField.timeline].labelKey ?? "")}
-        value={timeline}
-        onChange={(value) => setTimeline(String(value))}
       />
       <TextInput
         label={t(adventureMeta[AdventureMetaField.xpTarget].labelKey ?? "")}

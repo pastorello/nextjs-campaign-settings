@@ -252,7 +252,6 @@ model adventure {
   targetLevel Int
   title       String
   synopsis    String?
-  timeline    String? // the planned calendar of §5, free text
   status      String // planned | active | completed — closed vocabulary in code
 
   xpTarget            Int?

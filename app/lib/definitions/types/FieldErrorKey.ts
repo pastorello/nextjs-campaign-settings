@@ -31,6 +31,8 @@ export const FIELD_ERROR_KEYS = [
   "positiveAmount",
   "lootLinksBoth",
   "landmarkWithoutZone",
+  "beforeDawnOfTime",
+  "dayNotInMonth",
   // Data-layer refusals
   "areaTooSmall",
   "areaOverlaps",

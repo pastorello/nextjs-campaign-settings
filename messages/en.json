@@ -138,6 +138,8 @@
       "positiveAmount": "Please enter a positive amount.",
       "lootLinksBoth": "A loot row cannot link to both a magic item and a catalogue treasure.",
       "landmarkWithoutZone": "A landmark cannot be chosen without a zone — a landmark always belongs to a zone.",
+      "beforeDawnOfTime": "This date is before the dawn of time.",
+      "dayNotInMonth": "This month has {days} days.",
       "areaTooSmall": "This area is too small to draw.",
       "areaOverlaps": "Overlaps an existing area: {title}.",
       "areaCoversPlaces": "Would cover existing places: {titles}.",
@@ -1264,5 +1266,23 @@
   },
   "gameSystems": {
     "dnd5e": "D&D 5e"
+  },
+  "calendar": {
+    "date": {
+      "full": "{weekday} {day} {month} {year}",
+      "fullWithHour": "{weekday} {day} {month} {year}, {hour}"
+    },
+    "input": {
+      "system": "Date system",
+      "year": "Year",
+      "month": "Month",
+      "day": "Day",
+      "hour": "Hour",
+      "noHour": "No hour",
+      "preview": "Reads as"
+    },
+    "toggle": {
+      "label": "Show dates in"
+    }
   }
 }

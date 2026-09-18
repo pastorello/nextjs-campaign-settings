@@ -97,7 +97,11 @@ test.describe("map keyboard access (TD-133)", () => {
 
     // Enter again reopens it from there. Clean up through the popover's own
     // delete, as the landmark spec does — now via the confirmation dialog
-    // (TD-140), keyboard-operable the same way.
+    // (TD-140), keyboard-operable the same way. Scoped to the confirm
+    // dialog itself (found by its own "Annulla" button): the popover is
+    // `role="dialog"` too, stays mounted underneath, and its trigger
+    // shares the identical "Elimina" label with the confirm button, which
+    // would otherwise be a strict-mode violation.
     await page.keyboard.press("Enter");
     await expect(popover).toBeVisible();
     await popover
@@ -106,6 +110,10 @@ test.describe("map keyboard access (TD-133)", () => {
       })
       .press("Enter");
     await page
+      .getByRole("dialog")
+      .filter({
+        hasText: messages.geography.popover.deleteLandmarkConfirm.cancel,
+      })
       .getByRole("button", {
         name: messages.geography.popover.deleteLandmarkConfirm.confirm,
       })

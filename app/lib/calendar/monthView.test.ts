@@ -4,6 +4,7 @@ import { adjacentMonth } from "./adjacentMonth";
 import { buildMonthView } from "./buildMonthView";
 import { dateToUniversalDay } from "./dateToUniversalDay";
 import { MAX_UNIVERSAL_YEAR } from "./maxUniversalDay";
+import { monthOf } from "./monthOf";
 import { monthRange } from "./monthRange";
 import type { GridEventDates } from "./MonthView";
 import { occurrencesBetween } from "./occurrencesBetween";
@@ -347,5 +348,21 @@ describe("parseMonthGridParams", () => {
         parseMonthGridParams({ view: "grid", year, month }).month
       ).toBeNull();
     }
+  });
+});
+
+describe("monthOf", () => {
+  it("gives the month a day falls in", () => {
+    expect(monthOf(365 + 40, { anchorYear: 5770 })).toEqual({
+      universalYear: 1,
+      monthIndex: 1,
+    });
+  });
+
+  it("opens on the displayed system's year 0 without a day", () => {
+    expect(monthOf(null, { anchorYear: 5770 })).toEqual({
+      universalYear: 5770,
+      monthIndex: 0,
+    });
   });
 });

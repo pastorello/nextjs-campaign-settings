@@ -3,13 +3,23 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 
 import { isGameSystem } from "@/app/lib/definitions/GameSystem";
+import { monthOf } from "@/app/lib/calendar/monthOf";
+import { monthRange } from "@/app/lib/calendar/monthRange";
+import { parseMonthGridParams } from "@/app/lib/calendar/parseMonthGridParams";
 import { resolveDisplayDateSystem } from "@/app/lib/calendar/resolveDisplayDateSystem";
+import fetchCalendarSettings from "@/app/lib/data/calendar/fetchCalendarSettings";
 import fetchDateSystems from "@/app/lib/data/calendar/fetchDateSystems";
 import fetchWorldHistory from "@/app/lib/data/calendar/fetchWorldHistory";
+import fetchWorldHistoryMonth from "@/app/lib/data/calendar/fetchWorldHistoryMonth";
+import findEdgeEventDay from "@/app/lib/data/calendar/findEdgeEventDay";
 import parseWorldHistorySearchParams from "@/app/lib/data/calendar/parseWorldHistorySearchParams";
 import readDisplayDateSystemId from "@/app/lib/data/calendar/readDisplayDateSystemId";
+import worldHistoryWhere from "@/app/lib/data/calendar/worldHistoryWhere";
 import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
+import CalendarViewSwitch from "@/app/ui/calendar/CalendarViewSwitch";
 import DateSystemToggle from "@/app/ui/calendar/DateSystemToggle";
+import MonthGridNavigation from "@/app/ui/calendar/MonthGridNavigation";
+import WorldHistoryMonthGrid from "@/app/ui/calendar/WorldHistoryMonthGrid";
 import WorldHistoryFilters from "@/app/ui/calendar/WorldHistoryFilters";
 import WorldHistoryList from "@/app/ui/calendar/WorldHistoryList";
 import Pagination from "@/app/ui/components/pagination";
@@ -28,7 +38,11 @@ export async function generateMetadata(): Promise<Metadata> {
  * a `pagesConfig` catalogue and the system switch keeps its path.
  *
  * Dates are read in the viewer's chosen system (the toggle's cookie), else
- * the world default. The month grid is T7.
+ * the world default.
+ *
+ * `?view=grid` shows one month instead (T7), `?year=&month=` or, absent,
+ * the month of the latest event the filters match (else the display
+ * system's year 0) — reading only what can fall in that month.
  */
 export default async function WorldHistoryPage(
   props: PageProps<"/[locale]/dashboard/[system]/world/history">
@@ -36,13 +50,14 @@ export default async function WorldHistoryPage(
   const { system } = await props.params;
   if (!isGameSystem(system)) notFound();
 
-  const query = parseWorldHistorySearchParams(await props.searchParams);
-  const [t, systems, preferredId, history, zones, npcs, deities, factions] =
+  const searchParams = await props.searchParams;
+  const query = parseWorldHistorySearchParams(searchParams);
+  const grid = parseMonthGridParams(searchParams);
+  const [t, systems, preferredId, zones, npcs, deities, factions] =
     await Promise.all([
       getTranslations("calendar.history.page"),
       fetchDateSystems(),
       readDisplayDateSystemId(),
-      fetchWorldHistory(query),
       fetchFieldOptions("zone"),
       fetchFieldOptions("npc"),
       fetchFieldOptions("deities"),
@@ -56,13 +71,53 @@ export default async function WorldHistoryPage(
   }
   const linkOptions = { zones, npcs, deities, factions };
 
-  return (
-    <div>
+  const header = (
+    <>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <PageTitle>{t("title")}</PageTitle>
         <DateSystemToggle systems={systems} selectedId={displaySystem.id} />
       </div>
       <WorldHistoryFilters query={query} linkOptions={linkOptions} />
+      <CalendarViewSwitch view={grid.view} />
+    </>
+  );
+
+  if (grid.view === "grid") {
+    const month =
+      grid.month ??
+      monthOf(
+        await findEdgeEventDay(worldHistoryWhere(query), "last"),
+        displaySystem
+      );
+    const { firstDay, lastDay } = monthRange(month);
+    const [events, settings] = await Promise.all([
+      fetchWorldHistoryMonth(query, firstDay, lastDay),
+      fetchCalendarSettings(),
+    ]);
+    return (
+      <div>
+        {header}
+        <MonthGridNavigation
+          month={month}
+          systems={systems}
+          displaySystem={displaySystem}
+        />
+        <WorldHistoryMonthGrid
+          month={month}
+          events={events}
+          moonReferenceDay={settings.moonNewMoonDay}
+          systems={systems}
+          displaySystem={displaySystem}
+          linkOptions={linkOptions}
+        />
+      </div>
+    );
+  }
+
+  const history = await fetchWorldHistory(query);
+  return (
+    <div>
+      {header}
       <WorldHistoryList
         events={history.events}
         systems={systems}

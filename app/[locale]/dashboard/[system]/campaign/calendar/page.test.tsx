@@ -35,7 +35,40 @@ vi.mock("@/app/lib/data/calendar/readDisplayDateSystemId", () => ({
   default: () => Promise.resolve(null),
 }));
 
+vi.mock("@/app/lib/data/calendar/fetchCalendarSettings", () => ({
+  default: () => Promise.resolve({ moonNewMoonDay: 3 }),
+}));
+const findEdgeEventDay = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/calendar/findEdgeEventDay", () => ({
+  default: (...args: unknown[]) => findEdgeEventDay(...args),
+}));
+
 vi.mock("@/app/ui/calendar/DateSystemToggle", () => ({ default: () => null }));
+vi.mock("@/app/ui/calendar/CalendarViewSwitch", () => ({
+  default: ({ view }: { view: string }) => (
+    <div data-testid="view-switch">{view}</div>
+  ),
+}));
+vi.mock("@/app/ui/calendar/MonthGridNavigation", () => ({
+  default: ({ today }: { today: number | null }) => (
+    <div data-testid="grid-navigation">{String(today)}</div>
+  ),
+}));
+vi.mock("@/app/ui/calendar/CampaignMonthGrid", () => ({
+  default: ({
+    month,
+    events,
+    history,
+    moonReferenceDay,
+  }: {
+    month: { universalYear: number; monthIndex: number };
+    events: unknown[];
+    history: unknown[];
+    moonReferenceDay: number | null;
+  }) => (
+    <div data-testid="grid">{`${month.universalYear}-${month.monthIndex}/${events.length}/${history.length}/${moonReferenceDay}`}</div>
+  ),
+}));
 vi.mock("@/app/ui/calendar/CurrentDayForm", () => ({
   default: ({ currentDay }: { currentDay: number | null }) => (
     <div data-testid="current-day">{String(currentDay)}</div>
@@ -152,6 +185,53 @@ describe("Campaign calendar page (SPEC-014 T6)", () => {
     );
 
     expect(fetchCampaignEvents).toHaveBeenCalledWith(1, null);
+  });
+
+  it("shows the month grid of today's month, reading only that month (T7)", async () => {
+    fetchCampaign.mockResolvedValue(campaign);
+
+    render(await CampaignCalendarPage(routeProps("dnd5e", { view: "grid" })));
+
+    // Day 400 is year 1, day 35 of it: February (days 396–423).
+    expect(screen.getByTestId("grid")).toHaveTextContent("1-1/1/1/3");
+    expect(screen.getByTestId("view-switch")).toHaveTextContent("grid");
+    expect(screen.getByTestId("grid-navigation")).toHaveTextContent("400");
+    expect(fetchCampaignEvents).toHaveBeenCalledWith(1, null, {
+      firstDay: 396,
+      lastDay: 423,
+    });
+    expect(fetchWorldHistoryBetween).toHaveBeenCalledWith(396, 423, true);
+    expect(screen.queryByTestId("list")).not.toBeInTheDocument();
+  });
+
+  it("shows the month the URL names", async () => {
+    fetchCampaign.mockResolvedValue(campaign);
+
+    render(
+      await CampaignCalendarPage(
+        routeProps("dnd5e", { view: "grid", year: "0", month: "12" })
+      )
+    );
+
+    expect(screen.getByTestId("grid")).toHaveTextContent("0-11");
+    expect(findEdgeEventDay).not.toHaveBeenCalled();
+  });
+
+  it("opens on the first event's month with no current day", async () => {
+    fetchCampaign.mockResolvedValue({ ...campaign, currentDay: null });
+    findEdgeEventDay.mockResolvedValue(40);
+
+    render(
+      await CampaignCalendarPage(
+        routeProps("dnd5e", { view: "grid", adventure: "10" })
+      )
+    );
+
+    expect(findEdgeEventDay).toHaveBeenCalledWith(
+      { campaignId: 1, adventureId: 10 },
+      "first"
+    );
+    expect(screen.getByTestId("grid")).toHaveTextContent("0-1");
   });
 
   it("is not found under an unknown system, without reading", async () => {

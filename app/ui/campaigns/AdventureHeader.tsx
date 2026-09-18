@@ -65,10 +65,23 @@ export default function AdventureHeader({ adventure }: AdventureHeaderProps) {
         </p>
       )}
       {adventure.timeline && (
-        <p className="mb-2 whitespace-pre-line text-sm text-gray-600">
-          {t(adventureMeta[AdventureMetaField.timeline].labelKey ?? "")}:{" "}
-          {adventure.timeline}
-        </p>
+        <div className="mb-2 text-sm text-gray-600">
+          <p className="whitespace-pre-line">
+            {t(adventureMeta[AdventureMetaField.timeline].labelKey ?? "")}:{" "}
+            {adventure.timeline}
+          </p>
+          {/* SPEC-014 T6/T8: the free-text timeline is superseded by
+              calendar events and dropped once its text is moved. */}
+          <p className="mt-1 italic" data-testid="timeline-move-note">
+            {t("adventure.fields.timeline.moveNote")}{" "}
+            <Link
+              href={dashboardPath(system, "/campaign/calendar")}
+              className="text-blue-600 underline"
+            >
+              {t("calendar.campaign.upcoming.openCalendar")}
+            </Link>
+          </p>
+        </div>
       )}
       <p className="mb-4 text-sm text-gray-600">
         {t(adventureMeta[AdventureMetaField.currencyUnit].labelKey ?? "")}:{" "}

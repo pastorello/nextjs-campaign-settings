@@ -7,6 +7,8 @@ import GameSystem from "@/app/lib/definitions/GameSystem";
 
 export interface CampaignWithAdventures extends Campaign {
   adventures: Adventure[];
+  /** The campaign's "today", a universal day; `null` = not set (SPEC-014 §5.5). */
+  currentDay: number | null;
 }
 
 /**
@@ -41,6 +43,7 @@ export default async function fetchCampaign(
         title: true,
         synopsis: true,
         partySize: true,
+        currentDay: true,
         adventures: {
           orderBy: { position: "asc" },
           select: {
@@ -72,6 +75,7 @@ export default async function fetchCampaign(
     title: row.title,
     synopsis: row.synopsis,
     partySize: row.partySize,
+    currentDay: row.currentDay,
     // The row matched `where: { system }`, so its system is the argument.
     system,
     // `status` is a raw `String` column (SPEC-013 §6); the three values

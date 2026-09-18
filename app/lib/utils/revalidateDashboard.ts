@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache";
  */
 export type DashboardDomain =
   | "campaign"
+  | "campaign/calendar"
   | "deities"
   | "factions"
   | "geography"

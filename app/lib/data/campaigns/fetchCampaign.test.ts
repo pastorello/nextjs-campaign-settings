@@ -101,6 +101,23 @@ describe("fetchCampaign (SPEC-013 T5)", () => {
     expect(result?.system).toBe("dnd5e");
   });
 
+  // SPEC-014 T6: the campaign's "today" rides along for the calendar.
+  it("reads the campaign's current day", async () => {
+    findFirst.mockResolvedValue({
+      id: 1,
+      title: "The Silver Coast",
+      synopsis: null,
+      partySize: 5,
+      currentDay: 2_100_000,
+      adventures: [],
+    });
+
+    const { default: fetchCampaign } = await import("./fetchCampaign");
+    const result = await fetchCampaign("dnd5e");
+
+    expect(result?.currentDay).toBe(2_100_000);
+  });
+
   it("wraps a Prisma failure in a DatabaseError", async () => {
     findFirst.mockRejectedValue(new Error("connection lost"));
 

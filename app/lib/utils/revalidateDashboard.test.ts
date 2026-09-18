@@ -23,6 +23,7 @@ describe("revalidateDashboard (TD-105)", () => {
 
   it.each([
     "campaign",
+    "campaign/calendar",
     "deities",
     "factions",
     "geography",

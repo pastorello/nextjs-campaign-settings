@@ -2057,7 +2057,7 @@ Not covered by this review: `/campaign/2`'s scene editors and the
 assign-location modal did not finish loading during the pass. Check both in a
 follow-up.
 
-### TD-140 — Delete wording differs between a place's trigger and its confirmation, and deleting a landmark asks nothing — **copy part DONE (2026-09-17); landmark confirm awaits DM decision**
+### TD-140 ✅ Delete wording differs between a place's trigger and its confirmation, and deleting a landmark asks nothing — **DONE (2026-09-18)**
 
 **Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-17, UX copy review
 
@@ -2103,6 +2103,37 @@ label from the message catalogue already, so none needed a logic change.
 **Left open, deliberately:** whether deleting a landmark should confirm first
 is a DM product decision, not a copy fix — `popover.deleteLandmark` is
 unchanged and still deletes with no confirmation.
+
+**Resolution (landmark confirm):** The DM decided (2026-09-18): yes, ask
+first. `PlacePopover.tsx`'s "Elimina" button for a landmark no longer calls
+`onDeleteLandmark` directly — it opens a new confirmation `Modal` (own local
+state, `isDeleteLandmarkConfirmOpen`), the same Cancel/Confirm shape
+`DeletePlaceButton` and TD-123's clear-all use, minus the impact fetch: a
+landmark is a leaf, nothing reparents when it's gone, so there is nothing to
+compute. `onDeleteLandmark(poi)` (still `usePOIManager.deletePOI`'s
+synchronous, optimistic delete — that mechanism itself is unchanged) only
+fires from the dialog's own confirm button. Added
+`geography.popover.deleteLandmarkConfirm` (`title`/`description`/`cancel`/
+`confirm`) to both catalogues — verb "Elimina"/"Delete", title "Eliminare
+«{title}»?"/`Delete "{title}"?`, and the same "can't be undone" line
+`deletePlace.confirmDescription` uses. Updated the stale `onDeleteLandmark`
+prop comment (previously "the existing, unconfirmed ... deleting and
+re-creating a landmark is cheap") and the button's own inline comment in
+`PlacePopover.tsx` to record the reversal and cite this item.
+
+Tests: `PlacePopover.test.tsx`'s old single "deletes without confirmation"
+test replaced with two — clicking "Elimina" opens the dialog without calling
+`onDeleteLandmark`, and cancelling likewise never calls it (asserted on the
+callback, not on immediate DOM removal, matching how
+`DeletePlaceButton.test.tsx` handles the same `Modal`'s exit animation);
+confirming calls `onDeleteLandmark` with the clicked landmark. Every e2e spec
+that deletes a landmark through the popover now clicks the confirm button
+first, reading its label from the catalogue:
+`e2e/map-landmark-popover.spec.ts` (both landmark-delete sites),
+`e2e/map-place-unplaced-landmark.spec.ts`, and `e2e/map-keyboard.spec.ts`
+(keyboard path — presses Enter on the confirm button too, same as the
+trigger). `e2e/a11y.spec.ts`'s popover scan only covers the zone variant
+already (documented there as deliberate) so needed no change.
 
 ### TD-141 ✅ English words left in Italian copy beyond TD-120 — **DONE (2026-09-17)**
 

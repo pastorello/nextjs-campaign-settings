@@ -626,17 +626,40 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
     expect(screen.queryByText("delete")).not.toBeInTheDocument();
   });
 
-  it("calls onDeleteLandmark with the clicked landmark when Elimina is clicked, without asking for confirmation", () => {
+  it("asks for confirmation before deleting a landmark, and does not delete on cancel (TD-140)", () => {
     const currentPoi = { ...poi };
     renderPopover({ kind: "poi", poi: currentPoi, poiId: LANDMARK_ROW_ID });
 
     fireEvent.click(screen.getByText("deleteLandmark"));
+
+    // Clicking the trigger opens the confirmation dialog rather than
+    // deleting immediately.
+    expect(onDeleteLandmark).not.toHaveBeenCalled();
+    expect(screen.getByText("deleteLandmarkConfirm.title")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("deleteLandmarkConfirm.cancel"));
+
+    // Cancelling never calls onDeleteLandmark. (The dialog's exit
+    // animation, like `DeletePlaceButton`'s own `Modal`, keeps the element
+    // mounted briefly after `isOpen` flips — asserting on the callback
+    // rather than on immediate DOM removal, same as `DeletePlaceButton.test.tsx`.)
+    expect(onDeleteLandmark).not.toHaveBeenCalled();
+  });
+
+  it("calls onDeleteLandmark with the clicked landmark once the confirmation dialog is confirmed", () => {
+    const currentPoi = { ...poi };
+    renderPopover({ kind: "poi", poi: currentPoi, poiId: LANDMARK_ROW_ID });
+
+    fireEvent.click(screen.getByText("deleteLandmark"));
+    fireEvent.click(screen.getByText("deleteLandmarkConfirm.confirm"));
 
     expect(onDeleteLandmark).toHaveBeenCalledWith(currentPoi);
     expect(onDeleteLandmark).toHaveBeenCalledTimes(1);
     // No `DeletePlaceButton` (the zone's confirmed SPEC-010 flow, T6) is
     // even mounted for a landmark — `deletePlaceProps` is the mock's own
     // call log, so an empty one proves the component was never rendered.
+    // The landmark's own confirmation (TD-140) is this component's own
+    // `Modal`, not `DeletePlaceButton`.
     expect(deletePlaceProps).not.toHaveBeenCalled();
   });
 });

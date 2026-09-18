@@ -14,7 +14,7 @@ import {
  * of Leaflet's own native, read-only popup.
  */
 test.describe("landmark popover (SPEC-016 T7)", () => {
-  test("edits a landmark's title from the popover, then deletes it — no confirmation", async ({
+  test("edits a landmark's title from the popover, then deletes it after confirming (TD-140)", async ({
     page,
   }) => {
     const title = `E2E landmark popover ${Date.now()}`;
@@ -105,8 +105,15 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
       })
       .click();
 
-    // No confirmation dialog (§5: "deleting and re-creating a landmark is
-    // cheap") — the popover and the marker are both just gone.
+    // Confirmation dialog (TD-140, DM decision 2026-09-18) — the DM
+    // reversed §5's original "deleting and re-creating a landmark is
+    // cheap" call, so this now asks before deleting, the same as a zone.
+    await page
+      .getByRole("button", {
+        name: messages.geography.popover.deleteLandmarkConfirm.confirm,
+      })
+      .click();
+
     await expect(updatedPopover).not.toBeVisible();
     await expect(landmarkMarkers).toHaveCount(baselineCount);
   });
@@ -253,9 +260,15 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
     ).toBeVisible();
     await expect(popover.getByText(npcName)).toHaveCount(0);
 
-    // Clean up both rows, as the CRUD specs do.
+    // Clean up both rows, as the CRUD specs do. Deleting the landmark now
+    // asks for confirmation first (TD-140).
     await popover
       .getByRole("button", { name: messages.geography.popover.deleteLandmark })
+      .click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.popover.deleteLandmarkConfirm.confirm,
+      })
       .click();
     await expect(landmarkMarkers).toHaveCount(baselineCount);
 

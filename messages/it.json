@@ -138,6 +138,8 @@
       "positiveAmount": "Inserisci una quantità positiva.",
       "lootLinksBoth": "Un bottino non può collegarsi sia a un oggetto magico sia a un tesoro del catalogo.",
       "landmarkWithoutZone": "Non si può scegliere un luogo specifico senza una zona: un luogo specifico appartiene sempre a una zona.",
+      "beforeDawnOfTime": "Questa data è precedente all'alba dei tempi.",
+      "dayNotInMonth": "Questo mese ha {days} giorni.",
       "areaTooSmall": "Quest'area è troppo piccola per essere disegnata.",
       "areaOverlaps": "Si sovrappone a un'area esistente: {title}.",
       "areaCoversPlaces": "Coprirebbe luoghi esistenti: {titles}.",
@@ -1264,5 +1266,23 @@
   },
   "gameSystems": {
     "dnd5e": "D&D 5e"
+  },
+  "calendar": {
+    "date": {
+      "full": "{weekday} {day} {month} {year}",
+      "fullWithHour": "{weekday} {day} {month} {year}, {hour}"
+    },
+    "input": {
+      "system": "Sistema di datazione",
+      "year": "Anno",
+      "month": "Mese",
+      "day": "Giorno",
+      "hour": "Ora",
+      "noHour": "Nessuna ora",
+      "preview": "Si legge"
+    },
+    "toggle": {
+      "label": "Mostra le date in"
+    }
   }
 }

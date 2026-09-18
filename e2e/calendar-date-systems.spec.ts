@@ -32,8 +32,13 @@ const fill = (page: Page, label: string, value: string) =>
 const numbered = (template: string, number: number) =>
   template.replace("{number}", String(number));
 
+// Scoped to the systems list: the success toast is a listitem too, and it
+// names the system it just made default ("“Calendario universale” è ora…").
 const rowFor = (page: Page, text: string) =>
-  page.getByRole("listitem").filter({ hasText: text });
+  page
+    .getByRole("list", { name: copy.systems.title, exact: true })
+    .getByRole("listitem")
+    .filter({ hasText: text });
 
 const moonLine = (page: Page) => page.getByText(copy.moon.current);
 

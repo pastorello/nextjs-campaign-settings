@@ -63,7 +63,9 @@ describe("DateSystemsPanel (SPEC-014 T3)", () => {
       <DateSystemsPanel systems={[universalCountFixture, humanCountFixture]} />
     );
 
-    const items = screen.getAllByRole("listitem");
+    const items = within(
+      screen.getByRole("list", { name: "calendar.systems.title" })
+    ).getAllByRole("listitem");
     expect(items[0]).toHaveTextContent(universalCountFixture.name);
     expect(items[0]).toHaveTextContent("calendar.systems.universalBadge");
     expect(items[0]).toHaveTextContent("calendar.systems.defaultBadge");

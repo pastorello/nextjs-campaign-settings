@@ -188,7 +188,9 @@ export default function DateSystemsPanel({ systems }: DateSystemsPanelProps) {
 
   return (
     <div className="space-y-3">
-      <ul className="space-y-2">{systems.map(row)}</ul>
+      <ul aria-label={t("calendar.systems.title")} className="space-y-2">
+        {systems.map(row)}
+      </ul>
 
       {others.length === 0 && (
         <p className="text-sm text-gray-600">{t("calendar.systems.empty")}</p>

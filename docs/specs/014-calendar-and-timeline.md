@@ -312,7 +312,8 @@ _Filled in per task once agreed._
 ## 10. Task breakdown
 
 - [ ] **T1** — ADR-0015 (time as a universal day number). `app/lib/calendar/`: pure conversions (universal day ↔ date in a system), weekday, moon phase, zodiac table; the zodiac boundaries recorded in `docs/domain/`. _(test: exhaustive round-trips, hand-worked examples)_
-- [ ] **T2** — Schema and migration: `dateSystem` with the seeded universal count, `calendarSettings`, `calendarEvent` and its links, `campaign.currentDay`. _(test: migration is additive; seeded rows exist)_
+- [x] **T2** — Schema and migration: `dateSystem` with the seeded universal count, `calendarSettings`, `calendarEvent` and its links, `campaign.currentDay`. _(test: migration is additive; seeded rows exist)_
+      _Done 2026-09-18 (`20260918090000_spec014_calendar_schema`)._ Beyond §6: DB guards in raw SQL — partial unique indexes (one universal, one default), CHECKs for 12/7 names, the settings singleton, `startDay >= 0`, `endDay >= startDay`, hours 0–23 — and indexes on `adventureId`/`sceneId`. Placeholder names: "Calendario universale", "dall'alba dei tempi" / "a.T.", Italian months and weekdays. Checked against a throwaway Postgres: every guard rejects its bad row, and Prisma's diff ignores them rather than proposing a drop. `prisma/spec014CalendarSchema.test.ts`. The seed only adds rows, so it needed no change.
 - [ ] **T3** — The date systems panel at `/world/calendar`: universal count names, create/edit/delete systems, default, moon reference. _(test: actions — auth, validation, universal/default undeletable)_
 - [ ] **T4** — The date input and date display components, and the per-viewer system toggle. _(test: input round-trip; display in two systems)_
 - [ ] **T5** — World history at `/world/history`: CRUD with links, chronological list with filters. _(test: actions; list order; filters)_

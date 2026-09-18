@@ -17,7 +17,8 @@ export type DashboardDomain =
   | "spells"
   | "treasures"
   | "world"
-  | "world/calendar";
+  | "world/calendar"
+  | "world/history";
 
 /**
  * Revalidates the dashboard page for `domain` after a mutating Server

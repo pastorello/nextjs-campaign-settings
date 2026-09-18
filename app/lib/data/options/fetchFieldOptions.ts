@@ -53,6 +53,19 @@ export default async function fetchFieldOptions(
 
       return rows.map((row) => ({ value: row.id, label: row.name }));
     }
+    case "deities": {
+      let rows;
+      try {
+        rows = await prisma.deities.findMany({
+          select: { id: true, name: true },
+          orderBy: { name: "asc" },
+        });
+      } catch (error) {
+        throw toDatabaseError("fetching deity options", error);
+      }
+
+      return rows.map((row) => ({ value: row.id, label: row.name }));
+    }
     case "magicitems": {
       let rows;
       try {

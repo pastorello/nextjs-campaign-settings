@@ -632,6 +632,12 @@
       "delete": "Delete permanently",
       "editLandmark": "Edit",
       "deleteLandmark": "Delete",
+      "deleteLandmarkConfirm": {
+        "title": "Delete \"{title}\"?",
+        "description": "This operation can't be undone.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      },
       "errors": {
         "loadEntitiesFailed": "Could not load who is here. Try again.",
         "detachFailed": "Could not remove the link. Try again."

@@ -96,12 +96,18 @@ test.describe("map keyboard access (TD-133)", () => {
     await expect(marker).toBeFocused();
 
     // Enter again reopens it from there. Clean up through the popover's own
-    // delete, as the landmark spec does.
+    // delete, as the landmark spec does — now via the confirmation dialog
+    // (TD-140), keyboard-operable the same way.
     await page.keyboard.press("Enter");
     await expect(popover).toBeVisible();
     await popover
       .getByRole("button", {
         name: messages.geography.popover.deleteLandmark,
+      })
+      .press("Enter");
+    await page
+      .getByRole("button", {
+        name: messages.geography.popover.deleteLandmarkConfirm.confirm,
       })
       .press("Enter");
     await expect(popover).not.toBeVisible();

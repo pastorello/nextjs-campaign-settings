@@ -156,12 +156,17 @@ test.describe("positioning an unplaced landmark (TD-102)", () => {
     // Pre-fix, the placement was refused and this count never moved.
     await expect(landmarkMarkers).toHaveCount(baselineLandmarks + 1);
 
-    // Cleanup, through the landmark popover's own unconfirmed delete
-    // (SPEC-016 T7).
+    // Cleanup, through the landmark popover's own delete (SPEC-016 T7),
+    // which now confirms first (TD-140).
     await landmarkMarkers.last().click();
     await expect(popover).toBeVisible();
     await popover
       .getByRole("button", { name: messages.geography.popover.deleteLandmark })
+      .click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.popover.deleteLandmarkConfirm.confirm,
+      })
       .click();
     await expect(landmarkMarkers).toHaveCount(baselineLandmarks);
   });

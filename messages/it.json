@@ -632,6 +632,12 @@
       "delete": "Elimina definitivamente",
       "editLandmark": "Modifica",
       "deleteLandmark": "Elimina",
+      "deleteLandmarkConfirm": {
+        "title": "Eliminare «{title}»?",
+        "description": "Questa operazione non può essere annullata.",
+        "cancel": "Annulla",
+        "confirm": "Elimina"
+      },
       "errors": {
         "loadEntitiesFailed": "Impossibile caricare chi si trova qui. Riprova.",
         "detachFailed": "Impossibile rimuovere il collegamento. Riprova."

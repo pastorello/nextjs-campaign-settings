@@ -10,6 +10,9 @@ import PlaceEntityList, {
 } from "@/app/ui/geography/PlaceEntityList";
 import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
 import DeletePlaceButton from "@/app/ui/geography/DeletePlaceButton";
+import Modal from "@/app/ui/components/Modal";
+import BaseButton from "@/app/ui/buttons/BaseButton";
+import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildren";
 import type { POI } from "@/app/modules/maps/types/poi";
 import type { FocusReturnTarget } from "@/app/modules/maps/lib/utils/keyboardActivation";
@@ -98,10 +101,13 @@ interface PlacePopoverProps {
    */
   onUnplaceLandmark: (poi: POI) => void;
   /**
-   * "Elimina" (T7) — the existing, unconfirmed `usePOIManager.deletePOI`
-   * (§5: "deleting and re-creating a landmark is cheap," why this popover
-   * adds no confirmation of its own, unlike the zone's "Rimuovi
-   * definitivamente"). `WorldMap` owns the hook, so this delegates too.
+   * "Elimina" (T7) — `usePOIManager.deletePOI`. §5's "deleting and
+   * re-creating a landmark is cheap" was the reasoning for shipping this
+   * unconfirmed; the DM decided otherwise (TD-140, 2026-09-18), so this
+   * popover now confirms first, the same `Modal` Cancel/Confirm pattern the
+   * zone's "Rimuovi definitivamente" and TD-123's clear-all use. `WorldMap`
+   * still owns the mutation, so this delegates as before — only the
+   * confirmation step moved onto this component.
    */
   onDeleteLandmark: (poi: POI) => void;
 }
@@ -169,6 +175,8 @@ export default function PlacePopover({
   const actionsRef = useRef<HTMLDivElement>(null);
   const [isAttachOpen, setIsAttachOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isDeleteLandmarkConfirmOpen, setIsDeleteLandmarkConfirmOpen] =
+    useState(false);
   const [entitiesRefreshKey, setEntitiesRefreshKey] = useState(0);
   const [screenPosition, setScreenPosition] = useState<{
     x: number;
@@ -383,11 +391,15 @@ export default function PlacePopover({
             >
               {t("unplace")}
             </button>
-            {/* "Elimina" (T7) — no confirmation, matching the machinery it
-                reuses (`usePOIManager.deletePOI`, already unconfirmed). */}
+            {/* "Elimina" (T7) — asks for confirmation first (TD-140,
+                DM decision 2026-09-18), the same `Modal` Cancel/Confirm
+                pattern as the zone's `DeletePlaceButton` and TD-123's
+                clear-all. `usePOIManager.deletePOI` itself stays
+                unconfirmed and optimistic; the confirmation gate is this
+                popover's own. */}
             <button
               type="button"
-              onClick={() => onDeleteLandmark(poi)}
+              onClick={() => setIsDeleteLandmarkConfirmOpen(true)}
               className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
             >
               {t("deleteLandmark")}
@@ -441,6 +453,38 @@ export default function PlacePopover({
           onClose={() => setIsDeleteOpen(false)}
           onDeleted={onDeleted}
         />
+      )}
+
+      {/* "Elimina" (T7) confirmation (TD-140) — same `Modal` +
+          Cancel/Confirm shape as `DeletePlaceButton` and TD-123's
+          clear-all, minus the impact fetch: a landmark is a leaf, nothing
+          reparents when it goes. Landmark only. */}
+      {poi && (
+        <Modal
+          isOpen={isDeleteLandmarkConfirmOpen}
+          setIsOpen={setIsDeleteLandmarkConfirmOpen}
+          title={t("deleteLandmarkConfirm.title", { title: poi.title })}
+          description={t("deleteLandmarkConfirm.description")}
+          size="small"
+        >
+          <div className="flex justify-end gap-2">
+            <BaseButton
+              variant={ButtonVariant.neutral}
+              onClick={() => setIsDeleteLandmarkConfirmOpen(false)}
+            >
+              {t("deleteLandmarkConfirm.cancel")}
+            </BaseButton>
+            <BaseButton
+              variant={ButtonVariant.danger}
+              onClick={() => {
+                setIsDeleteLandmarkConfirmOpen(false);
+                onDeleteLandmark(poi);
+              }}
+            >
+              {t("deleteLandmarkConfirm.confirm")}
+            </BaseButton>
+          </div>
+        </Modal>
       )}
     </div>
   );

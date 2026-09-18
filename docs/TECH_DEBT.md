@@ -2158,7 +2158,7 @@ the NPC group heading in cross-entity search results now reads "Personaggi
 conosciuti (N)" too, a deliberate, consistent side effect of sharing the key
 rather than a second copy to keep in sync.
 
-### TD-144 — `loot.checkOff.label` means different things in it and en
+### TD-144 ✅ `loot.checkOff.label` means different things in it and en — **DONE (2026-09-18)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, UX copy review
 
@@ -2166,6 +2166,20 @@ Italian "Trovato" (found) vs English "Taken". The scene and creature check-offs
 agree ("Assegnato" / "Awarded"). **Decision needed from the DM:** which one the
 check-off means. "Trovato"/"Found" matches `budget.columns.found`; "Preso"/
 "Taken" is the alternative.
+
+**Resolution:** The DM chose "Taken" (2026-09-18). `messages/it.json`'s
+`loot.checkOff.label` changed from "Trovato" to "Preso"; `en.json`'s "Taken"
+was already correct and untouched. `budget.columns.found` ("Trovato"/"Found")
+is a different concept — the budget panel's own "found vs missed" columns,
+unrelated to the per-row check-off — and was left as is, per the task's own
+scope note. Checked for other uses of the old "Trovato" value tied to this
+check-off: `CheckOffControl.tsx` reads its `label` prop generically (no
+hardcoded copy), `CheckOffControl.test.tsx` passes `"Trovato"` as an arbitrary
+placeholder label in two tests unrelated to the loot catalogue key — the
+component doesn't care what the label text is, so nothing there asserts on
+loot's specific meaning and no test needed to change. No e2e spec references
+loot's check-off copy. The underlying action is already named
+`setLootTaken`, consistent with the "Taken" reading.
 
 ### TD-145 ✅ Shared error messages don't say what to do next — **DONE (2026-09-17)**
 

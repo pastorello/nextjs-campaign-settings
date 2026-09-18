@@ -1,11 +1,21 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import {
+  KeyboardEvent,
+  ReactNode,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import clsx from "clsx";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
+import { adjacentMonth } from "@/app/lib/calendar/adjacentMonth";
 import { formatHour } from "@/app/lib/calendar/formatHour";
 import { formatSystemYear } from "@/app/lib/calendar/formatWorldDate";
+import { monthRange } from "@/app/lib/calendar/monthRange";
 import type MoonPhase from "@/app/lib/calendar/MoonPhase";
 import type {
   GridEventDates,
@@ -17,6 +27,8 @@ import { systemYearFromUniversalYear } from "@/app/lib/calendar/systemYear";
 import type ZodiacSign from "@/app/lib/calendar/ZodiacSign";
 import DateSystem from "@/app/lib/definitions/interfaces/calendar/DateSystem";
 import Modal from "@/app/ui/components/Modal";
+import { monthGridKeyTarget } from "./monthGridKeyTarget";
+import useMonthGridHref from "./useMonthGridHref";
 
 /** The symbols drawn for each phase and sign; the words are copy. */
 const MOON_GLYPHS: Record<MoonPhase, string> = {
@@ -84,9 +96,12 @@ interface MonthGridProps<Event extends GridEvent> {
  * of its days, marked where it continues; a yearly event on every year's
  * page. An editable event is a button that opens the list's edit form.
  *
- * A plain table rather than an ARIA grid: every cell's weekday is its
- * column header, and Tab reaches each event — a `role="grid"` would owe
- * arrow-key navigation between cells, which T9's a11y pass may add.
+ * An ARIA grid (T9): one day is the grid's single Tab stop (today when
+ * shown, else the 1st, then wherever the viewer last was); arrows move a
+ * day or a week, Home/End to the row's ends, PageUp/PageDown to the
+ * previous/next month (`monthGridKeyTarget`). Only the focused day's events
+ * are in the Tab order, so Tab goes from the day into its events and then
+ * out of the grid, instead of through every event of the month.
  */
 export default function MonthGrid<Event extends GridEvent>({
   month,
@@ -99,6 +114,65 @@ export default function MonthGrid<Event extends GridEvent>({
 }: MonthGridProps<Event>) {
   const t = useTranslations("calendar");
   const [editing, setEditing] = useState<Event | null>(null);
+  const router = useRouter();
+  const monthHref = useMonthGridHref();
+  const captionId = useId();
+
+  /*
+   * The focused day, tied to the month it was chosen in: a different
+   * month (the navigation buttons, a jump) starts from its default day.
+   * `move` asks for DOM focus — set by a key, not by a click or Tab, which
+   * already put the focus there.
+   */
+  const [focused, setFocused] = useState<{
+    firstDay: number;
+    day: number;
+    move: boolean;
+  } | null>(null);
+  const daysInMonth = month.days.length;
+  const todayInMonth =
+    today !== null && today >= month.firstDay && today <= month.lastDay
+      ? today - month.firstDay + 1
+      : null;
+  const activeDay =
+    focused !== null && focused.firstDay === month.firstDay
+      ? Math.min(focused.day, daysInMonth)
+      : (todayInMonth ?? 1);
+  const cellRefs = useRef(new Map<number, HTMLTableCellElement>());
+
+  useEffect(() => {
+    if (focused?.move && focused.firstDay === month.firstDay) {
+      cellRefs.current.get(activeDay)?.focus();
+    }
+  }, [focused, month.firstDay, activeDay]);
+
+  function turnMonth(offset: -1 | 1) {
+    const target = adjacentMonth(month, offset);
+    if (target === null) return;
+    setFocused({
+      firstDay: monthRange(target).firstDay,
+      day: activeDay,
+      move: true,
+    });
+    router.push(monthHref(target));
+  }
+
+  function handleKeyDown(
+    cell: MonthViewDay<Event>,
+    keyEvent: KeyboardEvent<HTMLTableCellElement>
+  ) {
+    if (keyEvent.altKey || keyEvent.ctrlKey || keyEvent.metaKey) return;
+    const target = monthGridKeyTarget(keyEvent.key, {
+      day: cell.day,
+      weekday: cell.weekday,
+      daysInMonth,
+      weekLength: displaySystem.weekdayNames.length,
+    });
+    if (target === null) return;
+    keyEvent.preventDefault();
+    if (target.kind === "month") turnMonth(target.offset);
+    else setFocused({ firstDay: month.firstDay, day: target.day, move: true });
+  }
 
   const caption = t("grid.caption", {
     month: displaySystem.monthNames[month.monthIndex] ?? "",
@@ -144,6 +218,7 @@ export default function MonthGrid<Event extends GridEvent>({
   function dayCell(cell: MonthViewDay<Event>) {
     const isToday = today !== null && cell.universalDay === today;
     const isPast = today !== null && cell.universalDay < today;
+    const isActive = cell.day === activeDay;
     const moon =
       cell.moonPhase === null
         ? null
@@ -155,8 +230,24 @@ export default function MonthGrid<Event extends GridEvent>({
     return (
       <td
         key={cell.universalDay}
+        ref={(element) => {
+          if (element) cellRefs.current.set(cell.day, element);
+          else cellRefs.current.delete(cell.day);
+        }}
+        role="gridcell"
+        tabIndex={isActive ? 0 : -1}
+        onKeyDown={(keyEvent) => handleKeyDown(cell, keyEvent)}
+        onFocus={() => {
+          if (!isActive) {
+            setFocused({
+              firstDay: month.firstDay,
+              day: cell.day,
+              move: false,
+            });
+          }
+        }}
         className={clsx(
-          "h-24 border border-gray-200 p-1 align-top",
+          "h-24 border border-gray-200 p-1 align-top focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-600",
           isToday && "bg-sky-50 ring-2 ring-inset ring-blue-600",
           isPast && "bg-gray-50 text-gray-600"
         )}
@@ -165,9 +256,15 @@ export default function MonthGrid<Event extends GridEvent>({
         data-day={cell.day}
       >
         <div className="flex items-start justify-between gap-1 text-xs">
+          {/*
+           * Today and the past are not told by colour alone: today's word
+           * is shown, a past day's number is struck through.
+           */}
           <span className="font-semibold">
-            {cell.day}
-            {isToday && <span className="sr-only"> ({t("grid.isToday")})</span>}
+            <span className={clsx(isPast && "line-through")}>{cell.day}</span>
+            {isToday && (
+              <span className="font-normal"> ({t("grid.isToday")})</span>
+            )}
             {isPast && <span className="sr-only"> ({t("grid.isPast")})</span>}
           </span>
           <span className="flex gap-1">
@@ -200,6 +297,7 @@ export default function MonthGrid<Event extends GridEvent>({
                   {isEditable(event) ? (
                     <button
                       type="button"
+                      tabIndex={isActive ? 0 : -1}
                       className={clsx(
                         itemClass,
                         "hover:underline focus-visible:outline-2 focus-visible:outline-blue-600"
@@ -223,18 +321,24 @@ export default function MonthGrid<Event extends GridEvent>({
   return (
     <div className="mt-6 overflow-x-auto">
       <table
+        role="grid"
+        aria-labelledby={captionId}
         className="w-full min-w-[640px] table-fixed border-collapse"
         data-testid="month-grid"
       >
-        <caption className="mb-2 text-left text-xl font-semibold">
+        <caption
+          id={captionId}
+          className="mb-2 text-left text-xl font-semibold"
+        >
           {caption}
         </caption>
         <thead>
-          <tr>
+          <tr role="row">
             {displaySystem.weekdayNames.map((name, weekday) => (
               <th
                 key={weekday}
                 scope="col"
+                role="columnheader"
                 className="border border-gray-200 bg-gray-50 p-1 text-xs font-medium"
               >
                 {name}
@@ -244,11 +348,12 @@ export default function MonthGrid<Event extends GridEvent>({
         </thead>
         <tbody>
           {month.weeks.map((week, row) => (
-            <tr key={row}>
+            <tr key={row} role="row">
               {week.map((cell, column) =>
                 cell === null ? (
                   <td
                     key={`blank-${column}`}
+                    role="gridcell"
                     className="border border-gray-200 bg-gray-100"
                   />
                 ) : (

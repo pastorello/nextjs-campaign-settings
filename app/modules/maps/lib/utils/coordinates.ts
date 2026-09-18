@@ -1,6 +1,13 @@
 /**
  * Coordinate utility functions for map operations
  * Validates: Requirements 12.2
+ *
+ * Vendored (TD-131): these treat coordinates as Earth latitude/longitude
+ * (±90/±180 bounds, haversine distance in `calculateDistance`). This app's
+ * maps are pixel-space image overlays, not a globe — see
+ * `app/lib/data/validation/poiSchema.ts`'s `lat`/`lng` comment for why
+ * geographic bounds are wrong here. Kept per the DM, 2026-09-18 (not for use
+ * on the app's own maps); do not reuse these on real POI/place coordinates.
  */
 
 /**

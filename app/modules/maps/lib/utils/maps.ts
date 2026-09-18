@@ -3,6 +3,14 @@
  * Validates: Requirements 12.1
  *
  * NOTE: This module is SSR-safe. Functions that need Leaflet use async imports.
+ *
+ * Vendored (TD-131): `calculateRawBounds` itself is coordinate-system
+ * agnostic, but sibling files in this directory (`validation.ts`,
+ * `coordinates.ts`) assume Earth latitude/longitude. This app's maps are
+ * pixel-space image overlays, not a globe — see
+ * `app/lib/data/validation/poiSchema.ts`'s `lat`/`lng` comment for why
+ * geographic bounds are wrong here. Kept per the DM, 2026-09-18 (not for use
+ * on the app's own maps); do not reuse these on real POI/place coordinates.
  */
 
 import type { LatLngBounds } from "leaflet";

@@ -1,6 +1,16 @@
 /**
  * Validation utility functions for map operations
  * Validates: Requirements 12.3
+ *
+ * Vendored (TD-131): these treat coordinates as Earth latitude/longitude
+ * (±90/±180 bounds). This app's maps are pixel-space image overlays, not a
+ * globe — see `app/lib/data/validation/poiSchema.ts`'s `lat`/`lng` comment
+ * for why geographic bounds are wrong here. Kept per the DM, 2026-09-18 (not
+ * for use on the app's own maps); do not reuse these on real POI/place
+ * coordinates. `isValidCoordinate` below is a near-duplicate of the one in
+ * `coordinates.ts` (this one also rejects non-number/NaN input); left as
+ * two copies rather than merged — each is only called within its own file,
+ * and the two aren't quite identical.
  */
 
 import type { MapConfig } from "@/app/modules/maps/types/map";

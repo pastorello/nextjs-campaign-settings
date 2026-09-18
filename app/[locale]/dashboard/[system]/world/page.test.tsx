@@ -69,4 +69,17 @@ describe("world Page (SPEC-004 M4)", () => {
       "/dashboard/dnd5e/geography"
     );
   });
+
+  it.each([null, { id: 1, title: "Aerivel", mapImage: "uploaded-id.png" }])(
+    "links to the date systems panel under the route's system (SPEC-014 T3), root %#",
+    async (root) => {
+      fetchRootPlace.mockResolvedValue(root);
+
+      render(await WorldPage({ params, searchParams }));
+
+      expect(
+        screen.getByRole("link", { name: "calendarLink" })
+      ).toHaveAttribute("href", "/dashboard/dnd5e/world/calendar");
+    }
+  );
 });

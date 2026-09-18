@@ -46,6 +46,18 @@ export default async function WorldPage(
       ) : (
         <CreateWorldForm />
       )}
+      {/* World-level pages beside the map (SPEC-014 §5.7). The calendar
+          needs no root place, so it is offered before the world exists too. */}
+      <ul className="mt-6 space-y-1">
+        <li>
+          <Link
+            href={dashboardPath(system, "/world/calendar")}
+            className="text-blue-600 underline"
+          >
+            {t("calendarLink")}
+          </Link>
+        </li>
+      </ul>
     </div>
   );
 }

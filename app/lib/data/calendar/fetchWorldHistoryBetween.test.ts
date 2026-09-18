@@ -31,6 +31,26 @@ describe("fetchWorldHistoryBetween (SPEC-014 T6)", () => {
     );
   });
 
+  it("reads earlier yearly events too, for the month grid (T7)", async () => {
+    findMany.mockResolvedValue([]);
+
+    await fetchWorldHistoryBetween(365, 729, true);
+
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          campaignId: null,
+          startDay: { lte: 729 },
+          OR: [
+            { repeatsYearly: true },
+            { endDay: { gte: 365 } },
+            { endDay: null, startDay: { gte: 365 } },
+          ],
+        },
+      })
+    );
+  });
+
   it("wraps a Prisma failure in a DatabaseError", async () => {
     findMany.mockRejectedValue(new Error("connection lost"));
 

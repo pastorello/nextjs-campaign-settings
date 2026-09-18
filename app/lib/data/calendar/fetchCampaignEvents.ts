@@ -1,6 +1,7 @@
 import prisma from "@/app/lib/connections/prisma";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import CampaignEvent from "@/app/lib/definitions/interfaces/calendar/CampaignEvent";
+import eventsInRangeWhere from "./eventsInRangeWhere";
 
 /**
  * A campaign's events (SPEC-014 §5.4/§5.6, T6), in order of start — a
@@ -11,11 +12,14 @@ import CampaignEvent from "@/app/lib/definitions/interfaces/calendar/CampaignEve
  * Not paged: a campaign plans weeks or months of in-world time, not the
  * world's millennia, and the campaign page needs every event to find the
  * next three upcoming ones — a yearly event's next occurrence is not where
- * it sorts.
+ * it sorts. The month grid (T7) passes a `range` — its month — and reads
+ * only the events that can appear in it, yearly ones that started earlier
+ * included.
  */
 export default async function fetchCampaignEvents(
   campaignId: number,
-  adventureId: number | null = null
+  adventureId: number | null = null,
+  range?: { firstDay: number; lastDay: number }
 ): Promise<CampaignEvent[]> {
   let rows;
   try {
@@ -23,6 +27,7 @@ export default async function fetchCampaignEvents(
       where: {
         campaignId,
         ...(adventureId !== null && { adventureId }),
+        ...(range && eventsInRangeWhere(range.firstDay, range.lastDay, true)),
       },
       orderBy: [
         { startDay: "asc" },

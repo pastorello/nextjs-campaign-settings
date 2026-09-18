@@ -157,13 +157,21 @@ test.describe("positioning an unplaced landmark (TD-102)", () => {
     await expect(landmarkMarkers).toHaveCount(baselineLandmarks + 1);
 
     // Cleanup, through the landmark popover's own delete (SPEC-016 T7),
-    // which now confirms first (TD-140).
+    // which now confirms first (TD-140). Scoped to the confirm dialog
+    // itself (found by its own "Annulla" button) — the popover is
+    // `role="dialog"` too, stays mounted underneath, and its trigger
+    // shares the identical "Elimina" label with the confirm button, which
+    // would otherwise be a strict-mode violation.
     await landmarkMarkers.last().click();
     await expect(popover).toBeVisible();
     await popover
       .getByRole("button", { name: messages.geography.popover.deleteLandmark })
       .click();
     await page
+      .getByRole("dialog")
+      .filter({
+        hasText: messages.geography.popover.deleteLandmarkConfirm.cancel,
+      })
       .getByRole("button", {
         name: messages.geography.popover.deleteLandmarkConfirm.confirm,
       })

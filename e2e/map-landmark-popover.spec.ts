@@ -108,7 +108,17 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
     // Confirmation dialog (TD-140, DM decision 2026-09-18) — the DM
     // reversed §5's original "deleting and re-creating a landmark is
     // cheap" call, so this now asks before deleting, the same as a zone.
-    await page
+    // The popover itself is `role="dialog"` and stays mounted underneath
+    // (same as `DeletePlaceButton`'s zone flow), and its own trigger and
+    // this dialog's confirm button share the identical label "Elimina" —
+    // unlike the zone's "Elimina definitivamente" trigger, which doesn't
+    // collide with "Elimina". Scoped to the confirm dialog itself (found by
+    // its own "Annulla" button, unique to it) to avoid a strict-mode
+    // violation matching both.
+    const deleteLandmarkConfirmDialog = page.getByRole("dialog").filter({
+      hasText: messages.geography.popover.deleteLandmarkConfirm.cancel,
+    });
+    await deleteLandmarkConfirmDialog
       .getByRole("button", {
         name: messages.geography.popover.deleteLandmarkConfirm.confirm,
       })
@@ -261,11 +271,17 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
     await expect(popover.getByText(npcName)).toHaveCount(0);
 
     // Clean up both rows, as the CRUD specs do. Deleting the landmark now
-    // asks for confirmation first (TD-140).
+    // asks for confirmation first (TD-140) — scoped to the confirm dialog
+    // itself, same reasoning as above: its "Elimina" collides with the
+    // popover's own trigger, still mounted underneath.
     await popover
       .getByRole("button", { name: messages.geography.popover.deleteLandmark })
       .click();
     await page
+      .getByRole("dialog")
+      .filter({
+        hasText: messages.geography.popover.deleteLandmarkConfirm.cancel,
+      })
       .getByRole("button", {
         name: messages.geography.popover.deleteLandmarkConfirm.confirm,
       })

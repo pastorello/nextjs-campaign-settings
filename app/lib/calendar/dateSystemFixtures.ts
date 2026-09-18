@@ -1,4 +1,5 @@
 import DateSystem from "@/app/lib/definitions/interfaces/calendar/DateSystem";
+import DateSystemInput from "@/app/lib/definitions/interfaces/calendar/DateSystemInput";
 
 /**
  * Two date systems for tests: the universal count as the migration seeds it,
@@ -76,4 +77,20 @@ export const humanCountFixture: DateSystem = {
     "Sesto",
     "Settimo",
   ],
+};
+
+/**
+ * `humanCountFixture` as the date systems panel submits it (SPEC-014 T3):
+ * no id, no flags, every label a string.
+ */
+export const humanCountInputFixture: DateSystemInput = {
+  name: "Calendario umano",
+  anchorEvent: "Cataclisma",
+  anchorYear: 5770,
+  afterLabel: "Dopo Cataclisma",
+  afterAbbrev: "d.C.",
+  beforeLabel: "Avanti Cataclisma",
+  beforeAbbrev: "a.C.",
+  monthNames: [...humanCountFixture.monthNames],
+  weekdayNames: [...humanCountFixture.weekdayNames],
 };

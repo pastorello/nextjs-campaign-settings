@@ -33,6 +33,8 @@ export const FIELD_ERROR_KEYS = [
   "landmarkWithoutZone",
   "beforeDawnOfTime",
   "dayNotInMonth",
+  "monthNamesCount",
+  "weekdayNamesCount",
   // Data-layer refusals
   "areaTooSmall",
   "areaOverlaps",
@@ -60,6 +62,10 @@ export const FIELD_ERROR_KEYS = [
   "sceneOrderMismatch",
   "sceneCreatureOrderMismatch",
   "lootOrderMismatch",
+  "dateSystemNotFound",
+  "universalDateSystemFixed",
+  "universalDateSystemUndeletable",
+  "defaultDateSystemUndeletable",
 ] as const;
 
 type FieldErrorKey = (typeof FIELD_ERROR_KEYS)[number];

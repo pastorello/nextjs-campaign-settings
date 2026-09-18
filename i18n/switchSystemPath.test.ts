@@ -16,6 +16,12 @@ describe("switchSystemPath (ADR-0013 rule 6)", () => {
     ).toBe("/dashboard/daggerheart/geography?place=12");
   });
 
+  it("treats world history as shared, keeping its filters (SPEC-014 T5)", () => {
+    expect(
+      switchSystemPath("/dashboard/dnd5e/world/history", "place=3", daggerheart)
+    ).toBe("/dashboard/daggerheart/world/history?place=3");
+  });
+
   it("keeps nested shared paths, including admin pages", () => {
     expect(switchSystemPath("/dashboard/dnd5e/npc/7", "", daggerheart)).toBe(
       "/dashboard/daggerheart/npc/7"

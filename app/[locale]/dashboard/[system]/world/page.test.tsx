@@ -71,7 +71,7 @@ describe("world Page (SPEC-004 M4)", () => {
   });
 
   it.each([null, { id: 1, title: "Aerivel", mapImage: "uploaded-id.png" }])(
-    "links to the date systems panel under the route's system (SPEC-014 T3), root %#",
+    "links to the date systems panel under the route's system and the history (SPEC-014 T3, T5), root %#",
     async (root) => {
       fetchRootPlace.mockResolvedValue(root);
 
@@ -80,6 +80,10 @@ describe("world Page (SPEC-004 M4)", () => {
       expect(
         screen.getByRole("link", { name: "calendarLink" })
       ).toHaveAttribute("href", "/dashboard/dnd5e/world/calendar");
+      expect(screen.getByRole("link", { name: "historyLink" })).toHaveAttribute(
+        "href",
+        "/dashboard/dnd5e/world/history"
+      );
     }
   );
 });

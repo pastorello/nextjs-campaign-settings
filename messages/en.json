@@ -15,6 +15,8 @@
       "manage": "Manage {section}",
       "signOut": "Sign Out",
       "language": "Language",
+      "gameSystem": "Game system",
+      "gameSystemSingle": "Only one game system is available for now.",
       "treasure": "Treasure",
       "campaign": "Campaign",
       "sidebarLabel": "Main navigation"

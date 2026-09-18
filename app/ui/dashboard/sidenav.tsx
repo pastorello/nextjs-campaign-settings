@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import NavLinks from "@/app/ui/dashboard/nav-links";
 import LocaleSwitcher from "@/app/ui/dashboard/LocaleSwitcher";
+import SystemSwitcher from "@/app/ui/dashboard/SystemSwitcher";
 import { PowerIcon } from "@heroicons/react/24/outline";
 import { Link } from "@/i18n/navigation";
 import { signOut } from "@/auth";
@@ -25,6 +26,7 @@ export default async function SideNav() {
       >
         <NavLinks />
         <div className="hidden h-auto w-full grow rounded-md bg-gray-50 md:block"></div>
+        <SystemSwitcher />
         <LocaleSwitcher />
         <form
           action={async () => {

@@ -1,10 +1,14 @@
-import { Prisma } from "@/generated/prisma/client";
-
 import prisma from "@/app/lib/connections/prisma";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { DAYS_PER_YEAR } from "@/app/lib/calendar/monthLengths";
 import WorldHistoryEvent from "@/app/lib/definitions/interfaces/calendar/WorldHistoryEvent";
 import WorldHistoryQuery from "@/app/lib/definitions/interfaces/calendar/WorldHistoryQuery";
+import {
+  toWorldHistoryEvent,
+  worldHistoryEventOrder,
+  worldHistoryEventSelect,
+} from "./worldHistoryEventSelect";
+import worldHistoryWhere from "./worldHistoryWhere";
 
 /** How many years that hold an event one page of the list shows. */
 export const YEARS_PER_PAGE = 10;
@@ -17,11 +21,6 @@ export interface WorldHistoryPage {
   /** At least 1, so an empty history still reads "page 1 of 1". */
   pageCount: number;
 }
-
-const byName = {
-  select: { id: true, name: true },
-  orderBy: { name: "asc" },
-} as const;
 
 /**
  * One page of the world's history (SPEC-014 §5.6, T5): the events with no
@@ -41,15 +40,7 @@ const byName = {
 export default async function fetchWorldHistory(
   query: WorldHistoryQuery
 ): Promise<WorldHistoryPage> {
-  const where: Prisma.calendarEventWhereInput = {
-    campaignId: null,
-    ...(query.place !== null && { zones: { some: { id: query.place } } }),
-    ...(query.npc !== null && { npcs: { some: { id: query.npc } } }),
-    ...(query.deity !== null && { deities: { some: { id: query.deity } } }),
-    ...(query.faction !== null && {
-      factions: { some: { id: query.faction } },
-    }),
-  };
+  const where = worldHistoryWhere(query);
 
   try {
     const starts = await prisma.calendarEvent.findMany({
@@ -79,35 +70,11 @@ export default async function fetchWorldHistory(
           lt: (lastYear + 1) * DAYS_PER_YEAR,
         },
       },
-      orderBy: [
-        { startDay: "asc" },
-        { startHour: { sort: "asc", nulls: "first" } },
-        { id: "asc" },
-      ],
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        startDay: true,
-        startHour: true,
-        endDay: true,
-        endHour: true,
-        repeatsYearly: true,
-        zones: {
-          select: { id: true, title: true },
-          orderBy: { title: "asc" },
-        },
-        npcs: byName,
-        deities: byName,
-        factions: byName,
-      },
+      orderBy: worldHistoryEventOrder,
+      select: worldHistoryEventSelect,
     });
 
-    const events = rows.map(({ zones, ...event }) => ({
-      ...event,
-      zones: zones.map(({ id, title }) => ({ id, name: title })),
-    }));
-    return { events, page, pageCount };
+    return { events: rows.map(toWorldHistoryEvent), page, pageCount };
   } catch (error) {
     throw toDatabaseError("fetching the world history", error);
   }

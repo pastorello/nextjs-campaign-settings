@@ -1,18 +1,11 @@
+import type CalendarEventFieldsInput from "./CalendarEventFieldsInput";
+
 /**
  * What the world history form sends to `createWorldHistoryEvent` /
- * `updateWorldHistoryEvent` (SPEC-014 §5.4). Days are universal days
- * (ADR-0015); an absent end is `null` (a one-day event); the links are row
- * ids. The actions still validate every field — this types the caller, it
- * does not vouch for the values.
+ * `updateWorldHistoryEvent` (SPEC-014 §5.4): the shared event fields and
+ * the linked rows' ids.
  */
-interface WorldHistoryEventInput {
-  title: string;
-  description: string | null;
-  startDay: number | null;
-  startHour: number | null;
-  endDay: number | null;
-  endHour: number | null;
-  repeatsYearly: boolean;
+interface WorldHistoryEventInput extends CalendarEventFieldsInput {
   zoneIds: number[];
   npcIds: number[];
   deityIds: number[];

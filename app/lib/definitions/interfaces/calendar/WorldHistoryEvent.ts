@@ -1,3 +1,4 @@
+import type CalendarEventBase from "./CalendarEventBase";
 import type LinkedRow from "./LinkedRow";
 
 /**
@@ -5,15 +6,7 @@ import type LinkedRow from "./LinkedRow";
  * event's own fields and its links by name, so the list can show and link
  * each one without a second read.
  */
-interface WorldHistoryEvent {
-  id: number;
-  title: string;
-  description: string | null;
-  startDay: number;
-  startHour: number | null;
-  endDay: number | null;
-  endHour: number | null;
-  repeatsYearly: boolean;
+interface WorldHistoryEvent extends CalendarEventBase {
   zones: LinkedRow[];
   npcs: LinkedRow[];
   deities: LinkedRow[];

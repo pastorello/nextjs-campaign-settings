@@ -1,14 +1,7 @@
+import positiveIdParam from "@/app/lib/utils/positiveIdParam";
 import WorldHistoryQuery from "@/app/lib/definitions/interfaces/calendar/WorldHistoryQuery";
 
 type SearchParams = Record<string, string | string[] | undefined>;
-
-/** A positive whole number from one URL parameter, else `null`. */
-function positiveId(raw: string | string[] | undefined): number | null {
-  const value = Array.isArray(raw) ? raw[0] : raw;
-  if (value === undefined || !/^\d+$/.test(value)) return null;
-  const id = Number(value);
-  return Number.isSafeInteger(id) && id > 0 ? id : null;
-}
 
 /**
  * The world history page's URL — `?place=&npc=&deity=&faction=&page=` —
@@ -20,10 +13,10 @@ export default function parseWorldHistorySearchParams(
   searchParams: SearchParams
 ): WorldHistoryQuery {
   return {
-    place: positiveId(searchParams.place),
-    npc: positiveId(searchParams.npc),
-    deity: positiveId(searchParams.deity),
-    faction: positiveId(searchParams.faction),
-    page: positiveId(searchParams.page) ?? 1,
+    place: positiveIdParam(searchParams.place),
+    npc: positiveIdParam(searchParams.npc),
+    deity: positiveIdParam(searchParams.deity),
+    faction: positiveIdParam(searchParams.faction),
+    page: positiveIdParam(searchParams.page) ?? 1,
   };
 }

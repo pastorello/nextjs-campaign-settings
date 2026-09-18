@@ -9,24 +9,20 @@ import createWorldHistoryEvent from "@/app/lib/data/calendar/createWorldHistoryE
 import updateWorldHistoryEvent from "@/app/lib/data/calendar/updateWorldHistoryEvent";
 import calendarEventMeta from "@/app/lib/config/calendarEvent/calendarEventMeta";
 import worldHistoryLinkMeta from "@/app/lib/config/calendarEvent/worldHistoryLinkMeta";
-import CalendarEventMetaField from "@/app/lib/definitions/enums/calendar/CalendarEventMetaField";
 import WorldHistoryLinkField from "@/app/lib/definitions/enums/calendar/WorldHistoryLinkField";
 import DateSystem from "@/app/lib/definitions/interfaces/calendar/DateSystem";
-import WorldDateValue from "@/app/lib/definitions/interfaces/calendar/WorldDateValue";
 import WorldHistoryEvent from "@/app/lib/definitions/interfaces/calendar/WorldHistoryEvent";
 import WorldHistoryEventInput from "@/app/lib/definitions/interfaces/calendar/WorldHistoryEventInput";
 import MetaValue from "@/app/lib/definitions/types/MetaValue";
 import { ResolvedOption } from "@/app/lib/definitions/types/SelectOption";
 import resolveFieldErrors from "@/app/lib/utils/i18n/resolveFieldErrors";
-import TextInput from "@/app/ui/forms/inputs/TextInput";
-import TextareaInput from "@/app/ui/forms/inputs/TextareaInput";
-import CheckboxInput from "@/app/ui/forms/inputs/CheckboxInput";
 import Select from "@/app/ui/forms/inputs/Select";
 import BespokeFormErrorSummary from "@/app/ui/forms/BespokeFormErrorSummary";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import ButtonState from "@/app/ui/buttons/BaseButton/ButtonState";
-import WorldDateInput from "./WorldDateInput";
+import { draftFromEvent, draftToInput } from "./calendarEventDraft";
+import CalendarEventFields from "./CalendarEventFields";
 
 /** The options each link multiselect offers, read by the page. */
 export interface WorldHistoryLinkOptions {
@@ -75,22 +71,7 @@ export default function WorldHistoryEventForm({
   const router = useRouter();
   const isEditMode = event !== undefined;
 
-  const [title, setTitle] = useState(event?.title ?? "");
-  const [description, setDescription] = useState(event?.description ?? "");
-  const [start, setStart] = useState<WorldDateValue>({
-    universalDay: event?.startDay ?? null,
-    hour: event?.startHour ?? null,
-  });
-  const [hasEnd, setHasEnd] = useState(
-    event !== undefined && event.endDay !== null
-  );
-  const [end, setEnd] = useState<WorldDateValue>({
-    universalDay: event?.endDay ?? event?.startDay ?? null,
-    hour: event?.endHour ?? null,
-  });
-  const [repeatsYearly, setRepeatsYearly] = useState(
-    event?.repeatsYearly ?? false
-  );
+  const [draft, setDraft] = useState(() => draftFromEvent(event));
   const [zoneIds, setZoneIds] = useState(ids(event?.zones));
   const [npcIds, setNpcIds] = useState(ids(event?.npcs));
   const [deityIds, setDeityIds] = useState(ids(event?.deities));
@@ -98,24 +79,11 @@ export default function WorldHistoryEventForm({
   const { errors, isSaving, submit } = useMutationSubmit();
 
   const fieldErrors = resolveFieldErrors(errors, t);
-  const dateError = (day: string, hour: string) => {
-    const messages = [
-      ...(fieldErrors[day] ?? []),
-      ...(fieldErrors[hour] ?? []),
-    ];
-    return messages.length === 0 ? undefined : messages.join(", ");
-  };
 
   async function handleSubmit(formEvent: FormEvent<HTMLFormElement>) {
     formEvent.preventDefault();
     const payload: WorldHistoryEventInput = {
-      title,
-      description: description.trim() === "" ? null : description,
-      startDay: start.universalDay,
-      startHour: start.hour,
-      endDay: hasEnd ? end.universalDay : null,
-      endHour: hasEnd ? end.hour : null,
-      repeatsYearly,
+      ...draftToInput(draft),
       zoneIds,
       npcIds,
       deityIds,
@@ -138,44 +106,14 @@ export default function WorldHistoryEventForm({
   return (
     <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
       <BespokeFormErrorSummary errors={errors} meta={formMeta} />
-      <TextInput
-        label={label(CalendarEventMetaField.title)}
-        value={title}
-        onChange={(value) => setTitle(String(value))}
-      />
-      <TextareaInput
-        label={label(CalendarEventMetaField.description)}
-        value={description}
-        onChange={(value) => setDescription(String(value))}
-        tall={calendarEventMeta.description.tall}
-      />
-      <WorldDateInput
-        legend={label(CalendarEventMetaField.startDay)}
+      <CalendarEventFields
+        draft={draft}
+        onChange={(changes) =>
+          setDraft((current) => ({ ...current, ...changes }))
+        }
         systems={systems}
-        value={start}
-        onChange={setStart}
-        initialSystemId={displaySystemId}
-        error={dateError("startDay", "startHour")}
-      />
-      <CheckboxInput
-        label={t("calendar.event.form.hasEnd")}
-        value={hasEnd}
-        onChange={(value) => setHasEnd(value === true)}
-      />
-      {hasEnd && (
-        <WorldDateInput
-          legend={label(CalendarEventMetaField.endDay)}
-          systems={systems}
-          value={end}
-          onChange={setEnd}
-          initialSystemId={displaySystemId}
-          error={dateError("endDay", "endHour")}
-        />
-      )}
-      <CheckboxInput
-        label={label(CalendarEventMetaField.repeatsYearly)}
-        value={repeatsYearly}
-        onChange={(value) => setRepeatsYearly(value === true)}
+        displaySystemId={displaySystemId}
+        fieldErrors={fieldErrors}
       />
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Select

@@ -9,6 +9,13 @@ import en from "@/messages/en.json";
 
 vi.mock("next-intl", async () => await vi.importActual("next-intl"));
 
+const push = vi.fn();
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/en/dashboard/dnd5e/world/history",
+  useSearchParams: () => new URLSearchParams("view=grid&place=4"),
+  useRouter: () => ({ push }),
+}));
+
 import MonthGrid from "./MonthGrid";
 
 interface Item {
@@ -90,7 +97,7 @@ describe("MonthGrid (SPEC-014 T7)", () => {
   it("heads seven columns with the displayed system's weekdays, under a caption in that system", () => {
     renderGrid();
 
-    const table = screen.getByRole("table", { name: "Brumaio 0 d.C." });
+    const table = screen.getByRole("grid", { name: "Brumaio 0 d.C." });
     const headers = within(table).getAllByRole("columnheader");
     expect(headers.map((header) => header.textContent)).toEqual(
       human.weekdayNames
@@ -149,10 +156,101 @@ describe("MonthGrid (SPEC-014 T7)", () => {
     expect(dayCell(13)).not.toHaveTextContent("(past)");
   });
 
+  it("tells today and the past apart without colour", () => {
+    renderGrid(day(12));
+
+    // Today's word is visible, not screen-reader only.
+    expect(within(dayCell(12)).getByText("(today)")).not.toHaveClass("sr-only");
+    // A past day's number is struck through; a later one's is not.
+    expect(within(dayCell(11)).getByText("11")).toHaveClass("line-through");
+    expect(within(dayCell(13)).getByText("13")).not.toHaveClass("line-through");
+  });
+
   it("marks nothing without a today", () => {
     renderGrid();
 
     expect(document.querySelector('[aria-current="date"]')).toBeNull();
     expect(dayCell(1)).not.toHaveTextContent("(past)");
+  });
+});
+
+describe("MonthGrid keyboard navigation (SPEC-014 T9)", () => {
+  const tabStops = () =>
+    screen
+      .getAllByTestId("month-grid-day")
+      .filter((cell) => cell.tabIndex === 0)
+      .map((cell) => cell.dataset.day);
+
+  it("has one day as its Tab stop: today when shown, else the 1st", () => {
+    renderGrid(day(12));
+    expect(tabStops()).toEqual(["12"]);
+  });
+
+  it("starts on the 1st without a today in the month", () => {
+    renderGrid();
+    expect(tabStops()).toEqual(["1"]);
+  });
+
+  it("moves the focus between days with the arrow keys, Home and End", () => {
+    renderGrid();
+    dayCell(1).focus();
+
+    fireEvent.keyDown(dayCell(1), { key: "ArrowRight" });
+    expect(document.activeElement).toBe(dayCell(2));
+    fireEvent.keyDown(dayCell(2), { key: "ArrowDown" });
+    expect(document.activeElement).toBe(dayCell(9));
+    fireEvent.keyDown(dayCell(9), { key: "ArrowUp" });
+    expect(document.activeElement).toBe(dayCell(2));
+    fireEvent.keyDown(dayCell(2), { key: "ArrowLeft" });
+    expect(document.activeElement).toBe(dayCell(1));
+
+    // Home and End go to the ends of day 9's row, whatever its weekday.
+    const daysInRow = Array.from(
+      dayCell(9)
+        .closest("tr")
+        ?.querySelectorAll<HTMLElement>('[data-testid="month-grid-day"]') ?? []
+    ).map((cell) => cell.dataset.day);
+    fireEvent.keyDown(dayCell(9), { key: "Home" });
+    expect(document.activeElement).toBe(dayCell(Number(daysInRow[0])));
+    fireEvent.keyDown(dayCell(Number(daysInRow[0])), { key: "End" });
+    expect(document.activeElement).toBe(dayCell(Number(daysInRow.at(-1))));
+    expect(tabStops()).toEqual([daysInRow.at(-1)]);
+  });
+
+  it("keeps only the focused day's events in the Tab order", () => {
+    renderGrid();
+    const council = within(dayCell(10)).getByRole("button");
+    expect(council.tabIndex).toBe(-1);
+
+    dayCell(1).focus();
+    fireEvent.keyDown(dayCell(1), { key: "ArrowDown" });
+    fireEvent.keyDown(dayCell(8), { key: "ArrowRight" });
+    fireEvent.keyDown(dayCell(9), { key: "ArrowRight" });
+
+    expect(document.activeElement).toBe(dayCell(10));
+    expect(council.tabIndex).toBe(0);
+  });
+
+  it("turns the month with PageUp and PageDown, keeping the filters", () => {
+    push.mockClear();
+    renderGrid();
+    dayCell(1).focus();
+
+    fireEvent.keyDown(dayCell(1), { key: "PageDown" });
+    expect(push).toHaveBeenLastCalledWith(
+      `/en/dashboard/dnd5e/world/history?view=grid&place=4&year=${human.anchorYear}&month=2`
+    );
+    fireEvent.keyDown(dayCell(1), { key: "PageUp" });
+    expect(push).toHaveBeenCalledTimes(2);
+  });
+
+  it("leaves other keys and modified arrows alone", () => {
+    renderGrid();
+    dayCell(1).focus();
+
+    fireEvent.keyDown(dayCell(1), { key: "ArrowRight", ctrlKey: true });
+    fireEvent.keyDown(dayCell(1), { key: "Enter" });
+
+    expect(document.activeElement).toBe(dayCell(1));
   });
 });

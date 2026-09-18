@@ -1802,7 +1802,7 @@ no validator's accepted input or output type changed, confirmed by the
 existing meta/schema test suites passing unchanged plus the two new files'
 own tests.
 
-### TD-131 — Unused vendored map utilities still include Earth-geometry maths (ask before deleting)
+### TD-131 ✅ Unused vendored map utilities still include Earth-geometry maths (ask before deleting) — **DONE (2026-09-18)**
 
 **Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-17, tech-debt audit
 
@@ -1816,6 +1816,18 @@ maps, so a later session reusing one of these helpers would add a bug. These cam
 with the vendored library, so CLAUDE.md's "unused is not dead" applies.
 **Decision needed from the DM:** delete them, or mark them as vendored and not
 for use on pixel maps. **Related:** TD-94.
+
+**Resolution:** The DM chose to keep them (2026-09-18). Added a header
+comment to `coordinates.ts`, `maps.ts` and `validation.ts` marking them
+vendored and not for use on the app's own pixel maps, pointing at
+`app/lib/data/validation/poiSchema.ts`'s `lat`/`lng` comment for why
+geographic bounds and haversine distance are wrong for this app's image-
+overlay coordinates. The duplicate `isValidCoordinate` (`coordinates.ts` vs
+`validation.ts`) was left as two copies rather than merged: each is only
+called within its own file, and `validation.ts`'s version also rejects
+non-number/`NaN` input, so the two aren't quite identical — noted in
+`validation.ts`'s new header instead of merged. Nothing deleted. Recorded in
+CLAUDE.md's "Decisions and rejected approaches".
 
 ### TD-132 ✅ Leftover inline styles and Italian comments — **DONE (2026-09-17)**
 

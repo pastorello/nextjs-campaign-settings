@@ -151,9 +151,28 @@ describe("Campaign calendar page (SPEC-014 T6)", () => {
     expect(fetchCampaign).toHaveBeenCalledWith("dnd5e");
     expect(screen.getByTestId("current-day")).toHaveTextContent("400");
     expect(screen.getByTestId("list")).toHaveTextContent("1/1/400");
-    // Day 10 is in year 0, today (day 400) in year 1: both whole years.
-    expect(fetchWorldHistoryBetween).toHaveBeenCalledWith(0, 729);
+    // Day 10 is in year 0, today (day 400) in year 1: both whole years,
+    // with the yearly events first held before them (T9).
+    expect(fetchWorldHistoryBetween).toHaveBeenCalledWith(0, 729, true);
     expect(fetchCampaignEvents).toHaveBeenCalledWith(1, null);
+  });
+
+  it("lists a yearly world history event in every year shown, however early it started (T9)", async () => {
+    fetchCampaign.mockResolvedValue(campaign);
+    fetchWorldHistoryBetween.mockResolvedValue([
+      {
+        id: 9,
+        title: "Founding day",
+        startDay: 100 - 3650,
+        endDay: null,
+        repeatsYearly: true,
+      },
+    ]);
+
+    render(await CampaignCalendarPage(routeProps()));
+
+    // Years 0 and 1 are shown: the founding day once in each.
+    expect(screen.getByTestId("list")).toHaveTextContent("1/2/400");
   });
 
   it("reads no world history with no events and no current day", async () => {

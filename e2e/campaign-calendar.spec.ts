@@ -2,6 +2,8 @@ import { test, expect, type Locator, type Page } from "@playwright/test";
 
 import messages from "@/messages/it.json";
 
+import { ensureCampaign } from "./helpers/ensureCampaign";
+
 /**
  * The campaign calendar (SPEC-014 T6): set the campaign's "today", add an
  * event before it and one after it, see the first dimmed as past and the
@@ -24,21 +26,6 @@ const today = messages.calendar.campaign.today;
 // The buttons are client-side; a click that lands before hydration is
 // swallowed (seen on CI, 2026-09-18).
 const settle = (page: Page) => page.waitForLoadState("networkidle");
-
-async function ensureCampaign(page: Page) {
-  await page.goto(CAMPAIGN);
-  await settle(page);
-  const create = page.getByRole("button", {
-    name: messages.campaign.form.createButton,
-  });
-  if (!(await create.isVisible().catch(() => false))) return;
-
-  await page
-    .getByLabel(messages.campaign.fields.title.label, { exact: true })
-    .fill(`E2E Campagna ${Date.now()}`);
-  await create.click();
-  await expect(create).toBeHidden();
-}
 
 /** Types day `day` of January, year 0 of the universal count. */
 async function fillDate(scope: Locator, day: number) {

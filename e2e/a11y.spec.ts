@@ -3,6 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 
 import messages from "@/messages/it.json";
 
+import { ensureCampaign } from "./helpers/ensureCampaign";
 import { chooseFromContextMenu } from "./helpers/mapContextMenu";
 
 /**
@@ -41,6 +42,11 @@ const PAGES = [
   "/dashboard/dnd5e/admin/magicitems",
   "/dashboard/dnd5e/admin/spells/new",
   "/dashboard/dnd5e/admin/npc/new",
+  // SPEC-014 T9: the calendar's world pages, in both views. They render
+  // with or without events, so they need no fixture.
+  "/dashboard/dnd5e/world/calendar",
+  "/dashboard/dnd5e/world/history",
+  "/dashboard/dnd5e/world/history?view=grid",
 ];
 
 for (const path of PAGES) {
@@ -170,6 +176,38 @@ test("campaign and adventure pages have no accessibility violations", async ({
     .getByRole("button", { name: messages.loot.list.addButton })
     .click();
   await scan("/dashboard/dnd5e/campaign/[adventureId]");
+});
+
+/**
+ * SPEC-014 T9: the campaign calendar, in both views. Not in `PAGES`: without
+ * a campaign it renders only a "create one first" note, so the campaign is
+ * made first, the same way `campaign-calendar.spec.ts` does.
+ */
+test("the campaign calendar has no accessibility violations", async ({
+  page,
+}) => {
+  await ensureCampaign(page);
+
+  for (const path of [
+    "/dashboard/dnd5e/campaign/calendar",
+    "/dashboard/dnd5e/campaign/calendar?view=grid",
+  ]) {
+    await page.goto(path);
+    await page.waitForLoadState("networkidle");
+    await expect(
+      page.getByRole("heading", {
+        name: messages.calendar.campaign.page.title,
+      })
+    ).toBeVisible();
+
+    const results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze();
+    const summary = results.violations.map(
+      (violation) => `${violation.id} (${violation.nodes.length} nodes)`
+    );
+    expect(summary, `axe violations on ${path}`).toEqual([]);
+  }
 });
 
 // The three row/toolbar buttons this test tabs through to find, read from the

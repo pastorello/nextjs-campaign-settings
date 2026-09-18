@@ -3,7 +3,7 @@
 - **Status:** Agreed 2026-09-18 — written from an interview with the DM the same day; read through by the DM, who changed only the moon's cycle to 28 days (§5.3)
 - **Date:** 2026-09-18
 - **Phase:** 4
-- **Related:** [SPEC-013](./013-campaign-management.md) (campaigns, adventures, scenes; its provisional `adventure.timeline` field, which this supersedes) · [`campaign-design-method.md`](../domain/campaign-design-method.md) §5 (planned events) · [SPEC-018](./018-game-systems.md) / [ADR-0013](../adr/0013-game-systems.md) (the calendar is world-level, shared by every game system) · [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md) (where bespoke editors are allowed) · ADR-0015 (to be written in T1: time as a universal day number)
+- **Related:** [SPEC-013](./013-campaign-management.md) (campaigns, adventures, scenes; its provisional `adventure.timeline` field, which this supersedes) · [`campaign-design-method.md`](../domain/campaign-design-method.md) §5 (planned events) · [SPEC-018](./018-game-systems.md) / [ADR-0013](../adr/0013-game-systems.md) (the calendar is world-level, shared by every game system) · [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md) (where bespoke editors are allowed) · [ADR-0015](../adr/0015-time-as-a-universal-day-number.md) (time as a universal day number) · [`calendar.md`](../domain/calendar.md) (the calendar's rules and the zodiac table)
 
 ---
 
@@ -311,7 +311,8 @@ _Filled in per task once agreed._
 
 ## 10. Task breakdown
 
-- [ ] **T1** — ADR-0015 (time as a universal day number). `app/lib/calendar/`: pure conversions (universal day ↔ date in a system), weekday, moon phase, zodiac table; the zodiac boundaries recorded in `docs/domain/`. _(test: exhaustive round-trips, hand-worked examples)_
+- [x] **T1** — ADR-0015 (time as a universal day number). `app/lib/calendar/`: pure conversions (universal day ↔ date in a system), weekday, moon phase, zodiac table; the zodiac boundaries recorded in `docs/domain/`. _(test: exhaustive round-trips, hand-worked examples)_
+      — **Done 2026-09-18.** [ADR-0015](../adr/0015-time-as-a-universal-day-number.md); `app/lib/calendar/` returns indices and string-literal unions (`MoonPhase`, `ZodiacSign`, `YearLabel.era`), never display strings; moon phases fall in alternating 4- and 3-day runs (a day takes the phase in force at its start); the zodiac ranges are in [`calendar.md`](../domain/calendar.md). Tests: `conversions.test.ts`, `cycles.test.ts`.
 - [x] **T2** — Schema and migration: `dateSystem` with the seeded universal count, `calendarSettings`, `calendarEvent` and its links, `campaign.currentDay`. _(test: migration is additive; seeded rows exist)_
       _Done 2026-09-18 (`20260918090000_spec014_calendar_schema`)._ Beyond §6: DB guards in raw SQL — partial unique indexes (one universal, one default), CHECKs for 12/7 names, the settings singleton, `startDay >= 0`, `endDay >= startDay`, hours 0–23 — and indexes on `adventureId`/`sceneId`. Placeholder names: "Calendario universale", "dall'alba dei tempi" / "a.T.", Italian months and weekdays. Checked against a throwaway Postgres: every guard rejects its bad row, and Prisma's diff ignores them rather than proposing a drop. `prisma/spec014CalendarSchema.test.ts`. The seed only adds rows, so it needed no change.
 - [ ] **T3** — The date systems panel at `/world/calendar`: universal count names, create/edit/delete systems, default, moon reference. _(test: actions — auth, validation, universal/default undeletable)_

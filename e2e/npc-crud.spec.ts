@@ -16,6 +16,9 @@ const gotoPng = async (page: Page, name: string) => {
   await page.goto(
     `/dashboard/dnd5e/admin/npc?query=${encodeURIComponent(name)}`
   );
+  // Row buttons open client-side dialogs; a click that lands before
+  // hydration is swallowed (seen on CI, 2026-09-18).
+  await page.waitForLoadState("networkidle");
 };
 
 const rowFor = (page: Page, name: string) =>

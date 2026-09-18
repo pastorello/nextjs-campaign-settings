@@ -17,6 +17,9 @@ const uniqueName = () => `E2E Oggetto ${Date.now()}`;
 
 const gotoMagicItemAdmin = async (page: Page) => {
   await page.goto("/dashboard/dnd5e/admin/magicitems");
+  // Row buttons open client-side dialogs; a click that lands before
+  // hydration is swallowed (seen on CI, 2026-09-18).
+  await page.waitForLoadState("networkidle");
   await expect(
     page.getByRole("heading", { name: messages.magicItems.page.title })
   ).toBeVisible();
@@ -27,6 +30,9 @@ const gotoMagicItem = async (page: Page, name: string) => {
   await page.goto(
     `/dashboard/dnd5e/admin/magicitems?query=${encodeURIComponent(name)}`
   );
+  // Row buttons open client-side dialogs; a click that lands before
+  // hydration is swallowed (seen on CI, 2026-09-18).
+  await page.waitForLoadState("networkidle");
 };
 
 const rowFor = (page: Page, name: string) =>

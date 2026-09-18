@@ -19,7 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
  * exactly one action here; once the root exists this page has nothing left
  * to offer of its own — no second-root path, no edit form — so it links out
  * to the map instead of being a dead end (TD-119). Descending into the tree
- * (M6/M7) is that separate page.
+ * (M6/M7) is that separate page. Either way it links to the world-level
+ * pages that hang off it, such as the world's history (SPEC-014 §5.7).
  */
 export default async function WorldPage(
   props: PageProps<"/[locale]/dashboard/[system]/world">
@@ -55,6 +56,14 @@ export default async function WorldPage(
             className="text-blue-600 underline"
           >
             {t("calendarLink")}
+          </Link>
+        </li>
+        <li>
+          <Link
+            href={dashboardPath(system, "/world/history")}
+            className="text-blue-600 underline"
+          >
+            {t("historyLink")}
           </Link>
         </li>
       </ul>

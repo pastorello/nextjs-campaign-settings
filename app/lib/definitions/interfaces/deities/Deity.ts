@@ -1,3 +1,5 @@
+import type RecordImageKeys from "@/app/lib/definitions/interfaces/images/RecordImageKeys";
+
 import Holidays from "@/app/lib/definitions/enums/deities/Holidays";
 import TarotMeaning from "@/app/lib/definitions/enums/tarot/TarotMeaning";
 import DeityRank from "@/app/lib/definitions/enums/deities/DeityRank";
@@ -22,6 +24,8 @@ interface Deity {
   [DeityMetaField.meaning]: TarotMeaning;
   /** A `recordImage` id, or `null` for none (SPEC-020 T3). */
   imageId?: number | null;
+  /** The image's storage keys, when the read included them (SPEC-020 T4). */
+  image?: RecordImageKeys | null;
 }
 
 export default Deity;

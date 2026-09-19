@@ -1,3 +1,5 @@
+import type RecordImageKeys from "@/app/lib/definitions/interfaces/images/RecordImageKeys";
+
 /**
  * A treasure catalogue entry: the seventh domain, "same shape as
  * magicitems" (SPEC-013 §6). Mirrors `MagicItem`'s shape exactly, including
@@ -14,6 +16,8 @@ interface Treasure {
   value: number | null;
   /** A `recordImage` id, or `null` for none (SPEC-020 T3). */
   imageId?: number | null;
+  /** The image's storage keys, when the read included them (SPEC-020 T4). */
+  image?: RecordImageKeys | null;
 }
 
 export default Treasure;

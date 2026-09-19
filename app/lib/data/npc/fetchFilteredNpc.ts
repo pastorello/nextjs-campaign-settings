@@ -2,6 +2,7 @@ import { z } from "zod";
 import queryFields from "@/app/lib/config/queryFields";
 import PageType from "@/app/lib/definitions/types/PageType";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
+import recordImageKeysInclude from "@/app/lib/data/recordImages/recordImageKeysInclude";
 import DatabaseError from "@/app/lib/errors/DatabaseError";
 import prisma from "../../connections/prisma";
 import NpcItem from "../../definitions/interfaces/npc/NpcItem";
@@ -28,6 +29,7 @@ export async function fetchFilteredNpc(
       orderBy: applyLocationSort(theQuery.orderBy),
       skip: theQuery.skip,
       take: theQuery.take,
+      include: recordImageKeysInclude,
     });
   } catch (error) {
     throw toDatabaseError("fetching NPCs", error);

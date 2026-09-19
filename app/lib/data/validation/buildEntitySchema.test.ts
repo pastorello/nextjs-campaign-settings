@@ -120,6 +120,55 @@ describe("buildResultSchema", () => {
   });
 });
 
+describe("buildResultSchema's image keys (SPEC-020 T4)", () => {
+  const image = {
+    displayKey: "display-key.webp",
+    thumbKey: "thumb-key.webp",
+    width: 800,
+    height: 600,
+  };
+  const withImage = [
+    PageType.Npc,
+    PageType.Deity,
+    PageType.MagicItem,
+    PageType.Treasure,
+    PageType.Faction,
+  ] as const;
+
+  it.each(withImage)(
+    "keeps the image relation's keys for %s, or its null",
+    (pageType) => {
+      const schema = buildResultSchema(pageType);
+      const row = { ...defaultPayload(pageType), id: 1 };
+
+      expect(schema.parse({ ...row, image })).toMatchObject({ image });
+      expect(schema.parse({ ...row, image: null })).toMatchObject({
+        image: null,
+      });
+    }
+  );
+
+  it("rejects image keys that have drifted", () => {
+    const result = buildResultSchema(PageType.Npc).safeParse({
+      ...defaultPayload(PageType.Npc),
+      id: 1,
+      image: { ...image, thumbKey: 7 },
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("strips an image from a domain without an image field", () => {
+    const parsed = buildResultSchema(PageType.Spell).parse({
+      ...defaultPayload(PageType.Spell),
+      id: 1,
+      image,
+    });
+
+    expect(parsed).not.toHaveProperty("image");
+  });
+});
+
 describe("buildUpdateSchema", () => {
   it("accepts a partial payload of one edited field plus the id", () => {
     const result = buildUpdateSchema(PageType.Spell).safeParse({

@@ -8,6 +8,8 @@ import { useTranslations } from "next-intl";
 
 import Icon from "../components/Icon";
 import IconType from "../buttons/BaseButton/IconType";
+import RecordThumbnail from "../components/RecordThumbnail";
+import RecordDisplayImage from "../components/RecordDisplayImage";
 import ItemMeta from "../components/ItemMeta";
 import AssignLocationButton from "../buttons/AssignLocationButton";
 import Deity from "@/app/lib/definitions/interfaces/deities/Deity";
@@ -44,57 +46,65 @@ const DeityCard = (props: {
           )}`
         )}
       >
-        <DisclosureButton className="m-2 flex w-full group">
-          <div
-            className={clsx(
-              "w-[50px] items-center flex justify-center rounded-full text-2xl",
-              {
-                "bg-white p-2 text-black":
-                  props.cardItem[DeityMetaField.deityRank] ===
-                  DeityRank.Divinità,
-              }
-            )}
-          >
-            {props.cardItem[DeityMetaField.tarotCard]}
-          </div>
-          <div className="flex-1">
-            <div>
-              <div className="text-xl">
-                {pageMetaFields[DeityMetaField.name].getDatum?.(
-                  props.cardItem[DeityMetaField.name]
-                )}
-                {", "}
-                <span className="text-sm text-gray-400">
-                  {pageMetaFields[DeityMetaField.deityTitle].getDatum?.(
-                    props.cardItem[DeityMetaField.deityTitle]
-                  )}
-                </span>
-              </div>
+        {/* Beside the button, not inside it: the thumbnail's alt text
+            would otherwise join the button's accessible name. */}
+        <div className="flex w-full items-center gap-1 pl-2">
+          <RecordThumbnail
+            image={props.cardItem.image}
+            name={props.cardItem.name}
+            size="md"
+          />
+          <DisclosureButton className="m-2 flex min-w-0 flex-1 group">
+            <div
+              className={clsx(
+                "w-[50px] items-center flex justify-center rounded-full text-2xl",
+                {
+                  "bg-white p-2 text-black":
+                    props.cardItem[DeityMetaField.deityRank] ===
+                    DeityRank.Divinità,
+                }
+              )}
+            >
+              {props.cardItem[DeityMetaField.tarotCard]}
             </div>
-            {/* resolveFieldValue is typed ReactNode (it can fall back to a
+            <div className="flex-1">
+              <div>
+                <div className="text-xl">
+                  {pageMetaFields[DeityMetaField.name].getDatum?.(
+                    props.cardItem[DeityMetaField.name]
+                  )}
+                  {", "}
+                  <span className="text-sm text-gray-400">
+                    {pageMetaFields[DeityMetaField.deityTitle].getDatum?.(
+                      props.cardItem[DeityMetaField.deityTitle]
+                    )}
+                  </span>
+                </div>
+              </div>
+              {/* resolveFieldValue is typed ReactNode (it can fall back to a
                 genuinely-rich getDatum); these calls are all option-backed
                 fields, which resolveFieldValue always resolves through
                 getDataLabel to a plain string. */}
-            <div>
-              {`${
-                resolveFieldValue(
-                  pageMetaFields[DeityMetaField.deityRank],
-                  props.cardItem[DeityMetaField.deityRank],
-                  t
-                ) as string
-              } ${
-                resolveFieldValue(
-                  pageMetaFields[DeityMetaField.deityType],
-                  props.cardItem[DeityMetaField.deityType],
-                  t
-                ) as string
-              }, ${
-                resolveFieldValue(
-                  pageMetaFields[DeityMetaField.alignmentDomain],
-                  props.cardItem[DeityMetaField.alignmentDomain],
-                  t
-                ) as string
-              }/
+              <div>
+                {`${
+                  resolveFieldValue(
+                    pageMetaFields[DeityMetaField.deityRank],
+                    props.cardItem[DeityMetaField.deityRank],
+                    t
+                  ) as string
+                } ${
+                  resolveFieldValue(
+                    pageMetaFields[DeityMetaField.deityType],
+                    props.cardItem[DeityMetaField.deityType],
+                    t
+                  ) as string
+                }, ${
+                  resolveFieldValue(
+                    pageMetaFields[DeityMetaField.alignmentDomain],
+                    props.cardItem[DeityMetaField.alignmentDomain],
+                    t
+                  ) as string
+                }/
                 ${
                   resolveFieldValue(
                     pageMetaFields[DeityMetaField.alignment],
@@ -108,17 +118,26 @@ const DeityCard = (props: {
                     t
                   ) as string
                 })`}
+              </div>
             </div>
-          </div>
-          <div className="flex h-10 w-10 items-center justify-center">
-            <Icon
-              iconType={IconType.chevronDown}
-              className="transition-transform group-data-open:rotate-180"
-            />
-          </div>
-        </DisclosureButton>
+            <div className="flex h-10 w-10 items-center justify-center">
+              <Icon
+                iconType={IconType.chevronDown}
+                className="transition-transform group-data-open:rotate-180"
+              />
+            </div>
+          </DisclosureButton>
+        </div>
         <DisclosurePanel>
           <hr className="my-2" />
+          {props.cardItem.image && (
+            <div className="flex justify-center p-2">
+              <RecordDisplayImage
+                image={props.cardItem.image}
+                name={props.cardItem.name}
+              />
+            </div>
+          )}
           <div className="flex w-full p-2">
             <div className="w-[50%] p-1">
               {/* Both halves derived from the deity's single pin (SPEC-004

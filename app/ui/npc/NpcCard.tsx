@@ -10,6 +10,8 @@ import { dashboardPath } from "@/i18n/dashboardPath";
 import useGameSystem from "@/app/lib/hooks/useGameSystem";
 import Icon from "../components/Icon";
 import IconType from "../buttons/BaseButton/IconType";
+import RecordThumbnail from "../components/RecordThumbnail";
+import RecordDisplayImage from "../components/RecordDisplayImage";
 import AssignLocationButton from "../buttons/AssignLocationButton";
 import pageMetaFields from "@/app/lib/config/pageMetaFields";
 import NpcItem from "@/app/lib/definitions/interfaces/npc/NpcItem";
@@ -39,6 +41,13 @@ const NpcCard = (props: {
     <Disclosure>
       <div className="my-2 w-full gap-x-4 rounded-xl bg-slate-800 p-4 text-sm text-white outline outline-offset-1 outline-white/10">
         <div className="mb-2 flex w-full flex-wrap items-center gap-x-4 gap-y-1 md:flex-nowrap">
+          {/* Beside the button, not inside it: the thumbnail's alt text
+              would otherwise join the button's accessible name. */}
+          <RecordThumbnail
+            image={props.cardItem.image}
+            name={props.cardItem.name}
+            size="md"
+          />
           <DisclosureButton className="flex min-w-0 flex-1 flex-col gap-1 text-left md:flex-row">
             <div className="text-left md:w-48 md:shrink-0">
               <h3 className="text-xl">
@@ -116,6 +125,14 @@ const NpcCard = (props: {
           </DisclosureButton>
         </div>
         <DisclosurePanel>
+          {props.cardItem.image && (
+            <div className="flex justify-center p-2">
+              <RecordDisplayImage
+                image={props.cardItem.image}
+                name={props.cardItem.name}
+              />
+            </div>
+          )}
           <div className="flex w-full p-2">
             {pageMetaFields[NpcMetaField.personality].getDatum(
               props.cardItem[NpcMetaField.personality]

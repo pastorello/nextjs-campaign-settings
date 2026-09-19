@@ -26,7 +26,9 @@ export default async function updateMagicItem(
   // declared keys the payload carried, already coerced (TD-122). The schema is
   // built from a runtime field list, so its output type is widened; this is
   // the one assertion that narrows it back.
-  const { id, ...data } = parsed.data as Partial<MagicItem> & { id: number };
+  const { id, ...data } = parsed.data as Partial<Omit<MagicItem, "image">> & {
+    id: number;
+  };
 
   const imageErrors = await checkRecordImageReference(data.imageId, {
     relation: "magicItem",

@@ -3,6 +3,7 @@ import { z, ZodRawShape } from "zod";
 import PageType from "@/app/lib/definitions/types/PageType";
 import pageMetaFields from "@/app/lib/config/pageMetaFields";
 import pagesConfig from "@/app/lib/config/pagesConfig";
+import recordImageKeysSchema from "./recordImageKeysSchema";
 
 // `id` is excluded here: the database generates it on create, and it is added
 // back, required, on update.
@@ -64,6 +65,13 @@ function resultFieldValidators(pageType: PageType): ZodRawShape {
 export function buildResultSchema(pageType: PageType) {
   return z.object(resultFieldValidators(pageType)).extend({
     id: z.number().int().positive(),
+    // The image's storage keys (SPEC-020 T4), read through the `image`
+    // relation beside the `imageId` field. Not a field — nothing writes it —
+    // so it is not in `pagesConfig`; declared here, for the domains that do
+    // declare `imageId`, so the parse keeps it instead of stripping it.
+    ...(entityFieldKeys(pageType).includes("imageId") && {
+      image: recordImageKeysSchema,
+    }),
   });
 }
 

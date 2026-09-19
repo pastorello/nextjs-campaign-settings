@@ -13,16 +13,12 @@ import {
   MAX_IMAGE_BYTES,
 } from "@/app/lib/storage/imageUploadRules";
 import isValidString from "@/app/lib/utils/validators/isValidString";
+import { recordImageByIdUrl } from "@/app/lib/utils/images/recordImageUrls";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonState from "@/app/ui/buttons/BaseButton/ButtonState";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 
 const UPLOAD_ROUTE = "/api/record-images";
-
-/** The thumbnail of a stored record image, by its `recordImage` id. */
-export function recordImageThumbUrl(imageId: number): string {
-  return `${UPLOAD_ROUTE}/by-id/${imageId}?size=thumb`;
-}
 
 const knownErrorKeys: ReadonlySet<string> = new Set(FIELD_ERROR_KEYS);
 
@@ -151,7 +147,7 @@ export default function ImageInput({
       >
         {imageId !== null && (
           <Image
-            src={recordImageThumbUrl(imageId)}
+            src={recordImageByIdUrl(imageId)}
             alt={t("common.fields.image.previewAlt")}
             width={96}
             height={96}

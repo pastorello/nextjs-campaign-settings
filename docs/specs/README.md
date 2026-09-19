@@ -62,6 +62,6 @@ Steps 1–3 are cheap and go in one file. Do not skip straight to 4 for anything
 | 018 | [Game systems — one world, several rule sets](./018-game-systems.md)                         | Agreed 2026-09-11                | 4     |
 | 019 | [Formatted text](./019-formatted-text.md)                                                    | Shipped 2026-09-19               | 5     |
 | 020 | [Images on records](./020-record-images.md)                                                  | Shipped 2026-09-19               | 5     |
-| 021 | [Daggerheart: domains, cards, classes, subclasses](./021-daggerheart-domains-and-classes.md) | Agreed 2026-09-19                | 4     |
+| 021 | [Daggerheart: domains, cards, classes, subclasses](./021-daggerheart-domains-and-classes.md) | Shipped 2026-09-19               | 4     |
 
 Feature ideas live in [`../ROADMAP.md`](../ROADMAP.md) until they are ready for a spec.

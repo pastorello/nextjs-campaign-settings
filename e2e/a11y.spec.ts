@@ -6,6 +6,12 @@ import messages from "@/messages/it.json";
 import { ensureCampaign } from "./helpers/ensureCampaign";
 import { chooseFromContextMenu } from "./helpers/mapContextMenu";
 import { portraitPng } from "./helpers/portraitPng";
+import {
+  createDaggerheartFixture,
+  daggerheartFixtureNames,
+  deleteDaggerheartFixture,
+  DAGGERHEART_FIXTURE_TIMEOUT,
+} from "./helpers/daggerheart";
 
 /**
  * Automated accessibility scan (TD-15).
@@ -56,6 +62,16 @@ const PAGES = [
   // SPEC-021 T1: the second system's home — the live switch and its
   // "Daggerheart™ Compatible" line, and a sidebar without the 5e catalogues.
   "/dashboard/daggerheart",
+  // SPEC-021 T8: the Daggerheart lists, public and admin. They render with
+  // or without rows; the card view and the class page need data, and are
+  // scanned with a fixture at the end of this file.
+  "/dashboard/daggerheart/domains",
+  "/dashboard/daggerheart/domain-cards",
+  "/dashboard/daggerheart/classes",
+  "/dashboard/daggerheart/admin/domains",
+  "/dashboard/daggerheart/admin/domain-cards",
+  "/dashboard/daggerheart/admin/classes",
+  "/dashboard/daggerheart/admin/subclasses",
 ];
 
 for (const path of PAGES) {
@@ -610,5 +626,59 @@ test("the image field and list thumbnails have no accessibility violations", asy
         .click();
       await expect(adminRow).toHaveCount(0);
     }
+  }
+});
+
+/**
+ * SPEC-021 T8: what the Daggerheart lists above cannot show empty — a card
+ * view (the card list's grid, and the domain's page), and a class page with
+ * a subclass and a card. The fixture is built through the admin UI and
+ * removed in `finally`, in reverse order; invented content only.
+ */
+test("the Daggerheart card view and class page have no accessibility violations", async ({
+  page,
+}) => {
+  test.setTimeout(DAGGERHEART_FIXTURE_TIMEOUT);
+  const names = daggerheartFixtureNames(Date.now());
+  const scan = async (label: string) => {
+    await page.waitForLoadState("networkidle");
+    const results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze();
+    const summary = results.violations.map(
+      (violation) => `${violation.id} (${violation.nodes.length} nodes)`
+    );
+    expect(summary, `axe violations on ${label}`).toEqual([]);
+  };
+
+  try {
+    await createDaggerheartFixture(page, names);
+
+    await page.goto(
+      `/dashboard/daggerheart/domain-cards?query=${encodeURIComponent(names.card)}&view=cards`
+    );
+    await expect(page.getByRole("article", { name: names.card })).toBeVisible();
+    await scan("the domain card list as card views");
+
+    await page.goto(
+      `/dashboard/daggerheart/domains?query=${encodeURIComponent(names.domainA)}`
+    );
+    await page.getByRole("link", { name: names.domainA, exact: true }).click();
+    await expect(page.getByRole("article", { name: names.card })).toBeVisible();
+    await scan("a domain's page with its card");
+
+    await page.goto(
+      `/dashboard/daggerheart/classes?query=${encodeURIComponent(names.className)}`
+    );
+    await scan("the class list with a class");
+    await page
+      .getByRole("link", { name: names.className, exact: true })
+      .click();
+    await expect(
+      page.getByRole("region", { name: names.subclass })
+    ).toBeVisible();
+    await scan("a class page with a subclass and a card");
+  } finally {
+    await deleteDaggerheartFixture(page, names);
   }
 });

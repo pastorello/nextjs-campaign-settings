@@ -5,7 +5,9 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import useGameSystem from "@/app/lib/hooks/useGameSystem";
-import type GameSystem from "@/app/lib/definitions/GameSystem";
+import recordHref, {
+  RECORD_LIST_PATH,
+} from "@/app/lib/utils/search/recordHref";
 import type {
   SearchAllDomainsResult,
   SearchDomain,
@@ -14,52 +16,39 @@ import type {
 
 /**
  * One entry per domain, in the spec's fixed render order (SPEC-011 §5.3):
- * Spells, Magic Items, NPCs, Deities, Factions, Places. `listPath` is the
- * domain's own list page subpath (relative to the dashboard root — joined
- * with `dashboardPath(system, ...)` at render time, ADR-0013 rule 5),
- * reused for both the "see all" link and each result's own link — every
- * domain but Places links to `${listPath}?query=<name>`, the convention
- * SPEC-006 established for faction/NPC cross-links (`FactionCard`/`NpcCard`)
- * in the absence of per-entity detail routes. Places link to
- * `/geography?place=<id>` instead (§5.5) — that param isn't read yet
- * (SPEC-011 T4, built in a parallel PR), so the link is correct but doesn't
- * fully resolve until T4 lands too.
+ * Spells, Magic Items, NPCs, Deities, Factions, Places. Where each result and
+ * each "see all" link lead is `recordHref`/`RECORD_LIST_PATH`, shared with
+ * formatted-text record links (SPEC-019).
  */
 const DOMAIN_ORDER: {
   domain: SearchDomain;
   headingNamespace: string;
   headingKey: string;
-  listPath: `/${string}` | null;
 }[] = [
   {
     domain: "spells",
     headingNamespace: "common.cards",
     headingKey: "spells",
-    listPath: "/spells",
   },
   {
     domain: "magicItems",
     headingNamespace: "common.cards",
     headingKey: "magicItems",
-    listPath: "/magicitems",
   },
   {
     domain: "npc",
     headingNamespace: "common.cards",
     headingKey: "npc",
-    listPath: "/npc",
   },
   {
     domain: "deities",
     headingNamespace: "common.cards",
     headingKey: "deities",
-    listPath: "/deities",
   },
   {
     domain: "factions",
     headingNamespace: "common.nav",
     headingKey: "factions",
-    listPath: "/factions",
   },
   {
     // No list page to cap against (§5.4) — a Places group is never capped
@@ -68,38 +57,23 @@ const DOMAIN_ORDER: {
     domain: "places",
     headingNamespace: "search.page.groups",
     headingKey: "places",
-    listPath: null,
   },
 ];
 
-function resultHref(
-  system: GameSystem,
-  listPath: `/${string}` | null,
-  item: { id: number; name: string }
-): string {
-  if (listPath === null) {
-    // Only "places" (§5.4) has no list page to link back to.
-    return dashboardPath(system, `/geography?place=${item.id}`);
-  }
-  return dashboardPath(
-    system,
-    `${listPath}?query=${encodeURIComponent(item.name)}`
-  );
-}
-
 function DomainGroup({
+  domain,
   group,
   heading,
-  listPath,
   term,
 }: {
+  domain: SearchDomain;
   group: SearchDomainGroup;
   heading: string;
-  listPath: `/${string}` | null;
   term: string;
 }) {
   const t = useTranslations("search.page");
   const system = useGameSystem();
+  const listPath = RECORD_LIST_PATH[domain];
 
   if (group.total === 0) return null;
 
@@ -112,7 +86,7 @@ function DomainGroup({
         {group.items.map((item) => (
           <li key={item.id}>
             <Link
-              href={resultHref(system, listPath, item)}
+              href={recordHref(system, domain, item)}
               className="text-blue-600 hover:underline"
             >
               {item.name}
@@ -172,17 +146,15 @@ export default function CrossEntitySearchResults({
 
   return (
     <div>
-      {DOMAIN_ORDER.map(
-        ({ domain, headingNamespace, headingKey, listPath }) => (
-          <DomainGroup
-            key={domain}
-            group={results[domain]}
-            heading={headingFor(headingNamespace, headingKey)}
-            listPath={listPath}
-            term={term}
-          />
-        )
-      )}
+      {DOMAIN_ORDER.map(({ domain, headingNamespace, headingKey }) => (
+        <DomainGroup
+          key={domain}
+          domain={domain}
+          group={results[domain]}
+          heading={headingFor(headingNamespace, headingKey)}
+          term={term}
+        />
+      ))}
     </div>
   );
 }

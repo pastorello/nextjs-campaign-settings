@@ -8,6 +8,8 @@ import { revalidatePath } from "next/cache";
  * found 19 of the original 48 calls naming a path that matched nothing).
  */
 export type DashboardDomain =
+  | "admin/classes"
+  | "admin/subclasses"
   | "campaign"
   | "campaign/calendar"
   | "deities"

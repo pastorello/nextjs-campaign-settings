@@ -29,6 +29,15 @@ describe("pagesConfig systems (ADR-0013 rule 4)", () => {
     expect(pagesConfig[PageType.Deity].system).toBeUndefined();
     expect(pagesConfig[PageType.Faction].system).toBeUndefined();
   });
+
+  it("keeps the Daggerheart classes and subclasses in daggerheart (SPEC-021 T4/T5)", () => {
+    expect(pagesConfig[PageType.DhClass].system).toBe("daggerheart");
+    expect(pagesConfig[PageType.DhSubclass].system).toBe("daggerheart");
+    expect(() => assertPageSystem(PageType.DhClass, "dnd5e")).toThrow();
+    expect(() =>
+      assertPageSystem(PageType.DhSubclass, "daggerheart")
+    ).not.toThrow();
+  });
 });
 
 describe("assertPageSystem", () => {

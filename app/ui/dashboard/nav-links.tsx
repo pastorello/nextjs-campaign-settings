@@ -14,6 +14,8 @@ import {
   ClipboardDocumentListIcon,
   SwatchIcon,
   RectangleStackIcon,
+  AcademicCapIcon,
+  RectangleGroupIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useTranslations } from "next-intl";
@@ -108,6 +110,20 @@ const links: {
     href: "/domain-cards",
     admin: "/admin/domain-cards",
     icon: RectangleStackIcon,
+  },
+  // SPEC-021 T4/T5: admin lists only, so the tile links there; the class
+  // page (T6) is where a public `href` would go.
+  {
+    key: "dhClasses",
+    page: PageType.DhClass,
+    href: "/admin/classes",
+    icon: AcademicCapIcon,
+  },
+  {
+    key: "dhSubclasses",
+    page: PageType.DhSubclass,
+    href: "/admin/subclasses",
+    icon: RectangleGroupIcon,
   },
 ];
 

@@ -20,7 +20,9 @@
       "campaign": "Campagna",
       "sidebarLabel": "Navigazione principale",
       "dhDomains": "Domini",
-      "dhDomainCards": "Carte dominio"
+      "dhDomainCards": "Carte dominio",
+      "dhClasses": "Classi",
+      "dhSubclasses": "Sottoclassi"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -187,7 +189,12 @@
       "imageNotFound": "Questa immagine non esiste più. Caricala di nuovo.",
       "imageInUse": "Questa immagine appartiene già a un altro elemento. Caricala di nuovo.",
       "dhDomainNotFound": "Quel dominio non esiste più.",
-      "dhDomainInUse": "Questo dominio è ancora usato da {cards, plural, =0 {nessuna carta} one {# carta} other {# carte}} e {classes, plural, =0 {nessuna classe} one {# classe} other {# classi}}. Eliminali o spostali prima."
+      "dhDomainInUse": "Questo dominio è ancora usato da {cards, plural, =0 {nessuna carta} one {# carta} other {# carte}} e {classes, plural, =0 {nessuna classe} one {# classe} other {# classi}}. Eliminali o spostali prima.",
+      "domainsMustDiffer": "I due domini di una classe devono essere diversi.",
+      "classNeedsFeature": "Una classe deve avere almeno un privilegio.",
+      "classHasSubclasses": "{count, plural, one {# sottoclasse appartiene} other {# sottoclassi appartengono}} ancora a questa classe. Eliminale o spostale prima.",
+      "classFeatureOrderMismatch": "I privilegi indicati non corrispondono all'elenco attuale dei privilegi della classe.",
+      "subclassFeatureOrderMismatch": "I privilegi indicati non corrispondono all'elenco attuale dei privilegi di questo grado."
     },
     "errorPage": {
       "genericTitle": "Qualcosa è andato storto",
@@ -1630,6 +1637,123 @@
       "label": "Mostra come",
       "rows": "Righe",
       "cards": "Carte"
+    }
+  },
+  "dhClasses": {
+    "page": {
+      "title": "Classi",
+      "searchPlaceholder": "Cerca classi...",
+      "itemSingular": "classe",
+      "itemPlural": "classi",
+      "newItemButton": "Nuova classe",
+      "emptyMessage": "Nessuna classe trovata"
+    },
+    "form": {
+      "createTitle": "Crea nuova classe",
+      "editTitle": "Modifica classe",
+      "createButton": "Crea classe",
+      "editButton": "Modifica classe"
+    },
+    "fields": {
+      "domainAId": {
+        "label": "Primo dominio"
+      },
+      "domainBId": {
+        "label": "Secondo dominio"
+      },
+      "domainNoneOption": "Nessun dominio scelto",
+      "startingEvasion": {
+        "label": "Evasione iniziale"
+      },
+      "startingHp": {
+        "label": "PF iniziali"
+      },
+      "classItems": {
+        "label": "Oggetti di classe"
+      },
+      "hopeFeatureName": {
+        "label": "Nome del privilegio della Speranza"
+      },
+      "hopeFeatureText": {
+        "label": "Testo del privilegio della Speranza"
+      }
+    },
+    "hopeFeature": {
+      "legend": "Privilegio della Speranza",
+      "cost": "Costo: 3 Speranza"
+    },
+    "firstFeature": {
+      "legend": "Primo privilegio di classe",
+      "hint": "Una classe ha almeno un privilegio. Aggiungi gli altri, e riordinali, dalla finestra di modifica della classe."
+    },
+    "features": {
+      "title": "Privilegi di classe",
+      "addButton": "Aggiungi privilegio",
+      "saveButton": "Salva privilegio",
+      "moveUp": "Sposta \"{name}\" in su",
+      "moveDown": "Sposta \"{name}\" in giù"
+    }
+  },
+  "dhSubclasses": {
+    "page": {
+      "title": "Sottoclassi",
+      "searchPlaceholder": "Cerca sottoclassi...",
+      "itemSingular": "sottoclasse",
+      "itemPlural": "sottoclassi",
+      "newItemButton": "Nuova sottoclasse",
+      "emptyMessage": "Nessuna sottoclasse trovata"
+    },
+    "form": {
+      "createTitle": "Crea nuova sottoclasse",
+      "editTitle": "Modifica sottoclasse",
+      "createButton": "Crea sottoclasse",
+      "editButton": "Modifica sottoclasse"
+    },
+    "fields": {
+      "classId": {
+        "label": "Classe",
+        "noneOption": "Nessuna classe scelta"
+      },
+      "spellcastTrait": {
+        "label": "Tratto da incantatore"
+      }
+    },
+    "spellcastTraits": {
+      "none": "Nessuno",
+      "agility": "Agilità",
+      "strength": "Forza",
+      "finesse": "Finezza",
+      "instinct": "Istinto",
+      "presence": "Presenza",
+      "knowledge": "Conoscenza"
+    },
+    "tiers": {
+      "foundation": "Fondamento",
+      "specialization": "Specializzazione",
+      "mastery": "Maestria"
+    },
+    "features": {
+      "title": "Privilegi di sottoclasse",
+      "addButton": "Aggiungi privilegio",
+      "addToTier": "Aggiungi un privilegio: {tier}",
+      "saveButton": "Salva privilegio",
+      "emptyTier": "Ancora nessun privilegio in questo grado."
+    }
+  },
+  "dhFeature": {
+    "fields": {
+      "position": {
+        "label": "Posizione"
+      },
+      "name": {
+        "label": "Nome del privilegio"
+      },
+      "text": {
+        "label": "Testo del privilegio"
+      },
+      "tier": {
+        "label": "Grado"
+      }
     }
   }
 }

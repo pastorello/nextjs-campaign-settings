@@ -20,7 +20,9 @@
       "campaign": "Campaign",
       "sidebarLabel": "Main navigation",
       "dhDomains": "Domains",
-      "dhDomainCards": "Domain Cards"
+      "dhDomainCards": "Domain Cards",
+      "dhClasses": "Classes",
+      "dhSubclasses": "Subclasses"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -187,7 +189,12 @@
       "imageNotFound": "This image no longer exists. Upload it again.",
       "imageInUse": "This image already belongs to another record. Upload it again.",
       "dhDomainNotFound": "That domain no longer exists.",
-      "dhDomainInUse": "This domain is still used by {cards, plural, =0 {no cards} one {# card} other {# cards}} and {classes, plural, =0 {no classes} one {# class} other {# classes}}. Delete or move them first."
+      "dhDomainInUse": "This domain is still used by {cards, plural, =0 {no cards} one {# card} other {# cards}} and {classes, plural, =0 {no classes} one {# class} other {# classes}}. Delete or move them first.",
+      "domainsMustDiffer": "A class's two domains must be different.",
+      "classNeedsFeature": "A class needs at least one feature.",
+      "classHasSubclasses": "{count, plural, one {# subclass still belongs} other {# subclasses still belong}} to this class. Delete or move them first.",
+      "classFeatureOrderMismatch": "The given features do not match this class's current feature list.",
+      "subclassFeatureOrderMismatch": "The given features do not match this tier's current feature list."
     },
     "errorPage": {
       "genericTitle": "Something went wrong",
@@ -1630,6 +1637,123 @@
       "label": "Show as",
       "rows": "Rows",
       "cards": "Cards"
+    }
+  },
+  "dhClasses": {
+    "page": {
+      "title": "Classes",
+      "searchPlaceholder": "Search classes...",
+      "itemSingular": "class",
+      "itemPlural": "classes",
+      "newItemButton": "New Class",
+      "emptyMessage": "No class found"
+    },
+    "form": {
+      "createTitle": "Create New Class",
+      "editTitle": "Edit Class",
+      "createButton": "Create Class",
+      "editButton": "Edit Class"
+    },
+    "fields": {
+      "domainAId": {
+        "label": "First domain"
+      },
+      "domainBId": {
+        "label": "Second domain"
+      },
+      "domainNoneOption": "No domain chosen",
+      "startingEvasion": {
+        "label": "Starting Evasion"
+      },
+      "startingHp": {
+        "label": "Starting HP"
+      },
+      "classItems": {
+        "label": "Class items"
+      },
+      "hopeFeatureName": {
+        "label": "Hope feature name"
+      },
+      "hopeFeatureText": {
+        "label": "Hope feature text"
+      }
+    },
+    "hopeFeature": {
+      "legend": "Hope feature",
+      "cost": "Cost: 3 Hope"
+    },
+    "firstFeature": {
+      "legend": "First class feature",
+      "hint": "A class has at least one feature. Add the others, and reorder them, from the class's edit dialog."
+    },
+    "features": {
+      "title": "Class features",
+      "addButton": "Add feature",
+      "saveButton": "Save feature",
+      "moveUp": "Move \"{name}\" up",
+      "moveDown": "Move \"{name}\" down"
+    }
+  },
+  "dhSubclasses": {
+    "page": {
+      "title": "Subclasses",
+      "searchPlaceholder": "Search subclasses...",
+      "itemSingular": "subclass",
+      "itemPlural": "subclasses",
+      "newItemButton": "New Subclass",
+      "emptyMessage": "No subclass found"
+    },
+    "form": {
+      "createTitle": "Create New Subclass",
+      "editTitle": "Edit Subclass",
+      "createButton": "Create Subclass",
+      "editButton": "Edit Subclass"
+    },
+    "fields": {
+      "classId": {
+        "label": "Class",
+        "noneOption": "No class chosen"
+      },
+      "spellcastTrait": {
+        "label": "Spellcast trait"
+      }
+    },
+    "spellcastTraits": {
+      "none": "None",
+      "agility": "Agility",
+      "strength": "Strength",
+      "finesse": "Finesse",
+      "instinct": "Instinct",
+      "presence": "Presence",
+      "knowledge": "Knowledge"
+    },
+    "tiers": {
+      "foundation": "Foundation",
+      "specialization": "Specialization",
+      "mastery": "Mastery"
+    },
+    "features": {
+      "title": "Subclass features",
+      "addButton": "Add feature",
+      "addToTier": "Add a {tier} feature",
+      "saveButton": "Save feature",
+      "emptyTier": "No features in this tier yet."
+    }
+  },
+  "dhFeature": {
+    "fields": {
+      "position": {
+        "label": "Position"
+      },
+      "name": {
+        "label": "Feature name"
+      },
+      "text": {
+        "label": "Feature text"
+      },
+      "tier": {
+        "label": "Tier"
+      }
     }
   }
 }

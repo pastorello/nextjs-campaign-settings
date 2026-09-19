@@ -7,6 +7,8 @@ import DeityMetaField from "../definitions/enums/deities/DeityMetaField";
 import NpcMetaField from "../definitions/enums/npc/NpcMetaField";
 import PageType from "../definitions/types/PageType";
 import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
+import DhClassMetaField from "../definitions/enums/daggerheart/DhClassMetaField";
+import DhSubclassMetaField from "../definitions/enums/daggerheart/DhSubclassMetaField";
 
 /**
  * The fields each domain's form holds state for (TD-09).
@@ -109,6 +111,27 @@ const formFields: Record<PageType, MetaConfigKey[]> = {
     DhDomainCardMetaField.cardType,
     DhDomainCardMetaField.featureText,
     DhDomainCardMetaField.origin,
+  ],
+
+  [PageType.DhClass]: [
+    DhClassMetaField.name,
+    DhClassMetaField.description,
+    DhClassMetaField.domainAId,
+    DhClassMetaField.domainBId,
+    DhClassMetaField.startingEvasion,
+    DhClassMetaField.startingHp,
+    DhClassMetaField.classItems,
+    DhClassMetaField.hopeFeatureName,
+    DhClassMetaField.hopeFeatureText,
+    DhClassMetaField.origin,
+  ],
+
+  [PageType.DhSubclass]: [
+    DhSubclassMetaField.name,
+    DhSubclassMetaField.description,
+    DhSubclassMetaField.classId,
+    DhSubclassMetaField.spellcastTrait,
+    DhSubclassMetaField.origin,
   ],
 };
 

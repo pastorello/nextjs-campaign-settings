@@ -7,6 +7,8 @@ import PageType from "../definitions/types/PageType";
 import DeityMetaField from "../definitions/enums/deities/DeityMetaField";
 import NpcMetaField from "../definitions/enums/npc/NpcMetaField";
 import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
+import DhClassMetaField from "../definitions/enums/daggerheart/DhClassMetaField";
+import DhSubclassMetaField from "../definitions/enums/daggerheart/DhSubclassMetaField";
 
 /**
  * The fields a domain can be filtered by, declared once (TD-12).
@@ -103,6 +105,22 @@ const queryFields: Record<PageType, MetaConfigKey[]> = {
     DhDomainCardMetaField.cardType,
     DhDomainCardMetaField.recallCost,
     DhDomainCardMetaField.origin,
+  ],
+
+  // Name search is `getQuery`'s free-text match, as above. Each domain
+  // filters its own slot: a class whose domain B is X is not found by
+  // filtering domain A on X.
+  [PageType.DhClass]: [
+    DhClassMetaField.domainAId,
+    DhClassMetaField.domainBId,
+    DhClassMetaField.origin,
+  ],
+
+  // The class filter SPEC-021 §5.5 asks for. Not `spellcastTrait`: "none"
+  // is stored as `null`, so an equality filter on it would match nothing.
+  [PageType.DhSubclass]: [
+    DhSubclassMetaField.classId,
+    DhSubclassMetaField.origin,
   ],
 };
 

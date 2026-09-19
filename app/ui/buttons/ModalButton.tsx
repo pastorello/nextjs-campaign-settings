@@ -16,6 +16,8 @@ import FactionForm from "../factions/FactionForm";
 import TreasureForm from "../treasures/TreasureForm";
 import DhDomainForm from "../dhDomains/DhDomainForm";
 import DhDomainCardForm from "../dhDomainCards/DhDomainCardForm";
+import DhClassForm from "../dhClasses/DhClassForm";
+import DhSubclassForm from "../dhSubclasses/DhSubclassForm";
 import OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
 interface ModalButtonProps {
@@ -28,8 +30,8 @@ interface ModalButtonProps {
   modalSize?: string;
   componentProps?: ListItem;
   /**
-   * Only `npcform` and `dhdomaincardform` read this — every other variant
-   * ignores it.
+   * Read by the forms with a table-backed field: NPCs, domain cards,
+   * classes and subclasses.
    */
   optionBundle?: OptionBundle | undefined;
   /**
@@ -170,6 +172,32 @@ const ModalButton = ({
           )}
           {modalContent === "dhdomaincardform" && (
             <DhDomainCardForm
+              {...componentProps}
+              optionBundle={optionBundle}
+              onCancel={closeModal}
+              onSaveFinished={(item: object) => {
+                closeModal();
+                if (onSave) {
+                  onSave(item);
+                }
+              }}
+            />
+          )}
+          {modalContent === "dhclassform" && (
+            <DhClassForm
+              {...componentProps}
+              optionBundle={optionBundle}
+              onCancel={closeModal}
+              onSaveFinished={(item: object) => {
+                closeModal();
+                if (onSave) {
+                  onSave(item);
+                }
+              }}
+            />
+          )}
+          {modalContent === "dhsubclassform" && (
+            <DhSubclassForm
               {...componentProps}
               optionBundle={optionBundle}
               onCancel={closeModal}

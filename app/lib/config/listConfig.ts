@@ -6,6 +6,8 @@ import DhDomainCardMetaField from "../definitions/enums/daggerheart/DhDomainCard
 import DeityMetaField from "../definitions/enums/deities/DeityMetaField";
 import NpcMetaField from "../definitions/enums/npc/NpcMetaField";
 import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
+import DhClassMetaField from "../definitions/enums/daggerheart/DhClassMetaField";
+import DhSubclassMetaField from "../definitions/enums/daggerheart/DhSubclassMetaField";
 import PageType from "../definitions/types/PageType";
 
 /**
@@ -219,6 +221,59 @@ const listConfig: Record<PageType, ListConfig> = {
     emptyMessageKey: "dhDomainCards.page.emptyMessage",
     editModalTitleKey: "dhDomainCards.form.editTitle",
     modalContent: "dhdomaincardform",
+  },
+
+  [PageType.DhClass]: {
+    columns: [
+      {
+        fieldKey: DhClassMetaField.domainAId,
+        labelKey: "dhClasses.fields.domainAId.label",
+      },
+      {
+        fieldKey: DhClassMetaField.domainBId,
+        labelKey: "dhClasses.fields.domainBId.label",
+      },
+      // Plain numbers: no options for SortableHeader's filter select.
+      {
+        fieldKey: DhClassMetaField.startingEvasion,
+        labelKey: "dhClasses.fields.startingEvasion.label",
+        isFiltrable: false,
+      },
+      {
+        fieldKey: DhClassMetaField.startingHp,
+        labelKey: "dhClasses.fields.startingHp.label",
+        isFiltrable: false,
+      },
+      {
+        fieldKey: DhClassMetaField.origin,
+        labelKey: "daggerheart.fields.origin.label",
+      },
+    ],
+    emptyMessageKey: "dhClasses.page.emptyMessage",
+    editModalTitleKey: "dhClasses.form.editTitle",
+    modalContent: "dhclassform",
+  },
+
+  [PageType.DhSubclass]: {
+    columns: [
+      {
+        fieldKey: DhSubclassMetaField.classId,
+        labelKey: "dhSubclasses.fields.classId.label",
+      },
+      // Not filtrable: "none" is stored as `null` (see `queryFields`).
+      {
+        fieldKey: DhSubclassMetaField.spellcastTrait,
+        labelKey: "dhSubclasses.fields.spellcastTrait.label",
+        isFiltrable: false,
+      },
+      {
+        fieldKey: DhSubclassMetaField.origin,
+        labelKey: "daggerheart.fields.origin.label",
+      },
+    ],
+    emptyMessageKey: "dhSubclasses.page.emptyMessage",
+    editModalTitleKey: "dhSubclasses.form.editTitle",
+    modalContent: "dhsubclassform",
   },
 };
 

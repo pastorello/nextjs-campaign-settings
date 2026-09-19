@@ -17,6 +17,10 @@ import { fetchFilteredFactions } from "@/app/lib/data/faction/fetchFilteredFacti
 import { fetchFilteredTreasures } from "@/app/lib/data/treasure/fetchFilteredTreasures";
 import { fetchFilteredDhDomains } from "@/app/lib/data/dhDomains/fetchFilteredDhDomains";
 import { fetchFilteredDhDomainCards } from "@/app/lib/data/dhDomainCards/fetchFilteredDhDomainCards";
+import { fetchFilteredDhClasses } from "@/app/lib/data/dhClasses/fetchFilteredDhClasses";
+import { fetchFilteredDhSubclasses } from "@/app/lib/data/dhSubclasses/fetchFilteredDhSubclasses";
+import { fieldMeta } from "@/app/lib/config/pageMetaFields";
+import type { OptionTableName } from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
 import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
 import { toDerivedPlacements } from "@/app/modules/maps/lib/utils/deriveEntityAncestry";
@@ -74,8 +78,52 @@ const fetchItems = (pageType: PageType, searchParams: SearchParamsInput) => {
       return fetchFilteredDhDomains(searchParams);
     case PageType.DhDomainCard:
       return fetchFilteredDhDomainCards(searchParams);
+    case PageType.DhClass:
+      return fetchFilteredDhClasses(searchParams);
+    case PageType.DhSubclass:
+      return fetchFilteredDhSubclasses(searchParams);
   }
 };
+
+/**
+ * Every table a page's fields read their options from, resolved once per
+ * request (SPEC-006 §7, decision 10) — `undefined` for a page with none.
+ * Read from the metadata, so a table-backed field added to a page is
+ * resolved without touching this list (SPEC-021 T4/T5 added the first ones
+ * after the NPC's faction).
+ */
+async function fetchOptionBundle(
+  pageType: PageType
+): Promise<OptionBundle | undefined> {
+  const tables = [
+    ...new Set(
+      pagesConfig[pageType].fields
+        .map((key) => fieldMeta[key]?.optionTable)
+        .filter((table): table is OptionTableName => table !== undefined)
+    ),
+  ];
+  if (tables.length === 0) return undefined;
+  return Object.fromEntries(
+    await Promise.all(
+      tables.map(async (table) => [table, await fetchFieldOptions(table)])
+    )
+  ) as OptionBundle;
+}
+
+/**
+ * The formatted text of the rows' inline features (SPEC-021 T4/T5), which
+ * the edit dialog's feature editor shows — resolved with the rows' own
+ * formatted fields, so a link in a feature resolves like one in a field.
+ */
+function featureTextsOf(items: readonly ListItem[]): string[] {
+  return items.flatMap((item) =>
+    Array.isArray(item.features)
+      ? (item.features as { text?: unknown }[])
+          .map((feature) => feature.text)
+          .filter((text): text is string => typeof text === "string")
+      : []
+  );
+}
 
 export default async function EntityList(props: {
   pageType: PageType;
@@ -123,14 +171,8 @@ export default async function EntityList(props: {
 
   // Resolved once per request and passed down as a prop (SPEC-006 §7,
   // decision 10) — to the cells, the edit form and, since TD-78, the column
-  // headers' filters. The NPC list's faction and the domain card list's
-  // domain (SPEC-021 T3) are the table-backed fields.
-  const optionBundle: OptionBundle | undefined =
-    props.pageType === PageType.Npc
-      ? { faction: await fetchFieldOptions("faction") }
-      : props.pageType === PageType.DhDomainCard
-        ? { dhDomain: await fetchFieldOptions("dhDomain") }
-        : undefined;
+  // headers' filters.
+  const optionBundle = await fetchOptionBundle(props.pageType);
 
   // The desktop table's action cell. Icon buttons rather than labelled ones
   // (TD-118) — the accessible name still carries the item's own name
@@ -179,7 +221,10 @@ export default async function EntityList(props: {
   // T5) — the forms open a link to a deleted record unlinked.
   return (
     <ResolvedRecordLinks
-      values={richTextValuesOf(props.pageType, items)}
+      values={[
+        ...richTextValuesOf(props.pageType, items),
+        ...featureTextsOf(items),
+      ]}
       system={props.system}
     >
       <div className="mt-6 flow-root">

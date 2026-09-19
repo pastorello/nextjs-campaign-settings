@@ -9,6 +9,8 @@ const {
   magicitemsFindMany,
   treasureFindMany,
   deitiesFindMany,
+  dhDomainFindMany,
+  dhClassFindMany,
 } = vi.hoisted(() => ({
   findMany: vi.fn(),
   zoneFindMany: vi.fn(),
@@ -16,6 +18,8 @@ const {
   magicitemsFindMany: vi.fn(),
   treasureFindMany: vi.fn(),
   deitiesFindMany: vi.fn(),
+  dhDomainFindMany: vi.fn(),
+  dhClassFindMany: vi.fn(),
 }));
 vi.mock("@/app/lib/connections/prisma", () => ({
   default: {
@@ -25,6 +29,8 @@ vi.mock("@/app/lib/connections/prisma", () => ({
     magicitems: { findMany: magicitemsFindMany },
     treasure: { findMany: treasureFindMany },
     deities: { findMany: deitiesFindMany },
+    dhDomain: { findMany: dhDomainFindMany },
+    dhClass: { findMany: dhClassFindMany },
   },
 }));
 
@@ -103,4 +109,24 @@ describe("fetchFieldOptions (SPEC-006 T6)", () => {
       orderBy: { name: "asc" },
     });
   });
+
+  it.each([
+    ["dhDomain", dhDomainFindMany],
+    ["dhClass", dhClassFindMany],
+  ] as const)(
+    "maps %s rows to {value, label} sorted by name (SPEC-021 T4/T5)",
+    async (table, tableFindMany) => {
+      tableFindMany.mockResolvedValue([{ id: 2, name: "Ember" }]);
+
+      const { default: fetchFieldOptions } =
+        await import("./fetchFieldOptions");
+      const result = await fetchFieldOptions(table);
+
+      expect(result).toEqual([{ value: 2, label: "Ember" }]);
+      expect(tableFindMany).toHaveBeenCalledWith({
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+      });
+    }
+  );
 });

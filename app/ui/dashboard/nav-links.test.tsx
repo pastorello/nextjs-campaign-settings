@@ -86,6 +86,28 @@ describe("NavLinks under a system", () => {
     expect(screen.queryByText("dhDomains")).not.toBeInTheDocument();
     expect(screen.queryByText("dhDomainCards")).not.toBeInTheDocument();
   });
+
+  it("lists classes and subclasses under daggerheart only (SPEC-021 T4/T5)", () => {
+    system = "daggerheart";
+    pathname = "/dashboard/daggerheart";
+    const { unmount } = render(<NavLinks />);
+
+    expect(screen.getByLabelText("dhClasses")).toHaveAttribute(
+      "href",
+      "/dashboard/daggerheart/admin/classes"
+    );
+    expect(screen.getByLabelText("dhSubclasses")).toHaveAttribute(
+      "href",
+      "/dashboard/daggerheart/admin/subclasses"
+    );
+    unmount();
+
+    system = "dnd5e";
+    pathname = "/dashboard/dnd5e";
+    render(<NavLinks />);
+    expect(screen.queryByText("dhClasses")).not.toBeInTheDocument();
+    expect(screen.queryByText("dhSubclasses")).not.toBeInTheDocument();
+  });
 });
 
 describe("NavLinks", () => {

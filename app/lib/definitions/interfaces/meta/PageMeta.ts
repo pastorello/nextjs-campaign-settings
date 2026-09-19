@@ -22,7 +22,8 @@ type MetaDisplayValue = string | number | boolean | number[] | string[] | null;
  * `magicItemId`/`treasureId` are each a plain FK where the referenced table
  * is the membership check, the same shape `faction` already established
  * (SPEC-006 §7). `deities` joined with SPEC-014 T5, for world history's
- * links. `dhDomain` joined with SPEC-021 T3, for a domain card's domain.
+ * links. `dhDomain` joined with SPEC-021 T3, for a domain card's domain,
+ * and `dhClass` with T5, for a subclass's class.
  * See `fetchFieldOptions.ts` for the table read each name maps to.
  */
 type OptionTableName =
@@ -32,7 +33,8 @@ type OptionTableName =
   | "deities"
   | "magicitems"
   | "treasure"
-  | "dhDomain";
+  | "dhDomain"
+  | "dhClass";
 
 /**
  * A field's options are either a static list or rows in a table — never
@@ -48,11 +50,18 @@ type OptionTableName =
 interface StaticOptionsMeta {
   options?: SelectOption[];
   optionTable?: never;
+  noneOptionKey?: never;
 }
 
 interface TableOptionsMeta {
   options?: never;
   optionTable: OptionTableName;
+  /**
+   * Message key for the form select's "nothing picked" entry. Falls back to
+   * the NPC faction's "No faction", the first table-backed field's, which is
+   * wrong for any other table (SPEC-021 T4).
+   */
+  noneOptionKey?: string;
 }
 
 type OptionsDeclaration = StaticOptionsMeta | TableOptionsMeta;

@@ -16,6 +16,8 @@ import imageMeta from "./image/imageMeta";
 import dhOriginMeta from "./daggerheart/dhOriginMeta";
 import dhDomainMeta from "./daggerheart/dhDomainMeta";
 import dhDomainCardMeta from "./daggerheart/dhDomainCardMeta";
+import dhClassMeta from "./daggerheart/dhClassMeta";
+import dhSubclassMeta from "./daggerheart/dhSubclassMeta";
 
 /**
  * Fields more than one domain meta may declare without it being an accident —
@@ -85,6 +87,20 @@ type DomainMetaPairs = {
   >;
   dhCardNpc: CollidingKeys<typeof dhDomainCardMeta, typeof npcMeta>;
   dhCardTreasure: CollidingKeys<typeof dhDomainCardMeta, typeof treasureMeta>;
+  deitiesDhClass: CollidingKeys<typeof deitiesMeta, typeof dhClassMeta>;
+  deitiesDhSubclass: CollidingKeys<typeof deitiesMeta, typeof dhSubclassMeta>;
+  spellsDhClass: CollidingKeys<typeof spellsMeta, typeof dhClassMeta>;
+  spellsDhSubclass: CollidingKeys<typeof spellsMeta, typeof dhSubclassMeta>;
+  magicItemsDhClass: CollidingKeys<typeof magicItemsMeta, typeof dhClassMeta>;
+  magicItemsDhSubclass: CollidingKeys<
+    typeof magicItemsMeta,
+    typeof dhSubclassMeta
+  >;
+  npcDhClass: CollidingKeys<typeof npcMeta, typeof dhClassMeta>;
+  npcDhSubclass: CollidingKeys<typeof npcMeta, typeof dhSubclassMeta>;
+  treasureDhClass: CollidingKeys<typeof treasureMeta, typeof dhClassMeta>;
+  treasureDhSubclass: CollidingKeys<typeof treasureMeta, typeof dhSubclassMeta>;
+  dhClassDhSubclass: CollidingKeys<typeof dhClassMeta, typeof dhSubclassMeta>;
 };
 type AssertAllDisjoint<T extends Record<keyof DomainMetaPairs, never>> = T;
 export type DomainMetaFieldsAreDisjoint = AssertAllDisjoint<DomainMetaPairs>;
@@ -165,6 +181,8 @@ const pageMetaFields = {
   origin: dhOriginMeta,
   ...dhDomainMeta,
   ...dhDomainCardMeta,
+  ...dhClassMeta,
+  ...dhSubclassMeta,
 } satisfies Record<string, PageMeta>;
 
 /**

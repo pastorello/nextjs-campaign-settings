@@ -88,7 +88,13 @@ const InputComponent = ({
         // would need its own copy anyway ("no faction" and "no supervisor"
         // are not the same word).
         result.options = [
-          { value: NO_SELECTION, label: t("npc.fields.faction.noneOption") },
+          {
+            value: NO_SELECTION,
+            label: t(
+              fieldMeta[fieldName]?.noneOptionKey ??
+                "npc.fields.faction.noneOption"
+            ),
+          },
           ...tableOptions,
         ];
       } else {

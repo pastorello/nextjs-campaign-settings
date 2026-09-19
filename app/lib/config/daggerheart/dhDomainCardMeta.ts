@@ -27,6 +27,8 @@ const dhDomainCardMeta = {
     defaultValue: null,
     fieldType: FieldType.integer,
     optionTable: "dhDomain",
+    // The select's empty entry, instead of the fallback "No faction".
+    noneOptionKey: "dhClasses.fields.domainNoneOption",
     controlType: ControlType.Select,
     validator: z.number().int().positive(),
   },

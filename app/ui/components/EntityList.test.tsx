@@ -104,6 +104,17 @@ vi.mock("@/app/lib/data/faction/fetchFilteredFactions", () => ({
   fetchFilteredFactions: (...args: unknown[]) => fetchFilteredFactions(...args),
 }));
 
+const fetchFilteredDhClasses = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/dhClasses/fetchFilteredDhClasses", () => ({
+  fetchFilteredDhClasses: (...args: unknown[]) =>
+    fetchFilteredDhClasses(...args),
+}));
+const fetchFilteredDhSubclasses = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/dhSubclasses/fetchFilteredDhSubclasses", () => ({
+  fetchFilteredDhSubclasses: (...args: unknown[]) =>
+    fetchFilteredDhSubclasses(...args),
+}));
+
 // Backs both the "Location" column (SPEC-008 T6) and the assignment
 // button's "current location" display (T5) — stubbed to an empty map by
 // default, overridden by the dedicated tests below. Same fetch and shape
@@ -278,6 +289,61 @@ describe("EntityList", () => {
     expect(JSON.parse(header.getAttribute("data-bundle") ?? "null")).toEqual({
       faction: [{ value: 3, label: "Gilda dei Ladri" }],
     });
+  });
+
+  // SPEC-021 T5: the class filter is the class column's header filter, fed
+  // from the option table the metadata names — no per-page wiring.
+  it("gives the subclass list's class header a filter fed by the class options", async () => {
+    fetchFilteredDhSubclasses.mockResolvedValue([]);
+    fetchFieldOptions.mockResolvedValue([
+      { value: 4, label: "Lantern Warden" },
+    ]);
+
+    render(
+      await EntityList({ system: "daggerheart", pageType: PageType.DhSubclass })
+    );
+
+    expect(fetchFieldOptions).toHaveBeenCalledTimes(1);
+    expect(fetchFieldOptions).toHaveBeenCalledWith("dhClass");
+    const header = screen.getByText("dhSubclasses.fields.classId.label");
+    expect(header).toHaveAttribute("data-filtrable", "true");
+    expect(JSON.parse(header.getAttribute("data-bundle") ?? "null")).toEqual({
+      dhClass: [{ value: 4, label: "Lantern Warden" }],
+    });
+  });
+
+  // SPEC-021 T4: both domain columns read one table, resolved once; the
+  // features' formatted text resolves its record links with the fields'.
+  it("resolves the class list's domains once and its features' links", async () => {
+    fetchFilteredDhClasses.mockResolvedValue([
+      {
+        id: 4,
+        name: "Lantern Warden",
+        description: "<p>d</p>",
+        domainAId: 1,
+        domainBId: 2,
+        startingEvasion: 9,
+        startingHp: 6,
+        classItems: "",
+        hopeFeatureName: "Kindle",
+        hopeFeatureText: "<p>h</p>",
+        origin: "homebrew",
+        features: [
+          { id: 1, classId: 4, position: 1, name: "A", text: "<p>f</p>" },
+        ],
+      },
+    ]);
+
+    render(
+      await EntityList({ system: "daggerheart", pageType: PageType.DhClass })
+    );
+
+    expect(fetchFieldOptions).toHaveBeenCalledTimes(1);
+    expect(fetchFieldOptions).toHaveBeenCalledWith("dhDomain");
+    expect(resolvedValues).toHaveBeenCalledWith(
+      expect.arrayContaining(["<p>f</p>", "<p>h</p>"]),
+      "daggerheart"
+    );
   });
 
   // TD-136: every row's Edit button announced as plain "Modifica" — this

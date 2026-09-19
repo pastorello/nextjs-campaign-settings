@@ -75,6 +75,16 @@ vi.mock("../dhDomainCards/DhDomainCardForm", () => ({
     </button>
   ),
 }));
+vi.mock("../dhClasses/DhClassForm", () => ({
+  default: ({ onSaveFinished }: { onSaveFinished: (i: object) => void }) => (
+    <button onClick={() => onSaveFinished({ id: 1 })}>save-dh-class</button>
+  ),
+}));
+vi.mock("../dhSubclasses/DhSubclassForm", () => ({
+  default: ({ onSaveFinished }: { onSaveFinished: (i: object) => void }) => (
+    <button onClick={() => onSaveFinished({ id: 1 })}>save-dh-subclass</button>
+  ),
+}));
 
 import ModalButton from "./ModalButton";
 
@@ -115,6 +125,8 @@ describe("ModalButton", () => {
     ["treasureform", "save-treasure"],
     ["dhdomainform", "save-dhdomain"],
     ["dhdomaincardform", "save-dhdomaincard:"],
+    ["dhclassform", "save-dh-class"],
+    ["dhsubclassform", "save-dh-subclass"],
   ])("renders the %s variant", (modalContent, expectedText) => {
     render(
       <ModalButton

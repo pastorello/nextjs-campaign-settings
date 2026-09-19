@@ -84,6 +84,12 @@ export const FIELD_ERROR_KEYS = [
   // Daggerheart catalogues (SPEC-021)
   "dhDomainNotFound",
   "dhDomainInUse",
+  // Daggerheart classes and subclasses (SPEC-021 T4, T5)
+  "domainsMustDiffer",
+  "classNeedsFeature",
+  "classHasSubclasses",
+  "classFeatureOrderMismatch",
+  "subclassFeatureOrderMismatch",
 ] as const;
 
 type FieldErrorKey = (typeof FIELD_ERROR_KEYS)[number];

@@ -9,6 +9,8 @@ import MagicItemMetaField from "@/app/lib/definitions/enums/magicitem/MagicItemM
 import TreasureMetaField from "@/app/lib/definitions/enums/treasure/TreasureMetaField";
 import DhDomainMetaField from "@/app/lib/definitions/enums/daggerheart/DhDomainMetaField";
 import DhDomainCardMetaField from "@/app/lib/definitions/enums/daggerheart/DhDomainCardMetaField";
+import DhClassMetaField from "@/app/lib/definitions/enums/daggerheart/DhClassMetaField";
+import DhSubclassMetaField from "@/app/lib/definitions/enums/daggerheart/DhSubclassMetaField";
 
 /**
  * Which fields make up each page, in order.
@@ -150,6 +152,36 @@ const pagesConfig: Record<PageType, PageConfig> = {
       DhDomainCardMetaField.cardType,
       DhDomainCardMetaField.featureText,
       DhDomainCardMetaField.origin,
+    ],
+    system: "daggerheart",
+  },
+  // SPEC-021 T4. The class's features are an inline collection (ADR-0011),
+  // not fields: `dhClassFeatureMeta` declares them.
+  [PageType.DhClass]: {
+    fields: [
+      "id",
+      DhClassMetaField.name,
+      DhClassMetaField.description,
+      DhClassMetaField.domainAId,
+      DhClassMetaField.domainBId,
+      DhClassMetaField.startingEvasion,
+      DhClassMetaField.startingHp,
+      DhClassMetaField.classItems,
+      DhClassMetaField.hopeFeatureName,
+      DhClassMetaField.hopeFeatureText,
+      DhClassMetaField.origin,
+    ],
+    system: "daggerheart",
+  },
+  // SPEC-021 T5. Tiered features are inline too (`dhSubclassFeatureMeta`).
+  [PageType.DhSubclass]: {
+    fields: [
+      "id",
+      DhSubclassMetaField.name,
+      DhSubclassMetaField.description,
+      DhSubclassMetaField.classId,
+      DhSubclassMetaField.spellcastTrait,
+      DhSubclassMetaField.origin,
     ],
     system: "daggerheart",
   },

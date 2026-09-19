@@ -105,5 +105,18 @@ export default async function fetchFieldOptions(
 
       return rows.map((row) => ({ value: row.id, label: row.name }));
     }
+    case "dhClass": {
+      let rows;
+      try {
+        rows = await prisma.dhClass.findMany({
+          select: { id: true, name: true },
+          orderBy: { name: "asc" },
+        });
+      } catch (error) {
+        throw toDatabaseError("fetching dhClass options", error);
+      }
+
+      return rows.map((row) => ({ value: row.id, label: row.name }));
+    }
   }
 }

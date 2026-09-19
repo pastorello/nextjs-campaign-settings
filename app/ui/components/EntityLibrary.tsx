@@ -122,5 +122,10 @@ export default async function EntityLibrary(props: {
       const items = await fetchFilteredDhDomainCards(searchParams);
       return withRecordLinks(items, <DhDomainCardLibrary items={items} />);
     }
+    // No public library: the Daggerheart catalogues have admin lists only
+    // until the class page (SPEC-021 T6).
+    case PageType.DhClass:
+    case PageType.DhSubclass:
+      return null;
   }
 }

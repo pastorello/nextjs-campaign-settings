@@ -40,25 +40,28 @@ Steps 1–3 are cheap and go in one file. Do not skip straight to 4 for anything
 
 ## Index
 
-| #   | Feature                                                                       | Status                           | Phase |
-| --- | ----------------------------------------------------------------------------- | -------------------------------- | ----- |
-| 001 | [Combat tracker](./001-combat-tracker.md)                                     | Draft — skeleton, not agreed     | 4     |
-| 002 | [Map POI persistence](./002-map-poi-persistence.md)                           | Shipped 2026-08-01               | 3     |
-| 003 | [Real relations](./003-real-relations.md)                                     | Superseded by 004                | 3     |
-| 004 | [World model](./004-world-model.md)                                           | Shipped 2026-08-08               | 3     |
-| 005 | [Place repositioning](./005-place-repositioning.md)                           | Shipped 2026-08-07               | 3     |
-| 006 | [Factions the DM can author](./006-factions.md)                               | Shipped 2026-08-10               | 3     |
-| 007 | [The world is described but not drawn](./007-placement-backlog.md)            | Shipped 2026-08-10 — 2 gaps      | 3     |
-| 008 | [Entity location reference](./008-entity-location-reference.md)               | Shipped 2026-08-08               | 3     |
-| 009 | [Zones as areas](./009-zones-as-areas.md)                                     | Shipped 2026-08-13               | 3     |
-| 010 | [Deleting a place](./010-deleting-a-place.md)                                 | Shipped 2026-08-13               | 3     |
-| 011 | [Cross-entity search](./011-cross-entity-search.md)                           | Shipped 2026-08-17               | 3     |
-| 012 | [Publishing and internet exposure](./012-publishing-and-internet-exposure.md) | Draft — needs the DM's agreement | 3     |
-| 013 | [Campaign management](./013-campaign-management.md)                           | Closed 2026-08-19 — shipped      | 4     |
-| 014 | [The calendar and the timeline](./014-calendar-and-timeline.md)               | Shipped 2026-09-18               | 4     |
-| 015 | [Map grids, scale and measurement](./015-map-grid-and-scale.md)               | Shipped 2026-08-20               | 4     |
-| 016 | [The place popover](./016-place-popover.md)                                   | Shipped 2026-08-27               | 4     |
-| 017 | [One pool of unplaced places](./017-one-unplaced-pool.md)                     | Shipped 2026-09-09               | 4     |
-| 018 | [Game systems — one world, several rule sets](./018-game-systems.md)          | Agreed 2026-09-11                | 4     |
+| #   | Feature                                                                                      | Status                           | Phase |
+| --- | -------------------------------------------------------------------------------------------- | -------------------------------- | ----- |
+| 001 | [Combat tracker](./001-combat-tracker.md)                                                    | Draft — skeleton, not agreed     | 4     |
+| 002 | [Map POI persistence](./002-map-poi-persistence.md)                                          | Shipped 2026-08-01               | 3     |
+| 003 | [Real relations](./003-real-relations.md)                                                    | Superseded by 004                | 3     |
+| 004 | [World model](./004-world-model.md)                                                          | Shipped 2026-08-08               | 3     |
+| 005 | [Place repositioning](./005-place-repositioning.md)                                          | Shipped 2026-08-07               | 3     |
+| 006 | [Factions the DM can author](./006-factions.md)                                              | Shipped 2026-08-10               | 3     |
+| 007 | [The world is described but not drawn](./007-placement-backlog.md)                           | Shipped 2026-08-10 — 2 gaps      | 3     |
+| 008 | [Entity location reference](./008-entity-location-reference.md)                              | Shipped 2026-08-08               | 3     |
+| 009 | [Zones as areas](./009-zones-as-areas.md)                                                    | Shipped 2026-08-13               | 3     |
+| 010 | [Deleting a place](./010-deleting-a-place.md)                                                | Shipped 2026-08-13               | 3     |
+| 011 | [Cross-entity search](./011-cross-entity-search.md)                                          | Shipped 2026-08-17               | 3     |
+| 012 | [Publishing and internet exposure](./012-publishing-and-internet-exposure.md)                | Draft — needs the DM's agreement | 3     |
+| 013 | [Campaign management](./013-campaign-management.md)                                          | Closed 2026-08-19 — shipped      | 4     |
+| 014 | [The calendar and the timeline](./014-calendar-and-timeline.md)                              | Shipped 2026-09-18               | 4     |
+| 015 | [Map grids, scale and measurement](./015-map-grid-and-scale.md)                              | Shipped 2026-08-20               | 4     |
+| 016 | [The place popover](./016-place-popover.md)                                                  | Shipped 2026-08-27               | 4     |
+| 017 | [One pool of unplaced places](./017-one-unplaced-pool.md)                                    | Shipped 2026-09-09               | 4     |
+| 018 | [Game systems — one world, several rule sets](./018-game-systems.md)                         | Agreed 2026-09-11                | 4     |
+| 019 | [Formatted text](./019-formatted-text.md)                                                    | Draft — interviewed 2026-09-19   | 5     |
+| 020 | [Images on records](./020-record-images.md)                                                  | Draft — interviewed 2026-09-19   | 5     |
+| 021 | [Daggerheart: domains, cards, classes, subclasses](./021-daggerheart-domains-and-classes.md) | Draft — interviewed 2026-09-19   | 4     |
 
 Feature ideas live in [`../ROADMAP.md`](../ROADMAP.md) until they are ready for a spec.

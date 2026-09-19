@@ -60,6 +60,14 @@ describe("createRecordImage (SPEC-020 T3)", () => {
     expect(store.delete).toHaveBeenCalledWith("display.webp");
     expect(store.delete).toHaveBeenCalledWith("thumb.webp");
   });
+
+  it("still answers null when the cleanup deletes fail too", async () => {
+    recordImage.create.mockRejectedValue(new Error("db down"));
+    store.delete.mockRejectedValue(new Error("disk gone"));
+
+    await expect(createRecordImage(stored, store)).resolves.toBeNull();
+    expect(store.delete).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe("deleteRecordImage (SPEC-020 §5.6)", () => {

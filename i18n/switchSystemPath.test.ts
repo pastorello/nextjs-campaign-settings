@@ -1,13 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import type GameSystem from "@/app/lib/definitions/GameSystem";
-
 import { switchSystemPath } from "./switchSystemPath";
 
-// `GAME_SYSTEMS` holds only `dnd5e` until a second system lands with its first
-// slice (ADR-0013 rule 1), so the target of a real switch is not yet a member
-// of the type. The helper only reads the slug, so the assertion is safe.
-const daggerheart = "daggerheart" as GameSystem;
+const daggerheart = "daggerheart";
 
 describe("switchSystemPath (ADR-0013 rule 6)", () => {
   it("keeps a shared page's path and query under the target system", () => {

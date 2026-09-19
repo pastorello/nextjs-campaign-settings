@@ -16,6 +16,8 @@ import {
 import clsx from "clsx";
 import { useTranslations } from "next-intl";
 
+import isPageInSystem from "@/app/lib/config/isPageInSystem";
+import PageType from "@/app/lib/definitions/types/PageType";
 import useGameSystem from "@/app/lib/hooks/useGameSystem";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { Link, usePathname } from "@/i18n/navigation";
@@ -28,6 +30,14 @@ const links: {
   href: DashboardSubpath;
   admin?: DashboardSubpath;
   icon: typeof HomeIcon;
+  /**
+   * The `pagesConfig` page behind a catalogue entry. The entry is shown only
+   * under the page's system (ADR-0013 rule 4): a 5e catalogue under
+   * `daggerheart` would be a 404. Entries without one are the world, shared
+   * by every system. SPEC-021 T2–T5 add the Daggerheart catalogues here, each
+   * with the page it creates, so they show under `daggerheart` alone.
+   */
+  page?: PageType;
 }[] = [
   // First, above "home" — the first thing a DM reaches for when they know a
   // name but not which of the six catalogues holds it (SPEC-011 §5).
@@ -51,12 +61,14 @@ const links: {
   },
   {
     key: "spells",
+    page: PageType.Spell,
     href: "/spells",
     admin: "/admin/spells",
     icon: BookOpenIcon,
   },
   {
     key: "magicItems",
+    page: PageType.MagicItem,
     href: "/magicitems",
     icon: TrophyIcon,
     admin: "/admin/magicitems",
@@ -75,6 +87,7 @@ const links: {
   },
   {
     key: "treasure",
+    page: PageType.Treasure,
     href: "/treasures",
     admin: "/admin/treasures",
     icon: BanknotesIcon,
@@ -87,6 +100,9 @@ export default function NavLinks() {
   const pathname = usePathname();
   const system = useGameSystem();
   const t = useTranslations("common.nav");
+  const systemLinks = links.filter(
+    (link) => link.page === undefined || isPageInSystem(link.page, system)
+  );
 
   return (
     // A real box below `md` — `min-w-0` lets it shrink so its own
@@ -97,7 +113,7 @@ export default function NavLinks() {
     // before — this wrapper changes nothing on desktop.
     <div className="relative min-w-0 md:contents">
       <div className="flex gap-2 overflow-x-auto md:contents">
-        {links.map((link) => {
+        {systemLinks.map((link) => {
           const name = t(link.key);
           const LinkIcon = link.icon;
           const href = dashboardPath(system, link.href);

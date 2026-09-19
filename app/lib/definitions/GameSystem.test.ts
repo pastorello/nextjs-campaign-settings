@@ -7,7 +7,12 @@ describe("GameSystem", () => {
     for (const system of GAME_SYSTEMS) expect(isGameSystem(system)).toBe(true);
   });
 
-  it.each(["", "DND5E", "daggerheart", "spells", undefined, 5])(
+  it("holds 5e and, since SPEC-021 T1, Daggerheart", () => {
+    expect(GAME_SYSTEMS).toEqual(["dnd5e", "daggerheart"]);
+  });
+
+  // `pf2e` is named by ADR-0013 but joins only with its first slice.
+  it.each(["", "DND5E", "Daggerheart", "pf2e", "spells", undefined, 5])(
     "rejects %s",
     (value) => {
       expect(isGameSystem(value)).toBe(false);

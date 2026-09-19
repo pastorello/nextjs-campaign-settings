@@ -54,6 +54,30 @@ describe("CardWrapper (TD-91)", () => {
     expect(screen.getByText("factions")).toBeInTheDocument();
     expect(screen.getByText("6")).toBeInTheDocument();
   });
+
+  // SPEC-021 T1: the overview under Daggerheart renders, without cards that
+  // would link to a 5e catalogue's 404 (ADR-0013 rule 4).
+  it("leaves the 5e catalogues' cards out under daggerheart", async () => {
+    fetchCardData.mockResolvedValue({
+      numberOfmagicItems: 1,
+      numberOfNpc: 2,
+      numberOfSpells: 3,
+      numberOfDeities: 4,
+      numberOfPlaces: 5,
+      numberOfFactions: 6,
+    });
+
+    render(await CardWrapper({ system: "daggerheart" }));
+
+    expect(screen.queryByText("magicItems")).not.toBeInTheDocument();
+    expect(screen.queryByText("spells")).not.toBeInTheDocument();
+    for (const title of ["npc", "deities", "places", "factions"]) {
+      expect(screen.getByText(title).closest("a")).toHaveAttribute(
+        "href",
+        expect.stringMatching(/^\/dashboard\/daggerheart\//)
+      );
+    }
+  });
 });
 
 // TD-138: the overview page's only other heading is its h1 "Dashboard", so

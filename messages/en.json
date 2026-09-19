@@ -16,7 +16,6 @@
       "signOut": "Sign Out",
       "language": "Language",
       "gameSystem": "Game system",
-      "gameSystemSingle": "Only one game system is available for now.",
       "treasure": "Treasure",
       "campaign": "Campaign",
       "sidebarLabel": "Main navigation"
@@ -1313,7 +1312,11 @@
     "heroPoints": "Hero points earned"
   },
   "gameSystems": {
-    "dnd5e": "D&D 5e"
+    "dnd5e": "D&D 5e",
+    "daggerheart": "Daggerheart"
+  },
+  "gameSystemCompatibility": {
+    "daggerheart": "Daggerheart™ Compatible"
   },
   "calendar": {
     "date": {

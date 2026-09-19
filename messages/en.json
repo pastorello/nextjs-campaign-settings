@@ -1648,6 +1648,11 @@
       "newItemButton": "New Class",
       "emptyMessage": "No class found"
     },
+    "classPage": {
+      "domains": "Domains",
+      "noSubclasses": "This class has no subclasses yet.",
+      "domainCards": "Domain cards"
+    },
     "form": {
       "createTitle": "Create New Class",
       "editTitle": "Edit Class",

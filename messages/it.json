@@ -1648,6 +1648,11 @@
       "newItemButton": "Nuova classe",
       "emptyMessage": "Nessuna classe trovata"
     },
+    "classPage": {
+      "domains": "Domini",
+      "noSubclasses": "Questa classe non ha ancora sottoclassi.",
+      "domainCards": "Carte dominio"
+    },
     "form": {
       "createTitle": "Crea nuova classe",
       "editTitle": "Modifica classe",

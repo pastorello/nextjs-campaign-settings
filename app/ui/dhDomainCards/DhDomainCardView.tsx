@@ -14,7 +14,7 @@ interface DhDomainCardViewProps {
   card: DhDomainCard;
   domain: DhDomainCardDomain;
   /** The card name's heading level, to fit the page it sits on. */
-  headingLevel?: "h2" | "h3";
+  headingLevel?: "h2" | "h3" | "h4";
 }
 
 /**

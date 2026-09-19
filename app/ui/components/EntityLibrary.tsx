@@ -12,6 +12,7 @@ import fetchFactionRosters from "@/app/lib/data/faction/fetchFactionRosters";
 import { fetchFilteredTreasures } from "@/app/lib/data/treasure/fetchFilteredTreasures";
 import { fetchFilteredDhDomains } from "@/app/lib/data/dhDomains/fetchFilteredDhDomains";
 import { fetchFilteredDhDomainCards } from "@/app/lib/data/dhDomainCards/fetchFilteredDhDomainCards";
+import { fetchFilteredDhClasses } from "@/app/lib/data/dhClasses/fetchFilteredDhClasses";
 import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
 
 import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
@@ -26,6 +27,7 @@ import FactionLibrary from "../factions/FactionLibrary";
 import TreasureLibrary from "../treasures/TreasureLibrary";
 import DhDomainLibrary from "../dhDomains/DhDomainLibrary";
 import DhDomainCardLibrary from "../dhDomainCards/DhDomainCardLibrary";
+import DhClassLibrary from "../dhClasses/DhClassLibrary";
 import ResolvedRecordLinks from "../richText/ResolvedRecordLinks";
 import richTextValuesOf from "@/app/lib/utils/richText/richTextValuesOf";
 
@@ -122,9 +124,17 @@ export default async function EntityLibrary(props: {
       const items = await fetchFilteredDhDomainCards(searchParams);
       return withRecordLinks(items, <DhDomainCardLibrary items={items} />);
     }
-    // No public library: the Daggerheart catalogues have admin lists only
-    // until the class page (SPEC-021 T6).
-    case PageType.DhClass:
+    case PageType.DhClass: {
+      const items = await fetchFilteredDhClasses(searchParams);
+      return withRecordLinks(
+        items,
+        <DhClassLibrary
+          items={items}
+          optionBundle={{ dhDomain: await fetchFieldOptions("dhDomain") }}
+        />
+      );
+    }
+    // No public list: a subclass is shown on its class's page (SPEC-021 T6).
     case PageType.DhSubclass:
       return null;
   }

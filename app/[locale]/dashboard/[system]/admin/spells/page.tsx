@@ -16,11 +16,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page(props: {
+  params: Promise<{ system: string }>;
   searchParams?: Promise<{
     query?: string;
     page?: string;
   }>;
 }) {
+  const { system } = await props.params;
   const t = await getTranslations("spells.page");
   const tCommon = await getTranslations("common.list");
   const searchParams = await props.searchParams;
@@ -45,7 +47,11 @@ export default async function Page(props: {
         key={query + currentPage}
         fallback={<TableSkeleton pageType={PageType.Spell} />}
       >
-        <EntityList pageType={PageType.Spell} searchParams={searchParams} />
+        <EntityList
+          system={system}
+          pageType={PageType.Spell}
+          searchParams={searchParams}
+        />
       </Suspense>
       <div className="mt-5 flex w-full justify-center">
         <Pagination totalPages={itemCount.filteredPages} />

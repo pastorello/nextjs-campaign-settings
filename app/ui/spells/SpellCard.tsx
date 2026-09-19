@@ -16,7 +16,6 @@ import resolveFieldValue from "@/app/lib/utils/data/resolveFieldValue";
 
 const SpellCard = (props: { cardItem: Spell }) => {
   const t = useTranslations();
-  const markup = { __html: props.cardItem[SpellMetaField.description] };
 
   return (
     <Disclosure>
@@ -92,10 +91,11 @@ const SpellCard = (props: { cardItem: Spell }) => {
             </div>
           </div>
           <hr className="my-2" />
-          <div
-            dangerouslySetInnerHTML={markup}
-            className="mb-1 p-3 text-base first-letter:float-left first-letter:mr-2 first-letter:text-5xl first-letter:font-bold"
-          />
+          <div className="mb-1 p-3 text-base first-letter:float-left first-letter:mr-2 first-letter:text-5xl first-letter:font-bold">
+            {pageMetaFields.description.getDatum(
+              props.cardItem[SpellMetaField.description]
+            )}
+          </div>
           {isValidString(props.cardItem[SpellMetaField.upcast]) && (
             <div className="w-full px-3 pb-2 text-base">
               <hr className="my-2" />

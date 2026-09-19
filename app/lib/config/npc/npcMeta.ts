@@ -9,6 +9,7 @@ import z from "zod";
 import alignmentDomains from "./alignmentDomains";
 import alignments from "./alignments";
 import renderRichText from "../../utils/data/renderRichText";
+import richTextValidator from "../../utils/validators/richTextValidator";
 
 const npcMeta = {
   [NpcMetaField.title]: {
@@ -67,9 +68,9 @@ const npcMeta = {
     defaultValue: "",
     metaField: NpcMetaField.appearance,
     fieldType: FieldType.string,
-    controlType: ControlType.Textarea,
+    controlType: ControlType.RichText,
     placeholderKey: "npc.fields.appearance.placeholder",
-    validator: z.string().optional(),
+    validator: richTextValidator().optional(),
     getDatum: (datum: string) => renderRichText(datum),
   },
   [NpcMetaField.personality]: {
@@ -77,9 +78,9 @@ const npcMeta = {
     defaultValue: "",
     metaField: NpcMetaField.personality,
     fieldType: FieldType.string,
-    controlType: ControlType.Textarea,
+    controlType: ControlType.RichText,
     placeholderKey: "npc.fields.personality.placeholder",
-    validator: z.string().optional(),
+    validator: richTextValidator().optional(),
     getDatum: (datum: string) => renderRichText(datum),
   },
   [NpcMetaField.motivations]: {
@@ -87,9 +88,9 @@ const npcMeta = {
     defaultValue: "",
     metaField: NpcMetaField.motivations,
     fieldType: FieldType.string,
-    controlType: ControlType.Textarea,
+    controlType: ControlType.RichText,
     placeholderKey: "npc.fields.motivations.placeholder",
-    validator: z.string().optional(),
+    validator: richTextValidator().optional(),
     getDatum: (datum: string) => renderRichText(datum),
   },
   [NpcMetaField.secrets]: {
@@ -97,9 +98,9 @@ const npcMeta = {
     defaultValue: "",
     metaField: NpcMetaField.secrets,
     fieldType: FieldType.string,
-    controlType: ControlType.Textarea,
+    controlType: ControlType.RichText,
     placeholderKey: "npc.fields.secrets.placeholder",
-    validator: z.string().optional(),
+    validator: richTextValidator().optional(),
     getDatum: (datum: string) => renderRichText(datum),
   },
 } satisfies Record<string, PageMeta>;

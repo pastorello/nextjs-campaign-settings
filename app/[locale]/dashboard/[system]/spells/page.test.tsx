@@ -46,6 +46,8 @@ vi.mock("@/app/ui/components/EntityLibrary", () => ({
 
 import Page, { generateMetadata } from "./page";
 
+const params = Promise.resolve({ system: "dnd5e" });
+
 describe("spells list Page (public list-page pattern)", () => {
   it("titles the page from the spells.page catalogue", async () => {
     const metadata = await generateMetadata();
@@ -61,7 +63,7 @@ describe("spells list Page (public list-page pattern)", () => {
     });
     const searchParams = Promise.resolve({ query: "fireball" });
 
-    render(await Page({ searchParams }));
+    render(await Page({ params, searchParams }));
 
     expect(getSpellsCount).toHaveBeenCalledWith({ query: "fireball" });
     expect(screen.getByTestId("list-page")).toHaveAttribute(
@@ -80,7 +82,7 @@ describe("spells list Page (public list-page pattern)", () => {
       filteredPages: 0,
     });
 
-    render(await Page({}));
+    render(await Page({ params }));
 
     expect(getSpellsCount).toHaveBeenCalledWith({});
   });

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import Spell from "@/app/lib/definitions/interfaces/spells/Spell";
@@ -59,5 +59,38 @@ describe("SpellCard", () => {
       "group-data-open:rotate-180",
       "transition-transform"
     );
+  });
+
+  describe("description (SPEC-019 T5)", () => {
+    const open = (description: string) => {
+      const { container } = render(
+        <SpellCard cardItem={{ ...item, description }} />
+      );
+      fireEvent.click(screen.getByRole("button"));
+      return container;
+    };
+
+    it("renders formatted text as formatting", () => {
+      open("<p>A <strong>bright</strong> streak.</p>");
+
+      expect(screen.getByText("bright").tagName).toBe("STRONG");
+    });
+
+    it("never injects stored markup: the card no longer uses innerHTML", () => {
+      const container = open(
+        '<p>Boom<img src="x" onerror="alert(1)"><script>alert(2)</script></p>'
+      );
+
+      expect(screen.getByText("Boom")).toBeInTheDocument();
+      expect(container.querySelector("img, script")).toBeNull();
+    });
+
+    it("shows legacy plain text literally, markup-looking text included", () => {
+      open("Deals <b>8d6</b> fire damage");
+
+      expect(
+        screen.getByText("Deals <b>8d6</b> fire damage")
+      ).toBeInTheDocument();
+    });
   });
 });

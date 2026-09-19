@@ -4,6 +4,27 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import PageType from "@/app/lib/definitions/types/PageType";
 import type OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
+// The record-link resolver is an async Server Component (it reads the
+// database); RTL renders client trees, so it is a pass-through here that
+// records what it was asked to resolve (SPEC-019 T5).
+const { resolvedValues } = vi.hoisted(() => ({
+  resolvedValues: vi.fn(),
+}));
+vi.mock("../richText/ResolvedRecordLinks", () => ({
+  default: ({
+    values,
+    system,
+    children,
+  }: {
+    values: unknown;
+    system: string;
+    children: React.ReactNode;
+  }) => {
+    resolvedValues(values, system);
+    return children;
+  },
+}));
+
 vi.mock("next-intl/server", () => ({
   getTranslations: () =>
     Promise.resolve((key: string, values?: Record<string, unknown>) =>
@@ -115,7 +136,7 @@ describe("EntityList", () => {
     fetchFilteredDeities.mockResolvedValue([]);
     fetchFilteredMagicItems.mockResolvedValue([]);
 
-    render(await EntityList({ pageType: PageType.Deity }));
+    render(await EntityList({ system: "dnd5e", pageType: PageType.Deity }));
 
     expect(fetchFilteredDeities).toHaveBeenCalled();
     expect(fetchFilteredSpells).not.toHaveBeenCalled();
@@ -126,7 +147,7 @@ describe("EntityList", () => {
   it("shows the domain's empty message when there are no rows", async () => {
     fetchFilteredNpc.mockResolvedValue([]);
 
-    render(await EntityList({ pageType: PageType.Npc }));
+    render(await EntityList({ system: "dnd5e", pageType: PageType.Npc }));
 
     expect(screen.getByText("npc.page.emptyMessage")).toBeInTheDocument();
   });
@@ -144,7 +165,7 @@ describe("EntityList", () => {
       },
     ]);
 
-    render(await EntityList({ pageType: PageType.Npc }));
+    render(await EntityList({ system: "dnd5e", pageType: PageType.Npc }));
 
     expect(screen.queryByText("npc.page.emptyMessage")).not.toBeInTheDocument();
     // Scoped to the table: the phone-viewport list (TD-113) renders the same
@@ -167,7 +188,7 @@ describe("EntityList", () => {
       },
     ]);
 
-    render(await EntityList({ pageType: PageType.Deity }));
+    render(await EntityList({ system: "dnd5e", pageType: PageType.Deity }));
 
     const table = within(screen.getByTestId("entity-list-table"));
     expect(table.getByText("Bahamut")).toBeInTheDocument();
@@ -193,7 +214,7 @@ describe("EntityList", () => {
       new Map([[42, [{ id: 1, title: "Skreebars", kind: "city" }]]])
     );
 
-    render(await EntityList({ pageType: PageType.Npc }));
+    render(await EntityList({ system: "dnd5e", pageType: PageType.Npc }));
 
     expect(fetchDerivedAncestry).toHaveBeenCalledWith("npc");
     expect(screen.getByText("Skreebars")).toBeInTheDocument();
@@ -212,7 +233,7 @@ describe("EntityList", () => {
     ]);
     fetchDerivedAncestry.mockResolvedValue(new Map());
 
-    render(await EntityList({ pageType: PageType.Deity }));
+    render(await EntityList({ system: "dnd5e", pageType: PageType.Deity }));
 
     expect(fetchDerivedAncestry).toHaveBeenCalledWith("deity");
     expect(screen.getByText("common.location.unknown")).toBeInTheDocument();
@@ -221,7 +242,7 @@ describe("EntityList", () => {
   it("renders the Zone/POI filter control for Npc/Deity page types only", async () => {
     fetchFilteredNpc.mockResolvedValue([]);
 
-    render(await EntityList({ pageType: PageType.Npc }));
+    render(await EntityList({ system: "dnd5e", pageType: PageType.Npc }));
 
     expect(screen.getByTestId("location-filter-control")).toBeInTheDocument();
   });
@@ -229,7 +250,7 @@ describe("EntityList", () => {
   it("renders a header for every column listConfig declares for the domain", async () => {
     fetchFilteredMagicItems.mockResolvedValue([]);
 
-    render(await EntityList({ pageType: PageType.MagicItem }));
+    render(await EntityList({ system: "dnd5e", pageType: PageType.MagicItem }));
 
     expect(
       screen.getByText("magicItems.fields.rarity.label")
@@ -250,7 +271,7 @@ describe("EntityList", () => {
       { value: 3, label: "Gilda dei Ladri" },
     ]);
 
-    render(await EntityList({ pageType: PageType.Npc }));
+    render(await EntityList({ system: "dnd5e", pageType: PageType.Npc }));
 
     const header = screen.getByText("npc.fields.faction.label");
     expect(header).toHaveAttribute("data-filtrable", "true");
@@ -274,7 +295,7 @@ describe("EntityList", () => {
       },
     ]);
 
-    render(await EntityList({ pageType: PageType.Deity }));
+    render(await EntityList({ system: "dnd5e", pageType: PageType.Deity }));
 
     // Both the table row and the phone-viewport row (TD-113) carry the same
     // per-item aria-label, so there are two matches — one edit control per
@@ -302,7 +323,7 @@ describe("EntityList", () => {
       new Map([[42, [{ id: 5, title: "Skreebars", kind: "city" }]]])
     );
 
-    render(await EntityList({ pageType: PageType.Npc }));
+    render(await EntityList({ system: "dnd5e", pageType: PageType.Npc }));
 
     expect(screen.getByText("assign-location:Skreebars")).toBeInTheDocument();
   });
@@ -326,7 +347,7 @@ describe("EntityList", () => {
       },
     ]);
 
-    render(await EntityList({ pageType: PageType.Spell }));
+    render(await EntityList({ system: "dnd5e", pageType: PageType.Spell }));
 
     expect(fetchDerivedAncestry).not.toHaveBeenCalled();
     expect(screen.queryByText(/assign-location:/)).not.toBeInTheDocument();
@@ -351,7 +372,7 @@ describe("EntityList", () => {
       },
     ]);
 
-    render(await EntityList({ pageType: PageType.Spell }));
+    render(await EntityList({ system: "dnd5e", pageType: PageType.Spell }));
 
     // One instance in the table, one in the phone-viewport row (TD-113).
     expect(screen.getAllByText("common.table.edit")).toHaveLength(2);
@@ -375,7 +396,7 @@ describe("EntityList", () => {
         },
       ]);
 
-      render(await EntityList({ pageType: PageType.Npc }));
+      render(await EntityList({ system: "dnd5e", pageType: PageType.Npc }));
 
       const mobile = within(screen.getByTestId("entity-list-mobile"));
       expect(mobile.getByText("Elminster")).toBeInTheDocument();
@@ -405,7 +426,7 @@ describe("EntityList", () => {
       ]);
 
       const { container } = render(
-        await EntityList({ pageType: PageType.Faction })
+        await EntityList({ system: "dnd5e", pageType: PageType.Faction })
       );
 
       expect(container.querySelectorAll("p div")).toHaveLength(0);
@@ -426,12 +447,22 @@ describe("EntityList", () => {
         new Map([[42, [{ id: 5, title: "Skreebars", kind: "city" }]]])
       );
 
-      render(await EntityList({ pageType: PageType.Npc }));
+      render(await EntityList({ system: "dnd5e", pageType: PageType.Npc }));
 
       // The table row does render it (covered by the dedicated test above);
       // the mobile row's own scope must not.
       const mobile = within(screen.getByTestId("entity-list-mobile"));
       expect(mobile.queryByText(/assign-location:/)).not.toBeInTheDocument();
     });
+  });
+
+  it("resolves the record links of the rows' formatted text under the route system (SPEC-019 T5)", async () => {
+    fetchFilteredFactions.mockResolvedValue([
+      { id: 1, name: "Guild", description: "<p>Traders</p>" },
+    ]);
+
+    render(await EntityList({ system: "dnd5e", pageType: PageType.Faction }));
+
+    expect(resolvedValues).toHaveBeenCalledWith(["<p>Traders</p>"], "dnd5e");
   });
 });

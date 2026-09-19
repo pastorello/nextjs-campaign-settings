@@ -7,6 +7,27 @@ import PageType from "@/app/lib/definitions/types/PageType";
 // rendering, each with its own suite. EntityLibrary's job is only to fetch
 // the right domain's rows and hand them to the right library — stubbing the
 // libraries keeps this suite about that dispatch, not their internals.
+// The record-link resolver is an async Server Component (it reads the
+// database); RTL renders client trees, so it is a pass-through here that
+// records what it was asked to resolve (SPEC-019 T5).
+const { resolvedValues } = vi.hoisted(() => ({
+  resolvedValues: vi.fn(),
+}));
+vi.mock("../richText/ResolvedRecordLinks", () => ({
+  default: ({
+    values,
+    system,
+    children,
+  }: {
+    values: unknown;
+    system: string;
+    children: React.ReactNode;
+  }) => {
+    resolvedValues(values, system);
+    return children;
+  },
+}));
+
 vi.mock("../deities/DeityLibrary", () => ({
   default: ({ items }: { items: unknown[] }) => (
     <div>DeityLibrary:{items.length}</div>
@@ -93,7 +114,7 @@ describe("EntityLibrary", () => {
   it("fetches spells and renders SpellLibrary for PageType.Spell", async () => {
     fetchFilteredSpells.mockResolvedValue([{ id: 1 }, { id: 2 }]);
 
-    render(await EntityLibrary({ pageType: PageType.Spell }));
+    render(await EntityLibrary({ system: "dnd5e", pageType: PageType.Spell }));
 
     expect(fetchFilteredSpells).toHaveBeenCalled();
     expect(screen.getByText("SpellLibrary:2")).toBeInTheDocument();
@@ -102,7 +123,7 @@ describe("EntityLibrary", () => {
   it("fetches NPCs and renders NpcLibrary for PageType.Npc", async () => {
     fetchFilteredNpc.mockResolvedValue([{ id: 1 }]);
 
-    render(await EntityLibrary({ pageType: PageType.Npc }));
+    render(await EntityLibrary({ system: "dnd5e", pageType: PageType.Npc }));
 
     expect(fetchFilteredNpc).toHaveBeenCalled();
     expect(screen.getByText("NpcLibrary:1")).toBeInTheDocument();
@@ -114,7 +135,7 @@ describe("EntityLibrary", () => {
       new Map([[42, [{ id: 1, title: "Skreebars", kind: "city" }]]])
     );
 
-    render(await EntityLibrary({ pageType: PageType.Npc }));
+    render(await EntityLibrary({ system: "dnd5e", pageType: PageType.Npc }));
 
     expect(fetchDerivedAncestry).toHaveBeenCalledWith("npc");
     expect(screen.getByText("placed:1")).toBeInTheDocument();
@@ -123,7 +144,7 @@ describe("EntityLibrary", () => {
   it("fetches deities and renders DeityLibrary for PageType.Deity", async () => {
     fetchFilteredDeities.mockResolvedValue([]);
 
-    render(await EntityLibrary({ pageType: PageType.Deity }));
+    render(await EntityLibrary({ system: "dnd5e", pageType: PageType.Deity }));
 
     expect(fetchFilteredDeities).toHaveBeenCalled();
     expect(screen.getByText("DeityLibrary:0")).toBeInTheDocument();
@@ -136,7 +157,9 @@ describe("EntityLibrary", () => {
       { id: 3 },
     ]);
 
-    render(await EntityLibrary({ pageType: PageType.MagicItem }));
+    render(
+      await EntityLibrary({ system: "dnd5e", pageType: PageType.MagicItem })
+    );
 
     expect(fetchFilteredMagicItems).toHaveBeenCalled();
     expect(screen.getByText("MagicItemLibrary:3")).toBeInTheDocument();
@@ -146,7 +169,11 @@ describe("EntityLibrary", () => {
     fetchFilteredSpells.mockResolvedValue([]);
     const searchParams = Promise.resolve({ query: "fire" });
 
-    await EntityLibrary({ pageType: PageType.Spell, searchParams });
+    await EntityLibrary({
+      system: "dnd5e",
+      pageType: PageType.Spell,
+      searchParams,
+    });
 
     expect(fetchFilteredSpells).toHaveBeenCalledWith(searchParams);
   });
@@ -154,8 +181,18 @@ describe("EntityLibrary", () => {
   it("defaults to an empty search params object when none is given", async () => {
     fetchFilteredSpells.mockResolvedValue([]);
 
-    await EntityLibrary({ pageType: PageType.Spell });
+    await EntityLibrary({ system: "dnd5e", pageType: PageType.Spell });
 
     expect(fetchFilteredSpells).toHaveBeenCalledWith({});
+  });
+
+  it("resolves the record links of the rows' formatted text under the route system (SPEC-019 T5)", async () => {
+    fetchFilteredSpells.mockResolvedValue([
+      { id: 1, description: "<p>Boom</p>", upcast: null },
+    ]);
+
+    render(await EntityLibrary({ system: "dnd5e", pageType: PageType.Spell }));
+
+    expect(resolvedValues).toHaveBeenCalledWith(["<p>Boom</p>", null], "dnd5e");
   });
 });

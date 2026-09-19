@@ -26,6 +26,8 @@ import ModalButton from "../buttons/ModalButton";
 import ButtonVariant from "../buttons/BaseButton/ButtonVariant";
 import AssignLocationButton from "../buttons/AssignLocationButton";
 import LocationFilterControl from "./LocationFilterControl";
+import ResolvedRecordLinks from "../richText/ResolvedRecordLinks";
+import richTextValuesOf from "@/app/lib/utils/richText/richTextValuesOf";
 
 const NAME_FIELD = "name";
 
@@ -68,6 +70,8 @@ const fetchItems = (pageType: PageType, searchParams: SearchParamsInput) => {
 
 export default async function EntityList(props: {
   pageType: PageType;
+  /** The route's game system: record links resolve within it (SPEC-019). */
+  system: string;
   searchParams?: SearchParamsInput | undefined;
 }) {
   const t = await getTranslations();
@@ -148,170 +152,180 @@ export default async function EntityList(props: {
     </>
   );
 
+  // Formatted columns (factions' description) and the edit forms opened from
+  // this list read the rows' record links, resolved in one batch (SPEC-019
+  // T5) — the forms open a link to a deleted record unlinked.
   return (
-    <div className="mt-6 flow-root">
-      {placements && <LocationFilterControl />}
-      <div className="block min-w-full align-middle md:inline-block">
-        <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
-          {isArrayEmpty(items) && <p>{t(config.emptyMessageKey)}</p>}
-          <table
-            data-testid="entity-list-table"
-            className="hidden min-w-full text-gray-900 md:table"
-          >
-            <thead className="rounded-lg text-left text-sm font-normal">
-              <tr>
-                <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
-                  <SortableHeader
-                    label={t("common.table.name")}
-                    fieldKey={NAME_FIELD}
-                    isFiltrable={false}
-                  />
-                </th>
-                {config.columns.map((column) => (
-                  <th
-                    key={column.fieldKey}
-                    scope="col"
-                    className="px-3 py-5 font-medium"
-                  >
-                    {column.sortable === false ? (
-                      t(column.labelKey)
-                    ) : (
-                      <SortableHeader
-                        label={t(column.labelKey)}
-                        fieldKey={column.fieldKey}
-                        isFiltrable={column.isFiltrable ?? true}
-                        optionBundle={optionBundle}
-                      />
-                    )}
+    <ResolvedRecordLinks
+      values={richTextValuesOf(props.pageType, items)}
+      system={props.system}
+    >
+      <div className="mt-6 flow-root">
+        {placements && <LocationFilterControl />}
+        <div className="block min-w-full align-middle md:inline-block">
+          <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
+            {isArrayEmpty(items) && <p>{t(config.emptyMessageKey)}</p>}
+            <table
+              data-testid="entity-list-table"
+              className="hidden min-w-full text-gray-900 md:table"
+            >
+              <thead className="rounded-lg text-left text-sm font-normal">
+                <tr>
+                  <th scope="col" className="px-4 py-5 font-medium sm:pl-6">
+                    <SortableHeader
+                      label={t("common.table.name")}
+                      fieldKey={NAME_FIELD}
+                      isFiltrable={false}
+                    />
                   </th>
-                ))}
-                <th
-                  scope="col"
-                  className="relative py-5 pl-6 pr-3 justify-center flex"
-                >
-                  {t("common.table.actions")}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white">
-              {items?.map((item) => (
-                <tr
-                  key={item.id as number}
-                  className="w-full border-b py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg"
-                >
-                  <td className="whitespace-nowrap py-3 pl-6 pr-3">
-                    <div className="flex items-center gap-3">
-                      {/* A div, not a p: a rich-text value renders its own
+                  {config.columns.map((column) => (
+                    <th
+                      key={column.fieldKey}
+                      scope="col"
+                      className="px-3 py-5 font-medium"
+                    >
+                      {column.sortable === false ? (
+                        t(column.labelKey)
+                      ) : (
+                        <SortableHeader
+                          label={t(column.labelKey)}
+                          fieldKey={column.fieldKey}
+                          isFiltrable={column.isFiltrable ?? true}
+                          optionBundle={optionBundle}
+                        />
+                      )}
+                    </th>
+                  ))}
+                  <th
+                    scope="col"
+                    className="relative py-5 pl-6 pr-3 justify-center flex"
+                  >
+                    {t("common.table.actions")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white">
+                {items?.map((item) => (
+                  <tr
+                    key={item.id as number}
+                    className="w-full border-b py-3 text-sm last-of-type:border-none [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg"
+                  >
+                    <td className="whitespace-nowrap py-3 pl-6 pr-3">
+                      <div className="flex items-center gap-3">
+                        {/* A div, not a p: a rich-text value renders its own
                           div, and a div inside a p is invalid HTML that
                           breaks hydration (2026-09-18). */}
-                      <div>
-                        <strong>
-                          {renderFieldValue(NAME_FIELD, item.name, t)}
-                        </strong>
-                        {config.subtitleField && (
-                          <>
-                            <br />
-                            {renderFieldValue(
-                              config.subtitleField,
-                              item[config.subtitleField],
-                              t
-                            )}
-                          </>
-                        )}
+                        <div>
+                          <strong>
+                            {renderFieldValue(NAME_FIELD, item.name, t)}
+                          </strong>
+                          {config.subtitleField && (
+                            <>
+                              <br />
+                              {renderFieldValue(
+                                config.subtitleField,
+                                item[config.subtitleField],
+                                t
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  {config.columns.map((column) => (
-                    <td key={column.fieldKey} className="px-3 py-3">
-                      {renderFieldValue(
-                        column.fieldKey,
-                        item[column.fieldKey],
-                        t,
-                        optionBundle
-                      )}
                     </td>
-                  ))}
-                  <td className="whitespace-nowrap py-3 pl-6 pr-3">
-                    <div className="flex justify-end gap-3">
-                      {renderRowActions(item)}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {/* The phone-viewport fallback (TD-113): the table above is
+                    {config.columns.map((column) => (
+                      <td key={column.fieldKey} className="px-3 py-3">
+                        {renderFieldValue(
+                          column.fieldKey,
+                          item[column.fieldKey],
+                          t,
+                          optionBundle
+                        )}
+                      </td>
+                    ))}
+                    <td className="whitespace-nowrap py-3 pl-6 pr-3">
+                      <div className="flex justify-end gap-3">
+                        {renderRowActions(item)}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {/* The phone-viewport fallback (TD-113): the table above is
               `md:table`/`hidden` below that, so without this the admin lists
               showed nothing but pagination under 768px. Built from the same
               `listConfig` columns as the table — name, the domain's first two
               columns, edit and delete — not a hand-written card, so it can't
               drift from what the table shows. */}
-          <ul
-            data-testid="entity-list-mobile"
-            className="divide-y divide-gray-200 md:hidden"
-          >
-            {items?.map((item) => (
-              <li
-                key={item.id as number}
-                className="flex items-center justify-between gap-3 py-4"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="truncate font-medium text-gray-900">
-                    {renderFieldValue(NAME_FIELD, item.name, t)}
+            <ul
+              data-testid="entity-list-mobile"
+              className="divide-y divide-gray-200 md:hidden"
+            >
+              {items?.map((item) => (
+                <li
+                  key={item.id as number}
+                  className="flex items-center justify-between gap-3 py-4"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-medium text-gray-900">
+                      {renderFieldValue(NAME_FIELD, item.name, t)}
+                    </div>
+                    {config.subtitleField && (
+                      <div className="truncate text-sm text-gray-500">
+                        {renderFieldValue(
+                          config.subtitleField,
+                          item[config.subtitleField],
+                          t
+                        )}
+                      </div>
+                    )}
+                    {config.columns.slice(0, 2).map((column) => (
+                      <div
+                        key={column.fieldKey}
+                        className="truncate text-sm text-gray-500"
+                      >
+                        <span className="font-medium">
+                          {t(column.labelKey)}:
+                        </span>{" "}
+                        {renderFieldValue(
+                          column.fieldKey,
+                          item[column.fieldKey],
+                          t,
+                          optionBundle
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  {config.subtitleField && (
-                    <div className="truncate text-sm text-gray-500">
-                      {renderFieldValue(
-                        config.subtitleField,
-                        item[config.subtitleField],
-                        t
-                      )}
-                    </div>
-                  )}
-                  {config.columns.slice(0, 2).map((column) => (
-                    <div
-                      key={column.fieldKey}
-                      className="truncate text-sm text-gray-500"
-                    >
-                      <span className="font-medium">{t(column.labelKey)}:</span>{" "}
-                      {renderFieldValue(
-                        column.fieldKey,
-                        item[column.fieldKey],
-                        t,
-                        optionBundle
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  <ModalButton
-                    buttonLabel={t("common.table.edit")}
-                    ariaLabel={t("common.table.editItem", {
-                      name: item.name as string,
-                    })}
-                    modalTitle={t(config.editModalTitleKey)}
-                    modalContent={config.modalContent}
-                    componentProps={{ formData: item }}
-                    optionBundle={optionBundle}
-                    buttonVariant={ButtonVariant.secondary}
-                    icon={
-                      <PencilSquareIcon
-                        className="h-4 w-4"
-                        aria-hidden="true"
-                      />
-                    }
-                  />
-                  <DeleteButton
-                    pageName={item.name as string}
-                    pageId={item.id as number}
-                    pageType={props.pageType}
-                  />
-                </div>
-              </li>
-            ))}
-          </ul>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <ModalButton
+                      buttonLabel={t("common.table.edit")}
+                      ariaLabel={t("common.table.editItem", {
+                        name: item.name as string,
+                      })}
+                      modalTitle={t(config.editModalTitleKey)}
+                      modalContent={config.modalContent}
+                      componentProps={{ formData: item }}
+                      optionBundle={optionBundle}
+                      buttonVariant={ButtonVariant.secondary}
+                      icon={
+                        <PencilSquareIcon
+                          className="h-4 w-4"
+                          aria-hidden="true"
+                        />
+                      }
+                    />
+                    <DeleteButton
+                      pageName={item.name as string}
+                      pageId={item.id as number}
+                      pageType={props.pageType}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
-    </div>
+    </ResolvedRecordLinks>
   );
 }

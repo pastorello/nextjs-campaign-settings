@@ -8,7 +8,7 @@ This document describes how Campaign Settings is put together today, and marks t
 
 ## 1. High-level shape
 
-Campaign Settings is a Next.js App Router application with no separate backend. Server Components read directly from Postgres through Prisma; Server Actions write to it. There is no REST API layer for domain data. The route handlers are one DELETE endpoint per domain (spells, magic items, NPCs, deities and — since SPEC-006 — factions), two read-only GeoJSON endpoints for the map, and — since [ADR-0008](./adr/0008-map-image-storage.md) — two for map images: an authenticated `GET` that streams an uploaded map, and the upload endpoint itself — and, since [ADR-0017](./adr/0017-record-images.md), the same pair for record images (`/api/record-images`). `find app/api -name route.ts` is the current list.
+Campaign Settings is a Next.js App Router application with no separate backend. Server Components read directly from Postgres through Prisma; Server Actions write to it. There is no REST API layer for domain data. The route handlers are one DELETE endpoint per domain (spells, magic items, NPCs, deities and — since SPEC-006 — factions), two read-only GeoJSON endpoints for the map, and — since [ADR-0008](./adr/0008-map-image-storage.md) — two for map images: an authenticated `GET` that streams an uploaded map, and the upload endpoint itself — and, since [ADR-0017](./adr/0017-record-images.md), the same pair for record images (`/api/record-images`), plus a read by image id (`/api/record-images/by-id/[id]`, SPEC-020 T3). `find app/api -name route.ts` is the current list.
 
 ```
 Browser

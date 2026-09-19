@@ -83,6 +83,13 @@ Would allow re-deriving sizes later. Rejected by the spec (§5.2): it doubles st
 - SPEC-020 T3 deletes the files when an image is replaced or its record deleted — "new files stored, then the old ones deleted" (§5). Until then an uploaded but unused image is an orphan on disk.
 - `UPLOAD_DIR`'s default is `~/.campaign-settings/storage/maps`, so record images default to `…/storage/maps/records`. The name is historical; renaming the default would move existing maps, which is not worth doing for a label.
 
+## Amendment — SPEC-020 T2/T3 (2026-09-19)
+
+- **The upload creates the row.** `POST /api/record-images` inserts the `recordImage` row as soon as the files are stored (deleting both if the insert fails) and answers its `id`; the form's image field submits that id as the record's `imageId`. Creating it at save time instead would mean passing keys through the form and trusting them back. The actions check the id names an existing image no other record holds (`checkRecordImageReference`) — the unique index would refuse the second case anyway, but not as a field error.
+- **A read by id.** A record carries only `imageId`, so `GET /api/record-images/by-id/[id]?size=thumb|display` serves an image by row id — the form's preview, and what T4/T5 can point an `<img>` at without loading keys. Same session check; a row's keys never change (a replacement is a new row), so the same private, immutable cache applies. This route does touch the database, unlike the by-key one.
+- **Cleanup runs after the owner's write commits** (`releaseReplacedRecordImage`, `deleteRecordImage`): row first, then both files; failures are logged, never thrown, since the record's change has already happened. At worst that leaves an orphan.
+- **Orphans.** An upload whose form is then cancelled — or replaced by a second upload before saving — leaves an unowned `recordImage` row and its two files. A sweep (rows with no owner older than a day) would fix it and is deliberately not built yet: at one DM's scale the cost is a few hundred KB per abandoned upload. Revisit if `UPLOAD_DIR/records` grows noticeably.
+
 ## Revisit when
 
 Any one of: player accounts ship (the access rule must become per-record authorisation — see the warning above); galleries are specified (the one-to-one reference becomes a join); images move to object storage (ADR-0008's revisit conditions); or `sharp` stops shipping a binary for a platform the app must run on.

@@ -8,23 +8,23 @@ datasource db {
 }
 
 model deities {
-  id                Int      @id @default(autoincrement())
-  name              String   @map("nome")
-  deityTitle        String   @map("titolopatrono")
-  deityType         Int      @map("tipopatrono")
-  deityRank         Int      @map("gradopatrono")
-  tarotCard         Int      @map("card")
-  celestialBody     Int      @map("astri")
-  element           Int      @map("elemento")
-  class             Int      @map("classe")
-  holidays          String   @db.VarChar(255) @map("festivita")
-  color             Int      @map("colore")
-  tradition         Int      @map("tradizione")
-  alignment         Int      @map("allineamento")
-  alignmentDomain   Int      @map("dominioallineamento")
-  meaning           String   @map("significato")
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id              Int      @id @default(autoincrement())
+  name            String   @map("nome")
+  deityTitle      String   @map("titolopatrono")
+  deityType       Int      @map("tipopatrono")
+  deityRank       Int      @map("gradopatrono")
+  tarotCard       Int      @map("card")
+  celestialBody   Int      @map("astri")
+  element         Int      @map("elemento")
+  class           Int      @map("classe")
+  holidays        String   @map("festivita") @db.VarChar(255)
+  color           Int      @map("colore")
+  tradition       Int      @map("tradizione")
+  alignment       Int      @map("allineamento")
+  alignmentDomain Int      @map("dominioallineamento")
+  meaning         String   @map("significato")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   // SPEC-008 — where this record is. Both null means unplaced, which is a
   // legitimate state the UI reports rather than an error ("Sconosciuta",
@@ -84,10 +84,10 @@ model npc {
   id              Int      @id @default(autoincrement())
   description     String?  @map("descrizione")
   name            String   @map("nome")
-  title           String?  @db.VarChar(255) @map("titolo")
+  title           String?  @map("titolo") @db.VarChar(255)
   alignment       Int      @map("allineamento")
   alignmentDomain Int      @map("dominioallineamento")
-  position        String?  @db.VarChar(255) @map("mansione")
+  position        String?  @map("mansione") @db.VarChar(255)
   faction         Int?     @map("fazione")
   appearance      String?  @map("aspetto")
   personality     String?  @map("personalita")
@@ -179,11 +179,11 @@ model zone {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  npc     npc[]
-  deities deities[]
-  poi     poi[]
+  npc            npc[]
+  deities        deities[]
+  poi            poi[]
   // SPEC-013 T2 — back-relation required by scene.zone.
-  scenes  scene[]
+  scenes         scene[]
   // SPEC-014 T2 — world history events that name this place.
   calendarEvents calendarEvent[]
 
@@ -225,22 +225,22 @@ model poi {
 }
 
 model spells {
-  id              Int      @id @default(autoincrement())
-  description     String   @map("descrizione")
-  name            String   @map("nome")
-  level           Int      @map("livello")
-  circle          Int[]    @map("circolo")
-  classes         Int[]    @map("classi")
-  castingTime     String   @map("tempodilancio")
-  range           String   @map("gittata")
-  components      String   @map("componenti")
-  duration        String   @map("durata")
-  savingThrow     String?  @db.VarChar(255) @map("tirosalvezza")
-  ritual           Boolean? @map("rituale")
-  upcast          String?  @map("intensificato")
-  concentration   Boolean? @map("concentrazione")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  description   String   @map("descrizione")
+  name          String   @map("nome")
+  level         Int      @map("livello")
+  circle        Int[]    @map("circolo")
+  classes       Int[]    @map("classi")
+  castingTime   String   @map("tempodilancio")
+  range         String   @map("gittata")
+  components    String   @map("componenti")
+  duration      String   @map("durata")
+  savingThrow   String?  @map("tirosalvezza") @db.VarChar(255)
+  ritual        Boolean? @map("rituale")
+  upcast        String?  @map("intensificato")
+  concentration Boolean? @map("concentrazione")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@index([name])
 }
@@ -260,19 +260,19 @@ model users {
 // `@map` — the Italian columns elsewhere are legacy decoupled by `@map`,
 // not a convention to extend (CLAUDE.md, Language conventions).
 model campaign {
-  id        Int      @id @default(autoincrement())
-  title     String
-  synopsis  String?
-  partySize Int      @default(4)
+  id         Int      @id @default(autoincrement())
+  title      String
+  synopsis   String?
+  partySize  Int      @default(4)
   // SPEC-018 T3 / ADR-0013 rule 9: the game system's URL slug, a closed
   // vocabulary in code (`GAME_SYSTEMS`), like `adventure.status`. The
   // default backfills every campaign that existed before systems did.
-  system    String   @default("dnd5e")
+  system     String   @default("dnd5e")
   // SPEC-014 T2 — the campaign's "today", a universal day number (§5.5).
   // Null = no today set, so nothing reads as past.
   currentDay Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   adventures     adventure[]
   calendarEvents calendarEvent[]
@@ -484,8 +484,8 @@ model calendarEvent {
 // two WebP versions in the record image store (`UPLOAD_DIR/records`) and the
 // display version's size. Owned through a nullable unique `imageId` on each
 // owning table rather than a polymorphic owner here, so every reference is a
-// real foreign key. SPEC-021's Daggerheart domain table gains the same column
-// when it lands.
+// real foreign key. SPEC-021's Daggerheart domain (`dhDomain`, below) is the
+// seventh owner.
 model recordImage {
   id         Int      @id @default(autoincrement())
   displayKey String
@@ -501,4 +501,132 @@ model recordImage {
   treasure  treasure?
   faction   faction?
   zone      zone?
+  dhDomain  dhDomain?
+}
+
+// SPEC-021 T1 — the Daggerheart catalogue: domains, domain cards, classes and
+// subclasses. One table per system and domain (SPEC-018 §6); the `dh` prefix
+// keeps the unprefixed 5e tables meaning 5e (ADR-0013 rule 7, as amended by
+// SPEC-021 §6). English column names, no `@map`, as on the SPEC-013 tables.
+// Nothing is seeded: the public repo holds rules structure, never rules
+// content (SPEC-018 §5).
+//
+// String vocabularies are closed in code, like `scene.kind`: `origin`, a
+// card's `type`, a subclass feature's `tier` and a subclass's
+// `spellcastTrait` (app/lib/definitions/enums/daggerheart/), and a domain's
+// `colour`, a palette key rather than free hex (SPEC-021 T2).
+//
+// The migration adds CHECKs the schema language cannot express. They are raw
+// SQL, so `prisma migrate diff` does not know them: check that a later
+// generated migration does not drop them.
+// - `dhDomainCard_level_range`: level 1–10.
+// - `dhDomainCard_recallCost_nonnegative`: recall cost ≥ 0.
+// - `dhClass_distinct_domains`: a class's two domains differ.
+//
+// Features are one table per owner, not one polymorphic feature table
+// (ADR-0018). They are ordered rows edited inline in their parent's page
+// (ADR-0011), so they carry `position` and, like `sceneCreature`, no
+// timestamps.
+model dhDomain {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  colour      String
+  origin      String   @default("homebrew")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // SPEC-020 / ADR-0017 — the domain's emblem, as on every image owner.
+  imageId Int?         @unique
+  image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+
+  cards      dhDomainCard[]
+  classesAsA dhClass[]      @relation("dhClassDomainA")
+  classesAsB dhClass[]      @relation("dhClassDomainB")
+
+  @@index([name])
+}
+
+model dhDomainCard {
+  id          Int      @id @default(autoincrement())
+  name        String
+  domainId    Int
+  domain      dhDomain @relation(fields: [domainId], references: [id], onDelete: Restrict)
+  level       Int
+  recallCost  Int
+  type        String
+  featureText String
+  origin      String   @default("homebrew")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([domainId, level])
+  @@index([name])
+}
+
+model dhClass {
+  id              Int      @id @default(autoincrement())
+  name            String
+  description     String?
+  domainAId       Int
+  domainA         dhDomain @relation("dhClassDomainA", fields: [domainAId], references: [id], onDelete: Restrict)
+  domainBId       Int
+  domainB         dhDomain @relation("dhClassDomainB", fields: [domainBId], references: [id], onDelete: Restrict)
+  startingEvasion Int
+  startingHp      Int
+  classItems      String?
+  // The Hope feature always costs 3 Hope, so the cost is not stored.
+  hopeFeatureName String
+  hopeFeatureText String
+  origin          String   @default("homebrew")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  features   dhClassFeature[]
+  subclasses dhSubclass[]
+
+  @@index([domainAId])
+  @@index([domainBId])
+  @@index([name])
+}
+
+model dhClassFeature {
+  id       Int     @id @default(autoincrement())
+  classId  Int
+  class    dhClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  position Int
+  name     String
+  text     String
+
+  @@index([classId])
+}
+
+model dhSubclass {
+  id             Int      @id @default(autoincrement())
+  classId        Int
+  class          dhClass  @relation(fields: [classId], references: [id], onDelete: Restrict)
+  name           String
+  description    String?
+  spellcastTrait String?
+  origin         String   @default("homebrew")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  features dhSubclassFeature[]
+
+  @@index([classId])
+  @@index([name])
+}
+
+// Ordered within its tier: `position` counts inside (subclassId, tier).
+model dhSubclassFeature {
+  id         Int        @id @default(autoincrement())
+  subclassId Int
+  subclass   dhSubclass @relation(fields: [subclassId], references: [id], onDelete: Cascade)
+  tier       String
+  position   Int
+  name       String
+  text       String
+
+  @@index([subclassId])
 }

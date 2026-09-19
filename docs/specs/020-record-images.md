@@ -136,6 +136,7 @@ list column renders the thumbnail.
 **Open questions**
 
 1. None blocking.
+2. **Blocks T5 (found 2026-09-19).** §5.5's "NPC or deity pin" no longer exists — since SPEC-008 T8 an NPC or deity sits _at_ a landmark or in a zone and has no marker of its own. The options, for the DM: (a) a landmark's marker shows the portrait of the one NPC/deity attached to it (what if several? and it contradicts "places keep their current markers"); (b) the portraits appear in the place popover's entity list instead of on the map; (c) drop map portraits from this spec.
 
 ## 10. Task breakdown
 
@@ -148,6 +149,7 @@ list column renders the thumbnail.
 - [x] **T4** — Display: detail/card views and list thumbnails. _(test: render with/without image)_
   - _Done 2026-09-19._ The five list fetches select the image's keys and display size through the `image` relation in the row query (`recordImageKeysInclude`), and `buildResultSchema` keeps them for the domains that declare `imageId`. `RecordThumbnail` (40/56 px, `lazy`, a neutral placeholder when absent) sits in `EntityList`'s table and phone rows and in each card's header — beside the disclosure button, never inside it, so its alt text stays out of the button's name; `RecordDisplayImage` (stored width/height, no placeholder) opens with the card's panel. Both use `next/image` with `unoptimized`, i.e. a plain `<img>` on the authenticated same-origin key route: the optimizer would fetch without the viewer's cookie, and the pipeline has already sized both files. The place popover shows a zone's picture by id (`by-id?size=display`, one request, in a fixed box); `ZoneEditPanel` already shows it through the image field's preview (T3), so it gains nothing more. `imageMeta.getDatum` stays the bare id: rendering needs the keys and the record's name, which the field value does not carry. E2E: `record-images.spec.ts` (upload on create, list and card thumbnails, remove).
 - [ ] **T5** — NPC/deity map pins with portraits. _(test: marker HTML uses the thumbnail; icon fallback)_
+  - _Blocked 2026-09-19 — needs a DM decision (§9 open question 2)._ There are no NPC or deity pins to put a portrait on: SPEC-008 T8 removed them (`useLinkedEntityMarkers` is gone, `PlaceKind` lost `npc`/`deity`), and an NPC or deity is now attached to a landmark (`poiId`) or a zone (`zoneId`), rendering at the landmark's own marker or nowhere. §5.5 was written against the old map. Nothing was built for T5.
 - [ ] **T6** — i18n, a11y, e2e: upload a portrait, see it on the card, the list and the map pin, remove it. _(test: e2e)_
 
 ## 11. Outcome

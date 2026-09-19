@@ -40,6 +40,13 @@ model deities {
   // SPEC-014 T2 — world history events that name this deity.
   calendarEvents calendarEvent[]
 
+  // SPEC-020 T2 — this record's one image (ADR-0017). Unique: one image per
+  // record, and an image belongs to one record. SetNull: deleting the image
+  // row clears the reference; the actions delete the row and its two files
+  // when the record is deleted or its image replaced or removed (T3).
+  imageId Int?         @unique
+  image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+
   @@index([name])
 }
 
@@ -62,6 +69,13 @@ model magicitems {
   consumable Boolean @default(false)
 
   loot loot[]
+
+  // SPEC-020 T2 — this record's one image (ADR-0017). Unique: one image per
+  // record, and an image belongs to one record. SetNull: deleting the image
+  // row clears the reference; the actions delete the row and its two files
+  // when the record is deleted or its image replaced or removed (T3).
+  imageId Int?         @unique
+  image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
 
   @@index([name])
 }
@@ -104,6 +118,13 @@ model npc {
   // SPEC-014 T2 — world history events that name this NPC.
   calendarEvents calendarEvent[]
 
+  // SPEC-020 T2 — this record's one image (ADR-0017). Unique: one image per
+  // record, and an image belongs to one record. SetNull: deleting the image
+  // row clears the reference; the actions delete the row and its two files
+  // when the record is deleted or its image replaced or removed (T3).
+  imageId Int?         @unique
+  image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+
   @@index([name])
 }
 
@@ -116,6 +137,13 @@ model faction {
 
   // SPEC-014 T2 — world history events that name this faction.
   calendarEvents calendarEvent[]
+
+  // SPEC-020 T2 — this record's one image (ADR-0017). Unique: one image per
+  // record, and an image belongs to one record. SetNull: deleting the image
+  // row clears the reference; the actions delete the row and its two files
+  // when the record is deleted or its image replaced or removed (T3).
+  imageId Int?         @unique
+  image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
 }
 
 // The containment tree (§6/ADR-0010) — `region`/`plane`/`city`/`dungeon`,
@@ -158,6 +186,13 @@ model zone {
   scenes  scene[]
   // SPEC-014 T2 — world history events that name this place.
   calendarEvents calendarEvent[]
+
+  // SPEC-020 T2 — this record's one image (ADR-0017). Unique: one image per
+  // record, and an image belongs to one record. SetNull: deleting the image
+  // row clears the reference; the actions delete the row and its two files
+  // when the record is deleted or its image replaced or removed (T3).
+  imageId Int?         @unique
+  image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
 
   @@index([parentId])
 }
@@ -355,6 +390,13 @@ model treasure {
 
   loot loot[]
 
+  // SPEC-020 T2 — this record's one image (ADR-0017). Unique: one image per
+  // record, and an image belongs to one record. SetNull: deleting the image
+  // row clears the reference; the actions delete the row and its two files
+  // when the record is deleted or its image replaced or removed (T3).
+  imageId Int?         @unique
+  image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+
   @@index([name])
 }
 
@@ -436,4 +478,27 @@ model calendarEvent {
   // scene delete, indexed like the other FKs here (`scene.zoneId`, ...).
   @@index([adventureId])
   @@index([sceneId])
+}
+
+// SPEC-020 T2 — one image of one record (ADR-0017): the storage keys of its
+// two WebP versions in the record image store (`UPLOAD_DIR/records`) and the
+// display version's size. Owned through a nullable unique `imageId` on each
+// owning table rather than a polymorphic owner here, so every reference is a
+// real foreign key. SPEC-021's Daggerheart domain table gains the same column
+// when it lands.
+model recordImage {
+  id         Int      @id @default(autoincrement())
+  displayKey String
+  thumbKey   String
+  mimeType   String
+  width      Int
+  height     Int
+  createdAt  DateTime @default(now())
+
+  npc       npc?
+  deity     deities?
+  magicItem magicitems?
+  treasure  treasure?
+  faction   faction?
+  zone      zone?
 }

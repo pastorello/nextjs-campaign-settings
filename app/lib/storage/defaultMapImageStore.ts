@@ -1,8 +1,12 @@
-import FilesystemMapImageStore from "./FilesystemMapImageStore";
-import MapImageStore from "./MapImageStore";
+import env from "@/app/lib/config/env";
+import FilesystemImageStore from "./FilesystemImageStore";
+import ImageStore from "./ImageStore";
 
-// Named `default*`, not `mapImageStore`, so its filename does not collide
-// with `MapImageStore.ts` on a case-insensitive filesystem (macOS/Windows).
-const defaultMapImageStore: MapImageStore = new FilesystemMapImageStore();
+// Named `default*`, not `mapImageStore`, so no two filenames in this folder
+// differ only by case — they would collide on a case-insensitive filesystem
+// (macOS/Windows). Map images live directly in `UPLOAD_DIR` (ADR-0008).
+const defaultMapImageStore: ImageStore = new FilesystemImageStore(
+  env.UPLOAD_DIR
+);
 
 export default defaultMapImageStore;

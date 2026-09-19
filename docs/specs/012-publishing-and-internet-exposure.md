@@ -140,7 +140,7 @@ disk, so ADR-0008 stays exactly as it is and **no application code changes**.
 
 The alternative — a PaaS plus object storage — is not hard, and this codebase is
 unusually ready for it: map storage sits behind a small interface
-(`defaultMapImageStore`, with `FilesystemMapImageStore` as today's
+(`defaultMapImageStore`, with `FilesystemImageStore` as today's
 implementation), so an S3-compatible store is a **drop-in second implementation**
 rather than a refactor. It costs more per month and adds a moving part. Choose it
 only if the DM wants managed infrastructure more than the saving.

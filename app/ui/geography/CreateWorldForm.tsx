@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import { useRouter } from "@/i18n/navigation";
 import createRootPlace from "@/app/lib/data/maps/createRootPlace";
-import { ALLOWED_MAP_IMAGE_CONTENT_TYPES } from "@/app/lib/storage/mapImageUploadRules";
+import { ALLOWED_IMAGE_CONTENT_TYPES } from "@/app/lib/storage/imageUploadRules";
 import TextInput from "@/app/ui/forms/inputs/TextInput";
 import FormLabel from "@/app/ui/forms/inputs/FormLabel";
 import BaseButton from "@/app/ui/buttons/BaseButton";
@@ -93,7 +93,7 @@ export default function CreateWorldForm() {
           <FormLabel label={t("form.mapLabel")} />
           <Input
             type="file"
-            accept={ALLOWED_MAP_IMAGE_CONTENT_TYPES.join(",")}
+            accept={ALLOWED_IMAGE_CONTENT_TYPES.join(",")}
             onChange={(event) => setFile(event.target.files?.[0] ?? null)}
             className="block w-full text-sm"
           />

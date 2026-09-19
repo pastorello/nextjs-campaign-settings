@@ -3,15 +3,15 @@ import os from "os";
 import path from "path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import FilesystemMapImageStore from "./FilesystemMapImageStore";
+import FilesystemImageStore from "./FilesystemImageStore";
 
-describe("FilesystemMapImageStore", () => {
+describe("FilesystemImageStore", () => {
   let baseDir: string;
-  let store: FilesystemMapImageStore;
+  let store: FilesystemImageStore;
 
   beforeEach(async () => {
-    baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "map-image-store-"));
-    store = new FilesystemMapImageStore(baseDir);
+    baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "image-store-"));
+    store = new FilesystemImageStore(baseDir);
   });
 
   afterEach(async () => {
@@ -39,7 +39,7 @@ describe("FilesystemMapImageStore", () => {
   it("refuses to store an unsupported content type", async () => {
     await expect(
       store.put(Buffer.from("x"), "application/pdf")
-    ).rejects.toThrow(/Unsupported map image content type/);
+    ).rejects.toThrow(/Unsupported image content type/);
   });
 
   it("deletes a stored image so it is no longer retrievable", async () => {

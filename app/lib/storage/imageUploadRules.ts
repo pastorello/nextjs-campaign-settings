@@ -11,14 +11,14 @@ const CONTENT_TYPE_BY_EXTENSION: Record<string, string> = Object.fromEntries(
   ])
 );
 
-export const ALLOWED_MAP_IMAGE_CONTENT_TYPES = Object.keys(
+export const ALLOWED_IMAGE_CONTENT_TYPES = Object.keys(
   EXTENSION_BY_CONTENT_TYPE
 );
 
 // 10 MB. Inkarnate exports run a few MB each per ADR-0008 — comfortably above
 // that, well below anything that would make an upload a DoS vector at this
-// app's single-DM scale.
-export const MAX_MAP_IMAGE_BYTES = 10 * 1024 * 1024;
+// app's single-DM scale. SPEC-020 §5 sets the same limit for record images.
+export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
 export function extensionForContentType(
   contentType: string

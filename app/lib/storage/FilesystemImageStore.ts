@@ -2,28 +2,30 @@ import { randomUUID } from "crypto";
 import fs from "fs/promises";
 import path from "path";
 
-import env from "@/app/lib/config/env";
-import MapImageStore, { MapImage } from "./MapImageStore";
+import ImageStore, { StoredImage } from "./ImageStore";
 import {
   contentTypeForExtension,
   extensionForContentType,
-} from "./mapImageUploadRules";
+} from "./imageUploadRules";
 
 /**
- * `MapImageStore` backed by a directory on disk (ADR-0008). The extension
+ * `ImageStore` backed by a directory on disk (ADR-0008). The extension
  * carries the content type, so no separate metadata file is needed per image.
+ * One instance per kind of image: map images live directly in `UPLOAD_DIR`,
+ * record images in `UPLOAD_DIR/records` (ADR-0017) — see the
+ * `default*ImageStore` modules.
  */
-export default class FilesystemMapImageStore implements MapImageStore {
+export default class FilesystemImageStore implements ImageStore {
   private readonly baseDir: string;
 
-  constructor(baseDir: string = env.UPLOAD_DIR) {
+  constructor(baseDir: string) {
     this.baseDir = baseDir;
   }
 
   async put(data: Buffer, contentType: string): Promise<string> {
     const extension = extensionForContentType(contentType);
     if (!extension) {
-      throw new Error(`Unsupported map image content type: ${contentType}`);
+      throw new Error(`Unsupported image content type: ${contentType}`);
     }
 
     const id = `${randomUUID()}.${extension}`;
@@ -32,7 +34,7 @@ export default class FilesystemMapImageStore implements MapImageStore {
     return id;
   }
 
-  async get(id: string): Promise<MapImage | null> {
+  async get(id: string): Promise<StoredImage | null> {
     const filePath = this.resolve(id);
     if (!filePath) return null;
 

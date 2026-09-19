@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 import requireApiSession from "@/app/lib/auth/requireApiSession";
 import defaultMapImageStore from "@/app/lib/storage/defaultMapImageStore";
 import {
-  ALLOWED_MAP_IMAGE_CONTENT_TYPES,
-  MAX_MAP_IMAGE_BYTES,
-} from "@/app/lib/storage/mapImageUploadRules";
+  ALLOWED_IMAGE_CONTENT_TYPES,
+  MAX_IMAGE_BYTES,
+} from "@/app/lib/storage/imageUploadRules";
 
 /**
  * POST /api/maps/upload
@@ -25,14 +25,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Missing file field" }, { status: 400 });
   }
 
-  if (!ALLOWED_MAP_IMAGE_CONTENT_TYPES.includes(file.type)) {
+  if (!ALLOWED_IMAGE_CONTENT_TYPES.includes(file.type)) {
     return NextResponse.json(
       { error: `Unsupported content type: ${file.type}` },
       { status: 415 }
     );
   }
 
-  if (file.size > MAX_MAP_IMAGE_BYTES) {
+  if (file.size > MAX_IMAGE_BYTES) {
     return NextResponse.json({ error: "File too large" }, { status: 413 });
   }
 

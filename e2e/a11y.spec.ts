@@ -5,6 +5,7 @@ import messages from "@/messages/it.json";
 
 import { ensureCampaign } from "./helpers/ensureCampaign";
 import { chooseFromContextMenu } from "./helpers/mapContextMenu";
+import { portraitPng } from "./helpers/portraitPng";
 
 /**
  * Automated accessibility scan (TD-15).
@@ -420,4 +421,77 @@ test("the place popover has no accessibility violations", async ({ page }) => {
     .click();
   await expect(popover).not.toBeVisible();
   await expect(navigableMarkers).toHaveCount(baselineMarkerCount);
+});
+
+/**
+ * SPEC-020 T6: images on records. `PAGES` already reaches the image field
+ * (`/admin/npc/new`) and the lists, but only in their empty states — the
+ * field before any upload, and rows whose thumbnails are the `aria-hidden`
+ * placeholder, since nothing in the seed carries an image. This scans them
+ * with a real image in place: the field with its preview and its replace /
+ * remove buttons, and the admin table and public card list with a loaded
+ * thumbnail. The popover's entity list with a portrait is scanned in
+ * `record-images.spec.ts`, which already builds the landmark it needs. The
+ * NPC is deleted in `finally`.
+ */
+test("the image field and list thumbnails have no accessibility violations", async ({
+  page,
+}) => {
+  const name = `E2E a11y ritratto ${Date.now()}`;
+  const scan = async (label: string) => {
+    await page.waitForLoadState("networkidle");
+    const results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze();
+    const summary = results.violations.map(
+      (violation) => `${violation.id} (${violation.nodes.length} nodes)`
+    );
+    expect(summary, `axe violations on ${label}`).toEqual([]);
+  };
+  const adminRow = page.getByRole("row").filter({ hasText: name });
+
+  try {
+    await page.goto("/dashboard/dnd5e/admin/npc/new");
+    await expect(
+      page.getByRole("heading", { name: messages.npc.form.createTitle })
+    ).toBeVisible();
+    await page.getByLabel(messages.common.fields.name.label).fill(name);
+    await page
+      .getByLabel(messages.common.fields.image.label, { exact: true })
+      .setInputFiles(await portraitPng());
+    await expect(
+      page.getByRole("img", { name: messages.common.fields.image.previewAlt })
+    ).toBeVisible();
+    await scan("the image field with a preview");
+
+    await page
+      .getByRole("button", { name: messages.npc.form.createButton })
+      .click();
+    await page.waitForURL("**/dashboard/dnd5e/admin/npc");
+
+    await page.goto(
+      `/dashboard/dnd5e/admin/npc?query=${encodeURIComponent(name)}`
+    );
+    await expect(adminRow.getByRole("img", { name })).toBeVisible();
+    await scan("the admin list with a thumbnail");
+
+    await page.goto(`/dashboard/dnd5e/npc?query=${encodeURIComponent(name)}`);
+    await expect(page.getByRole("img", { name }).first()).toBeVisible();
+    await scan("the public card list with a thumbnail");
+  } finally {
+    await page.goto(
+      `/dashboard/dnd5e/admin/npc?query=${encodeURIComponent(name)}`
+    );
+    await page.waitForLoadState("networkidle");
+    if ((await adminRow.count()) > 0) {
+      await adminRow
+        .getByRole("button", { name: messages.common.form.delete })
+        .click();
+      await page
+        .getByRole("dialog")
+        .getByRole("button", { name: messages.common.form.delete })
+        .click();
+      await expect(adminRow).toHaveCount(0);
+    }
+  }
 });

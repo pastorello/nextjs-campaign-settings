@@ -56,15 +56,19 @@ interface PageMetaBase {
   controlType: ControlType;
   /** Message key resolved with `t()` at the render boundary — see ADR-0007. */
   labelKey?: string;
-  /** Message key, read only for `ControlType.Text` / `ControlType.Textarea`. */
+  /**
+   * Message key, read only for `ControlType.Text` / `ControlType.Textarea` /
+   * `ControlType.RichText`.
+   */
   placeholderKey?: string;
 
   /**
-   * Grows the textarea beyond its default height (TD-120). Only meaningful
-   * when `controlType` is `ControlType.Textarea` — declare it on a field
-   * that holds long-form prose (a description, "at higher levels" text),
-   * not a short one-liner. `InputComponent` reads this and hands it to
-   * `TextareaInput`; the control itself never guesses from the field name.
+   * Grows the box beyond its default height (TD-120). Only meaningful when
+   * `controlType` is `ControlType.Textarea` or `ControlType.RichText` —
+   * declare it on a field that holds long-form prose (a description, "at
+   * higher levels" text), not a short one-liner. `InputComponent` reads this
+   * and hands it to `TextareaInput` / `RichTextInput`; the control itself
+   * never guesses from the field name.
    */
   tall?: boolean;
 

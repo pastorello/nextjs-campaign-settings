@@ -40,6 +40,11 @@ const PAGES = [
   "/dashboard/dnd5e/admin/npc",
   "/dashboard/dnd5e/admin/deities",
   "/dashboard/dnd5e/admin/magicitems",
+  // SPEC-019 T7: these two "new" forms already carry `ControlType.RichText`
+  // fields unconditionally (spells' `description` and `upcast`; NPC's shared
+  // `description` plus its four character fields) — the formatted-text
+  // editor's toolbar renders on every create form, so no dedicated page was
+  // added for it.
   "/dashboard/dnd5e/admin/spells/new",
   "/dashboard/dnd5e/admin/npc/new",
   // SPEC-014 T9: the calendar's world pages, in both views. They render

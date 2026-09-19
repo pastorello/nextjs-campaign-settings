@@ -42,6 +42,27 @@ const FIND_EXISTING: Record<
         select: { id: true, title: true },
       })
     ).map(({ id, title }) => ({ id, name: title })),
+  // SPEC-021 T7 — resolved only under `daggerheart`, like their search.
+  dhDomains: (ids) =>
+    prisma.dhDomain.findMany({
+      ...byIds(ids),
+      select: { id: true, name: true },
+    }),
+  dhDomainCards: (ids) =>
+    prisma.dhDomainCard.findMany({
+      ...byIds(ids),
+      select: { id: true, name: true },
+    }),
+  dhClasses: (ids) =>
+    prisma.dhClass.findMany({
+      ...byIds(ids),
+      select: { id: true, name: true },
+    }),
+  dhSubclasses: (ids) =>
+    prisma.dhSubclass.findMany({
+      ...byIds(ids),
+      select: { id: true, name: true },
+    }),
 };
 
 /**

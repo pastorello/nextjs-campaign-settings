@@ -16,7 +16,8 @@ import type {
 
 /**
  * One entry per domain, in the spec's fixed render order (SPEC-011 §5.3):
- * Spells, Magic Items, NPCs, Deities, Factions, Places. Where each result and
+ * Spells, Magic Items, NPCs, Deities, Factions, Places, then the Daggerheart
+ * catalogues (SPEC-021 T7). Where each result and
  * each "see all" link lead is `recordHref`/`RECORD_LIST_PATH`, shared with
  * formatted-text record links (SPEC-019).
  */
@@ -58,6 +59,15 @@ const DOMAIN_ORDER: {
     headingNamespace: "search.page.groups",
     headingKey: "places",
   },
+  // SPEC-021 T7 — searched under `daggerheart` alone, so under `dnd5e`
+  // these groups are always empty and hidden.
+  ...(["dhDomains", "dhDomainCards", "dhClasses", "dhSubclasses"] as const).map(
+    (domain) => ({
+      domain,
+      headingNamespace: "common.cards",
+      headingKey: domain,
+    })
+  ),
 ];
 
 function DomainGroup({

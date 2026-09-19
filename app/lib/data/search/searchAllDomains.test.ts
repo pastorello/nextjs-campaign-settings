@@ -33,6 +33,42 @@ vi.mock("@/app/lib/data/faction/fetchFilteredFactions", () => ({
 vi.mock("@/app/lib/data/maps/searchPlacesByTitle", () => ({
   default: searchPlacesByTitle,
 }));
+const {
+  fetchFilteredDhDomains,
+  fetchFilteredDhDomainCards,
+  fetchFilteredDhClasses,
+  fetchFilteredDhSubclasses,
+} = vi.hoisted(() => ({
+  fetchFilteredDhDomains: vi.fn(),
+  fetchFilteredDhDomainCards: vi.fn(),
+  fetchFilteredDhClasses: vi.fn(),
+  fetchFilteredDhSubclasses: vi.fn(),
+}));
+vi.mock("@/app/lib/data/dhDomains/fetchFilteredDhDomains", () => ({
+  fetchFilteredDhDomains,
+}));
+vi.mock("@/app/lib/data/dhDomainCards/fetchFilteredDhDomainCards", () => ({
+  fetchFilteredDhDomainCards,
+}));
+vi.mock("@/app/lib/data/dhClasses/fetchFilteredDhClasses", () => ({
+  fetchFilteredDhClasses,
+}));
+vi.mock("@/app/lib/data/dhSubclasses/fetchFilteredDhSubclasses", () => ({
+  fetchFilteredDhSubclasses,
+}));
+
+const DAGGERHEART_DOMAINS = [
+  "dhDomains",
+  "dhDomainCards",
+  "dhClasses",
+  "dhSubclasses",
+] as const;
+const DAGGERHEART_FETCHERS = [
+  fetchFilteredDhDomains,
+  fetchFilteredDhDomainCards,
+  fetchFilteredDhClasses,
+  fetchFilteredDhSubclasses,
+];
 
 import { GAME_SYSTEMS } from "@/app/lib/definitions/GameSystem";
 import searchAllDomains, {
@@ -139,12 +175,40 @@ describe("searchAllDomains by game system (ADR-0013 rule 10)", () => {
     fetchFilteredDeities.mockResolvedValue([{ id: 4, name: "Fire God" }]);
     fetchFilteredFactions.mockResolvedValue([{ id: 5, name: "Fire Guild" }]);
     searchPlacesByTitle.mockResolvedValue([{ id: 6, title: "Fire Peak" }]);
+    // Invented names only (SPEC-018 §5).
+    fetchFilteredDhDomains.mockResolvedValue([{ id: 7, name: "Firewright" }]);
+    fetchFilteredDhDomainCards.mockResolvedValue([
+      { id: 8, name: "Fire Step" },
+    ]);
+    fetchFilteredDhClasses.mockResolvedValue([{ id: 9, name: "Firekeeper" }]);
+    fetchFilteredDhSubclasses.mockResolvedValue([
+      { id: 10, name: "Fire Warden" },
+    ]);
   });
 
-  it("searches every domain under dnd5e", async () => {
+  it("searches every domain but the Daggerheart catalogues under dnd5e", async () => {
     const result = await searchAllDomains("Fire", "dnd5e");
     for (const domain of SEARCH_DOMAINS) {
-      expect(result[domain].total).toBe(1);
+      expect(result[domain].total).toBe(
+        (DAGGERHEART_DOMAINS as readonly string[]).includes(domain) ? 0 : 1
+      );
+    }
+    for (const fetcher of DAGGERHEART_FETCHERS) {
+      expect(fetcher).not.toHaveBeenCalled();
+    }
+  });
+
+  it("finds the four Daggerheart catalogues under daggerheart (SPEC-021 T7)", async () => {
+    const result = await searchAllDomains("Fire", "daggerheart");
+
+    expect(result.dhDomains.items).toEqual([{ id: 7, name: "Firewright" }]);
+    expect(result.dhDomainCards.items).toEqual([{ id: 8, name: "Fire Step" }]);
+    expect(result.dhClasses.items).toEqual([{ id: 9, name: "Firekeeper" }]);
+    expect(result.dhSubclasses.items).toEqual([
+      { id: 10, name: "Fire Warden" },
+    ]);
+    for (const fetcher of DAGGERHEART_FETCHERS) {
+      expect(fetcher).toHaveBeenCalledWith({ query: "Fire" });
     }
   });
 
@@ -179,6 +243,10 @@ describe("searchAllDomains by game system (ADR-0013 rule 10)", () => {
     expect(isSearchDomainInSystem("spells", "dnd5e")).toBe(true);
     expect(isSearchDomainInSystem("spells", "daggerheart")).toBe(false);
     expect(isSearchDomainInSystem("magicItems", "daggerheart")).toBe(false);
+    for (const domain of DAGGERHEART_DOMAINS) {
+      expect(isSearchDomainInSystem(domain, "daggerheart")).toBe(true);
+      expect(isSearchDomainInSystem(domain, "dnd5e")).toBe(false);
+    }
     for (const domain of ["npc", "deities", "factions", "places"] as const) {
       expect(isSearchDomainInSystem(domain, "daggerheart")).toBe(true);
     }

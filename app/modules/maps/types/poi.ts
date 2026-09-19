@@ -42,7 +42,13 @@ export type LinkableEntityType = "npc" | "deity";
 
 export interface LinkableEntityTypeConfig {
   id: LinkableEntityType;
-  label: string;
+  /**
+   * Message key resolved with a namespace-less `t()` at the render
+   * boundary — see ADR-0007, and `POICategoryConfig.labelKey` for the same
+   * pattern. Reuses each domain's own `<domain>.page.itemSingular` (TD-146)
+   * rather than restating "NPC"/"Deity" as a hardcoded string here.
+   */
+  labelKey: string;
   // Base list-page subpath, relative to the dashboard root (e.g. "/npc") —
   // join with `dashboardPath(system, path)` at the call site (ADR-0013 rule
   // 5). The entity is reached via that page's existing `?id=` exact-match

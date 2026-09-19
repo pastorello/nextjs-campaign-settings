@@ -647,7 +647,9 @@
     "createWorldLink": "Crea il tuo mondo",
     "attachEntity": {
       "trigger": "Collega un personaggio esistente",
+      "typeLabel": "Tipo di personaggio",
       "typePlaceholder": "Tipo",
+      "entityLabel": "Personaggio",
       "entityPlaceholder": "Seleziona…"
     },
     "drawArea": {

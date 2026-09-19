@@ -109,4 +109,56 @@ describe("AttachEntityButton (usability fix, 2026-08-17: externally controlled)"
     expect(onClose).toHaveBeenCalled();
     expect(screen.queryByText(/modal:/)).not.toBeInTheDocument();
   });
+
+  // TD-146: both selects had no accessible label, and the type select's
+  // options were hardcoded "NPC"/"Deity" strings rather than catalogue
+  // copy.
+  it("labels the type select accessibly", () => {
+    render(<AttachEntityButton zoneId={5} isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByLabelText("typeLabel")).toBe(
+      screen.getAllByRole("combobox")[0]
+    );
+  });
+
+  it("labels the entity select accessibly once a type is chosen", () => {
+    render(<AttachEntityButton zoneId={5} isOpen onClose={vi.fn()} />);
+
+    fireEvent.change(screen.getAllByRole("combobox")[0]!, {
+      target: { value: "npc" },
+    });
+
+    expect(screen.getByLabelText("entityLabel")).toBe(
+      screen.getAllByRole("combobox")[1]
+    );
+  });
+
+  it("resolves each entity type's option label from its own domain's catalogue key", () => {
+    render(<AttachEntityButton zoneId={5} isOpen onClose={vi.fn()} />);
+
+    expect(
+      screen.getByRole("option", { name: "npc.page.itemSingular" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: "deities.page.itemSingular" })
+    ).toBeInTheDocument();
+    expect(screen.queryByText("NPC")).not.toBeInTheDocument();
+    expect(screen.queryByText("Deity")).not.toBeInTheDocument();
+  });
+
+  it("shows the shared loading key while options are pending, not a bare ellipsis", async () => {
+    // Never resolves: isLoading stays true for the life of the test, so the
+    // assertion doesn't race the mocked fetch's own microtask.
+    fetchLinkableEntities.mockReturnValue(new Promise(() => {}));
+    render(<AttachEntityButton zoneId={5} isOpen onClose={vi.fn()} />);
+
+    fireEvent.change(screen.getAllByRole("combobox")[0]!, {
+      target: { value: "npc" },
+    });
+
+    await waitFor(() =>
+      expect(screen.getByText("common.loading")).toBeInTheDocument()
+    );
+    expect(screen.queryByText("…")).not.toBeInTheDocument();
+  });
 });

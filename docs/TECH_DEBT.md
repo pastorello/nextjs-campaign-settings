@@ -167,6 +167,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-143 | ✅ NPCs are called "PNG" on the card and "Personaggi conosciuti" on the page it opens                          | ~~🟢 Low~~ done      | S      | 4     |
 | TD-144 | ✅ `loot.checkOff.label` means different things in it and en                                                   | ~~🟢 Low~~ done      | S      | 4     |
 | TD-145 | ✅ Shared error messages don't say what to do next                                                             | ~~🟢 Low~~ done      | S      | 4     |
+| TD-146 | ✅ The "Collega personaggio" dialog's two selects have no accessible label, and hardcode "NPC"/"Deity"         | ~~🟡 Medium~~ done   | S      | 4     |
 
 ---
 
@@ -2232,3 +2233,36 @@ undone, as noted here already: `deleteFailed`'s reuse for reorder failures
 (a wrong-domain message, "delete" for a reorder) is TD-125's fix, not this
 one's — a reorder-specific message key is a new key, out of TD-145's
 copy-only scope.
+
+### TD-146 ✅ The "Collega personaggio" dialog's two selects have no accessible label, and hardcode "NPC"/"Deity" — **DONE (2026-09-19)**
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-19, SPEC-020 T6
+
+`AttachEntityButton` (`app/ui/geography/AttachEntityButton.tsx`, opened from
+`PlacePopover`'s "Collega personaggio") renders two native `<select>`s — a
+type picker, then the entity list once a type is chosen — with no `<label>`
+or `aria-label` on either, so a screen reader announces them by role alone.
+The type select's own options came from `LINKABLE_ENTITY_TYPES`
+(`app/modules/maps/constants/linkable-entities.ts`), which hardcoded
+`label: "NPC"` / `label: "Deity"` — English text shown regardless of locale,
+in violation of the "no new hardcoded UI strings" rule.
+
+**Resolution:** Both selects now have a visible `<label htmlFor>` (`useId`
+for the pairing, matching `WorldDateInput`'s pattern), reading two new keys
+in both catalogues: `geography.attachEntity.typeLabel` /
+`.entityLabel`("Tipo di personaggio"/"Personaggio",
+"Character type"/"Character"). `LinkableEntityTypeConfig.label` was renamed
+to `labelKey`, following `POICategoryConfig`'s existing convention — each
+entry now points at its own domain's already-existing `itemSingular`
+catalogue key (`npc.page.itemSingular`, `deities.page.itemSingular`) rather
+than restating "NPC"/"Deity" as a new string, resolved through a
+namespace-less `useTranslations()` the same way `ZoneEditPanel` resolves a
+`PageMeta.labelKey` alongside its own panel copy (ADR-0011). While
+auditing the dialog for other hardcoded copy, the entity select's loading
+placeholder (a bare `"…"` literal) was replaced with the existing
+`common.loading` key. Covered by nine cases in
+`AttachEntityButton.test.tsx` (both selects' accessible names, the
+type options' resolved label text, and the loading key replacing the
+ellipsis) and a new e2e case in `e2e/a11y.spec.ts` scanning the dialog in
+its opened state via the `world-setup` project's `chromium` run. Nothing
+was left undone.

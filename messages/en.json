@@ -647,7 +647,9 @@
     "createWorldLink": "Create your world",
     "attachEntity": {
       "trigger": "Attach an existing entity",
+      "typeLabel": "Character type",
       "typePlaceholder": "Type",
+      "entityLabel": "Character",
       "entityPlaceholder": "Select…"
     },
     "drawArea": {

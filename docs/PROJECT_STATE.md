@@ -1,6 +1,6 @@
 # Project State — Campaign Settings
 
-**Last updated:** 2026-08-18
+**Last updated:** 2026-09-19
 **Status:** Working prototype, not production-ready
 **Phase:** 4 (session tooling) — Phases 1–3 are complete; see [`ROADMAP.md`](./ROADMAP.md)
 **Goal of the current phase:** move from reference material to something used _during_ a session — encounter builder, initiative tracker, session notes, quick-reference panel, dice roller, random generators. See [`ROADMAP.md`](./ROADMAP.md) for the full list.
@@ -26,6 +26,19 @@ A self-hosted web app for a Dungeon Master to manage a D&D 5e campaign setting: 
 **Campaign management (SPEC-013) is underway, outside this table.** `campaign`, `adventure`, `scene`, `sceneCreature` and `loot` are Phase 4 additions with their own shape — `scene`/`sceneCreature`/`loot` are ordered inline collections deliberately kept outside the metadata layer ([ADR-0011](./adr/0011-inline-collections-outside-the-metadata-layer.md)), not a domain in the table above. Schema, vocabularies, metadata, the data layer and the mutations are done (T1–T6); the campaign page — empty-state creation, the adventure ladder, status, reordering — is done too (T7, `app/[locale]/dashboard/campaign/`). The adventure page is done as of T8: `app/[locale]/dashboard/campaign/[adventureId]/`, with the adventure's own info editable and its scenes — each with its own creatures and loot, all reorderable — edited inline. The budget panel and the awarded/taken check-off controls are done as of T9: `BudgetPanel.tsx` reads `getBudgetTotals` (T5) fresh on every render and shows, per budget, target · assigned · found plus the two named differences (left to place, missed); `CheckOffControl.tsx` wraps the generic `CheckboxInput` (HeadlessUI, keyboard-operable by default) with `setSceneAwarded`/`setSceneCreatureAwarded`/`setLootTaken` (T6) and a `router.refresh()`, so the panel updates without a full page reload (T9). **SPEC-013 is complete as of T10 (2026-08-19):** both catalogues already carried the full campaign key set (the key-set check in CI enforced that as T7–T9 landed, so T10's i18n half was verification, not work), and the a11y half extended `e2e/a11y.spec.ts`'s zero-violation axe gate to the campaign and adventure pages — scanned with their bespoke add-forms open — which came back clean except for one real bug the fixture setup itself exposed: `campaignMeta.synopsis` rejected the explicit `null` a minimal title-only create submits, the same `.optional()`-vs-`null` gap T7/T8 had already fixed on `adventureMeta`/`sceneMeta`, fixed the same way and regression-tested.
 
 **The calendar and timeline (SPEC-014) shipped 2026-09-18.** Dates are stored as a universal day number and read through DM-defined date systems ([ADR-0015](./adr/0015-time-as-a-universal-day-number.md)); three shared pages sit under `/world` and `/campaign`: `/world/calendar` (the date systems and the moon's reference), `/world/history` (world events linked to places, NPCs, deities and factions) and `/campaign/calendar` (the campaign's own events, its current day, past/upcoming, world history interleaved). Both event pages have a chronological list and a keyboard-navigable month grid with moon phase and zodiac sign; which date system a viewer reads dates in is a cookie. Architecture: [`ARCHITECTURE.md` §4, "The calendar"](./ARCHITECTURE.md#the-calendar-spec-014). `adventure.timeline` is gone (T8): the calendar's events replaced it.
+
+**Formatted text (SPEC-019) shipped 2026-09-19.** Every description field
+across the app (spells, magic items, NPCs, factions, treasures, campaigns,
+adventures, scenes, calendar events, places and landmarks) is now edited with
+a toolbar editor — bold, italic, two heading levels, bulleted/numbered lists,
+and links to other records in the app — and displayed formatted. The value is
+stored as a restricted HTML fragment in the same text column as before,
+sanitised on every write and again on every render
+([ADR-0016](./adr/0016-formatted-text-as-sanitised-html.md)); a stored plain-text
+value keeps rendering exactly as it always has. `ControlType.RichText` is a new
+metadata-layer control (`app/ui/forms/inputs/RichTextInput.tsx`), so the
+feature reached the ADR-0011 bespoke editors the same way every other field
+does. See the spec's §11 for the full outcome.
 
 **Identifiers are English; the UI ships bilingual (Italian + English).** See [ADR-0005](./adr/0005-english-identifiers.md), implemented as TD-19 on 2026-07-30, and [ADR-0006](./adr/0006-bilingual-ui.md), implemented as TD-21 — copy lives in `messages/{it,en}.json`, not in JSX. Postgres columns keep their Italian names, decoupled from the code by Prisma `@map` (`name @map("nome")`) — so raw SQL and `psql` still show `nome`, `descrizione`, `livello`.
 

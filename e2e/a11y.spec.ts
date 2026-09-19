@@ -427,6 +427,120 @@ test("the place popover has no accessibility violations", async ({ page }) => {
 });
 
 /**
+ * TD-146: the "Collega personaggio" dialog (`AttachEntityButton`), opened
+ * from a landmark's popover — its two `<select>`s had no accessible label
+ * and hardcoded "NPC"/"Deity" option text before this fix. Scanned in its
+ * initial state (no type chosen yet), which already exercises both
+ * controls the fix touched. The fixture is a landmark (`kind: "poi"`, the
+ * panel's default — no map image needed, unlike the zone variant above),
+ * created and deleted through its popover; the click-retry mirrors
+ * `record-images.spec.ts`'s `openLandmarkPopover` — the popover refuses to
+ * open until `createPoi`'s round trip gives the marker a real id.
+ */
+test("the attach-character dialog has no accessibility violations", async ({
+  page,
+}) => {
+  const title = `E2E a11y attach ${Date.now()}`;
+
+  await page.goto("/dashboard/dnd5e/geography");
+  await expect(page.locator(".leaflet-container")).toBeVisible();
+  await page.waitForLoadState("networkidle");
+  await page.waitForTimeout(300);
+
+  const marker = page.getByRole("button", { name: title, exact: true });
+  const popover = page.getByRole("dialog", { name: title });
+
+  try {
+    await chooseFromContextMenu(
+      page,
+      { x: 460, y: 320 },
+      messages.geography.contextMenu.addPlace.trigger
+    );
+    await page
+      .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)
+      .fill(title);
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.save.save })
+      .click();
+    // The panel stays open over the map's left edge after save; close it or
+    // the new marker may be occluded.
+    await page
+      .getByRole("button", {
+        name: messages.geography.poiPanel.close,
+        exact: true,
+      })
+      .click();
+
+    await expect(async () => {
+      await marker.click();
+      await expect(popover).toBeVisible({ timeout: 500 });
+    }).toPass({ timeout: 10_000 });
+
+    await popover
+      .getByRole("button", { name: messages.geography.popover.attach })
+      .click();
+    // Same lesson as the grid configuration panel above: `Modal`'s
+    // `Dialog` root is a zero-height `relative` wrapper (its panel is
+    // `fixed`-positioned), which Playwright reports as hidden even when
+    // open — so the wait anchors on a control inside it instead. This is
+    // also the accessible-name assertion the fix is about: the type
+    // select is only reachable this way once it has a real label.
+    const typeSelect = page.getByLabel(
+      messages.geography.attachEntity.typeLabel
+    );
+    await expect(typeSelect).toBeVisible();
+
+    const results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .include('[role="dialog"]')
+      .analyze();
+
+    expect(
+      results.violations.map(
+        (violation) => `${violation.id} (${violation.nodes.length} nodes)`
+      ),
+      "axe violations on the attach-character dialog"
+    ).toEqual([]);
+
+    // Headless UI's `Dialog` closes the attach modal on Escape, returning
+    // to the popover underneath.
+    await page.keyboard.press("Escape");
+    await expect(typeSelect).not.toBeVisible();
+  } finally {
+    // Idempotent, same shape as `deleteLandmarkIfPresent` in
+    // `record-images.spec.ts`: re-navigate and re-open the popover if the
+    // steps above didn't get that far (e.g. the axe assertion threw).
+    await page.goto("/dashboard/dnd5e/geography");
+    await expect(page.locator(".leaflet-container")).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(300);
+    if ((await marker.count()) > 0) {
+      if (!(await popover.isVisible())) {
+        await expect(async () => {
+          await marker.click();
+          await expect(popover).toBeVisible({ timeout: 500 });
+        }).toPass({ timeout: 10_000 });
+      }
+      await popover
+        .getByRole("button", {
+          name: messages.geography.popover.deleteLandmark,
+        })
+        .click();
+      await page
+        .getByRole("dialog")
+        .filter({
+          hasText: messages.geography.popover.deleteLandmarkConfirm.cancel,
+        })
+        .getByRole("button", {
+          name: messages.geography.popover.deleteLandmarkConfirm.confirm,
+        })
+        .click();
+      await expect(marker).toHaveCount(0);
+    }
+  }
+});
+
+/**
  * SPEC-020 T6: images on records. `PAGES` already reaches the image field
  * (`/admin/npc/new`) and the lists, but only in their empty states — the
  * field before any upload, and rows whose thumbnails are the `aria-hidden`

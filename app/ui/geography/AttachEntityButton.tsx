@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import Modal from "@/app/ui/components/Modal";
@@ -65,8 +65,14 @@ export default function AttachEntityButton({
   onClose,
   onAttached,
 }: AttachEntityButtonProps) {
-  const t = useTranslations("geography.attachEntity");
+  // `t`, unscoped, resolves `LinkableEntityTypeConfig.labelKey` and
+  // `common.loading` — the two keys that don't live under this component's
+  // own namespace — the same split `ZoneEditPanel` uses for a `PageMeta`
+  // `labelKey` alongside its own panel copy (ADR-0011).
+  const t = useTranslations();
+  const tAttach = useTranslations("geography.attachEntity");
   const tForm = useTranslations("common.form");
+  const id = useId();
   const [entityType, setEntityType] = useState<LinkableEntityType | null>(null);
   const [options, setOptions] = useState<LinkableEntityOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -105,49 +111,63 @@ export default function AttachEntityButton({
         setIsOpen={(open) => {
           if (!open) reset();
         }}
-        title={t("trigger")}
+        title={tAttach("trigger")}
         size="small"
       >
         <div className="flex flex-col gap-2">
-          <select
-            value={entityType ?? ""}
-            onChange={(e) => {
-              const value = e.target.value;
-              setEntityType(
-                value === "" ? null : (value as LinkableEntityType)
-              );
-              setOptions([]);
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm"
-          >
-            <option value="">{t("typePlaceholder")}</option>
-            {LINKABLE_ENTITY_TYPES.map((type) => (
-              <option key={type.id} value={type.id}>
-                {type.label}
-              </option>
-            ))}
-          </select>
-          {entityType !== null && (
+          <div>
+            <label htmlFor={`${id}-type`} className="text-sm text-gray-700">
+              {tAttach("typeLabel")}
+            </label>
             <select
-              value=""
-              disabled={isLoading}
+              id={`${id}-type`}
+              value={entityType ?? ""}
               onChange={(e) => {
-                const option = options.find(
-                  (candidate) => String(candidate.id) === e.target.value
+                const value = e.target.value;
+                setEntityType(
+                  value === "" ? null : (value as LinkableEntityType)
                 );
-                if (option) setSelected(option);
+                setOptions([]);
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm disabled:opacity-50"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm"
             >
-              <option value="">
-                {isLoading ? "…" : t("entityPlaceholder")}
-              </option>
-              {options.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.name}
+              <option value="">{tAttach("typePlaceholder")}</option>
+              {LINKABLE_ENTITY_TYPES.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {t(type.labelKey)}
                 </option>
               ))}
             </select>
+          </div>
+          {entityType !== null && (
+            <div>
+              <label htmlFor={`${id}-entity`} className="text-sm text-gray-700">
+                {tAttach("entityLabel")}
+              </label>
+              <select
+                id={`${id}-entity`}
+                value=""
+                disabled={isLoading}
+                onChange={(e) => {
+                  const option = options.find(
+                    (candidate) => String(candidate.id) === e.target.value
+                  );
+                  if (option) setSelected(option);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm disabled:opacity-50"
+              >
+                <option value="">
+                  {isLoading
+                    ? t("common.loading")
+                    : tAttach("entityPlaceholder")}
+                </option>
+                {options.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
           <button
             onClick={reset}

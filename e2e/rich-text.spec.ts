@@ -130,12 +130,19 @@ test("a formatted description keeps its bold text, its list and a working record
   const linkPicker = page.getByRole("dialog", {
     name: messages.common.richText.linkPicker.title,
   });
-  await expect(linkPicker).toBeVisible();
-  await linkPicker
-    .getByLabel(messages.common.richText.linkPicker.searchLabel)
-    .fill(npcName);
+  // Assert on the search box, not the dialog: Headless UI's outer dialog
+  // element (the one carrying `role="dialog"`) has only `fixed` children, so
+  // it measures zero-height and Playwright reads it as hidden while the
+  // panel is on screen (see entity-location-invariant.spec.ts). For the same
+  // reason, closing is checked with `toHaveCount(0)` — `not.toBeVisible()`
+  // would pass with the dialog still open.
+  const pickerSearch = linkPicker.getByLabel(
+    messages.common.richText.linkPicker.searchLabel
+  );
+  await expect(pickerSearch).toBeVisible();
+  await pickerSearch.fill(npcName);
   await linkPicker.getByRole("button", { name: npcName }).click();
-  await expect(linkPicker).not.toBeVisible();
+  await expect(linkPicker).toHaveCount(0);
 
   await page
     .getByRole("button", { name: messages.factions.form.createButton })

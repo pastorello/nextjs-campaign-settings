@@ -1,6 +1,8 @@
 import ListColumn from "../definitions/interfaces/lists/ListColumn";
 import MagicItemMetaField from "../definitions/enums/magicitem/MagicItemMetaField";
 import TreasureMetaField from "../definitions/enums/treasure/TreasureMetaField";
+import DhDomainMetaField from "../definitions/enums/daggerheart/DhDomainMetaField";
+import DhDomainCardMetaField from "../definitions/enums/daggerheart/DhDomainCardMetaField";
 import DeityMetaField from "../definitions/enums/deities/DeityMetaField";
 import NpcMetaField from "../definitions/enums/npc/NpcMetaField";
 import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
@@ -169,6 +171,54 @@ const listConfig: Record<PageType, ListConfig> = {
     emptyMessageKey: "treasure.page.emptyMessage",
     editModalTitleKey: "treasure.form.editTitle",
     modalContent: "treasureform",
+  },
+
+  [PageType.DhDomain]: {
+    columns: [
+      {
+        fieldKey: DhDomainMetaField.colour,
+        labelKey: "dhDomains.fields.colour.label",
+      },
+      {
+        fieldKey: DhDomainMetaField.origin,
+        labelKey: "daggerheart.fields.origin.label",
+      },
+    ],
+    emptyMessageKey: "dhDomains.page.emptyMessage",
+    editModalTitleKey: "dhDomains.form.editTitle",
+    modalContent: "dhdomainform",
+  },
+
+  // The four header filters SPEC-021 §5 asks for: domain, level, type,
+  // origin. The domain's rows come from `EntityList`'s option bundle.
+  [PageType.DhDomainCard]: {
+    columns: [
+      {
+        fieldKey: DhDomainCardMetaField.domainId,
+        labelKey: "dhDomainCards.fields.domainId.label",
+      },
+      {
+        fieldKey: DhDomainCardMetaField.cardLevel,
+        labelKey: "dhDomainCards.fields.cardLevel.label",
+      },
+      {
+        fieldKey: DhDomainCardMetaField.cardType,
+        labelKey: "dhDomainCards.fields.cardType.label",
+      },
+      {
+        fieldKey: DhDomainCardMetaField.recallCost,
+        labelKey: "dhDomainCards.fields.recallCost.label",
+        // Free-form number, not a closed vocabulary.
+        isFiltrable: false,
+      },
+      {
+        fieldKey: DhDomainCardMetaField.origin,
+        labelKey: "daggerheart.fields.origin.label",
+      },
+    ],
+    emptyMessageKey: "dhDomainCards.page.emptyMessage",
+    editModalTitleKey: "dhDomainCards.form.editTitle",
+    modalContent: "dhdomaincardform",
   },
 };
 

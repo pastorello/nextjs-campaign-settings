@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import AppError from "./AppError";
 import DatabaseError from "./DatabaseError";
 import NotFoundError from "./NotFoundError";
+import ConflictError from "./ConflictError";
+import toErrorResponse from "./toErrorResponse";
 
 describe("DatabaseError", () => {
   it("keeps the original error as its cause", () => {
@@ -51,5 +53,29 @@ describe("AppError", () => {
       expect(error).toBeInstanceOf(AppError);
       expect(error).toBeInstanceOf(Error);
     }
+  });
+});
+
+describe("toErrorResponse and a keyed refusal (SPEC-021 T2)", () => {
+  it("sends a conflict's refusal key and values with its 409", async () => {
+    const response = toErrorResponse(
+      new ConflictError("in use", {
+        key: "dhDomainInUse",
+        values: { cards: 1, classes: 2 },
+      })
+    );
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      success: false,
+      error: "in use",
+      refusal: { key: "dhDomainInUse", values: { cards: 1, classes: 2 } },
+    });
+  });
+
+  it("sends no refusal for a conflict without one", async () => {
+    const response = toErrorResponse(new ConflictError("root"));
+
+    expect(await response.json()).toEqual({ success: false, error: "root" });
   });
 });

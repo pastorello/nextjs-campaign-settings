@@ -13,6 +13,9 @@ import treasureMeta from "./treasure/treasureMeta";
 import renderRichText from "../utils/data/renderRichText";
 import richTextValidator from "../utils/validators/richTextValidator";
 import imageMeta from "./image/imageMeta";
+import dhOriginMeta from "./daggerheart/dhOriginMeta";
+import dhDomainMeta from "./daggerheart/dhDomainMeta";
+import dhDomainCardMeta from "./daggerheart/dhDomainCardMeta";
 
 /**
  * Fields more than one domain meta may declare without it being an accident —
@@ -65,6 +68,23 @@ type DomainMetaPairs = {
   spellsTreasure: CollidingKeys<typeof spellsMeta, typeof treasureMeta>;
   magicItemsTreasure: CollidingKeys<typeof magicItemsMeta, typeof treasureMeta>;
   npcTreasure: CollidingKeys<typeof npcMeta, typeof treasureMeta>;
+  // SPEC-021's Daggerheart metas share the namespace: a card's `level` and
+  // `type` would have collided with spells' and magic items' (see
+  // `DhDomainCardMetaField`).
+  dhDomainDeities: CollidingKeys<typeof dhDomainMeta, typeof deitiesMeta>;
+  dhDomainSpells: CollidingKeys<typeof dhDomainMeta, typeof spellsMeta>;
+  dhDomainMagicItems: CollidingKeys<typeof dhDomainMeta, typeof magicItemsMeta>;
+  dhDomainNpc: CollidingKeys<typeof dhDomainMeta, typeof npcMeta>;
+  dhDomainTreasure: CollidingKeys<typeof dhDomainMeta, typeof treasureMeta>;
+  dhDomainDhCard: CollidingKeys<typeof dhDomainMeta, typeof dhDomainCardMeta>;
+  dhCardDeities: CollidingKeys<typeof dhDomainCardMeta, typeof deitiesMeta>;
+  dhCardSpells: CollidingKeys<typeof dhDomainCardMeta, typeof spellsMeta>;
+  dhCardMagicItems: CollidingKeys<
+    typeof dhDomainCardMeta,
+    typeof magicItemsMeta
+  >;
+  dhCardNpc: CollidingKeys<typeof dhDomainCardMeta, typeof npcMeta>;
+  dhCardTreasure: CollidingKeys<typeof dhDomainCardMeta, typeof treasureMeta>;
 };
 type AssertAllDisjoint<T extends Record<keyof DomainMetaPairs, never>> = T;
 export type DomainMetaFieldsAreDisjoint = AssertAllDisjoint<DomainMetaPairs>;
@@ -141,6 +161,10 @@ const pageMetaFields = {
   ...magicItemsMeta,
   ...npcMeta,
   ...treasureMeta,
+  // Every Daggerheart catalogue's `origin` (SPEC-021), declared once.
+  origin: dhOriginMeta,
+  ...dhDomainMeta,
+  ...dhDomainCardMeta,
 } satisfies Record<string, PageMeta>;
 
 /**

@@ -1,5 +1,7 @@
 import MagicItemMetaField from "../definitions/enums/magicitem/MagicItemMetaField";
 import TreasureMetaField from "../definitions/enums/treasure/TreasureMetaField";
+import DhDomainMetaField from "../definitions/enums/daggerheart/DhDomainMetaField";
+import DhDomainCardMetaField from "../definitions/enums/daggerheart/DhDomainCardMetaField";
 import MetaConfigKey from "../definitions/types/MetaConfigKey";
 import DeityMetaField from "../definitions/enums/deities/DeityMetaField";
 import NpcMetaField from "../definitions/enums/npc/NpcMetaField";
@@ -89,6 +91,24 @@ const formFields: Record<PageType, MetaConfigKey[]> = {
     TreasureMetaField.category,
     TreasureMetaField.value,
     "imageId",
+  ],
+
+  [PageType.DhDomain]: [
+    DhDomainMetaField.name,
+    DhDomainMetaField.description,
+    DhDomainMetaField.colour,
+    DhDomainMetaField.origin,
+    DhDomainMetaField.imageId,
+  ],
+
+  [PageType.DhDomainCard]: [
+    DhDomainCardMetaField.name,
+    DhDomainCardMetaField.domainId,
+    DhDomainCardMetaField.cardLevel,
+    DhDomainCardMetaField.recallCost,
+    DhDomainCardMetaField.cardType,
+    DhDomainCardMetaField.featureText,
+    DhDomainCardMetaField.origin,
   ],
 };
 

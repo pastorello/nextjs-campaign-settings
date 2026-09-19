@@ -57,6 +57,24 @@ vi.mock("../treasures/TreasureForm", () => ({
     <button onClick={() => onSaveFinished({ id: 1 })}>save-treasure</button>
   ),
 }));
+vi.mock("../dhDomains/DhDomainForm", () => ({
+  default: ({ onSaveFinished }: { onSaveFinished: (i: object) => void }) => (
+    <button onClick={() => onSaveFinished({ id: 1 })}>save-dhdomain</button>
+  ),
+}));
+vi.mock("../dhDomainCards/DhDomainCardForm", () => ({
+  default: ({
+    onSaveFinished,
+    optionBundle,
+  }: {
+    onSaveFinished: (i: object) => void;
+    optionBundle?: { dhDomain?: { label: string }[] };
+  }) => (
+    <button onClick={() => onSaveFinished({ id: 1 })}>
+      save-dhdomaincard:{optionBundle?.dhDomain?.[0]?.label}
+    </button>
+  ),
+}));
 
 import ModalButton from "./ModalButton";
 
@@ -95,6 +113,8 @@ describe("ModalButton", () => {
     ["deleteform", "save-delete"],
     ["factionform", "save-faction"],
     ["treasureform", "save-treasure"],
+    ["dhdomainform", "save-dhdomain"],
+    ["dhdomaincardform", "save-dhdomaincard:"],
   ])("renders the %s variant", (modalContent, expectedText) => {
     render(
       <ModalButton
@@ -107,6 +127,23 @@ describe("ModalButton", () => {
     fireEvent.click(screen.getByText("Edit"));
 
     expect(screen.getByText(expectedText)).toBeInTheDocument();
+  });
+
+  it("hands the domain card form its domain options (SPEC-021 T3)", () => {
+    render(
+      <ModalButton
+        buttonLabel="Edit"
+        modalTitle="Edit card"
+        modalContent="dhdomaincardform"
+        optionBundle={{ dhDomain: [{ value: 1, label: "Veilwright" }] }}
+      />
+    );
+
+    fireEvent.click(screen.getByText("Edit"));
+
+    expect(
+      screen.getByText("save-dhdomaincard:Veilwright")
+    ).toBeInTheDocument();
   });
 
   // TD-136: an admin row's edit/delete buttons all read "Modifica"/"Elimina"

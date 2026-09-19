@@ -14,6 +14,8 @@ import SpellForm from "../spells/SpellForm";
 import DeityForm from "../deities/DeityForm";
 import FactionForm from "../factions/FactionForm";
 import TreasureForm from "../treasures/TreasureForm";
+import DhDomainForm from "../dhDomains/DhDomainForm";
+import DhDomainCardForm from "../dhDomainCards/DhDomainCardForm";
 import OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
 interface ModalButtonProps {
@@ -25,7 +27,10 @@ interface ModalButtonProps {
   modalDescription?: string;
   modalSize?: string;
   componentProps?: ListItem;
-  /** Only `npcform` reads this today — every other variant ignores it. */
+  /**
+   * Only `npcform` and `dhdomaincardform` read this — every other variant
+   * ignores it.
+   */
   optionBundle?: OptionBundle | undefined;
   /**
    * Accessible name for the trigger button, for callers whose `buttonLabel`
@@ -142,6 +147,31 @@ const ModalButton = ({
           {modalContent === "treasureform" && (
             <TreasureForm
               {...componentProps}
+              onCancel={closeModal}
+              onSaveFinished={(item: object) => {
+                closeModal();
+                if (onSave) {
+                  onSave(item);
+                }
+              }}
+            />
+          )}
+          {modalContent === "dhdomainform" && (
+            <DhDomainForm
+              {...componentProps}
+              onCancel={closeModal}
+              onSaveFinished={(item: object) => {
+                closeModal();
+                if (onSave) {
+                  onSave(item);
+                }
+              }}
+            />
+          )}
+          {modalContent === "dhdomaincardform" && (
+            <DhDomainCardForm
+              {...componentProps}
+              optionBundle={optionBundle}
               onCancel={closeModal}
               onSaveFinished={(item: object) => {
                 closeModal();

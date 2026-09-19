@@ -22,10 +22,17 @@ type MetaDisplayValue = string | number | boolean | number[] | string[] | null;
  * `magicItemId`/`treasureId` are each a plain FK where the referenced table
  * is the membership check, the same shape `faction` already established
  * (SPEC-006 §7). `deities` joined with SPEC-014 T5, for world history's
- * links. See `fetchFieldOptions.ts` for the table read each name maps to.
+ * links. `dhDomain` joined with SPEC-021 T3, for a domain card's domain.
+ * See `fetchFieldOptions.ts` for the table read each name maps to.
  */
 type OptionTableName =
-  "faction" | "zone" | "npc" | "deities" | "magicitems" | "treasure";
+  | "faction"
+  | "zone"
+  | "npc"
+  | "deities"
+  | "magicitems"
+  | "treasure"
+  | "dhDomain";
 
 /**
  * A field's options are either a static list or rows in a table — never

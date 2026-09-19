@@ -92,5 +92,18 @@ export default async function fetchFieldOptions(
 
       return rows.map((row) => ({ value: row.id, label: row.name }));
     }
+    case "dhDomain": {
+      let rows;
+      try {
+        rows = await prisma.dhDomain.findMany({
+          select: { id: true, name: true },
+          orderBy: { name: "asc" },
+        });
+      } catch (error) {
+        throw toDatabaseError("fetching domain options", error);
+      }
+
+      return rows.map((row) => ({ value: row.id, label: row.name }));
+    }
   }
 }

@@ -11,6 +11,8 @@ export type DashboardDomain =
   | "campaign"
   | "campaign/calendar"
   | "deities"
+  | "domain-cards"
+  | "domains"
   | "factions"
   | "geography"
   | "magicitems"

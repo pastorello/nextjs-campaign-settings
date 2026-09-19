@@ -64,7 +64,14 @@ const createDomain = async (page: Page, name: string, colour: string) => {
   await page.goto(ADMIN_DOMAINS);
   await page.waitForLoadState("networkidle");
   await page.getByRole("link", { name: domains.page.newItemButton }).click();
-  await page.getByLabel(messages.common.fields.name.label).fill(name);
+  // Wait for the form: on the list, a non-exact "Nome" also matches the
+  // name column's "Ordina per nome" sort button (CI, 2026-09-19).
+  await expect(
+    page.getByRole("heading", { name: domains.form.createTitle })
+  ).toBeVisible();
+  await page
+    .getByLabel(messages.common.fields.name.label, { exact: true })
+    .fill(name);
   await pick(page, domains.fields.colour.label, colour);
   await page.getByRole("button", { name: domains.form.createButton }).click();
   await page.waitForURL(`**${ADMIN_DOMAINS}`);
@@ -159,6 +166,9 @@ test.describe("Daggerheart classes and subclasses", () => {
       await page
         .getByRole("link", { name: subclasses.page.newItemButton })
         .click();
+      await expect(
+        page.getByRole("heading", { name: subclasses.form.createTitle })
+      ).toBeVisible();
       await page
         .getByLabel(messages.common.fields.name.label, { exact: true })
         .fill(subclassName);

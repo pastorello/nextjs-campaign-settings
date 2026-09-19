@@ -5,7 +5,7 @@ import { fetchFilteredDeities } from "@/app/lib/data/deities/fetchFilteredDeitie
 import { fetchFilteredFactions } from "@/app/lib/data/faction/fetchFilteredFactions";
 import searchPlacesByTitle from "@/app/lib/data/maps/searchPlacesByTitle";
 import isValidString from "@/app/lib/utils/validators/isValidString";
-import pagesConfig from "@/app/lib/config/pagesConfig";
+import isPageInSystem from "@/app/lib/config/isPageInSystem";
 import PageType from "@/app/lib/definitions/types/PageType";
 
 /** The per-group cap agreed with the DM (SPEC-011 §9, decision 2) — final, not a placeholder. */
@@ -82,9 +82,7 @@ export function isSearchDomainInSystem(
   system: string
 ): boolean {
   const page = SEARCH_DOMAIN_PAGE[domain];
-  if (page === null) return true;
-  const pageSystem = pagesConfig[page].system;
-  return pageSystem === undefined || pageSystem === system;
+  return page === null || isPageInSystem(page, system);
 }
 
 const pickIdName = ({ id, name }: SearchResultItem): SearchResultItem => ({

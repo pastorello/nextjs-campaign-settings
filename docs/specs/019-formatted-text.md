@@ -138,7 +138,8 @@ calendar events) use the same input component with their fields' metas.
 
 ## 10. Task breakdown
 
-- [ ] **T1** — ADR-0016 (editor, stored format, sanitiser). The sanitiser module with its allowlist and the record-link anchor format. _(test: allowlist, attack payloads, record-link shape)_
+- [x] **T1** — ADR-0016 (editor, stored format, sanitiser). The sanitiser module with its allowlist and the record-link anchor format. _(test: allowlist, attack payloads, record-link shape)_
+  - _Done 2026-09-19:_ [ADR-0016](../adr/0016-formatted-text-as-sanitised-html.md) — Tiptap 3, a restricted HTML fragment, `sanitize-html` (+ `htmlparser2`), pinned exactly. `app/lib/utils/richText/`: `sanitizeRichText` (allowlist in `richTextAllowlist.ts`; links are `<a data-record-domain data-record-id>`, never `href`, invalid ones unwrapped via `parseRecordLink`), `isRichTextHtml` (HTML iff it opens with `p`/`ul`/`ol`/`h3`/`h4`), `plainTextToRichText`, `richTextToPlainText` (for T6). Domains: `RECORD_LINK_DOMAINS`, kept equal to `SEARCH_DOMAINS` by a test.
 - [ ] **T2** — The formatted renderer: plain-text fallback, sanitise-on-render, record links resolved to pages (deleted → plain text). Replaces `renderRichText`'s body. _(test: plain text unchanged; links; deleted target)_
 - [ ] **T3** — `ControlType.RichText` and its editor input with the toolbar, shortcuts, paste filtering. _(test: toolbar actions, paste, keyboard)_
 - [ ] **T4** — The record-link picker. _(test: search, choose, unlink)_

@@ -3,7 +3,7 @@
 - **Status:** Agreed 2026-09-19 — written from an interview with the DM the same day, read through and agreed without changes
 - **Date:** 2026-09-19
 - **Phase:** 5 (pulled forward: a prerequisite of SPEC-018 T4, see [SPEC-021](./021-daggerheart-domains-and-classes.md))
-- **Related:** [ADR-0008](../adr/0008-map-image-storage.md) (map images: filesystem store behind an authenticated route — reused here) · ROADMAP Phase 5 "Image uploads" · [SPEC-019](./019-formatted-text.md) · [SPEC-021](./021-daggerheart-domains-and-classes.md) · ADR-0017 (to be written in T1: how records reference images)
+- **Related:** [ADR-0008](../adr/0008-map-image-storage.md) (map images: filesystem store behind an authenticated route — reused here) · ROADMAP Phase 5 "Image uploads" · [SPEC-019](./019-formatted-text.md) · [SPEC-021](./021-daggerheart-domains-and-classes.md) · [ADR-0017](../adr/0017-record-images.md) (how records reference images; the pipeline and routes)
 
 ---
 
@@ -139,7 +139,8 @@ list column renders the thumbnail.
 
 ## 10. Task breakdown
 
-- [ ] **T1** — ADR-0017. Generalise ADR-0008's store for record images; the resize/strip pipeline; the authenticated read route and the upload action. _(test: pipeline, type/size/decode rejections, auth)_
+- [x] **T1** — ADR-0017. Generalise ADR-0008's store for record images; the resize/strip pipeline; the authenticated read route and the upload action. _(test: pipeline, type/size/decode rejections, auth)_
+  - _Done 2026-09-19._ `MapImageStore` → `ImageStore`/`FilesystemImageStore` (maps unchanged, at `UPLOAD_DIR`; records at `UPLOAD_DIR/records`). `processRecordImage` sniffs PNG/JPEG/WebP by decoding, refuses >10 MB and >64 MP headers, auto-orients, strips all metadata and writes WebP (1600 px display, 256 px centre-cropped thumbnail); `storeRecordImage` writes both all-or-nothing and returns a `StoredRecordImage` — the seam T2 persists. Upload is a route (`POST /api/record-images`), not an action: Server Actions cap bodies at 1 MB. `GET /api/record-images/[key]` serves by storage key, `private` + `immutable`. `sharp` pinned at 0.35.4.
 - [ ] **T2** — Schema: `recordImage`, `imageId` on the owning tables. Additive migration. _(test: migration additive)_
 - [ ] **T3** — `ControlType.Image` input and the shared `image` field in the seven metas; replace/remove; delete-with-record. _(test: actions; file cleanup)_
 - [ ] **T4** — Display: detail/card views and list thumbnails. _(test: render with/without image)_

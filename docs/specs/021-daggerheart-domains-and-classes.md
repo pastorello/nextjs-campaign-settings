@@ -1,6 +1,6 @@
 # SPEC-021: Daggerheart — domains, domain cards, classes and subclasses
 
-- **Status:** Draft — written 2026-09-19 from an interview with the DM; awaiting the DM's read-through. The slice spec for [SPEC-018](./018-game-systems.md) T4.
+- **Status:** Agreed 2026-09-19 — written from an interview with the DM the same day, read through and agreed without changes. The slice spec for [SPEC-018](./018-game-systems.md) T4.
 - **Date:** 2026-09-19
 - **Phase:** 4
 - **Related:** [SPEC-018](./018-game-systems.md) (§5 licence constraints and §6 catalogue structure — binding here) · [ADR-0013](../adr/0013-game-systems.md) · [`daggerheart.md`](../domain/daggerheart.md) · [`licensing.md`](../domain/licensing.md) · [SPEC-019](./019-formatted-text.md) (formatted feature text — a prerequisite) · [SPEC-020](./020-record-images.md) (domain emblems — a prerequisite) · [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md) (ordered features)

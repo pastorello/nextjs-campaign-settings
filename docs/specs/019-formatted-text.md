@@ -1,6 +1,6 @@
 # SPEC-019: Formatted text
 
-- **Status:** Draft — written 2026-09-19 from an interview with the DM; awaiting the DM's read-through
+- **Status:** Agreed 2026-09-19 — written from an interview with the DM the same day, read through and agreed without changes
 - **Date:** 2026-09-19
 - **Phase:** 5 (pulled forward: a prerequisite of SPEC-018 T4, see [SPEC-021](./021-daggerheart-domains-and-classes.md))
 - **Related:** TD-76 (`renderRichText` renders plain text today) · ROADMAP Phase 5 "Rich text in descriptions" · [SPEC-011](./011-cross-entity-search.md) (search matches description text) · [SPEC-020](./020-record-images.md) · [SPEC-021](./021-daggerheart-domains-and-classes.md) · ADR-0016 (to be written in T1: the editor and the stored format)

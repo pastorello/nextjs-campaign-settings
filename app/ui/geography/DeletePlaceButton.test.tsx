@@ -142,6 +142,12 @@ describe("DeletePlaceButton (SPEC-010 T3; externally controlled since the 2026-0
 
     await waitFor(() => expect(fetchPlaceDeletionImpact).toHaveBeenCalled());
 
+    // The confirm button stays disabled until the impact has loaded, and a
+    // click on it before then does nothing — waiting for the fetch call alone
+    // raced its result on a slow CI runner (2026-09-19).
+    await waitFor(() =>
+      expect(screen.getByText("confirm").closest("button")).toBeEnabled()
+    );
     fireEvent.click(screen.getByText("confirm"));
 
     await waitFor(() => expect(deletePlace).toHaveBeenCalledWith(5));
@@ -166,6 +172,12 @@ describe("DeletePlaceButton (SPEC-010 T3; externally controlled since the 2026-0
 
     await waitFor(() => expect(fetchPlaceDeletionImpact).toHaveBeenCalled());
 
+    // The confirm button stays disabled until the impact has loaded, and a
+    // click on it before then does nothing — waiting for the fetch call alone
+    // raced its result on a slow CI runner (2026-09-19).
+    await waitFor(() =>
+      expect(screen.getByText("confirm").closest("button")).toBeEnabled()
+    );
     fireEvent.click(screen.getByText("confirm"));
 
     await waitFor(() =>

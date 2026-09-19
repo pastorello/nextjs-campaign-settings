@@ -360,10 +360,10 @@ test("the place popover has no accessibility violations", async ({ page }) => {
     .locator("label", { hasText: messages.geography.poiPanel.fields.kind })
     .locator("xpath=following-sibling::select[1]")
     .selectOption("region");
-  // The panel's second, hidden file input is for GeoJSON import — scoped to
-  // the map-image one by its `accept`.
   await page
-    .locator('input[type="file"][accept*="image"]')
+    .getByLabel(messages.geography.poiPanel.fields.mapImage, {
+      exact: true,
+    })
     .setInputFiles(A11Y_PNG_FILE);
   await page
     .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)

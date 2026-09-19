@@ -51,7 +51,9 @@ test.describe("the place in view has a URL of its own (TD-82)", () => {
       .locator("xpath=following-sibling::select[1]")
       .selectOption("region");
     await page
-      .locator('input[type="file"][accept*="image"]')
+      .getByLabel(messages.geography.poiPanel.fields.mapImage, {
+        exact: true,
+      })
       .setInputFiles(PNG_FILE);
     await page
       .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)

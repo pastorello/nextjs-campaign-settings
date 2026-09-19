@@ -1,6 +1,6 @@
 # SPEC-020: Images on records
 
-- **Status:** Draft — written 2026-09-19 from an interview with the DM; awaiting the DM's read-through
+- **Status:** Agreed 2026-09-19 — written from an interview with the DM the same day, read through and agreed without changes
 - **Date:** 2026-09-19
 - **Phase:** 5 (pulled forward: a prerequisite of SPEC-018 T4, see [SPEC-021](./021-daggerheart-domains-and-classes.md))
 - **Related:** [ADR-0008](../adr/0008-map-image-storage.md) (map images: filesystem store behind an authenticated route — reused here) · ROADMAP Phase 5 "Image uploads" · [SPEC-019](./019-formatted-text.md) · [SPEC-021](./021-daggerheart-domains-and-classes.md) · ADR-0017 (to be written in T1: how records reference images)

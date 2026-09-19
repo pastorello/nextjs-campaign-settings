@@ -3,7 +3,18 @@
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
+import recordImageKeysInclude from "@/app/lib/data/recordImages/recordImageKeysInclude";
 import type EntityAtPlace from "@/app/lib/definitions/interfaces/maps/EntityAtPlace";
+
+/**
+ * Each row's portrait keys ride along in the same query (SPEC-020 T5), so
+ * the popover's list renders its thumbnails without a request per row.
+ */
+const entitySelect = {
+  id: true,
+  name: true,
+  ...recordImageKeysInclude,
+} as const;
 
 /**
  * The entities shown in a place's popover (SPEC-016 T1, §5) — NPCs and
@@ -28,12 +39,12 @@ export default async function fetchEntitiesAtPlace(
     const [npcs, deities] = await Promise.all([
       prisma.npc.findMany({
         where,
-        select: { id: true, name: true },
+        select: entitySelect,
         orderBy: { name: "asc" },
       }),
       prisma.deities.findMany({
         where,
-        select: { id: true, name: true },
+        select: entitySelect,
         orderBy: { name: "asc" },
       }),
     ]);

@@ -28,9 +28,16 @@ vi.mock("@/app/lib/notifications/notify", () => ({ notifyError }));
 
 import PlaceEntityList from "./PlaceEntityList";
 
+const portrait = {
+  displayKey: "records/aelar.webp",
+  thumbKey: "records/aelar-thumb.webp",
+  width: 800,
+  height: 1200,
+};
+
 const entities = [
-  { id: 3, name: "Aelar", type: "npc" as const },
-  { id: 5, name: "Tyr", type: "deity" as const },
+  { id: 3, name: "Aelar", type: "npc" as const, image: portrait },
+  { id: 5, name: "Tyr", type: "deity" as const, image: null },
 ];
 
 function rowFor(name: string) {
@@ -53,6 +60,38 @@ describe("PlaceEntityList", () => {
     expect(await screen.findByText("Aelar")).toBeInTheDocument();
     expect(screen.getByText("Tyr")).toBeInTheDocument();
     expect(fetchEntitiesAtPlace).toHaveBeenCalledWith({ zoneId: 7 });
+  });
+
+  it("shows a portrait's thumbnail beside the name, with the name as its alt (SPEC-020 T5)", async () => {
+    render(<PlaceEntityList target={{ poiId: 12 }} />);
+
+    await screen.findByText("Aelar");
+    const image = rowFor("Aelar").getByRole("img", { name: "Aelar" });
+    expect(image).toHaveAttribute(
+      "src",
+      expect.stringContaining(encodeURIComponent(portrait.thumbKey))
+    );
+    expect(
+      rowFor("Aelar").queryByTestId("record-thumbnail-placeholder")
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows a placeholder, not an image, for an entity without a portrait (SPEC-020 T5)", async () => {
+    render(<PlaceEntityList target={{ poiId: 12 }} />);
+
+    await screen.findByText("Tyr");
+    expect(rowFor("Tyr").queryByRole("img")).not.toBeInTheDocument();
+    expect(
+      rowFor("Tyr").getByTestId("record-thumbnail-placeholder")
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the portrait out of the detach button's accessible name", async () => {
+    render(<PlaceEntityList target={{ poiId: 12 }} />);
+
+    await screen.findByText("Aelar");
+    const image = rowFor("Aelar").getByRole("img", { name: "Aelar" });
+    expect(image.closest("button")).toBeNull();
   });
 
   it("lists the entities attached to a landmark", async () => {

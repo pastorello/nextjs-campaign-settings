@@ -41,12 +41,34 @@ describe("fetchEntitiesAtPlace", () => {
 
     expect(npcFindMany).toHaveBeenCalledWith({
       where: { zoneId: 5, poiId: null },
-      select: { id: true, name: true },
+      select: {
+        id: true,
+        name: true,
+        image: {
+          select: {
+            displayKey: true,
+            thumbKey: true,
+            width: true,
+            height: true,
+          },
+        },
+      },
       orderBy: { name: "asc" },
     });
     expect(deitiesFindMany).toHaveBeenCalledWith({
       where: { zoneId: 5, poiId: null },
-      select: { id: true, name: true },
+      select: {
+        id: true,
+        name: true,
+        image: {
+          select: {
+            displayKey: true,
+            thumbKey: true,
+            width: true,
+            height: true,
+          },
+        },
+      },
       orderBy: { name: "asc" },
     });
   });
@@ -56,26 +78,69 @@ describe("fetchEntitiesAtPlace", () => {
 
     expect(npcFindMany).toHaveBeenCalledWith({
       where: { poiId: 9 },
-      select: { id: true, name: true },
+      select: {
+        id: true,
+        name: true,
+        image: {
+          select: {
+            displayKey: true,
+            thumbKey: true,
+            width: true,
+            height: true,
+          },
+        },
+      },
       orderBy: { name: "asc" },
     });
     expect(deitiesFindMany).toHaveBeenCalledWith({
       where: { poiId: 9 },
-      select: { id: true, name: true },
+      select: {
+        id: true,
+        name: true,
+        image: {
+          select: {
+            displayKey: true,
+            thumbKey: true,
+            width: true,
+            height: true,
+          },
+        },
+      },
       orderBy: { name: "asc" },
     });
   });
 
   it("merges NPCs and deities into one list, tagged with their type", async () => {
-    npcFindMany.mockResolvedValue([{ id: 1, name: "Ariosto" }]);
-    deitiesFindMany.mockResolvedValue([{ id: 3, name: "Aerivel" }]);
+    npcFindMany.mockResolvedValue([{ id: 1, name: "Ariosto", image: null }]);
+    deitiesFindMany.mockResolvedValue([
+      { id: 3, name: "Aerivel", image: null },
+    ]);
 
     const result = await fetchEntitiesAtPlace({ zoneId: 5 });
 
     expect(result).toEqual([
-      { id: 1, name: "Ariosto", type: "npc" },
-      { id: 3, name: "Aerivel", type: "deity" },
+      { id: 1, name: "Ariosto", image: null, type: "npc" },
+      { id: 3, name: "Aerivel", image: null, type: "deity" },
     ]);
+  });
+
+  it("carries each row's portrait keys from the same query, not a per-row fetch (SPEC-020 T5)", async () => {
+    const portrait = {
+      displayKey: "records/a.webp",
+      thumbKey: "records/a-thumb.webp",
+      width: 800,
+      height: 1200,
+    };
+    npcFindMany.mockResolvedValue([
+      { id: 1, name: "Ariosto", image: portrait },
+    ]);
+
+    const result = await fetchEntitiesAtPlace({ poiId: 9 });
+
+    expect(result).toEqual([
+      { id: 1, name: "Ariosto", image: portrait, type: "npc" },
+    ]);
+    expect(npcFindMany).toHaveBeenCalledTimes(1);
   });
 
   it("returns an empty list for a place with no entities", async () => {

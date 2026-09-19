@@ -13,20 +13,6 @@ vi.mock("@/i18n/navigation", () => ({
 
 vi.mock("@/app/lib/hooks/useGameSystem", () => ({ default: () => "dnd5e" }));
 
-// `GAME_SYSTEMS` holds `dnd5e` alone until T4, so a second system is faked
-// here to exercise the choice. Everything else in the module is real.
-vi.mock("@/app/lib/definitions/GameSystem", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("@/app/lib/definitions/GameSystem")>();
-  const systems = ["dnd5e", "daggerheart"] as const;
-  return {
-    ...actual,
-    GAME_SYSTEMS: systems,
-    isGameSystem: (value: unknown) =>
-      (systems as readonly unknown[]).includes(value),
-  };
-});
-
 // A native <select> stands in for the Headless UI listbox, which jsdom
 // cannot drive by label.
 vi.mock("@/app/ui/forms/inputs/Select", () => ({

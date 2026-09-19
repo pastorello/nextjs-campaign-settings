@@ -16,7 +16,6 @@
       "signOut": "Esci",
       "language": "Lingua",
       "gameSystem": "Sistema di gioco",
-      "gameSystemSingle": "Per ora è disponibile un solo sistema di gioco.",
       "treasure": "Tesori",
       "campaign": "Campagna",
       "sidebarLabel": "Navigazione principale"
@@ -1313,7 +1312,11 @@
     "heroPoints": "Punti eroe guadagnati"
   },
   "gameSystems": {
-    "dnd5e": "D&D 5e"
+    "dnd5e": "D&D 5e",
+    "daggerheart": "Daggerheart"
+  },
+  "gameSystemCompatibility": {
+    "daggerheart": "Daggerheart™ Compatible"
   },
   "calendar": {
     "date": {

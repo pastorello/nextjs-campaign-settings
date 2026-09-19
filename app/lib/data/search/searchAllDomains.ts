@@ -127,7 +127,8 @@ const capGroup = (items: SearchResultItem[]): SearchDomainGroup => ({
  * game system (ADR-0013 rule 10): the world's domains are always searched,
  * a catalogue only under its own system. A domain left out is not queried
  * at all and comes back as an empty group, which the results view already
- * hides. With `dnd5e` the only system, every domain is searched.
+ * hides. Under `daggerheart` the 5e spells and magic items are skipped;
+ * SPEC-021 T7 adds the Daggerheart catalogues.
  *
  * An empty/blank term short-circuits before issuing any query — `getQuery.ts`
  * treats an empty string as "no filter" and would otherwise return the first

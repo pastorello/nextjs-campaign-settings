@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string, values?: Record<string, unknown>) =>
@@ -14,9 +14,51 @@ vi.mock("@/i18n/navigation", () => ({
     <a href={href} {...props} />
   ),
 }));
-vi.mock("@/app/lib/hooks/useGameSystem", () => ({ default: () => "dnd5e" }));
+let system = "dnd5e";
+vi.mock("@/app/lib/hooks/useGameSystem", () => ({ default: () => system }));
 
 import NavLinks from "./nav-links";
+
+beforeEach(() => {
+  system = "dnd5e";
+});
+
+// SPEC-021 T1: with a second system, the sidebar must not offer a catalogue
+// that is a 404 under the URL's system (ADR-0013 rule 4).
+describe("NavLinks under a system", () => {
+  it("lists the 5e catalogues under dnd5e", () => {
+    pathname = "/dashboard/dnd5e";
+    render(<NavLinks />);
+
+    for (const key of ["spells", "magicItems", "treasure"]) {
+      expect(screen.getByText(key)).toBeInTheDocument();
+    }
+  });
+
+  it("leaves the 5e catalogues out under daggerheart and keeps the world", () => {
+    system = "daggerheart";
+    pathname = "/dashboard/daggerheart";
+    render(<NavLinks />);
+
+    for (const key of ["spells", "magicItems", "treasure"]) {
+      expect(screen.queryByText(key)).not.toBeInTheDocument();
+    }
+    for (const key of [
+      "search",
+      "home",
+      "campaign",
+      "deities",
+      "geography",
+      "npc",
+      "factions",
+    ]) {
+      expect(screen.getByLabelText(key)).toHaveAttribute(
+        "href",
+        expect.stringMatching(/^\/dashboard\/daggerheart/)
+      );
+    }
+  });
+});
 
 describe("NavLinks", () => {
   it("renders a link and label for every declared nav item", () => {

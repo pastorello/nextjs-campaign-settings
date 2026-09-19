@@ -3,23 +3,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import SystemSwitcher from "./SystemSwitcher";
 
-const { push, systems } = vi.hoisted(() => ({
+const { push, current } = vi.hoisted(() => ({
   push: vi.fn(),
-  // Mutable so a test can add a second system; `GAME_SYSTEMS` itself holds
-  // only `dnd5e` until Daggerheart's first slice lands (ADR-0013 rule 1).
-  systems: ["dnd5e"] as string[],
-}));
-
-vi.mock("@/app/lib/definitions/GameSystem", () => ({
-  GAME_SYSTEMS: systems,
+  current: { system: "dnd5e", pathname: "/dashboard/dnd5e/geography" },
 }));
 
 vi.mock("@/app/lib/hooks/useGameSystem", () => ({
-  default: () => "dnd5e",
+  default: () => current.system,
 }));
 
+// Each namespace's translator returns `<namespace>.<key>`, so a test can tell
+// the system label from the compatibility line.
 vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
+  useTranslations: (namespace: string) => (key: string) =>
+    `${namespace}.${key}`,
 }));
 
 vi.mock("next/navigation", () => ({
@@ -27,40 +24,74 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/i18n/navigation", () => ({
-  usePathname: () => "/dashboard/dnd5e/geography",
+  usePathname: () => current.pathname,
   useRouter: () => ({ push }),
 }));
 
 describe("SystemSwitcher", () => {
   beforeEach(() => {
     push.mockClear();
-    systems.splice(0, systems.length, "dnd5e");
+    current.system = "dnd5e";
+    current.pathname = "/dashboard/dnd5e/geography";
   });
 
-  // The DM's answer, 2026-09-18: shown disabled, not hidden, while dnd5e is
-  // the only system.
-  it("is shown disabled, with an explanation, while only one system exists", () => {
+  // SPEC-021 T1: Daggerheart joined `GAME_SYSTEMS`, so the switch that was
+  // shown disabled while dnd5e stood alone (2026-09-18) is live.
+  it("is enabled and lists both systems", () => {
     render(<SystemSwitcher />);
 
-    const select = screen.getByRole("combobox", { name: "gameSystem" });
-    expect(select).toBeDisabled();
-    expect(select).toHaveValue("dnd5e");
-    expect(select).toHaveAccessibleDescription("gameSystemSingle");
-  });
-
-  it("lists the systems and navigates to the same page under the chosen one", () => {
-    systems.push("daggerheart");
-    render(<SystemSwitcher />);
-
-    const select = screen.getByRole("combobox", { name: "gameSystem" });
+    const select = screen.getByRole("combobox", {
+      name: "common.nav.gameSystem",
+    });
     expect(select).toBeEnabled();
-    expect(select).not.toHaveAttribute("aria-describedby");
-    expect(screen.getAllByRole("option")).toHaveLength(2);
+    expect(select).toHaveValue("dnd5e");
+    expect(
+      screen.getAllByRole("option").map((option) => option.textContent)
+    ).toEqual(["gameSystems.dnd5e", "gameSystems.daggerheart"]);
+  });
 
-    fireEvent.change(select, { target: { value: "daggerheart" } });
+  it("navigates to the same shared page under the chosen system", () => {
+    render(<SystemSwitcher />);
+
+    fireEvent.change(screen.getByRole("combobox"), {
+      target: { value: "daggerheart" },
+    });
 
     expect(push).toHaveBeenCalledWith(
       "/dashboard/daggerheart/geography?place=12"
     );
+  });
+
+  it("sends a 5e catalogue page to Daggerheart's dashboard home", () => {
+    current.pathname = "/dashboard/dnd5e/spells";
+    render(<SystemSwitcher />);
+
+    fireEvent.change(screen.getByRole("combobox"), {
+      target: { value: "daggerheart" },
+    });
+
+    expect(push).toHaveBeenCalledWith("/dashboard/daggerheart");
+  });
+
+  // SPEC-018 §5.3: "Daggerheart™ Compatible" where the system is named.
+  it("shows the compatibility line under Daggerheart, as the select's description", () => {
+    current.system = "daggerheart";
+    current.pathname = "/dashboard/daggerheart";
+    render(<SystemSwitcher />);
+
+    expect(screen.getByRole("combobox")).toHaveAccessibleDescription(
+      "gameSystemCompatibility.daggerheart"
+    );
+  });
+
+  it("shows no compatibility line under 5e", () => {
+    render(<SystemSwitcher />);
+
+    expect(screen.getByRole("combobox")).not.toHaveAttribute(
+      "aria-describedby"
+    );
+    expect(
+      screen.queryByText(/gameSystemCompatibility/)
+    ).not.toBeInTheDocument();
   });
 });

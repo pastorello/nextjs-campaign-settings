@@ -141,10 +141,17 @@ describe("searchAllDomains by game system (ADR-0013 rule 10)", () => {
     searchPlacesByTitle.mockResolvedValue([{ id: 6, title: "Fire Peak" }]);
   });
 
-  it("searches every domain under every system while dnd5e is the only one", async () => {
+  it("searches every domain under dnd5e", async () => {
+    const result = await searchAllDomains("Fire", "dnd5e");
+    for (const domain of SEARCH_DOMAINS) {
+      expect(result[domain].total).toBe(1);
+    }
+  });
+
+  it("searches every world domain under every system", async () => {
     for (const system of GAME_SYSTEMS) {
       const result = await searchAllDomains("Fire", system);
-      for (const domain of SEARCH_DOMAINS) {
+      for (const domain of ["npc", "deities", "factions", "places"] as const) {
         expect(result[domain].total).toBe(1);
       }
     }

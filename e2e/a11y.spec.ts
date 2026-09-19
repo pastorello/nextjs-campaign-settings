@@ -53,6 +53,9 @@ const PAGES = [
   "/dashboard/dnd5e/world/calendar",
   "/dashboard/dnd5e/world/history",
   "/dashboard/dnd5e/world/history?view=grid",
+  // SPEC-021 T1: the second system's home — the live switch and its
+  // "Daggerheart™ Compatible" line, and a sidebar without the 5e catalogues.
+  "/dashboard/daggerheart",
 ];
 
 for (const path of PAGES) {

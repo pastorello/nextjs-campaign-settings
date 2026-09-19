@@ -12,6 +12,8 @@ import { Link } from "@/i18n/navigation";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import type GameSystem from "@/app/lib/definitions/GameSystem";
 import fetchCardData from "@/app/lib/data/fetchCardData";
+import isPageInSystem from "@/app/lib/config/isPageInSystem";
+import PageType from "@/app/lib/definitions/types/PageType";
 
 type CardType =
   "magicitems" | "npc" | "spells" | "deities" | "places" | "factions";
@@ -36,6 +38,15 @@ const pathMap: Record<CardType, `/${string}`> = {
   factions: "/factions",
 };
 
+const cardPage: Record<CardType, PageType | null> = {
+  magicitems: PageType.MagicItem,
+  npc: PageType.Npc,
+  spells: PageType.Spell,
+  deities: PageType.Deity,
+  places: null,
+  factions: PageType.Faction,
+};
+
 export default async function CardWrapper({ system }: { system: GameSystem }) {
   const t = await getTranslations("common.cards");
   const {
@@ -47,41 +58,40 @@ export default async function CardWrapper({ system }: { system: GameSystem }) {
     numberOfFactions,
   } = await fetchCardData();
 
+  const cards: { type: CardType; title: string; value: number }[] = [
+    { type: "magicitems", title: t("magicItems"), value: numberOfmagicItems },
+    { type: "npc", title: t("npc"), value: numberOfNpc },
+    { type: "spells", title: t("spells"), value: numberOfSpells },
+    { type: "deities", title: t("deities"), value: numberOfDeities },
+    { type: "places", title: t("places"), value: numberOfPlaces },
+    { type: "factions", title: t("factions"), value: numberOfFactions },
+  ];
+
   return (
     <>
-      <Card
-        title={t("magicItems")}
-        value={numberOfmagicItems}
-        type="magicitems"
-        system={system}
-      />
-      <Card title={t("npc")} value={numberOfNpc} type="npc" system={system} />
-      <Card
-        title={t("spells")}
-        value={numberOfSpells}
-        type="spells"
-        system={system}
-      />
-      <Card
-        title={t("deities")}
-        value={numberOfDeities}
-        type="deities"
-        system={system}
-      />
-      <Card
-        title={t("places")}
-        value={numberOfPlaces}
-        type="places"
-        system={system}
-      />
-      <Card
-        title={t("factions")}
-        value={numberOfFactions}
-        type="factions"
-        system={system}
-      />
+      {cards
+        .filter(({ type }) => isCardInSystem(type, system))
+        .map(({ type, title, value }) => (
+          <Card
+            key={type}
+            title={title}
+            value={value}
+            type={type}
+            system={system}
+          />
+        ))}
     </>
   );
+}
+
+/**
+ * A card links to a list page, so it is shown only where that page exists
+ * (ADR-0013 rule 4): the 5e catalogues' counts are not on Daggerheart's
+ * overview. Places have no `pagesConfig` page; they are the world, shared.
+ */
+function isCardInSystem(type: CardType, system: GameSystem): boolean {
+  const page = cardPage[type];
+  return page === null || isPageInSystem(page, system);
 }
 
 export function Card({

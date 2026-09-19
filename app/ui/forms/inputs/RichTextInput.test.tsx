@@ -13,6 +13,7 @@ vi.mock("@/app/lib/data/search/searchRecordLinks", () => ({
   default: searchRecordLinks,
 }));
 
+import DeletedRecordLinksContext from "@/app/ui/richText/DeletedRecordLinksContext";
 import RichTextInput from "./RichTextInput";
 
 /** Tiptap hangs its instance on the editable element (`view.dom.editor`). */
@@ -282,6 +283,44 @@ describe("RichTextInput", () => {
         '<p>Ask <a data-record-domain="npc" data-record-id="42">Mira</a></p>'
       );
       expect(screen.queryByLabelText("searchLabel")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("deleted link targets (T5)", () => {
+    const stored =
+      '<p><a data-record-domain="npc" data-record-id="1">Mira</a> and ' +
+      '<a data-record-domain="npc" data-record-id="2">Tobin</a></p>';
+
+    it("opens a link the page reports deleted as plain text", async () => {
+      render(
+        <DeletedRecordLinksContext.Provider value={new Set(["npc:2"])}>
+          <RichTextInput value={stored} onChange={vi.fn()} label="D" />
+        </DeletedRecordLinksContext.Provider>
+      );
+      const textbox = await screen.findByRole("textbox");
+      const editor = (textbox as unknown as { editor: Editor }).editor;
+
+      expect(editor.getHTML()).toBe(
+        '<p><a data-record-domain="npc" data-record-id="1">Mira</a> and Tobin</p>'
+      );
+    });
+
+    it("unlinks a deletion reported after mount, before the DM types", async () => {
+      const onChange = vi.fn();
+      const view = (deleted: ReadonlySet<string>) => (
+        <DeletedRecordLinksContext.Provider value={deleted}>
+          <RichTextInput value={stored} onChange={onChange} label="D" />
+        </DeletedRecordLinksContext.Provider>
+      );
+      const { rerender } = render(view(new Set()));
+      const textbox = await screen.findByRole("textbox");
+      const editor = (textbox as unknown as { editor: Editor }).editor;
+      expect(editor.getHTML()).toContain('data-record-id="2"');
+
+      rerender(view(new Set(["npc:2"])));
+
+      expect(editor.getHTML()).not.toContain('data-record-id="2"');
+      expect(onChange).not.toHaveBeenCalled();
     });
   });
 });

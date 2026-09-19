@@ -1,12 +1,13 @@
 "use client";
 
-import { ReactNode, useCallback } from "react";
+import { ReactNode, useCallback, useMemo } from "react";
 
 import { Link } from "@/i18n/navigation";
 import useGameSystem from "@/app/lib/hooks/useGameSystem";
 import type RecordLinkTargets from "@/app/lib/definitions/types/RecordLinkTargets";
 import recordLinkKey from "@/app/lib/utils/richText/recordLinkKey";
 import recordHref from "@/app/lib/utils/search/recordHref";
+import DeletedRecordLinksContext from "./DeletedRecordLinksContext";
 import RecordLinkContext, { RenderRecordLink } from "./RecordLinkContext";
 
 /**
@@ -18,15 +19,21 @@ import RecordLinkContext, { RenderRecordLink } from "./RecordLinkContext";
  * A resolved link leads where its search result does (`recordHref`), under
  * the current locale (next-intl's `Link`) and system, by the record's current
  * name. An unresolved one — deleted, or outside this system — is its text.
+ *
+ * `deleted` (T5, from `fetchRecordLinkResolution`) is handed on to the
+ * formatted-text editors below, which open those links unlinked.
  */
 export default function RecordLinkTargetsProvider({
   targets,
+  deleted = NONE,
   children,
 }: {
   targets: RecordLinkTargets;
+  deleted?: readonly string[];
   children: ReactNode;
 }) {
   const system = useGameSystem();
+  const deletedKeys = useMemo(() => new Set(deleted), [deleted]);
 
   const renderRecordLink = useCallback<RenderRecordLink>(
     (domain, id, text) => {
@@ -46,7 +53,11 @@ export default function RecordLinkTargetsProvider({
 
   return (
     <RecordLinkContext.Provider value={renderRecordLink}>
-      {children}
+      <DeletedRecordLinksContext.Provider value={deletedKeys}>
+        {children}
+      </DeletedRecordLinksContext.Provider>
     </RecordLinkContext.Provider>
   );
 }
+
+const NONE: readonly string[] = [];

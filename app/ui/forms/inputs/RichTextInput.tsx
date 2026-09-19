@@ -1,6 +1,14 @@
 "use client";
 
-import { lazy, Suspense, useEffect, useId, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import clsx from "clsx";
 
@@ -8,6 +16,7 @@ import MetaValue from "@/app/lib/definitions/types/MetaValue";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import richTextToEditorContent from "@/app/lib/utils/richText/richTextToEditorContent";
 import editorHtmlToRichText from "@/app/lib/utils/richText/editorHtmlToRichText";
+import DeletedRecordLinksContext from "@/app/ui/richText/DeletedRecordLinksContext";
 
 import RichTextToolbar from "./richText/RichTextToolbar";
 import type { RecordLinkAttributes } from "./richText/recordLinkMark";
@@ -47,6 +56,10 @@ interface RichTextInputProps {
  *   `**bold**` or `- ` does nothing special. Shortcuts (Mod-B/I/Z) stay.
  * - **Record links (T4):** the link button opens `RecordLinkPicker` on the
  *   current selection; "remove link" unwraps the link under the cursor.
+ * - **Deleted targets (T5):** a link whose record the page reports deleted
+ *   (`DeletedRecordLinksContext`, set by the page's record-link provider)
+ *   opens unlinked. When that answer arrives after mount (the map resolves
+ *   client-side), the content is reloaded only if the DM has not typed yet.
  * - **SSR:** `immediatelyRender: false`, as Tiptap requires under Next —
  *   the editor mounts on the client after hydration.
  */
@@ -60,6 +73,9 @@ const RichTextInput = ({
   const labelId = useId();
   const [linkPickerOpen, setLinkPickerOpen] = useState(false);
   const stringValue = typeof value === "string" ? value : "";
+  const deleted = useContext(DeletedRecordLinksContext);
+  // Whether the DM has changed the content since it was last loaded.
+  const edited = useRef(false);
 
   // The last value this editor emitted: a `value` prop equal to it is our own
   // echo, anything else is an outside reset to load.
@@ -73,7 +89,7 @@ const RichTextInput = ({
     extensions: richTextExtensions(
       isValidString(placeholder) ? placeholder : ""
     ),
-    content: richTextToEditorContent(stringValue),
+    content: richTextToEditorContent(stringValue, deleted),
     immediatelyRender: false,
     enableInputRules: false,
     enablePasteRules: false,
@@ -93,6 +109,7 @@ const RichTextInput = ({
       },
     },
     onUpdate: ({ editor: current }) => {
+      edited.current = true;
       const next = editorHtmlToRichText(current.getHTML());
       if (next === lastEmitted.current) return;
       lastEmitted.current = next;
@@ -103,10 +120,19 @@ const RichTextInput = ({
   useEffect(() => {
     if (editor === null || stringValue === lastEmitted.current) return;
     lastEmitted.current = stringValue;
-    editor.commands.setContent(richTextToEditorContent(stringValue), {
+    edited.current = false;
+    editor.commands.setContent(richTextToEditorContent(stringValue, deleted), {
       emitUpdate: false,
     });
-  }, [editor, stringValue]);
+  }, [editor, stringValue, deleted]);
+
+  useEffect(() => {
+    if (editor === null || edited.current || deleted.size === 0) return;
+    editor.commands.setContent(
+      richTextToEditorContent(lastEmitted.current, deleted),
+      { emitUpdate: false }
+    );
+  }, [editor, deleted]);
 
   // The editor keeps its selection while the dialog has focus, so the link
   // lands on the text that was selected when the button was pressed.

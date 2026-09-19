@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import useGameSystem from "@/app/lib/hooks/useGameSystem";
+import pageMetaFields from "@/app/lib/config/pageMetaFields";
 import Icon from "../components/Icon";
 import IconType from "../buttons/BaseButton/IconType";
 import Faction from "@/app/lib/definitions/interfaces/faction/Faction";
@@ -16,7 +17,6 @@ import { RosterMember } from "@/app/lib/data/faction/fetchFactionRosters";
 const FactionCard = (props: { cardItem: Faction; roster: RosterMember[] }) => {
   const t = useTranslations("factions.card");
   const system = useGameSystem();
-  const markup = { __html: props.cardItem.description };
 
   return (
     <Disclosure>
@@ -34,10 +34,11 @@ const FactionCard = (props: { cardItem: Faction; roster: RosterMember[] }) => {
         </DisclosureButton>
         <DisclosurePanel>
           <div className="flex w-full flex-col p-2">
-            <div
-              dangerouslySetInnerHTML={markup}
-              className="mb-1 p-3 text-base first-letter:float-left first-letter:mr-2 first-letter:text-5xl first-letter:font-bold"
-            />
+            <div className="mb-1 p-3 text-base first-letter:float-left first-letter:mr-2 first-letter:text-5xl first-letter:font-bold">
+              {pageMetaFields.description.getDatum(
+                props.cardItem.description ?? ""
+              )}
+            </div>
             <div className="p-3">
               <h4 className="mb-2 text-lg">{t("rosterTitle")}</h4>
               {props.roster.length === 0 ? (

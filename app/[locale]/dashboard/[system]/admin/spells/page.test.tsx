@@ -43,6 +43,8 @@ vi.mock("@/app/ui/components/EntityList", () => ({
 
 import Page, { generateMetadata } from "./page";
 
+const params = Promise.resolve({ system: "dnd5e" });
+
 describe("admin spells Page (admin list-page pattern)", () => {
   it("titles the page from the spells.page catalogue", async () => {
     const metadata = await generateMetadata();
@@ -58,7 +60,7 @@ describe("admin spells Page (admin list-page pattern)", () => {
     });
     const searchParams = Promise.resolve({ query: "acid", page: "2" });
 
-    render(await Page({ searchParams }));
+    render(await Page({ params, searchParams }));
 
     expect(getSpellsCount).toHaveBeenCalledWith({ query: "acid", page: "2" });
     expect(screen.getByText("newItemButton").closest("a")).toHaveAttribute(
@@ -76,7 +78,7 @@ describe("admin spells Page (admin list-page pattern)", () => {
       filteredPages: 0,
     });
 
-    render(await Page({}));
+    render(await Page({ params }));
 
     expect(getSpellsCount).toHaveBeenCalledWith({});
   });

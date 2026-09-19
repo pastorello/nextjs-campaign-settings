@@ -16,8 +16,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page(props: {
+  params: Promise<{ system: string }>;
   searchParams?: Promise<SearchParams>;
 }) {
+  const { system } = await props.params;
   const t = await getTranslations("magicItems.page");
   const searchParams = await props.searchParams;
   const itemCount = await getMagicItemsCount(searchParams ?? {});
@@ -33,6 +35,7 @@ export default async function Page(props: {
     >
       <Suspense fallback={<LibrarySkeleton />}>
         <EntityLibrary
+          system={system}
           pageType={PageType.MagicItem}
           searchParams={props.searchParams}
         />

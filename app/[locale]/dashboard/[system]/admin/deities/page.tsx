@@ -17,11 +17,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page(props: {
+  params: Promise<{ system: string }>;
   searchParams?: Promise<{
     query?: string;
     page?: string;
   }>;
 }) {
+  const { system } = await props.params;
   const t = await getTranslations("deities.page");
   const tCommon = await getTranslations("common.list");
   const searchParams = await props.searchParams;
@@ -47,6 +49,7 @@ export default async function Page(props: {
         fallback={<TableSkeleton pageType={PageType.Deity} />}
       >
         <EntityList
+          system={system}
           pageType={PageType.Deity}
           searchParams={props.searchParams}
         />

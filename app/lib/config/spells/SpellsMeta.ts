@@ -14,6 +14,7 @@ import subclasses from "./subclasses";
 import castingTimes from "./castingTimes";
 import savingThrows from "./savingThrows";
 import renderRichText from "../../utils/data/renderRichText";
+import richTextValidator from "../../utils/validators/richTextValidator";
 
 const spellsMeta = {
   [SpellMetaField.level]: {
@@ -112,9 +113,10 @@ const spellsMeta = {
     labelKey: "spells.fields.upcast.label",
     defaultValue: "",
     fieldType: FieldType.string,
-    controlType: ControlType.Textarea,
+    // Formatted text (SPEC-019 T5): the validator sanitises it.
+    controlType: ControlType.RichText,
     placeholderKey: "spells.fields.upcast.placeholder",
-    validator: z.string().optional(),
+    validator: richTextValidator().optional(),
     getDatum: (datum: string) => renderRichText(datum),
     // Long-form prose, same reasoning as the shared `description` field
     // (TD-120).

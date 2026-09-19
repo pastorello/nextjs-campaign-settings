@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 import PageType from "@/app/lib/definitions/types/PageType";
 import { SearchParamsInput } from "@/app/lib/data/validateParams";
 
@@ -20,6 +22,8 @@ import NpcLibrary from "../npc/NpcLibrary";
 import SpellLibrary from "../spells/SpellLibrary";
 import FactionLibrary from "../factions/FactionLibrary";
 import TreasureLibrary from "../treasures/TreasureLibrary";
+import ResolvedRecordLinks from "../richText/ResolvedRecordLinks";
+import richTextValuesOf from "@/app/lib/utils/richText/richTextValuesOf";
 
 /**
  * Where each record sits in the world tree (SPEC-004 T5a), resolved here
@@ -46,6 +50,8 @@ const placementsFor = async (linkedType: LinkableEntityType) =>
  */
 export default async function EntityLibrary(props: {
   pageType: PageType;
+  /** The route's game system: record links resolve within it (SPEC-019). */
+  system: string;
   searchParams?: SearchParamsInput | undefined;
 }) {
   // The fetch happens inside each branch rather than once above it: the four
@@ -53,18 +59,35 @@ export default async function EntityLibrary(props: {
   // have to widen them to `ListItem[]` and cast back. This way every branch is
   // exactly typed and there is no assertion anywhere in the file.
   const searchParams = props.searchParams ?? {};
+  const { pageType, system } = props;
 
-  switch (props.pageType) {
-    case PageType.Spell:
-      return <SpellLibrary items={await fetchFilteredSpells(searchParams)} />;
-    case PageType.Npc:
-      return (
+  // The cards render formatted descriptions: their record links resolve in
+  // one batch over the rows shown (SPEC-019 T5).
+  const withRecordLinks = (items: readonly object[], library: ReactNode) => (
+    <ResolvedRecordLinks
+      values={richTextValuesOf(pageType, items)}
+      system={system}
+    >
+      {library}
+    </ResolvedRecordLinks>
+  );
+
+  switch (pageType) {
+    case PageType.Spell: {
+      const items = await fetchFilteredSpells(searchParams);
+      return withRecordLinks(items, <SpellLibrary items={items} />);
+    }
+    case PageType.Npc: {
+      const items = await fetchFilteredNpc(searchParams);
+      return withRecordLinks(
+        items,
         <NpcLibrary
-          items={await fetchFilteredNpc(searchParams)}
+          items={items}
           placements={await placementsFor("npc")}
           optionBundle={{ faction: await fetchFieldOptions("faction") }}
         />
       );
+    }
     case PageType.Deity:
       return (
         <DeityLibrary
@@ -72,20 +95,20 @@ export default async function EntityLibrary(props: {
           placements={await placementsFor("deity")}
         />
       );
-    case PageType.MagicItem:
-      return (
-        <MagicItemLibrary items={await fetchFilteredMagicItems(searchParams)} />
+    case PageType.MagicItem: {
+      const items = await fetchFilteredMagicItems(searchParams);
+      return withRecordLinks(items, <MagicItemLibrary items={items} />);
+    }
+    case PageType.Faction: {
+      const items = await fetchFilteredFactions(searchParams);
+      return withRecordLinks(
+        items,
+        <FactionLibrary items={items} rosters={await fetchFactionRosters()} />
       );
-    case PageType.Faction:
-      return (
-        <FactionLibrary
-          items={await fetchFilteredFactions(searchParams)}
-          rosters={await fetchFactionRosters()}
-        />
-      );
-    case PageType.Treasure:
-      return (
-        <TreasureLibrary items={await fetchFilteredTreasures(searchParams)} />
-      );
+    }
+    case PageType.Treasure: {
+      const items = await fetchFilteredTreasures(searchParams);
+      return withRecordLinks(items, <TreasureLibrary items={items} />);
+    }
   }
 }

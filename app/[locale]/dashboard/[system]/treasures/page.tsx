@@ -16,8 +16,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page(props: {
+  params: Promise<{ system: string }>;
   searchParams?: Promise<SearchParams>;
 }) {
+  const { system } = await props.params;
   const t = await getTranslations("treasure.page");
   const searchParams = await props.searchParams;
   const itemCount = await getTreasuresCount(searchParams ?? {});
@@ -33,6 +35,7 @@ export default async function Page(props: {
     >
       <Suspense fallback={<LibrarySkeleton />}>
         <EntityLibrary
+          system={system}
           pageType={PageType.Treasure}
           searchParams={props.searchParams}
         />

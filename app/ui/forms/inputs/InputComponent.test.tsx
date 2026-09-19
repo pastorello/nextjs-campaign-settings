@@ -18,7 +18,7 @@ describe("InputComponent", () => {
     expect(setField).toHaveBeenCalledWith("name", "Ice Storm");
   });
 
-  it("renders a textarea control for a text field", () => {
+  it("renders the formatted-text editor for a description (SPEC-019 T5)", async () => {
     const setField = vi.fn();
     render(
       <InputComponent
@@ -28,10 +28,12 @@ describe("InputComponent", () => {
       />
     );
 
-    expect(screen.getByRole("textbox")).toHaveValue("A ball of fire");
+    const editor = await screen.findByRole("textbox");
+    expect(editor).toHaveAttribute("contenteditable", "true");
+    expect(editor).toHaveTextContent("A ball of fire");
   });
 
-  it("grows the textarea for a field declared tall in its meta (TD-120)", () => {
+  it("grows the editor for a field declared tall in its meta (TD-120)", () => {
     const setField = vi.fn();
     render(
       <InputComponent fieldName="description" setField={setField} value="" />

@@ -11,6 +11,7 @@ import magicItemsMeta from "./magicitem/magicItemMeta";
 import deitiesMeta from "./deity/deityMeta";
 import treasureMeta from "./treasure/treasureMeta";
 import renderRichText from "../utils/data/renderRichText";
+import richTextValidator from "../utils/validators/richTextValidator";
 
 /**
  * Fields more than one domain meta may declare without it being an accident —
@@ -74,9 +75,10 @@ const pageMetaFields = {
     labelKey: "common.fields.description.label",
     defaultValue: "",
     fieldType: FieldType.string,
-    controlType: ControlType.Textarea,
+    // Formatted text (SPEC-019 T5): the validator sanitises it.
+    controlType: ControlType.RichText,
     placeholderKey: "common.fields.description.placeholder",
-    validator: z.string(),
+    validator: richTextValidator(),
     getDatum: (datum: string) => renderRichText(datum),
     // Long-form prose across every domain that has this field (TD-120).
     tall: true,

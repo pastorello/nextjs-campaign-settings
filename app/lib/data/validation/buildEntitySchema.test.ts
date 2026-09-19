@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import PageType from "@/app/lib/definitions/types/PageType";
+import ControlType from "@/app/lib/definitions/types/ControlType";
 import { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import {
   buildCreateSchema,
@@ -140,4 +141,42 @@ describe("buildUpdateSchema", () => {
       buildUpdateSchema(PageType.Spell).safeParse({ id: 0, nome: "x" }).success
     ).toBe(false);
   });
+});
+
+describe("formatted-text fields sanitise on write (SPEC-019 T5)", () => {
+  const dirty =
+    '<p onclick="x()">A <strong>bold</strong> word<script>alert(1)</script>' +
+    ' <a href="https://example.com">web</a></p>';
+  const clean = "<p>A <strong>bold</strong> word web</p>";
+
+  const richTextFields = Object.values(PageType).flatMap((pageType) =>
+    entityFieldKeys(pageType)
+      .filter((key) => fieldMeta[key]?.controlType === ControlType.RichText)
+      .map((key) => [pageType, key] as const)
+  );
+
+  it("covers every description-like field of every domain", () => {
+    expect(richTextFields).toEqual(
+      expect.arrayContaining([
+        [PageType.Spell, "description"],
+        [PageType.Spell, "upcast"],
+        [PageType.MagicItem, "description"],
+        [PageType.Npc, "description"],
+        [PageType.Npc, "appearance"],
+        [PageType.Npc, "personality"],
+        [PageType.Npc, "motivations"],
+        [PageType.Npc, "secrets"],
+        [PageType.Faction, "description"],
+        [PageType.Treasure, "description"],
+      ])
+    );
+  });
+
+  it.each(richTextFields)(
+    "%s.%s is sanitised by the update schema",
+    (pageType, key) => {
+      const parsed = buildUpdateSchema(pageType).parse({ id: 1, [key]: dirty });
+      expect(parsed[key]).toBe(clean);
+    }
+  );
 });

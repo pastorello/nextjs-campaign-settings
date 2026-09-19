@@ -14,7 +14,6 @@ import resolveFieldValue from "@/app/lib/utils/data/resolveFieldValue";
 
 const TreasureCard = (props: { cardItem: Treasure }) => {
   const t = useTranslations();
-  const markup = { __html: props.cardItem.description ?? "" };
 
   return (
     <Disclosure>
@@ -49,10 +48,11 @@ const TreasureCard = (props: { cardItem: Treasure }) => {
         </DisclosureButton>
         <DisclosurePanel>
           <div className="flex w-full p-2">
-            <div
-              dangerouslySetInnerHTML={markup}
-              className="mb-1 p-3 text-base first-letter:float-left first-letter:mr-2 first-letter:text-5xl first-letter:font-bold"
-            />
+            <div className="mb-1 p-3 text-base first-letter:float-left first-letter:mr-2 first-letter:text-5xl first-letter:font-bold">
+              {pageMetaFields.description.getDatum(
+                props.cardItem.description ?? ""
+              )}
+            </div>
           </div>
         </DisclosurePanel>
       </div>

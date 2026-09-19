@@ -41,3 +41,4 @@ Do **not** write one for routine implementation choices, naming, or anything a c
 | [0015](./0015-time-as-a-universal-day-number.md)                | Time as a universal day number                                         | Accepted | 2026-09-18 |
 | [0016](./0016-formatted-text-as-sanitised-html.md)              | Formatted text as a sanitised HTML fragment, edited with Tiptap        | Accepted | 2026-09-19 |
 | [0017](./0017-record-images.md)                                 | Record images: `imageId` per owner, `sharp`, WebP, authenticated route | Accepted | 2026-09-19 |
+| [0018](./0018-daggerheart-features-one-table-per-owner.md)      | Daggerheart features in one table per owner                            | Accepted | 2026-09-19 |

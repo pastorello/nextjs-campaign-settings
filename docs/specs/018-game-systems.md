@@ -180,7 +180,7 @@ _Filled in per slice; each slice in §10 gets its own spec._
 
 **Open questions**
 
-1. **Daggerheart features:** one polymorphic `feature` table (owner type + id, like ADR-0009's world tree) or one table per owner. An ADR in T4.
+1. **Daggerheart features:** one polymorphic `feature` table (owner type + id, like ADR-0009's world tree) or one table per owner. An ADR in T4. **Decided 2026-09-19:** one table per owner — [ADR-0018](../adr/0018-daggerheart-features-one-table-per-owner.md), from SPEC-021 §6.
 2. **Pathfinder 2e:** when. Its licence is already checked (§5).
 3. **Daggerheart Battle Points:** computed from the SRD formula, or authored like SPEC-013's numbers?
 4. **Publication:** which format first, and free or sold? The answer decides whether §4.2 applies.

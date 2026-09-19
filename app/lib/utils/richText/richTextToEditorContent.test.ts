@@ -20,4 +20,13 @@ describe("richTextToEditorContent", () => {
       )
     ).toBe("<p>Hi <strong>there</strong></p>");
   });
+
+  it("unwraps the links it is told are deleted, keeping their text (T5)", () => {
+    const stored =
+      '<p><a data-record-domain="npc" data-record-id="1">Mira</a> and ' +
+      '<a data-record-domain="npc" data-record-id="2">Tobin</a></p>';
+    expect(richTextToEditorContent(stored, new Set(["npc:2"]))).toBe(
+      '<p><a data-record-domain="npc" data-record-id="1">Mira</a> and Tobin</p>'
+    );
+  });
 });

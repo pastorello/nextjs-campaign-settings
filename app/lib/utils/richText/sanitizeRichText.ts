@@ -1,6 +1,7 @@
 import sanitizeHtml from "sanitize-html";
 
 import parseRecordLink from "./parseRecordLink";
+import recordLinkKey from "./recordLinkKey";
 import {
   RECORD_DOMAIN_ATTRIBUTE,
   RECORD_ID_ATTRIBUTE,
@@ -12,6 +13,8 @@ import {
  * `sanitize-html` while its text is kept — "unwrapped".
  */
 const UNWRAP = "unwrap";
+
+const NO_UNLINK: ReadonlySet<string> = new Set();
 
 const OPTIONS: sanitizeHtml.IOptions = {
   allowedTags: [...RICH_TEXT_TAGS],
@@ -39,19 +42,30 @@ const OPTIONS: sanitizeHtml.IOptions = {
   transformTags: {
     b: "strong",
     i: "em",
-    a: (_tagName, attribs) => {
-      const link = parseRecordLink(attribs);
-      if (link === null) return { tagName: UNWRAP, attribs: {} };
-      return {
-        tagName: "a",
-        attribs: {
-          [RECORD_DOMAIN_ATTRIBUTE]: link.domain,
-          [RECORD_ID_ATTRIBUTE]: String(link.id),
-        },
-      };
-    },
+    a: (_tagName, attribs) => transformAnchor(attribs, NO_UNLINK),
   },
 };
+
+/**
+ * An anchor is kept only as a valid record link whose `recordLinkKey` is not
+ * in `unlink`; anything else is unwrapped to its text.
+ */
+function transformAnchor(
+  attribs: sanitizeHtml.Attributes,
+  unlink: ReadonlySet<string>
+): sanitizeHtml.Tag {
+  const link = parseRecordLink(attribs);
+  if (link === null || unlink.has(recordLinkKey(link.domain, link.id))) {
+    return { tagName: UNWRAP, attribs: {} };
+  }
+  return {
+    tagName: "a",
+    attribs: {
+      [RECORD_DOMAIN_ATTRIBUTE]: link.domain,
+      [RECORD_ID_ATTRIBUTE]: String(link.id),
+    },
+  };
+}
 
 /**
  * Reduces an HTML fragment to formatted text's allowlist (SPEC-019, ADR-0016):
@@ -63,7 +77,21 @@ const OPTIONS: sanitizeHtml.IOptions = {
  * Runs on every write (the field's validator, T5) and again on every render
  * (`renderRichText`), so a value hand-edited in the database or loaded by
  * `db:import` is never trusted.
+ *
+ * `unlink` (`recordLinkKey`s) also unwraps those record links — the editor
+ * passes the page's deleted targets, so a link to a deleted record opens
+ * unlinked (SPEC-019 §5 edge cases, T5).
  */
-export default function sanitizeRichText(html: string): string {
-  return sanitizeHtml(html, OPTIONS);
+export default function sanitizeRichText(
+  html: string,
+  unlink: ReadonlySet<string> = NO_UNLINK
+): string {
+  if (unlink.size === 0) return sanitizeHtml(html, OPTIONS);
+  return sanitizeHtml(html, {
+    ...OPTIONS,
+    transformTags: {
+      ...OPTIONS.transformTags,
+      a: (_tagName, attribs) => transformAnchor(attribs, unlink),
+    },
+  });
 }

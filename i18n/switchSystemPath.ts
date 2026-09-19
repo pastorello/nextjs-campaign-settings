@@ -1,15 +1,13 @@
 import type GameSystem from "@/app/lib/definitions/GameSystem";
-import pagesConfig from "@/app/lib/config/pagesConfig";
+import isPageInSystem from "@/app/lib/config/isPageInSystem";
 import PageType from "@/app/lib/definitions/types/PageType";
 
 import { DASHBOARD_ROOT, dashboardPath } from "./dashboardPath";
 
 const pageTypes = new Set<string>(Object.values(PageType));
 
-/** The system a page belongs to, or `undefined` when it is shared. */
-function pageSystem(segment: string | undefined) {
-  if (segment === undefined || !pageTypes.has(segment)) return undefined;
-  return pagesConfig[segment as PageType].system;
+function isPageType(segment: string | undefined): segment is PageType {
+  return segment !== undefined && pageTypes.has(segment);
 }
 
 /**
@@ -37,8 +35,9 @@ export function switchSystemPath(
     .slice(1)
     .filter(Boolean);
   const page = rest[0] === "admin" ? rest[1] : rest[0];
-  const owner = pageSystem(page);
-  if (owner !== undefined && owner !== target) return dashboardPath(target);
+  if (isPageType(page) && !isPageInSystem(page, target)) {
+    return dashboardPath(target);
+  }
 
   const path =
     rest.length > 0

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import pagesConfig from "@/app/lib/config/pagesConfig";
+import isPageInSystem from "@/app/lib/config/isPageInSystem";
 import PageType from "@/app/lib/definitions/types/PageType";
 
 /**
@@ -11,6 +11,5 @@ import PageType from "@/app/lib/definitions/types/PageType";
  * ones.
  */
 export default function assertPageSystem(pageType: PageType, system: string) {
-  const pageSystem = pagesConfig[pageType].system;
-  if (pageSystem !== undefined && pageSystem !== system) notFound();
+  if (!isPageInSystem(pageType, system)) notFound();
 }

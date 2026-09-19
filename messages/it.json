@@ -212,9 +212,18 @@
       "orderedList": "Elenco numerato",
       "heading": "Titolo",
       "subheading": "Sottotitolo",
+      "link": "Collega a una scheda",
       "unlink": "Rimuovi collegamento",
       "undo": "Annulla",
-      "redo": "Ripeti"
+      "redo": "Ripeti",
+      "linkPicker": {
+        "title": "Collega a una scheda",
+        "searchLabel": "Cerca schede per nome",
+        "prompt": "Digita un nome per trovare un incantesimo, un oggetto magico, un PNG, una divinità, una fazione o un luogo.",
+        "searching": "Ricerca in corso…",
+        "noMatches": "Nessuna scheda corrisponde a \"{term}\".",
+        "error": "Ricerca non riuscita. Riprova."
+      }
     }
   },
   "spells": {

@@ -212,9 +212,18 @@
       "orderedList": "Numbered list",
       "heading": "Heading",
       "subheading": "Subheading",
+      "link": "Link to a record",
       "unlink": "Remove link",
       "undo": "Undo",
-      "redo": "Redo"
+      "redo": "Redo",
+      "linkPicker": {
+        "title": "Link to a record",
+        "searchLabel": "Search records by name",
+        "prompt": "Type a name to find a spell, magic item, NPC, deity, faction or place.",
+        "searching": "Searching…",
+        "noMatches": "No records match \"{term}\".",
+        "error": "Search failed. Try again."
+      }
     }
   },
   "spells": {

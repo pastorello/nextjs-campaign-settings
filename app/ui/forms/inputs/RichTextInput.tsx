@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { lazy, Suspense, useEffect, useId, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import clsx from "clsx";
 
@@ -10,7 +10,15 @@ import richTextToEditorContent from "@/app/lib/utils/richText/richTextToEditorCo
 import editorHtmlToRichText from "@/app/lib/utils/richText/editorHtmlToRichText";
 
 import RichTextToolbar from "./richText/RichTextToolbar";
+import type { RecordLinkAttributes } from "./richText/recordLinkMark";
 import richTextExtensions from "./richText/richTextExtensions";
+
+/**
+ * Loaded on first open: the picker pulls in the search Server Action (and,
+ * under Vitest, the auth module behind it), which every form that merely
+ * renders this input has no reason to load.
+ */
+const RecordLinkPicker = lazy(() => import("./richText/RecordLinkPicker"));
 
 interface RichTextInputProps {
   // See TextInput: every control takes MetaValue and narrows it itself.
@@ -37,6 +45,8 @@ interface RichTextInputProps {
  *   emptied textarea.
  * - **Markdown:** input and paste rules are off (SPEC-019 §3): typing
  *   `**bold**` or `- ` does nothing special. Shortcuts (Mod-B/I/Z) stay.
+ * - **Record links (T4):** the link button opens `RecordLinkPicker` on the
+ *   current selection; "remove link" unwraps the link under the cursor.
  * - **SSR:** `immediatelyRender: false`, as Tiptap requires under Next —
  *   the editor mounts on the client after hydration.
  */
@@ -48,6 +58,7 @@ const RichTextInput = ({
   tall,
 }: RichTextInputProps) => {
   const labelId = useId();
+  const [linkPickerOpen, setLinkPickerOpen] = useState(false);
   const stringValue = typeof value === "string" ? value : "";
 
   // The last value this editor emitted: a `value` prop equal to it is our own
@@ -97,6 +108,13 @@ const RichTextInput = ({
     });
   }, [editor, stringValue]);
 
+  // The editor keeps its selection while the dialog has focus, so the link
+  // lands on the text that was selected when the button was pressed.
+  const linkSelection = (link: RecordLinkAttributes) => {
+    setLinkPickerOpen(false);
+    editor?.chain().focus().setRecordLink(link).run();
+  };
+
   return (
     <div className="w-full">
       {isValidString(label) && (
@@ -108,9 +126,25 @@ const RichTextInput = ({
         </div>
       )}
       <div className="rounded-md border hover:shadow">
-        {editor !== null && <RichTextToolbar editor={editor} />}
+        {editor !== null && (
+          <RichTextToolbar
+            editor={editor}
+            onRequestLink={() => setLinkPickerOpen(true)}
+          />
+        )}
         <EditorContent editor={editor} />
       </div>
+      {/* Mounted only while open: it reads the route's game system, and
+          nothing about it is worth keeping between openings. */}
+      {linkPickerOpen && (
+        <Suspense fallback={null}>
+          <RecordLinkPicker
+            isOpen={linkPickerOpen}
+            setIsOpen={setLinkPickerOpen}
+            onChoose={linkSelection}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };

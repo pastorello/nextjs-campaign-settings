@@ -1,5 +1,6 @@
 "use server";
 
+import checkRecordImageReference from "@/app/lib/data/recordImages/checkRecordImageReference";
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
@@ -28,9 +29,17 @@ export default async function createTreasure(
     "id"
   >;
 
+  // SPEC-020 T3 — an uploaded image must exist and belong to no other record.
+  const { imageId } = parsed.data as { imageId?: number | null };
+  const imageErrors = await checkRecordImageReference(imageId, {
+    relation: "treasure",
+  });
+  if (imageErrors) return { ok: false, errors: imageErrors };
+
   try {
     await prisma.treasure.create({
       data: {
+        ...(imageId != null && { imageId }),
         name,
         description,
         category,

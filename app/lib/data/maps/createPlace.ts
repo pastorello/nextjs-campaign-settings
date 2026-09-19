@@ -6,6 +6,7 @@ import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 
 import prisma from "@/app/lib/connections/prisma";
 import requireSession from "@/app/lib/auth/requireSession";
+import checkRecordImageReference from "@/app/lib/data/recordImages/checkRecordImageReference";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { checkAreaPlacement, checkPointPlacement } from "./checkPlacement";
 import { footprintCentre } from "@/app/modules/maps/lib/utils/footprint";
@@ -43,6 +44,12 @@ export default async function createPlace(
       errors: { parentId: [fieldError("placeNeedsParent")] },
     };
   }
+
+  // SPEC-020 T3 — an uploaded picture must exist and belong to no other record.
+  const imageErrors = await checkRecordImageReference(data.imageId, {
+    relation: "zone",
+  });
+  if (imageErrors) return { ok: false, errors: imageErrors };
 
   let lat = data.lat;
   let lng = data.lng;
@@ -89,6 +96,7 @@ export default async function createPlace(
           mapInitialZoom: data.mapInitialZoom,
         }),
         ...(data.footprint !== undefined && { footprint: data.footprint }),
+        ...(data.imageId != null && { imageId: data.imageId }),
       },
     });
   } catch (error) {

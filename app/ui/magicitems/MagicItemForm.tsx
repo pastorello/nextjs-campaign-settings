@@ -67,6 +67,8 @@ export default function MagicItemForm({
               {field(MagicItemMetaField.description)}
             </div>
           </div>
+          {/* The record's one image (SPEC-020 T3). */}
+          <div className="mb-2 flex w-full p-2">{field("imageId")}</div>
         </Fieldset>
       )}
     </EntityForm>

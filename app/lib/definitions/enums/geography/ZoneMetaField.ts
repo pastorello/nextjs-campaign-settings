@@ -9,6 +9,7 @@
 enum ZoneMetaField {
   title = "title",
   description = "description",
+  imageId = "imageId",
 }
 
 export default ZoneMetaField;

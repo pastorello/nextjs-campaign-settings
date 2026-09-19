@@ -6,6 +6,8 @@ import richTextValidator from "@/app/lib/utils/validators/richTextValidator";
 import nullableToOptional from "@/app/lib/utils/validators/nullableToOptional";
 import z from "zod";
 
+import imageMeta from "../image/imageMeta";
+
 /**
  * A zone's two editable scalars (TD-104) — outside the metadata layer's
  * page composition (ADR-0011: the edit panel is a bespoke map control, not
@@ -56,6 +58,9 @@ const zoneMeta = {
       richTextValidator().pipe(z.string().min(1)).optional()
     ),
   },
+  // A place's picture (SPEC-020 T3) — the same declaration the
+  // metadata-driven domains compose through `pageMetaFields`.
+  [ZoneMetaField.imageId]: imageMeta,
 } satisfies Record<string, PageMeta>;
 
 export default zoneMeta;

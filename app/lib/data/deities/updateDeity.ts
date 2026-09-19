@@ -1,5 +1,7 @@
 "use server";
 
+import checkRecordImageReference from "@/app/lib/data/recordImages/checkRecordImageReference";
+import releaseReplacedRecordImage from "@/app/lib/data/recordImages/releaseReplacedRecordImage";
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import prisma from "@/app/lib/connections/prisma";
@@ -27,7 +29,25 @@ export default async function updateDeity(
   // the one assertion that narrows it back.
   const { id, ...data } = parsed.data as Partial<Deity> & { id: number };
 
+  const imageErrors = await checkRecordImageReference(data.imageId, {
+    relation: "deity",
+    id,
+  });
+  if (imageErrors) return { ok: false, errors: imageErrors };
+
+  // The image this save replaces or removes, when the payload touches the
+  // field at all — deleted only once the update has committed, so a failed
+  // save keeps the record's previous image (SPEC-020 §5).
+  let previousImageId: number | null | undefined;
   try {
+    if (data.imageId !== undefined) {
+      previousImageId = (
+        await prisma.deities.findUnique({
+          where: { id },
+          select: { imageId: true },
+        })
+      )?.imageId;
+    }
     await prisma.deities.update({
       where: { id },
       data,
@@ -35,6 +55,8 @@ export default async function updateDeity(
   } catch (error) {
     throw toDatabaseError("updating deity", error);
   }
+
+  await releaseReplacedRecordImage(previousImageId, data.imageId);
 
   revalidateDashboard("deities");
   return { ok: true };

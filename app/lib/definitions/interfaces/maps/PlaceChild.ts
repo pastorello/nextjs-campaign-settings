@@ -34,6 +34,9 @@ interface PlaceChild {
   // landmark `poi` row, which never has a map of its own.
   gridColumns: number | null;
   gridScale: string | null;
+  // The place's picture (SPEC-020 T3), a `recordImage` id. Always null for a
+  // landmark `poi` row, which cannot carry one.
+  imageId: number | null;
   createdAt: Date;
   updatedAt: Date;
 }

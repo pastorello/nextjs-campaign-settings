@@ -78,6 +78,9 @@ export const FIELD_ERROR_KEYS = [
   "imageUnsupportedType",
   "imageUndecodable",
   "imageStoreFailed",
+  // Attaching an uploaded image to a record (SPEC-020 T3)
+  "imageNotFound",
+  "imageInUse",
 ] as const;
 
 type FieldErrorKey = (typeof FIELD_ERROR_KEYS)[number];

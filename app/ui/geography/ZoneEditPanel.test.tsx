@@ -47,6 +47,7 @@ function renderPanel(
     onClose: vi.fn(),
     title: "Kang",
     description: "The eastern march.",
+    imageId: null,
     hasFootprint: true,
     onSaved: vi.fn(),
     onRedrawArea: vi.fn(),

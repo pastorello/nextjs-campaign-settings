@@ -20,6 +20,8 @@ interface Deity {
   [DeityMetaField.alignment]: number;
   [DeityMetaField.alignmentDomain]: number;
   [DeityMetaField.meaning]: TarotMeaning;
+  /** A `recordImage` id, or `null` for none (SPEC-020 T3). */
+  imageId?: number | null;
 }
 
 export default Deity;

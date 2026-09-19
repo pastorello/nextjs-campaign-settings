@@ -12,6 +12,7 @@ import deitiesMeta from "./deity/deityMeta";
 import treasureMeta from "./treasure/treasureMeta";
 import renderRichText from "../utils/data/renderRichText";
 import richTextValidator from "../utils/validators/richTextValidator";
+import imageMeta from "./image/imageMeta";
 
 /**
  * Fields more than one domain meta may declare without it being an accident —
@@ -131,6 +132,10 @@ const pageMetaFields = {
     validator: z.string().optional(),
     getDatum: (datum: string) => datum,
   },
+  // A record's one image (SPEC-020 T3) — declared in `imageMeta`, which
+  // `zoneMeta` composes too, so places and the metadata-driven domains
+  // share one validator and one label key.
+  imageId: imageMeta,
   ...deitiesMeta,
   ...spellsMeta,
   ...magicItemsMeta,

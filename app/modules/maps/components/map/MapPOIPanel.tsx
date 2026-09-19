@@ -767,10 +767,17 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           {/* Map Image — navigable kinds only (region, plane, city, dungeon) */}
           {isNavigablePlaceKind(formData.kind) && (
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              {/* Associated by id, so the map-image upload has its own
+                  accessible name beside the place's picture field
+                  (SPEC-020 T3) — two image file inputs now share this form. */}
+              <label
+                htmlFor="poi-panel-map-image"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 {t("geography.poiPanel.fields.mapImage")}
               </label>
               <input
+                id="poi-panel-map-image"
                 type="file"
                 accept={ALLOWED_IMAGE_CONTENT_TYPES.join(",")}
                 onChange={(e) =>

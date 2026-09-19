@@ -106,7 +106,9 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
         .locator("xpath=following-sibling::select[1]")
         .selectOption("region");
       await page
-        .locator('input[type="file"][accept*="image"]')
+        .getByLabel(messages.geography.poiPanel.fields.mapImage, {
+          exact: true,
+        })
         .setInputFiles(PNG_FILE);
       await page
         .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)

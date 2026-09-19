@@ -2,6 +2,7 @@ import ControlType from "@/app/lib/definitions/types/ControlType";
 import FieldType from "@/app/lib/definitions/types/FieldType";
 import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import ZoneMetaField from "@/app/lib/definitions/enums/geography/ZoneMetaField";
+import richTextValidator from "@/app/lib/utils/validators/richTextValidator";
 import nullableToOptional from "@/app/lib/utils/validators/nullableToOptional";
 import z from "zod";
 
@@ -40,7 +41,10 @@ const zoneMeta = {
     // string; `null` only ever appears on the wire and in the column.
     defaultValue: "",
     fieldType: FieldType.string,
-    controlType: ControlType.Textarea,
+    // Formatted text (SPEC-019 T5), shared by zones and landmarks (`poiSchema`
+    // reuses this validator): sanitised first, so `.min(1)` judges what would
+    // be stored — markup with no words in it is refused like `""`.
+    controlType: ControlType.RichText,
     // `PageMeta`'s string branch admits `string | undefined`, never `null`
     // (`PageMeta.ts:96`), so the nullable column is bridged the way every
     // other nullable text field in the project is. The panel sends `null`
@@ -48,7 +52,9 @@ const zoneMeta = {
     // writes `?? null` back — one round trip, no third state. `.min(1)`
     // keeps "cleared" a single value: an empty string is refused rather
     // than stored beside `null` as a second way of meaning the same thing.
-    validator: nullableToOptional(z.string().min(1).optional()),
+    validator: nullableToOptional(
+      richTextValidator().pipe(z.string().min(1)).optional()
+    ),
   },
 } satisfies Record<string, PageMeta>;
 

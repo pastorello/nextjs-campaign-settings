@@ -19,6 +19,24 @@ const latLngToContainerPoint = vi.fn(([lat, lng]: [number, number]) => ({
 // re-triggered the position effect every render and spun forever.
 const fakeMap = { latLngToContainerPoint, on: mapOn, off: mapOff };
 const useLeafletMap = vi.fn(() => fakeMap);
+// The formatted description resolves its record links under the route's
+// system (SPEC-019 T5), through a provider that renders next-intl's `Link`.
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  useParams: () => ({ system: "dnd5e" }),
+}));
+const { resolveRecordLinks } = vi.hoisted(() => ({
+  resolveRecordLinks: vi.fn(),
+}));
+vi.mock("@/app/lib/data/richText/resolveRecordLinks", () => ({
+  default: resolveRecordLinks,
+}));
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({ href, children }: { href: string; children: React.ReactNode }) => (
+    <a href={href}>{children}</a>
+  ),
+}));
+
 vi.mock("@/app/modules/maps/hooks/useLeafletMap", () => ({
   useLeafletMap: () => useLeafletMap(),
 }));
@@ -301,6 +319,21 @@ describe("PlacePopover — zone", () => {
 
     expect(screen.getByText("Taverna del Gallo Robin")).toBeInTheDocument();
     expect(screen.getByText("A cozy tavern by the docks.")).toBeInTheDocument();
+  });
+
+  it("shows a formatted description with its record links resolved (SPEC-019 T5)", async () => {
+    resolveRecordLinks.mockResolvedValue({
+      targets: { "npc:4": "Mira" },
+      deleted: [],
+    });
+    const description =
+      '<p>Run by <a data-record-domain="npc" data-record-id="4">Mira</a>, ' +
+      "<strong>always</strong> open.</p>";
+    renderZonePopover({ description });
+
+    expect(await screen.findByRole("link", { name: "Mira" })).toBeVisible();
+    expect(screen.getByText("always").tagName).toBe("STRONG");
+    expect(resolveRecordLinks).toHaveBeenCalledWith([description], "dnd5e");
   });
 
   it("omits the description block when the place has none", () => {

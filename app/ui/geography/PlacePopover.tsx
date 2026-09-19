@@ -16,6 +16,8 @@ import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildren";
 import type { POI } from "@/app/modules/maps/types/poi";
 import type { FocusReturnTarget } from "@/app/modules/maps/lib/utils/keyboardActivation";
+import renderRichText from "@/app/lib/utils/data/renderRichText";
+import ClientResolvedRecordLinks from "@/app/ui/richText/ClientResolvedRecordLinks";
 
 /**
  * What the popover is anchored to (T7) — a navigable zone (marker or drawn
@@ -311,7 +313,13 @@ export default function PlacePopover({
       </div>
 
       {description && (
-        <p className="mb-3 text-sm text-gray-600">{description}</p>
+        // Formatted text (SPEC-019 T5); loaded client-side with the map, so
+        // its record links resolve through a Server Action.
+        <ClientResolvedRecordLinks values={[description]}>
+          <div className="mb-3 text-sm text-gray-600">
+            {renderRichText(description)}
+          </div>
+        </ClientResolvedRecordLinks>
       )}
 
       {/* Keyed by `zoneId` for a zone, `poiId` for a landmark — the only

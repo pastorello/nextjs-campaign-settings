@@ -35,6 +35,8 @@ import {
 } from "@/app/modules/maps/lib/utils/footprint";
 import { ALLOWED_MAP_IMAGE_CONTENT_TYPES } from "@/app/lib/storage/mapImageUploadRules";
 import Modal from "@/app/ui/components/Modal";
+import RichTextInput from "@/app/ui/forms/inputs/RichTextInput";
+import ClientResolvedRecordLinks from "@/app/ui/richText/ClientResolvedRecordLinks";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 
@@ -785,22 +787,23 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           </div>
 
           {/* Description Input */}
+          {/* Formatted text (SPEC-019 T5), validated by `zoneMeta`'s
+              description validator through `poiSchema`. The stored value's
+              links resolve so one to a deleted record opens unlinked. */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t("geography.poiPanel.fields.description")}
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  description: e.target.value,
-                }))
-              }
-              placeholder={t("geography.poiPanel.placeholders.description")}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm resize-none"
-            />
+            <ClientResolvedRecordLinks values={[editingPOI?.description]}>
+              <RichTextInput
+                label={t("geography.poiPanel.fields.description")}
+                value={formData.description}
+                onChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    description: String(value),
+                  }))
+                }
+                placeholder={t("geography.poiPanel.placeholders.description")}
+              />
+            </ClientResolvedRecordLinks>
           </div>
         </div>
       );

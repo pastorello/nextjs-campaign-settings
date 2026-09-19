@@ -4,6 +4,18 @@ import { toast } from "sonner";
 import type { POI } from "@/app/modules/maps/types/poi";
 import type { Footprint } from "@/app/modules/maps/lib/utils/footprint";
 
+// The formatted description resolves its record links under the route's
+// system (SPEC-019 T5), through a provider that renders next-intl's `Link`.
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  useParams: () => ({ system: "dnd5e" }),
+}));
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({ href, children }: { href: string; children: React.ReactNode }) => (
+    <a href={href}>{children}</a>
+  ),
+}));
+
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));

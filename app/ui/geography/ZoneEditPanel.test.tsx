@@ -1,9 +1,28 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import type { Editor } from "@tiptap/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { updateZoneDetails } = vi.hoisted(() => ({
   updateZoneDetails: vi.fn(),
 }));
+// The formatted description resolves its record links under the route's
+// system (SPEC-019 T5), through a provider that renders next-intl's `Link`.
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  useParams: () => ({ system: "dnd5e" }),
+}));
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({ href, children }: { href: string; children: React.ReactNode }) => (
+    <a href={href}>{children}</a>
+  ),
+}));
+
 vi.mock("@/app/lib/data/maps/updateZoneDetails", () => ({
   default: updateZoneDetails,
 }));
@@ -61,17 +80,21 @@ describe("ZoneEditPanel (TD-104)", () => {
     expect(screen.queryByLabelText(nameLabel)).not.toBeInTheDocument();
   });
 
-  it("seeds both fields from the stored values", () => {
+  // The description is the formatted-text editor (SPEC-019 T5): a
+  // contenteditable textbox, read by its text rather than a `value`.
+  it("seeds both fields from the stored values", async () => {
     renderPanel();
 
     expect(screen.getByLabelText(nameLabel)).toHaveValue("Kang");
-    expect(screen.getByLabelText(notesLabel)).toHaveValue("The eastern march.");
+    expect(await screen.findByLabelText(notesLabel)).toHaveTextContent(
+      "The eastern march."
+    );
   });
 
-  it("seeds an empty box from a place with no description", () => {
+  it("seeds an empty box from a place with no description", async () => {
     renderPanel({ description: null });
 
-    expect(screen.getByLabelText(notesLabel)).toHaveValue("");
+    expect(await screen.findByLabelText(notesLabel)).toHaveTextContent("");
   });
 
   // The regression this item exists for: a region was not renamable
@@ -102,8 +125,11 @@ describe("ZoneEditPanel (TD-104)", () => {
   it("sends null, not an empty string, for a cleared description", async () => {
     renderPanel();
 
-    fireEvent.change(screen.getByLabelText(notesLabel), {
-      target: { value: "   " },
+    const notes = await screen.findByLabelText(notesLabel);
+    act(() => {
+      (notes as unknown as { editor: Editor }).editor.commands.clearContent(
+        true
+      );
     });
     submitForm();
 

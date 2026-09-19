@@ -40,6 +40,13 @@ import searchAllDomains, {
   SEARCH_RESULT_CAP,
   isSearchDomainInSystem,
 } from "./searchAllDomains";
+import { RECORD_LINK_DOMAINS } from "@/app/lib/definitions/types/RecordLinkDomain";
+
+describe("SEARCH_DOMAINS and formatted-text record links (ADR-0016)", () => {
+  it("are the same list, so every searchable record can be linked", () => {
+    expect([...RECORD_LINK_DOMAINS]).toEqual([...SEARCH_DOMAINS]);
+  });
+});
 
 describe("searchAllDomains (SPEC-011 T1)", () => {
   beforeEach(() => {

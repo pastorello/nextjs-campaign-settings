@@ -2,6 +2,17 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import type { Editor } from "@tiptap/core";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("next/navigation", () => ({
+  useParams: () => ({ system: "dnd5e" }),
+}));
+
+const { searchRecordLinks } = vi.hoisted(() => ({
+  searchRecordLinks: vi.fn(),
+}));
+vi.mock("@/app/lib/data/search/searchRecordLinks", () => ({
+  default: searchRecordLinks,
+}));
+
 import RichTextInput from "./RichTextInput";
 
 /** Tiptap hangs its instance on the editable element (`view.dom.editor`). */
@@ -229,5 +240,48 @@ describe("RichTextInput", () => {
 
     expect(editor.getHTML()).toBe("<p>Two</p>");
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  describe("record links (T4)", () => {
+    const emptyGroup = { total: 0, items: [] };
+
+    it("offers the link button only with text selected", async () => {
+      const { editor } = await renderEditor("<p>Ask Mira</p>");
+      expect(button("link")).toHaveAttribute("aria-disabled", "true");
+
+      fireEvent.click(button("link"));
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+      act(() => {
+        editor.commands.setTextSelection({ from: 5, to: 9 });
+      });
+      expect(button("link")).toHaveAttribute("aria-disabled", "false");
+    });
+
+    it("links the selection to the record chosen in the picker", async () => {
+      searchRecordLinks.mockResolvedValue({
+        spells: emptyGroup,
+        magicItems: emptyGroup,
+        npc: { total: 1, items: [{ id: 42, name: "Mira" }] },
+        deities: emptyGroup,
+        factions: emptyGroup,
+        places: emptyGroup,
+      });
+      const { editor, onChange } = await renderEditor("<p>Ask Mira</p>");
+      act(() => {
+        editor.commands.setTextSelection({ from: 5, to: 9 });
+      });
+
+      fireEvent.click(button("link"));
+      fireEvent.change(await screen.findByLabelText("searchLabel"), {
+        target: { value: "mira" },
+      });
+      fireEvent.click(await screen.findByRole("button", { name: "Mira" }));
+
+      expect(onChange).toHaveBeenLastCalledWith(
+        '<p>Ask <a data-record-domain="npc" data-record-id="42">Mira</a></p>'
+      );
+      expect(screen.queryByLabelText("searchLabel")).not.toBeInTheDocument();
+    });
   });
 });

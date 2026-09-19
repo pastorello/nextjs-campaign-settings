@@ -33,7 +33,11 @@
       "spells": "Incantesimi",
       "deities": "Divinità",
       "places": "Luoghi",
-      "factions": "Fazioni"
+      "factions": "Fazioni",
+      "dhDomains": "Domini",
+      "dhDomainCards": "Carte dominio",
+      "dhClasses": "Classi",
+      "dhSubclasses": "Sottoclassi"
     },
     "auth": {
       "loginPrompt": "Accedi per continuare.",

@@ -1,18 +1,44 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { spells, magicitems, npc, deities, faction, zone, inSystem } =
-  vi.hoisted(() => ({
-    spells: { findMany: vi.fn() },
-    magicitems: { findMany: vi.fn() },
-    npc: { findMany: vi.fn() },
-    deities: { findMany: vi.fn() },
-    faction: { findMany: vi.fn() },
-    zone: { findMany: vi.fn() },
-    inSystem: vi.fn(),
-  }));
+const {
+  spells,
+  magicitems,
+  npc,
+  deities,
+  faction,
+  zone,
+  dhDomain,
+  dhDomainCard,
+  dhClass,
+  dhSubclass,
+  inSystem,
+} = vi.hoisted(() => ({
+  spells: { findMany: vi.fn() },
+  magicitems: { findMany: vi.fn() },
+  npc: { findMany: vi.fn() },
+  deities: { findMany: vi.fn() },
+  faction: { findMany: vi.fn() },
+  zone: { findMany: vi.fn() },
+  dhDomain: { findMany: vi.fn() },
+  dhDomainCard: { findMany: vi.fn() },
+  dhClass: { findMany: vi.fn() },
+  dhSubclass: { findMany: vi.fn() },
+  inSystem: vi.fn(),
+}));
 
 vi.mock("@/app/lib/connections/prisma", () => ({
-  default: { spells, magicitems, npc, deities, faction, zone },
+  default: {
+    spells,
+    magicitems,
+    npc,
+    deities,
+    faction,
+    zone,
+    dhDomain,
+    dhDomainCard,
+    dhClass,
+    dhSubclass,
+  },
 }));
 vi.mock("@/app/lib/data/search/searchAllDomains", () => ({
   isSearchDomainInSystem: inSystem,
@@ -98,6 +124,28 @@ describe("fetchRecordLinkTargets (SPEC-019 T2)", () => {
     expect(spells.findMany).not.toHaveBeenCalled();
     expect(inSystem).toHaveBeenCalledWith("spells", "otherSystem");
     expect(targets).toEqual({ "factions:3": "Guild" });
+  });
+
+  it("resolves links to the four Daggerheart catalogues (SPEC-021 T7)", async () => {
+    dhDomain.findMany.mockResolvedValue([{ id: 1, name: "Veilwright" }]);
+    dhDomainCard.findMany.mockResolvedValue([{ id: 2, name: "Lantern Step" }]);
+    dhClass.findMany.mockResolvedValue([{ id: 3, name: "Lamplighter" }]);
+    dhSubclass.findMany.mockResolvedValue([{ id: 4, name: "Glass Warden" }]);
+
+    const targets = await fetchRecordLinkTargets(
+      [
+        `<p>${link("dhDomains", 1)} ${link("dhDomainCards", 2)}</p>`,
+        `<p>${link("dhClasses", 3)} ${link("dhSubclasses", 4)}</p>`,
+      ],
+      "daggerheart"
+    );
+
+    expect(targets).toEqual({
+      "dhDomains:1": "Veilwright",
+      "dhDomainCards:2": "Lantern Step",
+      "dhClasses:3": "Lamplighter",
+      "dhSubclasses:4": "Glass Warden",
+    });
   });
 
   it("ignores links the sanitiser would drop", async () => {

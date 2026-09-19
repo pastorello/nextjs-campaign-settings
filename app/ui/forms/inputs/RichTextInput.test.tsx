@@ -267,6 +267,10 @@ describe("RichTextInput", () => {
         deities: emptyGroup,
         factions: emptyGroup,
         places: emptyGroup,
+        dhDomains: emptyGroup,
+        dhDomainCards: emptyGroup,
+        dhClasses: emptyGroup,
+        dhSubclasses: emptyGroup,
       });
       const { editor, onChange } = await renderEditor("<p>Ask Mira</p>");
       act(() => {

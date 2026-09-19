@@ -30,6 +30,10 @@ const result = (
   deities: group(),
   factions: group(),
   places: group(),
+  dhDomains: group(),
+  dhDomainCards: group(),
+  dhClasses: group(),
+  dhSubclasses: group(),
   ...groups,
 });
 
@@ -83,6 +87,27 @@ describe("RecordLinkPicker", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Mira" }));
 
     expect(onChoose).toHaveBeenCalledWith({ domain: "npc", id: 4 });
+  });
+
+  it("offers the Daggerheart catalogues search returns, after the world's (SPEC-021 T7)", async () => {
+    searchRecordLinks.mockResolvedValue(
+      result({
+        dhSubclasses: group({ id: 11, name: "Lantern Warden" }),
+        dhClasses: group({ id: 7, name: "Lamplighter" }),
+        places: group({ id: 9, name: "Lantern Hill" }),
+      })
+    );
+    const { input, onChoose } = renderPicker();
+    fireEvent.change(input, { target: { value: "lan" } });
+
+    const headings = await screen.findAllByRole("heading", { level: 3 });
+    expect(headings.map((h) => h.textContent)).toEqual([
+      "places",
+      "dhClasses",
+      "dhSubclasses",
+    ]);
+    fireEvent.click(screen.getByRole("button", { name: "Lamplighter" }));
+    expect(onChoose).toHaveBeenCalledWith({ domain: "dhClasses", id: 7 });
   });
 
   it("says when nothing matches", async () => {

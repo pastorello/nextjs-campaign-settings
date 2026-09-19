@@ -4,6 +4,10 @@ import { fetchFilteredNpc } from "@/app/lib/data/npc/fetchFilteredNpc";
 import { fetchFilteredDeities } from "@/app/lib/data/deities/fetchFilteredDeities";
 import { fetchFilteredFactions } from "@/app/lib/data/faction/fetchFilteredFactions";
 import searchPlacesByTitle from "@/app/lib/data/maps/searchPlacesByTitle";
+import { fetchFilteredDhDomains } from "@/app/lib/data/dhDomains/fetchFilteredDhDomains";
+import { fetchFilteredDhDomainCards } from "@/app/lib/data/dhDomainCards/fetchFilteredDhDomainCards";
+import { fetchFilteredDhClasses } from "@/app/lib/data/dhClasses/fetchFilteredDhClasses";
+import { fetchFilteredDhSubclasses } from "@/app/lib/data/dhSubclasses/fetchFilteredDhSubclasses";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import isPageInSystem from "@/app/lib/config/isPageInSystem";
 import PageType from "@/app/lib/definitions/types/PageType";
@@ -11,7 +15,11 @@ import PageType from "@/app/lib/definitions/types/PageType";
 /** The per-group cap agreed with the DM (SPEC-011 §9, decision 2) — final, not a placeholder. */
 export const SEARCH_RESULT_CAP = 5;
 
-/** The six domains cross-entity search covers, in the spec's fixed render order (§5.3). */
+/**
+ * The domains cross-entity search covers, in the fixed render order (SPEC-011
+ * §5.3), the Daggerheart catalogues (SPEC-021 T7) after the world's. Each is
+ * searched only under its page's system — see `SEARCH_DOMAIN_PAGE`.
+ */
 export const SEARCH_DOMAINS = [
   "spells",
   "magicItems",
@@ -19,6 +27,10 @@ export const SEARCH_DOMAINS = [
   "deities",
   "factions",
   "places",
+  "dhDomains",
+  "dhDomainCards",
+  "dhClasses",
+  "dhSubclasses",
 ] as const;
 
 export type SearchDomain = (typeof SEARCH_DOMAINS)[number];
@@ -50,6 +62,10 @@ const emptyResult = (): SearchAllDomainsResult => ({
   deities: emptyGroup(),
   factions: emptyGroup(),
   places: emptyGroup(),
+  dhDomains: emptyGroup(),
+  dhDomainCards: emptyGroup(),
+  dhClasses: emptyGroup(),
+  dhSubclasses: emptyGroup(),
 });
 
 /**
@@ -69,6 +85,10 @@ const SEARCH_DOMAIN_PAGE: Record<SearchDomain, PageType | null> = {
   deities: PageType.Deity,
   factions: PageType.Faction,
   places: null,
+  dhDomains: PageType.DhDomain,
+  dhDomainCards: PageType.DhDomainCard,
+  dhClasses: PageType.DhClass,
+  dhSubclasses: PageType.DhSubclass,
 };
 
 /**
@@ -91,10 +111,10 @@ const pickIdName = ({ id, name }: SearchResultItem): SearchResultItem => ({
 });
 
 /**
- * One searcher per domain. Five are the existing `fetchFiltered*` functions,
- * called unmodified with `{ query: term }` and nothing else — the exact
- * `getQuery.ts` mechanism every list page already runs — plus
- * `searchPlacesByTitle` for the sixth.
+ * One searcher per domain. Every catalogue's is its existing
+ * `fetchFiltered*` function, called unmodified with `{ query: term }` and
+ * nothing else — the exact `getQuery.ts` mechanism every list page already
+ * runs — and places use `searchPlacesByTitle`.
  */
 const SEARCHERS: Record<
   SearchDomain,
@@ -115,6 +135,14 @@ const SEARCHERS: Record<
       id,
       name: title,
     })),
+  dhDomains: async (term) =>
+    (await fetchFilteredDhDomains({ query: term })).map(pickIdName),
+  dhDomainCards: async (term) =>
+    (await fetchFilteredDhDomainCards({ query: term })).map(pickIdName),
+  dhClasses: async (term) =>
+    (await fetchFilteredDhClasses({ query: term })).map(pickIdName),
+  dhSubclasses: async (term) =>
+    (await fetchFilteredDhSubclasses({ query: term })).map(pickIdName),
 };
 
 const capGroup = (items: SearchResultItem[]): SearchDomainGroup => ({
@@ -123,12 +151,13 @@ const capGroup = (items: SearchResultItem[]): SearchDomainGroup => ({
 });
 
 /**
- * One read across the six domains (SPEC-011 T1), narrowed to the route's
+ * One read across the search domains (SPEC-011 T1), narrowed to the route's
  * game system (ADR-0013 rule 10): the world's domains are always searched,
  * a catalogue only under its own system. A domain left out is not queried
  * at all and comes back as an empty group, which the results view already
- * hides. Under `daggerheart` the 5e spells and magic items are skipped;
- * SPEC-021 T7 adds the Daggerheart catalogues.
+ * hides. Under `daggerheart` the 5e spells and magic items are skipped and
+ * the Daggerheart catalogues searched (SPEC-021 T7); under `dnd5e` the
+ * reverse.
  *
  * An empty/blank term short-circuits before issuing any query — `getQuery.ts`
  * treats an empty string as "no filter" and would otherwise return the first

@@ -33,7 +33,11 @@
       "spells": "Spells",
       "deities": "Deities",
       "places": "Places",
-      "factions": "Factions"
+      "factions": "Factions",
+      "dhDomains": "Domains",
+      "dhDomainCards": "Domain Cards",
+      "dhClasses": "Classes",
+      "dhSubclasses": "Subclasses"
     },
     "auth": {
       "loginPrompt": "Please log in to continue.",

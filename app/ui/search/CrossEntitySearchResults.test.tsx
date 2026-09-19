@@ -38,6 +38,10 @@ function makeResults(
     deities: emptyGroup,
     factions: emptyGroup,
     places: emptyGroup,
+    dhDomains: emptyGroup,
+    dhDomainCards: emptyGroup,
+    dhClasses: emptyGroup,
+    dhSubclasses: emptyGroup,
     ...overrides,
   };
 }
@@ -92,18 +96,62 @@ describe("CrossEntitySearchResults (SPEC-011 T2)", () => {
     render(
       <CrossEntitySearchResults
         term="X"
-        results={{
+        results={makeResults({
           spells: one(1),
           magicItems: one(2),
           npc: one(3),
           deities: one(4),
           factions: one(5),
           places: one(6),
-        }}
+        })}
       />
     );
 
     expect(screen.getAllByRole("list")).toHaveLength(6);
+  });
+
+  it("renders the Daggerheart groups after the world's, each result opening its record (SPEC-021 T7)", () => {
+    const one = (id: number, name: string) => ({
+      total: 1,
+      items: [{ id, name }],
+    });
+    render(
+      <CrossEntitySearchResults
+        term="Lan"
+        results={makeResults({
+          places: one(6, "Lantern Hill"),
+          dhDomains: one(3, "Lanternfall"),
+          dhDomainCards: one(31, "Lantern Step"),
+          dhClasses: one(7, "Lamplighter"),
+          dhSubclasses: one(11, "Lantern Warden"),
+        })}
+      />
+    );
+
+    expect(
+      screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)
+    ).toEqual([
+      "places (1)",
+      "dhDomains (1)",
+      "dhDomainCards (1)",
+      "dhClasses (1)",
+      "dhSubclasses (1)",
+    ]);
+    expect(screen.getByRole("link", { name: "Lanternfall" })).toHaveAttribute(
+      "href",
+      "/dashboard/dnd5e/domains/3"
+    );
+    expect(screen.getByRole("link", { name: "Lantern Step" })).toHaveAttribute(
+      "href",
+      "/dashboard/dnd5e/domain-cards?query=Lantern%20Step"
+    );
+    expect(screen.getByRole("link", { name: "Lamplighter" })).toHaveAttribute(
+      "href",
+      "/dashboard/dnd5e/classes/7"
+    );
+    expect(
+      screen.getByRole("link", { name: "Lantern Warden" })
+    ).toHaveAttribute("href", "/dashboard/dnd5e/subclasses/11");
   });
 
   it("shows a see-all link only when a domain exceeds the cap, pointing at that domain's list page and the term", () => {

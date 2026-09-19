@@ -125,9 +125,16 @@ test.describe("un-placing a positioned place (SPEC-016 T5)", () => {
     // one that just joined, and it is listed by name.
     await openContextMenu(page, { x: 250, y: 150 });
     await expect(positionButton).toBeEnabled();
-    const afterText = await positionButton.textContent();
-    const afterCount = parseInt(afterText?.match(/\d+/)?.[0] ?? "0", 10);
-    expect(afterCount).toBe(baselineCount + 1);
+    // Polled, not read once: the unplaced pool behind the count is refetched
+    // after the un-place resolves, so a single `textContent()` can land
+    // before that refetch and read the old count (seen on CI, 2026-09-19:
+    // expected baseline + 1, received baseline, on every retry).
+    await expect
+      .poll(async () => {
+        const afterText = await positionButton.textContent();
+        return parseInt(afterText?.match(/\d+/)?.[0] ?? "0", 10);
+      })
+      .toBe(baselineCount + 1);
     await positionButton.click();
     await expect(menu.getByText(title)).toBeVisible();
 

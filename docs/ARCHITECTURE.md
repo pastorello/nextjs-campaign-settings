@@ -193,6 +193,10 @@ Each domain used to carry a near-identical `XxxCard` / `XxxList` / `XxxLibrary` 
 
 `app/lib/hooks/usePageManager.ts` is now the single hook owning form state; the four per-domain wrappers are gone.
 
+### Formatted text (SPEC-019, [ADR-0016](./adr/0016-formatted-text-as-sanitised-html.md))
+
+Every multi-line description is a `ControlType.RichText` field: edited with `RichTextInput`, validated (and sanitised) by `richTextValidator`, displayed with `renderRichText` — never with `dangerouslySetInnerHTML`. Record links in that text resolve **per page**: a Server Component wraps what it renders in `ResolvedRecordLinks` (`app/ui/richText/`) with the formatted values it shows — `richTextValuesOf(pageType, rows)` for a metadata-layer domain — which reads each linked domain once and mounts the provider. Text loaded client-side (the map) uses `ClientResolvedRecordLinks` instead, through the `resolveRecordLinks` Server Action. Without a provider, links render as their text. **A new page that shows a formatted field must mount one of the two**, or its links silently render as plain text.
+
 ### The maps module
 
 `app/modules/maps/` is deliberately self-contained and does not participate in the metadata system:

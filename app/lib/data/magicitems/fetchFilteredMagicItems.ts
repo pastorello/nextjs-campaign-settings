@@ -2,6 +2,7 @@ import { z } from "zod";
 import queryFields from "@/app/lib/config/queryFields";
 import PageType from "@/app/lib/definitions/types/PageType";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
+import recordImageKeysInclude from "@/app/lib/data/recordImages/recordImageKeysInclude";
 import DatabaseError from "@/app/lib/errors/DatabaseError";
 import MagicItem from "@/app/lib/definitions/interfaces/magicitem/MagicItem";
 import prisma from "../../connections/prisma";
@@ -21,7 +22,10 @@ export async function fetchFilteredMagicItems(
 
   let magicItems;
   try {
-    magicItems = await prisma.magicitems.findMany(theQuery);
+    magicItems = await prisma.magicitems.findMany({
+      ...theQuery,
+      include: recordImageKeysInclude,
+    });
   } catch (error) {
     throw toDatabaseError("fetching magic items", error);
   }

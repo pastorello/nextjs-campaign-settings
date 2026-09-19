@@ -465,4 +465,56 @@ describe("EntityList", () => {
 
     expect(resolvedValues).toHaveBeenCalledWith(["<p>Traders</p>"], "dnd5e");
   });
+  describe("record images (SPEC-020 T4)", () => {
+    const image = {
+      displayKey: "display-key.webp",
+      thumbKey: "thumb-key.webp",
+      width: 800,
+      height: 600,
+    };
+
+    it("shows a row's thumbnail in both the table and the phone row, named after the record", async () => {
+      fetchFilteredNpc.mockResolvedValue([
+        { id: 1, name: "Elminster", alignment: 1, faction: 1, image },
+      ]);
+
+      render(await EntityList({ system: "dnd5e", pageType: PageType.Npc }));
+
+      for (const scope of ["entity-list-table", "entity-list-mobile"]) {
+        const thumb = within(screen.getByTestId(scope)).getByRole("img", {
+          name: "Elminster",
+        });
+        expect(thumb).toHaveAttribute(
+          "src",
+          "/api/record-images/thumb-key.webp"
+        );
+        expect(thumb).toHaveAttribute("loading", "lazy");
+      }
+    });
+
+    it("shows a placeholder for a row with no image", async () => {
+      fetchFilteredNpc.mockResolvedValue([
+        { id: 1, name: "Elminster", alignment: 1, faction: 1, image: null },
+      ]);
+
+      render(await EntityList({ system: "dnd5e", pageType: PageType.Npc }));
+
+      expect(screen.queryByRole("img")).not.toBeInTheDocument();
+      expect(
+        within(screen.getByTestId("entity-list-table")).getByTestId(
+          "record-thumbnail-placeholder"
+        )
+      ).toBeInTheDocument();
+    });
+
+    it("shows neither for a domain without an image field", async () => {
+      fetchFilteredSpells.mockResolvedValue([{ id: 1, name: "Fireball" }]);
+
+      render(await EntityList({ system: "dnd5e", pageType: PageType.Spell }));
+
+      expect(
+        screen.queryByTestId("record-thumbnail-placeholder")
+      ).not.toBeInTheDocument();
+    });
+  });
 });

@@ -20,8 +20,10 @@ import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
  * ask the database. What happens to a replaced or removed image is the
  * actions' job too (`releaseReplacedRecordImage`).
  *
- * `getDatum` is the bare id for now: rendering the image in cards and lists
- * is SPEC-020 T4.
+ * `getDatum` stays the bare id. Showing the image (SPEC-020 T4) needs more
+ * than this field's value — the storage keys, read through the row's `image`
+ * relation, and the record's name for the alt text — so cards and list rows
+ * render `RecordDisplayImage` / `RecordThumbnail` from the row instead.
  */
 const imageMeta = {
   metaField: "imageId",

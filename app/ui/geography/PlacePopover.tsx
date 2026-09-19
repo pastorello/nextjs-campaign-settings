@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 
@@ -17,6 +18,7 @@ import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildr
 import type { POI } from "@/app/modules/maps/types/poi";
 import type { FocusReturnTarget } from "@/app/modules/maps/lib/utils/keyboardActivation";
 import renderRichText from "@/app/lib/utils/data/renderRichText";
+import { recordImageByIdUrl } from "@/app/lib/utils/images/recordImageUrls";
 import ClientResolvedRecordLinks from "@/app/ui/richText/ClientResolvedRecordLinks";
 
 /**
@@ -311,6 +313,23 @@ export default function PlacePopover({
           <X className="h-4 w-4" />
         </button>
       </div>
+
+      {/* The place's picture (SPEC-020 T4), by id: a popover shows one
+          place, so the route's row lookup is one request, not one per row,
+          and the map's place reads stay free of image keys. A fixed box,
+          the image contained in it, so the popover never jumps when the
+          bytes land. `unoptimized` — see `RecordThumbnail`. Landmarks carry
+          no picture. */}
+      {place?.imageId != null && (
+        <Image
+          src={recordImageByIdUrl(place.imageId, "display")}
+          alt={title}
+          width={264}
+          height={160}
+          unoptimized
+          className="mb-2 h-40 w-full rounded-lg bg-gray-100 object-contain"
+        />
+      )}
 
       {description && (
         // Formatted text (SPEC-019 T5); loaded client-side with the map, so

@@ -2,6 +2,7 @@ import { z } from "zod";
 import queryFields from "@/app/lib/config/queryFields";
 import PageType from "@/app/lib/definitions/types/PageType";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
+import recordImageKeysInclude from "@/app/lib/data/recordImages/recordImageKeysInclude";
 import DatabaseError from "@/app/lib/errors/DatabaseError";
 import Faction from "@/app/lib/definitions/interfaces/faction/Faction";
 import prisma from "../../connections/prisma";
@@ -21,7 +22,10 @@ export async function fetchFilteredFactions(
 
   let factions;
   try {
-    factions = await prisma.faction.findMany(theQuery);
+    factions = await prisma.faction.findMany({
+      ...theQuery,
+      include: recordImageKeysInclude,
+    });
   } catch (error) {
     throw toDatabaseError("fetching factions", error);
   }

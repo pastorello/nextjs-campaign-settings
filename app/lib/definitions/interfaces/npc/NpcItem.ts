@@ -1,3 +1,5 @@
+import type RecordImageKeys from "@/app/lib/definitions/interfaces/images/RecordImageKeys";
+
 import NpcMetaField from "../../enums/npc/NpcMetaField";
 
 interface NpcItem {
@@ -15,6 +17,8 @@ interface NpcItem {
   [NpcMetaField.secrets]: string;
   /** A `recordImage` id, or `null` for none (SPEC-020 T3). */
   imageId?: number | null;
+  /** The image's storage keys, when the read included them (SPEC-020 T4). */
+  image?: RecordImageKeys | null;
 }
 
 export default NpcItem;

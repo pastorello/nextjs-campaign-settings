@@ -2,6 +2,7 @@ import { z } from "zod";
 import queryFields from "@/app/lib/config/queryFields";
 import PageType from "@/app/lib/definitions/types/PageType";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
+import recordImageKeysInclude from "@/app/lib/data/recordImages/recordImageKeysInclude";
 import DatabaseError from "@/app/lib/errors/DatabaseError";
 import Treasure from "@/app/lib/definitions/interfaces/treasure/Treasure";
 import prisma from "../../connections/prisma";
@@ -21,7 +22,10 @@ export async function fetchFilteredTreasures(
 
   let treasures;
   try {
-    treasures = await prisma.treasure.findMany(theQuery);
+    treasures = await prisma.treasure.findMany({
+      ...theQuery,
+      include: recordImageKeysInclude,
+    });
   } catch (error) {
     throw toDatabaseError("fetching treasure", error);
   }

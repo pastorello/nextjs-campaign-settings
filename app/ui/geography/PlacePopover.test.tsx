@@ -696,4 +696,27 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
     // `Modal`, not `DeletePlaceButton`.
     expect(deletePlaceProps).not.toHaveBeenCalled();
   });
+  describe("the place's picture (SPEC-020 T4)", () => {
+    it("shows a zone's picture at display size, by id, named after the place", () => {
+      renderPopover({ kind: "zone", place: { ...place, imageId: 12 } });
+
+      const img = screen.getByRole("img", { name: place.title });
+      expect(img).toHaveAttribute(
+        "src",
+        "/api/record-images/by-id/12?size=display"
+      );
+      expect(img).toHaveAttribute("width");
+      expect(img).toHaveAttribute("height");
+    });
+
+    it("shows no image for a zone without one", () => {
+      renderPopover();
+      expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    });
+
+    it("shows no image for a landmark", () => {
+      renderPopover({ kind: "poi", poi, poiId: LANDMARK_ROW_ID });
+      expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    });
+  });
 });

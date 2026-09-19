@@ -3,6 +3,7 @@ import { PencilSquareIcon } from "@heroicons/react/24/outline";
 
 import renderFieldValue from "@/app/lib/utils/data/renderFieldValue";
 import listConfig from "@/app/lib/config/listConfig";
+import pagesConfig from "@/app/lib/config/pagesConfig";
 import isArrayEmpty from "@/app/lib/utils/validators/isArrayEmpty";
 import ListItem from "@/app/lib/definitions/interfaces/ListItem";
 import PageType from "@/app/lib/definitions/types/PageType";
@@ -27,6 +28,8 @@ import ButtonVariant from "../buttons/BaseButton/ButtonVariant";
 import AssignLocationButton from "../buttons/AssignLocationButton";
 import LocationFilterControl from "./LocationFilterControl";
 import ResolvedRecordLinks from "../richText/ResolvedRecordLinks";
+import RecordThumbnail from "./RecordThumbnail";
+import type RecordImageKeys from "@/app/lib/definitions/interfaces/images/RecordImageKeys";
 import richTextValuesOf from "@/app/lib/utils/richText/richTextValuesOf";
 
 const NAME_FIELD = "name";
@@ -76,6 +79,16 @@ export default async function EntityList(props: {
 }) {
   const t = await getTranslations();
   const config = listConfig[props.pageType];
+  // Rows of a domain that can carry an image get a thumbnail beside the
+  // name (SPEC-020 T4), its keys read in the same query as the rows.
+  const hasImages = pagesConfig[props.pageType].fields.includes("imageId");
+  const renderThumbnail = (item: ListItem) =>
+    hasImages && (
+      <RecordThumbnail
+        image={item.image as RecordImageKeys | null | undefined}
+        name={item.name as string}
+      />
+    );
   const items = (await fetchItems(
     props.pageType,
     props.searchParams ?? {}
@@ -212,6 +225,7 @@ export default async function EntityList(props: {
                   >
                     <td className="whitespace-nowrap py-3 pl-6 pr-3">
                       <div className="flex items-center gap-3">
+                        {renderThumbnail(item)}
                         {/* A div, not a p: a rich-text value renders its own
                           div, and a div inside a p is invalid HTML that
                           breaks hydration (2026-09-18). */}
@@ -266,6 +280,7 @@ export default async function EntityList(props: {
                   key={item.id as number}
                   className="flex items-center justify-between gap-3 py-4"
                 >
+                  {renderThumbnail(item)}
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-medium text-gray-900">
                       {renderFieldValue(NAME_FIELD, item.name, t)}

@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  ALLOWED_MAP_IMAGE_CONTENT_TYPES,
+  ALLOWED_IMAGE_CONTENT_TYPES,
   contentTypeForExtension,
   extensionForContentType,
-} from "./mapImageUploadRules";
+} from "./imageUploadRules";
 
-describe("mapImageUploadRules", () => {
+describe("imageUploadRules", () => {
   it("maps every allowed content type to an extension and back", () => {
-    for (const contentType of ALLOWED_MAP_IMAGE_CONTENT_TYPES) {
+    for (const contentType of ALLOWED_IMAGE_CONTENT_TYPES) {
       const extension = extensionForContentType(contentType);
       expect(extension).toBeDefined();
       expect(contentTypeForExtension(extension as string)).toBe(contentType);

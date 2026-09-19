@@ -33,7 +33,7 @@ import {
   footprintCentre,
   type Footprint,
 } from "@/app/modules/maps/lib/utils/footprint";
-import { ALLOWED_MAP_IMAGE_CONTENT_TYPES } from "@/app/lib/storage/mapImageUploadRules";
+import { ALLOWED_IMAGE_CONTENT_TYPES } from "@/app/lib/storage/imageUploadRules";
 import Modal from "@/app/ui/components/Modal";
 import RichTextInput from "@/app/ui/forms/inputs/RichTextInput";
 import ClientResolvedRecordLinks from "@/app/ui/richText/ClientResolvedRecordLinks";
@@ -758,7 +758,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
               </label>
               <input
                 type="file"
-                accept={ALLOWED_MAP_IMAGE_CONTENT_TYPES.join(",")}
+                accept={ALLOWED_IMAGE_CONTENT_TYPES.join(",")}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,

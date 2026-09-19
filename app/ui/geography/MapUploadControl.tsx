@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Field, Input } from "@headlessui/react";
 import { useTranslations } from "next-intl";
 
-import { ALLOWED_MAP_IMAGE_CONTENT_TYPES } from "@/app/lib/storage/mapImageUploadRules";
+import { ALLOWED_IMAGE_CONTENT_TYPES } from "@/app/lib/storage/imageUploadRules";
 import updateZoneMap from "@/app/lib/data/maps/updateZoneMap";
 import { notifyError, notifySuccess } from "@/app/lib/notifications/notify";
 import Modal from "@/app/ui/components/Modal";
@@ -123,7 +123,7 @@ export default function MapUploadControl({
             <FormLabel label={hasMap ? t("replaceLabel") : t("uploadLabel")} />
             <Input
               type="file"
-              accept={ALLOWED_MAP_IMAGE_CONTENT_TYPES.join(",")}
+              accept={ALLOWED_IMAGE_CONTENT_TYPES.join(",")}
               onChange={(event) => setFile(event.target.files?.[0] ?? null)}
               className="block w-full text-sm text-gray-900"
             />

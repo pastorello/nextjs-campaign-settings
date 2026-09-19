@@ -10,7 +10,8 @@ import ZoneMetaField from "@/app/lib/definitions/enums/geography/ZoneMetaField";
 import { notifyError, notifySuccess } from "@/app/lib/notifications/notify";
 import Modal from "@/app/ui/components/Modal";
 import TextInput from "@/app/ui/forms/inputs/TextInput";
-import TextareaInput from "@/app/ui/forms/inputs/TextareaInput";
+import RichTextInput from "@/app/ui/forms/inputs/RichTextInput";
+import ClientResolvedRecordLinks from "@/app/ui/richText/ClientResolvedRecordLinks";
 import BespokeFormErrorSummary from "@/app/ui/forms/BespokeFormErrorSummary";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonState from "@/app/ui/buttons/BaseButton/ButtonState";
@@ -170,11 +171,15 @@ export default function ZoneEditPanel({
           value={name}
           onChange={(value) => setName(String(value))}
         />
-        <TextareaInput
-          label={t(zoneMeta[ZoneMetaField.description].labelKey ?? "")}
-          value={notes}
-          onChange={(value) => setNotes(String(value))}
-        />
+        {/* Resolves the stored description's links, so one to a deleted
+            record opens unlinked (SPEC-019 T5). */}
+        <ClientResolvedRecordLinks values={[description]}>
+          <RichTextInput
+            label={t(zoneMeta[ZoneMetaField.description].labelKey ?? "")}
+            value={notes}
+            onChange={(value) => setNotes(String(value))}
+          />
+        </ClientResolvedRecordLinks>
 
         {/* The area half. Redrawing is the only edit it offers — SPEC-009
             T5 replaces the rectangle wholesale, and moving it elsewhere on

@@ -5,6 +5,7 @@ import calendarEventMeta from "./calendarEvent/calendarEventMeta";
 import adventureMeta from "./campaigns/adventureMeta";
 import campaignMeta from "./campaigns/campaignMeta";
 import sceneMeta from "./campaigns/sceneMeta";
+import zoneMeta from "./geography/zoneMeta";
 
 /**
  * The formatted-text fields outside `pageMetaFields` (SPEC-019 T5): the
@@ -17,6 +18,8 @@ const fields = [
   ["adventure.synopsis", adventureMeta.synopsis],
   ["scene.description", sceneMeta.description],
   ["calendarEvent.description", calendarEventMeta.description],
+  // Zones and landmarks: `poiSchema` and `placeSchema` reuse it.
+  ["zone.description", zoneMeta.description],
 ] as const;
 
 describe("bespoke formatted-text fields (SPEC-019 T5)", () => {
@@ -34,6 +37,12 @@ describe("bespoke formatted-text fields (SPEC-019 T5)", () => {
 
   it.each(fields)("%s still clears with null", (_name, meta) => {
     expect(meta.validator.parse(null)).toBeUndefined();
+  });
+
+  it("refuses a place description with markup but no words, like an empty one", () => {
+    expect(zoneMeta.description.validator.safeParse("<p></p>").success).toBe(
+      false
+    );
   });
 
   it.each(fields)("%s keeps legacy plain text as it was", (_name, meta) => {

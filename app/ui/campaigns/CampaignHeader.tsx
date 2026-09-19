@@ -12,6 +12,7 @@ import ButtonSize from "@/app/ui/buttons/BaseButton/ButtonSize";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 
 import CampaignForm from "./CampaignForm";
+import renderRichText from "@/app/lib/utils/data/renderRichText";
 
 interface CampaignHeaderProps {
   campaign: Campaign;
@@ -40,9 +41,9 @@ export default function CampaignHeader({ campaign }: CampaignHeaderProps) {
     <div>
       <PageTitle className="mb-2">{campaign.title}</PageTitle>
       {campaign.synopsis && (
-        <p className="mb-2 whitespace-pre-line text-gray-700">
-          {campaign.synopsis}
-        </p>
+        <div className="mb-2 text-gray-700">
+          {renderRichText(campaign.synopsis)}
+        </div>
       )}
       <p className="mb-4 text-sm text-gray-600">
         {t(campaignMeta[CampaignMetaField.partySize].labelKey ?? "")}:{" "}

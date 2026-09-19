@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import CalendarEventBase from "@/app/lib/definitions/interfaces/calendar/CalendarEventBase";
 import DateSystem from "@/app/lib/definitions/interfaces/calendar/DateSystem";
 import WorldDate from "./WorldDate";
+import renderRichText from "@/app/lib/utils/data/renderRichText";
 
 interface EventSummaryProps {
   event: CalendarEventBase;
@@ -63,9 +64,9 @@ export default function EventSummary({
         )}
       </p>
       {event.description && (
-        <p className="mt-1 text-sm whitespace-pre-line text-gray-700">
-          {event.description}
-        </p>
+        <div className="mt-1 text-sm text-gray-700">
+          {renderRichText(event.description)}
+        </div>
       )}
       {children}
     </div>

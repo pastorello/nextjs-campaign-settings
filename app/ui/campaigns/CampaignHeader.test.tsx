@@ -34,6 +34,19 @@ describe("CampaignHeader (SPEC-013 T7)", () => {
     expect(screen.getByText(/5/)).toBeInTheDocument();
   });
 
+  it("shows a formatted synopsis formatted (SPEC-019 T5)", () => {
+    render(
+      <CampaignHeader
+        campaign={{
+          ...campaign,
+          synopsis: "<p>A <strong>poor</strong> coastline.</p>",
+        }}
+      />
+    );
+
+    expect(screen.getByText("poor").tagName).toBe("STRONG");
+  });
+
   it("switches to the edit form and back", () => {
     render(<CampaignHeader campaign={campaign} />);
 

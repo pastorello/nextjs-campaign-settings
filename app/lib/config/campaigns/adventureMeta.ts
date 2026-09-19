@@ -6,6 +6,7 @@ import AdventureStatus from "@/app/lib/definitions/enums/campaign/AdventureStatu
 import firstOptionValue from "../firstOptionValue";
 import nullableAmountValidator from "@/app/lib/utils/validators/nullableAmountValidator";
 import nullableToOptional from "@/app/lib/utils/validators/nullableToOptional";
+import richTextValidator from "@/app/lib/utils/validators/richTextValidator";
 import z from "zod";
 
 import adventureStatuses from "./adventure-statuses";
@@ -53,10 +54,11 @@ const adventureMeta = {
     labelKey: "adventure.fields.synopsis.label",
     defaultValue: "",
     fieldType: FieldType.string,
-    controlType: ControlType.Textarea,
+    // Formatted text (SPEC-019 T5): the validator sanitises it.
+    controlType: ControlType.RichText,
     // Nullable column, `string | null` domain type, same as `currencyUnit`
     // below — see `nullableToOptional`'s own comment (TD-130).
-    validator: nullableToOptional(z.string().optional()),
+    validator: nullableToOptional(richTextValidator().optional()),
   },
   [AdventureMetaField.status]: {
     metaField: "status",

@@ -1,6 +1,22 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+// An async Server Component that reads the database (SPEC-019 T5); a
+// pass-through here, recording what the page asked it to resolve.
+const { resolvedValues } = vi.hoisted(() => ({ resolvedValues: vi.fn() }));
+vi.mock("@/app/ui/richText/ResolvedRecordLinks", () => ({
+  default: ({
+    values,
+    children,
+  }: {
+    values: unknown;
+    children: React.ReactNode;
+  }) => {
+    resolvedValues(values);
+    return children;
+  },
+}));
+
 vi.mock("next-intl/server", () => ({
   getTranslations: () => Promise.resolve((key: string) => key),
 }));
@@ -104,6 +120,24 @@ describe("Adventure page (SPEC-013 T8)", () => {
     expect(screen.getByTestId("budget-panel")).toBeInTheDocument();
     expect(screen.getByTestId("scene-list")).toBeInTheDocument();
     expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("resolves the record links of the synopsis and every scene description (SPEC-019 T5)", async () => {
+    fetchAdventureWithScenes.mockResolvedValue({
+      id: 10,
+      synopsis: "<p>Heist</p>",
+      currencyUnit: "gold",
+      scenes: [{ description: "<p>Vault</p>" }, { description: null }],
+      campaignSystem: "dnd5e",
+    });
+
+    render(await AdventurePage(routeProps("10")));
+
+    expect(resolvedValues).toHaveBeenCalledWith([
+      "<p>Heist</p>",
+      "<p>Vault</p>",
+      null,
+    ]);
   });
 
   // SPEC-018 T3 — a campaign opens under its own system. Only `dnd5e` is in

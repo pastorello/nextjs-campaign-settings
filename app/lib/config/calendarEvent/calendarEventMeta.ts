@@ -3,6 +3,7 @@ import FieldType from "@/app/lib/definitions/types/FieldType";
 import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import CalendarEventMetaField from "@/app/lib/definitions/enums/calendar/CalendarEventMetaField";
 import nullableToOptional from "@/app/lib/utils/validators/nullableToOptional";
+import richTextValidator from "@/app/lib/utils/validators/richTextValidator";
 import universalDayValidator from "@/app/lib/utils/validators/universalDayValidator";
 import worldHourValidator from "@/app/lib/utils/validators/worldHourValidator";
 import z from "zod";
@@ -39,11 +40,12 @@ const calendarEventMeta = {
     labelKey: "calendar.event.fields.description.label",
     defaultValue: "",
     fieldType: FieldType.string,
-    controlType: ControlType.Textarea,
+    // Formatted text (SPEC-019 T5): the validator sanitises it.
+    controlType: ControlType.RichText,
     tall: true,
     // Nullable column, `string | null` domain type — see
     // `nullableToOptional`'s own comment (TD-130).
-    validator: nullableToOptional(z.string().optional()),
+    validator: nullableToOptional(richTextValidator().optional()),
   },
   [CalendarEventMetaField.startDay]: {
     metaField: "startDay",

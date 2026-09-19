@@ -25,6 +25,7 @@ import SceneForm from "./SceneForm";
 import SceneCreatureList from "./SceneCreatureList";
 import LootList from "./LootList";
 import CheckOffControl from "./CheckOffControl";
+import renderRichText from "@/app/lib/utils/data/renderRichText";
 
 interface SceneListProps {
   adventureId: number;
@@ -159,9 +160,9 @@ export default function SceneList({
                         {scene.title}
                       </span>
                       {scene.description && (
-                        <p className="mt-1 text-sm whitespace-pre-line text-gray-700">
-                          {scene.description}
-                        </p>
+                        <div className="mt-1 text-sm text-gray-700">
+                          {renderRichText(scene.description)}
+                        </div>
                       )}
                       <p className="mt-1 text-sm text-gray-600">
                         {t("scene.fields.xpAward.label")}

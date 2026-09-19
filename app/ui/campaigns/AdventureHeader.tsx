@@ -16,6 +16,7 @@ import ButtonSize from "@/app/ui/buttons/BaseButton/ButtonSize";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 
 import AdventureInfoForm from "./AdventureInfoForm";
+import renderRichText from "@/app/lib/utils/data/renderRichText";
 
 interface AdventureHeaderProps {
   adventure: Adventure;
@@ -61,9 +62,9 @@ export default function AdventureHeader({ adventure }: AdventureHeaderProps) {
         {adventure.targetLevel}
       </p>
       {adventure.synopsis && (
-        <p className="mb-2 whitespace-pre-line text-gray-700">
-          {adventure.synopsis}
-        </p>
+        <div className="mb-2 text-gray-700">
+          {renderRichText(adventure.synopsis)}
+        </div>
       )}
       <p className="mb-4 text-sm text-gray-600">
         {t(adventureMeta[AdventureMetaField.currencyUnit].labelKey ?? "")}:{" "}

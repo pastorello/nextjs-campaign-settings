@@ -16,7 +16,7 @@ import resolveOptions from "@/app/lib/utils/data/resolveOptions";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import Select from "@/app/ui/forms/inputs/Select";
 import TextInput from "@/app/ui/forms/inputs/TextInput";
-import TextareaInput from "@/app/ui/forms/inputs/TextareaInput";
+import RichTextInput from "@/app/ui/forms/inputs/RichTextInput";
 import BespokeFormErrorSummary from "@/app/ui/forms/BespokeFormErrorSummary";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
@@ -100,7 +100,7 @@ export default function CampaignForm({
         value={title}
         onChange={(value) => setTitle(String(value))}
       />
-      <TextareaInput
+      <RichTextInput
         label={t(campaignMeta[CampaignMetaField.synopsis].labelKey ?? "")}
         value={synopsis}
         onChange={(value) => setSynopsis(String(value))}

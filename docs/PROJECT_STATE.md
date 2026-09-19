@@ -40,6 +40,19 @@ metadata-layer control (`app/ui/forms/inputs/RichTextInput.tsx`), so the
 feature reached the ADR-0011 bespoke editors the same way every other field
 does. See the spec's §11 for the full outcome.
 
+**Images on records (SPEC-020) shipped 2026-09-19.** NPCs, deities, magic
+items, treasures, factions and places each carry one image, through
+`ControlType.Image` (`app/ui/forms/inputs/ImageInput.tsx`). Uploads are decoded,
+stripped of metadata and resized server-side with `sharp` (a 1600 px display
+version and a 256 px thumbnail; the original is not kept), stored under
+`UPLOAD_DIR/records` and served only to a logged-in session
+([ADR-0017](./adr/0017-record-images.md)). Cards show the display version,
+list rows and card headers a thumbnail (`RecordThumbnail`, a placeholder when
+there is none), and a place's popover shows each attached NPC's or deity's
+portrait beside its name — the DM's revision of the original "map pins", which
+SPEC-008 had already removed. Known gap: abandoned uploads leave orphaned
+files, with no sweep yet. See the spec's §11.
+
 **Identifiers are English; the UI ships bilingual (Italian + English).** See [ADR-0005](./adr/0005-english-identifiers.md), implemented as TD-19 on 2026-07-30, and [ADR-0006](./adr/0006-bilingual-ui.md), implemented as TD-21 — copy lives in `messages/{it,en}.json`, not in JSX. Postgres columns keep their Italian names, decoupled from the code by Prisma `@map` (`name @map("nome")`) — so raw SQL and `psql` still show `nome`, `descrizione`, `livello`.
 
 > **This section used to say the opposite,** and the correction is worth keeping.

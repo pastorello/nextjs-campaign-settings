@@ -8,6 +8,7 @@ import requireSession from "@/app/lib/auth/requireSession";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import NotFoundError from "@/app/lib/errors/NotFoundError";
 import ConflictError from "@/app/lib/errors/ConflictError";
+import deleteRecordImage from "@/app/lib/data/recordImages/deleteRecordImage";
 
 /**
  * Deletes a place (SPEC-010 T2).
@@ -45,7 +46,7 @@ export default async function deletePlace(id: number): Promise<void> {
   try {
     place = await prisma.zone.findUnique({
       where: { id },
-      select: { id: true, parentId: true },
+      select: { id: true, parentId: true, imageId: true },
     });
   } catch (error) {
     throw toDatabaseError("looking up place for deletion", error);
@@ -98,6 +99,9 @@ export default async function deletePlace(id: number): Promise<void> {
     }
     throw toDatabaseError("deleting place", error);
   }
+
+  // Its picture goes with it (SPEC-020 §5.6), once the delete has committed.
+  if (place.imageId != null) await deleteRecordImage(place.imageId);
 
   revalidateDashboard("geography");
 }

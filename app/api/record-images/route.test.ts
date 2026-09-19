@@ -13,6 +13,13 @@ const { storeRecordImage } = vi.hoisted(() => ({
 vi.mock("@/app/lib/storage/storeRecordImage", () => ({
   default: storeRecordImage,
 }));
+const { createRecordImage } = vi.hoisted(() => ({
+  createRecordImage:
+    vi.fn<(image: unknown, store: unknown) => Promise<number | null>>(),
+}));
+vi.mock("@/app/lib/data/recordImages/createRecordImage", () => ({
+  default: createRecordImage,
+}));
 vi.mock("@/app/lib/storage/defaultRecordImageStore", () => ({
   default: { put: vi.fn(), get: vi.fn(), delete: vi.fn() },
 }));
@@ -94,8 +101,9 @@ describe("POST /api/record-images", () => {
     }
   );
 
-  it("returns the stored image's keys and size", async () => {
+  it("records the stored image as a row and returns its id, keys and size (SPEC-020 T3)", async () => {
     signedIn();
+    createRecordImage.mockResolvedValue(7);
     const image = {
       displayKey: "d.webp",
       thumbKey: "t.webp",
@@ -111,9 +119,34 @@ describe("POST /api/record-images", () => {
     );
 
     expect(response.status).toBe(201);
-    await expect(response.json()).resolves.toEqual(image);
+    await expect(response.json()).resolves.toEqual({ id: 7, ...image });
+    expect(createRecordImage).toHaveBeenCalledWith(image, expect.anything());
     const [buffer] = storeRecordImage.mock.calls[0] ?? [];
     expect(Buffer.isBuffer(buffer)).toBe(true);
     expect(buffer?.toString()).toBe("bytes");
+  });
+
+  it("answers imageStoreFailed when the row cannot be saved", async () => {
+    signedIn();
+    storeRecordImage.mockResolvedValue({
+      ok: true,
+      image: {
+        displayKey: "d.webp",
+        thumbKey: "t.webp",
+        mimeType: "image/webp",
+        width: 10,
+        height: 10,
+      },
+    });
+    createRecordImage.mockResolvedValue(null);
+
+    const response = await POST(
+      requestWithFile(new File(["x"], "a.png", { type: "image/png" })).request
+    );
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      error: "imageStoreFailed",
+    });
   });
 });

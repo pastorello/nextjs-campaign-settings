@@ -36,6 +36,9 @@ import {
 import { ALLOWED_IMAGE_CONTENT_TYPES } from "@/app/lib/storage/imageUploadRules";
 import Modal from "@/app/ui/components/Modal";
 import RichTextInput from "@/app/ui/forms/inputs/RichTextInput";
+import ImageInput from "@/app/ui/forms/inputs/ImageInput";
+import zoneMeta from "@/app/lib/config/geography/zoneMeta";
+import ZoneMetaField from "@/app/lib/definitions/enums/geography/ZoneMetaField";
 import ClientResolvedRecordLinks from "@/app/ui/richText/ClientResolvedRecordLinks";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
@@ -59,6 +62,8 @@ export type AddPlaceInput = {
   // present only when it was created by drawing an area rather than
   // clicking a point.
   footprint?: Footprint;
+  // The place's picture (SPEC-020 T3), already uploaded — a `recordImage` id.
+  imageId?: number;
 };
 
 interface MapPOIPanelProps {
@@ -136,6 +141,9 @@ interface POIFormData {
   category: POICategory;
   // Navigable kinds only — the file staged for upload, not yet sent anywhere.
   mapFile: File | null;
+  // Navigable kinds only — the place's picture (SPEC-020 T3), uploaded as
+  // soon as it is chosen, so this holds its `recordImage` id.
+  imageId: number | null;
 }
 
 /**
@@ -298,6 +306,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       lng: initialLngStr,
       category: filterCategory || "food-drink",
       mapFile: null,
+      imageId: null,
     }),
     [initialLatStr, initialLngStr, filterCategory]
   );
@@ -328,6 +337,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
         title: "",
         description: "",
         mapFile: null,
+        imageId: null,
       }));
     }
   }, [pendingFootprint]);
@@ -366,6 +376,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       lng: initialLngStr,
       category: filterCategory || "food-drink",
       mapFile: null,
+      imageId: null,
     });
     onFootprintConsumed?.();
   }, [
@@ -394,6 +405,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
         lng: poi.lng.toFixed(6),
         category: poi.category,
         mapFile: null,
+        imageId: null,
       });
     },
     [setViewMode]
@@ -423,6 +435,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
       lng: "",
       category: "food-drink",
       mapFile: null,
+      imageId: null,
     });
     onClearCoordinates?.();
     onFootprintConsumed?.();
@@ -511,6 +524,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
           lng,
           mapImage,
           ...(description !== undefined && { description }),
+          ...(formData.imageId !== null && { imageId: formData.imageId }),
           ...(pendingFootprint && { footprint: pendingFootprint }),
         });
         if (!result.ok) {
@@ -766,6 +780,23 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                   }))
                 }
                 className="block w-full text-sm text-gray-900"
+              />
+            </div>
+          )}
+
+          {/* Picture — navigable kinds only (SPEC-020 T3): the same control
+              and `imageMeta` declaration as every metadata-driven form. */}
+          {isNavigablePlaceKind(formData.kind) && (
+            <div className="mb-6">
+              <ImageInput
+                label={t(zoneMeta[ZoneMetaField.imageId].labelKey)}
+                value={formData.imageId}
+                onChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    imageId: typeof value === "number" ? value : null,
+                  }))
+                }
               />
             </div>
           )}

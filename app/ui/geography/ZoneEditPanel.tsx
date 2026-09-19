@@ -11,6 +11,7 @@ import { notifyError, notifySuccess } from "@/app/lib/notifications/notify";
 import Modal from "@/app/ui/components/Modal";
 import TextInput from "@/app/ui/forms/inputs/TextInput";
 import RichTextInput from "@/app/ui/forms/inputs/RichTextInput";
+import ImageInput from "@/app/ui/forms/inputs/ImageInput";
 import ClientResolvedRecordLinks from "@/app/ui/richText/ClientResolvedRecordLinks";
 import BespokeFormErrorSummary from "@/app/ui/forms/BespokeFormErrorSummary";
 import BaseButton from "@/app/ui/buttons/BaseButton";
@@ -29,6 +30,8 @@ interface ZoneEditPanelProps {
   /** The stored values, as the popover last saw them. */
   title: string;
   description: string | null;
+  /** The place's picture, a `recordImage` id (SPEC-020 T3). */
+  imageId: number | null;
   /**
    * Whether this place is an *area* — a rectangle cast on its parent's map
    * (SPEC-009) — rather than a point. Only an area has a footprint to
@@ -77,6 +80,7 @@ export default function ZoneEditPanel({
   onClose,
   title,
   description,
+  imageId,
   hasFootprint,
   onSaved,
   onRedrawArea,
@@ -86,6 +90,7 @@ export default function ZoneEditPanel({
 
   const [name, setName] = useState(title);
   const [notes, setNotes] = useState(description ?? "");
+  const [image, setImage] = useState<number | null>(imageId);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [isSaving, setIsSaving] = useState(false);
 
@@ -99,6 +104,7 @@ export default function ZoneEditPanel({
     if (isOpen) {
       setName(title);
       setNotes(description ?? "");
+      setImage(imageId);
       setErrors({});
     }
   }
@@ -120,6 +126,10 @@ export default function ZoneEditPanel({
         id: placeId,
         title: name.trim(),
         description: nextDescription,
+        // Sent only when changed: `updateZoneDetails` leaves the picture
+        // alone when the key is absent, and deletes a replaced or removed
+        // one once the save commits (SPEC-020 T3).
+        ...(image !== imageId && { imageId: image }),
       });
 
       if (!result.ok) {
@@ -180,6 +190,15 @@ export default function ZoneEditPanel({
             onChange={(value) => setNotes(String(value))}
           />
         </ClientResolvedRecordLinks>
+        {/* The place's picture (SPEC-020 T3) — the same control and the same
+            `imageMeta` declaration as every metadata-driven form. */}
+        <ImageInput
+          label={t(zoneMeta[ZoneMetaField.imageId].labelKey)}
+          value={image}
+          onChange={(value) =>
+            setImage(typeof value === "number" ? value : null)
+          }
+        />
 
         {/* The area half. Redrawing is the only edit it offers — SPEC-009
             T5 replaces the rectangle wholesale, and moving it elsewhere on

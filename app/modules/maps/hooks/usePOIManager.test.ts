@@ -105,6 +105,7 @@ const storedRow: PlaceChild = {
   footprint: null,
   gridColumns: null,
   gridScale: null,
+  imageId: null,
   createdAt: new Date(1),
   updatedAt: new Date(1),
 };

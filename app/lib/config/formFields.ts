@@ -43,6 +43,7 @@ const formFields: Record<PageType, MetaConfigKey[]> = {
     MagicItemMetaField.type,
     MagicItemMetaField.attuned,
     MagicItemMetaField.consumable,
+    "imageId",
   ],
 
   [PageType.Npc]: [
@@ -57,6 +58,7 @@ const formFields: Record<PageType, MetaConfigKey[]> = {
     NpcMetaField.personality,
     NpcMetaField.motivations,
     NpcMetaField.secrets,
+    "imageId",
   ],
 
   // No `descrizione`: deities carry `significato` instead, and the schema has
@@ -76,15 +78,17 @@ const formFields: Record<PageType, MetaConfigKey[]> = {
     DeityMetaField.alignment,
     DeityMetaField.alignmentDomain,
     DeityMetaField.meaning,
+    "imageId",
   ],
 
-  [PageType.Faction]: ["name", "description"],
+  [PageType.Faction]: ["name", "description", "imageId"],
 
   [PageType.Treasure]: [
     TreasureMetaField.name,
     TreasureMetaField.description,
     TreasureMetaField.category,
     TreasureMetaField.value,
+    "imageId",
   ],
 };
 

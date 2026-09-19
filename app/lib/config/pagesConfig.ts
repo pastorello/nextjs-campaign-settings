@@ -23,8 +23,9 @@ import TreasureMetaField from "@/app/lib/definitions/enums/treasure/TreasureMeta
  * values while reading as the camelCase names, which is exactly the mismatch
  * that made the old form so easy to get wrong.
  *
- * `id`, `name` and `description` are declared directly in `pageMetaFields`
- * rather than in a domain meta, so they are plain string keys. `alignment`
+ * `id`, `name`, `description` and `imageId` (SPEC-020 T3) are declared
+ * directly in `pageMetaFields` rather than in a domain meta, so they are
+ * plain string keys. `alignment`
  * and `alignmentDomain` are declared in `npcMeta` and shared with deities,
  * which is why the deity list reaches for `NpcMetaField`.
  *
@@ -60,6 +61,7 @@ const pagesConfig: Record<PageType, PageConfig> = {
   [PageType.MagicItem]: {
     fields: [
       "id",
+      "imageId",
       "description",
       "name",
       MagicItemMetaField.rarity,
@@ -72,6 +74,7 @@ const pagesConfig: Record<PageType, PageConfig> = {
   [PageType.Npc]: {
     fields: [
       "id",
+      "imageId",
       "description",
       "name",
       NpcMetaField.title,
@@ -88,6 +91,7 @@ const pagesConfig: Record<PageType, PageConfig> = {
   [PageType.Deity]: {
     fields: [
       "id",
+      "imageId",
       "name",
       DeityMetaField.deityTitle,
       DeityMetaField.deityType,
@@ -107,12 +111,13 @@ const pagesConfig: Record<PageType, PageConfig> = {
   // No domain meta: `id`, `name` and `description` are declared directly in
   // `pageMetaFields`, and a faction has no field beyond them (SPEC-006 §7).
   [PageType.Faction]: {
-    fields: ["id", "name", "description"],
+    fields: ["id", "name", "description", "imageId"],
   },
   // The seventh domain (SPEC-013 §6/§7) — same shape as magic items.
   [PageType.Treasure]: {
     fields: [
       "id",
+      "imageId",
       "name",
       "description",
       TreasureMetaField.category,

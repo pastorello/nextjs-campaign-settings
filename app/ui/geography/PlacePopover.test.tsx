@@ -127,6 +127,7 @@ const place: NavigableChild = {
   footprint: null,
   gridColumns: null,
   gridScale: null,
+  imageId: null,
 };
 
 /**

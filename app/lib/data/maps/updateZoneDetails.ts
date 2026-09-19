@@ -9,11 +9,14 @@ import requireSession from "@/app/lib/auth/requireSession";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import zoneMeta from "@/app/lib/config/geography/zoneMeta";
+import checkRecordImageReference from "@/app/lib/data/recordImages/checkRecordImageReference";
+import releaseReplacedRecordImage from "@/app/lib/data/recordImages/releaseReplacedRecordImage";
 
 const zoneDetailsSchema = z.object({
   id: z.coerce.number().int().positive(),
   title: zoneMeta.title.validator,
   description: zoneMeta.description.validator,
+  imageId: zoneMeta.imageId.validator,
 });
 
 /**
@@ -36,6 +39,10 @@ const zoneDetailsSchema = z.object({
  * column ends up with one representation of "no description" rather than
  * an empty string beside it.
  *
+ * `imageId` (SPEC-020 T3) is the one optional key: absent leaves the
+ * picture alone, `null` removes it, an id attaches that upload. A replaced
+ * or removed picture is deleted once the update has committed.
+ *
  * Field validators come from `zoneMeta`, not restated here, so the panel
  * and the save cannot drift apart on what a legal title is — the same
  * arrangement `updateZoneGrid` has with `zoneGridMeta`.
@@ -44,6 +51,7 @@ export default async function updateZoneDetails(formData: {
   id: number;
   title: string;
   description: string | null;
+  imageId?: number | null;
 }): Promise<MutationResult> {
   await requireSession();
 
@@ -52,16 +60,37 @@ export default async function updateZoneDetails(formData: {
     return { ok: false, errors: toFieldErrors(parsed.error) };
   }
 
-  const { id, title, description } = parsed.data;
+  const { id, title, description, imageId } = parsed.data;
 
+  const imageErrors = await checkRecordImageReference(imageId, {
+    relation: "zone",
+    id,
+  });
+  if (imageErrors) return { ok: false, errors: imageErrors };
+
+  let previousImageId: number | null | undefined;
   try {
+    if (imageId !== undefined) {
+      previousImageId = (
+        await prisma.zone.findUnique({
+          where: { id },
+          select: { imageId: true },
+        })
+      )?.imageId;
+    }
     await prisma.zone.update({
       where: { id },
-      data: { title, description: description ?? null },
+      data: {
+        title,
+        description: description ?? null,
+        ...(imageId !== undefined && { imageId }),
+      },
     });
   } catch (error) {
     throw toDatabaseError("saving the place's details", error);
   }
+
+  await releaseReplacedRecordImage(previousImageId, imageId);
 
   revalidateDashboard("geography");
   return { ok: true };

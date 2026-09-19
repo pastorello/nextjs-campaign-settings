@@ -53,6 +53,7 @@ export default async function fetchPlaceChildren(
     footprint: row.footprint,
     gridColumns: row.gridColumns,
     gridScale: row.gridScale,
+    imageId: row.imageId,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   }));
@@ -72,6 +73,7 @@ export default async function fetchPlaceChildren(
     footprint: null,
     gridColumns: null,
     gridScale: null,
+    imageId: null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   }));

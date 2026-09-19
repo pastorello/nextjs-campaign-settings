@@ -42,6 +42,9 @@ export interface NavigableChild {
   // descending seeds the stack entry with it, like the framing fields above.
   gridColumns: number | null;
   gridScale: string | null;
+  // The place's picture (SPEC-020 T3), a `recordImage` id — handed to
+  // `ZoneEditPanel`'s image field.
+  imageId: number | null;
 }
 
 /**
@@ -189,6 +192,7 @@ export function useNavigableChildren(
             footprint: isFootprint(row.footprint) ? row.footprint : null,
             gridColumns: row.gridColumns,
             gridScale: row.gridScale,
+            imageId: row.imageId,
           }))
         );
       } catch (error) {

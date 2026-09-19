@@ -1,5 +1,7 @@
 "use server";
 
+import checkRecordImageReference from "@/app/lib/data/recordImages/checkRecordImageReference";
+import releaseReplacedRecordImage from "@/app/lib/data/recordImages/releaseReplacedRecordImage";
 import fieldError from "@/app/lib/data/validation/fieldError";
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
@@ -28,7 +30,25 @@ export default async function updateNpc(
   // the one assertion that narrows it back.
   const { id, ...data } = parsed.data as Partial<NpcItem> & { id: number };
 
+  const imageErrors = await checkRecordImageReference(data.imageId, {
+    relation: "npc",
+    id,
+  });
+  if (imageErrors) return { ok: false, errors: imageErrors };
+
+  // The image this save replaces or removes, when the payload touches the
+  // field at all — deleted only once the update has committed, so a failed
+  // save keeps the record's previous image (SPEC-020 §5).
+  let previousImageId: number | null | undefined;
   try {
+    if (data.imageId !== undefined) {
+      previousImageId = (
+        await prisma.npc.findUnique({
+          where: { id },
+          select: { imageId: true },
+        })
+      )?.imageId;
+    }
     await prisma.npc.update({
       where: { id },
       data,
@@ -44,6 +64,8 @@ export default async function updateNpc(
     }
     throw toDatabaseError("updating npc", error);
   }
+
+  await releaseReplacedRecordImage(previousImageId, data.imageId);
 
   revalidateDashboard("npc");
   return { ok: true };

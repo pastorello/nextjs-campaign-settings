@@ -42,6 +42,8 @@ export const placeSchema = z.object({
   // The rectangle this place casts on its parent's map (SPEC-009). Present
   // only when the place is being created as an area rather than a point.
   footprint: z.tuple([coordinatePair, coordinatePair]).optional(),
+  // The place's picture (SPEC-020 T3), uploaded before the place is created.
+  imageId: zoneMeta.imageId.validator,
 });
 
 export type PlaceInput = z.infer<typeof placeSchema>;

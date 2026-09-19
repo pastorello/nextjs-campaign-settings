@@ -182,7 +182,9 @@
       "imageTooLarge": "L'immagine è troppo grande: il limite è 10 MB.",
       "imageUnsupportedType": "Sono accettate solo immagini PNG, JPEG e WebP.",
       "imageUndecodable": "Questo file non può essere letto come immagine.",
-      "imageStoreFailed": "Non è stato possibile salvare l'immagine. Riprova."
+      "imageStoreFailed": "Non è stato possibile salvare l'immagine. Riprova.",
+      "imageNotFound": "Questa immagine non esiste più. Caricala di nuovo.",
+      "imageInUse": "Questa immagine appartiene già a un altro elemento. Caricala di nuovo."
     },
     "errorPage": {
       "genericTitle": "Qualcosa è andato storto",
@@ -207,6 +209,15 @@
       "name": {
         "label": "Nome",
         "placeholder": "Inserisci nome"
+      },
+      "image": {
+        "label": "Immagine",
+        "upload": "Scegli un'immagine",
+        "dropHint": "oppure trascinala qui. PNG, JPEG o WebP, fino a 10 MB.",
+        "replace": "Sostituisci",
+        "remove": "Rimuovi",
+        "uploading": "Caricamento…",
+        "previewAlt": "Anteprima dell'immagine scelta"
       }
     },
     "richText": {

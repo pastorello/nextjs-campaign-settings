@@ -1,5 +1,6 @@
 "use server";
 
+import checkRecordImageReference from "@/app/lib/data/recordImages/checkRecordImageReference";
 import fieldError from "@/app/lib/data/validation/fieldError";
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
@@ -39,9 +40,17 @@ export default async function createNpc(
     secrets,
   } = parsed.data as Omit<NpcItem, "id">;
 
+  // SPEC-020 T3 — an uploaded image must exist and belong to no other record.
+  const { imageId } = parsed.data as { imageId?: number | null };
+  const imageErrors = await checkRecordImageReference(imageId, {
+    relation: "npc",
+  });
+  if (imageErrors) return { ok: false, errors: imageErrors };
+
   try {
     await prisma.npc.create({
       data: {
+        ...(imageId != null && { imageId }),
         name,
         description,
         title,

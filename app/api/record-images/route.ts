@@ -5,6 +5,7 @@ import requireApiSession from "@/app/lib/auth/requireApiSession";
 import defaultRecordImageStore from "@/app/lib/storage/defaultRecordImageStore";
 import { MAX_IMAGE_BYTES } from "@/app/lib/storage/imageUploadRules";
 import storeRecordImage from "@/app/lib/storage/storeRecordImage";
+import createRecordImage from "@/app/lib/data/recordImages/createRecordImage";
 
 const STATUS_BY_ERROR: Partial<Record<FieldErrorKey, number>> = {
   imageRequired: 400,
@@ -26,9 +27,15 @@ function refuse(error: FieldErrorKey) {
  *
  * Accepts one image (multipart field `file`) for a record, runs it through
  * the resize/strip pipeline and stores its display and thumbnail versions
- * (SPEC-020, ADR-0017). Answers `201` with the `StoredRecordImage` — keys and
- * display size — or an error status whose body's `error` is a
+ * (SPEC-020, ADR-0017), then records them as a `recordImage` row (T3).
+ * Answers `201` with the row's `id` — the value the form's image field then
+ * submits as the record's `imageId` — beside the `StoredRecordImage` keys
+ * and display size; or an error status whose body's `error` is a
  * `FieldErrorKey`, for the form to resolve at the render boundary (ADR-0007).
+ *
+ * The row is created here, not when the record is saved, so the field can
+ * preview the upload by id at once. An upload whose form is then abandoned
+ * leaves an unowned row and its two files behind — see ADR-0017, "Orphans".
  *
  * A route handler rather than a Server Action because a Server Action's
  * request body is capped at 1 MB by default, well under SPEC-020's 10 MB —
@@ -51,5 +58,10 @@ export async function POST(request: NextRequest) {
   );
   if (!result.ok) return refuse(result.error);
 
-  return NextResponse.json(result.image, { status: 201 });
+  // Deletes both files again if the insert fails, so a refusal here leaves
+  // nothing behind.
+  const id = await createRecordImage(result.image, defaultRecordImageStore);
+  if (id === null) return refuse("imageStoreFailed");
+
+  return NextResponse.json({ id, ...result.image }, { status: 201 });
 }

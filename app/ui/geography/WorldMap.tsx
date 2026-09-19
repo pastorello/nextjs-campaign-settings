@@ -595,6 +595,7 @@ function WorldMap({
           onClose={() => setEditingZone(null)}
           title={editingZone.title}
           description={editingZone.description}
+          imageId={editingZone.imageId}
           hasFootprint={editingZone.footprint !== null}
           onSaved={handleZoneEdited}
           onRedrawArea={(title) => armAreaRedraw({ id: editingZone.id, title })}

@@ -1,3 +1,4 @@
+import deleteRecordImage from "@/app/lib/data/recordImages/deleteRecordImage";
 import prisma from "../../connections/prisma";
 import toDatabaseError from "../../errors/toDatabaseError";
 import NotFoundError from "../../errors/NotFoundError";
@@ -28,4 +29,8 @@ export async function deleteMagicItemById(id: number): Promise<void> {
   } catch (error) {
     throw toDatabaseError("deleting magicitems", error);
   }
+
+  // Its image goes with it (SPEC-020 §5.6), once the delete has committed.
+  if (existingItem.imageId != null)
+    await deleteRecordImage(existingItem.imageId);
 }

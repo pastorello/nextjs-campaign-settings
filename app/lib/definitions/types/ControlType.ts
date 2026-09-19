@@ -6,6 +6,8 @@ enum ControlType {
   Bool = "bool",
   Select = "select",
   Multiselect = "multiselect",
+  /** One uploaded image: its value is a `recordImage` id (SPEC-020 T3). */
+  Image = "image",
 }
 
 export default ControlType;

@@ -182,7 +182,9 @@
       "imageTooLarge": "The image is too large: the limit is 10 MB.",
       "imageUnsupportedType": "Only PNG, JPEG and WebP images are accepted.",
       "imageUndecodable": "This file could not be read as an image.",
-      "imageStoreFailed": "The image could not be saved. Try again."
+      "imageStoreFailed": "The image could not be saved. Try again.",
+      "imageNotFound": "This image no longer exists. Upload it again.",
+      "imageInUse": "This image already belongs to another record. Upload it again."
     },
     "errorPage": {
       "genericTitle": "Something went wrong",
@@ -207,6 +209,15 @@
       "name": {
         "label": "Name",
         "placeholder": "Enter name"
+      },
+      "image": {
+        "label": "Image",
+        "upload": "Choose an image",
+        "dropHint": "or drag and drop it here. PNG, JPEG or WebP, up to 10 MB.",
+        "replace": "Replace",
+        "remove": "Remove",
+        "uploading": "Uploading…",
+        "previewAlt": "Preview of the chosen image"
       }
     },
     "richText": {

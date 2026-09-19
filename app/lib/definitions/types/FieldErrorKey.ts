@@ -72,6 +72,12 @@ export const FIELD_ERROR_KEYS = [
   "adventureNotInCampaign",
   "sceneNotInAdventure",
   "sceneNotInCampaign",
+  // Record image upload refusals (SPEC-020, ADR-0017)
+  "imageRequired",
+  "imageTooLarge",
+  "imageUnsupportedType",
+  "imageUndecodable",
+  "imageStoreFailed",
 ] as const;
 
 type FieldErrorKey = (typeof FIELD_ERROR_KEYS)[number];

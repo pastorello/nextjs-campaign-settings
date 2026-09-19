@@ -177,7 +177,12 @@
       "campaignEventNoLinks": "A campaign event cannot link places, NPCs, deities or factions — only world history can.",
       "adventureNotInCampaign": "Choose one of this campaign's adventures.",
       "sceneNotInAdventure": "Choose a scene of the chosen adventure.",
-      "sceneNotInCampaign": "Choose a scene of one of this campaign's adventures."
+      "sceneNotInCampaign": "Choose a scene of one of this campaign's adventures.",
+      "imageRequired": "Choose an image to upload.",
+      "imageTooLarge": "The image is too large: the limit is 10 MB.",
+      "imageUnsupportedType": "Only PNG, JPEG and WebP images are accepted.",
+      "imageUndecodable": "This file could not be read as an image.",
+      "imageStoreFailed": "The image could not be saved. Try again."
     },
     "errorPage": {
       "genericTitle": "Something went wrong",

@@ -177,7 +177,12 @@
       "campaignEventNoLinks": "Un evento della campagna non può collegare luoghi, PNG, divinità o fazioni: può farlo solo la storia del mondo.",
       "adventureNotInCampaign": "Scegli una delle avventure di questa campagna.",
       "sceneNotInAdventure": "Scegli una scena dell'avventura scelta.",
-      "sceneNotInCampaign": "Scegli una scena di una delle avventure di questa campagna."
+      "sceneNotInCampaign": "Scegli una scena di una delle avventure di questa campagna.",
+      "imageRequired": "Scegli un'immagine da caricare.",
+      "imageTooLarge": "L'immagine è troppo grande: il limite è 10 MB.",
+      "imageUnsupportedType": "Sono accettate solo immagini PNG, JPEG e WebP.",
+      "imageUndecodable": "Questo file non può essere letto come immagine.",
+      "imageStoreFailed": "Non è stato possibile salvare l'immagine. Riprova."
     },
     "errorPage": {
       "genericTitle": "Qualcosa è andato storto",

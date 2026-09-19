@@ -84,3 +84,52 @@ describe("message catalogues", () => {
     expect(offenders).toEqual([]);
   });
 });
+
+/**
+ * SPEC-019 T5: every form with a description now carries the formatted-text
+ * toolbar, whose buttons are named by `common.richText`. A toolbar name that
+ * contains a field label or a form button's name (or is contained in one)
+ * makes that label ambiguous — Italian "Titolo" for the heading button broke
+ * every `getByLabel("Titolo")` in the e2e suite, and so would a screen-reader
+ * user's "go to Titolo". Field labels and the buttons that share a form with
+ * the editor must never overlap the toolbar's names.
+ */
+describe("formatted-text toolbar names", () => {
+  function stringLeaves(value: unknown, prefix = ""): [string, string][] {
+    if (typeof value === "string") return [[prefix, value]];
+    if (typeof value !== "object" || value === null) return [];
+    return Object.entries(value).flatMap(([key, nested]) =>
+      stringLeaves(nested, prefix ? `${prefix}.${key}` : key)
+    );
+  }
+
+  const SHARES_A_FORM =
+    /(\.fields\.[^.]+\.label|\.form\.[A-Za-z]*|\.poiPanel\.(back|close|save\.[a-z]+)|zoneEdit\.[A-Za-z.]+)$/;
+
+  it.each([
+    ["it", it_],
+    ["en", en],
+  ] as const)(
+    "do not overlap a field label or form button in %s",
+    (_locale, catalogue) => {
+      const toolbar = Object.entries(catalogue.common.richText).filter(
+        (entry): entry is [string, string] => typeof entry[1] === "string"
+      );
+      const others = stringLeaves(catalogue).filter(
+        ([key]) => !key.startsWith("common.richText") && SHARES_A_FORM.test(key)
+      );
+
+      const overlaps = toolbar.flatMap(([toolKey, toolName]) =>
+        others
+          .filter(([, name]) => {
+            const a = toolName.toLowerCase();
+            const b = name.toLowerCase();
+            return a.includes(b) || b.includes(a);
+          })
+          .map(([key, name]) => `${toolKey} "${toolName}" ~ ${key} "${name}"`)
+      );
+
+      expect(overlaps).toEqual([]);
+    }
+  );
+});

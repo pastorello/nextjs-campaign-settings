@@ -97,6 +97,30 @@ describe("ImageInput (SPEC-020 T3)", () => {
     await waitFor(() => expect(onChange).toHaveBeenCalledWith(7));
   });
 
+  it("highlights the drop zone while a file is dragged over it", () => {
+    render(<ImageInput value={null} onChange={vi.fn()} />);
+    const zone = screen.getByTestId("image-drop-zone");
+
+    fireEvent.dragOver(zone);
+    expect(zone).toHaveClass("border-blue-600");
+
+    fireEvent.dragLeave(zone);
+    expect(zone).not.toHaveClass("border-blue-600");
+  });
+
+  it("opens the file picker from the upload button", () => {
+    const { container } = render(
+      <ImageInput value={null} onChange={vi.fn()} />
+    );
+    const click = vi.spyOn(fileInput(container), "click");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "common.fields.image.upload" })
+    );
+
+    expect(click).toHaveBeenCalledTimes(1);
+  });
+
   it("replaces: a new upload swaps the value, the old id is not deleted here", async () => {
     respond(201, { id: 13 });
     const onChange = vi.fn();

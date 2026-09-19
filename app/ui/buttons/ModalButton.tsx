@@ -66,6 +66,12 @@ const ModalButton = ({
   const [isOpen, setOpen] = useState(false);
   const openModal = () => setOpen(true);
   const closeModal = () => setOpen(false);
+  // Every domain form reports the record it saved; the modal closes, then
+  // hands it on.
+  const saveFinished = (item: object) => {
+    closeModal();
+    onSave?.(item);
+  };
 
   return (
     <>
@@ -89,12 +95,7 @@ const ModalButton = ({
             <MagicItemForm
               {...componentProps}
               onCancel={closeModal}
-              onSaveFinished={(item: object) => {
-                closeModal();
-                if (onSave) {
-                  onSave(item);
-                }
-              }}
+              onSaveFinished={saveFinished}
             />
           )}
           {modalContent === "npcform" && (
@@ -102,72 +103,42 @@ const ModalButton = ({
               {...componentProps}
               optionBundle={optionBundle}
               onCancel={closeModal}
-              onSaveFinished={(item: object) => {
-                closeModal();
-                if (onSave) {
-                  onSave(item);
-                }
-              }}
+              onSaveFinished={saveFinished}
             />
           )}
           {modalContent === "spellform" && (
             <SpellForm
               {...componentProps}
               onCancel={closeModal}
-              onSaveFinished={(item: object) => {
-                closeModal();
-                if (onSave) {
-                  onSave(item);
-                }
-              }}
+              onSaveFinished={saveFinished}
             />
           )}
           {modalContent === "deityform" && (
             <DeityForm
               {...componentProps}
               onCancel={closeModal}
-              onSaveFinished={(item: object) => {
-                closeModal();
-                if (onSave) {
-                  onSave(item);
-                }
-              }}
+              onSaveFinished={saveFinished}
             />
           )}
           {modalContent === "factionform" && (
             <FactionForm
               {...componentProps}
               onCancel={closeModal}
-              onSaveFinished={(item: object) => {
-                closeModal();
-                if (onSave) {
-                  onSave(item);
-                }
-              }}
+              onSaveFinished={saveFinished}
             />
           )}
           {modalContent === "treasureform" && (
             <TreasureForm
               {...componentProps}
               onCancel={closeModal}
-              onSaveFinished={(item: object) => {
-                closeModal();
-                if (onSave) {
-                  onSave(item);
-                }
-              }}
+              onSaveFinished={saveFinished}
             />
           )}
           {modalContent === "dhdomainform" && (
             <DhDomainForm
               {...componentProps}
               onCancel={closeModal}
-              onSaveFinished={(item: object) => {
-                closeModal();
-                if (onSave) {
-                  onSave(item);
-                }
-              }}
+              onSaveFinished={saveFinished}
             />
           )}
           {modalContent === "dhdomaincardform" && (
@@ -175,12 +146,7 @@ const ModalButton = ({
               {...componentProps}
               optionBundle={optionBundle}
               onCancel={closeModal}
-              onSaveFinished={(item: object) => {
-                closeModal();
-                if (onSave) {
-                  onSave(item);
-                }
-              }}
+              onSaveFinished={saveFinished}
             />
           )}
           {modalContent === "dhclassform" && (
@@ -188,12 +154,7 @@ const ModalButton = ({
               {...componentProps}
               optionBundle={optionBundle}
               onCancel={closeModal}
-              onSaveFinished={(item: object) => {
-                closeModal();
-                if (onSave) {
-                  onSave(item);
-                }
-              }}
+              onSaveFinished={saveFinished}
             />
           )}
           {modalContent === "dhsubclassform" && (
@@ -201,12 +162,7 @@ const ModalButton = ({
               {...componentProps}
               optionBundle={optionBundle}
               onCancel={closeModal}
-              onSaveFinished={(item: object) => {
-                closeModal();
-                if (onSave) {
-                  onSave(item);
-                }
-              }}
+              onSaveFinished={saveFinished}
             />
           )}
           {modalContent === "deleteform" && (

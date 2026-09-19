@@ -249,7 +249,7 @@
       "linkPicker": {
         "title": "Collega a una scheda",
         "searchLabel": "Cerca schede per nome",
-        "prompt": "Digita un nome per trovare un incantesimo, un oggetto magico, un PNG, una divinità, una fazione o un luogo.",
+        "prompt": "Digita un nome per trovare una voce dei cataloghi di questo sistema di gioco, oppure un PNG, una divinità, una fazione o un luogo.",
         "searching": "Ricerca in corso…",
         "noMatches": "Nessuna scheda corrisponde a \"{term}\".",
         "error": "Ricerca non riuscita. Riprova."
@@ -1082,8 +1082,8 @@
   "search": {
     "page": {
       "title": "Cerca",
-      "searchPlaceholder": "Cerca incantesimi, oggetti, PNG, divinità, fazioni, luoghi...",
-      "prompt": "Digita un nome per cercare tra incantesimi, oggetti magici, PNG, divinità, fazioni e luoghi.",
+      "searchPlaceholder": "Cerca per nome...",
+      "prompt": "Digita un nome per cercare nei cataloghi di questo sistema di gioco, tra PNG, divinità, fazioni e luoghi.",
       "noMatches": "Nessun risultato per \"{term}\".",
       "seeAll": "Vedi tutti i {count} risultati in {domain}",
       "groups": {

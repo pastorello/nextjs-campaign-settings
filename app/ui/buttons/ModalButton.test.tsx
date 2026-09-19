@@ -141,6 +141,31 @@ describe("ModalButton", () => {
     expect(screen.getByText(expectedText)).toBeInTheDocument();
   });
 
+  it.each([
+    ["spellform", "save-spell", { id: 1 }],
+    ["dhclassform", "save-dh-class", { id: 1 }],
+    ["deleteform", "save-delete", {}],
+  ])(
+    "closes the %s modal on save and hands on what was saved",
+    (modalContent, saveText, saved) => {
+      const onSave = vi.fn();
+      render(
+        <ModalButton
+          buttonLabel="Edit"
+          modalTitle="Edit item"
+          modalContent={modalContent}
+          onSave={onSave}
+        />
+      );
+
+      fireEvent.click(screen.getByText("Edit"));
+      fireEvent.click(screen.getByText(saveText, { exact: false }));
+
+      expect(onSave).toHaveBeenCalledWith(saved);
+      expect(screen.queryByText(/modal:/)).not.toBeInTheDocument();
+    }
+  );
+
   it("hands the domain card form its domain options (SPEC-021 T3)", () => {
     render(
       <ModalButton

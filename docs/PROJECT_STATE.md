@@ -53,6 +53,21 @@ portrait beside its name — the DM's revision of the original "map pins", which
 SPEC-008 had already removed. Known gap: abandoned uploads leave orphaned
 files, with no sweep yet. See the spec's §11.
 
+**Daggerheart's first catalogues (SPEC-021) shipped 2026-09-19.** `daggerheart`
+is the second game system ([ADR-0013](./adr/0013-game-systems.md)), live in the
+sidebar switch. Under `/dashboard/daggerheart/` the DM authors domains (a
+palette colour and an emblem), domain cards (a card view, and a rows/cards
+switch on the list), classes (two domains, a Hope feature, ordered features)
+and subclasses (spellcast trait, features by tier) — four metadata-layer
+domains under `app/lib/config/daggerheart/`, `dh`-prefixed tables, features one
+table per owner ([ADR-0018](./adr/0018-daggerheart-features-one-table-per-owner.md))
+edited inline per ADR-0011. A class's page (`/classes/[id]`) shows its
+features, its subclasses by tier and both domains' cards by level; search and
+record links reach all four catalogues under `daggerheart` only. The 5e
+catalogues are a 404 there, and the Daggerheart ones under `dnd5e`. No rules
+content is in the repository: nothing is seeded, and tests use invented
+content (SPEC-018 §5). See the spec's §11.
+
 **Identifiers are English; the UI ships bilingual (Italian + English).** See [ADR-0005](./adr/0005-english-identifiers.md), implemented as TD-19 on 2026-07-30, and [ADR-0006](./adr/0006-bilingual-ui.md), implemented as TD-21 — copy lives in `messages/{it,en}.json`, not in JSX. Postgres columns keep their Italian names, decoupled from the code by Prisma `@map` (`name @map("nome")`) — so raw SQL and `psql` still show `nome`, `descrizione`, `livello`.
 
 > **This section used to say the opposite,** and the correction is worth keeping.

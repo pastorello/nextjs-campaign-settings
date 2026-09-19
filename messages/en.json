@@ -249,7 +249,7 @@
       "linkPicker": {
         "title": "Link to a record",
         "searchLabel": "Search records by name",
-        "prompt": "Type a name to find a spell, magic item, NPC, deity, faction or place.",
+        "prompt": "Type a name to find a record of this game system's catalogues, or an NPC, deity, faction or place.",
         "searching": "Searching…",
         "noMatches": "No records match \"{term}\".",
         "error": "Search failed. Try again."
@@ -1082,8 +1082,8 @@
   "search": {
     "page": {
       "title": "Search",
-      "searchPlaceholder": "Search spells, items, NPCs, deities, factions, places...",
-      "prompt": "Type a name to search across spells, magic items, NPCs, deities, factions and places.",
+      "searchPlaceholder": "Search by name...",
+      "prompt": "Type a name to search this game system's catalogues, NPCs, deities, factions and places.",
       "noMatches": "No matches for \"{term}\".",
       "seeAll": "See all {count} results in {domain}",
       "groups": {

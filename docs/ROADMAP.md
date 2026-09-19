@@ -540,6 +540,13 @@ layer. A fork was weighed the same day and rejected — see `CLAUDE.md`'s
 decisions. The spec's reading of the Daggerheart licence (DPCGL 2.0) binds every
 slice: the public repository holds rules structure, never rules content.
 
+**First slice shipped 2026-09-19 as [SPEC-021](./specs/021-daggerheart-domains-and-classes.md):**
+domains, domain cards, classes and subclasses under `daggerheart`, with a class
+page and search. Next per SPEC-018 §10: T5 (ancestries, communities), T6
+(adversaries, environments), T7 (weapons, armor, loot), T8 (campaign
+management) — each a slice spec of its own. Characters were left out of
+SPEC-021 by decision and need their own spec.
+
 ---
 
 ## How to pick what is next

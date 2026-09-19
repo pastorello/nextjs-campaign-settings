@@ -1,6 +1,6 @@
 # SPEC-021: Daggerheart — domains, domain cards, classes and subclasses
 
-- **Status:** Agreed 2026-09-19 — written from an interview with the DM the same day, read through and agreed without changes. The slice spec for [SPEC-018](./018-game-systems.md) T4.
+- **Status:** Shipped 2026-09-19 (agreed the same day — written from an interview with the DM, read through and agreed without changes). The slice spec for [SPEC-018](./018-game-systems.md) T4. See §11.
 - **Date:** 2026-09-19
 - **Phase:** 4
 - **Related:** [SPEC-018](./018-game-systems.md) (§5 licence constraints and §6 catalogue structure — binding here) · [ADR-0013](../adr/0013-game-systems.md) · [`daggerheart.md`](../domain/daggerheart.md) · [`licensing.md`](../domain/licensing.md) · [SPEC-019](./019-formatted-text.md) (formatted feature text — a prerequisite) · [SPEC-020](./020-record-images.md) (domain emblems — a prerequisite) · [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md) (ordered features)
@@ -181,19 +181,19 @@ Formatted fields use SPEC-019's `ControlType.RichText`; the emblem uses SPEC-020
 
 ## 8. Acceptance criteria
 
-- [ ] `daggerheart` is a system; its pages exist only under it and the 5e catalogues are not found under it
-- [ ] Domains, domain cards, classes and subclasses can be created, edited, listed with filters and deleted
-- [ ] The class page shows features, subclasses by tier, and both domains' cards by level
-- [ ] The card view shows colour, emblem, name, level, recall cost, type and formatted text
-- [ ] A class with the same domain twice, or with no features, is rejected
-- [ ] Deleting a used domain or a class with subclasses is refused
-- [ ] Search under `daggerheart` finds the four catalogues; under `dnd5e` it does not
-- [ ] No seed, fixture or test reproduces SRD content (checked in review)
-- [ ] Neither the app's title nor the repository's contains "Daggerheart"
-- [ ] New UI copy lands in both `messages/it.json` and `messages/en.json`
-- [ ] Every new mutation rejects an unauthenticated request
-- [ ] Every new mutation rejects invalid input with field-level errors
-- [ ] Coverage has not dropped
+- [x] `daggerheart` is a system; its pages exist only under it and the 5e catalogues are not found under it _(`pagesConfig.test.ts`; every Daggerheart layout, public and admin, in `daggerheartPages.test.tsx` / `daggerheartAdminPages.test.tsx`)_
+- [x] Domains, domain cards, classes and subclasses can be created, edited, listed with filters and deleted _(the `app/lib/data/dh*/` action tests; `e2e/daggerheart-domains.spec.ts`, `daggerheart-classes.spec.ts`)_
+- [x] The class page shows features, subclasses by tier, and both domains' cards by level _(`DhClassPageView.test.tsx`, `fetchDhClassPage.test.ts`; `e2e/daggerheart-class-page.spec.ts`)_
+- [x] The card view shows colour, emblem, name, level, recall cost, type and formatted text _(`DhDomainCardView.test.tsx`)_
+- [x] A class with the same domain twice, or with no features, is rejected _(`createDhClass.test.ts`, `updateDhClass.test.ts`, `deleteDhClassFeatureById.test.ts`)_
+- [x] Deleting a used domain or a class with subclasses is refused _(`deleteDhDomainById.test.ts`, `deleteDhClassById.test.ts`, both routes' tests)_
+- [x] Search under `daggerheart` finds the four catalogues; under `dnd5e` it does not _(`searchAllDomains.test.ts`; the e2e journey)_
+- [x] No seed, fixture or test reproduces SRD content (checked in review) _(checked at close, 2026-09-19: every name and text in the unit tests and e2e helpers is invented — "Veilwright", "Lamplighter", "Lantern Step", "E2E Classe …"; nothing is seeded)_
+- [x] Neither the app's title nor the repository's contains "Daggerheart" _(checked at close: the metadata title is "Campaign Settings", the repository `nextjs-campaign-settings`; "Daggerheart™ Compatible" shows under the switch while `daggerheart` is selected)_
+- [x] New UI copy lands in both `messages/it.json` and `messages/en.json` _(`messages.test.ts` key-set parity)_
+- [x] Every new mutation rejects an unauthenticated request _(each action's test; the four DELETE routes' tests)_
+- [x] Every new mutation rejects invalid input with field-level errors _(the action tests)_
+- [x] Coverage has not dropped _(measured 2026-09-19, `vitest --coverage` on the commit before T1 (`7f1e2de`) vs this close: statements 85.30% → 85.77%, branches 82.62% → 82.64%, functions 83.23% → 83.75%, lines 86.10% → 86.57%. The first measurement at close had dropped — see §11)_
 
 ## 9. Implementation plan
 
@@ -228,10 +228,55 @@ Formatted fields use SPEC-019's `ControlType.RichText`; the emblem uses SPEC-020
   - _Done 2026-09-19._ `PageType.DhClass` (`classes`), `dhClassMeta` in `app/lib/config/daggerheart/`, actions in `app/lib/data/dhClasses/`, admin list and new page under `admin/classes`, `DELETE /api/classes/[id]`, sidebar entry. `origin` reuses T2's shared `dhOriginMeta`. **At least one feature:** `createDhClass` takes the first feature beside the class's fields (`firstFeatureName`/`firstFeatureText`) and creates both in one write; `deleteDhClassFeatureById` refuses the last (`classNeedsFeature`). Chosen over validating at save because a feature has no save of its own before its class exists. Features are edited inline in the list's **edit dialog** (ADR-0011, like `LootList`), reordered through `validateAndReorder`; there is no separate class edit page. Equal domains: `domainsMustDiffer` on `domainBId`, checked on update against the stored other domain; the CHECK stays. Delete while subclasses exist: T2's keyed `ConflictError` refusal (`classHasSubclasses`, with the count). "3 Hope" is copy only. Generic changes: `EntityList` derives its option bundle from the page's `optionTable` fields (was a per-page ternary), and a table-backed field may declare `noneOptionKey` — the select's empty entry said "No faction" for every table, the domain card's `domainId` included, which now names a domain. **The sidebar tile links to the admin list** (`href: "/admin/classes"`) until T6 gives classes a page. E2E: `e2e/daggerheart-classes.spec.ts` (two domains through T2's admin, a class, a feature added and reordered inline, a subclass, the refused then allowed deletes).
 - [x] **T5** — Subclasses with tiered inline features. _(test: tiers; spellcast trait)_
   - _Done 2026-09-19._ `PageType.DhSubclass` (`subclasses`), `dhSubclassMeta`, actions in `app/lib/data/dhSubclasses/`, admin list with the **class filter as the class column's header filter** (`queryFields`: `classId`, `origin`). `spellcastTrait` is `"none"` in the form and metadata (a string validator cannot output `null`) and `null` in the column: `toStoredSpellcastTrait` maps it on write, the result schema's `defaultValue` maps it back; not filtrable for that reason. Tiered features are edited inline in the edit dialog, grouped by `groupFeaturesByTier` (reusable by T6), reordered **within a tier**; a feature moved to another tier goes to that tier's end. A subclass may have no features. Deleting a subclass cascades its features.
-- [ ] **T6** — The class page composition. _(test: subclasses by tier; cards by level)_
-- [ ] **T7** — Search includes the four catalogues under `daggerheart`. _(test: system filter)_
-- [ ] **T8** — i18n, a11y, e2e: author a domain, a card, a class with a subclass; see the class page. _(test: e2e, invented content only)_
+- [x] **T6** — The class page composition. _(test: subclasses by tier; cards by level)_
+  - _Done 2026-09-19._ `/classes` (public list, `DhClassLibrary`: each class with its two domains, linking to its page) and `/classes/[id]` (`DhClassPageView`): the class's fields, its features in order, the Hope feature with "Cost: 3 Hope", its subclasses (`DhSubclassOnClassPage`) with features grouped by `groupFeaturesByTier` — **empty tiers skipped here**, unlike the editor — then both domains' cards **merged and grouped by level** (one `DhDomainCardsByLevel`, which now takes a `levelHeading` so the groups sit under the page's `h2`). `fetchDhClassPage` is two reads (the class with features, domains and subclasses; then the cards `WHERE domainId IN (a, b)`); the card's-domain select and schema moved to `dhDomainCardDomainSchema.ts`, shared with the card list. Every formatted text on the page goes through one `ResolvedRecordLinks`. The sidebar's Classes tile now opens `/classes`, with "Manage" for the admin list; **Subclasses keeps the admin list** — a subclass has no public list, it is shown on its class's page.
+- [x] **T7** — Search includes the four catalogues under `daggerheart`. _(test: system filter)_
+  - _Done 2026-09-19._ `SEARCH_DOMAINS` (still the hand-written opt-in list; campaign content stays out) and `RECORD_LINK_DOMAINS` gain `dhDomains`, `dhDomainCards`, `dhClasses`, `dhSubclasses` — **stored strings** in `data-record-domain`, so renaming one is a data migration. Each is classified by its `pagesConfig` system, so under `dnd5e` none is queried and a link to one renders as text. The picker inherits them; `fetchRecordLinkTargets` resolves them. Destinations (`recordHref`): a domain or a class opens its page; a card opens the card list filtered to its name; **a subclass opens `/subclasses/[id]`, which redirects to its heading on its class's page** (`subclassAnchor`) — a stored link carries only the id, so the class is looked up there. "See all" for subclasses goes to the admin list, the only one they have.
+- [x] **T8** — i18n, a11y, e2e: author a domain, a card, a class with a subclass; see the class page. _(test: e2e, invented content only)_
+  - _Done 2026-09-19._ **i18n** — no hardcoded copy in the Daggerheart UI (read through `app/ui/dh*` and the routes); the new keys (`dhClasses.classPage.*`, the four `common.cards.dh*` group headings) are in both catalogues. The search page's placeholder and prompt, and the record-link picker's prompt, listed the 5e domains by name, which read wrong under `daggerheart`; they now name "this game system's catalogues". **a11y** — `e2e/a11y.spec.ts` scans the three public and four admin Daggerheart lists, plus a fixture-backed test for the card list as card views, a domain's page, the class list and a class page with a subclass and a card. **e2e** — `e2e/daggerheart-class-page.spec.ts`: two domains, a level-2 card, a class, a subclass with a foundation and a mastery feature; the class page from the public list (tiers, the card under "Livello 2"); search finds the class under `daggerheart` and not under `dnd5e`; deleted in reverse order, and again in `finally`. The fixture builders live in `e2e/helpers/daggerheart.ts` (the two earlier Daggerheart specs keep their own copies). **Licence** — see §8. **Coverage** — see §11.
 
 ## 11. Outcome
 
-_Fill in at close._
+Shipped 2026-09-19, T1–T8 in four PRs. Under `/dashboard/daggerheart/` the DM
+can author domains (colour, emblem), domain cards (with a card view and a
+rows/cards switch), classes (two domains, Hope feature, ordered features) and
+subclasses (spellcast trait, features by tier); a class's page shows all of it,
+with both domains' cards by level; and search and record links reach all four
+catalogues under `daggerheart` alone. Nothing is seeded.
+
+**Deviations from the agreed text**
+
+- **`cardLevel` / `cardType` (T3).** §6's `level` and `type` are those column
+  names, but `cardLevel`/`cardType` in code (`@map`): the metadata layer's keys
+  are one namespace, where spells' `level` and magic items' `type` already live.
+  Recorded in `CLAUDE.md`'s decisions.
+- **A class is created with its first feature (T4).** "At least one feature" is
+  enforced by the create taking the first feature beside the class's fields,
+  and by refusing to delete the last one — not by a check at save, since a
+  feature has no save of its own before its class exists.
+- **Features are edited in the list's edit dialog (T4, T5).** There is no
+  separate class or subclass edit page; the inline editors (ADR-0011) sit in the
+  dialog the admin list opens.
+- **`spellcastTrait` is `"none"` in the form, `null` in the column (T5)** — a
+  string validator cannot output `null`. Not filtrable for that reason.
+- **A subclass's feature moved to another tier goes to that tier's end (T5).**
+- **The class page merges both domains' cards into one set of level groups
+  (T6)**, each card naming its domain on its band, rather than one set per
+  domain; and it skips a subclass's empty tiers.
+- **No public subclass list (T6).** §5.5's "shown on their class's page" is
+  the public view; the sidebar tile keeps the admin list, and links to a
+  subclass land on its class's page through a redirect route (T7).
+- **The search copy stopped naming the 5e domains (T8)**, since the same page
+  now serves Daggerheart.
+
+**Coverage** (vs `7f1e2de`, the commit before T1): statements 85.30% → 85.77%,
+branches 82.62% → 82.64%, functions 83.23% → 83.75%, lines 86.10% → 86.57%.
+The first measurement at close had dropped on all four (statements 82.84%,
+branches 80.56%): T2–T5's routes, pages and inline feature form had no unit
+tests of their own. Close added them — the Daggerheart layouts, list, detail
+and new pages; the class and subclass DELETE routes; `DhFeatureForm`; the
+libraries; the fetches — and folded `ModalButton`'s ten identical save
+handlers into one.
+
+**Left open:** the two earlier Daggerheart e2e specs could use
+`e2e/helpers/daggerheart.ts` instead of their own copies of its helpers.

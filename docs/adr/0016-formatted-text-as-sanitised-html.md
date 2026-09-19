@@ -54,6 +54,8 @@ every write and again on every render.**
   The domain vocabulary is SPEC-011's six searchable domains — `spells`,
   `magicItems`, `npc`, `deities`, `factions`, `places` — declared once as
   `RECORD_LINK_DOMAINS` (`app/lib/definitions/types/RecordLinkDomain.ts`).
+  _(2026-09-19: SPEC-021 T7 added `dhDomains`, `dhDomainCards`, `dhClasses`
+  and `dhSubclasses`, searched and resolved under `daggerheart` only.)_
   These strings are now **stored data**: renaming one breaks every link that
   uses it, so they change only with a data migration. The id is a positive
   integer that fits a Postgres `integer`. An anchor with an unknown domain, a

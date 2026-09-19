@@ -12,6 +12,7 @@ import type EntityAtPlace from "@/app/lib/definitions/interfaces/maps/EntityAtPl
 import type AssignLocationInput from "@/app/lib/definitions/interfaces/maps/AssignLocationInput";
 import type MutationResult from "@/app/lib/definitions/types/MutationResult";
 import type { LinkableEntityType } from "@/app/modules/maps/types/poi";
+import RecordThumbnail from "@/app/ui/components/RecordThumbnail";
 
 /**
  * Which place's attachments to list — a zone's direct ones, or a
@@ -56,6 +57,10 @@ const rowKey = (entity: EntityAtPlace) => `${entity.type}-${entity.id}`;
  * Detaching clears **both** `zoneId` and `poiId` even when the list was
  * opened from a landmark (§5 edge cases) — "no longer at this landmark"
  * means back to the unattached pool, not demoted to the enclosing zone.
+ *
+ * Each row leads with the entity's portrait thumbnail, or the neutral
+ * placeholder (SPEC-020 T5, §5.5 as revised 2026-09-19) — beside the name,
+ * outside the detach button, so the alt text never joins its name.
  *
  * The list updates from local state after a successful detach rather than
  * refetching (§8: "the popover updates without reopening") — the server
@@ -145,14 +150,17 @@ export default function PlaceEntityList({
       ) : (
         // Scrolls within the popover so the actions below stay visible
         // however long the list gets (§5 edge cases).
-        <ul className="max-h-32 overflow-y-auto">
+        <ul className="max-h-48 overflow-y-auto">
           {entities.map((entity) => (
             <li
               key={rowKey(entity)}
               className="flex items-center justify-between gap-2 py-0.5"
             >
-              <span className="truncate text-sm text-gray-700">
-                {entity.name}
+              <span className="flex min-w-0 items-center gap-2">
+                <RecordThumbnail image={entity.image} name={entity.name} />
+                <span className="truncate text-sm text-gray-700">
+                  {entity.name}
+                </span>
               </span>
               <button
                 type="button"

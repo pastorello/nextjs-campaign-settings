@@ -68,10 +68,25 @@ vi.mock("../factions/FactionLibrary", () => ({
   ),
 }));
 
+// SPEC-021's Daggerheart libraries reach the same next-intl navigation (the
+// domain list links each domain's page), so they are stubbed too.
+vi.mock("../dhDomains/DhDomainLibrary", () => ({
+  default: ({ items }: { items: unknown[] }) => (
+    <div>DhDomainLibrary:{items.length}</div>
+  ),
+}));
+vi.mock("../dhDomainCards/DhDomainCardLibrary", () => ({
+  default: ({ items }: { items: unknown[] }) => (
+    <div>DhDomainCardLibrary:{items.length}</div>
+  ),
+}));
+
 const fetchFilteredSpells = vi.fn<(...args: unknown[]) => unknown>();
 const fetchFilteredNpc = vi.fn<(...args: unknown[]) => unknown>();
 const fetchFilteredDeities = vi.fn<(...args: unknown[]) => unknown>();
 const fetchFilteredMagicItems = vi.fn<(...args: unknown[]) => unknown>();
+const fetchFilteredDhDomains = vi.fn<(...args: unknown[]) => unknown>();
+const fetchFilteredDhDomainCards = vi.fn<(...args: unknown[]) => unknown>();
 
 vi.mock("@/app/lib/data/spells/fetchFilteredSpells", () => ({
   fetchFilteredSpells: (...args: unknown[]) => fetchFilteredSpells(...args),
@@ -85,6 +100,14 @@ vi.mock("@/app/lib/data/deities/fetchFilteredDeities", () => ({
 vi.mock("@/app/lib/data/magicitems/fetchFilteredMagicItems", () => ({
   fetchFilteredMagicItems: (...args: unknown[]) =>
     fetchFilteredMagicItems(...args),
+}));
+vi.mock("@/app/lib/data/dhDomains/fetchFilteredDhDomains", () => ({
+  fetchFilteredDhDomains: (...args: unknown[]) =>
+    fetchFilteredDhDomains(...args),
+}));
+vi.mock("@/app/lib/data/dhDomainCards/fetchFilteredDhDomainCards", () => ({
+  fetchFilteredDhDomainCards: (...args: unknown[]) =>
+    fetchFilteredDhDomainCards(...args),
 }));
 
 // Npc and Deity resolve each record's place in the world tree (SPEC-004
@@ -163,6 +186,39 @@ describe("EntityLibrary", () => {
 
     expect(fetchFilteredMagicItems).toHaveBeenCalled();
     expect(screen.getByText("MagicItemLibrary:3")).toBeInTheDocument();
+  });
+
+  it("fetches domains and renders DhDomainLibrary for PageType.DhDomain (SPEC-021 T2)", async () => {
+    fetchFilteredDhDomains.mockResolvedValue([{ id: 1 }]);
+
+    render(
+      await EntityLibrary({
+        system: "daggerheart",
+        pageType: PageType.DhDomain,
+      })
+    );
+
+    expect(screen.getByText("DhDomainLibrary:1")).toBeInTheDocument();
+  });
+
+  it("fetches cards and renders DhDomainCardLibrary for PageType.DhDomainCard (SPEC-021 T3)", async () => {
+    fetchFilteredDhDomainCards.mockResolvedValue([
+      { id: 1, featureText: "<p>Glow</p>" },
+      { id: 2, featureText: "<p>Dim</p>" },
+    ]);
+
+    render(
+      await EntityLibrary({
+        system: "daggerheart",
+        pageType: PageType.DhDomainCard,
+      })
+    );
+
+    expect(screen.getByText("DhDomainCardLibrary:2")).toBeInTheDocument();
+    expect(resolvedValues).toHaveBeenCalledWith(
+      ["<p>Glow</p>", "<p>Dim</p>"],
+      "daggerheart"
+    );
   });
 
   it("passes the search params through to the fetch call", async () => {

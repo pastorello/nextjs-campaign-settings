@@ -18,7 +18,9 @@
       "gameSystem": "Game system",
       "treasure": "Treasure",
       "campaign": "Campaign",
-      "sidebarLabel": "Main navigation"
+      "sidebarLabel": "Main navigation",
+      "dhDomains": "Domains",
+      "dhDomainCards": "Domain Cards"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -183,7 +185,9 @@
       "imageUndecodable": "This file could not be read as an image.",
       "imageStoreFailed": "The image could not be saved. Try again.",
       "imageNotFound": "This image no longer exists. Upload it again.",
-      "imageInUse": "This image already belongs to another record. Upload it again."
+      "imageInUse": "This image already belongs to another record. Upload it again.",
+      "dhDomainNotFound": "That domain no longer exists.",
+      "dhDomainInUse": "This domain is still used by {cards, plural, =0 {no cards} one {# card} other {# cards}} and {classes, plural, =0 {no classes} one {# class} other {# classes}}. Delete or move them first."
     },
     "errorPage": {
       "genericTitle": "Something went wrong",
@@ -1522,6 +1526,110 @@
       "capricorn": "Capricorn",
       "aquarius": "Aquarius",
       "pisces": "Pisces"
+    }
+  },
+  "daggerheart": {
+    "fields": {
+      "origin": {
+        "label": "Origin"
+      }
+    },
+    "origins": {
+      "homebrew": "Homebrew",
+      "srdReference": "SRD reference"
+    }
+  },
+  "dhDomains": {
+    "page": {
+      "title": "Domains",
+      "searchPlaceholder": "Search domains...",
+      "itemSingular": "domain",
+      "itemPlural": "domains",
+      "newItemButton": "New Domain",
+      "emptyMessage": "No domains found"
+    },
+    "form": {
+      "createTitle": "Create New Domain",
+      "editTitle": "Edit Domain",
+      "createButton": "Create Domain",
+      "editButton": "Edit Domain"
+    },
+    "fields": {
+      "colour": {
+        "label": "Colour"
+      }
+    },
+    "colours": {
+      "crimson": "Crimson",
+      "rose": "Rose",
+      "amber": "Amber",
+      "emerald": "Emerald",
+      "teal": "Teal",
+      "sky": "Sky blue",
+      "indigo": "Indigo",
+      "violet": "Violet",
+      "slate": "Slate",
+      "stone": "Stone"
+    },
+    "emblemAlt": "Emblem of {domain}"
+  },
+  "dhDomainCards": {
+    "page": {
+      "title": "Domain Cards",
+      "searchPlaceholder": "Search domain cards...",
+      "itemSingular": "card",
+      "itemPlural": "cards",
+      "newItemButton": "New Domain Card",
+      "emptyMessage": "No domain cards found"
+    },
+    "form": {
+      "createTitle": "Create New Domain Card",
+      "editTitle": "Edit Domain Card",
+      "createButton": "Create Domain Card",
+      "editButton": "Edit Domain Card"
+    },
+    "fields": {
+      "domainId": {
+        "label": "Domain"
+      },
+      "cardLevel": {
+        "label": "Level"
+      },
+      "recallCost": {
+        "label": "Recall cost"
+      },
+      "cardType": {
+        "label": "Type"
+      },
+      "featureText": {
+        "label": "Feature text"
+      }
+    },
+    "types": {
+      "ability": "Ability",
+      "spell": "Spell",
+      "grimoire": "Grimoire"
+    },
+    "levels": {
+      "level1": "Level 1",
+      "level2": "Level 2",
+      "level3": "Level 3",
+      "level4": "Level 4",
+      "level5": "Level 5",
+      "level6": "Level 6",
+      "level7": "Level 7",
+      "level8": "Level 8",
+      "level9": "Level 9",
+      "level10": "Level 10"
+    },
+    "card": {
+      "level": "Level {level}",
+      "emblemAlt": "Emblem of {domain}"
+    },
+    "view": {
+      "label": "Show as",
+      "rows": "Rows",
+      "cards": "Cards"
     }
   }
 }

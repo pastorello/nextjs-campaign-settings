@@ -1,5 +1,7 @@
 import MagicItemMetaField from "../definitions/enums/magicitem/MagicItemMetaField";
 import TreasureMetaField from "../definitions/enums/treasure/TreasureMetaField";
+import DhDomainMetaField from "../definitions/enums/daggerheart/DhDomainMetaField";
+import DhDomainCardMetaField from "../definitions/enums/daggerheart/DhDomainCardMetaField";
 import MetaConfigKey from "../definitions/types/MetaConfigKey";
 import PageType from "../definitions/types/PageType";
 import DeityMetaField from "../definitions/enums/deities/DeityMetaField";
@@ -91,6 +93,17 @@ const queryFields: Record<PageType, MetaConfigKey[]> = {
   // Same reasoning as magic items: name/description search is `getQuery`'s
   // free-text `name` match, not an equality filter here.
   [PageType.Treasure]: [TreasureMetaField.category, TreasureMetaField.value],
+
+  // SPEC-021: name search is `getQuery`'s free-text match; these are the
+  // closed-vocabulary filters.
+  [PageType.DhDomain]: [DhDomainMetaField.colour, DhDomainMetaField.origin],
+  [PageType.DhDomainCard]: [
+    DhDomainCardMetaField.domainId,
+    DhDomainCardMetaField.cardLevel,
+    DhDomainCardMetaField.cardType,
+    DhDomainCardMetaField.recallCost,
+    DhDomainCardMetaField.origin,
+  ],
 };
 
 export default queryFields;

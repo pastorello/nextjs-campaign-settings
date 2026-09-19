@@ -12,6 +12,8 @@ import {
   MagnifyingGlassIcon,
   BanknotesIcon,
   ClipboardDocumentListIcon,
+  SwatchIcon,
+  RectangleStackIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useTranslations } from "next-intl";
@@ -91,6 +93,21 @@ const links: {
     href: "/treasures",
     admin: "/admin/treasures",
     icon: BanknotesIcon,
+  },
+  // SPEC-021 — the Daggerheart catalogues, shown under `daggerheart` alone.
+  {
+    key: "dhDomains",
+    page: PageType.DhDomain,
+    href: "/domains",
+    admin: "/admin/domains",
+    icon: SwatchIcon,
+  },
+  {
+    key: "dhDomainCards",
+    page: PageType.DhDomainCard,
+    href: "/domain-cards",
+    admin: "/admin/domain-cards",
+    icon: RectangleStackIcon,
   },
 ];
 

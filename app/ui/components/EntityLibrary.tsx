@@ -10,6 +10,8 @@ import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
 import { fetchFilteredFactions } from "@/app/lib/data/faction/fetchFilteredFactions";
 import fetchFactionRosters from "@/app/lib/data/faction/fetchFactionRosters";
 import { fetchFilteredTreasures } from "@/app/lib/data/treasure/fetchFilteredTreasures";
+import { fetchFilteredDhDomains } from "@/app/lib/data/dhDomains/fetchFilteredDhDomains";
+import { fetchFilteredDhDomainCards } from "@/app/lib/data/dhDomainCards/fetchFilteredDhDomainCards";
 import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
 
 import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
@@ -22,6 +24,8 @@ import NpcLibrary from "../npc/NpcLibrary";
 import SpellLibrary from "../spells/SpellLibrary";
 import FactionLibrary from "../factions/FactionLibrary";
 import TreasureLibrary from "../treasures/TreasureLibrary";
+import DhDomainLibrary from "../dhDomains/DhDomainLibrary";
+import DhDomainCardLibrary from "../dhDomainCards/DhDomainCardLibrary";
 import ResolvedRecordLinks from "../richText/ResolvedRecordLinks";
 import richTextValuesOf from "@/app/lib/utils/richText/richTextValuesOf";
 
@@ -109,6 +113,14 @@ export default async function EntityLibrary(props: {
     case PageType.Treasure: {
       const items = await fetchFilteredTreasures(searchParams);
       return withRecordLinks(items, <TreasureLibrary items={items} />);
+    }
+    case PageType.DhDomain: {
+      const items = await fetchFilteredDhDomains(searchParams);
+      return withRecordLinks(items, <DhDomainLibrary items={items} />);
+    }
+    case PageType.DhDomainCard: {
+      const items = await fetchFilteredDhDomainCards(searchParams);
+      return withRecordLinks(items, <DhDomainCardLibrary items={items} />);
     }
   }
 }

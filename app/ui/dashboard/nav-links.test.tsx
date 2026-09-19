@@ -58,6 +58,34 @@ describe("NavLinks under a system", () => {
       );
     }
   });
+
+  // SPEC-021 T2/T3: the Daggerheart catalogues, under daggerheart alone.
+  it("lists domains and domain cards, with admin links, under daggerheart", () => {
+    system = "daggerheart";
+    pathname = "/dashboard/daggerheart";
+    render(<NavLinks />);
+
+    expect(screen.getByLabelText("dhDomains")).toHaveAttribute(
+      "href",
+      "/dashboard/daggerheart/domains"
+    );
+    expect(screen.getByLabelText("dhDomainCards")).toHaveAttribute(
+      "href",
+      "/dashboard/daggerheart/domain-cards"
+    );
+    expect(screen.getByLabelText("manage:dhdomaincards")).toHaveAttribute(
+      "href",
+      "/dashboard/daggerheart/admin/domain-cards"
+    );
+  });
+
+  it("leaves the Daggerheart catalogues out under dnd5e", () => {
+    pathname = "/dashboard/dnd5e";
+    render(<NavLinks />);
+
+    expect(screen.queryByText("dhDomains")).not.toBeInTheDocument();
+    expect(screen.queryByText("dhDomainCards")).not.toBeInTheDocument();
+  });
 });
 
 describe("NavLinks", () => {

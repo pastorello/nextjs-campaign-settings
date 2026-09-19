@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import AppError from "./AppError";
+import ConflictError from "./ConflictError";
 
 /**
  * Maps a thrown error to the response a route handler should return.
@@ -12,6 +13,9 @@ import AppError from "./AppError";
  * The cause is logged, never sent: the client gets the error's message, the
  * server keeps the stack. An error we did not raise is a 500 with a generic
  * message, because we cannot know it is safe to show.
+ *
+ * A `ConflictError` carrying a `refusal` sends it too, as a catalogue key,
+ * so the client can show the refusal in the reader's language.
  */
 export default function toErrorResponse(error: unknown): NextResponse {
   if (error instanceof AppError) {
@@ -20,7 +24,12 @@ export default function toErrorResponse(error: unknown): NextResponse {
     }
 
     return NextResponse.json(
-      { success: false, error: error.message },
+      {
+        success: false,
+        error: error.message,
+        ...(error instanceof ConflictError &&
+          error.refusal && { refusal: error.refusal }),
+      },
       { status: error.httpStatus }
     );
   }

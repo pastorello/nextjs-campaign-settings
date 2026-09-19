@@ -7,6 +7,8 @@ import NpcMetaField from "@/app/lib/definitions/enums/npc/NpcMetaField";
 import DeityMetaField from "@/app/lib/definitions/enums/deities/DeityMetaField";
 import MagicItemMetaField from "@/app/lib/definitions/enums/magicitem/MagicItemMetaField";
 import TreasureMetaField from "@/app/lib/definitions/enums/treasure/TreasureMetaField";
+import DhDomainMetaField from "@/app/lib/definitions/enums/daggerheart/DhDomainMetaField";
+import DhDomainCardMetaField from "@/app/lib/definitions/enums/daggerheart/DhDomainCardMetaField";
 
 /**
  * Which fields make up each page, in order.
@@ -124,6 +126,32 @@ const pagesConfig: Record<PageType, PageConfig> = {
       TreasureMetaField.value,
     ],
     system: "dnd5e",
+  },
+  // SPEC-021 T2 — a domain's emblem is the shared image field.
+  [PageType.DhDomain]: {
+    fields: [
+      "id",
+      "imageId",
+      DhDomainMetaField.name,
+      DhDomainMetaField.description,
+      DhDomainMetaField.colour,
+      DhDomainMetaField.origin,
+    ],
+    system: "daggerheart",
+  },
+  // SPEC-021 T3.
+  [PageType.DhDomainCard]: {
+    fields: [
+      "id",
+      DhDomainCardMetaField.name,
+      DhDomainCardMetaField.domainId,
+      DhDomainCardMetaField.cardLevel,
+      DhDomainCardMetaField.recallCost,
+      DhDomainCardMetaField.cardType,
+      DhDomainCardMetaField.featureText,
+      DhDomainCardMetaField.origin,
+    ],
+    system: "daggerheart",
   },
 };
 

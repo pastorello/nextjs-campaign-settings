@@ -39,6 +39,7 @@ const { models } = vi.hoisted(() => {
     update: vi.fn(),
     updateMany: vi.fn(),
     delete: vi.fn(),
+    count: vi.fn(),
   });
   return {
     models: {
@@ -49,6 +50,10 @@ const { models } = vi.hoisted(() => {
       faction: model(),
       zone: model(),
       poi: model(),
+      dhDomain: model(),
+      // Counted before a domain's delete (SPEC-021 T2); zero here.
+      dhDomainCard: model(),
+      dhClass: model(),
     },
   };
 });
@@ -65,6 +70,7 @@ import updateMagicItem from "@/app/lib/data/magicitems/updateMagicItem";
 import updateTreasure from "@/app/lib/data/treasure/updateTreasure";
 import updateFaction from "@/app/lib/data/faction/updateFaction";
 import updateZoneDetails from "@/app/lib/data/maps/updateZoneDetails";
+import updateDhDomain from "@/app/lib/data/dhDomains/updateDhDomain";
 import createNpc from "@/app/lib/data/npc/createNpc";
 import { deleteNpcById } from "@/app/lib/data/npc/deleteNpcById";
 import { deleteDeityById } from "@/app/lib/data/deities/deleteDeityById";
@@ -72,6 +78,7 @@ import { deleteMagicItemById } from "@/app/lib/data/magicitems/deleteMagicItemBy
 import { deleteTreasureById } from "@/app/lib/data/treasure/deleteTreasureById";
 import { deleteFactionById } from "@/app/lib/data/faction/deleteFactionById";
 import deletePlace from "@/app/lib/data/maps/deletePlace";
+import { deleteDhDomainById } from "@/app/lib/data/dhDomains/deleteDhDomainById";
 
 type ModelName = keyof typeof models;
 
@@ -133,6 +140,14 @@ const owners: Owner[] = [
     update: (p) => updateZoneDetails({ ...zoneDetails, ...p }),
     remove: deletePlace,
   },
+  // SPEC-021 T2 — a Daggerheart domain's emblem.
+  {
+    label: "Daggerheart domain",
+    model: "dhDomain",
+    relation: "dhDomain",
+    update: (p) => updateDhDomain(p as never),
+    remove: deleteDhDomainById,
+  },
 ];
 
 beforeEach(() => {
@@ -145,6 +160,7 @@ beforeEach(() => {
     model.updateMany.mockResolvedValue({ count: 0 });
     model.delete.mockResolvedValue({});
     model.findMany.mockResolvedValue([]);
+    model.count.mockResolvedValue(0);
   }
 });
 

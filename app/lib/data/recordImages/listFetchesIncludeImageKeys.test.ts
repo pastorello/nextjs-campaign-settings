@@ -18,6 +18,7 @@ vi.mock("@/app/lib/connections/prisma", () => ({
     magicitems: { findMany },
     treasure: { findMany },
     faction: { findMany },
+    dhDomain: { findMany },
   },
 }));
 
@@ -26,6 +27,7 @@ import { fetchFilteredDeities } from "@/app/lib/data/deities/fetchFilteredDeitie
 import { fetchFilteredMagicItems } from "@/app/lib/data/magicitems/fetchFilteredMagicItems";
 import { fetchFilteredTreasures } from "@/app/lib/data/treasure/fetchFilteredTreasures";
 import { fetchFilteredFactions } from "@/app/lib/data/faction/fetchFilteredFactions";
+import { fetchFilteredDhDomains } from "@/app/lib/data/dhDomains/fetchFilteredDhDomains";
 
 const image = {
   displayKey: "display-key.webp",
@@ -53,6 +55,7 @@ describe.each([
   [PageType.MagicItem, fetchFilteredMagicItems],
   [PageType.Treasure, fetchFilteredTreasures],
   [PageType.Faction, fetchFilteredFactions],
+  [PageType.DhDomain, fetchFilteredDhDomains],
 ] as const)("%s's list fetch", (pageType, fetch) => {
   beforeEach(() => findMany.mockReset());
 

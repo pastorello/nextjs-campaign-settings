@@ -15,6 +15,8 @@ import { fetchFilteredNpc } from "@/app/lib/data/npc/fetchFilteredNpc";
 import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
 import { fetchFilteredFactions } from "@/app/lib/data/faction/fetchFilteredFactions";
 import { fetchFilteredTreasures } from "@/app/lib/data/treasure/fetchFilteredTreasures";
+import { fetchFilteredDhDomains } from "@/app/lib/data/dhDomains/fetchFilteredDhDomains";
+import { fetchFilteredDhDomainCards } from "@/app/lib/data/dhDomainCards/fetchFilteredDhDomainCards";
 import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
 import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
 import { toDerivedPlacements } from "@/app/modules/maps/lib/utils/deriveEntityAncestry";
@@ -68,6 +70,10 @@ const fetchItems = (pageType: PageType, searchParams: SearchParamsInput) => {
       return fetchFilteredFactions(searchParams);
     case PageType.Treasure:
       return fetchFilteredTreasures(searchParams);
+    case PageType.DhDomain:
+      return fetchFilteredDhDomains(searchParams);
+    case PageType.DhDomainCard:
+      return fetchFilteredDhDomainCards(searchParams);
   }
 };
 
@@ -117,11 +123,14 @@ export default async function EntityList(props: {
 
   // Resolved once per request and passed down as a prop (SPEC-006 §7,
   // decision 10) — to the cells, the edit form and, since TD-78, the column
-  // headers' filters. Only the NPC list has a table-backed field today.
+  // headers' filters. The NPC list's faction and the domain card list's
+  // domain (SPEC-021 T3) are the table-backed fields.
   const optionBundle: OptionBundle | undefined =
     props.pageType === PageType.Npc
       ? { faction: await fetchFieldOptions("faction") }
-      : undefined;
+      : props.pageType === PageType.DhDomainCard
+        ? { dhDomain: await fetchFieldOptions("dhDomain") }
+        : undefined;
 
   // The desktop table's action cell. Icon buttons rather than labelled ones
   // (TD-118) — the accessible name still carries the item's own name

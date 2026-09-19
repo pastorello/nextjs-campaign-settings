@@ -18,7 +18,9 @@
       "gameSystem": "Sistema di gioco",
       "treasure": "Tesori",
       "campaign": "Campagna",
-      "sidebarLabel": "Navigazione principale"
+      "sidebarLabel": "Navigazione principale",
+      "dhDomains": "Domini",
+      "dhDomainCards": "Carte dominio"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -183,7 +185,9 @@
       "imageUndecodable": "Questo file non può essere letto come immagine.",
       "imageStoreFailed": "Non è stato possibile salvare l'immagine. Riprova.",
       "imageNotFound": "Questa immagine non esiste più. Caricala di nuovo.",
-      "imageInUse": "Questa immagine appartiene già a un altro elemento. Caricala di nuovo."
+      "imageInUse": "Questa immagine appartiene già a un altro elemento. Caricala di nuovo.",
+      "dhDomainNotFound": "Quel dominio non esiste più.",
+      "dhDomainInUse": "Questo dominio è ancora usato da {cards, plural, =0 {nessuna carta} one {# carta} other {# carte}} e {classes, plural, =0 {nessuna classe} one {# classe} other {# classi}}. Eliminali o spostali prima."
     },
     "errorPage": {
       "genericTitle": "Qualcosa è andato storto",
@@ -1522,6 +1526,110 @@
       "capricorn": "Capricorno",
       "aquarius": "Acquario",
       "pisces": "Pesci"
+    }
+  },
+  "daggerheart": {
+    "fields": {
+      "origin": {
+        "label": "Origine"
+      }
+    },
+    "origins": {
+      "homebrew": "Homebrew",
+      "srdReference": "Riferimento SRD"
+    }
+  },
+  "dhDomains": {
+    "page": {
+      "title": "Domini",
+      "searchPlaceholder": "Cerca domini...",
+      "itemSingular": "dominio",
+      "itemPlural": "domini",
+      "newItemButton": "Nuovo dominio",
+      "emptyMessage": "Nessun dominio trovato"
+    },
+    "form": {
+      "createTitle": "Crea nuovo dominio",
+      "editTitle": "Modifica dominio",
+      "createButton": "Crea dominio",
+      "editButton": "Modifica dominio"
+    },
+    "fields": {
+      "colour": {
+        "label": "Colore"
+      }
+    },
+    "colours": {
+      "crimson": "Cremisi",
+      "rose": "Rosa",
+      "amber": "Ambra",
+      "emerald": "Smeraldo",
+      "teal": "Verde acqua",
+      "sky": "Azzurro",
+      "indigo": "Indaco",
+      "violet": "Viola",
+      "slate": "Ardesia",
+      "stone": "Pietra"
+    },
+    "emblemAlt": "Emblema di {domain}"
+  },
+  "dhDomainCards": {
+    "page": {
+      "title": "Carte dominio",
+      "searchPlaceholder": "Cerca carte dominio...",
+      "itemSingular": "carta",
+      "itemPlural": "carte",
+      "newItemButton": "Nuova carta dominio",
+      "emptyMessage": "Nessuna carta dominio trovata"
+    },
+    "form": {
+      "createTitle": "Crea nuova carta dominio",
+      "editTitle": "Modifica carta dominio",
+      "createButton": "Crea carta dominio",
+      "editButton": "Modifica carta dominio"
+    },
+    "fields": {
+      "domainId": {
+        "label": "Dominio"
+      },
+      "cardLevel": {
+        "label": "Livello"
+      },
+      "recallCost": {
+        "label": "Costo di richiamo"
+      },
+      "cardType": {
+        "label": "Tipo"
+      },
+      "featureText": {
+        "label": "Testo dell'effetto"
+      }
+    },
+    "types": {
+      "ability": "Abilità",
+      "spell": "Incantesimo",
+      "grimoire": "Grimorio"
+    },
+    "levels": {
+      "level1": "Livello 1",
+      "level2": "Livello 2",
+      "level3": "Livello 3",
+      "level4": "Livello 4",
+      "level5": "Livello 5",
+      "level6": "Livello 6",
+      "level7": "Livello 7",
+      "level8": "Livello 8",
+      "level9": "Livello 9",
+      "level10": "Livello 10"
+    },
+    "card": {
+      "level": "Livello {level}",
+      "emblemAlt": "Emblema di {domain}"
+    },
+    "view": {
+      "label": "Mostra come",
+      "rows": "Righe",
+      "cards": "Carte"
     }
   }
 }

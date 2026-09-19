@@ -6,6 +6,7 @@ import { TrashIcon } from "@heroicons/react/24/outline";
 
 import { notifyError, notifySuccess } from "@/app/lib/notifications/notify";
 import PageType from "@/app/lib/definitions/types/PageType";
+import type FieldErrorMessage from "@/app/lib/definitions/types/FieldErrorMessage";
 import ButtonVariant from "../buttons/BaseButton/ButtonVariant";
 import ModalButton from "./ModalButton";
 
@@ -27,6 +28,7 @@ const DeleteButton = ({ pageName, pageId, pageType }: DeleteButtonProps) => {
       const data = (await response.json()) as {
         success?: boolean;
         error?: string;
+        refusal?: FieldErrorMessage;
       };
 
       if (data.success === true) {
@@ -38,6 +40,12 @@ const DeleteButton = ({ pageName, pageId, pageType }: DeleteButtonProps) => {
       // The handler says which of the two it was — a missing record or a
       // failed query (TD-13) — and TD-10 finally gives it somewhere to appear
       // that is not a browser alert().
+      // A refusal with a catalogue key (a Daggerheart domain still in use,
+      // SPEC-021 T2) is shown translated rather than as the server's prose.
+      if (data.refusal) {
+        notifyError(t(`fieldErrors.${data.refusal.key}`, data.refusal.values));
+        return;
+      }
       notifyError(data.error ?? t("deleteButton.deleteFailed"));
     } catch {
       notifyError(t("deleteButton.networkFailed"));

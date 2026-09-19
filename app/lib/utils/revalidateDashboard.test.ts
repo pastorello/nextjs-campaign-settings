@@ -25,6 +25,8 @@ describe("revalidateDashboard (TD-105)", () => {
     "campaign",
     "campaign/calendar",
     "deities",
+    "domain-cards",
+    "domains",
     "factions",
     "geography",
     "magicitems",

@@ -81,6 +81,9 @@ export const FIELD_ERROR_KEYS = [
   // Attaching an uploaded image to a record (SPEC-020 T3)
   "imageNotFound",
   "imageInUse",
+  // Daggerheart catalogues (SPEC-021)
+  "dhDomainNotFound",
+  "dhDomainInUse",
 ] as const;
 
 type FieldErrorKey = (typeof FIELD_ERROR_KEYS)[number];

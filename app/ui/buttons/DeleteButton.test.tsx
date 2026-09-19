@@ -118,6 +118,36 @@ describe("DeleteButton", () => {
     expect(refresh).not.toHaveBeenCalled();
   });
 
+  // SPEC-021 T2: a refusal carrying a catalogue key (a domain still in use)
+  // is shown translated, not as the server's English prose.
+  it("translates a keyed refusal rather than showing the server's message", async () => {
+    vi.mocked(global.fetch).mockResolvedValue({
+      json: () => ({
+        success: false,
+        error: "Cannot delete domain",
+        refusal: { key: "dhDomainInUse", values: { cards: 2, classes: 0 } },
+      }),
+    } as unknown as Response);
+
+    render(
+      <DeleteButton
+        pageName="Veilwright"
+        pageId={3}
+        pageType={PageType.DhDomain}
+      />
+    );
+    fireEvent.click(screen.getByText("confirm-delete"));
+
+    await waitFor(() =>
+      expect(notifyError).toHaveBeenCalledWith(
+        expect.stringMatching(/^fieldErrors\.dhDomainInUse/)
+      )
+    );
+    expect(global.fetch).toHaveBeenCalledWith("/api/domains/3", {
+      method: "DELETE",
+    });
+  });
+
   it("falls back to a generic failure message when the server sends none", async () => {
     vi.mocked(global.fetch).mockResolvedValue({
       json: () => ({ success: false }),

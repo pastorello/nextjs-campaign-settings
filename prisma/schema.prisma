@@ -552,15 +552,18 @@ model dhDomainCard {
   name        String
   domainId    Int
   domain      dhDomain @relation(fields: [domainId], references: [id], onDelete: Restrict)
-  level       Int
+  // `cardLevel`/`cardType` in code, `level`/`type` in the table: the
+  // metadata layer's field keys are one flat namespace, where `level` (spells)
+  // and `type` (magic items) are taken (SPEC-021 T3).
+  cardLevel   Int      @map("level")
   recallCost  Int
-  type        String
+  cardType    String   @map("type")
   featureText String
   origin      String   @default("homebrew")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@index([domainId, level])
+  @@index([domainId, cardLevel])
   @@index([name])
 }
 

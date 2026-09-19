@@ -26,8 +26,8 @@ const sql = readFileSync(
   "utf-8"
 );
 
-// SPEC-021's Daggerheart domain table does not exist yet; it gains the same
-// column in its own migration.
+// SPEC-021's Daggerheart domain table gained the same column in its own
+// migration, checked by spec021DaggerheartSchema.test.ts.
 const OWNERS = ["deities", "magicitems", "npc", "faction", "zone", "treasure"];
 
 describe("SPEC-020 T2 — record image schema migration", () => {

@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import DatabaseError from "@/app/lib/errors/DatabaseError";
@@ -33,6 +36,7 @@ const noHolders = {
   treasure: null,
   faction: null,
   zone: null,
+  dhDomain: null,
 };
 
 beforeEach(() => {
@@ -169,6 +173,30 @@ describe("checkRecordImageReference", () => {
     expect(recordImage.findUnique).not.toHaveBeenCalled();
   });
 
+  // SPEC-021 T1: the per-table unique index cannot stop two *different*
+  // owner tables sharing one image, so this lookup is the only guard across
+  // tables — it must ask every owner relation `recordImage` has, including
+  // one added later (the Daggerheart domain was the seventh).
+  it("asks every owner relation the schema declares on recordImage", async () => {
+    const schema = readFileSync(
+      path.join(process.cwd(), "prisma", "schema.prisma"),
+      "utf-8"
+    );
+    const model = /model recordImage \{([^}]*)\}/.exec(schema)?.[1] ?? "";
+    const relations = [...model.matchAll(/^\s+(\w+)\s+\w+\?\s*$/gm)].map(
+      (m) => m[1]
+    );
+    expect(relations).toContain("dhDomain");
+    recordImage.findUnique.mockResolvedValue(noHolders);
+
+    await checkRecordImageReference(9, { relation: "npc" });
+
+    const [{ select }] = recordImage.findUnique.mock.calls[0] as [
+      { select: Record<string, unknown> },
+    ];
+    expect(Object.keys(select).sort()).toEqual(relations.sort());
+  });
+
   it("refuses an id that names no image", async () => {
     recordImage.findUnique.mockResolvedValue(null);
 
@@ -196,6 +224,7 @@ describe("checkRecordImageReference", () => {
   it.each([
     ["another record of the same kind", { npc: { id: 2 } }],
     ["a record of another kind with the same id", { deity: { id: 1 } }],
+    ["a Daggerheart domain", { dhDomain: { id: 5 } }],
   ])("refuses an image held by %s", async (_case, holder) => {
     recordImage.findUnique.mockResolvedValue({ ...noHolders, ...holder });
 

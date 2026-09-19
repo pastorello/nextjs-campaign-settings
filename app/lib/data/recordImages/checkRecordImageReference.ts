@@ -10,7 +10,9 @@ const HOLDER = { select: { id: true } } as const;
  * The half of the `imageId` rule a Zod validator cannot check (SPEC-020 T3):
  * the id must name an existing `recordImage`, and one no other record
  * already carries. The unique index would refuse the second case anyway, but
- * as a bare P2002 from whichever table; this names the field instead.
+ * as a bare P2002 from whichever table; this names the field instead. The
+ * index is per table, though, so across two owner tables this lookup is the
+ * only guard: it must select every owner relation `recordImage` declares.
  *
  * `imageId` absent or `null` needs no check — nothing is being attached.
  * Returns field errors keyed `imageId`, or `null`.
@@ -32,6 +34,7 @@ export default async function checkRecordImageReference(
         treasure: HOLDER,
         faction: HOLDER,
         zone: HOLDER,
+        dhDomain: HOLDER,
       },
     });
   } catch (error) {

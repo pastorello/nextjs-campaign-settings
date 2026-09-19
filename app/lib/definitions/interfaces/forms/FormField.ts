@@ -10,7 +10,7 @@ interface FormField {
   options?: ResolvedOption[];
   multiple?: boolean;
   placeholder?: string;
-  /** See `PageMeta.tall` (TD-120) — read only by `TextareaInput`. */
+  /** See `PageMeta.tall` (TD-120) — read by `TextareaInput` and `RichTextInput`. */
   tall?: boolean;
 }
 

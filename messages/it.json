@@ -203,6 +203,18 @@
         "label": "Nome",
         "placeholder": "Inserisci nome"
       }
+    },
+    "richText": {
+      "toolbar": "Formattazione",
+      "bold": "Grassetto",
+      "italic": "Corsivo",
+      "bulletList": "Elenco puntato",
+      "orderedList": "Elenco numerato",
+      "heading": "Titolo",
+      "subheading": "Sottotitolo",
+      "unlink": "Rimuovi collegamento",
+      "undo": "Annulla",
+      "redo": "Ripeti"
     }
   },
   "spells": {

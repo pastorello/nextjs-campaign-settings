@@ -203,6 +203,18 @@
         "label": "Name",
         "placeholder": "Enter name"
       }
+    },
+    "richText": {
+      "toolbar": "Formatting",
+      "bold": "Bold",
+      "italic": "Italic",
+      "bulletList": "Bulleted list",
+      "orderedList": "Numbered list",
+      "heading": "Heading",
+      "subheading": "Subheading",
+      "unlink": "Remove link",
+      "undo": "Undo",
+      "redo": "Redo"
     }
   },
   "spells": {

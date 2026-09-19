@@ -44,6 +44,10 @@ const InputComponent = ({
   const getFieldConfig = (): FormField => {
     const meta = pageMetaFields[fieldName];
     const labelKey = meta.labelKey;
+    // Widened to the enum: no field declares every control type yet (T5
+    // switches the first ones to `RichText`), and the literal registry
+    // type would make those comparisons "impossible" to the compiler.
+    const controlType = meta.controlType as ControlType;
     // `optionTable` read through `fieldMeta` (typed as `PageMeta`), not
     // `pageMetaFields` (its literal inferred type): reached through a
     // variable key, the registry's per-field shapes don't all declare
@@ -70,12 +74,12 @@ const InputComponent = ({
             ? (null as unknown as MetaValue)
             : aValue
         ),
-      type: meta.controlType,
+      type: controlType,
     };
 
     if (
-      meta.controlType === ControlType.Multiselect ||
-      meta.controlType === ControlType.Select
+      controlType === ControlType.Multiselect ||
+      controlType === ControlType.Select
     ) {
       if (optionTable !== undefined) {
         const tableOptions = optionBundle?.[optionTable] ?? [];
@@ -96,13 +100,14 @@ const InputComponent = ({
           result.options = resolveOptions<string | number>(declaredOptions, t);
         }
       }
-      if (meta.controlType === ControlType.Multiselect) {
+      if (controlType === ControlType.Multiselect) {
         result.multiple = true;
       }
     }
     if (
-      meta.controlType === ControlType.Text ||
-      meta.controlType === ControlType.Textarea
+      controlType === ControlType.Text ||
+      controlType === ControlType.Textarea ||
+      controlType === ControlType.RichText
     ) {
       const placeholderKey = fieldMeta[fieldName]?.placeholderKey;
 
@@ -110,7 +115,10 @@ const InputComponent = ({
         ? t(placeholderKey)
         : "";
     }
-    if (meta.controlType === ControlType.Textarea) {
+    if (
+      controlType === ControlType.Textarea ||
+      controlType === ControlType.RichText
+    ) {
       result.tall = fieldMeta[fieldName]?.tall ?? false;
     }
     return result;

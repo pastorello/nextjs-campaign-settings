@@ -24,6 +24,7 @@ import WorldHistoryFilters from "@/app/ui/calendar/WorldHistoryFilters";
 import WorldHistoryList from "@/app/ui/calendar/WorldHistoryList";
 import Pagination from "@/app/ui/components/pagination";
 import PageTitle from "@/app/ui/typography/PageTitle";
+import ResolvedRecordLinks from "@/app/ui/richText/ResolvedRecordLinks";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("calendar.history.page");
@@ -95,40 +96,50 @@ export default async function WorldHistoryPage(
       fetchCalendarSettings(),
     ]);
     return (
-      <div>
-        {header}
-        <MonthGridNavigation
-          month={month}
-          systems={systems}
-          displaySystem={displaySystem}
-        />
-        <WorldHistoryMonthGrid
-          month={month}
-          events={events}
-          moonReferenceDay={settings.moonNewMoonDay}
-          systems={systems}
-          displaySystem={displaySystem}
-          linkOptions={linkOptions}
-        />
-      </div>
+      <ResolvedRecordLinks
+        values={events.map(({ description }) => description)}
+        system={system}
+      >
+        <div>
+          {header}
+          <MonthGridNavigation
+            month={month}
+            systems={systems}
+            displaySystem={displaySystem}
+          />
+          <WorldHistoryMonthGrid
+            month={month}
+            events={events}
+            moonReferenceDay={settings.moonNewMoonDay}
+            systems={systems}
+            displaySystem={displaySystem}
+            linkOptions={linkOptions}
+          />
+        </div>
+      </ResolvedRecordLinks>
     );
   }
 
   const history = await fetchWorldHistory(query);
   return (
-    <div>
-      {header}
-      <WorldHistoryList
-        events={history.events}
-        systems={systems}
-        displaySystem={displaySystem}
-        linkOptions={linkOptions}
-      />
-      {history.pageCount > 1 && (
-        <div className="mt-5 flex w-full justify-center">
-          <Pagination totalPages={history.pageCount} />
-        </div>
-      )}
-    </div>
+    <ResolvedRecordLinks
+      values={history.events.map(({ description }) => description)}
+      system={system}
+    >
+      <div>
+        {header}
+        <WorldHistoryList
+          events={history.events}
+          systems={systems}
+          displaySystem={displaySystem}
+          linkOptions={linkOptions}
+        />
+        {history.pageCount > 1 && (
+          <div className="mt-5 flex w-full justify-center">
+            <Pagination totalPages={history.pageCount} />
+          </div>
+        )}
+      </div>
+    </ResolvedRecordLinks>
   );
 }

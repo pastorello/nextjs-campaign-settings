@@ -28,6 +28,7 @@ import CurrentDayForm from "@/app/ui/calendar/CurrentDayForm";
 import DateSystemToggle from "@/app/ui/calendar/DateSystemToggle";
 import MonthGridNavigation from "@/app/ui/calendar/MonthGridNavigation";
 import PageTitle from "@/app/ui/typography/PageTitle";
+import ResolvedRecordLinks from "@/app/ui/richText/ResolvedRecordLinks";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("calendar.campaign.page");
@@ -146,26 +147,31 @@ export default async function CampaignCalendarPage(
       fetchCalendarSettings(),
     ]);
     return (
-      <div>
-        {header}
-        <MonthGridNavigation
-          month={month}
-          systems={systems}
-          displaySystem={displaySystem}
-          today={campaign.currentDay}
-        />
-        <CampaignMonthGrid
-          campaignId={campaign.id}
-          month={month}
-          events={events}
-          history={history}
-          today={campaign.currentDay}
-          moonReferenceDay={settings.moonNewMoonDay}
-          systems={systems}
-          displaySystem={displaySystem}
-          ownerOptions={{ adventures, scenes }}
-        />
-      </div>
+      <ResolvedRecordLinks
+        values={[...events, ...history].map(({ description }) => description)}
+        system={system}
+      >
+        <div>
+          {header}
+          <MonthGridNavigation
+            month={month}
+            systems={systems}
+            displaySystem={displaySystem}
+            today={campaign.currentDay}
+          />
+          <CampaignMonthGrid
+            campaignId={campaign.id}
+            month={month}
+            events={events}
+            history={history}
+            today={campaign.currentDay}
+            moonReferenceDay={settings.moonNewMoonDay}
+            systems={systems}
+            displaySystem={displaySystem}
+            ownerOptions={{ adventures, scenes }}
+          />
+        </div>
+      </ResolvedRecordLinks>
     );
   }
 
@@ -189,17 +195,22 @@ export default async function CampaignCalendarPage(
     : [];
 
   return (
-    <div>
-      {header}
-      <CampaignCalendarList
-        campaignId={campaign.id}
-        events={events}
-        history={history}
-        today={campaign.currentDay}
-        systems={systems}
-        displaySystem={displaySystem}
-        ownerOptions={{ adventures, scenes }}
-      />
-    </div>
+    <ResolvedRecordLinks
+      values={[...events, ...history].map(({ description }) => description)}
+      system={system}
+    >
+      <div>
+        {header}
+        <CampaignCalendarList
+          campaignId={campaign.id}
+          events={events}
+          history={history}
+          today={campaign.currentDay}
+          systems={systems}
+          displaySystem={displaySystem}
+          ownerOptions={{ adventures, scenes }}
+        />
+      </div>
+    </ResolvedRecordLinks>
   );
 }

@@ -6,7 +6,7 @@ import calendarEventMeta from "@/app/lib/config/calendarEvent/calendarEventMeta"
 import CalendarEventMetaField from "@/app/lib/definitions/enums/calendar/CalendarEventMetaField";
 import DateSystem from "@/app/lib/definitions/interfaces/calendar/DateSystem";
 import TextInput from "@/app/ui/forms/inputs/TextInput";
-import TextareaInput from "@/app/ui/forms/inputs/TextareaInput";
+import RichTextInput from "@/app/ui/forms/inputs/RichTextInput";
 import CheckboxInput from "@/app/ui/forms/inputs/CheckboxInput";
 import { CalendarEventDraft } from "./calendarEventDraft";
 import WorldDateInput from "./WorldDateInput";
@@ -55,7 +55,7 @@ export default function CalendarEventFields({
         value={draft.title}
         onChange={(value) => onChange({ title: String(value) })}
       />
-      <TextareaInput
+      <RichTextInput
         label={label(CalendarEventMetaField.description)}
         value={draft.description}
         onChange={(value) => onChange({ description: String(value) })}

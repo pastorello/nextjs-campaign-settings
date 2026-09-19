@@ -3,6 +3,22 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { universalCountFixture as universal } from "@/app/lib/calendar/dateSystemFixtures";
 
+// An async Server Component that reads the database (SPEC-019 T5); a
+// pass-through here, recording what the page asked it to resolve.
+const { resolvedValues } = vi.hoisted(() => ({ resolvedValues: vi.fn() }));
+vi.mock("@/app/ui/richText/ResolvedRecordLinks", () => ({
+  default: ({
+    values,
+    children,
+  }: {
+    values: unknown;
+    children: React.ReactNode;
+  }) => {
+    resolvedValues(values);
+    return children;
+  },
+}));
+
 vi.mock("next-intl/server", () => ({
   getTranslations: () => Promise.resolve((key: string) => key),
 }));

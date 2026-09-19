@@ -17,7 +17,7 @@ import {
 } from "@/app/lib/utils/currency/convertCurrency";
 import resolveOptions from "@/app/lib/utils/data/resolveOptions";
 import TextInput from "@/app/ui/forms/inputs/TextInput";
-import TextareaInput from "@/app/ui/forms/inputs/TextareaInput";
+import RichTextInput from "@/app/ui/forms/inputs/RichTextInput";
 import Select from "@/app/ui/forms/inputs/Select";
 import BespokeFormErrorSummary from "@/app/ui/forms/BespokeFormErrorSummary";
 import BaseButton from "@/app/ui/buttons/BaseButton";
@@ -123,7 +123,7 @@ export default function AdventureInfoForm({
         value={targetLevel}
         onChange={(value) => setTargetLevel(String(value))}
       />
-      <TextareaInput
+      <RichTextInput
         label={t(adventureMeta[AdventureMetaField.synopsis].labelKey ?? "")}
         value={synopsis}
         onChange={(value) => setSynopsis(String(value))}

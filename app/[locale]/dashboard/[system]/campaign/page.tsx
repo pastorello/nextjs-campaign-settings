@@ -17,6 +17,7 @@ import CampaignHeader from "@/app/ui/campaigns/CampaignHeader";
 import AdventureLadder from "@/app/ui/campaigns/AdventureLadder";
 import UpcomingEvents from "@/app/ui/calendar/UpcomingEvents";
 import PageTitle from "@/app/ui/typography/PageTitle";
+import ResolvedRecordLinks from "@/app/ui/richText/ResolvedRecordLinks";
 
 /** How many upcoming events the campaign page shows (SPEC-014 §9, 5). */
 const UPCOMING_COUNT = 3;
@@ -67,28 +68,32 @@ export default async function CampaignPage({
     readUpcoming(campaign.id, campaign.currentDay),
   ]);
 
+  // The synopsis is formatted text (SPEC-019 T5), shown by the header and
+  // opened by its edit form; the upcoming events show titles only.
   return (
-    <div>
-      <CampaignHeader campaign={campaign} />
-      <Link
-        href={dashboardPath(system, "/campaign/calendar")}
-        className="mt-4 inline-block text-blue-600 underline"
-      >
-        {t("calendar.campaign.link")}
-      </Link>
-      {upcoming && (
-        <UpcomingEvents
-          upcoming={upcoming.events}
-          displaySystem={upcoming.displaySystem}
-          system={system}
+    <ResolvedRecordLinks values={[campaign.synopsis]} system={system}>
+      <div>
+        <CampaignHeader campaign={campaign} />
+        <Link
+          href={dashboardPath(system, "/campaign/calendar")}
+          className="mt-4 inline-block text-blue-600 underline"
+        >
+          {t("calendar.campaign.link")}
+        </Link>
+        {upcoming && (
+          <UpcomingEvents
+            upcoming={upcoming.events}
+            displaySystem={upcoming.displaySystem}
+            system={system}
+          />
+        )}
+        <AdventureLadder
+          campaignId={campaign.id}
+          adventures={campaign.adventures}
+          progress={progress}
         />
-      )}
-      <AdventureLadder
-        campaignId={campaign.id}
-        adventures={campaign.adventures}
-        progress={progress}
-      />
-    </div>
+      </div>
+    </ResolvedRecordLinks>
   );
 }
 

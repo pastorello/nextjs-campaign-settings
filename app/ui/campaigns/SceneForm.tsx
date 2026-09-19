@@ -15,7 +15,7 @@ import Scene from "@/app/lib/definitions/interfaces/campaign/Scene";
 import { ResolvedOption } from "@/app/lib/definitions/types/SelectOption";
 import resolveOptions from "@/app/lib/utils/data/resolveOptions";
 import TextInput from "@/app/ui/forms/inputs/TextInput";
-import TextareaInput from "@/app/ui/forms/inputs/TextareaInput";
+import RichTextInput from "@/app/ui/forms/inputs/RichTextInput";
 import Select from "@/app/ui/forms/inputs/Select";
 import CheckboxInput from "@/app/ui/forms/inputs/CheckboxInput";
 import BespokeFormErrorSummary from "@/app/ui/forms/BespokeFormErrorSummary";
@@ -113,7 +113,7 @@ export default function SceneForm({
         value={title}
         onChange={(value) => setTitle(String(value))}
       />
-      <TextareaInput
+      <RichTextInput
         label={t(sceneMeta[SceneMetaField.description].labelKey ?? "")}
         value={description}
         onChange={(value) => setDescription(String(value))}

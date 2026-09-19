@@ -6,6 +6,7 @@ import SceneKind from "@/app/lib/definitions/enums/campaign/SceneKind";
 import firstOptionValue from "../firstOptionValue";
 import nullableAmountValidator from "@/app/lib/utils/validators/nullableAmountValidator";
 import nullableToOptional from "@/app/lib/utils/validators/nullableToOptional";
+import richTextValidator from "@/app/lib/utils/validators/richTextValidator";
 import z from "zod";
 
 import sceneKinds from "./scene-kinds";
@@ -51,10 +52,11 @@ const sceneMeta = {
     labelKey: "scene.fields.description.label",
     defaultValue: "",
     fieldType: FieldType.string,
-    controlType: ControlType.Textarea,
+    // Formatted text (SPEC-019 T5): the validator sanitises it.
+    controlType: ControlType.RichText,
     // Nullable column, `string | null` domain type — see
     // `nullableToOptional`'s own comment (TD-130).
-    validator: nullableToOptional(z.string().optional()),
+    validator: nullableToOptional(richTextValidator().optional()),
   },
   [SceneMetaField.xpAward]: {
     metaField: "xpAward",

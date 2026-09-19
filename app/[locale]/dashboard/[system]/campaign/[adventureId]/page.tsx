@@ -11,6 +11,7 @@ import BudgetPanel from "@/app/ui/campaigns/BudgetPanel";
 import SceneList from "@/app/ui/campaigns/SceneList";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { redirect } from "@/i18n/navigation";
+import ResolvedRecordLinks from "@/app/ui/richText/ResolvedRecordLinks";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("adventure.page");
@@ -62,25 +63,33 @@ export default async function AdventurePage({
   const currencyUnit = (adventure.currencyUnit ?? "silver") as CurrencyUnit;
 
   return (
-    <div>
-      <AdventureHeader adventure={adventure} />
-      <BudgetPanel
-        totals={totals}
-        currencyUnit={currencyUnit}
-        xpTarget={adventure.xpTarget}
-        currencyTarget={adventure.currencyTarget}
-        permanentItemTarget={adventure.permanentItemTarget}
-        consumableTarget={adventure.consumableTarget}
-      />
-      <SceneList
-        adventureId={adventure.id}
-        scenes={adventure.scenes}
-        currencyUnit={currencyUnit}
-        zoneOptions={zoneOptions}
-        npcOptions={npcOptions}
-        magicItemOptions={magicItemOptions}
-        treasureOptions={treasureOptions}
-      />
-    </div>
+    <ResolvedRecordLinks
+      values={[
+        adventure.synopsis,
+        ...adventure.scenes.map(({ description }) => description),
+      ]}
+      system={system}
+    >
+      <div>
+        <AdventureHeader adventure={adventure} />
+        <BudgetPanel
+          totals={totals}
+          currencyUnit={currencyUnit}
+          xpTarget={adventure.xpTarget}
+          currencyTarget={adventure.currencyTarget}
+          permanentItemTarget={adventure.permanentItemTarget}
+          consumableTarget={adventure.consumableTarget}
+        />
+        <SceneList
+          adventureId={adventure.id}
+          scenes={adventure.scenes}
+          currencyUnit={currencyUnit}
+          zoneOptions={zoneOptions}
+          npcOptions={npcOptions}
+          magicItemOptions={magicItemOptions}
+          treasureOptions={treasureOptions}
+        />
+      </div>
+    </ResolvedRecordLinks>
   );
 }

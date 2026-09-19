@@ -49,7 +49,7 @@ Every field is a `PageMeta` object:
   label: "Livello",
   defaultValue: 0,
   fieldType: FieldType.integer,       // integer | string | boolean | array
-  controlType: ControlType.Select,    // Text | Textarea | Select | Multiselect | Checkbox
+  controlType: ControlType.Select,    // Text | Textarea | RichText | Select | Multiselect | Bool
   options: levels,                    // SelectOption[] for select controls
   validator: z.number().int(),        // Zod schema
   getDatum: (datum) => getDataLabel(levels, datum),  // value → display label
@@ -177,7 +177,7 @@ app/ui/
 ├── forms/
 │   ├── PageForm.tsx             metadata-driven form
 │   ├── EntityForm.tsx           generic form shell (state, submit, errors, buttons)
-│   └── inputs/                  TextInput, TextareaInput, CheckboxInput, Select
+│   └── inputs/                  TextInput, TextareaInput, RichTextInput (+ richText/), CheckboxInput, Select
 ├── components/                  Modal, Spinner, pagination, Icon, ItemMeta,
 │                                EntityList, EntityLibrary
 ├── buttons/BaseButton/          variant/size/state-driven button

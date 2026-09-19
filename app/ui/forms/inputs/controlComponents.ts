@@ -2,6 +2,7 @@ import Select from "@/app/ui/forms/inputs/Select";
 import TextInput from "@/app/ui/forms/inputs/TextInput";
 import CheckboxInput from "@/app/ui/forms/inputs/CheckboxInput";
 import TextareaInput from "@/app/ui/forms/inputs/TextareaInput";
+import RichTextInput from "@/app/ui/forms/inputs/RichTextInput";
 import ControlProps from "@/app/lib/definitions/interfaces/forms/ControlProps";
 import ControlType from "@/app/lib/definitions/types/ControlType";
 
@@ -16,6 +17,7 @@ const controlComponents: Record<
 > = {
   text: TextInput,
   textarea: TextareaInput,
+  richText: RichTextInput,
   bool: CheckboxInput,
   select: Select,
   multiselect: Select,

@@ -80,6 +80,19 @@ vi.mock("../dhDomainCards/DhDomainCardLibrary", () => ({
     <div>DhDomainCardLibrary:{items.length}</div>
   ),
 }));
+vi.mock("../dhClasses/DhClassLibrary", () => ({
+  default: ({
+    items,
+    optionBundle,
+  }: {
+    items: unknown[];
+    optionBundle: { dhDomain?: { label: string }[] };
+  }) => (
+    <div>
+      DhClassLibrary:{items.length}:{optionBundle.dhDomain?.[0]?.label}
+    </div>
+  ),
+}));
 
 const fetchFilteredSpells = vi.fn<(...args: unknown[]) => unknown>();
 const fetchFilteredNpc = vi.fn<(...args: unknown[]) => unknown>();
@@ -87,6 +100,11 @@ const fetchFilteredDeities = vi.fn<(...args: unknown[]) => unknown>();
 const fetchFilteredMagicItems = vi.fn<(...args: unknown[]) => unknown>();
 const fetchFilteredDhDomains = vi.fn<(...args: unknown[]) => unknown>();
 const fetchFilteredDhDomainCards = vi.fn<(...args: unknown[]) => unknown>();
+const fetchFilteredDhClasses = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/dhClasses/fetchFilteredDhClasses", () => ({
+  fetchFilteredDhClasses: (...args: unknown[]) =>
+    fetchFilteredDhClasses(...args),
+}));
 
 vi.mock("@/app/lib/data/spells/fetchFilteredSpells", () => ({
   fetchFilteredSpells: (...args: unknown[]) => fetchFilteredSpells(...args),
@@ -219,6 +237,18 @@ describe("EntityLibrary", () => {
       ["<p>Glow</p>", "<p>Dim</p>"],
       "daggerheart"
     );
+  });
+
+  it("fetches classes and renders DhClassLibrary with the domain names (SPEC-021 T6)", async () => {
+    fetchFilteredDhClasses.mockResolvedValue([{ id: 1 }, { id: 2 }]);
+    fetchFieldOptions.mockResolvedValue([{ value: 3, label: "Veilwright" }]);
+
+    render(
+      await EntityLibrary({ system: "daggerheart", pageType: PageType.DhClass })
+    );
+
+    expect(screen.getByText("DhClassLibrary:2:Veilwright")).toBeInTheDocument();
+    expect(fetchFieldOptions).toHaveBeenCalledWith("dhDomain");
   });
 
   it("passes the search params through to the fetch call", async () => {

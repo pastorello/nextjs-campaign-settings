@@ -7,22 +7,30 @@ import DhDomainCardView from "./DhDomainCardView";
 
 /**
  * Cards grouped by level, each group a titled grid of card views — a
- * domain's page (SPEC-021 §5.2), and the class page's two domains later
+ * domain's page (SPEC-021 §5.2), and both of a class's domains on its page
  * (T6). `cards` arrive sorted by level; each carries its domain.
+ *
+ * `levelHeading` fits the groups into the page's outline: `h2` under a
+ * domain's `h1`, `h3` under the class page's "domain cards" `h2`. Card names
+ * sit one level below it.
  */
 export default function DhDomainCardsByLevel({
   cards,
+  levelHeading = "h2",
 }: {
   cards: (DhDomainCard & { domain: DhDomainCardDomain })[];
+  levelHeading?: "h2" | "h3";
 }) {
   const t = useTranslations("dhDomainCards");
-  // Unique per instance: the class page (T6) shows two domains' groups.
+  // Unique per instance, should a page show more than one set of groups.
   const idPrefix = useId();
 
   if (cards.length === 0) {
     return <p className="text-gray-600">{t("page.emptyMessage")}</p>;
   }
 
+  const LevelHeading = levelHeading;
+  const cardHeading = levelHeading === "h2" ? "h3" : "h4";
   const levels = [...new Set(cards.map((card) => card.cardLevel))].sort(
     (a, b) => a - b
   );
@@ -31,12 +39,12 @@ export default function DhDomainCardsByLevel({
     <div className="flex flex-col gap-6">
       {levels.map((level) => (
         <section key={level} aria-labelledby={`${idPrefix}-level-${level}`}>
-          <h2
+          <LevelHeading
             id={`${idPrefix}-level-${level}`}
             className="mb-3 text-lg font-semibold"
           >
             {t("card.level", { level })}
-          </h2>
+          </LevelHeading>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {cards
               .filter((card) => card.cardLevel === level)
@@ -45,6 +53,7 @@ export default function DhDomainCardsByLevel({
                   key={card.id}
                   card={card}
                   domain={card.domain}
+                  headingLevel={cardHeading}
                 />
               ))}
           </div>

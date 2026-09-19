@@ -87,14 +87,16 @@ describe("NavLinks under a system", () => {
     expect(screen.queryByText("dhDomainCards")).not.toBeInTheDocument();
   });
 
-  it("lists classes and subclasses under daggerheart only (SPEC-021 T4/T5)", () => {
+  it("lists classes and subclasses under daggerheart only (SPEC-021 T4–T6)", () => {
     system = "daggerheart";
     pathname = "/dashboard/daggerheart";
     const { unmount } = render(<NavLinks />);
 
+    // Classes have a public list since T6; subclasses are shown on their
+    // class's page and keep the admin list.
     expect(screen.getByLabelText("dhClasses")).toHaveAttribute(
       "href",
-      "/dashboard/daggerheart/admin/classes"
+      "/dashboard/daggerheart/classes"
     );
     expect(screen.getByLabelText("dhSubclasses")).toHaveAttribute(
       "href",

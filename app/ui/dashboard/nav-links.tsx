@@ -111,14 +111,15 @@ const links: {
     admin: "/admin/domain-cards",
     icon: RectangleStackIcon,
   },
-  // SPEC-021 T4/T5: admin lists only, so the tile links there; the class
-  // page (T6) is where a public `href` would go.
   {
     key: "dhClasses",
     page: PageType.DhClass,
-    href: "/admin/classes",
+    href: "/classes",
+    admin: "/admin/classes",
     icon: AcademicCapIcon,
   },
+  // No public list: a subclass is shown on its class's page (SPEC-021 T6),
+  // so the tile links to the admin list.
   {
     key: "dhSubclasses",
     page: PageType.DhSubclass,

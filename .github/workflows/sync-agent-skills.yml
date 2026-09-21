@@ -25,7 +25,7 @@ jobs:
       # Prettier is the only dependency the script needs.
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: scripts/sync-agent-skills.sh
-      - uses: peter-evans/create-pull-request@v7
+      - uses: peter-evans/create-pull-request@v8
         with:
           branch: chore/sync-agent-skills
           delete-branch: true

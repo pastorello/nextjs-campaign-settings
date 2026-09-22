@@ -187,10 +187,16 @@ test.describe("typed coordinates (SPEC-025)", () => {
     const marker = page.getByRole("button", { name: title, exact: true });
     await expect(marker).toBeVisible({ timeout: 15000 });
 
-    // Clean up through the popover, as the landmark specs do.
-    await marker.click();
+    // Clean up through the popover, as the landmark specs do — retried for
+    // the reason the test above gives: the marker's handler does nothing
+    // until `createPoi` resolves and hands it the row id, and nothing
+    // observable marks that moment, so the first click can land on a marker
+    // that is drawn but not yet clickable.
     const popover = page.getByRole("dialog", { name: title });
-    await expect(popover).toBeVisible();
+    await expect(async () => {
+      await marker.click();
+      await expect(popover).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 15000 });
     await popover
       .getByRole("button", { name: messages.geography.popover.deleteLandmark })
       .click();

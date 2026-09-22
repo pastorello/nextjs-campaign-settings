@@ -122,3 +122,93 @@ test.describe("map keyboard access (TD-133)", () => {
     await expect(page.getByRole("button", { name: title })).toHaveCount(0);
   });
 });
+
+/**
+ * SPEC-025 — the other half of TD-133: a position can be typed, as a
+ * percentage of the map image, instead of clicked. The keyboard could
+ * already open "Aggiungi luogo" at the map's centre; until this, the centre
+ * was the only position it could ever choose.
+ */
+test.describe("typed coordinates (SPEC-025)", () => {
+  test("creates a landmark at a position typed into the form", async ({
+    page,
+  }) => {
+    const title = `E2E typed position ${Date.now()}`;
+
+    await page.goto("/dashboard/dnd5e/geography");
+    const map = page.locator(".leaflet-container");
+    await expect(map).toBeVisible();
+    await page.waitForLoadState("networkidle");
+
+    const menu = contextMenu(page);
+    await expect(async () => {
+      await map.focus();
+      await page.keyboard.press("Shift+F10");
+      await expect(menu).toBeVisible({ timeout: 1500 });
+    }).toPass({ timeout: 15000 });
+
+    const addPlace = menu.getByRole("button", {
+      name: messages.geography.contextMenu.addPlace.trigger,
+    });
+    for (let step = 0; step < 10; step += 1) {
+      if (await addPlace.evaluate((el) => el === document.activeElement)) {
+        break;
+      }
+      await page.keyboard.press("ArrowDown");
+    }
+    await page.keyboard.press("Enter");
+
+    // The fields are there before anything is clicked, and carry the centre
+    // the context menu opened at.
+    const across = page.getByLabel(
+      messages.geography.poiPanel.fields.positionAcross
+    );
+    const down = page.getByLabel(
+      messages.geography.poiPanel.fields.positionDown
+    );
+    await expect(across).toBeVisible();
+    await expect(across).not.toHaveValue("");
+
+    await across.fill("25");
+    await down.fill("70");
+    await page
+      .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)
+      .fill(title);
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.save.save })
+      .press("Enter");
+    await page
+      .getByRole("button", {
+        name: messages.geography.poiPanel.close,
+        exact: true,
+      })
+      .press("Enter");
+
+    const marker = page.getByRole("button", { name: title, exact: true });
+    await expect(marker).toBeVisible({ timeout: 15000 });
+
+    // Clean up through the popover, as the landmark specs do — retried for
+    // the reason the test above gives: the marker's handler does nothing
+    // until `createPoi` resolves and hands it the row id, and nothing
+    // observable marks that moment, so the first click can land on a marker
+    // that is drawn but not yet clickable.
+    const popover = page.getByRole("dialog", { name: title });
+    await expect(async () => {
+      await marker.click();
+      await expect(popover).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 15000 });
+    await popover
+      .getByRole("button", { name: messages.geography.popover.deleteLandmark })
+      .click();
+    await page
+      .getByRole("dialog")
+      .filter({
+        hasText: messages.geography.popover.deleteLandmarkConfirm.cancel,
+      })
+      .getByRole("button", {
+        name: messages.geography.popover.deleteLandmarkConfirm.confirm,
+      })
+      .click();
+    await expect(page.getByRole("button", { name: title })).toHaveCount(0);
+  });
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { LeafletMap } from "@/app/modules/maps/components/map/LeafletMap";
 import { MapControls } from "@/app/modules/maps/components/map/MapControls";
@@ -18,6 +18,7 @@ import {
   type NavigableChild,
 } from "@/app/modules/maps/hooks/useNavigableChildren";
 import type { POI } from "@/app/modules/maps/types/poi";
+import type { MapCorners } from "@/app/modules/maps/lib/utils/percentPosition";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import createPlace from "@/app/lib/data/maps/createPlace";
 import { resolveFirstFieldError } from "@/app/lib/utils/i18n/resolveFieldErrors";
@@ -186,6 +187,23 @@ function WorldMap({
     initialZoom,
     runWithoutClosing,
   });
+
+  /**
+   * The displayed image's corners, for the position fields the place form
+   * offers (SPEC-025). `useMapImageOverlay` always hands back the literal
+   * two-corner form — never an `L.LatLngBounds` instance — so this narrows
+   * rather than converting; anything else means no image is loaded yet, and
+   * the panel disables the fields with the reason.
+   */
+  const mapCorners = useMemo<MapCorners | null>(() => {
+    if (!Array.isArray(effectiveBounds)) return null;
+    const [southWest, northEast] = effectiveBounds;
+    if (!southWest || !northEast) return null;
+    return [
+      [southWest[0], southWest[1]],
+      [northEast[0], northEast[1]],
+    ];
+  }, [effectiveBounds]);
 
   const {
     isMeasuring,
@@ -695,6 +713,7 @@ function WorldMap({
         pendingFootprint={poiPanel.pendingFootprint}
         onFootprintConsumed={poiPanel.consumeFootprint}
         editTarget={poiPanel.editTarget}
+        mapCorners={mapCorners}
       />
     </div>
   );

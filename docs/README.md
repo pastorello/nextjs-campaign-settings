@@ -38,7 +38,7 @@ ROADMAP.md          what to build, in what order
 Documentation that drifts is worse than none, because it is believed. Concretely:
 
 - `PROJECT_STATE.md` §6 (health table) is stale the moment CI turns green — update it as items land.
-- Tick items off `TECH_DEBT.md` as they ship, **in the summary table _and_ the execution order at the bottom**, and move the item's full write-up into `TECH_DEBT_ARCHIVE.md` (2026-08-01 split — see that file's header). Keeping the write-up is deliberate and good — the archive is the only record of what was tried and rejected — but the _live_ register should only carry what's still open, so it stays short enough to actually be read before starting work.
+- Tick items off `TECH_DEBT.md` as they ship, **in the summary table**, and move the item's full write-up into `TECH_DEBT_ARCHIVE.md` — where the summary row goes too, into its _Index of every closed item_. `TECH_DEBT.md` holds what is open and nothing else (2026-08-01 split, completed 2026-09-22).
 - If an implementation deviates from its spec, amend the spec's Outcome section. Do not leave the spec describing something that was not built.
 - **A completion note is a claim, not a fact.** State how a thing was verified, and prefer a claim the reader can re-run to a number typed once and never rechecked. **State the command's prerequisites too** — this rule used to illustrate itself with "(`pnpm test:e2e --list` says 40)", and by 2026-08-13 that had rotted twice over: the count was stale _and_ the command no longer runs on a fresh checkout, because TD-65 made `playwright.config.ts` refuse to load without a gitignored `.env.test`. A command the reader cannot run is no better than a number they cannot check.
 

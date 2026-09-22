@@ -3,7 +3,7 @@
 - **Status:** **Closed 2026-08-19 — shipped; see §11.** Previously: **Agreed 2026-08-18.** Amended the same day after the DM's review of the first draft (§6's counting rule reversed, treasure catalogue added, per-scene table renamed), and §7's fork settled by [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md). **Amended again 2026-08-18** during T2/T3, for three things the document got wrong rather than left open: §6's Prisma block did not validate, §9 named the wrong directory for the mutations, and §3 was missing a non-goal the DM stated. Each is marked below.
 - **Date:** 2026-08-18
 - **Phase:** ROADMAP Phase 4 (Session tooling)
-- **Related:** [`docs/domain/campaign-design-method.md`](../domain/campaign-design-method.md) · [SPEC-004](./004-world-model.md) (world tree) · [SPEC-010](./010-deleting-a-place.md) (place deletion) · [SPEC-011](./011-cross-entity-search.md) · [SPEC-001](./001-combat-tracker.md) (successor, not prerequisite) · SPEC-014 (calendar and timeline — planned, not yet written) · [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md) (decides §7) · ADR-0009/0010 · ROADMAP Phase 3, "Campaigns as stories, not as scoping"
+- **Related:** [`docs/domain/campaign-design-method.md`](../domain/campaign-design-method.md) · [SPEC-004](./004-world-model.md) (world tree) · [SPEC-010](./010-deleting-a-place.md) (place deletion) · [SPEC-011](./011-cross-entity-search.md) · SPEC-014 (calendar and timeline — planned, not yet written) · [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md) (decides §7) · ADR-0009/0010 · ROADMAP Phase 3, "Campaigns as stories, not as scoping"
 
 ---
 
@@ -43,9 +43,11 @@ keeps totalled.
 - **Not a rules engine.** The app computes no encounter difficulty and derives no
   XP or treasure from any system's tables. Every number is authored by the DM;
   the app only sums and compares them. See the domain file §6 for why.
-- **Not the combat tracker.** Running a fight round by round is [SPEC-001](./001-combat-tracker.md),
-  which this spec is a prerequisite for, not a part of. A scene with its creatures
-  is what SPEC-001 will eventually be handed.
+- **Not the combat tracker.** Running a fight round by round was SPEC-001, which
+  this spec was a prerequisite for rather than a part of. That spec was withdrawn
+  on 2026-09-22 along with every other play-time tool (see ROADMAP's _Explicitly
+  not planned_), so a scene's creatures are now the end of the line: the app
+  records what a fight is made of, and the fight itself happens at the table.
 - **Not the calendar, and not a session diary.** Three things keep getting
   confused and are deliberately separated here. The **calendar** — the planned
   sequence of dated events, what the antagonists do while the party does

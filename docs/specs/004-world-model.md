@@ -16,7 +16,7 @@
 
 > _Both files are gone — this section describes the problem as it stood on 2026-08-06, and the two enums were exactly what the work removed: `Location.ts` with T5b (2026-08-08), `Faction.ts` with [SPEC-006](./006-factions.md) (2026-08-10). They were links until 2026-08-13, by then pointing at nothing; unlinked rather than rewritten, because the problem statement is still an accurate record of why this spec exists._
 
-- The four maps are an array literal in [`geography/page.tsx`](../../app/[locale]/dashboard/geography/page.tsx), pointing at four files committed to `public/maps/`. The DM has roughly sixty more maps in Inkarnate with nowhere to put them.
+- The four maps are an array literal in `geography/page.tsx` (the page lived at `app/[locale]/dashboard/geography/` when this was written; ADR-0013 moved it under `[system]/`), pointing at four files committed to `public/maps/`. The DM has roughly sixty more maps in Inkarnate with nowhere to put them.
 
 Adding a place, a faction or a map means editing source and redeploying. The DM cannot build a world; they can only use the one that was compiled in.
 
@@ -43,7 +43,7 @@ A DM starts with an empty installation and builds their universe from nothing �
 - **More than one universe.** Each DM authors exactly one, and it is the mandatory root of everything. Multi-tenant hosting stays explicitly rejected (`ROADMAP.md`, "Explicitly not planned").
 - **Regions as drawn areas.** A region is a pin like any other navigable place in this spec. Selecting a rectangle or polygon on the parent map and attaching the zoomed map to _that shape_ is a later, additive feature — the model must not preclude it (§6), but no geometry beyond a point ships here.
 - **Re-theming the POI categories.** The 14 current ones are generic (`food-drink`, `transport`, `religion`) but map onto the setting well enough for now — an inn, a boat in Skreebars' harbour, the Temple of Helios. They are kept as-is and renamed in a later pass.
-- **Combat grids.** A dungeon is a place with a map like any other. The playable miniature grid is Phase 4 (`001-combat-tracker.md`).
+- **Combat grids.** A dungeon is a place with a map like any other. The playable miniature grid was Phase 4 work and is now out of scope entirely — see ROADMAP's _Explicitly not planned_ (2026-09-22). SPEC-015's measurement grid is a drawing aid on a map, not a battle grid.
 - **Deleting the legacy option lists in this spec.** `locationList` and `factions` stay in the codebase until their data has been migrated and verified; removal is the last task, not the first.
 
 ## 4. User stories
@@ -112,7 +112,7 @@ This is a discriminated union, and the codebase already models one — `PageMeta
 
 1. **Upload the root map.** An empty installation offers exactly one action: name your world and upload its map. Storage and authenticated serving per [ADR-0008](../adr/0008-map-image-storage.md).
 2. **Add a place, from the map.** The existing `MapPOIPanel` already has the type→entity cascading select that `deity` and `npc` need — [`fetchLinkableEntities`](../../app/lib/data/maps/fetchLinkableEntities.ts), built for SPEC-002. It gains the `kind` selector and, for `region`, a map upload. This is an extension of a working panel, not a new one.
-3. **Navigate by clicking.** Clicking a `region` opens its map and renders that region's children. **The four-button map switcher in [`geography/page.tsx`](../../app/[locale]/dashboard/geography/page.tsx) is removed** — it is replaced by the tree itself. One "up" button returns to the parent; full breadcrumbs are explicitly not in the MVP.
+3. **Navigate by clicking.** Clicking a `region` opens its map and renders that region's children. **The four-button map switcher in `geography/page.tsx` is removed** — it is replaced by the tree itself. One "up" button returns to the parent; full breadcrumbs are explicitly not in the MVP.
 4. **Pins render only on their parent's map** — the defect in §1, fixed as a consequence of the tree rather than as a separate patch.
 
 ### What the MVP deliberately leaves alone

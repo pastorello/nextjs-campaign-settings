@@ -111,18 +111,17 @@ The order is load-bearing. Item 1 types the metadata layer, which turns the swee
 
 ---
 
-## Phase 4 — Session tooling
+## Phase 4 — Session preparation
 
-**Goal:** move from reference material to something used _during_ a session.
+**Goal:** move from reference material to something the DM works _with_ while preparing a session. _(Renamed from "Session tooling" on 2026-09-22, when the play-time tools were dropped: what happens at the table is not this app's job — see_ Explicitly not planned _below.)_
 
 - **Campaign management — designing and running the campaign itself.** ✅ **Shipped 2026-08-19** — specified as [SPEC-013](./specs/013-campaign-management.md) (2026-08-18, all ten tasks closed the following day; see its §11 outcome), built on [`docs/domain/campaign-design-method.md`](./domain/campaign-design-method.md), distilled from the DM's own twenty-adventure spreadsheet. Adventures one per character level, scenes of six kinds anchored to places in the world tree, creatures and treasure per scene, per-level budgets the app totals, and check-off of experience and loot at the table. **This precedes the two items below**: an encounter builder and an initiative tracker both need an encounter to work on, and a scene with its creatures is that encounter — building them first means inventing an encounter model that this spec would then have to replace.
 - **The calendar and the timeline.** ✅ **Shipped 2026-09-18** — all nine tasks of SPEC-014 closed (see its §11 outcome). The DM plans a campaign partly as a dated sequence of events — what the antagonists do while the party does something else — and wants that as a feature rather than as prose in a field. Drafted as [SPEC-014](./specs/014-calendar-and-timeline.md) on 2026-09-18 from an interview with the DM (custom date systems anchored to a universal count, moon and a 13-sign zodiac, campaign events and world history, list and month grid); [SPEC-013](./specs/013-campaign-management.md) shipped only a free-text `timeline` field on an adventure, marked provisional so the two did not collide — SPEC-014 T8 (2026-09-18) dropped it once the DM confirmed its text had moved into calendar events. A **session diary** (what actually happened, written after play) is a third, distinct feature, not yet specified.
-- **Encounter builder.** Compose an encounter from NPCs with CR-based difficulty calculation.
-- **Initiative tracker.** Turn order, HP tracking, conditions. Skeleton spec drafted: [`docs/specs/001-combat-tracker.md`](./specs/001-combat-tracker.md), built against [`docs/domain/5e-combat.md`](./domain/5e-combat.md). Both are stubs awaiting a domain research pass.
+- **Encounter builder.** Compose an encounter from NPCs with CR-based difficulty calculation. Kept deliberately when the play-time tools were dropped on 2026-09-22: composing an encounter is preparation, done while building the setting, and what it produces is a saved record like any other.
 - **Session notes.** Timestamped notes linked to the entities they mention.
 - **Quick-reference panel.** Pinned spells and items, one keystroke away.
-- **Dice roller** with roll history.
-- **Random generators** — NPC names, tavern names, plot hooks — seeded from the campaign's own factions and locations.
+
+**Dropped on 2026-09-22 — initiative tracker, dice roller, random generators.** See _Explicitly not planned_ below: this app is a setting builder, and what happens at the table is not its job.
 
 ---
 
@@ -147,6 +146,7 @@ Recording these prevents rediscussing them:
 
 - **Real-time collaboration.** Websockets, presence, conflict resolution — enormous complexity for a single-DM tool.
 - **A full VTT.** Roll20 and Foundry exist. This is a campaign _bible_, not a virtual tabletop.
+- **Tools for playing at the table — initiative tracker, dice roller, random generators.** _(Decided 2026-09-22.)_ The DM's framing: this app is a **builder of settings for roleplaying games**, and running a session is not what it is for. Turn order, hit points in a fight, condition tracking and rolled dice belong to the table, where the VTT point above already applies. `docs/specs/001-combat-tracker.md` and `docs/domain/5e-combat.md` were deleted in the same pass — both were stubs, so no research was lost. **The encounter builder stays**, by the DM's explicit exception: it is prep, not play. Do not re-propose the three dropped ones as small additions to it — the line is whether a feature is used while designing the world or while playing in it.
 - **Public multi-tenant hosting.** Self-hosted by design; changing that brings GDPR, billing and abuse concerns that dwarf the app. **Partly retracted 2026-08-18** — the DM has explained that "self-hosted by design" recorded a constraint, not a preference: at the time there were no means to publish anywhere. The intent now is to put this app on a domain, and that is planned work (see "Publishing this app", below). **The rest of the entry stands:** one deployed instance for one DM's campaign is not multi-tenancy, and nothing here plans to host other people's campaigns.
 - **A mobile app.** Responsive web is sufficient. _(See [ADR-0004](./adr/0004-server-actions-over-rest-api.md) on when an API layer would become justified.)_
 - **AI-generated content in-app.** Tempting and easy to bolt on; adds a paid dependency and a moderation surface for a feature the target user (one DM, their own world) mostly does not want.
@@ -192,6 +192,8 @@ the same authorisation check three times:
 6. **Per-entity visibility to the party** — places, NPCs, deities, magic items and
    factions are each secret or public, toggled from the admin list rows (e.g.
    `/dashboard/admin/factions`).
+
+**Specced as [SPEC-022](./specs/022-accounts-roles-and-party-visibility.md), 2026-09-22 (draft).**
 
 **The order that actually works is 1 → (2, 3, 4 in any order) → 5 → 6.** Roles
 first, because everything else is a rule about who may do what and there is
@@ -320,7 +322,8 @@ guesses.
 ### Reversed on 2026-08-18 — area footprints become polygons
 
 **SPEC-009 shipped rectangles only, and said to revisit "only if rectangles prove
-genuinely unusable in practice." They have.** The DM's evidence, drawing the real
+genuinely unusable in practice." They have.** **Specced as
+[SPEC-024](./specs/024-polygon-area-footprints.md), 2026-09-22 (draft).** The DM's evidence, drawing the real
 campaign map: on the root map the material plane is the upper part of a
 hemisphere, and any rectangle over it takes in ground that is not the material
 plane; one level down, Kang's realm cannot be boxed without also claiming a piece
@@ -435,7 +438,7 @@ Materiale / Regno di Kang / Skreebars` instead of the bare current title.
 - **Magic-item filters as dropdowns.** Replace the `SelectButtonery` for rarity
   and type with two dropdowns, same height as today's buttons, both on one row.
   A contained UI change to one domain's filter bar.
-- **Create a place, then attach entities to it.** The DM's example: create "la
+- **Create a place, then attach entities to it.** **Specced as [SPEC-026](./specs/026-create-a-place-without-leaving-the-flow.md), 2026-09-22 (draft).** The DM's example: create "la
   Taverna del Gallo Robin" inside Skreebars, and link a character there — rather
   than attaching an NPC or deity straight from the map's right-click menu. This
   is the model SPEC-008 T8 already chose (an entity has no coordinates of its
@@ -443,6 +446,13 @@ Materiale / Regno di Kang / Skreebars` instead of the bare current title.
   intermediate place has to be quick, and an entity attached to a place has to be
   visible from that place. Relates to TD-85, which is what currently makes the
   place-creation flow hard to reach at all.
+
+**The breadcrumb trail and the magic-item dropdowns stay here deliberately, with
+no spec** _(decided 2026-09-22)._ Each is a single contained change to one
+component with no product question left in it — the breadcrumb restores what
+SPEC-004 §2 already intended, the dropdowns swap one control for another — so a
+spec would cost more than the work and add a file to keep in sync. They become
+ordinary changes when they reach the top: write the test, make the change.
 
 None of these displaces SPEC-006 and SPEC-007, both shipped 2026-08-10. They are
 recorded here so the question "what should Phase 4 actually contain?" has evidence
@@ -509,7 +519,7 @@ alone.
   picker has offered unplaced landmarks since the `zone`/`poi` split — a live
   undercount that one pool would make visible.
 
-- **Deleting a place should ask which kind of delete it is.** One confirmation
+- **Deleting a place should ask which kind of delete it is.** **Specced as [SPEC-023](./specs/023-one-question-when-deleting-a-place.md), 2026-09-22 — draft; §5 carries the cascade decision, which is the DM's to make.** One confirmation
   offering "elimina definitivamente" (remove it and everything under it) or
   "rimuovi dalla mappa" (it returns to the unplaced pool). Half of this exists
   already, as two separate popover entries: SPEC-016 T5's "Sposta nei luoghi non
@@ -522,12 +532,17 @@ alone.
   `poi.zone` are `onDelete: Restrict`, so a cascade has to be written by hand and
   recursively. A spec should decide whether the reversal is wanted, not a
   checkbox on a dialog.
-- **Landmark parity in the popover.** A landmark's delete has no confirmation
-  at all (`usePOIManager.deletePOI`, SPEC-016 T7), and there is no landmark
-  equivalent of "Sposta nei luoghi non posizionati" — which is why TD-102's
-  refusal message had to stop short of naming a recovery path. Both are small
-  next to the two items above, and both belong to whichever spec settles them.
-- **Typed coordinates for a new place** _(spec candidate, from TD-133, 2026-09-17)._ The keyboard can now open "Aggiungi luogo" at the map's centre (Shift+F10 / ContextMenu), but the POI panel still offers no way to type a position; a spec should decide the input (lat/lng, grid cell, or "centre of the view") and how it relates to containment (SPEC-009 T4).
+- **Landmark parity in the popover — closed, both halves, and this note is kept
+  only so the gap is not re-filed.** Verified 2026-09-22: `PlacePopover` renders
+  a landmark its own `unplace` entry beside `deleteLandmark`, and TD-140 gave
+  that delete a confirmation. The text below described the state on 2026-08-30.
+  What is left of the request is wording, not capability, and belongs to
+  [SPEC-023](./specs/023-one-question-when-deleting-a-place.md).
+  _Original note:_ "A landmark's delete has no confirmation at all
+  (`usePOIManager.deletePOI`, SPEC-016 T7), and there is no landmark equivalent
+  of 'Sposta nei luoghi non posizionati' — which is why TD-102's refusal message
+  had to stop short of naming a recovery path."
+- **Typed coordinates for a new place** — **specced as [SPEC-025](./specs/025-typed-coordinates.md), 2026-09-22 (draft).** _(From TD-133, 2026-09-17.)_ The keyboard can now open "Aggiungi luogo" at the map's centre (Shift+F10 / ContextMenu), but the POI panel still offers no way to type a position; a spec should decide the input (lat/lng, grid cell, or "centre of the view") and how it relates to containment (SPEC-009 T4).
 
 ### Asked for on 2026-09-11 — the same world under other rule sets
 

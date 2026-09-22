@@ -42,7 +42,7 @@ Steps 1–3 are cheap and go in one file. Do not skip straight to 4 for anything
 
 | #   | Feature                                                                                      | Status                           | Phase |
 | --- | -------------------------------------------------------------------------------------------- | -------------------------------- | ----- |
-| 001 | [Combat tracker](./001-combat-tracker.md)                                                    | Draft — skeleton, not agreed     | 4     |
+| 001 | Combat tracker                                                                               | **Withdrawn 2026-09-22**         | —     |
 | 002 | [Map POI persistence](./002-map-poi-persistence.md)                                          | Shipped 2026-08-01               | 3     |
 | 003 | [Real relations](./003-real-relations.md)                                                    | Superseded by 004                | 3     |
 | 004 | [World model](./004-world-model.md)                                                          | Shipped 2026-08-08               | 3     |
@@ -63,5 +63,15 @@ Steps 1–3 are cheap and go in one file. Do not skip straight to 4 for anything
 | 019 | [Formatted text](./019-formatted-text.md)                                                    | Shipped 2026-09-19               | 5     |
 | 020 | [Images on records](./020-record-images.md)                                                  | Shipped 2026-09-19               | 5     |
 | 021 | [Daggerheart: domains, cards, classes, subclasses](./021-daggerheart-domains-and-classes.md) | Shipped 2026-09-19               | 4     |
+| 022 | [Accounts, roles, and party visibility](./022-accounts-roles-and-party-visibility.md)        | Draft — needs the DM's agreement | 5     |
+| 023 | [One question when deleting a place](./023-one-question-when-deleting-a-place.md)            | Draft — needs the DM's agreement | 4     |
+| 024 | [Polygon area footprints](./024-polygon-area-footprints.md)                                  | Draft — needs the DM's agreement | 4     |
+| 025 | [Typed coordinates for a place](./025-typed-coordinates.md)                                  | Draft — needs the DM's agreement | 4     |
+| 026 | [Create a place without leaving the flow](./026-create-a-place-without-leaving-the-flow.md)  | Draft — needs the DM's agreement | 4     |
 
 Feature ideas live in [`../ROADMAP.md`](../ROADMAP.md) until they are ready for a spec.
+
+**001 was withdrawn on 2026-09-22** along with `docs/domain/5e-combat.md`: play-time
+tools are out of scope (ROADMAP, _Explicitly not planned_). The number is not
+reused, so nothing that cites SPEC-001 in an older document points at a different
+feature.

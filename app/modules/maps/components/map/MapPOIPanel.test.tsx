@@ -823,8 +823,12 @@ describe("MapPOIPanel — typed coordinates (SPEC-025)", () => {
 
   function positionFields() {
     return {
-      across: screen.getByLabelText("geography.poiPanel.fields.positionAcross"),
-      down: screen.getByLabelText("geography.poiPanel.fields.positionDown"),
+      across: screen.getByLabelText<HTMLInputElement>(
+        "geography.poiPanel.fields.positionAcross"
+      ),
+      down: screen.getByLabelText<HTMLInputElement>(
+        "geography.poiPanel.fields.positionDown"
+      ),
     };
   }
 

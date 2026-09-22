@@ -825,7 +825,9 @@
         "coordinatesRequired": "Inserisci coordinate valide",
         "mapImageRequired": "Scegli un'immagine della mappa",
         "uploadFailed": "Impossibile caricare la mappa",
-        "saveFailed": "Impossibile salvare il luogo"
+        "saveFailed": "Impossibile salvare il luogo",
+        "positionIncomplete": "Servono entrambi i valori: da sinistra e dall'alto.",
+        "positionOutOfRange": "Usa un numero fra 0 e 100 per ciascun valore."
       },
       "success": {
         "updated": "Luogo aggiornato con successo",
@@ -846,7 +848,9 @@
         "category": "Categoria",
         "mapImage": "Immagine della mappa",
         "title": "Titolo *",
-        "description": "Descrizione"
+        "description": "Descrizione",
+        "positionAcross": "Da sinistra (%)",
+        "positionDown": "Dall'alto (%)"
       },
       "selectLocation": {
         "prompt": "Clicca per selezionare la posizione sulla mappa",
@@ -856,6 +860,9 @@
         "save": "Salva",
         "saving": "Salvataggio…",
         "update": "Aggiorna"
+      },
+      "position": {
+        "unavailable": "Senza immagine della mappa la posizione non si può digitare: indicala sulla mappa."
       }
     },
     "maps": {

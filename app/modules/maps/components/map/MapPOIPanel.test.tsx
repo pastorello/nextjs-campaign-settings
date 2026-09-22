@@ -802,3 +802,141 @@ describe("MapPOIPanel — draw-an-area flow (SPEC-009 T2)", () => {
     expect(props.onFootprintConsumed).toHaveBeenCalled();
   });
 });
+
+// SPEC-025 — a position can be typed, as a percentage of the map image,
+// wherever it can be clicked. Before this, the form offered fields only once
+// a click had already set a position (TD-133's remaining half): the keyboard
+// could open "Aggiungi luogo" at the map's centre and nothing else.
+describe("MapPOIPanel — typed coordinates (SPEC-025)", () => {
+  // A 1000×500 image: the south-west corner first, as Leaflet writes bounds.
+  const mapCorners: [[number, number], [number, number]] = [
+    [0, 0],
+    [500, 1000],
+  ];
+
+  function openAddForm(extra: Record<string, unknown> = {}) {
+    const props = { ...baseProps(), mapCorners, ...extra };
+    render(<MapPOIPanel {...props} />);
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
+    return props;
+  }
+
+  function positionFields() {
+    return {
+      across: screen.getByLabelText("geography.poiPanel.fields.positionAcross"),
+      down: screen.getByLabelText("geography.poiPanel.fields.positionDown"),
+    };
+  }
+
+  it("offers both fields before any click, with no position set", () => {
+    openAddForm();
+
+    const { across, down } = positionFields();
+    expect(across.value).toBe("");
+    expect(down.value).toBe("");
+  });
+
+  it("saves the position typed as percentages, converted to the stored pair", () => {
+    const props = openAddForm();
+
+    const { across, down } = positionFields();
+    fireEvent.change(across, { target: { value: "25" } });
+    fireEvent.change(down, { target: { value: "25" } });
+    fireEvent.change(
+      screen.getByPlaceholderText("geography.poiPanel.placeholders.placeName"),
+      { target: { value: "Taverna del Gallo Robin" } }
+    );
+    fireEvent.click(screen.getByText("geography.poiPanel.save.save"));
+
+    expect(props.onAddPOI).toHaveBeenCalledWith(
+      "Taverna del Gallo Robin",
+      375,
+      250,
+      expect.any(String),
+      undefined
+    );
+  });
+
+  it("reads a comma as the decimal separator, as an Italian keyboard writes it", () => {
+    const props = openAddForm();
+
+    const { across, down } = positionFields();
+    fireEvent.change(across, { target: { value: "50,5" } });
+    fireEvent.change(down, { target: { value: "50" } });
+    fireEvent.change(
+      screen.getByPlaceholderText("geography.poiPanel.placeholders.placeName"),
+      { target: { value: "Mezzo" } }
+    );
+    fireEvent.click(screen.getByText("geography.poiPanel.save.save"));
+
+    expect(props.onAddPOI).toHaveBeenCalledWith(
+      "Mezzo",
+      250,
+      505,
+      expect.any(String),
+      undefined
+    );
+  });
+
+  it("shows a map click as percentages of the image", () => {
+    openAddForm({ initialLat: 375, initialLng: 250 });
+
+    const { across, down } = positionFields();
+    expect(across.value).toBe("25");
+    expect(down.value).toBe("25");
+  });
+
+  it("refuses a half-filled pair, naming both fields", () => {
+    const props = openAddForm();
+
+    fireEvent.change(positionFields().across, { target: { value: "25" } });
+    fireEvent.change(
+      screen.getByPlaceholderText("geography.poiPanel.placeholders.placeName"),
+      { target: { value: "Mezza posizione" } }
+    );
+    fireEvent.click(screen.getByText("geography.poiPanel.save.save"));
+
+    expect(props.onAddPOI).not.toHaveBeenCalled();
+    expect(
+      screen.getByText("geography.poiPanel.errors.positionIncomplete")
+    ).toBeInTheDocument();
+  });
+
+  it("refuses a value outside the image and does not save the old position", () => {
+    const props = openAddForm({ initialLat: 375, initialLng: 250 });
+
+    fireEvent.change(positionFields().across, { target: { value: "140" } });
+    fireEvent.change(
+      screen.getByPlaceholderText("geography.poiPanel.placeholders.placeName"),
+      { target: { value: "Fuori mappa" } }
+    );
+    fireEvent.click(screen.getByText("geography.poiPanel.save.save"));
+
+    expect(props.onAddPOI).not.toHaveBeenCalled();
+    expect(
+      screen.getByText("geography.poiPanel.errors.positionOutOfRange")
+    ).toBeInTheDocument();
+  });
+
+  it("keeps a half-typed decimal in the field rather than rounding it away", () => {
+    openAddForm({ initialLat: 375, initialLng: 250 });
+
+    const { across } = positionFields();
+    fireEvent.change(across, { target: { value: "63." } });
+
+    expect(across.value).toBe("63.");
+  });
+
+  it("says why the fields are unavailable when no map image is loaded", () => {
+    const props = baseProps();
+    render(<MapPOIPanel {...props} />);
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
+
+    expect(
+      screen.getByText("geography.poiPanel.position.unavailable")
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("geography.poiPanel.fields.positionAcross")
+    ).not.toBeInTheDocument();
+  });
+});

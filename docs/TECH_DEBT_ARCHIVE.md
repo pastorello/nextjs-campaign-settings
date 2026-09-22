@@ -5327,3 +5327,53 @@ type options' resolved label text, and the loading key replacing the
 ellipsis) and a new e2e case in `e2e/a11y.spec.ts` scanning the dialog in
 its opened state via the `world-setup` project's `chromium` run. Nothing
 was left undone.
+
+### TD-133 ✅ The map has no keyboard path to create a place or open an existing one — **DONE (keyboard entry points 2026-09-17; typed coordinates 2026-09-22)**
+
+**Severity:** 🟠 High · **Effort:** L · **Found:** 2026-09-17, accessibility review (WCAG 2.1.1)
+
+On `/geography`, "Aggiungi luogo" opens only on right-click:
+`useMapContextMenu.ts:158` listens only to Leaflet's `contextmenu` mouse event.
+The POI panel's "Add" button doesn't help: until a location is set, its form
+offers only "Click to select location on map" (`MapPOIPanel.tsx:673-696`),
+with no fields for typing coordinates. Existing markers are `L.divIcon` `<div>`s
+with no `tabIndex` (`useNavigableChildren.ts:249-252`), so Tab never reaches
+them. A keyboard-only user can neither add a place nor open one.
+**The fix, in shape:** add a Tab-reachable "new place here" entry point (at the
+map centre, or via Shift+F10 / the context-menu key); let coordinates be typed
+before any click; give markers `tabIndex=0` and an Enter/Space handler that
+opens the same popover a click does. Because this touches SPEC-level
+interaction, it may need a short spec. **Related:** TD-15, TD-123.
+
+**Resolution:** The finding's marker half was partly wrong: Leaflet 1.9's
+`keyboard` option (default `true`) already gives a marker's icon
+`tabindex="0"` and `role="button"`. What was missing was a name and an action —
+Leaflet only answers Enter through `bindPopup`, and these markers have none.
+`app/modules/maps/lib/utils/keyboardActivation.ts` fills that: it sets
+`aria-label` to the place/landmark title and runs the click callback on
+Enter/Space through Leaflet's own `keydown` dispatch (no second DOM listener).
+`useNavigableChildren` uses it for pins _and_ SPEC-009 area rectangles (which it
+also makes focusable), `usePOIManager` for landmarks (same server-id guard as the
+click); the emoji inside each icon is `aria-hidden`. `useMapContextMenu` now
+opens the menu at the map's centre on ContextMenu or Shift+F10 while the map
+container itself has focus, swallows the browser's own `contextmenu` echo of that
+press, and advertises the keys with `aria-keyshortcuts`. `MapContextMenu` focuses
+its first enabled entry on open, moves with Arrow/Home/End, and on close (Escape
+already closed it) returns focus to where it was unless something else took it.
+A keyboard activation also hands the activated element to `onPlaceClick` /
+`onPOIClick` (a click passes nothing — a mouse click focuses the marker too, so
+`document.activeElement` cannot tell them apart); `usePlacePopover` keeps it as
+`returnFocusTo`, and `PlacePopover` then moves focus to its first action
+("Collega personaggio", not the close button) and, on close — Escape already
+closed it — returns focus to the marker unless an action moved focus elsewhere
+(e.g. into the edit panel). A click-opened popover leaves focus alone.
+No new copy. Tests: unit tests for each piece, and `e2e/map-keyboard.spec.ts`
+(Shift+F10 → Aggiungi luogo → Tab to the new marker → Enter opens its popover
+with focus on its first action → Escape returns focus to the marker).
+**Closed 2026-09-22 by [SPEC-025](./specs/025-typed-coordinates.md)**: the place
+form now carries two labelled fields holding the position as a percentage of the
+map image, across and down, so the map's centre is no longer the only position a
+keyboard can choose. The stored pair is unchanged — the percentage is the form's
+view of it. The spec's §11 records one thing this write-up had wrong: the panel
+did already render raw `lat`/`lng` inputs once a click had set a position, so
+what was missing was the empty state, the labels and the validation.

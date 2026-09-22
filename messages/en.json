@@ -825,7 +825,9 @@
         "coordinatesRequired": "Please enter valid coordinates",
         "mapImageRequired": "Please choose a map image",
         "uploadFailed": "Could not upload the map",
-        "saveFailed": "Could not save the place"
+        "saveFailed": "Could not save the place",
+        "positionIncomplete": "Both values are needed: from the left and from the top.",
+        "positionOutOfRange": "Use a number between 0 and 100 for each value."
       },
       "success": {
         "updated": "Place updated successfully",
@@ -846,7 +848,9 @@
         "category": "Category",
         "mapImage": "Map image",
         "title": "Title *",
-        "description": "Description"
+        "description": "Description",
+        "positionAcross": "From the left (%)",
+        "positionDown": "From the top (%)"
       },
       "selectLocation": {
         "prompt": "Click to select location on map",
@@ -856,6 +860,9 @@
         "save": "Save",
         "saving": "Saving…",
         "update": "Update"
+      },
+      "position": {
+        "unavailable": "Without a map image a position cannot be typed — pick it on the map instead."
       }
     },
     "maps": {

@@ -33,6 +33,14 @@ import {
   footprintCentre,
   type Footprint,
 } from "@/app/modules/maps/lib/utils/footprint";
+import {
+  formatPercent,
+  fromPercentPosition,
+  hasUsableCorners,
+  parsePercentInput,
+  toPercentPosition,
+  type MapCorners,
+} from "@/app/modules/maps/lib/utils/percentPosition";
 import { ALLOWED_IMAGE_CONTENT_TYPES } from "@/app/lib/storage/imageUploadRules";
 import Modal from "@/app/ui/components/Modal";
 import RichTextInput from "@/app/ui/forms/inputs/RichTextInput";
@@ -127,6 +135,13 @@ interface MapPOIPanelProps {
   // row, which nothing could reach (TD-85). The caller is expected to pair
   // this with `mode="edit"` and `isOpen`; this component only seeds the
   // form, it doesn't open the panel or force the mode itself.
+  /**
+   * The corners of the map image currently displayed, so a position can be
+   * typed as a percentage of it (SPEC-025). `null` while no image is loaded:
+   * the fields are then disabled with the reason, and clicking stays the only
+   * way to place a marker.
+   */
+  mapCorners?: MapCorners | null;
   editTarget?: POI | null;
 }
 
@@ -258,6 +273,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
   pendingFootprint = null,
   onFootprintConsumed,
   editTarget = null,
+  mapCorners = null,
 }: MapPOIPanelProps) {
   const t = useTranslations();
   const [isMobile, setIsMobile] = useState(false);
@@ -312,6 +328,63 @@ export const MapPOIPanel = memo(function MapPOIPanel({
   );
 
   const [formData, setFormData] = useState<POIFormData>(initialFormData);
+
+  /**
+   * SPEC-025 — the position as it is typed: a percentage of the map image,
+   * across and down, while `formData.lat`/`lng` keep the stored pair the map
+   * itself works in. The draft is what the fields show, so a half-typed
+   * "63." survives the keystroke that would otherwise be rounded away, and
+   * an unusable value leaves the stored pair alone rather than writing a
+   * guess. `positionSyncRef` holds the pair this component last wrote
+   * itself, which is how the sync below tells a map click (adopt it) from
+   * the echo of the user's own typing (leave the draft alone).
+   */
+  const canTypePosition = hasUsableCorners(mapCorners);
+  const [positionDraft, setPositionDraft] = useState({ across: "", down: "" });
+  const [positionError, setPositionError] = useState<string | null>(null);
+  const positionSyncRef = useRef<string>("");
+
+  useEffect(() => {
+    const key = `${formData.lat}|${formData.lng}`;
+    if (key === positionSyncRef.current) return;
+    positionSyncRef.current = key;
+    if (!mapCorners || !canTypePosition) return;
+
+    const lat = parseFloat(formData.lat);
+    const lng = parseFloat(formData.lng);
+    if (Number.isNaN(lat) || Number.isNaN(lng)) {
+      setPositionDraft({ across: "", down: "" });
+      return;
+    }
+    const percent = toPercentPosition(lat, lng, mapCorners);
+    setPositionDraft({
+      across: formatPercent(percent.across),
+      down: formatPercent(percent.down),
+    });
+  }, [formData.lat, formData.lng, mapCorners, canTypePosition]);
+
+  const handlePositionFieldChange = useCallback(
+    (axis: "across" | "down", value: string) => {
+      setPositionError(null);
+      const next = { ...positionDraft, [axis]: value };
+      setPositionDraft(next);
+      if (!mapCorners || !canTypePosition) return;
+
+      const across = parsePercentInput(next.across);
+      const down = parsePercentInput(next.down);
+      // One usable half is not a position: the stored pair keeps its old
+      // value until both fields read as a number inside the image, and
+      // `handleSave` is what refuses the incomplete state.
+      if (across === null || down === null) return;
+
+      const { lat, lng } = fromPercentPosition({ across, down }, mapCorners);
+      const latStr = lat.toFixed(6);
+      const lngStr = lng.toFixed(6);
+      positionSyncRef.current = `${latStr}|${lngStr}`;
+      setFormData((prev) => ({ ...prev, lat: latStr, lng: lngStr }));
+    },
+    [positionDraft, mapCorners, canTypePosition]
+  );
 
   // Update form coordinates when they change from parent
   // This is a legitimate use of setState in effect for prop synchronization
@@ -465,6 +538,32 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     if (pendingFootprint) {
       [lat, lng] = footprintCentre(pendingFootprint);
     } else {
+      // SPEC-025 — the typed fields are judged, not the stored pair: an
+      // unusable draft never reaches `formData`, so validating that would
+      // silently save the position the field no longer shows.
+      if (canTypePosition) {
+        const acrossRaw = positionDraft.across.trim();
+        const downRaw = positionDraft.down.trim();
+        if (acrossRaw === "" && downRaw === "") {
+          setPositionError("geography.poiPanel.errors.coordinatesRequired");
+          toast.error(t("geography.poiPanel.errors.coordinatesRequired"));
+          return;
+        }
+        if (acrossRaw === "" || downRaw === "") {
+          setPositionError("geography.poiPanel.errors.positionIncomplete");
+          toast.error(t("geography.poiPanel.errors.positionIncomplete"));
+          return;
+        }
+        if (
+          parsePercentInput(acrossRaw) === null ||
+          parsePercentInput(downRaw) === null
+        ) {
+          setPositionError("geography.poiPanel.errors.positionOutOfRange");
+          toast.error(t("geography.poiPanel.errors.positionOutOfRange"));
+          return;
+        }
+      }
+
       lat = parseFloat(formData.lat);
       lng = parseFloat(formData.lng);
       if (isNaN(lat) || isNaN(lng)) {
@@ -546,6 +645,8 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     viewMode,
     editingPOI,
     pendingFootprint,
+    canTypePosition,
+    positionDraft,
     onAddPOI,
     onUpdatePOI,
     onAddPlace,
@@ -621,6 +722,8 @@ export const MapPOIPanel = memo(function MapPOIPanel({
    */
   const handleClearCoordinates = useCallback(() => {
     setFormData((prev) => ({ ...prev, lat: "", lng: "" }));
+    setPositionDraft({ across: "", down: "" });
+    setPositionError(null);
     if (!isSelectingLocationProp) {
       onRequestLocation?.();
     }
@@ -667,11 +770,12 @@ export const MapPOIPanel = memo(function MapPOIPanel({
             </div>
           )}
 
-          {/* Coordinates Section */}
+          {/* Coordinates Section — SPEC-025: typed as a percentage of the
+              map image, stored as the raw pair the map works in. */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <span className="block text-sm font-medium text-gray-700 mb-2">
               {t("geography.poiPanel.fields.coordinates")}
-            </label>
+            </span>
             {pendingFootprint ? (
               // SPEC-009 T2 — the footprint already fixes the position;
               // there is nothing to pick or type, just the derived centre
@@ -679,38 +783,140 @@ export const MapPOIPanel = memo(function MapPOIPanel({
               <div className="px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm font-mono text-gray-600">
                 {formatDecimalDegrees(footprintCentre(pendingFootprint), 4)}
               </div>
-            ) : formData.lat && formData.lng && !isSelectingLocationProp ? (
-              <div className="flex gap-2">
-                <div className="flex-1 grid grid-cols-2 gap-3">
-                  <input
-                    type="text"
-                    value={formData.lat}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, lat: e.target.value }))
-                    }
-                    placeholder={t("geography.poiPanel.placeholders.latitude")}
-                    className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm"
-                  />
-                  <input
-                    type="text"
-                    value={formData.lng}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, lng: e.target.value }))
-                    }
-                    placeholder={t("geography.poiPanel.placeholders.longitude")}
-                    className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm"
-                  />
-                </div>
-                <button
-                  onClick={handleClearCoordinates}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                  title={t("geography.poiPanel.clearCoordinates")}
-                >
-                  <XCircle className="h-5 w-5 text-gray-500" />
-                </button>
-              </div>
             ) : (
-              <div>
+              <div className="space-y-2">
+                {canTypePosition ? (
+                  <div className="flex gap-2">
+                    <div className="flex-1 grid grid-cols-2 gap-3">
+                      <div>
+                        <label
+                          htmlFor="poi-position-across"
+                          className="block text-xs text-gray-600 mb-1"
+                        >
+                          {t("geography.poiPanel.fields.positionAcross")}
+                        </label>
+                        <input
+                          id="poi-position-across"
+                          type="text"
+                          inputMode="decimal"
+                          value={positionDraft.across}
+                          onChange={(e) =>
+                            handlePositionFieldChange("across", e.target.value)
+                          }
+                          aria-describedby={
+                            positionError ? "poi-position-error" : undefined
+                          }
+                          aria-invalid={positionError ? true : undefined}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="poi-position-down"
+                          className="block text-xs text-gray-600 mb-1"
+                        >
+                          {t("geography.poiPanel.fields.positionDown")}
+                        </label>
+                        <input
+                          id="poi-position-down"
+                          type="text"
+                          inputMode="decimal"
+                          value={positionDraft.down}
+                          onChange={(e) =>
+                            handlePositionFieldChange("down", e.target.value)
+                          }
+                          aria-describedby={
+                            positionError ? "poi-position-error" : undefined
+                          }
+                          aria-invalid={positionError ? true : undefined}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm"
+                        />
+                      </div>
+                    </div>
+                    {formData.lat && formData.lng && (
+                      <button
+                        onClick={handleClearCoordinates}
+                        className="self-end p-2 mb-1 rounded-lg hover:bg-gray-100 transition-colors"
+                        title={t("geography.poiPanel.clearCoordinates")}
+                        aria-label={t("geography.poiPanel.clearCoordinates")}
+                      >
+                        <XCircle className="h-5 w-5 text-gray-500" />
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    {/* No image, so no percentage to compute against: the
+                        raw pair stays editable, which is all this panel
+                        offered before SPEC-025. */}
+                    {formData.lat &&
+                      formData.lng &&
+                      !isSelectingLocationProp && (
+                        <div className="flex gap-2">
+                          <div className="flex-1 grid grid-cols-2 gap-3">
+                            <input
+                              type="text"
+                              value={formData.lat}
+                              onChange={(e) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  lat: e.target.value,
+                                }))
+                              }
+                              placeholder={t(
+                                "geography.poiPanel.placeholders.latitude"
+                              )}
+                              aria-label={t(
+                                "geography.poiPanel.placeholders.latitude"
+                              )}
+                              className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm"
+                            />
+                            <input
+                              type="text"
+                              value={formData.lng}
+                              onChange={(e) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  lng: e.target.value,
+                                }))
+                              }
+                              placeholder={t(
+                                "geography.poiPanel.placeholders.longitude"
+                              )}
+                              aria-label={t(
+                                "geography.poiPanel.placeholders.longitude"
+                              )}
+                              className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-sm"
+                            />
+                          </div>
+                          <button
+                            onClick={handleClearCoordinates}
+                            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                            title={t("geography.poiPanel.clearCoordinates")}
+                            aria-label={t(
+                              "geography.poiPanel.clearCoordinates"
+                            )}
+                          >
+                            <XCircle className="h-5 w-5 text-gray-500" />
+                          </button>
+                        </div>
+                      )}
+                    <p className="text-xs text-gray-500">
+                      {t("geography.poiPanel.position.unavailable")}
+                    </p>
+                  </>
+                )}
+
+                {positionError && (
+                  <p
+                    id="poi-position-error"
+                    role="alert"
+                    className="text-xs text-red-600"
+                  >
+                    {t(positionError)}
+                  </p>
+                )}
+
                 <button
                   onClick={handleToggleLocationSelection}
                   className={`w-full px-4 py-3 border-2 border-dashed rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
@@ -729,7 +935,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                     : t("geography.poiPanel.selectLocation.prompt")}
                 </button>
                 {isSelectingLocationProp && cursorLat && cursorLng && (
-                  <div className="mt-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
                     <div className="text-xs text-blue-600 font-mono">
                       {cursorLat.toFixed(6)}, {cursorLng.toFixed(6)}
                     </div>

@@ -1,6 +1,6 @@
 # SPEC-025: Typed coordinates for a place
 
-- **Status:** Draft — needs the DM's agreement
+- **Status:** Shipped 2026-09-22
 - **Date:** 2026-09-22
 - **Phase:** 4
 - **Related:** TD-133 (this is its remaining half) · [SPEC-015](./015-map-grid-and-scale.md) (the grid, if coordinates are to be expressed in squares) · [SPEC-016](./016-place-popover.md) · [SPEC-017](./017-one-unplaced-pool.md) · TD-15 (accessibility baseline)
@@ -68,9 +68,10 @@ rather than a debt fix. Three candidates:
 | Percent of the map image    | `63.2%` across, `41.8%` down | A conversion at the boundary, stable when the image is replaced by a larger one at the same aspect ratio.     |
 | Grid squares (SPEC-015)     | column 14, row 9             | Only available on maps that have a grid, so it cannot be the only form.                                       |
 
-**Recommendation:** percent of the image, with the stored value unchanged
-underneath. It is the only form that is both always available and legible to a
-person, and it survives a map image being re-exported at a different resolution.
+**Decided: percent of the image**, with the stored value unchanged underneath.
+It is the only form that is both always available and legible to a person, and
+it survives a map image being re-exported at a different resolution. A comma is
+accepted as the decimal separator, since the UI ships in Italian.
 
 **Edge cases**
 
@@ -113,19 +114,55 @@ nowhere else; two conversions in two components is how they drift.
 
 ## 9. Implementation plan
 
-_Fill in after the sections above are agreed._
+**Files touched, in order**
 
-**Open questions for the DM**
+| #   | File                                              | Change                                                                |
+| --- | ------------------------------------------------- | --------------------------------------------------------------------- |
+| 1   | `app/modules/maps/lib/utils/percentPosition.ts`   | New: the conversion both ways, the rounding, and the input parser     |
+| 2   | `app/modules/maps/components/map/MapPOIPanel.tsx` | The two labelled fields, the typing draft, and the save-time refusals |
+| 3   | `app/ui/geography/WorldMap.tsx`                   | Hands the displayed image's corners to the panel                      |
+| 4   | `messages/{it,en}.json`                           | Labels, the unavailable note, and the two field-level messages        |
 
-- Which numbers: percent, raw pair, or grid squares where a grid exists?
-- Does clearing both fields unplace the place, or is that refused?
-- Should landmarks get the same fields at the same time, or does the place come
-  first?
+**Risks**
+
+- **The field fighting the typist.** Rounding the stored pair back into the
+  field on every keystroke would eat a half-typed `63.`. Solved with a draft the
+  fields own, and a ref holding the pair this component last wrote itself, so a
+  map click is adopted while the echo of one's own typing is not.
+- **Validating the wrong thing.** An unusable draft never reaches the stored
+  pair, so checking the stored pair at save time would silently save the
+  position the field no longer shows. `handleSave` judges the draft.
+
+**Answers to §5's open questions**
+
+- **Which numbers:** percent. Grid squares were not taken: they exist only on
+  maps that have a grid (SPEC-015), so they could never be the only form.
+- **Clearing both fields** does not unplace anything. It empties the fields, and
+  saving then refuses with "a position is required" — unplacing stays the
+  popover's explicit action (SPEC-016 T5), not a side effect of an empty field.
+- **Landmarks got the fields at the same time**, because the panel is one form
+  for both: there was no version of this change that reached only places.
 
 ## 10. Task breakdown
 
-_Fill in after §9._
+- [x] **T1** — `percentPosition.ts` and its unit tests: both conversions, the
+      corner ordering, the degenerate-bounds guard, the formatter and the
+      parser. _(test: `percentPosition.test.ts`, 22 cases)_
+- [x] **T2** — The fields in `MapPOIPanel`, the draft, the save-time refusals,
+      the catalogues, and `WorldMap` handing over the corners.
+      _(test: 8 cases in `MapPOIPanel.test.tsx`)_
+- [x] **T3** — The keyboard path end to end.
+      _(test: `e2e/map-keyboard.spec.ts`, "typed coordinates")_
 
 ## 11. Outcome
 
-_Fill in at close._
+- Shipped: 2026-09-22
+- **Deviations from spec.** §1 said the form "offers no fields for typing
+  coordinates". That was true only of the empty state: once a click had set a
+  position, the panel already rendered two raw `lat`/`lng` text inputs. So the
+  change is narrower than drafted in one way — the empty state gains fields —
+  and wider in another: those existing inputs had no labels at all, only
+  placeholders, and now they do. The raw pair is still what the fields fall back
+  to when no map image is loaded, rather than disabling them, because taking a
+  working control away would have been a regression for that case.
+- Follow-up debt created: none. TD-133 closes with this.

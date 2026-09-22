@@ -131,7 +131,7 @@ Each `create*` / `update*` mutation `safeParse`s first and returns a `MutationRe
 > was an unpopulated duplicate of `circle`, removed by TD-26 and dropped from the
 > database by TD-11.
 
-**Still unvalidated (TD-02b):** environment variables, GeoJSON files and the `as` casts on Prisma results. (POIs moved to Postgres and are now Zod-validated at the Server Action boundary, same as every other mutation — TD-14.)
+**✅ Closed (TD-02b, 2026-07-31; verified again 2026-09-22):** environment variables are parsed by a Zod schema in `app/lib/config/env.ts`, and an imported GeoJSON file goes through the schema check in `app/modules/maps/lib/utils/poiGeoJSONFile.ts` — which `WorldMap` used to skip until TD-128. POIs were moved to Postgres and validated at the Server Action boundary by TD-14, like every other mutation. What is left is the `as` casts on Prisma results, which are an assertion about the shape the client already guarantees, not an unvalidated boundary.
 
 ### ✅ Closed: `PageMeta` was loosely typed (TD-08)
 
@@ -287,7 +287,7 @@ The proxy matcher excludes `/api`, so it cannot cover route handlers or Server A
 
 ### [GAP] Still open: authorisation, not authentication
 
-There is no authorisation model: every authenticated user can edit everything. Acceptable for a single-DM tool today; must be addressed before multi-campaign support.
+There is no authorisation model: every authenticated user can edit everything. Acceptable for a single-DM tool today; must be addressed before players get accounts. **Specified 2026-09-22 as [SPEC-022](./specs/022-accounts-roles-and-party-visibility.md)** (draft), which turns the check from "is anyone logged in" into "is this person allowed" and is a prerequisite for [SPEC-012](./specs/012-publishing-and-internet-exposure.md).
 
 **The ownership model this assumes**, stated once here because several decisions rest on it: one DM authors one shared world, with players as future read-only consumers. No entity is scoped to a user — spells, NPCs, deities and (per [SPEC-002](./specs/002-map-poi-persistence.md)) map POIs are all global to the instance. A future multi-DM platform, where each DM has their own maps and content, is the **Multi-campaign support** item in [`ROADMAP.md`](./ROADMAP.md): it adds `campaignId` to every entity at once. Do not give any single entity a private `userId` or ownership column ahead of that work — a second scoping mechanism is harder to unpick than none.
 

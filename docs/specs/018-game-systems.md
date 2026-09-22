@@ -3,7 +3,7 @@
 - **Status:** Agreed 2026-09-11
 - **Date:** 2026-09-11 (four decisions recorded the same day, §9)
 - **Phase:** 4
-- **Related:** [ADR-0003](../adr/0003-metadata-driven-domain-configuration.md), [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md), [SPEC-012](./012-publishing-and-internet-exposure.md), [SPEC-013](./013-campaign-management.md), [SPEC-001](./001-combat-tracker.md); [ADR-0013](../adr/0013-game-systems.md) (how systems are modelled); Darrington Press Community Gaming License (DPCGL) 2.0; Daggerheart SRD 2.0
+- **Related:** [ADR-0003](../adr/0003-metadata-driven-domain-configuration.md), [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md), [SPEC-012](./012-publishing-and-internet-exposure.md), [SPEC-013](./013-campaign-management.md)
 
 ---
 
@@ -26,7 +26,7 @@ The app knows which game system each game-layer record belongs to, keeps one sha
 - **No seeded rules content, for any system.** The repository is public and stays public. It holds rules _structure_ (tiers, types, fields). Rules _instances_ — a specific SRD class, card, spell, creature, item or table — are data the DM enters. Daggerheart content starts empty.
 - **No character sheet or builder.** This is a GM's tool; a player-character layer would be its own spec.
 - **No public web publication of homebrew.** Publication, when it comes, is an export into a licence-permitted format (§5), and that export is its own spec.
-- **No per-system combat tracker or balance calculator** in this spec.
+- **No per-system combat tracker or balance calculator.** Out of this spec when it was written, and out of the project entirely since 2026-09-22 — see ROADMAP's _Explicitly not planned_.
 - **Pathfinder 2e is not built here.** The model must accommodate it. Its licence is checked (§5), and its catalogues get their own slice spec when they are wanted.
 
 ## 4. User stories

@@ -411,7 +411,7 @@ test("the place popover has no accessibility violations", async ({ page }) => {
   await expect(navigableMarkers).toHaveCount(baselineMarkerCount + 1);
   await navigableMarkers.last().click();
 
-  const popover = page.getByRole("dialog", { name: title });
+  const popover = page.getByRole("dialog", { name: title, exact: true });
   await expect(popover).toBeVisible();
   // Scan a settled popover: the entities list fetches on open, and a scan
   // that races it reads the "Caricamento…" placeholder instead of the
@@ -433,10 +433,21 @@ test("the place popover has no accessibility violations", async ({ page }) => {
 
   // Cleanup through the popover's own deletion flow (SPEC-016 T6).
   await popover
-    .getByRole("button", { name: messages.geography.popover.delete })
+    .getByRole("button", {
+      name: messages.geography.popover.remove,
+      exact: true,
+    })
+    .click();
+  // One question, two named outcomes (SPEC-023): the entry only
+  // asks, so the destructive answer has to be picked before it
+  // can be confirmed.
+  await page
+    .getByRole("radio", {
+      name: messages.geography.removePlace.outcomes.deleteLabel,
+    })
     .click();
   await page
-    .getByRole("button", { name: messages.geography.deletePlace.confirm })
+    .getByRole("button", { name: messages.geography.removePlace.confirm })
     .click();
   await expect(popover).not.toBeVisible();
   await expect(navigableMarkers).toHaveCount(baselineMarkerCount);
@@ -464,7 +475,7 @@ test("the attach-character dialog has no accessibility violations", async ({
   await page.waitForTimeout(300);
 
   const marker = page.getByRole("button", { name: title, exact: true });
-  const popover = page.getByRole("dialog", { name: title });
+  const popover = page.getByRole("dialog", { name: title, exact: true });
 
   try {
     await chooseFromContextMenu(
@@ -539,16 +550,20 @@ test("the attach-character dialog has no accessibility violations", async ({
       }
       await popover
         .getByRole("button", {
-          name: messages.geography.popover.deleteLandmark,
+          name: messages.geography.popover.remove,
+          exact: true,
+        })
+        .click();
+      // SPEC-023: a landmark's own one question — pick the
+      // destructive outcome, then confirm it.
+      await page
+        .getByRole("radio", {
+          name: messages.geography.removeLandmark.outcomes.deleteLabel,
         })
         .click();
       await page
-        .getByRole("dialog")
-        .filter({
-          hasText: messages.geography.popover.deleteLandmarkConfirm.cancel,
-        })
         .getByRole("button", {
-          name: messages.geography.popover.deleteLandmarkConfirm.confirm,
+          name: messages.geography.removeLandmark.confirm,
         })
         .click();
       await expect(marker).toHaveCount(0);

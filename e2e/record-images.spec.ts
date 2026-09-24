@@ -87,7 +87,7 @@ const gotoMap = async (page: Page) => {
  * marker a real id (map-landmark-popover.spec.ts).
  */
 const openLandmarkPopover = async (page: Page, title: string) => {
-  const popover = page.getByRole("dialog", { name: title });
+  const popover = page.getByRole("dialog", { name: title, exact: true });
   await expect(async () => {
     await page.getByRole("button", { name: title, exact: true }).click();
     await expect(popover).toBeVisible({ timeout: 500 });
@@ -102,18 +102,19 @@ const deleteLandmarkIfPresent = async (page: Page, title: string) => {
   if ((await marker.count()) === 0) return;
   const popover = await openLandmarkPopover(page, title);
   await popover
-    .getByRole("button", { name: messages.geography.popover.deleteLandmark })
-    .click();
-  // Scoped to the confirm dialog: its "Elimina" collides with the popover's
-  // own trigger, still mounted underneath (TD-140).
-  await page
-    .getByRole("dialog")
-    .filter({
-      hasText: messages.geography.popover.deleteLandmarkConfirm.cancel,
-    })
     .getByRole("button", {
-      name: messages.geography.popover.deleteLandmarkConfirm.confirm,
+      name: messages.geography.popover.remove,
+      exact: true,
     })
+    .click();
+  // SPEC-023's one question: pick the destructive outcome, then confirm it.
+  await page
+    .getByRole("radio", {
+      name: messages.geography.removeLandmark.outcomes.deleteLabel,
+    })
+    .click();
+  await page
+    .getByRole("button", { name: messages.geography.removeLandmark.confirm })
     .click();
   await expect(marker).toHaveCount(0);
 };

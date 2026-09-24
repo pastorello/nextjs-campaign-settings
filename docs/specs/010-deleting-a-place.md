@@ -164,7 +164,8 @@ identically per rule 4/§9, so the dialog names them as one figure), and
 `npcCount`/`deityCount` scoped to `poiId: null` only — the entities that
 actually lose their location (rule 3); a `poiId`-set entity keeps its
 landmark and stays located, so it's deliberately excluded from these
-counts. `DeletePlaceButton` (`app/ui/geography/`) is the entry point: a
+counts. `DeletePlaceButton` — `RemovePlaceDialog` since
+[SPEC-023](./023-one-question-when-deleting-a-place.md), 2026-09-24 — (`app/ui/geography/`) is the entry point: a
 floating map control alongside `MapUploadControl`/`AttachEntityButton`/
 `DrawAreaButton`, built directly on the generic `Modal` shell rather than
 `ModalButton`/`DeleteButton` — `deletePlace` is a Server Action called

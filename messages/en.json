@@ -695,16 +695,8 @@
       "detach": "Remove {name} from this place",
       "attach": "Attach a character",
       "editZone": "Edit",
-      "unplace": "Move to unpositioned places",
-      "delete": "Delete permanently",
+      "remove": "Remove",
       "editLandmark": "Edit",
-      "deleteLandmark": "Delete",
-      "deleteLandmarkConfirm": {
-        "title": "Delete \"{title}\"?",
-        "description": "This operation can't be undone.",
-        "cancel": "Cancel",
-        "confirm": "Delete"
-      },
       "errors": {
         "loadEntitiesFailed": "Could not load who is here. Try again.",
         "detachFailed": "Could not remove the link. Try again."
@@ -748,22 +740,48 @@
     "temporaryMarkers": {
       "clear": "{count, plural, one {Remove the temporary marker} other {Remove # temporary markers}}"
     },
-    "deletePlace": {
+    "removePlace": {
       "trigger": "Delete this map",
       "confirmTitle": "Delete \"{title}\"?",
       "confirmDescription": "This operation can't be undone.",
+      "chooseTitle": "Remove \"{title}\"?",
+      "chooseDescription": "Choose what should happen to this place.",
+      "chooseLegend": "What do you want to do?",
       "loading": "Working out the consequences…",
+      "outcomes": {
+        "unplaceLabel": "Remove from the map",
+        "unplaceSummary": "\"{title}\" goes back to the unpositioned places. It keeps existing and loses nothing.",
+        "unplaceKeeps": "{count, plural, =0 {It contains no place.} one {The # place inside it stays where it is.} other {The # places inside it stay where they are.}}",
+        "unplaceEntities": "No character loses its location.",
+        "deleteLabel": "Delete permanently",
+        "deleteSummary": "\"{title}\" is deleted. This operation can't be undone."
+      },
       "noImpact": "No consequences: this place has no children and no entities assigned.",
       "placesImpact": "{count, plural, one {# place will move up to \"{parentTitle}\" and lose its position} other {# places will move up to \"{parentTitle}\" and lose their position}}",
       "npcsImpact": "{count, plural, one {# NPC will have no location} other {# NPCs will have no location}}",
       "deitiesImpact": "{count, plural, one {# deity will have no location} other {# deities will have no location}}",
       "cancel": "Cancel",
       "confirm": "Delete",
+      "confirmUnplace": "Remove from the map",
       "success": "\"{title}\" deleted.",
       "errors": {
         "loadImpactFailed": "Could not work out the consequences. Try again.",
         "deleteFailed": "Could not delete the place. Try again."
       }
+    },
+    "removeLandmark": {
+      "title": "Remove \"{title}\"?",
+      "description": "Choose what should happen to this point of interest.",
+      "legend": "What do you want to do?",
+      "outcomes": {
+        "unplaceLabel": "Remove from the map",
+        "unplaceSummary": "\"{title}\" goes back to the unpositioned places. It keeps existing, with its description and the characters attached to it.",
+        "deleteLabel": "Delete permanently",
+        "deleteSummary": "\"{title}\" is deleted. It contains no other place, so it drags nothing down with it, but the operation can't be undone."
+      },
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "confirmUnplace": "Remove from the map"
     },
     "mapUpload": {
       "uploadLabel": "This place doesn't have a map yet.",

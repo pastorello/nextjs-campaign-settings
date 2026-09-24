@@ -63,7 +63,7 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
     // from here (no toast, no network event Playwright can key on) marks
     // that moment, so this retries the click itself rather than guessing a
     // delay.
-    const popover = page.getByRole("dialog", { name: title });
+    const popover = page.getByRole("dialog", { name: title, exact: true });
     await expect(async () => {
       await landmarkMarkers.last().click();
       await expect(popover).toBeVisible({ timeout: 500 });
@@ -93,34 +93,37 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
       .click();
 
     // Same marker, new title — re-open the popover to confirm the edit
-    // landed and to reach "Elimina" next.
+    // landed and to reach "Rimuovi" next.
     await expect(landmarkMarkers).toHaveCount(baselineCount + 1);
     await landmarkMarkers.last().click();
-    const updatedPopover = page.getByRole("dialog", { name: updatedTitle });
+    const updatedPopover = page.getByRole("dialog", {
+      name: updatedTitle,
+      exact: true,
+    });
     await expect(updatedPopover).toBeVisible();
 
     await updatedPopover
       .getByRole("button", {
-        name: messages.geography.popover.deleteLandmark,
+        name: messages.geography.popover.remove,
+        exact: true,
       })
       .click();
 
-    // Confirmation dialog (TD-140, DM decision 2026-09-18) — the DM
-    // reversed §5's original "deleting and re-creating a landmark is
-    // cheap" call, so this now asks before deleting, the same as a zone.
-    // The popover itself is `role="dialog"` and stays mounted underneath
-    // (same as `DeletePlaceButton`'s zone flow), and its own trigger and
-    // this dialog's confirm button share the identical label "Elimina" —
-    // unlike the zone's "Elimina definitivamente" trigger, which doesn't
-    // collide with "Elimina". Scoped to the confirm dialog itself (found by
-    // its own "Annulla" button, unique to it) to avoid a strict-mode
-    // violation matching both.
-    const deleteLandmarkConfirmDialog = page.getByRole("dialog").filter({
-      hasText: messages.geography.popover.deleteLandmarkConfirm.cancel,
-    });
-    await deleteLandmarkConfirmDialog
+    // One question, two named outcomes (SPEC-023) — TD-140's "are you
+    // sure?" asked about one of them without ever mentioning the other, so
+    // the dialog now names both and confirms neither until one is picked.
+    // The trigger above is matched exactly because an entity row's
+    // "Rimuovi {name} da questo luogo" contains it as a substring; the
+    // confirm button no longer needs the old scoping trick, since the
+    // popover's own entry stopped being called "Elimina".
+    await page
+      .getByRole("radio", {
+        name: messages.geography.removeLandmark.outcomes.deleteLabel,
+      })
+      .click();
+    await page
       .getByRole("button", {
-        name: messages.geography.popover.deleteLandmarkConfirm.confirm,
+        name: messages.geography.removeLandmark.confirm,
       })
       .click();
 
@@ -170,14 +173,31 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
 
     // Same retry-the-click dance as the test above: the popover refuses to
     // open until `createPoi`'s round trip has given the marker a real id.
-    const popover = page.getByRole("dialog", { name: title });
+    const popover = page.getByRole("dialog", { name: title, exact: true });
     await expect(async () => {
       await landmarkMarkers.last().click();
       await expect(popover).toBeVisible({ timeout: 500 });
     }).toPass({ timeout: 10_000 });
 
+    // SPEC-023: un-placing is reached through the same one question as the
+    // delete, as the outcome that destroys nothing. The trigger is matched
+    // exactly — an entity row's "Rimuovi {name} da questo luogo" contains
+    // it as a substring.
     await popover
-      .getByRole("button", { name: messages.geography.popover.unplace })
+      .getByRole("button", {
+        name: messages.geography.popover.remove,
+        exact: true,
+      })
+      .click();
+    await page
+      .getByRole("radio", {
+        name: messages.geography.removeLandmark.outcomes.unplaceLabel,
+      })
+      .click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.removeLandmark.confirmUnplace,
+      })
       .click();
 
     // No confirmation, and both the marker and the popover go: un-placing
@@ -256,7 +276,7 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
     // No reload between creating the landmark and clicking it: a reload is
     // what hands the marker a numeric id and hides the bug. Same
     // retry-the-click dance as above for `createPoi`'s round trip.
-    const popover = page.getByRole("dialog", { name: title });
+    const popover = page.getByRole("dialog", { name: title, exact: true });
     await expect(async () => {
       await landmarkMarkers.last().click();
       await expect(popover).toBeVisible({ timeout: 500 });
@@ -275,15 +295,21 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
     // itself, same reasoning as above: its "Elimina" collides with the
     // popover's own trigger, still mounted underneath.
     await popover
-      .getByRole("button", { name: messages.geography.popover.deleteLandmark })
+      .getByRole("button", {
+        name: messages.geography.popover.remove,
+        exact: true,
+      })
+      .click();
+    // SPEC-023: a landmark's own one question — pick the
+    // destructive outcome, then confirm it.
+    await page
+      .getByRole("radio", {
+        name: messages.geography.removeLandmark.outcomes.deleteLabel,
+      })
       .click();
     await page
-      .getByRole("dialog")
-      .filter({
-        hasText: messages.geography.popover.deleteLandmarkConfirm.cancel,
-      })
       .getByRole("button", {
-        name: messages.geography.popover.deleteLandmarkConfirm.confirm,
+        name: messages.geography.removeLandmark.confirm,
       })
       .click();
     await expect(landmarkMarkers).toHaveCount(baselineCount);

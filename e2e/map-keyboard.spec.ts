@@ -76,7 +76,7 @@ test.describe("map keyboard access (TD-133)", () => {
     // Enter opens the place popover once `createPoi` has resolved — the
     // marker's handler waits for the row id, and nothing observable marks
     // that moment (same reasoning as `map-landmark-popover.spec.ts`).
-    const popover = page.getByRole("dialog", { name: title });
+    const popover = page.getByRole("dialog", { name: title, exact: true });
     await expect(async () => {
       await map.focus();
       await tabTo(page, title);
@@ -96,26 +96,28 @@ test.describe("map keyboard access (TD-133)", () => {
     await expect(marker).toBeFocused();
 
     // Enter again reopens it from there. Clean up through the popover's own
-    // delete, as the landmark spec does — now via the confirmation dialog
-    // (TD-140), keyboard-operable the same way. Scoped to the confirm
-    // dialog itself (found by its own "Annulla" button): the popover is
-    // `role="dialog"` too, stays mounted underneath, and its trigger
-    // shares the identical "Elimina" label with the confirm button, which
-    // would otherwise be a strict-mode violation.
+    // "Rimuovi", as the landmark spec does — now the one question SPEC-023
+    // replaced TD-140's bare confirmation with, keyboard-operable the same
+    // way. The trigger is matched exactly: the entity rows' own "Rimuovi
+    // {name} da questo luogo" would otherwise match it as a substring.
     await page.keyboard.press("Enter");
     await expect(popover).toBeVisible();
     await popover
       .getByRole("button", {
-        name: messages.geography.popover.deleteLandmark,
+        name: messages.geography.popover.remove,
+        exact: true,
       })
       .press("Enter");
+    // SPEC-023 — the outcome is a radio, chosen with Space, and only then
+    // is there anything to confirm.
     await page
-      .getByRole("dialog")
-      .filter({
-        hasText: messages.geography.popover.deleteLandmarkConfirm.cancel,
+      .getByRole("radio", {
+        name: messages.geography.removeLandmark.outcomes.deleteLabel,
       })
+      .press("Space");
+    await page
       .getByRole("button", {
-        name: messages.geography.popover.deleteLandmarkConfirm.confirm,
+        name: messages.geography.removeLandmark.confirm,
       })
       .press("Enter");
     await expect(popover).not.toBeVisible();
@@ -192,21 +194,27 @@ test.describe("typed coordinates (SPEC-025)", () => {
     // until `createPoi` resolves and hands it the row id, and nothing
     // observable marks that moment, so the first click can land on a marker
     // that is drawn but not yet clickable.
-    const popover = page.getByRole("dialog", { name: title });
+    const popover = page.getByRole("dialog", { name: title, exact: true });
     await expect(async () => {
       await marker.click();
       await expect(popover).toBeVisible({ timeout: 1000 });
     }).toPass({ timeout: 15000 });
     await popover
-      .getByRole("button", { name: messages.geography.popover.deleteLandmark })
+      .getByRole("button", {
+        name: messages.geography.popover.remove,
+        exact: true,
+      })
+      .click();
+    // SPEC-023: a landmark's own one question — pick the
+    // destructive outcome, then confirm it.
+    await page
+      .getByRole("radio", {
+        name: messages.geography.removeLandmark.outcomes.deleteLabel,
+      })
       .click();
     await page
-      .getByRole("dialog")
-      .filter({
-        hasText: messages.geography.popover.deleteLandmarkConfirm.cancel,
-      })
       .getByRole("button", {
-        name: messages.geography.popover.deleteLandmarkConfirm.confirm,
+        name: messages.geography.removeLandmark.confirm,
       })
       .click();
     await expect(page.getByRole("button", { name: title })).toHaveCount(0);

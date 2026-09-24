@@ -161,7 +161,7 @@ export function usePlacePopover({
   );
 
   // "Elimina definitivamente" (SPEC-016 T6) — `PlacePopover` embeds
-  // `DeletePlaceButton` itself (the confirmation dialog and the SPEC-010
+  // `RemovePlaceDialog` itself (the confirmation dialog and the SPEC-010
   // mutation are entirely its own); this only runs once it reports success.
   // Same bookkeeping `handleUnplace` does, for the same reason: the deleted
   // place is a child of the one currently being viewed, not the one

@@ -136,7 +136,7 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
 
     const descendInto = async (index: number, title: string) => {
       await navigableMarkers.nth(index).click();
-      const target = page.getByRole("dialog", { name: title });
+      const target = page.getByRole("dialog", { name: title, exact: true });
       await expect(target).toBeVisible();
       await target
         .getByRole("button", { name: messages.geography.popover.openMap })
@@ -205,13 +205,33 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     await descendInto(workspaceIndex, workspaceTitle);
     await descendInto(fromIndex, fromTitle);
 
-    const landmarkPopover = page.getByRole("dialog", { name: landmarkTitle });
+    const landmarkPopover = page.getByRole("dialog", {
+      name: landmarkTitle,
+      exact: true,
+    });
     await expect(async () => {
       await landmarkMarkers.last().click();
       await expect(landmarkPopover).toBeVisible({ timeout: 500 });
     }).toPass({ timeout: 10_000 });
+    // SPEC-023: un-placing is reached through the same one question as the
+    // delete, as the outcome that destroys nothing. The trigger is matched
+    // exactly — an entity row's "Rimuovi {name} da questo luogo" contains
+    // it as a substring.
     await landmarkPopover
-      .getByRole("button", { name: messages.geography.popover.unplace })
+      .getByRole("button", {
+        name: messages.geography.popover.remove,
+        exact: true,
+      })
+      .click();
+    await page
+      .getByRole("radio", {
+        name: messages.geography.removeLandmark.outcomes.unplaceLabel,
+      })
+      .click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.removeLandmark.confirmUnplace,
+      })
       .click();
     await expect(landmarkMarkers).toHaveCount(0);
 
@@ -249,13 +269,25 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     await navigableMarkers.nth(workspaceIndex).click();
     const workspacePopover = page.getByRole("dialog", {
       name: workspaceTitle,
+      exact: true,
     });
     await expect(workspacePopover).toBeVisible();
     await workspacePopover
-      .getByRole("button", { name: messages.geography.popover.delete })
+      .getByRole("button", {
+        name: messages.geography.popover.remove,
+        exact: true,
+      })
+      .click();
+    // One question, two named outcomes (SPEC-023): the entry only
+    // asks, so the destructive answer has to be picked before it
+    // can be confirmed.
+    await page
+      .getByRole("radio", {
+        name: messages.geography.removePlace.outcomes.deleteLabel,
+      })
       .click();
     await page
-      .getByRole("button", { name: messages.geography.deletePlace.confirm })
+      .getByRole("button", { name: messages.geography.removePlace.confirm })
       .click();
     await expect(navigableMarkers).toHaveCount(rootMarkersBefore);
 

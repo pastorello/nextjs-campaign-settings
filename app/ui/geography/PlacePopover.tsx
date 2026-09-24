@@ -10,10 +10,8 @@ import PlaceEntityList, {
   type EntityListTarget,
 } from "@/app/ui/geography/PlaceEntityList";
 import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
-import DeletePlaceButton from "@/app/ui/geography/DeletePlaceButton";
-import Modal from "@/app/ui/components/Modal";
-import BaseButton from "@/app/ui/buttons/BaseButton";
-import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
+import RemovePlaceDialog from "@/app/ui/geography/RemovePlaceDialog";
+import RemoveLandmarkDialog from "@/app/ui/geography/RemoveLandmarkDialog";
 import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildren";
 import type { POI } from "@/app/modules/maps/types/poi";
 import type { FocusReturnTarget } from "@/app/modules/maps/lib/utils/keyboardActivation";
@@ -65,10 +63,12 @@ interface PlacePopoverProps {
   onClose: () => void;
   onOpenMap: (place: NavigableChild) => void;
   /**
-   * "Sposta nei luoghi non posizionati" (T5) — no confirmation (§9's open
-   * question, agreed 2026-08-21). The mutation and its refetch/count
-   * bookkeeping are `WorldMap`'s, the same split as `onOpenMap`. Zone
-   * only — §5's landmark flow has nothing equivalent.
+   * "Rimuovi dalla mappa" — the answer SPEC-023's dialog gives back when
+   * the DM picks the outcome that destroys nothing (T5's un-place, reached
+   * through the one question rather than through an entry of its own since
+   * 2026-09-24). The mutation and its refetch/count bookkeeping are
+   * `WorldMap`'s, the same split as `onOpenMap`. Zone only — a landmark's
+   * own un-place is `onUnplaceLandmark` below.
    */
   onUnplace: (place: NavigableChild) => void;
   /**
@@ -91,27 +91,27 @@ interface PlacePopoverProps {
    * "Modifica" (T7) — opens `MapPOIPanel`'s existing edit form for this
    * landmark, pre-filled (TD-85's remainder, finally reachable). The panel
    * is a single shared instance owned by `WorldMap`, not something this
-   * popover can mount a second copy of the way T6 embeds `DeletePlaceButton`
+   * popover can mount a second copy of the way T6 embeds `RemovePlaceDialog`
    * — so unlike deletion, this delegates entirely rather than embedding
    * anything.
    */
   onEditLandmark: (poi: POI) => void;
   /**
-   * "Sposta nei luoghi non posizionati" for a landmark (SPEC-017 T10) —
-   * the same act as `onUnplace` above, on the other table. Separate rather
-   * than widened because the two mutations are separate: a landmark's
-   * position lives in `poi`, and its marker is `usePOIManager`'s to drop,
-   * not `placesRefetchToken`'s.
+   * "Rimuovi dalla mappa" for a landmark (SPEC-017 T10) — the same act as
+   * `onUnplace` above, on the other table, and since SPEC-023 reached
+   * through the same one question. Separate rather than widened because
+   * the two mutations are separate: a landmark's position lives in `poi`,
+   * and its marker is `usePOIManager`'s to drop, not
+   * `placesRefetchToken`'s.
    */
   onUnplaceLandmark: (poi: POI) => void;
   /**
-   * "Elimina" (T7) — `usePOIManager.deletePOI`. §5's "deleting and
-   * re-creating a landmark is cheap" was the reasoning for shipping this
-   * unconfirmed; the DM decided otherwise (TD-140, 2026-09-18), so this
-   * popover now confirms first, the same `Modal` Cancel/Confirm pattern the
-   * zone's "Rimuovi definitivamente" and TD-123's clear-all use. `WorldMap`
-   * still owns the mutation, so this delegates as before — only the
-   * confirmation step moved onto this component.
+   * "Elimina definitivamente" for a landmark — `usePOIManager.deletePOI`.
+   * §5's "deleting and re-creating a landmark is cheap" was the reasoning
+   * for shipping this unconfirmed; the DM decided otherwise (TD-140,
+   * 2026-09-18), and SPEC-023 then folded that confirmation into
+   * `RemoveLandmarkDialog`'s one question. `WorldMap` still owns the
+   * mutation, so this delegates as before — only the asking moved.
    */
   onDeleteLandmark: (poi: POI) => void;
 }
@@ -141,20 +141,23 @@ interface PlacePopoverProps {
  * assigned beyond an id. For a landmark (T7), the same control also pre-fills
  * `poiId` — `AttachEntityButton`'s own extension, not a second mechanism.
  *
- * "Sposta nei luoghi non posizionati" (T5) only calls `onUnplace` — the
- * mutation, the refetch that drops this place's own marker, and closing the
- * popover are all `WorldMap`'s, since un-placing removes the very place this
- * popover is anchored to.
+ * **"Rimuovi" is one entry, not two** (SPEC-023, 2026-09-24). T5's
+ * "Sposta nei luoghi non posizionati" and T6's "Elimina definitivamente"
+ * used to sit next to each other, and telling them apart was the DM's
+ * problem before clicking. They are now the two named outcomes of a single
+ * dialog — `RemovePlaceDialog` for a zone, `RemoveLandmarkDialog` for a
+ * landmark — which states what each one costs before either is taken.
  *
- * "Elimina definitivamente" (T6), by contrast, embeds `DeletePlaceButton`
- * directly — the same component `MapOptionsButton` already opens for the
- * place currently being viewed, unforked, retargeted at the clicked place.
- * Its confirmation dialog (impact counts, the SPEC-010 mutation itself) is
- * entirely its own; only the post-success bookkeeping — closing the popover,
- * dropping the marker — bubbles up through `onDeleted`, the same split T5
- * uses for `onUnplace`.
+ * For a zone that dialog is embedded directly: the same component
+ * `MapOptionsButton` already opens for the place currently being viewed,
+ * unforked, retargeted at the clicked place and handed an `onUnplace` that
+ * surface has nothing to pass. The impact counts and the SPEC-010 mutation
+ * are entirely its own; only the outcomes' bookkeeping — closing the
+ * popover, dropping the marker — bubbles up, through `onUnplace` and
+ * `onDeleted` respectively, since either way the place this popover is
+ * anchored to stops being on this map.
  *
- * "Modifica"/"Elimina" (T7) both delegate to `WorldMap` instead — the panel
+ * "Modifica"/"Rimuovi" (T7) both delegate to `WorldMap` instead — the panel
  * they reach (`MapPOIPanel`) and the mutation they call (`usePOIManager`'s
  * `updatePOI`/`deletePOI`) are both singletons WorldMap already owns, so
  * there is nothing for this popover to embed, only a target to hand back.
@@ -178,9 +181,8 @@ export default function PlacePopover({
   const popoverRef = useRef<HTMLDivElement>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
   const [isAttachOpen, setIsAttachOpen] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [isDeleteLandmarkConfirmOpen, setIsDeleteLandmarkConfirmOpen] =
-    useState(false);
+  const [isRemoveOpen, setIsRemoveOpen] = useState(false);
+  const [isRemoveLandmarkOpen, setIsRemoveLandmarkOpen] = useState(false);
   const [entitiesRefreshKey, setEntitiesRefreshKey] = useState(0);
   const [screenPosition, setScreenPosition] = useState<{
     x: number;
@@ -372,24 +374,17 @@ export default function PlacePopover({
             >
               {t("editZone")}
             </button>
-            {/* No confirmation (§9's open question, agreed 2026-08-21) —
-                unlike deletion (T6), un-placing doesn't destroy data. */}
+            {/* "Rimuovi" (SPEC-023) — one entry where T5's un-place and
+                T6's delete used to be two, opening the dialog that asks
+                which of the two is meant. Styled as an ordinary entry
+                rather than a red one: the destructive outcome is one of
+                two answers inside, not what this button does. */}
             <button
               type="button"
-              onClick={() => onUnplace(place)}
+              onClick={() => setIsRemoveOpen(true)}
               className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
-              {t("unplace")}
-            </button>
-            {/* "Elimina definitivamente" (T6) — the SPEC-010 deletion flow,
-                behind the same confirmation dialog it has today
-                (`DeletePlaceButton`, reused unchanged). */}
-            <button
-              type="button"
-              onClick={() => setIsDeleteOpen(true)}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
-            >
-              {t("delete")}
+              {t("remove")}
             </button>
           </>
         )}
@@ -405,31 +400,18 @@ export default function PlacePopover({
             >
               {t("editLandmark")}
             </button>
-            {/* "Sposta nei luoghi non posizionati" (SPEC-017 T10) — the
-                landmark parity SPEC-016 T5 left out, and the only way a
-                landmark can reach the pool other than as a side effect of
-                deleting its zone. Same position in the fragment as the
-                zone's, between editing and deleting; no confirmation, for
-                the same reason (it destroys nothing). */}
+            {/* "Rimuovi" (SPEC-023) — the landmark's own single entry,
+                same shape and same position as the zone's. Behind it,
+                SPEC-017 T10's un-place and T7's delete are the two named
+                outcomes of `RemoveLandmarkDialog`; TD-140's standalone
+                confirmation is folded into it. Both mutations stay
+                `usePOIManager`'s, reached through `WorldMap`. */}
             <button
               type="button"
-              onClick={() => onUnplaceLandmark(poi)}
+              onClick={() => setIsRemoveLandmarkOpen(true)}
               className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
-              {t("unplace")}
-            </button>
-            {/* "Elimina" (T7) — asks for confirmation first (TD-140,
-                DM decision 2026-09-18), the same `Modal` Cancel/Confirm
-                pattern as the zone's `DeletePlaceButton` and TD-123's
-                clear-all. `usePOIManager.deletePOI` itself stays
-                unconfirmed and optimistic; the confirmation gate is this
-                popover's own. */}
-            <button
-              type="button"
-              onClick={() => setIsDeleteLandmarkConfirmOpen(true)}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
-            >
-              {t("deleteLandmark")}
+              {t("remove")}
             </button>
           </>
         )}
@@ -464,54 +446,37 @@ export default function PlacePopover({
         onAttached={() => setEntitiesRefreshKey((key) => key + 1)}
       />
 
-      {/* "Elimina definitivamente" (T6) — reuses `DeletePlaceButton`
-          unchanged, the same component `MapOptionsButton` opens for the
-          place currently being viewed; here it targets the clicked place
-          instead. Never rendered for the root, since the root never gets a
-          popover in the first place (§5's edge cases) — `isRoot={false}` is
-          therefore always correct here. Zone only. */}
+      {/* "Rimuovi" (SPEC-023) — the same `RemovePlaceDialog`
+          `MapOptionsButton` opens for the place currently being viewed,
+          here targeting the clicked place and given the second outcome
+          that surface has no way to offer. Never rendered for the root,
+          since the root never gets a popover in the first place (§5's edge
+          cases) — `isRoot={false}` is therefore always correct here. Zone
+          only. */}
       {place && (
-        <DeletePlaceButton
+        <RemovePlaceDialog
           placeId={place.id}
           placeTitle={place.title}
           parentTitle={parentTitle}
           isRoot={false}
-          isOpen={isDeleteOpen}
-          onClose={() => setIsDeleteOpen(false)}
+          isOpen={isRemoveOpen}
+          onClose={() => setIsRemoveOpen(false)}
+          onUnplace={() => onUnplace(place)}
           onDeleted={onDeleted}
         />
       )}
 
-      {/* "Elimina" (T7) confirmation (TD-140) — same `Modal` +
-          Cancel/Confirm shape as `DeletePlaceButton` and TD-123's
-          clear-all, minus the impact fetch: a landmark is a leaf, nothing
+      {/* The landmark's own one question (SPEC-023) — same two outcomes as
+          the zone's, minus the impact fetch: a landmark is a leaf, nothing
           reparents when it goes. Landmark only. */}
       {poi && (
-        <Modal
-          isOpen={isDeleteLandmarkConfirmOpen}
-          setIsOpen={setIsDeleteLandmarkConfirmOpen}
-          title={t("deleteLandmarkConfirm.title", { title: poi.title })}
-          description={t("deleteLandmarkConfirm.description")}
-          size="small"
-        >
-          <div className="flex justify-end gap-2">
-            <BaseButton
-              variant={ButtonVariant.neutral}
-              onClick={() => setIsDeleteLandmarkConfirmOpen(false)}
-            >
-              {t("deleteLandmarkConfirm.cancel")}
-            </BaseButton>
-            <BaseButton
-              variant={ButtonVariant.danger}
-              onClick={() => {
-                setIsDeleteLandmarkConfirmOpen(false);
-                onDeleteLandmark(poi);
-              }}
-            >
-              {t("deleteLandmarkConfirm.confirm")}
-            </BaseButton>
-          </div>
-        </Modal>
+        <RemoveLandmarkDialog
+          landmarkTitle={poi.title}
+          isOpen={isRemoveLandmarkOpen}
+          onClose={() => setIsRemoveLandmarkOpen(false)}
+          onUnplace={() => onUnplaceLandmark(poi)}
+          onDelete={() => onDeleteLandmark(poi)}
+        />
       )}
     </div>
   );

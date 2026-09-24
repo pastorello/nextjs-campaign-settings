@@ -21,7 +21,7 @@ interface MapOptionsButtonProps {
 /**
  * The map's own "administer this map" entry point (usability fix,
  * 2026-08-17): replaces two separate, always-visible floating corner
- * controls (`MapUploadControl`, `DeletePlaceButton`) with a single icon
+ * controls (`MapUploadControl`, `RemovePlaceDialog`) with a single icon
  * trigger, sitting in `MapControls`' own zoom/reset/fullscreen stack via
  * its `extraControls` slot, that opens a small menu with just those two
  * actions. Distinguished from `MapContextMenu`'s entries by scope: those
@@ -38,9 +38,9 @@ export default function MapOptionsButton({
 }: MapOptionsButtonProps) {
   const t = useTranslations("geography.mapOptions");
   const tMapUpload = useTranslations("geography.mapUpload");
-  const tDeletePlace = useTranslations("geography.deletePlace");
+  const tRemovePlace = useTranslations("geography.removePlace");
   // Namespaced one level up from its siblings on purpose: the test-side
-  // `next-intl` mock returns the key passed to `t`, and `deletePlace`'s
+  // `next-intl` mock returns the key passed to `t`, and `removePlace`'s
   // menu entry already renders as the bare leaf "trigger" there — a second
   // "trigger" leaf would make the two entries indistinguishable by text.
   const tGeography = useTranslations("geography");
@@ -87,7 +87,7 @@ export default function MapOptionsButton({
               }}
               className="rounded px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
             >
-              {tDeletePlace("trigger")}
+              {tRemovePlace("trigger")}
             </button>
           )}
         </div>

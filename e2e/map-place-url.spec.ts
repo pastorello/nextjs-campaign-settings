@@ -71,7 +71,7 @@ test.describe("the place in view has a URL of its own (TD-82)", () => {
       })
       .click();
 
-    const popover = page.getByRole("dialog", { name: title });
+    const popover = page.getByRole("dialog", { name: title, exact: true });
     await navigableMarkers.last().click();
     await expect(popover).toBeVisible();
     await popover
@@ -101,10 +101,21 @@ test.describe("the place in view has a URL of its own (TD-82)", () => {
     await navigableMarkers.last().click();
     await expect(popover).toBeVisible();
     await popover
-      .getByRole("button", { name: messages.geography.popover.delete })
+      .getByRole("button", {
+        name: messages.geography.popover.remove,
+        exact: true,
+      })
+      .click();
+    // One question, two named outcomes (SPEC-023): the entry only
+    // asks, so the destructive answer has to be picked before it
+    // can be confirmed.
+    await page
+      .getByRole("radio", {
+        name: messages.geography.removePlace.outcomes.deleteLabel,
+      })
       .click();
     await page
-      .getByRole("button", { name: messages.geography.deletePlace.confirm })
+      .getByRole("button", { name: messages.geography.removePlace.confirm })
       .click();
     await expect(popover).not.toBeVisible();
     await expect(navigableMarkers).toHaveCount(baselineMarkerCount);

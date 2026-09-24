@@ -136,7 +136,7 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
 
     const descendInto = async (index: number, title: string) => {
       await navigableMarkers.nth(index).click();
-      const target = page.getByRole("dialog", { name: title });
+      const target = page.getByRole("dialog", { name: title, exact: true });
       await expect(target).toBeVisible();
       await target
         .getByRole("button", { name: messages.geography.popover.openMap })
@@ -205,7 +205,10 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     await descendInto(workspaceIndex, workspaceTitle);
     await descendInto(fromIndex, fromTitle);
 
-    const landmarkPopover = page.getByRole("dialog", { name: landmarkTitle });
+    const landmarkPopover = page.getByRole("dialog", {
+      name: landmarkTitle,
+      exact: true,
+    });
     await expect(async () => {
       await landmarkMarkers.last().click();
       await expect(landmarkPopover).toBeVisible({ timeout: 500 });
@@ -266,6 +269,7 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     await navigableMarkers.nth(workspaceIndex).click();
     const workspacePopover = page.getByRole("dialog", {
       name: workspaceTitle,
+      exact: true,
     });
     await expect(workspacePopover).toBeVisible();
     await workspacePopover

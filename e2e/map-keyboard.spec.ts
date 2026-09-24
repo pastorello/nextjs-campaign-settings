@@ -76,7 +76,7 @@ test.describe("map keyboard access (TD-133)", () => {
     // Enter opens the place popover once `createPoi` has resolved — the
     // marker's handler waits for the row id, and nothing observable marks
     // that moment (same reasoning as `map-landmark-popover.spec.ts`).
-    const popover = page.getByRole("dialog", { name: title });
+    const popover = page.getByRole("dialog", { name: title, exact: true });
     await expect(async () => {
       await map.focus();
       await tabTo(page, title);
@@ -194,7 +194,7 @@ test.describe("typed coordinates (SPEC-025)", () => {
     // until `createPoi` resolves and hands it the row id, and nothing
     // observable marks that moment, so the first click can land on a marker
     // that is drawn but not yet clickable.
-    const popover = page.getByRole("dialog", { name: title });
+    const popover = page.getByRole("dialog", { name: title, exact: true });
     await expect(async () => {
       await marker.click();
       await expect(popover).toBeVisible({ timeout: 1000 });

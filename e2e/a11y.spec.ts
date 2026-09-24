@@ -411,7 +411,7 @@ test("the place popover has no accessibility violations", async ({ page }) => {
   await expect(navigableMarkers).toHaveCount(baselineMarkerCount + 1);
   await navigableMarkers.last().click();
 
-  const popover = page.getByRole("dialog", { name: title });
+  const popover = page.getByRole("dialog", { name: title, exact: true });
   await expect(popover).toBeVisible();
   // Scan a settled popover: the entities list fetches on open, and a scan
   // that races it reads the "Caricamento…" placeholder instead of the
@@ -475,7 +475,7 @@ test("the attach-character dialog has no accessibility violations", async ({
   await page.waitForTimeout(300);
 
   const marker = page.getByRole("button", { name: title, exact: true });
-  const popover = page.getByRole("dialog", { name: title });
+  const popover = page.getByRole("dialog", { name: title, exact: true });
 
   try {
     await chooseFromContextMenu(

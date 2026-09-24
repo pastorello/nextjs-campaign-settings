@@ -87,7 +87,7 @@ const gotoMap = async (page: Page) => {
  * marker a real id (map-landmark-popover.spec.ts).
  */
 const openLandmarkPopover = async (page: Page, title: string) => {
-  const popover = page.getByRole("dialog", { name: title });
+  const popover = page.getByRole("dialog", { name: title, exact: true });
   await expect(async () => {
     await page.getByRole("button", { name: title, exact: true }).click();
     await expect(popover).toBeVisible({ timeout: 500 });

@@ -107,7 +107,7 @@ test.describe("un-placing a positioned place (SPEC-016 T5)", () => {
     await expect(navigableMarkers).toHaveCount(baselineMarkerCount + 1);
     await navigableMarkers.last().click();
 
-    const popover = page.getByRole("dialog", { name: title });
+    const popover = page.getByRole("dialog", { name: title, exact: true });
     await expect(popover).toBeVisible();
     // SPEC-023: un-placing is reached through the same one question as the
     // delete, as the outcome that destroys nothing. The trigger is matched

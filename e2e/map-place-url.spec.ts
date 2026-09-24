@@ -71,7 +71,7 @@ test.describe("the place in view has a URL of its own (TD-82)", () => {
       })
       .click();
 
-    const popover = page.getByRole("dialog", { name: title });
+    const popover = page.getByRole("dialog", { name: title, exact: true });
     await navigableMarkers.last().click();
     await expect(popover).toBeVisible();
     await popover

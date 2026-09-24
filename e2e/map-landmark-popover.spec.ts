@@ -63,7 +63,7 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
     // from here (no toast, no network event Playwright can key on) marks
     // that moment, so this retries the click itself rather than guessing a
     // delay.
-    const popover = page.getByRole("dialog", { name: title });
+    const popover = page.getByRole("dialog", { name: title, exact: true });
     await expect(async () => {
       await landmarkMarkers.last().click();
       await expect(popover).toBeVisible({ timeout: 500 });
@@ -96,7 +96,10 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
     // landed and to reach "Rimuovi" next.
     await expect(landmarkMarkers).toHaveCount(baselineCount + 1);
     await landmarkMarkers.last().click();
-    const updatedPopover = page.getByRole("dialog", { name: updatedTitle });
+    const updatedPopover = page.getByRole("dialog", {
+      name: updatedTitle,
+      exact: true,
+    });
     await expect(updatedPopover).toBeVisible();
 
     await updatedPopover
@@ -170,7 +173,7 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
 
     // Same retry-the-click dance as the test above: the popover refuses to
     // open until `createPoi`'s round trip has given the marker a real id.
-    const popover = page.getByRole("dialog", { name: title });
+    const popover = page.getByRole("dialog", { name: title, exact: true });
     await expect(async () => {
       await landmarkMarkers.last().click();
       await expect(popover).toBeVisible({ timeout: 500 });
@@ -273,7 +276,7 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
     // No reload between creating the landmark and clicking it: a reload is
     // what hands the marker a numeric id and hides the bug. Same
     // retry-the-click dance as above for `createPoi`'s round trip.
-    const popover = page.getByRole("dialog", { name: title });
+    const popover = page.getByRole("dialog", { name: title, exact: true });
     await expect(async () => {
       await landmarkMarkers.last().click();
       await expect(popover).toBeVisible({ timeout: 500 });

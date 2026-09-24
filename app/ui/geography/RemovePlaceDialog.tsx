@@ -12,7 +12,7 @@ import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonState from "@/app/ui/buttons/BaseButton/ButtonState";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 
-interface DeletePlaceButtonProps {
+interface RemovePlaceDialogProps {
   placeId: number;
   placeTitle: string;
   /** Where direct children/landmarks reparent to — named in the dialog. */
@@ -46,7 +46,7 @@ interface DeletePlaceButtonProps {
  * does, it proceeds, so the only safeguard is showing exactly what moves and
  * what loses its location before the DM confirms.
  */
-export default function DeletePlaceButton({
+export default function RemovePlaceDialog({
   placeId,
   placeTitle,
   parentTitle,
@@ -54,8 +54,8 @@ export default function DeletePlaceButton({
   isOpen,
   onClose,
   onDeleted,
-}: DeletePlaceButtonProps) {
-  const t = useTranslations("geography.deletePlace");
+}: RemovePlaceDialogProps) {
+  const t = useTranslations("geography.removePlace");
   const [impact, setImpact] = useState<PlaceDeletionImpact | null>(null);
   const [isLoadingImpact, setIsLoadingImpact] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

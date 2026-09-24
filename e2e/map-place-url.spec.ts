@@ -104,7 +104,7 @@ test.describe("the place in view has a URL of its own (TD-82)", () => {
       .getByRole("button", { name: messages.geography.popover.delete })
       .click();
     await page
-      .getByRole("button", { name: messages.geography.deletePlace.confirm })
+      .getByRole("button", { name: messages.geography.removePlace.confirm })
       .click();
     await expect(popover).not.toBeVisible();
     await expect(navigableMarkers).toHaveCount(baselineMarkerCount);

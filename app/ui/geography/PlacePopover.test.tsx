@@ -83,10 +83,10 @@ vi.mock("@/app/ui/geography/AttachEntityButton", () => ({
 }));
 
 // Same reasoning again: the confirmation dialog and the SPEC-010 mutation
-// are `DeletePlaceButton`'s own suite; here it stands in so this suite only
+// are `RemovePlaceDialog`'s own suite; here it stands in so this suite only
 // exercises how the popover wires it (T6).
 const deletePlaceProps = vi.fn();
-vi.mock("@/app/ui/geography/DeletePlaceButton", () => ({
+vi.mock("@/app/ui/geography/RemovePlaceDialog", () => ({
   default: ({
     placeId,
     placeTitle,
@@ -674,9 +674,9 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
     fireEvent.click(screen.getByText("deleteLandmarkConfirm.cancel"));
 
     // Cancelling never calls onDeleteLandmark. (The dialog's exit
-    // animation, like `DeletePlaceButton`'s own `Modal`, keeps the element
+    // animation, like `RemovePlaceDialog`'s own `Modal`, keeps the element
     // mounted briefly after `isOpen` flips — asserting on the callback
-    // rather than on immediate DOM removal, same as `DeletePlaceButton.test.tsx`.)
+    // rather than on immediate DOM removal, same as `RemovePlaceDialog.test.tsx`.)
     expect(onDeleteLandmark).not.toHaveBeenCalled();
   });
 
@@ -689,11 +689,11 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
 
     expect(onDeleteLandmark).toHaveBeenCalledWith(currentPoi);
     expect(onDeleteLandmark).toHaveBeenCalledTimes(1);
-    // No `DeletePlaceButton` (the zone's confirmed SPEC-010 flow, T6) is
+    // No `RemovePlaceDialog` (the zone's confirmed SPEC-010 flow, T6) is
     // even mounted for a landmark — `deletePlaceProps` is the mock's own
     // call log, so an empty one proves the component was never rendered.
     // The landmark's own confirmation (TD-140) is this component's own
-    // `Modal`, not `DeletePlaceButton`.
+    // `Modal`, not `RemovePlaceDialog`.
     expect(deletePlaceProps).not.toHaveBeenCalled();
   });
   describe("the place's picture (SPEC-020 T4)", () => {

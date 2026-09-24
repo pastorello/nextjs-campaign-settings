@@ -436,7 +436,7 @@ test("the place popover has no accessibility violations", async ({ page }) => {
     .getByRole("button", { name: messages.geography.popover.delete })
     .click();
   await page
-    .getByRole("button", { name: messages.geography.deletePlace.confirm })
+    .getByRole("button", { name: messages.geography.removePlace.confirm })
     .click();
   await expect(popover).not.toBeVisible();
   await expect(navigableMarkers).toHaveCount(baselineMarkerCount);

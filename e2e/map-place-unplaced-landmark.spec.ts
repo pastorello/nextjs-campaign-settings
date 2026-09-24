@@ -129,10 +129,10 @@ test.describe("positioning an unplaced landmark (TD-102)", () => {
       .getByRole("button", { name: messages.geography.mapOptions.trigger })
       .click();
     await page
-      .getByRole("button", { name: messages.geography.deletePlace.trigger })
+      .getByRole("button", { name: messages.geography.removePlace.trigger })
       .click();
     await page
-      .getByRole("button", { name: messages.geography.deletePlace.confirm })
+      .getByRole("button", { name: messages.geography.removePlace.confirm })
       .click();
 
     // Back on the parent map, with the deleted place's marker gone.

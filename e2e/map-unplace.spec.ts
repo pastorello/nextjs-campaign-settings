@@ -154,7 +154,7 @@ test.describe("un-placing a positioned place (SPEC-016 T5)", () => {
       .getByRole("button", { name: messages.geography.popover.delete })
       .click();
     await page
-      .getByRole("button", { name: messages.geography.deletePlace.confirm })
+      .getByRole("button", { name: messages.geography.removePlace.confirm })
       .click();
 
     // The popover's own place no longer exists — nothing left at this

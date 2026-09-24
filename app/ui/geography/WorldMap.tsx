@@ -24,7 +24,7 @@ import createPlace from "@/app/lib/data/maps/createPlace";
 import { resolveFirstFieldError } from "@/app/lib/utils/i18n/resolveFieldErrors";
 import PlacePopover from "@/app/ui/geography/PlacePopover";
 import MapUploadControl from "@/app/ui/geography/MapUploadControl";
-import DeletePlaceButton from "@/app/ui/geography/DeletePlaceButton";
+import RemovePlaceDialog from "@/app/ui/geography/RemovePlaceDialog";
 import MapOptionsButton from "@/app/ui/geography/MapOptionsButton";
 import MapGridConfigPanel from "@/app/ui/geography/MapGridConfigPanel";
 import ZoneEditPanel from "@/app/ui/geography/ZoneEditPanel";
@@ -107,7 +107,7 @@ function WorldMap({
   // rendered then.
   parentTitle: string;
   // The one zone with `parentId: null` (SPEC-010 rule 1) — withholds
-  // `DeletePlaceButton` entirely rather than rendering it disabled.
+  // `RemovePlaceDialog` entirely rather than rendering it disabled.
   isRoot: boolean;
   mapUrl: string;
   bounds: L.LatLngBoundsExpression;
@@ -575,7 +575,7 @@ function WorldMap({
       {/* Delete the place currently being viewed (SPEC-010 T3) — absent for
           the root (rule 1). Externally controlled, opened from
           `MapOptionsButton`'s menu (usability fix, 2026-08-17). */}
-      <DeletePlaceButton
+      <RemovePlaceDialog
         placeId={parentId}
         placeTitle={placeTitle}
         parentTitle={parentTitle}

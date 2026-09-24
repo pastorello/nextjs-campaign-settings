@@ -255,7 +255,7 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
       .getByRole("button", { name: messages.geography.popover.delete })
       .click();
     await page
-      .getByRole("button", { name: messages.geography.deletePlace.confirm })
+      .getByRole("button", { name: messages.geography.removePlace.confirm })
       .click();
     await expect(navigableMarkers).toHaveCount(rootMarkersBefore);
 

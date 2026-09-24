@@ -21,9 +21,9 @@ vi.mock("@/app/lib/notifications/notify", () => ({
   notifySuccess,
 }));
 
-import DeletePlaceButton from "./DeletePlaceButton";
+import RemovePlaceDialog from "./RemovePlaceDialog";
 
-describe("DeletePlaceButton (SPEC-010 T3; externally controlled since the 2026-08-17 usability fix)", () => {
+describe("RemovePlaceDialog (SPEC-010 T3; externally controlled since the 2026-08-17 usability fix)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     fetchPlaceDeletionImpact.mockResolvedValue({
@@ -36,7 +36,7 @@ describe("DeletePlaceButton (SPEC-010 T3; externally controlled since the 2026-0
 
   it("is not rendered for the root, even when open", () => {
     const { container } = render(
-      <DeletePlaceButton
+      <RemovePlaceDialog
         placeId={1}
         placeTitle="Universo"
         parentTitle=""
@@ -53,7 +53,7 @@ describe("DeletePlaceButton (SPEC-010 T3; externally controlled since the 2026-0
 
   it("shows nothing when closed", () => {
     const { container } = render(
-      <DeletePlaceButton
+      <RemovePlaceDialog
         placeId={5}
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
@@ -70,7 +70,7 @@ describe("DeletePlaceButton (SPEC-010 T3; externally controlled since the 2026-0
 
   it("shows the can't-be-undone line whenever it is open (TD-140)", () => {
     render(
-      <DeletePlaceButton
+      <RemovePlaceDialog
         placeId={5}
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
@@ -86,7 +86,7 @@ describe("DeletePlaceButton (SPEC-010 T3; externally controlled since the 2026-0
 
   it("fetches real counts for the place the moment it opens", async () => {
     render(
-      <DeletePlaceButton
+      <RemovePlaceDialog
         placeId={5}
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
@@ -106,7 +106,7 @@ describe("DeletePlaceButton (SPEC-010 T3; externally controlled since the 2026-0
     const onClose = vi.fn();
     const onDeleted = vi.fn();
     render(
-      <DeletePlaceButton
+      <RemovePlaceDialog
         placeId={5}
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
@@ -129,7 +129,7 @@ describe("DeletePlaceButton (SPEC-010 T3; externally controlled since the 2026-0
   it("confirming calls deletePlace and reports the place gone", async () => {
     const onDeleted = vi.fn();
     render(
-      <DeletePlaceButton
+      <RemovePlaceDialog
         placeId={5}
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"
@@ -159,7 +159,7 @@ describe("DeletePlaceButton (SPEC-010 T3; externally controlled since the 2026-0
     deletePlace.mockRejectedValue(new Error("conflict"));
     const onDeleted = vi.fn();
     render(
-      <DeletePlaceButton
+      <RemovePlaceDialog
         placeId={5}
         placeTitle="Terra"
         parentTitle="Piani di Esistenza"

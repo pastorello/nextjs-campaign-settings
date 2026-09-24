@@ -10,7 +10,7 @@ import PlaceEntityList, {
   type EntityListTarget,
 } from "@/app/ui/geography/PlaceEntityList";
 import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
-import DeletePlaceButton from "@/app/ui/geography/DeletePlaceButton";
+import RemovePlaceDialog from "@/app/ui/geography/RemovePlaceDialog";
 import Modal from "@/app/ui/components/Modal";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
@@ -91,7 +91,7 @@ interface PlacePopoverProps {
    * "Modifica" (T7) — opens `MapPOIPanel`'s existing edit form for this
    * landmark, pre-filled (TD-85's remainder, finally reachable). The panel
    * is a single shared instance owned by `WorldMap`, not something this
-   * popover can mount a second copy of the way T6 embeds `DeletePlaceButton`
+   * popover can mount a second copy of the way T6 embeds `RemovePlaceDialog`
    * — so unlike deletion, this delegates entirely rather than embedding
    * anything.
    */
@@ -146,7 +146,7 @@ interface PlacePopoverProps {
  * popover are all `WorldMap`'s, since un-placing removes the very place this
  * popover is anchored to.
  *
- * "Elimina definitivamente" (T6), by contrast, embeds `DeletePlaceButton`
+ * "Elimina definitivamente" (T6), by contrast, embeds `RemovePlaceDialog`
  * directly — the same component `MapOptionsButton` already opens for the
  * place currently being viewed, unforked, retargeted at the clicked place.
  * Its confirmation dialog (impact counts, the SPEC-010 mutation itself) is
@@ -383,7 +383,7 @@ export default function PlacePopover({
             </button>
             {/* "Elimina definitivamente" (T6) — the SPEC-010 deletion flow,
                 behind the same confirmation dialog it has today
-                (`DeletePlaceButton`, reused unchanged). */}
+                (`RemovePlaceDialog`, reused unchanged). */}
             <button
               type="button"
               onClick={() => setIsDeleteOpen(true)}
@@ -420,7 +420,7 @@ export default function PlacePopover({
             </button>
             {/* "Elimina" (T7) — asks for confirmation first (TD-140,
                 DM decision 2026-09-18), the same `Modal` Cancel/Confirm
-                pattern as the zone's `DeletePlaceButton` and TD-123's
+                pattern as the zone's `RemovePlaceDialog` and TD-123's
                 clear-all. `usePOIManager.deletePOI` itself stays
                 unconfirmed and optimistic; the confirmation gate is this
                 popover's own. */}
@@ -464,14 +464,14 @@ export default function PlacePopover({
         onAttached={() => setEntitiesRefreshKey((key) => key + 1)}
       />
 
-      {/* "Elimina definitivamente" (T6) — reuses `DeletePlaceButton`
+      {/* "Elimina definitivamente" (T6) — reuses `RemovePlaceDialog`
           unchanged, the same component `MapOptionsButton` opens for the
           place currently being viewed; here it targets the clicked place
           instead. Never rendered for the root, since the root never gets a
           popover in the first place (§5's edge cases) — `isRoot={false}` is
           therefore always correct here. Zone only. */}
       {place && (
-        <DeletePlaceButton
+        <RemovePlaceDialog
           placeId={place.id}
           placeTitle={place.title}
           parentTitle={parentTitle}
@@ -483,7 +483,7 @@ export default function PlacePopover({
       )}
 
       {/* "Elimina" (T7) confirmation (TD-140) — same `Modal` +
-          Cancel/Confirm shape as `DeletePlaceButton` and TD-123's
+          Cancel/Confirm shape as `RemovePlaceDialog` and TD-123's
           clear-all, minus the impact fetch: a landmark is a leaf, nothing
           reparents when it goes. Landmark only. */}
       {poi && (

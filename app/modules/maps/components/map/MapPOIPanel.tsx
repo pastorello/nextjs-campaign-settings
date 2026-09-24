@@ -696,7 +696,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
    * permanent, server-side deletion of every landmark on the map guarded by
    * a browser dialog that carries no translation, no styling and no test
    * hook. Replaced with the same `Modal` + Cancel/Confirm pattern
-   * `DeletePlaceButton` and `MapUploadControl`'s replace-confirmation use.
+   * `RemovePlaceDialog` and `MapUploadControl`'s replace-confirmation use.
    */
   const [isClearAllConfirmOpen, setIsClearAllConfirmOpen] = useState(false);
 

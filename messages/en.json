@@ -748,7 +748,7 @@
     "temporaryMarkers": {
       "clear": "{count, plural, one {Remove the temporary marker} other {Remove # temporary markers}}"
     },
-    "deletePlace": {
+    "removePlace": {
       "trigger": "Delete this map",
       "confirmTitle": "Delete \"{title}\"?",
       "confirmDescription": "This operation can't be undone.",

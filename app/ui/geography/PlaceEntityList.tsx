@@ -87,7 +87,7 @@ export default function PlaceEntityList({
 
     // The `setState` calls live inside an async function invoked from the
     // effect rather than in its body, the shape `AttachEntityButton` and
-    // `DeletePlaceButton` both use — a synchronous `setState` at the top of
+    // `RemovePlaceDialog` both use — a synchronous `setState` at the top of
     // an effect body trips `react-hooks/set-state-in-effect`.
     const loadEntities = async () => {
       setIsLoading(true);

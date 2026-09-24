@@ -267,7 +267,7 @@ vi.mock("@/app/ui/geography/MapGridOverlay", () => ({
 
 // Has its own suite (SPEC-010 T3) — stubbed here so this file stays about
 // WorldMap's own state, not the delete-confirmation flow.
-vi.mock("@/app/ui/geography/DeletePlaceButton", () => ({
+vi.mock("@/app/ui/geography/RemovePlaceDialog", () => ({
   default: (props: { isRoot: boolean }) => (
     <div data-testid="delete-place-button" data-is-root={props.isRoot} />
   ),

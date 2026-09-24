@@ -167,15 +167,21 @@ test.describe("positioning an unplaced landmark (TD-102)", () => {
     await landmarkMarkers.last().click();
     await expect(popover).toBeVisible();
     await popover
-      .getByRole("button", { name: messages.geography.popover.deleteLandmark })
+      .getByRole("button", {
+        name: messages.geography.popover.remove,
+        exact: true,
+      })
+      .click();
+    // SPEC-023: a landmark's own one question — pick the
+    // destructive outcome, then confirm it.
+    await page
+      .getByRole("radio", {
+        name: messages.geography.removeLandmark.outcomes.deleteLabel,
+      })
       .click();
     await page
-      .getByRole("dialog")
-      .filter({
-        hasText: messages.geography.popover.deleteLandmarkConfirm.cancel,
-      })
       .getByRole("button", {
-        name: messages.geography.popover.deleteLandmarkConfirm.confirm,
+        name: messages.geography.removeLandmark.confirm,
       })
       .click();
     await expect(landmarkMarkers).toHaveCount(baselineLandmarks);

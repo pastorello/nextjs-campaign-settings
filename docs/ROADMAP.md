@@ -519,25 +519,25 @@ alone.
   picker has offered unplaced landmarks since the `zone`/`poi` split — a live
   undercount that one pool would make visible.
 
-- **Deleting a place should ask which kind of delete it is.** **Specced as [SPEC-023](./specs/023-one-question-when-deleting-a-place.md), 2026-09-22 — draft; §5 carries the cascade decision, which is the DM's to make.** One confirmation
-  offering "elimina definitivamente" (remove it and everything under it) or
-  "rimuovi dalla mappa" (it returns to the unplaced pool). Half of this exists
-  already, as two separate popover entries: SPEC-016 T5's "Sposta nei luoghi non
-  posizionati" is exactly the second, and T6's "Rimuovi definitivamente" is the
-  first, with `DeletePlaceButton`'s confirmation listing what moves and what
-  loses its position. What the request changes is that they become one question
-  asked at one moment — and, more substantially, that "cancelliamo tutto" would
-  be a **cascade**, which SPEC-010 rule 2 deliberately is not: children today
-  move up to the grandparent and lose their position, and both `zone.parent` and
-  `poi.zone` are `onDelete: Restrict`, so a cascade has to be written by hand and
-  recursively. A spec should decide whether the reversal is wanted, not a
-  checkbox on a dialog.
+- **✅ Deleting a place asks which kind of delete it is — [SPEC-023](./specs/023-one-question-when-deleting-a-place.md), shipped 2026-09-24.**
+  The two popover entries (SPEC-016 T5's "Sposta nei luoghi non posizionati" and
+  T6's "Rimuovi definitivamente") are one "Rimuovi" opening a dialog that names
+  both outcomes, states what each one costs, and confirms neither until one is
+  picked. A landmark gets the same question, which is also where TD-140's bare
+  confirmation went. **The cascade was weighed and rejected** by the DM on
+  2026-09-24: "elimina definitivamente" keeps meaning SPEC-010 rule 2 — children
+  move up to the grandparent and lose their position — because that leaves a
+  recovery path where a recursive delete leaves none. Do not re-propose it as a
+  fix; §5 of the spec carries the reasoning, and a cascade would be a new spec.
+  _(`DeletePlaceButton` is `RemovePlaceDialog` since this spec; grep for the old
+  name and you will find nothing.)_ _(Found on the way: TD-147.)_
 - **Landmark parity in the popover — closed, both halves, and this note is kept
   only so the gap is not re-filed.** Verified 2026-09-22: `PlacePopover` renders
   a landmark its own `unplace` entry beside `deleteLandmark`, and TD-140 gave
   that delete a confirmation. The text below described the state on 2026-08-30.
-  What is left of the request is wording, not capability, and belongs to
-  [SPEC-023](./specs/023-one-question-when-deleting-a-place.md).
+  What was left of the request was wording, not capability, and SPEC-023 closed
+  that on 2026-09-24: both entries are now one question, for a landmark as for a
+  place.
   _Original note:_ "A landmark's delete has no confirmation at all
   (`usePOIManager.deletePOI`, SPEC-016 T7), and there is no landmark equivalent
   of 'Sposta nei luoghi non posizionati' — which is why TD-102's refusal message

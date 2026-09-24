@@ -210,8 +210,25 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
       await landmarkMarkers.last().click();
       await expect(landmarkPopover).toBeVisible({ timeout: 500 });
     }).toPass({ timeout: 10_000 });
+    // SPEC-023: un-placing is reached through the same one question as the
+    // delete, as the outcome that destroys nothing. The trigger is matched
+    // exactly — an entity row's "Rimuovi {name} da questo luogo" contains
+    // it as a substring.
     await landmarkPopover
-      .getByRole("button", { name: messages.geography.popover.unplace })
+      .getByRole("button", {
+        name: messages.geography.popover.remove,
+        exact: true,
+      })
+      .click();
+    await page
+      .getByRole("radio", {
+        name: messages.geography.removeLandmark.outcomes.unplaceLabel,
+      })
+      .click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.removeLandmark.confirmUnplace,
+      })
       .click();
     await expect(landmarkMarkers).toHaveCount(0);
 
@@ -252,7 +269,18 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     });
     await expect(workspacePopover).toBeVisible();
     await workspacePopover
-      .getByRole("button", { name: messages.geography.popover.delete })
+      .getByRole("button", {
+        name: messages.geography.popover.remove,
+        exact: true,
+      })
+      .click();
+    // One question, two named outcomes (SPEC-023): the entry only
+    // asks, so the destructive answer has to be picked before it
+    // can be confirmed.
+    await page
+      .getByRole("radio", {
+        name: messages.geography.removePlace.outcomes.deleteLabel,
+      })
       .click();
     await page
       .getByRole("button", { name: messages.geography.removePlace.confirm })

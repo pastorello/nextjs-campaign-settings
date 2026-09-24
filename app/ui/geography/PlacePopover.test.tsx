@@ -82,10 +82,10 @@ vi.mock("@/app/ui/geography/AttachEntityButton", () => ({
   },
 }));
 
-// Same reasoning again: the confirmation dialog and the SPEC-010 mutation
-// are `RemovePlaceDialog`'s own suite; here it stands in so this suite only
-// exercises how the popover wires it (T6).
-const deletePlaceProps = vi.fn();
+// Same reasoning again: the two named outcomes, their counts and the
+// SPEC-010 mutation are `RemovePlaceDialog`'s own suite; here it stands in
+// so this suite only exercises how the popover wires it (T6, SPEC-023).
+const removePlaceProps = vi.fn();
 vi.mock("@/app/ui/geography/RemovePlaceDialog", () => ({
   default: ({
     placeId,
@@ -93,6 +93,7 @@ vi.mock("@/app/ui/geography/RemovePlaceDialog", () => ({
     parentTitle,
     isRoot,
     isOpen,
+    onUnplace,
     onDeleted,
   }: {
     placeId: number;
@@ -102,10 +103,48 @@ vi.mock("@/app/ui/geography/RemovePlaceDialog", () => ({
     isOpen: boolean;
     onClose: () => void;
     onDeleted: () => void;
+    onUnplace?: () => void;
   }) => {
-    deletePlaceProps({ placeId, placeTitle, parentTitle, isRoot, isOpen });
+    removePlaceProps({
+      placeId,
+      placeTitle,
+      parentTitle,
+      isRoot,
+      isOpen,
+      // Whether the popover offered the second outcome at all — the
+      // difference between its dialog and the map's own delete-only one.
+      offersUnplace: onUnplace !== undefined,
+    });
     return isOpen ? (
-      <button onClick={() => onDeleted()}>simulate-delete</button>
+      <>
+        <button onClick={() => onUnplace?.()}>simulate-unplace</button>
+        <button onClick={() => onDeleted()}>simulate-delete</button>
+      </>
+    ) : null;
+  },
+}));
+
+// The landmark's own one question (SPEC-023), stood in for the same way.
+const removeLandmarkProps = vi.fn();
+vi.mock("@/app/ui/geography/RemoveLandmarkDialog", () => ({
+  default: ({
+    landmarkTitle,
+    isOpen,
+    onUnplace,
+    onDelete,
+  }: {
+    landmarkTitle: string;
+    isOpen: boolean;
+    onClose: () => void;
+    onUnplace: () => void;
+    onDelete: () => void;
+  }) => {
+    removeLandmarkProps({ landmarkTitle, isOpen });
+    return isOpen ? (
+      <>
+        <button onClick={onUnplace}>simulate-landmark-unplace</button>
+        <button onClick={onDelete}>simulate-landmark-delete</button>
+      </>
     ) : null;
   },
 }));
@@ -405,45 +444,53 @@ describe("PlacePopover — zone", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it("calls onUnplace with the clicked place when Sposta nei luoghi non posizionati is clicked, without asking for confirmation", () => {
+  // SPEC-023: one entry where T5's un-place and T6's delete used to be two.
+  // Which of the two happens is the dialog's question, not the popover's.
+  it("offers exactly one destructive entry, and nothing happens until it is opened", () => {
     renderZonePopover();
 
-    fireEvent.click(screen.getByText("unplace"));
-
-    expect(onUnplace).toHaveBeenCalledWith(place);
-    expect(onUnplace).toHaveBeenCalledTimes(1);
-  });
-
-  it("keeps the delete confirmation closed until Elimina definitivamente is clicked", () => {
-    renderZonePopover();
-
-    expect(deletePlaceProps).toHaveBeenCalledWith({
+    expect(screen.getAllByText("remove")).toHaveLength(1);
+    expect(removePlaceProps).toHaveBeenCalledWith({
       placeId: 7,
       placeTitle: place.title,
       parentTitle,
       isRoot: false,
       isOpen: false,
+      offersUnplace: true,
     });
+    expect(onUnplace).not.toHaveBeenCalled();
     expect(screen.queryByText("simulate-delete")).not.toBeInTheDocument();
   });
 
-  it("opens the delete confirmation, pre-filled with the clicked place and its parent, when Elimina definitivamente is clicked", () => {
+  it("opens the question, pre-filled with the clicked place and its parent, when Rimuovi is clicked", () => {
     renderZonePopover();
 
-    fireEvent.click(screen.getByText("delete"));
+    fireEvent.click(screen.getByText("remove"));
 
-    expect(deletePlaceProps).toHaveBeenLastCalledWith({
+    expect(removePlaceProps).toHaveBeenLastCalledWith({
       placeId: 7,
       placeTitle: place.title,
       parentTitle,
       isRoot: false,
       isOpen: true,
+      offersUnplace: true,
     });
+  });
+
+  it("calls onUnplace with the clicked place when that is the outcome the dialog returns", () => {
+    renderZonePopover();
+    fireEvent.click(screen.getByText("remove"));
+
+    fireEvent.click(screen.getByText("simulate-unplace"));
+
+    expect(onUnplace).toHaveBeenCalledWith(place);
+    expect(onUnplace).toHaveBeenCalledTimes(1);
+    expect(onDeleted).not.toHaveBeenCalled();
   });
 
   it("calls onDeleted once the deletion confirms, without calling onUnplace or onClose itself", () => {
     renderZonePopover();
-    fireEvent.click(screen.getByText("delete"));
+    fireEvent.click(screen.getByText("remove"));
 
     fireEvent.click(screen.getByText("simulate-delete"));
 
@@ -456,7 +503,7 @@ describe("PlacePopover — zone", () => {
     renderZonePopover();
 
     expect(screen.queryByText("editLandmark")).not.toBeInTheDocument();
-    expect(screen.queryByText("deleteLandmark")).not.toBeInTheDocument();
+    expect(removeLandmarkProps).not.toHaveBeenCalled();
   });
 
   it("does not close on a click inside a Headless UI portal (the attach modal escapes popoverRef)", async () => {
@@ -595,11 +642,12 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
     renderLandmarkPopover();
 
     expect(screen.queryByText("openMap")).not.toBeInTheDocument();
-    expect(screen.queryByText("delete")).not.toBeInTheDocument();
     expect(screen.queryByText("editZone")).not.toBeInTheDocument();
-    // "unplace" left this list in SPEC-017 T10, deliberately: it is the one
-    // zone action a landmark now shares, because a pool that only zones can
-    // enter cannot move a landmark anywhere.
+    expect(removePlaceProps).not.toHaveBeenCalled();
+    // "Rimuovi" left this list in SPEC-017 T10 and SPEC-023: un-placing is
+    // the one zone action a landmark now shares (a pool that only zones can
+    // enter cannot move a landmark anywhere), and the single question it is
+    // asked through is deliberately the same in both.
   });
 
   // TD-104 — the gap this closed: a zone's popover offered attach, unplace,
@@ -636,65 +684,58 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
     expect(onEditLandmark).toHaveBeenCalledTimes(1);
   });
 
+  // SPEC-023: a landmark's two entries became one question too, and it is
+  // the landmark's own dialog — not the zone's, which fetches counts a
+  // landmark has no equivalent of.
+  it("offers a landmark exactly one destructive entry, asking nothing until it is opened", () => {
+    renderPopover({ kind: "poi", poi: { ...poi }, poiId: LANDMARK_ROW_ID });
+
+    expect(screen.getAllByText("remove")).toHaveLength(1);
+    expect(removeLandmarkProps).toHaveBeenCalledWith({
+      landmarkTitle: poi.title,
+      isOpen: false,
+    });
+    expect(onUnplaceLandmark).not.toHaveBeenCalled();
+    expect(onDeleteLandmark).not.toHaveBeenCalled();
+    expect(removePlaceProps).not.toHaveBeenCalled();
+  });
+
+  it("opens the landmark's question, named after it, when Rimuovi is clicked", () => {
+    renderPopover({ kind: "poi", poi: { ...poi }, poiId: LANDMARK_ROW_ID });
+
+    fireEvent.click(screen.getByText("remove"));
+
+    expect(removeLandmarkProps).toHaveBeenLastCalledWith({
+      landmarkTitle: poi.title,
+      isOpen: true,
+    });
+  });
+
   it("offers a landmark the same un-place a zone has (SPEC-017 T10)", () => {
     const currentPoi = { ...poi };
     renderPopover({ kind: "poi", poi: currentPoi, poiId: LANDMARK_ROW_ID });
 
-    fireEvent.click(screen.getByText("unplace"));
+    fireEvent.click(screen.getByText("remove"));
+    fireEvent.click(screen.getByText("simulate-landmark-unplace"));
 
     // The parity SPEC-016 T5 left out: without it a landmark could only
     // reach the pool as a side effect of deleting its zone, so moving one
     // between maps was unreachable however good the picker got.
     expect(onUnplaceLandmark).toHaveBeenCalledWith(currentPoi);
     expect(onUnplaceLandmark).toHaveBeenCalledTimes(1);
-  });
-
-  it("un-places a landmark without asking, exactly as it does a zone", () => {
-    renderPopover({ kind: "poi", poi: { ...poi }, poiId: LANDMARK_ROW_ID });
-
-    fireEvent.click(screen.getByText("unplace"));
-
-    // No confirmation, for the reason the zone's has none (§9, agreed
-    // 2026-08-21): un-placing destroys nothing.
-    expect(deletePlaceProps).not.toHaveBeenCalled();
-    expect(screen.queryByText("delete")).not.toBeInTheDocument();
-  });
-
-  it("asks for confirmation before deleting a landmark, and does not delete on cancel (TD-140)", () => {
-    const currentPoi = { ...poi };
-    renderPopover({ kind: "poi", poi: currentPoi, poiId: LANDMARK_ROW_ID });
-
-    fireEvent.click(screen.getByText("deleteLandmark"));
-
-    // Clicking the trigger opens the confirmation dialog rather than
-    // deleting immediately.
-    expect(onDeleteLandmark).not.toHaveBeenCalled();
-    expect(screen.getByText("deleteLandmarkConfirm.title")).toBeInTheDocument();
-
-    fireEvent.click(screen.getByText("deleteLandmarkConfirm.cancel"));
-
-    // Cancelling never calls onDeleteLandmark. (The dialog's exit
-    // animation, like `RemovePlaceDialog`'s own `Modal`, keeps the element
-    // mounted briefly after `isOpen` flips — asserting on the callback
-    // rather than on immediate DOM removal, same as `RemovePlaceDialog.test.tsx`.)
     expect(onDeleteLandmark).not.toHaveBeenCalled();
   });
 
-  it("calls onDeleteLandmark with the clicked landmark once the confirmation dialog is confirmed", () => {
+  it("calls onDeleteLandmark with the clicked landmark when that is the outcome chosen", () => {
     const currentPoi = { ...poi };
     renderPopover({ kind: "poi", poi: currentPoi, poiId: LANDMARK_ROW_ID });
 
-    fireEvent.click(screen.getByText("deleteLandmark"));
-    fireEvent.click(screen.getByText("deleteLandmarkConfirm.confirm"));
+    fireEvent.click(screen.getByText("remove"));
+    fireEvent.click(screen.getByText("simulate-landmark-delete"));
 
     expect(onDeleteLandmark).toHaveBeenCalledWith(currentPoi);
     expect(onDeleteLandmark).toHaveBeenCalledTimes(1);
-    // No `RemovePlaceDialog` (the zone's confirmed SPEC-010 flow, T6) is
-    // even mounted for a landmark — `deletePlaceProps` is the mock's own
-    // call log, so an empty one proves the component was never rendered.
-    // The landmark's own confirmation (TD-140) is this component's own
-    // `Modal`, not `RemovePlaceDialog`.
-    expect(deletePlaceProps).not.toHaveBeenCalled();
+    expect(onUnplaceLandmark).not.toHaveBeenCalled();
   });
   describe("the place's picture (SPEC-020 T4)", () => {
     it("shows a zone's picture at display size, by id, named after the place", () => {

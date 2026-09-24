@@ -695,16 +695,8 @@
       "detach": "Rimuovi {name} da questo luogo",
       "attach": "Collega personaggio",
       "editZone": "Modifica",
-      "unplace": "Sposta nei luoghi non posizionati",
-      "delete": "Elimina definitivamente",
+      "remove": "Rimuovi",
       "editLandmark": "Modifica",
-      "deleteLandmark": "Elimina",
-      "deleteLandmarkConfirm": {
-        "title": "Eliminare «{title}»?",
-        "description": "Questa operazione non può essere annullata.",
-        "cancel": "Annulla",
-        "confirm": "Elimina"
-      },
       "errors": {
         "loadEntitiesFailed": "Impossibile caricare chi si trova qui. Riprova.",
         "detachFailed": "Impossibile rimuovere il collegamento. Riprova."
@@ -752,18 +744,44 @@
       "trigger": "Elimina questa mappa",
       "confirmTitle": "Eliminare «{title}»?",
       "confirmDescription": "Questa operazione non può essere annullata.",
+      "chooseTitle": "Rimuovere «{title}»?",
+      "chooseDescription": "Scegli cosa deve succedere a questo luogo.",
+      "chooseLegend": "Cosa vuoi fare?",
       "loading": "Calcolo delle conseguenze…",
+      "outcomes": {
+        "unplaceLabel": "Rimuovi dalla mappa",
+        "unplaceSummary": "«{title}» torna tra i luoghi non posizionati. Continua a esistere e non perde nulla.",
+        "unplaceKeeps": "{count, plural, =0 {Non contiene nessun luogo.} one {# luogo al suo interno resta dov'è.} other {# luoghi al suo interno restano dove sono.}}",
+        "unplaceEntities": "Nessun personaggio perde la sua posizione.",
+        "deleteLabel": "Elimina definitivamente",
+        "deleteSummary": "«{title}» viene eliminato. Questa operazione non può essere annullata."
+      },
       "noImpact": "Nessuna conseguenza: questo luogo non ha figli né personaggi assegnati.",
       "placesImpact": "{count, plural, one {# luogo passerà sotto «{parentTitle}» e perderà la sua posizione} other {# luoghi passeranno sotto «{parentTitle}» e perderanno la loro posizione}}",
       "npcsImpact": "{count, plural, one {# PNG non avrà più una posizione} other {# PNG non avranno più una posizione}}",
       "deitiesImpact": "{count, plural, one {# divinità non avrà più una posizione} other {# divinità non avranno più una posizione}}",
       "cancel": "Annulla",
       "confirm": "Elimina",
+      "confirmUnplace": "Rimuovi dalla mappa",
       "success": "«{title}» eliminato.",
       "errors": {
         "loadImpactFailed": "Impossibile calcolare le conseguenze. Riprova.",
         "deleteFailed": "Impossibile eliminare il luogo. Riprova."
       }
+    },
+    "removeLandmark": {
+      "title": "Rimuovere «{title}»?",
+      "description": "Scegli cosa deve succedere a questo luogo di interesse.",
+      "legend": "Cosa vuoi fare?",
+      "outcomes": {
+        "unplaceLabel": "Rimuovi dalla mappa",
+        "unplaceSummary": "«{title}» torna tra i luoghi non posizionati. Continua a esistere, con la sua descrizione e i personaggi collegati.",
+        "deleteLabel": "Elimina definitivamente",
+        "deleteSummary": "«{title}» viene eliminato. Non contiene altri luoghi, quindi non trascina niente con sé, ma l'operazione non può essere annullata."
+      },
+      "cancel": "Annulla",
+      "confirm": "Elimina",
+      "confirmUnplace": "Rimuovi dalla mappa"
     },
     "mapUpload": {
       "uploadLabel": "Questo luogo non ha ancora una mappa.",

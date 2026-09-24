@@ -109,8 +109,25 @@ test.describe("un-placing a positioned place (SPEC-016 T5)", () => {
 
     const popover = page.getByRole("dialog", { name: title });
     await expect(popover).toBeVisible();
+    // SPEC-023: un-placing is reached through the same one question as the
+    // delete, as the outcome that destroys nothing. The trigger is matched
+    // exactly — an entity row's "Rimuovi {name} da questo luogo" contains
+    // it as a substring.
     await popover
-      .getByRole("button", { name: messages.geography.popover.unplace })
+      .getByRole("button", {
+        name: messages.geography.popover.remove,
+        exact: true,
+      })
+      .click();
+    await page
+      .getByRole("radio", {
+        name: messages.geography.removePlace.outcomes.unplaceLabel,
+      })
+      .click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.removePlace.confirmUnplace,
+      })
       .click();
 
     // Gone from the map and off the popover's own place — nothing left at
@@ -151,7 +168,18 @@ test.describe("un-placing a positioned place (SPEC-016 T5)", () => {
     await navigableMarkers.last().click();
     await expect(popover).toBeVisible();
     await popover
-      .getByRole("button", { name: messages.geography.popover.delete })
+      .getByRole("button", {
+        name: messages.geography.popover.remove,
+        exact: true,
+      })
+      .click();
+    // One question, two named outcomes (SPEC-023): the entry only
+    // asks, so the destructive answer has to be picked before it
+    // can be confirmed.
+    await page
+      .getByRole("radio", {
+        name: messages.geography.removePlace.outcomes.deleteLabel,
+      })
       .click();
     await page
       .getByRole("button", { name: messages.geography.removePlace.confirm })

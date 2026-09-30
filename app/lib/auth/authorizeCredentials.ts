@@ -23,7 +23,11 @@ export default async function authorizeCredentials(
   credentials: Partial<Record<string, unknown>>
 ): Promise<users | null> {
   const parsedCredentials = z
-    .object({ email: z.string().email(), password: z.string().min(6) })
+    // Emails are stored lower-cased (SPEC-022 T3's `accountEmailSchema`).
+    .object({
+      email: z.string().trim().toLowerCase().email(),
+      password: z.string().min(6),
+    })
     .safeParse(credentials);
 
   if (parsedCredentials.success) {

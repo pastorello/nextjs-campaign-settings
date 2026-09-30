@@ -1,6 +1,6 @@
 # SPEC-022: Accounts, roles, and campaign visibility
 
-- **Status:** In progress — T1 shipped 2026-09-30. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
+- **Status:** In progress — T1–T3 shipped 2026-09-30. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
 - **Date:** 2026-09-22 (rewritten 2026-09-30)
 - **Phase:** 5
 - **Related:** [ADR-0008](../adr/0008-map-image-storage.md) and [ADR-0017](../adr/0017-record-images.md) (their access check is "authenticated", which this spec redefines) · [SPEC-012](./012-publishing-and-internet-exposure.md) (exposure; deferred, and this spec is its prerequisite) · [SPEC-013](./013-campaign-management.md) (the campaign a group belongs to) · [SPEC-004](./004-world-model.md) (the tree visibility inherits down) · [SPEC-011](./011-cross-entity-search.md) (a read path that must learn to filter) · [SPEC-018](./018-game-systems.md) (a campaign has one system) · TD-01 (`requireSession`, the guard this spec extends) · ROADMAP, _Asked for on 2026-08-18, in one batch_
@@ -303,6 +303,14 @@ lists users, and it does not need the layer.
 
 **Risks**
 
+- **The app shows one campaign per system** (found 2026-09-30, while building
+  T2/T3). `fetchCampaign` reads the first campaign of the URL's system, and
+  SPEC-013 left a second one to "multi-campaign support". So "a player in two
+  campaigns of the same system" cannot arise until the campaign page can hold
+  several. This spec does not depend on it: membership and reveals are per
+  campaign, and the selector lists whatever campaigns a player is in. But
+  several groups in one system needs that change first. It is recorded in
+  `ROADMAP.md` as a question for the DM.
 - **The rename touches almost every mutation.** It is mechanical, and its
   commit contains nothing else. The suites that mock `requireSession` change
   with it.
@@ -369,13 +377,53 @@ lists users, and it does not need the layer.
       until T3's accounts page, whose e2e covers the 403. The check above
       used a throwaway spec and a hand-inserted row, both removed.
 
-- [ ] **T2** — Account self-management: a DM's own name and password (the
+- [x] **T2** — Account self-management: a DM's own name and password (the
       current password required), on an account page.
       _(test: the actions; a wrong current password)_
-- [ ] **T3** — Accounts page: create (name, email, first password, role),
+  - _Done 2026-09-30._ `/dashboard/[system]/account`
+    (`OwnAccountForms`, `updateOwnName`, `changeOwnPassword`).
+    - The account is always the session's, never an id the client sends.
+    - The email is shown but not editable there: it is the sign-in name,
+      so changing it is another DM's call from T3's page. (The accounts page
+      does not edit emails yet either; see T3.)
+- [x] **T3** — Accounts page: create (name, email, first password, role),
       rename, disable, delete, set a password, and activate. The last active DM
       cannot be disabled, deleted or demoted.
       _(test: every action; the last-DM refusals)_
+  - _Done 2026-09-30._ `/dashboard/[system]/admin/accounts`
+    (`NewAccountForm`, `AccountsTable`, `AccountRowActions`), with actions
+    in `app/lib/data/accounts/`.
+    - The sidebar's new "Account" tile opens the DM's own page, and its
+      pencil opens this one.
+    - Rules on the data:
+      - Passwords set through the app are 8–72 characters; bcrypt reads 72
+        bytes at most. Sign-in still accepts the seed's six.
+      - Emails are stored lower-cased and matched lower-cased at sign-in.
+      - A taken email is a field error (`emailTaken`).
+    - **The last-DM rule** is `leavesNoActiveDm`, read and written inside one
+      serializable transaction, so two DMs demoting each other at once cannot
+      both succeed.
+    - "Activate" re-enables a disabled account and will activate T4's
+      sign-ups: they are the same write.
+    - Generic machinery changed:
+      - `TextInput` takes `inputType` (`password`, `email`). It is not
+        `type`, which the control registry already passes as the
+        `ControlType`.
+      - `FormErrorSummary` takes `labels` for fields outside the metadata
+        layer.
+    - **Not built: editing another account's email.** The task did not list
+      it. An account whose email is wrong is deleted and created again.
+    - E2E: `e2e/accounts.spec.ts`.
+      - The DM creates a player. The player signs in and gets only the 403
+        page: no records in the body, 403 on the API.
+      - The DM resets the player's password, and the player signs in with
+        the new one.
+      - The DM disables the account: its open session ends, and sign-in
+        fails.
+      - Deleting the only active DM is refused.
+      - The DM renames their own account.
+
+      `a11y.spec.ts` scans both pages.
 - [ ] **T4** — DM sign-up from the logged-out screen, created inactive.
       _(test: sign-up; sign-in refused until activated)_
 - [ ] **T5** — Campaign membership: the players of a campaign, added and

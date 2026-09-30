@@ -16,6 +16,7 @@ import {
   RectangleStackIcon,
   AcademicCapIcon,
   RectangleGroupIcon,
+  UserCircleIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useTranslations } from "next-intl";
@@ -125,6 +126,14 @@ const links: {
     page: PageType.DhSubclass,
     href: "/admin/subclasses",
     icon: RectangleGroupIcon,
+  },
+  // SPEC-022 T2, T3: the tile is the DM's own account, the pencil every
+  // account. Last, beside the sign-out tile it relates to.
+  {
+    key: "accounts",
+    href: "/account",
+    admin: "/admin/accounts",
+    icon: UserCircleIcon,
   },
 ];
 

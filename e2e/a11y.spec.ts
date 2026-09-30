@@ -72,6 +72,10 @@ const PAGES = [
   "/dashboard/daggerheart/admin/domain-cards",
   "/dashboard/daggerheart/admin/classes",
   "/dashboard/daggerheart/admin/subclasses",
+  // SPEC-022 T2, T3: the DM's own account and the accounts page. The latter
+  // always lists at least the signed-in DM.
+  "/dashboard/dnd5e/account",
+  "/dashboard/dnd5e/admin/accounts",
 ];
 
 for (const path of PAGES) {

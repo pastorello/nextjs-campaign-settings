@@ -44,7 +44,9 @@ import deletePlace from "./deletePlace";
 describe("deletePlace (SPEC-010 T2)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     zoneUpdateMany.mockResolvedValue({ count: 0 });
     poiUpdateMany.mockResolvedValue({ count: 0 });
     npcUpdateMany.mockResolvedValue({ count: 0 });

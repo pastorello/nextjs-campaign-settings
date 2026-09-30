@@ -64,7 +64,9 @@ function seedOwners() {
 describe("createCampaignEvent (SPEC-014 T6)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     campaignFindUnique.mockResolvedValue({ id: CAMPAIGN });
     seedOwners();
     create.mockResolvedValue({});

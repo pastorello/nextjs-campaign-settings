@@ -35,7 +35,9 @@ const call = (handler: typeof deleteClass, id: string) =>
 describe("DELETE /api/classes/[id] and /api/subclasses/[id] (SPEC-021 T4, T5)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     classFind.mockResolvedValue({ id: 7, name: "Lamplighter" });
     subclassFind.mockResolvedValue({ id: 11, name: "Glass Warden" });
     subclassCount.mockResolvedValue(0);

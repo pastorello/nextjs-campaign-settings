@@ -43,7 +43,9 @@ import placeLandmark from "./placeLandmark";
 describe("placeLandmark (TD-102)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     findUnique.mockResolvedValue({ zoneId: 3 });
     zoneFindMany.mockResolvedValue([]);
     poiFindMany.mockResolvedValue([]);

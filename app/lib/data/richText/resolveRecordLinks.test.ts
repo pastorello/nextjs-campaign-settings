@@ -15,7 +15,9 @@ import resolveRecordLinks from "./resolveRecordLinks";
 describe("resolveRecordLinks (SPEC-019 T5)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
   });
 
   it("throws UnauthorizedError and never reads without a session", async () => {

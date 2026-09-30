@@ -20,7 +20,9 @@ const validFormData = { ...validSpellFixture, id: 42 };
 describe("updateSpell (TD-122)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
   });
 
   it("rejects an unauthenticated request without writing", async () => {

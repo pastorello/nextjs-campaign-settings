@@ -1,6 +1,6 @@
 # SPEC-022: Accounts, roles, and campaign visibility
 
-- **Status:** Agreed 2026-09-30. Rewritten that day around the DM's answers, then approved with the last two questions answered (§9).
+- **Status:** In progress — T1 shipped 2026-09-30. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
 - **Date:** 2026-09-22 (rewritten 2026-09-30)
 - **Phase:** 5
 - **Related:** [ADR-0008](../adr/0008-map-image-storage.md) and [ADR-0017](../adr/0017-record-images.md) (their access check is "authenticated", which this spec redefines) · [SPEC-012](./012-publishing-and-internet-exposure.md) (exposure; deferred, and this spec is its prerequisite) · [SPEC-013](./013-campaign-management.md) (the campaign a group belongs to) · [SPEC-004](./004-world-model.md) (the tree visibility inherits down) · [SPEC-011](./011-cross-entity-search.md) (a read path that must learn to filter) · [SPEC-018](./018-game-systems.md) (a campaign has one system) · TD-01 (`requireSession`, the guard this spec extends) · ROADMAP, _Asked for on 2026-08-18, in one batch_
@@ -335,13 +335,40 @@ lists users, and it does not need the layer.
 
 ## 10. Task breakdown
 
-- [ ] **T1** — Roles. Write the ADR (roles in the session, the four guards,
+- [x] **T1** — Roles. Write the ADR (roles in the session, the four guards,
       `forbidden()`). Add a migration for `role` and `active` that backfills every
       existing account to `dm`. Rename `requireSession` to `requireDm` (pure
       rename), then give it the role and `active` checks, and add `requireApiDm`.
       `requireDmPage` guards every R15 layout. Sign-in refuses an inactive account.
       _(test: the guards; each R15 layout; a player refused by a mutation; the
       backfill)_
+  - _Done 2026-09-30._ [ADR-0020](../adr/0020-roles-in-the-session-and-four-guards.md).
+    - Migration `*_spec022_user_roles` adds `role` (CHECK `dm`/`player`,
+      default `player`) and `active`, and backfills every account to `dm`.
+      The seed's account is a `dm`.
+    - `requireSession` → `requireDm` and `requireApiSession` → `requireApiDm`
+      are a pure rename commit. The role check (`ForbiddenError`, 403) lands in
+      the next commit.
+    - The jwt callback (`app/lib/auth/sessionCallbacks.ts`) re-reads `role`
+      and `active` on every `auth()` call. `authorizeCredentials` refuses an
+      inactive account.
+    - **The whole dashboard is DM-only for now**, not just R15. The proxy
+      re-reads the account for every signed-in dashboard request and rewrites
+      a player to `/[locale]/access-denied`, whose `forbidden()` renders
+      `app/[locale]/forbidden.tsx`: a 403 with a sign-out button. The
+      layout's `requireDmPage` is a second layer only. Checked in the running
+      app: the layout's `forbidden()` alone still sent the page's data, since
+      a page renders in parallel with its layout (ADR-0020). A player's
+      document load and client navigation both got the 403 page with no
+      record in it, a player's DELETE got 403, and sign-out worked. T7/T8
+      open the read pages one by one, as each learns to filter. This is the
+      ratchet `AGENT_WORKFLOW.md` asks for.
+    - The sign-out tile is now `SignOutButton`, shared by the sidebar and the
+      403 page.
+    - There is no committed player e2e yet: no account can be made a player
+      until T3's accounts page, whose e2e covers the 403. The check above
+      used a throwaway spec and a hand-inserted row, both removed.
+
 - [ ] **T2** — Account self-management: a DM's own name and password (the
       current password required), on an account page.
       _(test: the actions; a wrong current password)_

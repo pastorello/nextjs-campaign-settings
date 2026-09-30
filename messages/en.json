@@ -58,6 +58,10 @@
       "description": "Could not find the requested page.",
       "goBack": "Go Back"
     },
+    "forbidden": {
+      "title": "403 Forbidden",
+      "description": "This account cannot see this page. Sign out to use another one."
+    },
     "table": {
       "name": "Name",
       "actions": "Actions",

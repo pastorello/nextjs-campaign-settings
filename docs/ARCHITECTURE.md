@@ -275,19 +275,22 @@ authConfig.callbacks.authorized  →  !!auth?.user  (true / false)
 Route renders
 ```
 
-Login: `app/login/page.tsx` → `login-form.tsx` → `authenticate()` server action → `signIn("credentials")` → `auth.ts` `authorize()` → Zod-validate email/password → `getUser()` → `bcrypt.compare`.
+Login: `app/login/page.tsx` → `login-form.tsx` → `authenticate()` server action → `signIn("credentials")` → `authorizeCredentials()` (`app/lib/auth/`) → Zod-validate email/password → `getUser()` → `bcrypt.compare` → refused unless `active` (SPEC-022).
 
-### Guards at the boundary (TD-01)
+### Guards at the boundary (TD-01, SPEC-022)
 
-The proxy matcher excludes `/api`, so it cannot cover route handlers or Server Actions. Rather than widen the matcher, TD-01 guards each write path where it lives:
+The proxy matcher excludes `/api`, so it cannot cover route handlers or Server Actions. TD-01 guards each write path where it lives, and SPEC-022 T1 made every guard role-aware ([ADR-0020](./adr/0020-roles-in-the-session-and-four-guards.md)):
 
-1. **Route handlers** — every DELETE handler calls `requireApiDm()` (`app/lib/auth/requireApiDm.ts`), which returns a 401 `NextResponse` when there is no session. `app/api/countries/**` stays open: it is read-only GeoJSON.
-2. **Server Actions** — every `create*`/`update*`/`assign*` mutation calls `requireDm()` (`app/lib/auth/requireDm.ts`), which throws `UnauthorizedError`. _(Deliberately not counted here: this line said "the eight create\*/update\* mutations" until 2026-08-13 — `PROJECT_STATE.md` §5 already corrected the same claim in itself and explains why a hardcoded count on a growing list is the wrong fix; `grep -rl "requireDm()" app/lib/data` is the current list.)_ The five domains' `delete*ById` helpers are internal to their guarded route handlers and are not guarded again — but the maps domain's own deletes (`deletePlace`, `deletePoi`) are Server Actions, not route-handler-internal helpers, and call `requireDm()` directly themselves, the same as a `create*`/`update*` mutation.
-3. **`authorized`** stays `!!auth?.user` — it gates the proxy-matched dashboard on login, which is all it needs to do now that the API boundary guards itself. No per-route branching.
+1. **Route handlers**: every handler calls `requireApiDm()` (`app/lib/auth/requireApiDm.ts`), which returns 401 without a session and 403 for a player. `app/api/countries/**` stays open: it is read-only GeoJSON.
+2. **Server Actions**: every mutation calls `requireDm()` (`app/lib/auth/requireDm.ts`). It throws `UnauthorizedError` without a session and `ForbiddenError` for a player. _(`grep -rl "requireDm()" app/lib/data` is the current list; counts written here went stale twice.)_ The domains' `delete*ById` helpers are internal to their guarded route handlers and are not guarded again. The maps domain's own deletes (`deletePlace`, `deletePoi`) are Server Actions and call `requireDm()` themselves.
+3. **Pages**: the proxy re-reads the account for every signed-in request under `/dashboard` (`dashboardAccess`). A disabled or deleted account goes to the login page. A player is rewritten to `/[locale]/access-denied`, whose `forbidden()` renders `app/[locale]/forbidden.tsx`: a 403, a sign-out button, and no page data. Server Action POSTs pass through to guard themselves. The dashboard layout's `requireDmPage()` is a second layer. It is not the boundary, because a page's data renders in parallel with its layout ([ADR-0020](./adr/0020-roles-in-the-session-and-four-guards.md)).
+4. **The session is fresh.** `auth.ts`'s jwt callback (`app/lib/auth/sessionCallbacks.ts`) re-reads `role` and `active` from the row on every `auth()` call and ends the session of a disabled, deleted or role-less account. Sign-in (`authorizeCredentials`) refuses an inactive account.
 
-### [GAP] Still open: authorisation, not authentication
+**The rule for new code:** a new read path is the DM's until it takes the viewer. SPEC-022 T7/T8 open the dashboard's read paths to players one at a time, each with a test that a player sees only what their campaign has been shown.
 
-There is no authorisation model: every authenticated user can edit everything. Acceptable for a single-DM tool today; must be addressed before players get accounts. **Specified 2026-09-22 as [SPEC-022](./specs/022-accounts-roles-and-party-visibility.md)** (draft), which turns the check from "is anyone logged in" into "is this person allowed" and is a prerequisite for [SPEC-012](./specs/012-publishing-and-internet-exposure.md).
+### Authorisation: roles now, visibility next
+
+Roles exist since SPEC-022 T1 (`users.role`: `dm` | `player`; `users.active`). Accounts, campaign membership and per-campaign visibility follow in the spec's T2–T9. Until T7/T8, a player can sign in and see nothing but the 403 page.
 
 **The ownership model this assumes**, stated once here because several decisions rest on it: one DM authors one shared world, with players as future read-only consumers. No entity is scoped to a user — spells, NPCs, deities and (per [SPEC-002](./specs/002-map-poi-persistence.md)) map POIs are all global to the instance. A future multi-DM platform, where each DM has their own maps and content, is the **Multi-campaign support** item in [`ROADMAP.md`](./ROADMAP.md): it adds `campaignId` to every entity at once. Do not give any single entity a private `userId` or ownership column ahead of that work — a second scoping mechanism is harder to unpick than none.
 

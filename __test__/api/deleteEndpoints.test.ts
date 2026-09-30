@@ -56,7 +56,9 @@ describe("DELETE /api/:domain/:id auth guard", () => {
     });
 
     it("proceeds to the delete when a session is present", async () => {
-      vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+      vi.mocked(auth).mockResolvedValue({
+        user: { name: "dm", role: "dm" },
+      } as never);
       vi.mocked(del).mockResolvedValue();
 
       const res = await handler(req, { params: Promise.resolve({ id: "1" }) });
@@ -69,7 +71,9 @@ describe("DELETE /api/:domain/:id auth guard", () => {
     // and "the database is unreachable" were the same value and the handler
     // returned 500 for both.
     it("returns 404 when the record does not exist", async () => {
-      vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+      vi.mocked(auth).mockResolvedValue({
+        user: { name: "dm", role: "dm" },
+      } as never);
       vi.mocked(del).mockRejectedValue(new NotFoundError("Record", 999999));
 
       const res = await handler(req, {
@@ -80,7 +84,9 @@ describe("DELETE /api/:domain/:id auth guard", () => {
     });
 
     it("returns 500 when the query itself fails", async () => {
-      vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+      vi.mocked(auth).mockResolvedValue({
+        user: { name: "dm", role: "dm" },
+      } as never);
       vi.mocked(del).mockRejectedValue(
         new DatabaseError("deleting", new Error("ECONNREFUSED"))
       );
@@ -94,7 +100,9 @@ describe("DELETE /api/:domain/:id auth guard", () => {
     it.each(["abc", "", "1.5", "-1", "0", "9e99"])(
       "returns 400 for a malformed id (%j) and never queries",
       async (id) => {
-        vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+        vi.mocked(auth).mockResolvedValue({
+          user: { name: "dm", role: "dm" },
+        } as never);
 
         const res = await handler(req, { params: Promise.resolve({ id }) });
 

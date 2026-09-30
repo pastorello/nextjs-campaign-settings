@@ -18,7 +18,9 @@ import updateZoneGrid from "./updateZoneGrid";
 describe("updateZoneGrid (SPEC-015 T4)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     update.mockResolvedValue({});
   });
 

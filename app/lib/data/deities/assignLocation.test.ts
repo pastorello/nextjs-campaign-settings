@@ -28,7 +28,9 @@ import assignDeityLocation from "./assignLocation";
 describe("assignDeityLocation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     updateMany.mockResolvedValue({ count: 1 });
   });
 

@@ -34,7 +34,9 @@ import placeZone from "./placeZone";
 describe("placeZone (SPEC-017 T3, extracted from updateZonePosition)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     updateMany.mockResolvedValue({ count: 1 });
     findUnique.mockResolvedValue({ parentId: 1 });
     findMany.mockResolvedValue([]);

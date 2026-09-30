@@ -22,7 +22,9 @@ import fetchLinkableEntities from "./fetchLinkableEntities";
 describe("fetchLinkableEntities", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
   });
 
   it("throws UnauthorizedError and never reads without a session", async () => {

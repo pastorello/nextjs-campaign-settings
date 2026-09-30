@@ -32,7 +32,9 @@ const validFormData: DhSubclass = {
 describe("subclass actions (SPEC-021 T5)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     create.mockResolvedValue({});
     update.mockResolvedValue({});
   });

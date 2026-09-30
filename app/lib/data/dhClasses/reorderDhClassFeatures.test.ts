@@ -23,7 +23,9 @@ import reorderDhClassFeatures from "./reorderDhClassFeatures";
 describe("reorderDhClassFeatures (SPEC-021 T4)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     transaction.mockImplementation(async (ops: Promise<unknown>[]) =>
       Promise.all(ops)
     );

@@ -50,7 +50,9 @@ const echo = ({ where }: { where: { id: { in: number[] } } }) =>
 describe("createWorldHistoryEvent (SPEC-014 T5)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     [zoneFindMany, npcFindMany, deitiesFindMany, factionFindMany].forEach(
       (findMany) => findMany.mockImplementation(echo)
     );

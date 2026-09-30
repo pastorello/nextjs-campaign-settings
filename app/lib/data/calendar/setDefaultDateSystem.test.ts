@@ -53,7 +53,9 @@ const defaults = () => rows.filter((row) => row.isDefault).map((row) => row.id);
 describe("setDefaultDateSystem (SPEC-014 T3)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     rows.splice(
       0,
       rows.length,

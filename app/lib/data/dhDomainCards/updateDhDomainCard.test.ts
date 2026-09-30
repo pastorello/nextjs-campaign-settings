@@ -20,7 +20,9 @@ const payload = (change: Partial<DhDomainCard>) =>
 describe("updateDhDomainCard (SPEC-021 T3)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     update.mockResolvedValue({});
   });
 

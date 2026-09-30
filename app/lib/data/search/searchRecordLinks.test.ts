@@ -15,7 +15,9 @@ import searchRecordLinks from "./searchRecordLinks";
 describe("searchRecordLinks", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
   });
 
   it("throws UnauthorizedError and never searches without a session", async () => {

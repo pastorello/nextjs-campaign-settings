@@ -16,7 +16,9 @@ import fetchZoneDescendantIds from "./fetchZoneDescendantIds";
 describe("fetchZoneDescendantIds", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
   });
 
   it("rejects an unauthenticated request", async () => {

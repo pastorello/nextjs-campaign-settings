@@ -11,6 +11,11 @@ vi.mock("next-intl/middleware", () => ({
   default: () => () => new Response(null, { status: 200 }),
 }));
 vi.mock("next-auth/jwt", () => ({ getToken: () => token }));
+// The dashboard's fresh role check reads the database; `access` decides it.
+let access: "dm" | "player" | "none" = "dm";
+vi.mock("./app/lib/auth/dashboardAccess", () => ({
+  default: () => Promise.resolve(access),
+}));
 process.env.AUTH_SECRET ??= "test-secret";
 
 const { config, default: proxy, systemRedirectPath } = await import("./proxy");
@@ -74,6 +79,7 @@ describe("systemRedirectPath (ADR-0013 rule 3)", () => {
 describe("proxy", () => {
   beforeEach(() => {
     token = { sub: "1" };
+    access = "dm";
   });
 
   function run(url: string) {
@@ -120,6 +126,84 @@ describe("proxy", () => {
     expect(location.pathname).toBe("/login");
     expect(location.searchParams.get("callbackUrl")).toBe(
       "http://localhost:3000/dashboard/dnd5e/spells"
+    );
+  });
+
+  // SPEC-022 T1 (ADR-0020): refused here, before anything renders, since a
+  // page's data renders in parallel with a layout that would refuse it.
+  describe("a player's session", () => {
+    beforeEach(() => {
+      token = { sub: "1", role: "player" };
+      access = "player";
+    });
+
+    it("is rewritten to the 403 page under the dashboard, keeping the URL", async () => {
+      const response = await run("/dashboard/dnd5e/npc");
+
+      expect(response.headers.get("x-middleware-rewrite")).toBe(
+        "http://localhost:3000/it/access-denied"
+      );
+      expect(response.headers.get("location")).toBeNull();
+    });
+
+    it("keeps the locale of the request", async () => {
+      const response = await run("/en/dashboard/dnd5e/admin/npc");
+
+      expect(response.headers.get("x-middleware-rewrite")).toBe(
+        "http://localhost:3000/en/access-denied"
+      );
+    });
+
+    // Signing out is a Server Action posted to the current page's URL.
+    it("lets a Server Action through to guard itself", async () => {
+      const response = await proxy(
+        new NextRequest("http://localhost:3000/dashboard/dnd5e/npc", {
+          method: "POST",
+          headers: { "next-action": "abc123" },
+        })
+      );
+
+      expect(response.headers.get("x-middleware-rewrite")).toBeNull();
+    });
+
+    it("rewrites a POST that is not a Server Action", async () => {
+      const response = await proxy(
+        new NextRequest("http://localhost:3000/dashboard/dnd5e/npc", {
+          method: "POST",
+        })
+      );
+
+      expect(response.headers.get("x-middleware-rewrite")).toBe(
+        "http://localhost:3000/it/access-denied"
+      );
+    });
+
+    it("is not refused outside the dashboard", async () => {
+      const response = await run("/login");
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("x-middleware-rewrite")).toBeNull();
+    });
+  });
+
+  it("lets the DM through", async () => {
+    const response = await run("/dashboard/dnd5e/admin/npc");
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-middleware-rewrite")).toBeNull();
+  });
+
+  // A token whose account was disabled or deleted after it signed in.
+  it("sends a disabled account to the login page", async () => {
+    access = "none";
+
+    const response = await run("/en/dashboard/dnd5e/npc");
+
+    expect(response.status).toBe(307);
+    const location = new URL(response.headers.get("location") ?? "");
+    expect(location.pathname).toBe("/en/login");
+    expect(location.searchParams.get("callbackUrl")).toBe(
+      "http://localhost:3000/en/dashboard/dnd5e/npc"
     );
   });
 });

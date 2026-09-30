@@ -21,7 +21,9 @@ import deleteDhClassFeatureById from "./deleteDhClassFeatureById";
 describe("deleteDhClassFeatureById (SPEC-021 T4)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     findUnique.mockResolvedValue({ id: 8, classId: 3 });
     del.mockResolvedValue({});
   });

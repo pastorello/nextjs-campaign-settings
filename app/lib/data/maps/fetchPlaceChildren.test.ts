@@ -56,7 +56,9 @@ function poiRow(overrides: Partial<Record<string, unknown>>) {
 describe("fetchPlaceChildren", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     zoneFindMany.mockResolvedValue([]);
     poiFindMany.mockResolvedValue([]);
   });

@@ -46,7 +46,9 @@ const valid: CampaignEventInput = {
 describe("updateCampaignEvent (SPEC-014 T6)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     eventFindUnique.mockResolvedValue({ campaignId: 1 });
     adventureFindUnique.mockResolvedValue({ campaignId: 1 });
     update.mockResolvedValue({});

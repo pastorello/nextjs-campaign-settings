@@ -40,7 +40,9 @@ function requestWithFile(file: File | null) {
 }
 
 const signedIn = () =>
-  vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+  vi
+    .mocked(auth)
+    .mockResolvedValue({ user: { name: "dm", role: "dm" } } as never);
 
 describe("POST /api/record-images", () => {
   beforeEach(() => {

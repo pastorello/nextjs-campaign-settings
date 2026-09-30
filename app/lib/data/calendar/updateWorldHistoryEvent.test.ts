@@ -39,7 +39,9 @@ const valid: WorldHistoryEventInput = {
 describe("updateWorldHistoryEvent (SPEC-014 T5)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     findUnique.mockResolvedValue({ campaignId: null });
     zoneFindMany.mockResolvedValue([{ id: 2 }]);
     update.mockResolvedValue({});

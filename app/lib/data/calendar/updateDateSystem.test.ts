@@ -22,7 +22,9 @@ const payload = { ...humanCountInputFixture, id: 2 };
 describe("updateDateSystem (SPEC-014 T3)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
   });
 
   it("rejects an unauthenticated request without writing", async () => {

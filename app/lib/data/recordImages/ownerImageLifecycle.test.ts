@@ -152,7 +152,9 @@ const owners: Owner[] = [
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+  vi.mocked(auth).mockResolvedValue({
+    user: { name: "dm", role: "dm" },
+  } as never);
   checkRecordImageReference.mockResolvedValue(null);
   deleteRecordImage.mockResolvedValue(undefined);
   for (const model of Object.values(models)) {

@@ -19,7 +19,9 @@ import deleteDateSystemById from "./deleteDateSystemById";
 describe("deleteDateSystemById (SPEC-014 T3)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
   });
 
   it("rejects an unauthenticated request without deleting", async () => {

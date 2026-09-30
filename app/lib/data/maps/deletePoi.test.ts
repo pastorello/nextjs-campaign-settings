@@ -32,7 +32,9 @@ import deletePoi from "./deletePoi";
 describe("deletePoi", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     del.mockResolvedValue({});
     npcUpdateMany.mockResolvedValue({ count: 0 });
     deitiesUpdateMany.mockResolvedValue({ count: 0 });

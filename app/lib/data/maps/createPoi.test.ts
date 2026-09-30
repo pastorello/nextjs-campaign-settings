@@ -36,7 +36,9 @@ const validPayload = {
 describe("createPoi", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     findMany.mockResolvedValue([]);
   });
 

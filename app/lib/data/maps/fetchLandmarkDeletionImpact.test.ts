@@ -22,7 +22,9 @@ import fetchLandmarkDeletionImpact from "./fetchLandmarkDeletionImpact";
 describe("fetchLandmarkDeletionImpact (SPEC-023, after TD-147)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     npcCount.mockResolvedValue(0);
     deitiesCount.mockResolvedValue(0);
   });

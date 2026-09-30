@@ -33,7 +33,9 @@ describe("GET /api/maps/[id]/image", () => {
   });
 
   it("returns 404 when the image does not exist", async () => {
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     get.mockResolvedValue(null);
 
     const response = await GET(
@@ -45,7 +47,9 @@ describe("GET /api/maps/[id]/image", () => {
   });
 
   it("streams the image bytes with the stored content type", async () => {
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     const data = Buffer.from("png-bytes");
     get.mockResolvedValue({ data, contentType: "image/png" });
 

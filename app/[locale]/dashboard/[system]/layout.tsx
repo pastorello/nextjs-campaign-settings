@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import SideNav from "@/app/ui/dashboard/sidenav";
+import requireDmPage from "@/app/lib/auth/requireDmPage";
 import { isGameSystem } from "@/app/lib/definitions/GameSystem";
 
 /**
@@ -14,6 +15,13 @@ export default async function Layout({
 }: LayoutProps<"/[locale]/dashboard/[system]">) {
   const { system } = await params;
   if (!isGameSystem(system)) notFound();
+  // SPEC-022 T1: the whole dashboard is the DM's until T7/T8 open its read
+  // pages to players, each once it filters what a campaign may see. The
+  // proxy is the boundary: it rewrites a player to the 403 page before
+  // anything renders. This is the second layer, for when its check fails
+  // open. It cannot keep the page's data out of the response on its own,
+  // since a page renders in parallel with its layout (ADR-0020).
+  await requireDmPage();
 
   return (
     <div className="flex h-screen flex-col md:flex-row md:overflow-hidden">

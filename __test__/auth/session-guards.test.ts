@@ -1,12 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
-import requireDm, { UnauthorizedError } from "@/app/lib/auth/requireDm";
+import requireDm, {
+  ForbiddenError,
+  UnauthorizedError,
+} from "@/app/lib/auth/requireDm";
 import requireApiDm from "@/app/lib/auth/requireApiDm";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 
-const withUser = { user: { name: "dm" } };
+const withUser = { user: { name: "dm", role: "dm" } };
+const withPlayer = { user: { name: "p", role: "player" } };
 
 describe("requireDm (mutation guard)", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -28,6 +32,21 @@ describe("requireDm (mutation guard)", () => {
 
     await expect(requireDm()).rejects.toBeInstanceOf(UnauthorizedError);
   });
+
+  // SPEC-022 T1: every mutation is the DM's.
+  it("throws ForbiddenError for a player's session", async () => {
+    vi.mocked(auth).mockResolvedValue(withPlayer as never);
+
+    await expect(requireDm()).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
+  // A role the session callback could not set is not a DM's: never
+  // default to the powerful side.
+  it("throws ForbiddenError when the session carries no role", async () => {
+    vi.mocked(auth).mockResolvedValue({ user: { name: "x" } } as never);
+
+    await expect(requireDm()).rejects.toBeInstanceOf(ForbiddenError);
+  });
 });
 
 describe("requireApiDm (route-handler guard)", () => {
@@ -47,5 +66,15 @@ describe("requireApiDm (route-handler guard)", () => {
     expect(res).not.toBeNull();
     expect(res!.status).toBe(401);
     await expect(res!.json()).resolves.toEqual({ error: "Unauthorized" });
+  });
+
+  it("returns a 403 response for a player's session (SPEC-022 T1)", async () => {
+    vi.mocked(auth).mockResolvedValue(withPlayer as never);
+
+    const res = await requireApiDm();
+
+    expect(res).not.toBeNull();
+    expect(res!.status).toBe(403);
+    await expect(res!.json()).resolves.toEqual({ error: "Forbidden" });
   });
 });

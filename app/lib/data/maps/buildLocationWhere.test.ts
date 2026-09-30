@@ -14,7 +14,9 @@ import buildLocationWhere from "./buildLocationWhere";
 describe("buildLocationWhere", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
   });
 
   it("leaves the where clause untouched when neither param is present", async () => {

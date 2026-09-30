@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { rectangleFootprint } from "@/app/modules/maps/lib/utils/footprint";
 
 import { auth } from "@/auth";
 
@@ -72,10 +73,7 @@ describe("createPoi", () => {
     findMany.mockResolvedValue([
       {
         title: "Kang",
-        footprint: [
-          [0, 0],
-          [15, 25],
-        ],
+        footprint: rectangleFootprint([0, 0], [15, 25]),
       },
     ]);
 

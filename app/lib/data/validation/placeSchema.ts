@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import zoneMeta from "@/app/lib/config/geography/zoneMeta";
 import { NAVIGABLE_PLACE_KINDS } from "@/app/modules/maps/constants/place-kinds";
+import { footprintSchema } from "./footprintSchema";
 
 const coordinatePair = z.tuple([z.number(), z.number()]);
 
@@ -39,9 +40,10 @@ export const placeSchema = z.object({
   mapBounds: z.tuple([coordinatePair, coordinatePair]).optional(),
   mapInitialView: coordinatePair.optional(),
   mapInitialZoom: z.number().int().optional(),
-  // The rectangle this place casts on its parent's map (SPEC-009). Present
-  // only when the place is being created as an area rather than a point.
-  footprint: z.tuple([coordinatePair, coordinatePair]).optional(),
+  // The outline this place casts on its parent's map (SPEC-009; a polygon
+  // since SPEC-024). Present only when the place is being created as an
+  // area rather than a point.
+  footprint: footprintSchema.optional(),
   // The place's picture (SPEC-020 T3), uploaded before the place is created.
   imageId: zoneMeta.imageId.validator,
 });

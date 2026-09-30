@@ -147,6 +147,7 @@
       "landmarkWithoutZone": "Non si può scegliere un luogo specifico senza una zona: un luogo specifico appartiene sempre a una zona.",
       "beforeDawnOfTime": "Questa data è precedente all'alba dei tempi.",
       "dayNotInMonth": "Questo mese ha {days} giorni.",
+      "areaSelfIntersects": "Il contorno si incrocia con sé stesso: un'area deve essere un unico perimetro chiuso.",
       "areaTooSmall": "Quest'area è troppo piccola per essere disegnata.",
       "areaOverlaps": "Si sovrappone a un'area esistente: {title}.",
       "areaCoversPlaces": "Coprirebbe luoghi esistenti: {titles}.",
@@ -669,7 +670,7 @@
     },
     "drawArea": {
       "trigger": "Aggiungi sottomappa",
-      "active": "Trascina sulla mappa — Esc per annullare"
+      "active": "Clicca per aggiungere i vertici · clic sul primo, doppio clic o Invio per chiudere · Backspace toglie l'ultimo · Esc per annullare"
     },
     "zoneEdit": {
       "title": "Modifica luogo",
@@ -677,9 +678,9 @@
       "success": "Luogo salvato.",
       "area": {
         "label": "Area sulla mappa del genitore",
-        "redraw": "Ridisegna il rettangolo",
-        "redrawHint": "Le modifiche qui sopra vengono salvate, poi trascina sulla mappa — Esc per annullare.",
-        "noArea": "Questo luogo è un punto, non un’area: non ha un rettangolo da ridisegnare."
+        "redraw": "Ridisegna il contorno",
+        "redrawHint": "Le modifiche qui sopra vengono salvate, poi disegna il nuovo contorno sulla mappa, un clic per vertice — Esc per annullare.",
+        "noArea": "Questo luogo è un punto, non un’area: non ha un contorno da ridisegnare."
       },
       "errors": {
         "saveFailed": "Salvataggio del luogo non riuscito. Riprova."

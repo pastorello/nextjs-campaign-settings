@@ -39,6 +39,7 @@ export const FIELD_ERROR_KEYS = [
   "repeatSpansOverAYear",
   "campaignEventNoLinks",
   // Data-layer refusals
+  "areaSelfIntersects",
   "areaTooSmall",
   "areaOverlaps",
   "areaCoversPlaces",

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { rectangleFootprint } from "@/app/modules/maps/lib/utils/footprint";
 
 import { auth } from "@/auth";
 import { UnauthorizedError } from "@/app/lib/auth/requireSession";
@@ -152,10 +153,7 @@ describe("placeZone (SPEC-017 T3, extracted from updateZonePosition)", () => {
     findMany.mockResolvedValue([
       {
         title: "Kang",
-        footprint: [
-          [10, 10],
-          [50, 50],
-        ],
+        footprint: rectangleFootprint([10, 10], [50, 50]),
       },
     ]);
 

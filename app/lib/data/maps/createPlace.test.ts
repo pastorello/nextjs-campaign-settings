@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { rectangleFootprint } from "@/app/modules/maps/lib/utils/footprint";
 
 import { auth } from "@/auth";
 
@@ -122,10 +123,7 @@ describe("createPlace", () => {
           title: "Kang",
           lat: 5,
           lng: 5,
-          footprint: [
-            [0, 0],
-            [10, 10],
-          ],
+          footprint: rectangleFootprint([0, 0], [10, 10]),
         },
       ]);
 
@@ -153,10 +151,7 @@ describe("createPlace", () => {
       ...commonFields,
       kind: "region" as const,
       mapImage: "kang.png",
-      footprint: [
-        [0, 0],
-        [10, 20],
-      ] as [[number, number], [number, number]],
+      footprint: rectangleFootprint([0, 0], [10, 20]),
     };
 
     it("persists the footprint and derives lat/lng from its centre, ignoring the sent coordinates", async () => {
@@ -188,10 +183,7 @@ describe("createPlace", () => {
 
       const result = await createPlace({
         ...areaFields,
-        footprint: [
-          [0, 0],
-          [0.5, 0.5],
-        ],
+        footprint: rectangleFootprint([0, 0], [0.5, 0.5]),
       });
 
       expect(result.ok).toBe(false);
@@ -204,10 +196,7 @@ describe("createPlace", () => {
           title: "Skreebars",
           lat: 5,
           lng: 15,
-          footprint: [
-            [5, 15],
-            [15, 25],
-          ],
+          footprint: rectangleFootprint([5, 15], [15, 25]),
         },
       ]);
 
@@ -230,10 +219,7 @@ describe("createPlace", () => {
           title: "Neighbour",
           lat: 5,
           lng: 25,
-          footprint: [
-            [0, 20],
-            [10, 30],
-          ],
+          footprint: rectangleFootprint([0, 20], [10, 30]),
         },
       ]);
 

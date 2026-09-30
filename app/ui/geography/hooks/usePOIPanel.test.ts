@@ -2,13 +2,10 @@ import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { usePOIPanel } from "./usePOIPanel";
-import type { Footprint } from "@/app/modules/maps/lib/utils/footprint";
+import { rectangleFootprint } from "@/app/modules/maps/lib/utils/footprint";
 import type { POI } from "@/app/modules/maps/types/poi";
 
-const footprint: Footprint = [
-  [1, 1],
-  [2, 2],
-];
+const footprint = rectangleFootprint([1, 1], [2, 2]);
 const poi = { id: "client-1", title: "Faro" } as POI;
 
 function render() {

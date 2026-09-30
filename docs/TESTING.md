@@ -193,6 +193,8 @@ Chromium in CI; add Firefox and WebKit once the suite is stable. E2E is expensiv
 
 Use `page.getByRole` / `getByLabel`, not CSS selectors — role-based queries double as accessibility assertions.
 
+**Cloud sessions.** A Claude Code cloud container has no Docker and no `.env`, so the local setup above does not apply. `scripts/cloud-setup.sh` does the equivalent: it installs and starts a local Postgres, creates a dev database and a separate E2E one, writes `.env` and `.env.test` only if they are missing, applies migrations and the seed to both, and installs Chromium. It is idempotent, so a session can run it again after a reset. Point the cloud environment's setup script at `bash scripts/cloud-setup.sh` if it has one; otherwise it is a session's first command. The credentials are the fixed, throwaway ones CI uses — nothing in a cloud container is the DM's real data, which stays on the maintainer's machine. **Written 2026-09-30 and not yet run in a real cloud container:** the first session that runs it is also its test, and should fix what it finds here.
+
 ### Explicitly out of scope
 
 - Visual regression testing (Percy/Chromatic) — nice, not worth the setup cost yet.

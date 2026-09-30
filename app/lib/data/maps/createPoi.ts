@@ -4,7 +4,7 @@ import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { checkPointPlacement } from "./checkPlacement";
 import { buildPoiCreateSchema } from "../validation/poiSchema";
@@ -23,7 +23,7 @@ import type {
 export default async function createPoi(
   formData: PoiCreateInput
 ): Promise<PoiCreateResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = buildPoiCreateSchema().safeParse(formData);
   if (!parsed.success) {

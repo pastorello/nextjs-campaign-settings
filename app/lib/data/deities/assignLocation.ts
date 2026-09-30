@@ -5,7 +5,7 @@ import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import type AssignLocationInput from "../../definitions/interfaces/maps/AssignLocationInput";
@@ -25,7 +25,7 @@ import resolveLocationAssignment from "../maps/resolveLocationAssignment";
 export default async function assignDeityLocation(
   formData: AssignLocationInput
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = buildAssignLocationSchema().safeParse(formData);
   if (!parsed.success) {

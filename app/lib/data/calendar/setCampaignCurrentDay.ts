@@ -3,7 +3,7 @@
 import { z } from "zod";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import campaignCalendarMeta from "@/app/lib/config/calendar/campaignCalendarMeta";
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
@@ -24,7 +24,7 @@ export default async function setCampaignCurrentDay(
   campaignId: number,
   formData: { currentDay: number | null }
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = currentDaySchema.safeParse(formData);
   if (!parsed.success) {

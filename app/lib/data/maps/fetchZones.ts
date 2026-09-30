@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import type ZoneOption from "../../definitions/interfaces/maps/ZoneOption";
 
@@ -11,7 +11,7 @@ import type ZoneOption from "../../definitions/interfaces/maps/ZoneOption";
  * of these," not the containment structure `fetchPlaceChildren` walks.
  */
 export default async function fetchZones(): Promise<ZoneOption[]> {
-  await requireSession();
+  await requireDm();
 
   try {
     return await prisma.zone.findMany({

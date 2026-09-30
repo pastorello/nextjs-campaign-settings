@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import type PlaceChild from "../../definitions/interfaces/maps/PlaceChild";
 
@@ -20,7 +20,7 @@ import type PlaceChild from "../../definitions/interfaces/maps/PlaceChild";
 export default async function fetchPlaceChildren(
   parentId: number
 ): Promise<PlaceChild[]> {
-  await requireSession();
+  await requireDm();
 
   let zoneRows, poiRows;
   try {

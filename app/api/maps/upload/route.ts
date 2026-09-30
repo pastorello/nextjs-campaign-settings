@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import requireApiSession from "@/app/lib/auth/requireApiSession";
+import requireApiDm from "@/app/lib/auth/requireApiDm";
 import defaultMapImageStore from "@/app/lib/storage/defaultMapImageStore";
 import {
   ALLOWED_IMAGE_CONTENT_TYPES,
@@ -15,7 +15,7 @@ import {
  * id yet — that wiring is M2+.
  */
 export async function POST(request: NextRequest) {
-  const unauthorized = await requireApiSession();
+  const unauthorized = await requireApiDm();
   if (unauthorized) return unauthorized;
 
   const formData = await request.formData();

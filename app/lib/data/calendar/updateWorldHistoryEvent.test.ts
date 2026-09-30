@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
-import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import { UnauthorizedError } from "@/app/lib/auth/requireDm";
 import NotFoundError from "@/app/lib/errors/NotFoundError";
 import WorldHistoryEventInput from "@/app/lib/definitions/interfaces/calendar/WorldHistoryEventInput";
 
@@ -39,7 +39,9 @@ const valid: WorldHistoryEventInput = {
 describe("updateWorldHistoryEvent (SPEC-014 T5)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     findUnique.mockResolvedValue({ campaignId: null });
     zoneFindMany.mockResolvedValue([{ id: 2 }]);
     update.mockResolvedValue({});

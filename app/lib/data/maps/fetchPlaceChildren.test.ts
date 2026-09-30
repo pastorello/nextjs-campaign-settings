@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
-import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import { UnauthorizedError } from "@/app/lib/auth/requireDm";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 
@@ -56,7 +56,9 @@ function poiRow(overrides: Partial<Record<string, unknown>>) {
 describe("fetchPlaceChildren", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     zoneFindMany.mockResolvedValue([]);
     poiFindMany.mockResolvedValue([]);
   });

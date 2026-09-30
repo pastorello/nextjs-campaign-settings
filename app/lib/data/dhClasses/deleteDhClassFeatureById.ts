@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import fieldError from "@/app/lib/data/validation/fieldError";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
@@ -17,7 +17,7 @@ import NotFoundError from "@/app/lib/errors/NotFoundError";
 export default async function deleteDhClassFeatureById(
   id: number
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   let existing;
   try {

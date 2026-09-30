@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
-import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import { UnauthorizedError } from "@/app/lib/auth/requireDm";
 import DatabaseError from "@/app/lib/errors/DatabaseError";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
@@ -43,7 +43,9 @@ function poiRow(overrides: Partial<Record<string, unknown>> = {}) {
 describe("fetchUnplacedPlaces (SPEC-017 T2)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     zoneFindMany.mockResolvedValue([]);
     poiFindMany.mockResolvedValue([]);
   });

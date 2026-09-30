@@ -50,7 +50,9 @@ describe("POST /api/maps/upload", () => {
   });
 
   it("rejects a request with no file", async () => {
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     const request = requestWithFormData(new Map());
 
     const response = await POST(request);
@@ -60,7 +62,9 @@ describe("POST /api/maps/upload", () => {
   });
 
   it("rejects a disallowed content type", async () => {
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     const request = requestWithFormData(
       new Map([["file", fileEntry("map.pdf", "application/pdf", "x")]])
     );
@@ -72,7 +76,9 @@ describe("POST /api/maps/upload", () => {
   });
 
   it("rejects a file over the size limit", async () => {
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     const request = requestWithFormData(
       new Map([
         [
@@ -93,7 +99,9 @@ describe("POST /api/maps/upload", () => {
   });
 
   it("stores a valid upload and returns its id", async () => {
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     put.mockResolvedValue("generated-id.png");
     const request = requestWithFormData(
       new Map([["file", fileEntry("map.png", "image/png", "map bytes")]])

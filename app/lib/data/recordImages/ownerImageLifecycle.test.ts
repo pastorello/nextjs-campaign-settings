@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
-import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import { UnauthorizedError } from "@/app/lib/auth/requireDm";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import FieldErrors from "@/app/lib/definitions/types/FieldErrors";
 import RecordImageOwner from "@/app/lib/definitions/types/RecordImageOwner";
@@ -152,7 +152,9 @@ const owners: Owner[] = [
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+  vi.mocked(auth).mockResolvedValue({
+    user: { name: "dm", role: "dm" },
+  } as never);
   checkRecordImageReference.mockResolvedValue(null);
   deleteRecordImage.mockResolvedValue(undefined);
   for (const model of Object.values(models)) {

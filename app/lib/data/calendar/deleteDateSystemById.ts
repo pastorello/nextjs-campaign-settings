@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
@@ -25,7 +25,7 @@ import dateSystemIdValidator from "@/app/lib/utils/validators/dateSystemIdValida
 export default async function deleteDateSystemById(
   id: number
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = dateSystemIdValidator.safeParse(id);
   if (!parsed.success) {

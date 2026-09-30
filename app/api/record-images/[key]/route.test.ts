@@ -32,7 +32,9 @@ describe("GET /api/record-images/[key]", () => {
   });
 
   it("returns 404 when no image is stored under the key", async () => {
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     get.mockResolvedValue(null);
 
     const response = await fetchKey("missing.webp");
@@ -41,7 +43,9 @@ describe("GET /api/record-images/[key]", () => {
   });
 
   it("serves the bytes with their content type, cacheable only by the browser", async () => {
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     const data = Buffer.from("webp-bytes");
     get.mockResolvedValue({ data, contentType: "image/webp" });
 

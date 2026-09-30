@@ -4,7 +4,7 @@ import PageType from "@/app/lib/definitions/types/PageType";
 import { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import { entityFieldKeys } from "@/app/lib/data/validation/buildEntitySchema";
 
-// buildLocationWhere's zoneId branch calls requireSession(); mocked so the
+// buildLocationWhere's zoneId branch calls requireDm(); mocked so the
 // real next-auth config never loads.
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 

@@ -2,7 +2,7 @@
 
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import SceneCreature from "@/app/lib/definitions/interfaces/campaign/SceneCreature";
 import sceneCreatureMeta from "@/app/lib/config/campaigns/sceneCreatureMeta";
@@ -19,7 +19,7 @@ import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 export default async function updateSceneCreature(
   formData: SceneCreature
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed =
     buildBespokeUpdateSchema(sceneCreatureMeta).safeParse(formData);

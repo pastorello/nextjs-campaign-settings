@@ -7,7 +7,7 @@ import { z } from "zod";
 
 import { Prisma } from "@/generated/prisma/client";
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
@@ -32,7 +32,7 @@ const inputSchema = z.object({
 export default async function unplacePlace(formData: {
   id: number;
 }): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = inputSchema.safeParse(formData);
   if (!parsed.success) {

@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { isPlaceKind } from "@/app/modules/maps/constants/place-kinds";
 import type UnplacedPlace from "../../definitions/interfaces/maps/UnplacedPlace";
@@ -33,7 +33,7 @@ import type UnplacedPlace from "../../definitions/interfaces/maps/UnplacedPlace"
  * only have to sort again.
  */
 export default async function fetchUnplacedPlaces(): Promise<UnplacedPlace[]> {
-  await requireSession();
+  await requireDm();
 
   let zoneRows, poiRows;
   try {

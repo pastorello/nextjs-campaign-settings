@@ -4,7 +4,7 @@ import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { buildPoiUpdateSchema } from "../validation/poiSchema";
@@ -32,7 +32,7 @@ import type { PoiUpdateInput } from "../../definitions/interfaces/maps/Poi";
 export default async function updatePoi(
   formData: PoiUpdateInput
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = buildPoiUpdateSchema().safeParse(formData);
   if (!parsed.success) {

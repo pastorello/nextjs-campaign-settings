@@ -5,7 +5,7 @@ import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import checkRecordImageReference from "@/app/lib/data/recordImages/checkRecordImageReference";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { checkAreaPlacement, checkPointPlacement } from "./checkPlacement";
@@ -30,7 +30,7 @@ import type { CreatePlaceResult } from "../../definitions/interfaces/maps/Place"
 export default async function createPlace(
   formData: PlaceInput
 ): Promise<CreatePlaceResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = placeSchema.safeParse(formData);
   if (!parsed.success) {

@@ -6,7 +6,7 @@ import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import { z } from "zod";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { checkAreaPlacement, checkPointPlacement } from "./checkPlacement";
@@ -66,7 +66,7 @@ export default async function updateZonePosition(
     | { id: number; lat: number; lng: number }
     | { id: number; footprint: Footprint; centre?: Point }
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = inputSchema.safeParse(formData);
   if (!parsed.success) {

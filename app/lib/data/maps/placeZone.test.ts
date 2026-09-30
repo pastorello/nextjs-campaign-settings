@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { rectangleFootprint } from "@/app/modules/maps/lib/utils/footprint";
 
 import { auth } from "@/auth";
-import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import { UnauthorizedError } from "@/app/lib/auth/requireDm";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
@@ -34,7 +34,9 @@ import placeZone from "./placeZone";
 describe("placeZone (SPEC-017 T3, extracted from updateZonePosition)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     updateMany.mockResolvedValue({ count: 1 });
     findUnique.mockResolvedValue({ parentId: 1 });
     findMany.mockResolvedValue([]);

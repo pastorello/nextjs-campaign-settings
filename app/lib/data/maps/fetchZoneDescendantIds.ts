@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 /**
@@ -15,7 +15,7 @@ import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 export default async function fetchZoneDescendantIds(
   zoneId: number
 ): Promise<number[]> {
-  await requireSession();
+  await requireDm();
 
   let zones: { id: number; parentId: number | null }[];
   try {

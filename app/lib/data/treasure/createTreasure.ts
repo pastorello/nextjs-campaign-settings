@@ -3,7 +3,7 @@
 import checkRecordImageReference from "@/app/lib/data/recordImages/checkRecordImageReference";
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import PageType from "@/app/lib/definitions/types/PageType";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildCreateSchema } from "../validation/buildEntitySchema";
@@ -14,7 +14,7 @@ import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 export default async function createTreasure(
   formData: Treasure
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = buildCreateSchema(PageType.Treasure).safeParse(formData);
   if (!parsed.success) {

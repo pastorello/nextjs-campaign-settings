@@ -5,7 +5,7 @@ import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { POI_CATEGORIES } from "@/app/modules/maps/constants/poi-categories";
 import {
@@ -31,7 +31,7 @@ import type { PickerPlaceResult } from "../../definitions/interfaces/maps/Picker
 export default async function createPlaceFromPicker(
   input: PickerPlaceInput
 ): Promise<PickerPlaceResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = pickerPlaceSchema.safeParse(input);
   if (!parsed.success) {

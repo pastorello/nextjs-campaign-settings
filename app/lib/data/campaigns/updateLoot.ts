@@ -3,7 +3,7 @@
 import type FieldErrorKey from "@/app/lib/definitions/types/FieldErrorKey";
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import Loot from "@/app/lib/definitions/interfaces/campaign/Loot";
 import lootMeta from "@/app/lib/config/campaigns/lootMeta";
@@ -22,7 +22,7 @@ import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 export default async function updateLoot(
   formData: Loot
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const schema = buildBespokeUpdateSchema(lootMeta).refine(
     (data) => !(data.magicItemId != null && data.treasureId != null),

@@ -2,9 +2,8 @@ import { getTranslations } from "next-intl/server";
 import NavLinks from "@/app/ui/dashboard/nav-links";
 import LocaleSwitcher from "@/app/ui/dashboard/LocaleSwitcher";
 import SystemSwitcher from "@/app/ui/dashboard/SystemSwitcher";
-import { PowerIcon } from "@heroicons/react/24/outline";
 import { Link } from "@/i18n/navigation";
-import { signOut } from "@/auth";
+import SignOutButton from "@/app/ui/dashboard/SignOutButton";
 import CampaignSettingsLogo from "../icons/CampaignSettingsLogo";
 
 export default async function SideNav() {
@@ -28,17 +27,7 @@ export default async function SideNav() {
         <div className="hidden h-auto w-full grow rounded-md bg-gray-50 md:block"></div>
         <SystemSwitcher />
         <LocaleSwitcher />
-        <form
-          action={async () => {
-            "use server";
-            await signOut({ redirectTo: "/" });
-          }}
-        >
-          <button className="flex h-[48px] grow items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3">
-            <PowerIcon className="w-6" />
-            <div className="hidden md:block">{t("signOut")}</div>
-          </button>
-        </form>
+        <SignOutButton />
       </nav>
     </div>
   );

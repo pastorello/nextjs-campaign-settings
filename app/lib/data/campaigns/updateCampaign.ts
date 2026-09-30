@@ -2,7 +2,7 @@
 
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import Campaign from "@/app/lib/definitions/interfaces/campaign/Campaign";
 import campaignMeta from "@/app/lib/config/campaigns/campaignMeta";
@@ -29,7 +29,7 @@ const updatableCampaignMeta = Object.fromEntries(
 export default async function updateCampaign(
   formData: Omit<Campaign, "system">
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = buildBespokeUpdateSchema(updatableCampaignMeta).safeParse(
     formData

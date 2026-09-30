@@ -5,7 +5,7 @@ import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import { z } from "zod";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import validateAndReorder from "./validateAndReorder";
 
@@ -24,7 +24,7 @@ export default async function reorderLoot(
   sceneId: number,
   orderedIds: number[]
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = reorderSchema.safeParse({ sceneId, orderedIds });
   if (!parsed.success) {

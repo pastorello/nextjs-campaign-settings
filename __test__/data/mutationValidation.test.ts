@@ -70,7 +70,9 @@ const domains = [
 describe("mutation input validation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
   });
 
   describe.each(domains)("$name", ({ table, type, create, update }) => {

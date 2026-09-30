@@ -250,6 +250,16 @@ model users {
   name      String   @db.VarChar(255)
   email     String   @unique
   password  String
+  // SPEC-022 T1 — `dm` edits the setting, `player` reads what a campaign has
+  // been shown. A closed vocabulary in code (`UserRole`), like
+  // `campaign.system`. The default is the safe side: an account nobody set a
+  // role on can change nothing. The migration backfilled every account that
+  // existed before roles to `dm`.
+  role      String   @default("player")
+  // False for a disabled account, and for a DM sign-up awaiting activation
+  // (SPEC-022 T4). An inactive account cannot sign in, and an open session
+  // ends at its next request.
+  active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

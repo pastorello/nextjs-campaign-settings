@@ -7,6 +7,7 @@ import {
   DEFAULT_GAME_SYSTEM,
   isGameSystem,
 } from "./app/lib/definitions/GameSystem";
+import dashboardAccess from "./app/lib/auth/dashboardAccess";
 import { authConfig } from "./auth.config";
 import { DASHBOARD_ROOT } from "./i18n/dashboardPath";
 import { routing } from "./i18n/routing";
@@ -31,7 +32,7 @@ function isRedirect(response: Response) {
 function splitLocale(pathname: string) {
   const match = pathname.match(localePattern);
   return match
-    ? { locale: match[1], rest: match[2] || "/" }
+    ? { locale: match[1] ?? routing.defaultLocale, rest: match[2] || "/" }
     : { locale: routing.defaultLocale, rest: pathname };
 }
 
@@ -53,6 +54,29 @@ export function systemRedirectPath(pathname: string): string | null {
   const prefix = pathname.slice(0, pathname.length - rest.length);
   const tail = rest.slice(DASHBOARD_ROOT.length);
   return `${prefix}${DASHBOARD_ROOT}/${DEFAULT_GAME_SYSTEM}${tail}`;
+}
+
+// SPEC-022 T1: a Server Action's POST. It goes through to its action, which
+// guards itself (`requireDm`). Rewriting it would break the one action a
+// player needs, which is signing out.
+function isServerAction(req: NextRequest) {
+  return req.method === "POST" && req.headers.has("next-action");
+}
+
+function isDashboardPath(rest: string) {
+  return rest === DASHBOARD_ROOT || rest.startsWith(`${DASHBOARD_ROOT}/`);
+}
+
+const signInPage = authConfig.pages?.signIn ?? "/login";
+
+// The login page in the request's locale, with a callbackUrl back to where
+// the request was going.
+function signInUrlFor(req: NextRequest, locale: string) {
+  const signInUrl = req.nextUrl.clone();
+  signInUrl.pathname =
+    locale === routing.defaultLocale ? signInPage : `/${locale}${signInPage}`;
+  signInUrl.searchParams.set("callbackUrl", req.nextUrl.href);
+  return signInUrl;
 }
 
 export default async function proxy(req: NextRequest) {
@@ -93,15 +117,31 @@ export default async function proxy(req: NextRequest) {
 
   if (!isAuthorized) {
     const { locale, rest } = splitLocale(req.nextUrl.pathname);
-    const signInPage = authConfig.pages?.signIn ?? "/login";
     if (rest !== signInPage) {
-      const signInUrl = req.nextUrl.clone();
-      signInUrl.pathname =
-        locale === routing.defaultLocale
-          ? signInPage
-          : `/${locale}${signInPage}`;
-      signInUrl.searchParams.set("callbackUrl", req.nextUrl.href);
-      return NextResponse.redirect(signInUrl);
+      return NextResponse.redirect(signInUrlFor(req, locale));
+    }
+  }
+
+  // SPEC-022 T1 (ADR-0020): the dashboard is the DM's alone until T7/T8
+  // open its read pages to players, one filtered path at a time. The check
+  // is here, before anything renders, because a page's data renders in
+  // parallel with its layout: a layout's refusal would still send it. The
+  // role is read fresh from the row, since the token's is fixed at sign-in.
+  const { locale, rest } = splitLocale(req.nextUrl.pathname);
+  if (token && isDashboardPath(rest)) {
+    const access = await dashboardAccess(token);
+    if (access === "none") {
+      // Disabled or deleted since it signed in: signed out, in effect.
+      return NextResponse.redirect(signInUrlFor(req, locale));
+    }
+    if (access === "player" && !isServerAction(req)) {
+      // Rewritten, not redirected, so the address bar keeps the URL that was
+      // asked for. The target answers with `forbidden()`: a 403 page that
+      // offers the way to sign out. A client navigation is rewritten the same
+      // way, and its RSC payload carries that page and nothing else. The
+      // proxy cannot tell a navigation from a document load, because Next
+      // strips the RSC headers before it runs.
+      return NextResponse.rewrite(new URL(`/${locale}/access-denied`, req.url));
     }
   }
 

@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import type LandmarkDeletionImpact from "../../definitions/interfaces/maps/LandmarkDeletionImpact";
 
@@ -15,7 +15,7 @@ import type LandmarkDeletionImpact from "../../definitions/interfaces/maps/Landm
 export default async function fetchLandmarkDeletionImpact(
   id: number
 ): Promise<LandmarkDeletionImpact> {
-  await requireSession();
+  await requireDm();
 
   try {
     const [npcCount, deityCount] = await Promise.all([

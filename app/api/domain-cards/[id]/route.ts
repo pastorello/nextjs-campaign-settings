@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import requireApiSession from "@/app/lib/auth/requireApiSession";
+import requireApiDm from "@/app/lib/auth/requireApiDm";
 import parseIdParam from "@/app/lib/data/validation/parseIdParam";
 import toErrorResponse from "@/app/lib/errors/toErrorResponse";
 import { deleteDhDomainCardById } from "@/app/lib/data/dhDomainCards/deleteDhDomainCardById";
@@ -9,7 +9,7 @@ export async function DELETE(
   _request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const unauthorized = await requireApiSession();
+  const unauthorized = await requireApiDm();
   if (unauthorized) return unauthorized;
 
   const theParams = await context.params;

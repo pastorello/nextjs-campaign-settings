@@ -27,7 +27,9 @@ import updateZonePosition from "./updateZonePosition";
 describe("updateZonePosition", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     poiFindMany.mockResolvedValue([]);
     update.mockResolvedValue({});
     updateMany.mockResolvedValue({ count: 1 });

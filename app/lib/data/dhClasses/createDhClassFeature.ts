@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import DhClassFeature from "@/app/lib/definitions/interfaces/daggerheart/DhClassFeature";
 import dhClassFeatureMeta from "@/app/lib/config/daggerheart/dhClassFeatureMeta";
@@ -20,7 +20,7 @@ import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 export default async function createDhClassFeature(
   formData: Omit<DhClassFeature, "id">
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = buildBespokeCreateSchema(dhClassFeatureMeta)
     .extend({ classId: z.coerce.number().int().positive() })

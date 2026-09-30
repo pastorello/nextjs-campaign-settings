@@ -2,7 +2,7 @@
 
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import PageType from "@/app/lib/definitions/types/PageType";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import DhSubclass from "@/app/lib/definitions/interfaces/daggerheart/DhSubclass";
@@ -16,7 +16,7 @@ import toStoredSpellcastTrait from "./toStoredSpellcastTrait";
 export default async function updateDhSubclass(
   formData: DhSubclass
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = buildUpdateSchema(PageType.DhSubclass).safeParse(formData);
   if (!parsed.success) {

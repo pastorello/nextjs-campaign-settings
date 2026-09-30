@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
-import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import { UnauthorizedError } from "@/app/lib/auth/requireDm";
 import DatabaseError from "@/app/lib/errors/DatabaseError";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
@@ -24,7 +24,9 @@ import createPlaceFromPicker from "./createPlaceFromPicker";
 describe("createPlaceFromPicker (SPEC-026)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     zoneFindUnique.mockResolvedValue({ id: 5 });
     zoneCreate.mockResolvedValue({ id: 40 });
     poiCreate.mockResolvedValue({ id: 90 });

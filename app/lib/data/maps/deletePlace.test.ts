@@ -5,7 +5,7 @@ import { Prisma } from "@/generated/prisma/client";
 import NotFoundError from "@/app/lib/errors/NotFoundError";
 import ConflictError from "@/app/lib/errors/ConflictError";
 import DatabaseError from "@/app/lib/errors/DatabaseError";
-import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import { UnauthorizedError } from "@/app/lib/auth/requireDm";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
@@ -44,7 +44,9 @@ import deletePlace from "./deletePlace";
 describe("deletePlace (SPEC-010 T2)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     zoneUpdateMany.mockResolvedValue({ count: 0 });
     poiUpdateMany.mockResolvedValue({ count: 0 });
     npcUpdateMany.mockResolvedValue({ count: 0 });

@@ -39,7 +39,9 @@ const call = (handler: typeof deleteDomain, id: string) =>
 describe("DELETE /api/domains/[id] and /api/domain-cards/[id] (SPEC-021)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     findUnique.mockResolvedValue({ id: 3, name: "Veilwright", imageId: null });
     cardFind.mockResolvedValue({ id: 8, name: "Lantern Step" });
     cardCount.mockResolvedValue(0);

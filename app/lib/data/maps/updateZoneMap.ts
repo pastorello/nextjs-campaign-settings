@@ -5,7 +5,7 @@ import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import { z } from "zod";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
@@ -28,7 +28,7 @@ export default async function updateZoneMap(formData: {
   id: number;
   mapImage: string;
 }): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = zoneMapSchema.safeParse(formData);
   if (!parsed.success) {

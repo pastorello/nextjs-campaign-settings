@@ -60,7 +60,7 @@ Reach for these before rediscovering them. All are in use in the suites named.
 | `__test__/data/mutationValidation.test.ts`          | TD-02 — valid writes, invalid rejected, field-keyed errors, partial update |
 | `app/lib/data/validation/buildEntitySchema.test.ts` | TD-02 — every declared default passes its domain's schema                  |
 | `__test__/data/mutationGuards.test.ts`              | TD-01 — each mutation throws and never writes without a session            |
-| `__test__/auth/session-guards.test.ts`              | TD-01 — the `requireSession` / `requireApiSession` helpers directly        |
+| `__test__/auth/session-guards.test.ts`              | TD-01 — the `requireDm` / `requireApiDm` helpers directly                  |
 | `__test__/utils/generatePwdHash.test.ts`            | Rewritten; the old version could never pass                                |
 | `app/lib/utils/data/sortByField/index.test.ts`      | Carried over                                                               |
 | `__test__/utils/parseSerializedArray.test.ts`       | Carried over                                                               |

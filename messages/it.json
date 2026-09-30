@@ -58,6 +58,10 @@
       "description": "Impossibile trovare la pagina richiesta.",
       "goBack": "Torna indietro"
     },
+    "forbidden": {
+      "title": "403 - Accesso negato",
+      "description": "Questo account non può vedere questa pagina. Per usarne un altro, esci."
+    },
     "table": {
       "name": "Nome",
       "actions": "Azioni",

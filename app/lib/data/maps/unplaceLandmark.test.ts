@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
-import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import { UnauthorizedError } from "@/app/lib/auth/requireDm";
 import DatabaseError from "@/app/lib/errors/DatabaseError";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
@@ -25,7 +25,9 @@ import unplaceLandmark from "./unplaceLandmark";
 describe("unplaceLandmark (SPEC-017 T10)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { name: "dm" } } as never);
+    vi.mocked(auth).mockResolvedValue({
+      user: { name: "dm", role: "dm" },
+    } as never);
     updateMany.mockResolvedValue({ count: 1 });
   });
 

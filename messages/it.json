@@ -89,7 +89,8 @@
       "zonePlaceholder": "Seleziona una zona",
       "poiLabel": "Luogo specifico (opzionale)",
       "poiNoneOption": "Nessuno (solo zona)",
-      "zoneNoneOption": "Nessuna (rimuovi dal luogo)"
+      "zoneNoneOption": "Nessuna (rimuovi dal luogo)",
+      "createPlace": "Crea un nuovo luogo"
     },
     "filters": {
       "all": "Tutti",
@@ -919,6 +920,24 @@
       "goHome": "Vai alla home",
       "technicalDetails": "Dettagli tecnici",
       "noStackTrace": "Nessuno stack trace disponibile"
+    },
+    "placeKinds": {
+      "poi": "Luogo di interesse",
+      "region": "Regione",
+      "plane": "Piano di esistenza",
+      "city": "Città",
+      "dungeon": "Dungeon"
+    },
+    "createPlace": {
+      "title": "Nuovo luogo",
+      "kindLabel": "Tipo",
+      "parentLabel": "Si trova in",
+      "parentPlaceholder": "Scegli il luogo che lo contiene",
+      "unplacedNote": "Il luogo nasce senza posizione: lo disegni sulla mappa quando vuoi, da «Posiziona luogo».",
+      "create": "Crea",
+      "creating": "Creazione…",
+      "cancel": "Annulla",
+      "failed": "Impossibile creare il luogo. Riprova."
     }
   },
   "world": {

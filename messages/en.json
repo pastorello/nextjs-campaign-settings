@@ -89,7 +89,8 @@
       "zonePlaceholder": "Select a zone",
       "poiLabel": "Specific landmark (optional)",
       "poiNoneOption": "None (zone only)",
-      "zoneNoneOption": "None (remove from its location)"
+      "zoneNoneOption": "None (remove from its location)",
+      "createPlace": "Create a new place"
     },
     "filters": {
       "all": "All",
@@ -919,6 +920,24 @@
       "goHome": "Go Home",
       "technicalDetails": "Technical Details",
       "noStackTrace": "No stack trace available"
+    },
+    "placeKinds": {
+      "poi": "Point of interest",
+      "region": "Region",
+      "plane": "Plane of existence",
+      "city": "City",
+      "dungeon": "Dungeon"
+    },
+    "createPlace": {
+      "title": "New place",
+      "kindLabel": "Type",
+      "parentLabel": "It is in",
+      "parentPlaceholder": "Choose the place that contains it",
+      "unplacedNote": "The place starts with no position: draw it on the map whenever you like, from \"Position a place\".",
+      "create": "Create",
+      "creating": "Creating…",
+      "cancel": "Cancel",
+      "failed": "Could not create the place. Try again."
     }
   },
   "world": {

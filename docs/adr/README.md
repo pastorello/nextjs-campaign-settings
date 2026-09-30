@@ -42,3 +42,4 @@ Do **not** write one for routine implementation choices, naming, or anything a c
 | [0016](./0016-formatted-text-as-sanitised-html.md)              | Formatted text as a sanitised HTML fragment, edited with Tiptap        | Accepted | 2026-09-19 |
 | [0017](./0017-record-images.md)                                 | Record images: `imageId` per owner, `sharp`, WebP, authenticated route | Accepted | 2026-09-19 |
 | [0018](./0018-daggerheart-features-one-table-per-owner.md)      | Daggerheart features in one table per owner                            | Accepted | 2026-09-19 |
+| [0019](./0019-polygon-geometry-from-small-libraries.md)         | Polygon geometry from small, single-purpose libraries                  | Accepted | 2026-09-30 |

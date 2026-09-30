@@ -101,19 +101,18 @@ nowhere else; two conversions in two components is how they drift.
 ## 8. Acceptance criteria
 
 _Ticked 2026-09-30, each against the test that proves it; the boxes had been
-left empty when the spec shipped. Two are still open, both filed as TD-149._
+left empty when the spec shipped. The two that were not met were filed and
+fixed the same day as TD-149._
 
 - [x] A place can be given a position by typing, with no pointer used at all.
       _(`e2e/map-keyboard.spec.ts`, "typed coordinates (SPEC-025)")_
-- [ ] Typing a position moves the marker, and clicking the map updates the fields.
-      _Half met: the click that opens the form fills the fields
-      (`MapPOIPanel.test.tsx`), but no marker follows the typed position, on a
-      new place or an existing one, until it is saved. TD-149._
+- [x] Typing a position moves the marker, and clicking the map updates the fields.
+      _Only the second half shipped; the marker came with TD-149
+      (`useFormPositionMarker`, checked in `e2e/map-keyboard.spec.ts`)._
 - [x] An out-of-bounds value is refused with a field-level message.
 - [x] A half-filled pair is refused.
-- [ ] An existing place's position is shown in the fields when its form opens.
-      _The fields derive from the form's stored pair, so this should hold, but
-      only the add form's prefill is tested. TD-149._
+- [x] An existing place's position is shown in the fields when its form opens.
+      _It held, but only the add form's prefill was tested until TD-149._
 - [x] The keyboard path is covered end to end by an e2e test, in the shape of
       `e2e/map-keyboard.spec.ts`.
 - [x] The fields have accessible labels, in both catalogues.
@@ -178,4 +177,4 @@ left empty when the spec shipped. Two are still open, both filed as TD-149._
   placeholders, and now they do. The raw pair is still what the fields fall back
   to when no map image is loaded, rather than disabling them, because taking a
   working control away would have been a regression for that case.
-- Follow-up debt created: none. TD-133 closes with this. _(2026-09-30: TD-149, found while ticking §8 — the marker does not follow typing, and the edit form's prefill is untested.)_
+- Follow-up debt created: none. TD-133 closes with this. _(2026-09-30: TD-149, found while ticking §8 and fixed the same day — the marker did not follow typing, and the edit form's prefill was untested.)_

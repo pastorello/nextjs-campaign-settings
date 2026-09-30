@@ -29,12 +29,12 @@ interface RemoveLandmarkDialogProps {
  *
  * **No counts, deliberately** (§5's landmark paragraph): a landmark has no
  * children to reparent, so the figures `RemovePlaceDialog` fetches have no
- * landmark equivalent to fetch. The entities attached to one are a real
- * question this dialog does not answer, and cannot honestly answer today —
- * `npc.poiId`/`deities.poiId` are `onDelete: Restrict`, so deleting a
- * landmark somebody is standing at fails in the database rather than
- * detaching them (TD-147). Stating a count here would promise an outcome
- * the mutation does not deliver.
+ * landmark equivalent to fetch. The entities attached to one are the only
+ * figure that would mean something: since TD-147, `deletePoi` detaches them
+ * from the landmark and leaves them in its enclosing place, so nothing but
+ * the landmark is lost and the delete copy stays true. Stating how many
+ * are moved is a separate change the DM kept out of that fix (SPEC-023's
+ * entry in `docs/ROADMAP.md`).
  *
  * Both outcomes are the caller's to perform, as they were when they were
  * two buttons: the mutations live in `usePOIManager`, which owns the

@@ -501,6 +501,25 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
     );
   });
 
+  // TD-150: the options showed the raw ids ("region", "poi") in both
+  // locales; they read the catalogue's labels, the ones SPEC-026's dialog
+  // uses too.
+  it("labels every kind from the catalogue, not with its id", () => {
+    render(<MapPOIPanel {...baseProps()} />);
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
+
+    const labels = [...kindSelect().querySelectorAll("option")].map(
+      (o) => o.textContent
+    );
+    expect(labels).toEqual([
+      "geography.placeKinds.region",
+      "geography.placeKinds.plane",
+      "geography.placeKinds.city",
+      "geography.placeKinds.dungeon",
+      "geography.placeKinds.poi",
+    ]);
+  });
+
   it("switching to city (T2) hides category and shows the map image field", () => {
     render(<MapPOIPanel {...baseProps()} />);
     fireEvent.click(screen.getByText("geography.poiPanel.addButton"));

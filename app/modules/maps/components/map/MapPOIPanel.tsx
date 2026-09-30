@@ -794,7 +794,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                 {(pendingFootprint ? NAVIGABLE_PLACE_KINDS : PLACE_KINDS).map(
                   (kind) => (
                     <option key={kind} value={kind}>
-                      {kind}
+                      {t(`geography.placeKinds.${kind}`)}
                     </option>
                   )
                 )}

@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { rectangleFootprint } from "@/app/modules/maps/lib/utils/footprint";
 
 const { fetchPlaceChildren, updateZonePosition } = vi.hoisted(() => ({
   fetchPlaceChildren: vi.fn(),
@@ -61,26 +62,28 @@ const marker = vi.fn((..._args: unknown[]) => {
   return instance;
 });
 
-const rectangleClickHandlers = new Map<unknown, () => void>();
-const rectangleAddTo = vi.fn();
-const rectangleBindTooltip = vi.fn();
-const rectangle = vi.fn((..._args: unknown[]) => {
+const polygonClickHandlers = new Map<unknown, () => void>();
+const polygonAddTo = vi.fn();
+const polygonBindTooltip = vi.fn();
+const polygonOpenTooltip = vi.fn();
+const polygon = vi.fn((..._args: unknown[]) => {
   const instance = {
-    addTo: rectangleAddTo,
-    bindTooltip: rectangleBindTooltip,
+    addTo: polygonAddTo,
+    bindTooltip: polygonBindTooltip,
+    openTooltip: polygonOpenTooltip,
     getElement: () => layerElements.get(instance),
     on: vi.fn((event: string, handler: () => void) => {
-      if (event === "click") rectangleClickHandlers.set(instance, handler);
+      if (event === "click") polygonClickHandlers.set(instance, handler);
       if (event === "keydown") keydownHandlers.set(instance, handler);
     }),
   };
   layerElements.set(instance, document.createElement("div"));
-  rectangleAddTo.mockReturnValue(instance);
+  polygonAddTo.mockReturnValue(instance);
   return instance;
 });
 vi.mock("leaflet", () => ({
   marker: (...args: unknown[]) => marker(...args),
-  rectangle: (...args: unknown[]) => rectangle(...args),
+  polygon: (...args: unknown[]) => polygon(...args),
   divIcon: vi.fn(() => ({})),
 }));
 
@@ -218,7 +221,7 @@ describe("useNavigableChildren — keyboard (TD-133)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     clickHandlers.clear();
-    rectangleClickHandlers.clear();
+    polygonClickHandlers.clear();
     keydownHandlers.clear();
     layerElements.clear();
   });
@@ -257,10 +260,7 @@ describe("useNavigableChildren — keyboard (TD-133)", () => {
       row({
         id: 3,
         title: "Kingdom of Kang",
-        footprint: [
-          [0, 0],
-          [10, 20],
-        ],
+        footprint: rectangleFootprint([0, 0], [10, 20]),
       }),
     ]);
     const onPlaceClick = vi.fn();
@@ -268,7 +268,7 @@ describe("useNavigableChildren — keyboard (TD-133)", () => {
     renderHook(() => useNavigableChildren(1, onPlaceClick));
 
     await waitFor(() => expect(keydownHandlers.size).toBe(1));
-    const instance = rectangleAddTo.mock.results[0]?.value as unknown;
+    const instance = polygonAddTo.mock.results[0]?.value as unknown;
     const element = layerElements.get(instance);
     expect(element?.getAttribute("tabindex")).toBe("0");
     expect(element?.getAttribute("role")).toBe("button");
@@ -287,34 +287,28 @@ describe("useNavigableChildren — areas (SPEC-009 T2)", () => {
     vi.clearAllMocks();
     clickHandlers.clear();
     dragendHandlers.clear();
-    rectangleClickHandlers.clear();
+    polygonClickHandlers.clear();
     updateZonePosition.mockResolvedValue({ ok: true });
   });
 
-  it("renders a child with a footprint as a rectangle, not a marker", async () => {
+  it("renders a child with a footprint as its outline, not a marker", async () => {
     fetchPlaceChildren.mockResolvedValue([
       row({
         id: 3,
         title: "Kingdom of Kang",
-        footprint: [
-          [0, 0],
-          [10, 20],
-        ],
+        footprint: rectangleFootprint([0, 0], [10, 20]),
       }),
     ]);
 
     renderHook(() => useNavigableChildren(1, vi.fn()));
 
     await waitFor(() =>
-      expect(rectangle).toHaveBeenCalledWith(
-        [
-          [0, 0],
-          [10, 20],
-        ],
+      expect(polygon).toHaveBeenCalledWith(
+        rectangleFootprint([0, 0], [10, 20]).ring,
         expect.any(Object)
       )
     );
-    expect(rectangleAddTo).toHaveBeenCalledWith(fakeMap);
+    expect(polygonAddTo).toHaveBeenCalledWith(fakeMap);
     expect(marker).not.toHaveBeenCalled();
   });
 
@@ -323,19 +317,36 @@ describe("useNavigableChildren — areas (SPEC-009 T2)", () => {
       row({
         id: 3,
         title: "Kingdom of Kang",
-        footprint: [
-          [0, 0],
-          [10, 20],
-        ],
+        footprint: rectangleFootprint([0, 0], [10, 20]),
       }),
     ]);
 
     renderHook(() => useNavigableChildren(1, vi.fn()));
 
-    await waitFor(() => expect(rectangleBindTooltip).toHaveBeenCalled());
-    expect(rectangleBindTooltip).toHaveBeenCalledWith(
+    await waitFor(() => expect(polygonBindTooltip).toHaveBeenCalled());
+    expect(polygonBindTooltip).toHaveBeenCalledWith(
       "Kingdom of Kang",
       expect.objectContaining({ permanent: true, direction: "center" })
+    );
+  });
+
+  // SPEC-024 §5: a concave region's centroid can fall outside it, so the
+  // label sits at the stored centre, a point guaranteed inside.
+  it("anchors the label at the stored centre, not the shape's centroid", async () => {
+    fetchPlaceChildren.mockResolvedValue([
+      row({
+        id: 3,
+        title: "Kingdom of Kang",
+        lat: 4,
+        lng: 7,
+        footprint: rectangleFootprint([0, 0], [10, 20]),
+      }),
+    ]);
+
+    renderHook(() => useNavigableChildren(1, vi.fn()));
+
+    await waitFor(() =>
+      expect(polygonOpenTooltip).toHaveBeenCalledWith([4, 7])
     );
   });
 
@@ -344,18 +355,15 @@ describe("useNavigableChildren — areas (SPEC-009 T2)", () => {
       row({
         id: 3,
         title: "Kingdom of Kang",
-        footprint: [
-          [0, 0],
-          [10, 20],
-        ],
+        footprint: rectangleFootprint([0, 0], [10, 20]),
       }),
     ]);
     const onPlaceClick = vi.fn();
 
     renderHook(() => useNavigableChildren(1, onPlaceClick));
 
-    await waitFor(() => expect(rectangleClickHandlers.size).toBe(1));
-    rectangleClickHandlers.values().next().value?.();
+    await waitFor(() => expect(polygonClickHandlers.size).toBe(1));
+    polygonClickHandlers.values().next().value?.();
 
     expect(onPlaceClick).toHaveBeenCalledWith(
       expect.objectContaining({ id: 3, title: "Kingdom of Kang" })
@@ -368,7 +376,7 @@ describe("useNavigableChildren — areas (SPEC-009 T2)", () => {
     renderHook(() => useNavigableChildren(1, vi.fn()));
 
     await waitFor(() => expect(marker).toHaveBeenCalled());
-    expect(rectangle).not.toHaveBeenCalled();
+    expect(polygon).not.toHaveBeenCalled();
   });
 
   it("hides the area matching editingChildId while its redraw gesture is armed (SPEC-009 T5)", async () => {
@@ -376,29 +384,20 @@ describe("useNavigableChildren — areas (SPEC-009 T2)", () => {
       row({
         id: 3,
         title: "Kingdom of Kang",
-        footprint: [
-          [0, 0],
-          [10, 20],
-        ],
+        footprint: rectangleFootprint([0, 0], [10, 20]),
       }),
       row({
         id: 4,
         title: "Orc Kingdom",
-        footprint: [
-          [30, 30],
-          [40, 40],
-        ],
+        footprint: rectangleFootprint([30, 30], [40, 40]),
       }),
     ]);
 
     renderHook(() => useNavigableChildren(1, vi.fn(), 0, 3));
 
-    await waitFor(() => expect(rectangle).toHaveBeenCalledTimes(1));
-    expect(rectangle).toHaveBeenCalledWith(
-      [
-        [30, 30],
-        [40, 40],
-      ],
+    await waitFor(() => expect(polygon).toHaveBeenCalledTimes(1));
+    expect(polygon).toHaveBeenCalledWith(
+      rectangleFootprint([30, 30], [40, 40]).ring,
       expect.any(Object)
     );
   });
@@ -408,10 +407,7 @@ describe("useNavigableChildren — areas (SPEC-009 T2)", () => {
       row({
         id: 3,
         title: "Kingdom of Kang",
-        footprint: [
-          [0, 0],
-          [10, 20],
-        ],
+        footprint: rectangleFootprint([0, 0], [10, 20]),
       }),
     ]);
 
@@ -422,7 +418,7 @@ describe("useNavigableChildren — areas (SPEC-009 T2)", () => {
     await waitFor(() => expect(fetchPlaceChildren).toHaveBeenCalledTimes(1));
     // The only child is excluded by `editingChildId`, so there is no
     // positive call to synchronize on the way the other tests in this file
-    // do (wait for `marker`/`rectangle`, then assert the other one wasn't
+    // do (wait for `marker`/`polygon`, then assert the other one wasn't
     // called). Flushing microtasks here lets the draw effect's dynamic
     // `import("leaflet")` and its skip-pass actually settle before the
     // rerender below starts a second, overlapping effect instance — without
@@ -430,11 +426,11 @@ describe("useNavigableChildren — areas (SPEC-009 T2)", () => {
     // run, and the two instances raced (source of an intermittent CI
     // failure, 2026-08-13).
     await act(async () => {});
-    expect(rectangle).not.toHaveBeenCalled();
+    expect(polygon).not.toHaveBeenCalled();
 
     rerender({ editingId: null });
 
-    await waitFor(() => expect(rectangle).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(polygon).toHaveBeenCalledTimes(1));
   });
 });
 

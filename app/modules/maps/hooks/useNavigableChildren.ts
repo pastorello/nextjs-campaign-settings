@@ -225,38 +225,36 @@ export function useNavigableChildren(
         // temporary rectangle `useDrawArea` draws stands in for it.
         if (child.id === editingChildId) continue;
 
-        // SPEC-009 T2 — an area renders as the rectangle it was drawn as,
-        // with its label always visible, rather than a pin. Resizing/moving
-        // an existing area (T5) is a separate armed gesture, not a drag on
-        // this rectangle — it is never draggable itself.
+        // SPEC-009 T2 — an area renders as the outline it was drawn as (a
+        // polygon since SPEC-024), with its label always visible, rather
+        // than a pin. Redrawing an existing area (T5) is a separate armed
+        // gesture, not a drag on this shape — it is never draggable itself.
         if (child.footprint) {
-          const [[lat1, lng1], [lat2, lng2]] = child.footprint;
-          const rectangle = L.rectangle(
-            [
-              [lat1, lng1],
-              [lat2, lng2],
-            ],
-            {
-              color: "#16a34a",
-              weight: 2,
-              fillColor: "#16a34a",
-              fillOpacity: 0.15,
-            }
-          ).addTo(map);
-          rectangle.bindTooltip(child.title, {
+          const area = L.polygon(child.footprint.ring, {
+            color: "#16a34a",
+            weight: 2,
+            fillColor: "#16a34a",
+            fillOpacity: 0.15,
+          }).addTo(map);
+          area.bindTooltip(child.title, {
             permanent: true,
             direction: "center",
             className: "font-medium",
           });
-          rectangle.on("click", () => {
+          // The label sits at the stored centre, a point guaranteed inside
+          // the outline (SPEC-024 §5): Leaflet's own centre is the centroid,
+          // which a concave region's can miss, putting its name in the
+          // empty ground of a neighbour.
+          area.openTooltip([child.lat, child.lng]);
+          area.on("click", () => {
             onPlaceClickRef.current(child);
           });
           // TD-133 — an SVG path is not focusable by default; this makes it
           // a named, Enter/Space-activated button like a pin.
-          makeKeyboardActivatable(rectangle, child.title, (trigger) => {
+          makeKeyboardActivatable(area, child.title, (trigger) => {
             onPlaceClickRef.current(child, trigger);
           });
-          markersRef.current.push(rectangle);
+          markersRef.current.push(area);
           continue;
         }
 

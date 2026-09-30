@@ -85,7 +85,7 @@ pnpm dev
 ```bash
 pnpm dev            # dev server (Turbopack)
 pnpm build          # production build
-pnpm typecheck      # next typegen && tsc --noEmit
+pnpm typecheck      # next typegen && tsc on tsconfig.typecheck.json
 pnpm lint           # eslint .
 pnpm format:check   # prettier --check .
 pnpm test           # vitest run

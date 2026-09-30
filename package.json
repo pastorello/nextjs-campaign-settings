@@ -9,7 +9,7 @@
     "build": "next build --turbopack",
     "dev": "next dev --turbopack",
     "start": "next start",
-    "typecheck": "next typegen && tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit -p tsconfig.typecheck.json",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",

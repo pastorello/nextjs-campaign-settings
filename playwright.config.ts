@@ -29,6 +29,11 @@ import { defineConfig, devices } from "@playwright/test";
  *    attached to it instead of spawning the e2e-configured server below. A
  *    stray dev server on :3000 now makes `pnpm test:e2e` fail on a port
  *    conflict instead of writing to the wrong database.
+ * 5. **`.env.test` may name a Chromium binary (`PLAYWRIGHT_CHROMIUM_EXECUTABLE`).**
+ *    A Claude Code cloud container cannot reach Playwright's download CDN,
+ *    but ships its own Chromium; `scripts/cloud-setup.sh` writes its path
+ *    here when the download fails. Unset — everywhere else, CI included —
+ *    Playwright uses the browser `playwright install` fetched.
  */
 
 const isCI = !!process.env.CI;
@@ -36,9 +41,14 @@ const rootDir = __dirname;
 
 // Only local runs need this: CI has no .env/.env.test, only its own
 // job-level DATABASE_URL pointed at a disposable Postgres service.
-const webServerEnv = isCI ? undefined : loadLocalE2EDatabaseUrl(rootDir);
+const localE2EEnv = isCI ? undefined : loadLocalE2EEnv(rootDir);
+const webServerEnv = localE2EEnv && { DATABASE_URL: localE2EEnv.DATABASE_URL };
+const chromiumExecutable = localE2EEnv?.PLAYWRIGHT_CHROMIUM_EXECUTABLE;
 
-function loadLocalE2EDatabaseUrl(dir: string): Record<string, string> {
+function loadLocalE2EEnv(dir: string): {
+  DATABASE_URL: string;
+  PLAYWRIGHT_CHROMIUM_EXECUTABLE: string | undefined;
+} {
   const envTestPath = path.resolve(dir, ".env.test");
 
   if (!existsSync(envTestPath)) {
@@ -70,7 +80,10 @@ function loadLocalE2EDatabaseUrl(dir: string): Record<string, string> {
     }
   }
 
-  return { DATABASE_URL: e2eEnv.DATABASE_URL };
+  return {
+    DATABASE_URL: e2eEnv.DATABASE_URL,
+    PLAYWRIGHT_CHROMIUM_EXECUTABLE: e2eEnv.PLAYWRIGHT_CHROMIUM_EXECUTABLE,
+  };
 }
 
 export default defineConfig({
@@ -91,6 +104,9 @@ export default defineConfig({
     baseURL: "http://localhost:3000",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
+    ...(chromiumExecutable
+      ? { launchOptions: { executablePath: chromiumExecutable } }
+      : {}),
   },
 
   projects: [

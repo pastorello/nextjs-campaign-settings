@@ -173,6 +173,18 @@ test.describe("typed coordinates (SPEC-025)", () => {
 
     await across.fill("25");
     await down.fill("70");
+
+    // TD-149: the fields and the map are two views of one value (§5.2) — the
+    // typed position is drawn before it is saved, and follows the next edit.
+    const formMarker = page.locator(".form-position-marker");
+    await expect(formMarker).toHaveCount(1);
+    const lowBox = await formMarker.boundingBox();
+    await down.fill("30");
+    await expect(async () => {
+      const highBox = await formMarker.boundingBox();
+      expect(highBox?.y).toBeLessThan((lowBox?.y ?? 0) - 10);
+    }).toPass({ timeout: 5000 });
+
     await page
       .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)
       .fill(title);
@@ -188,6 +200,8 @@ test.describe("typed coordinates (SPEC-025)", () => {
 
     const marker = page.getByRole("button", { name: title, exact: true });
     await expect(marker).toBeVisible({ timeout: 15000 });
+    // The provisional marker goes with the form: the saved one replaces it.
+    await expect(formMarker).toHaveCount(0);
 
     // Clean up through the popover, as the landmark specs do — retried for
     // the reason the test above gives: the marker's handler does nothing

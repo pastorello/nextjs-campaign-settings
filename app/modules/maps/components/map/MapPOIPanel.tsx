@@ -143,6 +143,15 @@ interface MapPOIPanelProps {
    */
   mapCorners?: MapCorners | null;
   editTarget?: POI | null;
+  /**
+   * The position the open add/edit form holds, stored pair, or `null` when
+   * it holds none, is placing an area, or has given way to the list (TD-149)
+   * — for the map to draw, so typing a position moves a marker (SPEC-025
+   * §5.2). Pass a stable function: it is called whenever that value changes.
+   */
+  onFormPositionChange?: (
+    position: { lat: number; lng: number } | null
+  ) => void;
 }
 
 export type ViewMode = "list" | "add" | "edit";
@@ -274,6 +283,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
   onFootprintConsumed,
   editTarget = null,
   mapCorners = null,
+  onFormPositionChange,
 }: MapPOIPanelProps) {
   const t = useTranslations();
   const [isMobile, setIsMobile] = useState(false);
@@ -385,6 +395,28 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     },
     [positionDraft, mapCorners, canTypePosition]
   );
+
+  // TD-149: the map's view of the same value. Reads the stored pair, not
+  // the draft, so a half-typed field leaves the marker where the last usable
+  // position put it — the same rule the pair itself follows above.
+  const isFormOpen = isOpen && (viewMode === "add" || viewMode === "edit");
+  useEffect(() => {
+    if (!onFormPositionChange) return;
+    const lat = parseFloat(formData.lat);
+    const lng = parseFloat(formData.lng);
+    const holdsPoint =
+      isFormOpen &&
+      pendingFootprint === null &&
+      !Number.isNaN(lat) &&
+      !Number.isNaN(lng);
+    onFormPositionChange(holdsPoint ? { lat, lng } : null);
+  }, [
+    isFormOpen,
+    pendingFootprint,
+    formData.lat,
+    formData.lng,
+    onFormPositionChange,
+  ]);
 
   // Update form coordinates when they change from parent
   // This is a legitimate use of setState in effect for prop synchronization

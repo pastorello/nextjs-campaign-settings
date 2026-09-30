@@ -943,4 +943,100 @@ describe("MapPOIPanel — typed coordinates (SPEC-025)", () => {
       screen.queryByLabelText("geography.poiPanel.fields.positionAcross")
     ).not.toBeInTheDocument();
   });
+
+  // TD-149: §8's "an existing place's position is shown in the fields when
+  // its form opens" had only the add form's prefill under test.
+  it("shows an existing place's position in the fields when its edit form opens", () => {
+    render(
+      <MapPOIPanel
+        {...baseProps()}
+        mapCorners={mapCorners}
+        pois={[{ ...poi, lat: 375, lng: 250 }]}
+        mode="edit"
+        onModeChange={vi.fn()}
+        editTarget={{ ...poi, lat: 375, lng: 250 }}
+      />
+    );
+
+    const { across, down } = positionFields();
+    expect(across.value).toBe("25");
+    expect(down.value).toBe("25");
+  });
+
+  // TD-149: SPEC-025 §5.2's "typing in them moves the marker" — the panel
+  // hands the map the position it holds, which `useFormPositionMarker` draws.
+  describe("reports the position it holds to the map (TD-149)", () => {
+    it("reports a typed position, converted to the stored pair", () => {
+      const onFormPositionChange = vi.fn();
+      openAddForm({ onFormPositionChange });
+
+      const { across, down } = positionFields();
+      fireEvent.change(across, { target: { value: "25" } });
+      fireEvent.change(down, { target: { value: "25" } });
+
+      expect(onFormPositionChange).toHaveBeenLastCalledWith({
+        lat: 375,
+        lng: 250,
+      });
+    });
+
+    it("reports the clicked position the add form opens with", () => {
+      const onFormPositionChange = vi.fn();
+      openAddForm({ onFormPositionChange, initialLat: 375, initialLng: 250 });
+
+      expect(onFormPositionChange).toHaveBeenLastCalledWith({
+        lat: 375,
+        lng: 250,
+      });
+    });
+
+    it("reports no position while the form holds none", () => {
+      const onFormPositionChange = vi.fn();
+      openAddForm({ onFormPositionChange });
+
+      expect(onFormPositionChange).toHaveBeenLastCalledWith(null);
+    });
+
+    it("reports no position once the form gives way to the list", () => {
+      const onFormPositionChange = vi.fn();
+      const props = {
+        ...baseProps(),
+        mapCorners,
+        onFormPositionChange,
+        initialLat: 375,
+        initialLng: 250,
+        onModeChange: vi.fn(),
+      };
+      const { rerender } = render(<MapPOIPanel {...props} mode="add" />);
+      expect(onFormPositionChange).toHaveBeenLastCalledWith({
+        lat: 375,
+        lng: 250,
+      });
+
+      rerender(<MapPOIPanel {...props} mode="list" />);
+
+      expect(onFormPositionChange).toHaveBeenLastCalledWith(null);
+    });
+
+    it("reports no position while an area is being placed", () => {
+      const onFormPositionChange = vi.fn();
+      render(
+        <MapPOIPanel
+          {...baseProps()}
+          mapCorners={mapCorners}
+          onFormPositionChange={onFormPositionChange}
+          initialLat={375}
+          initialLng={250}
+          mode="add"
+          onModeChange={vi.fn()}
+          pendingFootprint={[
+            [100, 100],
+            [200, 200],
+          ]}
+        />
+      );
+
+      expect(onFormPositionChange).toHaveBeenLastCalledWith(null);
+    });
+  });
 });

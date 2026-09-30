@@ -14,6 +14,10 @@ Current phase: **Phase 4 — most of it shipped (SPEC-013 through SPEC-017, SPEC
 
 Read [`docs/PROJECT_STATE.md`](./docs/PROJECT_STATE.md) and [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) before your first substantial change in a session.
 
+**How to work here** — narrow test runs, output discipline, git and CI habits, handoffs between sessions — is in [`docs/AGENT_WORKFLOW.md`](./docs/AGENT_WORKFLOW.md), imported here so local and cloud sessions both load it:
+
+@docs/AGENT_WORKFLOW.md
+
 ---
 
 ## Language conventions
@@ -262,16 +266,17 @@ spec to `docs/specs/` → Claude Code builds against them → PR.
 
 ## Related documents
 
-| Document                                           | Read it when                                     |
-| -------------------------------------------------- | ------------------------------------------------ |
-| [`docs/PROJECT_STATE.md`](./docs/PROJECT_STATE.md) | Starting a session; you need the inventory       |
-| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)   | Touching the metadata layer, data access or auth |
-| [`docs/domain/`](./docs/domain/)                   | Building a game feature; you need the 5e rules   |
-| [`docs/TECH_DEBT.md`](./docs/TECH_DEBT.md)         | Deciding what to work on; checking sequencing    |
-| [`docs/TESTING.md`](./docs/TESTING.md)             | Writing any test                                 |
-| [`docs/ROADMAP.md`](./docs/ROADMAP.md)             | Planning; recording a feature idea               |
-| [`docs/adr/`](./docs/adr/)                         | Making or revisiting an architectural decision   |
-| [`docs/specs/`](./docs/specs/)                     | Building a feature                               |
+| Document                                             | Read it when                                       |
+| ---------------------------------------------------- | -------------------------------------------------- |
+| [`docs/PROJECT_STATE.md`](./docs/PROJECT_STATE.md)   | Starting a session; you need the inventory         |
+| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)     | Touching the metadata layer, data access or auth   |
+| [`docs/domain/`](./docs/domain/)                     | Building a game feature; you need the 5e rules     |
+| [`docs/TECH_DEBT.md`](./docs/TECH_DEBT.md)           | Deciding what to work on; checking sequencing      |
+| [`docs/TESTING.md`](./docs/TESTING.md)               | Writing any test                                   |
+| [`docs/AGENT_WORKFLOW.md`](./docs/AGENT_WORKFLOW.md) | Always — how to work in a session (imported above) |
+| [`docs/ROADMAP.md`](./docs/ROADMAP.md)               | Planning; recording a feature idea                 |
+| [`docs/adr/`](./docs/adr/)                           | Making or revisiting an architectural decision     |
+| [`docs/specs/`](./docs/specs/)                       | Building a feature                                 |
 
 <!-- BEGIN:nextjs-agent-rules -->
 

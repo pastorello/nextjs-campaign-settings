@@ -100,17 +100,29 @@ nowhere else; two conversions in two components is how they drift.
 
 ## 8. Acceptance criteria
 
-- [ ] A place can be given a position by typing, with no pointer used at all.
-- [ ] Typing a position moves the marker, and clicking the map updates the fields.
-- [ ] An out-of-bounds value is refused with a field-level message.
-- [ ] A half-filled pair is refused.
-- [ ] An existing place's position is shown in the fields when its form opens.
-- [ ] The keyboard path is covered end to end by an e2e test, in the shape of
+_Ticked 2026-09-30, each against the test that proves it; the boxes had been
+left empty when the spec shipped. The two that were not met were filed and
+fixed the same day as TD-149._
+
+- [x] A place can be given a position by typing, with no pointer used at all.
+      _(`e2e/map-keyboard.spec.ts`, "typed coordinates (SPEC-025)")_
+- [x] Typing a position moves the marker, and clicking the map updates the fields.
+      _Only the second half shipped; the marker came with TD-149
+      (`useFormPositionMarker`, checked in `e2e/map-keyboard.spec.ts`)._
+- [x] An out-of-bounds value is refused with a field-level message.
+- [x] A half-filled pair is refused.
+- [x] An existing place's position is shown in the fields when its form opens.
+      _It held, but only the add form's prefill was tested until TD-149._
+- [x] The keyboard path is covered end to end by an e2e test, in the shape of
       `e2e/map-keyboard.spec.ts`.
-- [ ] The fields have accessible labels, in both catalogues.
-- [ ] Every new mutation rejects an unauthenticated request.
-- [ ] Every new mutation rejects invalid input with field-level errors.
-- [ ] Coverage has not dropped.
+- [x] The fields have accessible labels, in both catalogues.
+      _(`geography.poiPanel.fields.positionAcross`/`positionDown`)_
+- [x] Every new mutation rejects an unauthenticated request. _(No new mutation:
+      the fields feed the existing `createPoi`/`updatePoi`.)_
+- [x] Every new mutation rejects invalid input with field-level errors. _(As
+      above; the refusals are the form's own, at save time.)_
+- [x] Coverage has not dropped below the thresholds CI enforces
+      (`vitest.config.ts`). The before/after figures were not recorded.
 
 ## 9. Implementation plan
 
@@ -165,4 +177,4 @@ nowhere else; two conversions in two components is how they drift.
   placeholders, and now they do. The raw pair is still what the fields fall back
   to when no map image is loaded, rather than disabling them, because taking a
   working control away would have been a regression for that case.
-- Follow-up debt created: none. TD-133 closes with this.
+- Follow-up debt created: none. TD-133 closes with this. _(2026-09-30: TD-149, found while ticking §8 and fixed the same day — the marker did not follow typing, and the edit form's prefill was untested.)_

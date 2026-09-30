@@ -3282,6 +3282,7 @@ The summary table's closed rows, moved out of [`TECH_DEBT.md`](./TECH_DEBT.md) o
 | TD-146 | ✅ The "Collega personaggio" dialog's two selects have no accessible label, and hardcode "NPC"/"Deity"         | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-147 | ✅ Deleting a landmark somebody is assigned to fails on the foreign key                                        | ~~🟠 High~~ done     | S      | 4     |
 | TD-148 | ✅ `pnpm typecheck` fails after an E2E run on a half-written dev type                                          | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-149 | ✅ Typing a position into the place form moves no marker (SPEC-025 §5.2)                                       | ~~🟡 Medium~~ done   | M      | 4     |
 
 ---
 
@@ -5527,3 +5528,43 @@ longer reads `.next/dev`.
   `.next/dev/types` through `tsconfig.json`. Saving any file under `app/`
   while a dev server runs rewrites the files; `rm -rf .next/dev/types` with
   no dev server running clears them.
+
+### TD-149 ✅ Typing a position into the place form moves no marker — **DONE (2026-09-30)**
+
+**Severity:** 🟡 Medium · **Effort:** M · **Found:** 2026-09-30, while ticking SPEC-025's acceptance criteria, which had all been left empty when it shipped
+
+SPEC-025 §5.2 says the position fields and the map are "two views of one
+value": clicking the map fills the fields, and "typing in them moves the
+marker". Only the first half was built. While a place is being added,
+nothing on the map shows where the typed position is; while one is being
+edited, its marker stays where it was until the form is saved. So a DM
+typing percentages has no way to see where they point before committing.
+§11 records no deviation, and §8's criterion was unchecked. A second
+criterion, that an existing place's position shows in the fields when its
+edit form opens, had no test: only the add form's prefill was covered.
+
+**Resolution:** the form reports its position and the map draws it.
+
+- **`MapPOIPanel`** takes `onFormPositionChange` and calls it with the
+  stored pair its open add/edit form holds. It reads the pair, not the
+  draft, so a half-typed `63.` leaves the marker at the last usable
+  position, following the same rule the pair does. It calls it with `null`
+  while the form holds no position, while it places an area (the drawn
+  rectangle already shows where that goes), and once the form gives way to
+  the list.
+- **`useFormPositionMarker`** (`app/ui/geography/hooks/`) draws the position
+  as a dashed ring, in Tailwind classes inside the `divIcon`'s HTML
+  (`CLAUDE.md` rule 8). It is not interactive, not focusable, and hidden
+  from assistive technology, because the fields already announce the value
+  and a second tab stop would only repeat it. It is recreated on each change
+  rather than moved: the dynamic `import("leaflet")` would otherwise race
+  the creation it updates. `WorldMap` holds the position in state and wires
+  the two together.
+- **Verified.** The hook has five tests: nothing drawn for `null`, drawn
+  non-interactive, moved on change, removed on `null` and on unmount. The
+  panel has five tests for the callback, which failed before the change, and
+  one for the edit prefill, which already held. In
+  `e2e/map-keyboard.spec.ts`, the typed-coordinates test now checks that the
+  provisional marker exists, that it moves up when "Dall'alto" drops from 70
+  to 30, and that it is gone once the place is saved. It failed without the
+  `WorldMap` wiring. `e2e/a11y.spec.ts` stays 32/32.

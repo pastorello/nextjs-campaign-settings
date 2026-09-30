@@ -41,6 +41,7 @@ import { useAreaDrawing } from "@/app/ui/geography/hooks/useAreaDrawing";
 import { usePlacePopover } from "@/app/ui/geography/hooks/usePlacePopover";
 import { useMeasureTool } from "@/app/ui/geography/hooks/useMeasureTool";
 import { usePlacePositioning } from "@/app/ui/geography/hooks/usePlacePositioning";
+import { useFormPositionMarker } from "@/app/ui/geography/hooks/useFormPositionMarker";
 
 /**
  * WorldMap - the map view backing `/dashboard/geography`.
@@ -204,6 +205,14 @@ function WorldMap({
       [northEast[0], northEast[1]],
     ];
   }, [effectiveBounds]);
+
+  // The position the place form holds, drawn on the map (TD-149): typing
+  // one moves this marker, as SPEC-025 §5.2 says it should.
+  const [formPosition, setFormPosition] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  useFormPositionMarker(formPosition);
 
   const {
     isMeasuring,
@@ -714,6 +723,7 @@ function WorldMap({
         onFootprintConsumed={poiPanel.consumeFootprint}
         editTarget={poiPanel.editTarget}
         mapCorners={mapCorners}
+        onFormPositionChange={setFormPosition}
       />
     </div>
   );

@@ -1,6 +1,6 @@
 # SPEC-010: Deleting a place
 
-- **Status:** Agreed 2026-08-10 — from a design interview; every open question closed. Three tasks, one schema change.
+- **Status:** **Shipped 2026-08-13; see §11.** Previously: Agreed 2026-08-10 — from a design interview; every open question closed. Three tasks, one schema change. _(The header still said Agreed until 2026-09-30, though §11 recorded all three tasks shipped.)_
 - **Date:** 2026-08-10
 - **Phase:** 3
 - **Related:** completes [SPEC-004](./004-world-model.md)'s tree, which can be grown but never pruned; feeds both backlogs [SPEC-007](./007-placement-backlog.md) defines; a place drawn as an area ([SPEC-009](./009-zones-as-areas.md)) deletes by the same rules

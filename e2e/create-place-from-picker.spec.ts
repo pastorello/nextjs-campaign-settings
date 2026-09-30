@@ -1,4 +1,5 @@
 import { test, expect, type Locator } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 import messages from "@/messages/it.json";
 import { openContextMenu } from "./helpers/mapContextMenu";
@@ -52,6 +53,15 @@ test.describe("create a place without leaving the flow (SPEC-026)", () => {
       name: messages.geography.createPlace.title,
     });
     await expect(form).toBeVisible();
+    // §8: labelled fields, no violations in the dialog with the form open.
+    const results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .include('[role="dialog"]')
+      .analyze();
+    expect(
+      results.violations.map((v) => `${v.id} (${v.nodes.length} nodes)`),
+      "axe violations in the location dialog with the create form open"
+    ).toEqual([]);
     await form
       .getByLabel(messages.geography.fields.title.label)
       .fill(placeTitle);
@@ -84,42 +94,84 @@ test.describe("create a place without leaving the flow (SPEC-026)", () => {
     await expect(map).toBeVisible();
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(300);
-    const menu = await openContextMenu(page, { x: 520, y: 360 });
-    await menu
-      .getByRole("button", {
-        name: messages.geography.contextMenu.positionPlace.trigger,
-      })
-      .click();
+    const positionPlace = messages.geography.contextMenu.positionPlace;
+    const openPool = async (point: { x: number; y: number }) => {
+      const menu = await openContextMenu(page, point);
+      await menu.getByRole("button", { name: positionPlace.trigger }).click();
+      return menu;
+    };
+    const deleteLandmark = async (title: string) => {
+      const marker = page.getByRole("button", { name: title, exact: true });
+      const popover = page.getByRole("dialog", { name: title, exact: true });
+      await expect(async () => {
+        await marker.click();
+        await expect(popover).toBeVisible({ timeout: 500 });
+      }).toPass({ timeout: 10_000 });
+      await popover
+        .getByRole("button", {
+          name: messages.geography.popover.remove,
+          exact: true,
+        })
+        .click();
+      await page
+        .getByRole("radio", {
+          name: messages.geography.removeLandmark.outcomes.deleteLabel,
+        })
+        .click();
+      await page
+        .getByRole("button", {
+          name: messages.geography.removeLandmark.confirm,
+        })
+        .click();
+      await expect(marker).toHaveCount(0);
+    };
+
+    let menu = await openPool({ x: 520, y: 360 });
     await expect(menu.getByText(placeTitle)).toBeVisible();
 
-    // Cleanup: place it from the pool, then delete it through its popover.
+    // T4: the pool's filter offers to add a name it does not find, right
+    // where the menu opened, through "Aggiungi luogo" with the name typed.
+    const shopTitle = `E2E SPEC-026 bottega ${stamp}`;
+    await menu.getByLabel(positionPlace.filter).fill(shopTitle);
+    await menu
+      .getByRole("button", {
+        name: positionPlace.createNamed.replace("{title}", shopTitle),
+      })
+      .click();
+    await expect(menu).toBeHidden();
+    await expect(
+      page.getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)
+    ).toHaveValue(shopTitle);
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.save.save })
+      .click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.poiPanel.close,
+        exact: true,
+      })
+      .click();
+    await expect(
+      page.getByRole("button", { name: shopTitle, exact: true })
+    ).toBeVisible();
+    await deleteLandmark(shopTitle);
+
+    // Cleanup: place the tavern from the pool, check the NPC came with it,
+    // then delete it through its popover.
+    menu = await openPool({ x: 600, y: 300 });
     await menu.getByText(placeTitle).click();
     await expect(menu).toBeHidden();
-    const marker = page.getByRole("button", { name: placeTitle, exact: true });
     const popover = page.getByRole("dialog", {
       name: placeTitle,
       exact: true,
     });
     await expect(async () => {
-      await marker.click();
+      await page.getByRole("button", { name: placeTitle, exact: true }).click();
       await expect(popover).toBeVisible({ timeout: 500 });
     }).toPass({ timeout: 10_000 });
     await expect(popover.getByText(npcName)).toBeVisible();
-    await popover
-      .getByRole("button", {
-        name: messages.geography.popover.remove,
-        exact: true,
-      })
-      .click();
-    await page
-      .getByRole("radio", {
-        name: messages.geography.removeLandmark.outcomes.deleteLabel,
-      })
-      .click();
-    await page
-      .getByRole("button", { name: messages.geography.removeLandmark.confirm })
-      .click();
-    await expect(marker).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await deleteLandmark(placeTitle);
 
     await page.goto(
       `/dashboard/dnd5e/admin/npc?query=${encodeURIComponent(npcName)}`

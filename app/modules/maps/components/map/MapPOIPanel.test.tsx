@@ -982,6 +982,16 @@ describe("MapPOIPanel — typed coordinates (SPEC-025)", () => {
     expect(down.value).toBe("25");
   });
 
+  // SPEC-026: "Aggiungi «…» qui" from the unplaced pool's filter hands the
+  // name it did not find to the add form.
+  it("prefills the name it is handed with the point", () => {
+    openAddForm({ initialLat: 375, initialLng: 250, initialTitle: "Taverna" });
+
+    expect(
+      screen.getByPlaceholderText("geography.poiPanel.placeholders.placeName")
+    ).toHaveValue("Taverna");
+  });
+
   // TD-149: SPEC-025 §5.2's "typing in them moves the marker" — the panel
   // hands the map the position it holds, which `useFormPositionMarker` draws.
   describe("reports the position it holds to the map (TD-149)", () => {

@@ -80,7 +80,8 @@
       "saveFailed": "Salvataggio non riuscito. Riprova."
     },
     "location": {
-      "unknown": "Sconosciuta"
+      "unknown": "Sconosciuta",
+      "openOnMap": "Apri «{place}» sulla mappa"
     },
     "locationModal": {
       "title": "Assegna posizione",
@@ -735,7 +736,8 @@
         "noMatches": "Nessun luogo corrisponde.",
         "fromParent": "da «{parent}»",
         "placedToast": "«{title}» posizionato.",
-        "movedToast": "«{title}» spostato qui da «{from}»."
+        "movedToast": "«{title}» spostato qui da «{from}».",
+        "createNamed": "Aggiungi «{title}» qui"
       }
     },
     "temporaryMarkers": {

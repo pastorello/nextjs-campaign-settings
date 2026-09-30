@@ -24,12 +24,14 @@ export function usePOIPanel({ parentId }: { parentId: number }): {
   isOpen: boolean;
   filterCategory: POICategory | null;
   initialCoords: LatLng | null;
+  /** The name to prefill, when the add form was opened with one (SPEC-026). */
+  initialTitle: string | null;
   mode: ViewMode;
   isSelectingLocation: boolean;
   cursorCoords: LatLng | null;
   pendingFootprint: Footprint | null;
   editTarget: POI | null;
-  openAddAt: (lat: number, lng: number) => void;
+  openAddAt: (lat: number, lng: number, title?: string) => void;
   openAddForFootprint: (footprint: Footprint) => void;
   openEdit: (poi: POI) => void;
   close: () => void;
@@ -46,6 +48,7 @@ export function usePOIPanel({ parentId }: { parentId: number }): {
     null
   );
   const [initialCoords, setInitialCoords] = useState<LatLng | null>(null);
+  const [initialTitle, setInitialTitle] = useState<string | null>(null);
   const [mode, setMode] = useState<ViewMode>("list");
   const [isSelectingLocation, setIsSelectingLocation] = useState(false);
   const [cursorCoords, setCursorCoords] = useState<LatLng | null>(null);
@@ -72,9 +75,11 @@ export function usePOIPanel({ parentId }: { parentId: number }): {
     setCursorCoords(null);
   }
 
-  const openAddAt = useCallback((lat: number, lng: number) => {
+  const openAddAt = useCallback((lat: number, lng: number, title?: string) => {
     // Always set fresh coordinates - this ensures updates even if panel is already open
     setInitialCoords({ lat, lng });
+    // SPEC-026 — the name the pool's filter did not find, when there is one.
+    setInitialTitle(title ?? null);
     setFilterCategory(null);
     setMode("add");
     setIsOpen(true);
@@ -108,6 +113,7 @@ export function usePOIPanel({ parentId }: { parentId: number }): {
     setTimeout(() => {
       setFilterCategory(null);
       setInitialCoords(null);
+      setInitialTitle(null);
     }, 100);
   }, []);
 
@@ -172,6 +178,7 @@ export function usePOIPanel({ parentId }: { parentId: number }): {
     isOpen,
     filterCategory,
     initialCoords,
+    initialTitle,
     mode,
     isSelectingLocation,
     cursorCoords,

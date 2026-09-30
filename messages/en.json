@@ -80,7 +80,8 @@
       "saveFailed": "Saving failed. Try again."
     },
     "location": {
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "openOnMap": "Open \"{place}\" on the map"
     },
     "locationModal": {
       "title": "Assign location",
@@ -735,7 +736,8 @@
         "noMatches": "No place matches.",
         "fromParent": "from “{parent}”",
         "placedToast": "“{title}” positioned.",
-        "movedToast": "“{title}” moved here from “{from}”."
+        "movedToast": "“{title}” moved here from “{from}”.",
+        "createNamed": "Add \"{title}\" here"
       }
     },
     "temporaryMarkers": {

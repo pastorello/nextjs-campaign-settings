@@ -1,6 +1,6 @@
 # SPEC-026: Create a place without leaving the flow
 
-- **Status:** Draft — needs the DM's agreement
+- **Status:** **Agreed 2026-09-30** — the DM approved the draft as written and answered both open questions in chat (§9).
 - **Date:** 2026-09-22
 - **Phase:** 4
 - **Related:** [SPEC-008](./008-entity-location-reference.md) (T8 chose the model this spec works within) · [ADR-0010](../adr/0010-entity-location-as-stored-reference.md) · [SPEC-016](./016-place-popover.md) (the popover, `AttachEntityButton`, `PlaceEntityList`) · [SPEC-017](./017-one-unplaced-pool.md) (where a place with no position goes) · ROADMAP, _Also asked for on 2026-08-18_
@@ -116,12 +116,15 @@ the same rule TD-129 applied to the map's place schemas.
 
 _Fill in after the sections above are agreed._
 
-**Open questions for the DM**
+**Open questions for the DM — answered 2026-09-30**
 
 - Should the same dialog also offer to place the new place on the current map
   straight away, or is "unplaced, place it when you draw it" the whole answer?
+  **Answer: unplaced is the whole answer.** The dialog asks for a name and a
+  parent, nothing else; the place is drawn when the DM next places it.
 - Does an entity's card need a shortcut to the place it lives at, or is the map
-  enough?
+  enough? **Answer: yes, a shortcut.** The location on an NPC's or deity's
+  card links to that place on the map.
 
 ## 10. Task breakdown
 

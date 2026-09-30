@@ -1,6 +1,6 @@
 # SPEC-022: Accounts, roles, and party visibility
 
-- **Status:** Draft — needs the DM's agreement
+- **Status:** Draft — the three open questions were answered by the DM on 2026-09-30 (§9); one answer, several groups, contradicts §3 and needs a rewrite before the spec can be agreed.
 - **Date:** 2026-09-22
 - **Phase:** 5
 - **Related:** [ADR-0008](../adr/0008-map-image-storage.md) (its access check is "authenticated", which this spec redefines) · [SPEC-012](./012-publishing-and-internet-exposure.md) (exposure; this spec is its prerequisite) · [SPEC-011](./011-cross-entity-search.md) (a read path that must learn to filter) · TD-01 (`requireSession`, the guard this spec extends) · ROADMAP, _Asked for on 2026-08-18, in one batch_
@@ -189,11 +189,19 @@ and step 5 decides what that page looks like.
 
 _Fill in after the sections above are agreed._
 
-**Open questions for the DM**
+**Open questions for the DM — answered 2026-09-30**
 
-- Password reset by email, or by hand like activation already is?
+- Password reset by email, or by hand like activation already is? **Answer: by
+  hand**, by the DM, as activation already is. Item 4 collapses into item 2 and
+  this spec carries no mail dependency.
 - Does visibility inherit down the world tree, or is each record independent?
-- Is one party enough, or do several groups play in this world?
+  **Answer: inherited.** A secret place hides everything inside it, whatever the
+  children's own flags say.
+- Is one party enough, or do several groups play in this world? **Answer:
+  several groups, and a group is a campaign's players** (SPEC-013): what a record
+  reveals is per campaign, and a player may play in more than one. This
+  contradicts §3's "one DM, one party" non-goal, so the spec is rewritten around
+  it before it is agreed.
 
 ## 10. Task breakdown
 

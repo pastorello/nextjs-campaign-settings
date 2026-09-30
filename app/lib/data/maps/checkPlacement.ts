@@ -8,6 +8,8 @@ import {
   findSwallowedPins,
   isDegenerateFootprint,
   isFootprint,
+  isSelfIntersecting,
+  type Bounds,
   type Footprint,
   type Point,
 } from "@/app/modules/maps/lib/utils/footprint";
@@ -56,19 +58,23 @@ export async function checkAreaPlacement({
     throw toDatabaseError("checking the area against its siblings", error);
   }
 
-  const parentBounds = parsePlaceMapBounds(
-    parent?.mapBounds
-  ) as unknown as Footprint;
+  // SPEC-024 §5: every predicate below assumes a simple polygon.
+  if (isSelfIntersecting(footprint)) {
+    return { footprint: [fieldError("areaSelfIntersects")] };
+  }
+
+  // `parsePlaceMapBounds` always returns the two-corner literal — the
+  // stored value or its default — never an `L.LatLngBounds` instance.
+  const parentBounds = parsePlaceMapBounds(parent?.mapBounds) as Bounds;
   if (isDegenerateFootprint(footprint, parentBounds)) {
     return { footprint: [fieldError("areaTooSmall")] };
   }
 
-  const areaSiblings = siblingZones
-    .filter((zone) => isFootprint(zone.footprint))
-    .map((zone) => ({
-      title: zone.title,
-      footprint: zone.footprint as Footprint,
-    }));
+  const areaSiblings = siblingZones.flatMap((zone) =>
+    isFootprint(zone.footprint)
+      ? [{ title: zone.title, footprint: zone.footprint }]
+      : []
+  );
   const overlapping = findOverlappingSibling(footprint, areaSiblings);
   if (overlapping) {
     return {
@@ -131,12 +137,11 @@ export async function checkPointPlacement({
     throw toDatabaseError("checking the point against sibling areas", error);
   }
 
-  const areaSiblings = siblingZones
-    .filter((zone) => isFootprint(zone.footprint))
-    .map((zone) => ({
-      title: zone.title,
-      footprint: zone.footprint as Footprint,
-    }));
+  const areaSiblings = siblingZones.flatMap((zone) =>
+    isFootprint(zone.footprint)
+      ? [{ title: zone.title, footprint: zone.footprint }]
+      : []
+  );
   const containing = findContainingSibling(point, areaSiblings);
   if (containing) {
     return {

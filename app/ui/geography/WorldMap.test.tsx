@@ -7,6 +7,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import { rectangleFootprint } from "@/app/modules/maps/lib/utils/footprint";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
 
@@ -1139,10 +1140,7 @@ describe("WorldMap — descending into an area instead of placing a point (SPEC-
     mapBounds: null,
     mapInitialView: null,
     mapInitialZoom: null,
-    footprint: [
-      [0, 0],
-      [10, 10],
-    ],
+    footprint: rectangleFootprint([0, 0], [10, 10]),
   };
 
   beforeEach(() => {
@@ -1231,10 +1229,7 @@ describe("WorldMap — resizing and moving an existing area (SPEC-009 T5)", () =
     mapBounds: null,
     mapInitialView: null,
     mapInitialZoom: null,
-    footprint: [
-      [0, 0],
-      [10, 10],
-    ],
+    footprint: rectangleFootprint([0, 0], [10, 10]),
   };
 
   beforeEach(() => {
@@ -2598,10 +2593,7 @@ describe("WorldMap — a zone's edit panel (TD-104)", () => {
     lat: 5,
     lng: 5,
     mapImage: null,
-    footprint: [
-      [1, 1],
-      [10, 10],
-    ],
+    footprint: rectangleFootprint([1, 1], [10, 10]),
   };
   const point = {
     ...area,

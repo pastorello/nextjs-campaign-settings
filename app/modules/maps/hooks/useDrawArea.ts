@@ -1,44 +1,55 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { LeafletMouseEvent, Rectangle } from "leaflet";
+import type { LeafletMouseEvent } from "leaflet";
 
 import { useLeafletMap } from "./useLeafletMap";
-import type { Footprint } from "@/app/modules/maps/lib/utils/footprint";
+import type { Footprint, Point } from "@/app/modules/maps/lib/utils/footprint";
 
-// Below this many pixels of on-screen drag, a mousedown/mouseup pair is a
-// click, not an intent to draw — the same judgment `isDegenerateFootprint`
-// makes server-side, applied before any footprint even exists.
-const MIN_DRAG_PIXELS = 6;
+/** Clicking this close to the first vertex closes the outline. */
+const CLOSE_RADIUS_PX = 10;
+/**
+ * A double-click lands its own two clicks on the same spot before it
+ * finishes the outline; consecutive vertices this close are one vertex.
+ */
+const DUPLICATE_RADIUS_PX = 3;
+const MIN_VERTICES = 3;
 
 export interface UseDrawAreaOptions {
   enabled: boolean;
-  // The current map's own bounds — a drawn rectangle is clamped to this so
-  // it "must not be storable outside the space it is drawn on" (SPEC-009
-  // §5 edge cases). Not the rectangle being drawn; the space it's drawn on.
   bounds: L.LatLngBoundsExpression;
   onComplete: (footprint: Footprint) => void;
-  // Fired when the hook aborts a gesture and wants the caller to disarm
-  // (`enabled` back to `false`): Escape while armed, or a drag too small to
-  // be an intent (`MIN_DRAG_PIXELS`). Never fired for a normal
-  // `enabled` → `false` from the caller's own side — cleanup there is
-  // silent, since the caller already knows.
   onCancel: () => void;
 }
 
+function isTypingTarget(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement &&
+    (target.isContentEditable ||
+      ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
+  );
+}
+
 /**
- * Drag-to-draw a rectangle on the current map (SPEC-009 T2). No drawing
- * library exists in this project (no leaflet-draw/geoman in package.json) —
- * this is the same hand-rolled, imperative style the rest of
- * `app/modules/maps` already uses for Leaflet interaction
- * (`useMapContextMenu`, `useNavigableChildren`).
+ * Draws an area's outline on the current map, one click per vertex
+ * (SPEC-024 §5; a dragged rectangle before, SPEC-009 T2). No drawing library
+ * exists in this project — this is the same hand-rolled, imperative style
+ * the rest of `app/modules/maps` uses for Leaflet interaction.
  *
- * While `enabled`, panning is disabled (`map.dragging`) so a left-drag draws
- * instead of panning: mousedown starts a temporary outline rectangle,
- * mousemove updates it live, mouseup finalizes it. Escape cancels at any
- * point. The temporary rectangle and the handlers are always cleaned up,
- * and dragging is always restored, when `enabled` goes back to `false` or
- * the component unmounts.
+ * While `enabled`: each click adds a vertex, clamped to the map's bounds,
+ * and the outline follows the cursor so the closing edge is always in view.
+ * The outline closes on a click on its first vertex, a double-click, or
+ * Enter — each only once there are three vertices, since fewer are not a
+ * shape. Backspace removes the last vertex; Escape abandons the outline.
+ * The map still pans on a drag (a click is a click only when the pointer
+ * did not travel), but its double-click zoom is off, because double-click
+ * finishes the outline. Everything is cleaned up and restored when
+ * `enabled` goes back to `false` or the component unmounts.
+ *
+ * **Keyboard.** Vertices are placed with the pointer only: the keyboard
+ * finishes, undoes and abandons an outline, but cannot place a vertex, as it
+ * cannot place a click anywhere on these maps except the context menu's own
+ * point. SPEC-024 §8 asks for that to be said plainly; §11 records it.
  */
 export function useDrawArea({
   enabled,
@@ -48,9 +59,6 @@ export function useDrawArea({
 }: UseDrawAreaOptions): void {
   const map = useLeafletMap();
 
-  // Kept fresh without re-running the setup effect, the same pattern
-  // `useNavigableChildren`'s `onDescendRef`/`tRef` use for the same reason:
-  // read from inside a Leaflet handler attached once per `enabled` toggle.
   const onCompleteRef = useRef(onComplete);
   useEffect(() => {
     onCompleteRef.current = onComplete;
@@ -74,87 +82,122 @@ export function useDrawArea({
       const L = await import("leaflet");
       if (cancelled) return;
 
-      map.dragging.disable();
+      map.doubleClickZoom.disable();
 
-      const clamp = (latlng: { lat: number; lng: number }) => {
+      const clamp = (latlng: { lat: number; lng: number }): Point => {
         const raw = boundsRef.current;
         const b = raw instanceof L.LatLngBounds ? raw : L.latLngBounds(raw);
-        return {
-          lat: Math.min(Math.max(latlng.lat, b.getSouth()), b.getNorth()),
-          lng: Math.min(Math.max(latlng.lng, b.getWest()), b.getEast()),
-        };
+        return [
+          Math.min(Math.max(latlng.lat, b.getSouth()), b.getNorth()),
+          Math.min(Math.max(latlng.lng, b.getWest()), b.getEast()),
+        ];
+      };
+      const pixelDistance = (a: Point, b: Point) => {
+        const pa = map.latLngToContainerPoint(a);
+        const pb = map.latLngToContainerPoint(b);
+        return Math.hypot(pa.x - pb.x, pa.y - pb.y);
       };
 
-      let start: { lat: number; lng: number } | null = null;
-      let startPoint: { x: number; y: number } | null = null;
-      let temp: Rectangle | null = null;
+      let vertices: Point[] = [];
+      let cursor: Point | null = null;
+      const outline = L.polygon([], {
+        color: "#2563eb",
+        weight: 2,
+        dashArray: "6,4",
+        fillOpacity: 0.08,
+      }).addTo(map);
+      let firstVertex: L.CircleMarker | null = null;
 
-      const removeTemp = () => {
-        if (temp && map.hasLayer(temp)) map.removeLayer(temp);
-        temp = null;
-        start = null;
-        startPoint = null;
+      const redraw = () => {
+        outline.setLatLngs(cursor ? [...vertices, cursor] : vertices);
+        const [first] = vertices;
+        if (first && !firstVertex) {
+          firstVertex = L.circleMarker(first, {
+            radius: 6,
+            color: "#2563eb",
+            weight: 2,
+            fillOpacity: 1,
+          }).addTo(map);
+        } else if (!first && firstVertex) {
+          map.removeLayer(firstVertex);
+          firstVertex = null;
+        }
       };
 
-      const handleMouseDown = (e: LeafletMouseEvent) => {
-        start = clamp(e.latlng);
-        startPoint = e.containerPoint;
-        temp = L.rectangle(
-          [
-            [start.lat, start.lng],
-            [start.lat, start.lng],
-          ],
-          { color: "#2563eb", weight: 2, dashArray: "6,4", fillOpacity: 0.08 }
-        ).addTo(map);
+      const reset = () => {
+        vertices = [];
+        cursor = null;
+        redraw();
+      };
+
+      const withoutDuplicates = (points: Point[]) =>
+        points.filter(
+          (point, index) =>
+            index === 0 ||
+            pixelDistance(point, points[index - 1]!) > DUPLICATE_RADIUS_PX
+        );
+
+      const finish = () => {
+        const ring = withoutDuplicates(vertices);
+        if (ring.length < MIN_VERTICES) return;
+        reset();
+        onCompleteRef.current({ ring });
+      };
+
+      const handleClick = (e: LeafletMouseEvent) => {
+        const point = clamp(e.latlng);
+        const [first] = vertices;
+        if (
+          first &&
+          withoutDuplicates(vertices).length >= MIN_VERTICES &&
+          pixelDistance(point, first) <= CLOSE_RADIUS_PX
+        ) {
+          finish();
+          return;
+        }
+        vertices = [...vertices, point];
+        redraw();
       };
 
       const handleMouseMove = (e: LeafletMouseEvent) => {
-        if (!start || !temp) return;
-        const current = clamp(e.latlng);
-        temp.setBounds([
-          [start.lat, start.lng],
-          [current.lat, current.lng],
-        ]);
+        if (vertices.length === 0) return;
+        cursor = clamp(e.latlng);
+        redraw();
       };
 
-      const handleMouseUp = (e: LeafletMouseEvent) => {
-        if (!start || !startPoint) return;
-        const current = clamp(e.latlng);
-        const dragDistance = Math.hypot(
-          e.containerPoint.x - startPoint.x,
-          e.containerPoint.y - startPoint.y
-        );
-        const footprint: Footprint = [
-          [start.lat, start.lng],
-          [current.lat, current.lng],
-        ];
-        removeTemp();
-
-        if (dragDistance < MIN_DRAG_PIXELS) {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          reset();
           onCancelRef.current();
-          return;
+        } else if (e.key === "Enter" && !isTypingTarget(e.target)) {
+          finish();
+        } else if (
+          e.key === "Backspace" &&
+          vertices.length > 0 &&
+          !isTypingTarget(e.target)
+        ) {
+          e.preventDefault();
+          vertices = vertices.slice(0, -1);
+          if (vertices.length === 0) cursor = null;
+          redraw();
         }
-        onCompleteRef.current(footprint);
       };
 
-      const handleEscape = (e: KeyboardEvent) => {
-        if (e.key !== "Escape") return;
-        removeTemp();
-        onCancelRef.current();
-      };
-
-      map.on("mousedown", handleMouseDown);
+      map.on("click", handleClick);
+      map.on("dblclick", finish);
       map.on("mousemove", handleMouseMove);
-      map.on("mouseup", handleMouseUp);
-      document.addEventListener("keydown", handleEscape);
+      document.addEventListener("keydown", handleKeyDown);
 
       teardown = () => {
-        map.off("mousedown", handleMouseDown);
+        map.off("click", handleClick);
+        map.off("dblclick", finish);
         map.off("mousemove", handleMouseMove);
-        map.off("mouseup", handleMouseUp);
-        document.removeEventListener("keydown", handleEscape);
-        removeTemp();
-        map.dragging.enable();
+        document.removeEventListener("keydown", handleKeyDown);
+        if (map.hasLayer(outline)) map.removeLayer(outline);
+        if (firstVertex && map.hasLayer(firstVertex)) {
+          map.removeLayer(firstVertex);
+        }
+        map.doubleClickZoom.enable();
       };
     };
 

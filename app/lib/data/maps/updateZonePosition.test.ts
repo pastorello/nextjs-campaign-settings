@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { rectangleFootprint } from "@/app/modules/maps/lib/utils/footprint";
 
 import { auth } from "@/auth";
 
@@ -55,10 +56,7 @@ describe("updateZonePosition", () => {
       findMany.mockResolvedValue([
         {
           title: "Kang",
-          footprint: [
-            [10, 10],
-            [50, 50],
-          ],
+          footprint: rectangleFootprint([10, 10], [50, 50]),
         },
       ]);
 
@@ -134,10 +132,7 @@ describe("updateZonePosition", () => {
   });
 
   describe("area resize/move", () => {
-    const footprint: [[number, number], [number, number]] = [
-      [10, 10],
-      [60, 60],
-    ];
+    const footprint = rectangleFootprint([10, 10], [60, 60]);
 
     beforeEach(() => {
       findUnique.mockImplementation((args: { where: { id: number } }) => {
@@ -163,10 +158,7 @@ describe("updateZonePosition", () => {
               title: "Kang",
               lat: 30,
               lng: 30,
-              footprint: [
-                [10, 10],
-                [50, 50],
-              ],
+              footprint: rectangleFootprint([10, 10], [50, 50]),
             },
           ];
           return Promise.resolve(
@@ -193,10 +185,7 @@ describe("updateZonePosition", () => {
               title: "Kang",
               lat: 30,
               lng: 30,
-              footprint: [
-                [10, 10],
-                [50, 50],
-              ],
+              footprint: rectangleFootprint([10, 10], [50, 50]),
             },
             { id: 9, title: "Skreebars", lat: 55, lng: 55, footprint: null },
           ];
@@ -228,20 +217,14 @@ describe("updateZonePosition", () => {
               title: "Kang",
               lat: 30,
               lng: 30,
-              footprint: [
-                [10, 10],
-                [50, 50],
-              ],
+              footprint: rectangleFootprint([10, 10], [50, 50]),
             },
             {
               id: 8,
               title: "Orc Kingdom",
               lat: 70,
               lng: 70,
-              footprint: [
-                [55, 55],
-                [90, 90],
-              ],
+              footprint: rectangleFootprint([55, 55], [90, 90]),
             },
           ];
           return Promise.resolve(

@@ -3,12 +3,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 type Handler = (...args: unknown[]) => void;
 
+// One pixel per unit of lat/lng, so the pixel radii the hook uses read
+// directly off the coordinates below.
 function fakeMapFactory() {
   const handlers = new Map<string, Set<Handler>>();
   return {
-    dragging: { enable: vi.fn(), disable: vi.fn() },
+    doubleClickZoom: { enable: vi.fn(), disable: vi.fn() },
     hasLayer: vi.fn(() => true),
     removeLayer: vi.fn(),
+    latLngToContainerPoint: vi.fn(([lat, lng]: [number, number]) => ({
+      x: lng,
+      y: lat,
+    })),
     on: vi.fn((event: string, handler: Handler) => {
       if (!handlers.has(event)) handlers.set(event, new Set());
       handlers.get(event)!.add(handler);
@@ -36,11 +42,13 @@ vi.mock("@/app/modules/maps/hooks/useLeafletMap", () => ({
   useLeafletMap: () => getMap(),
 }));
 
-const rectangleSetBounds = vi.fn();
-const rectangleAddTo = vi.fn();
-const rectangle = vi.fn((..._args: unknown[]) => {
-  const instance = { addTo: rectangleAddTo, setBounds: rectangleSetBounds };
-  rectangleAddTo.mockReturnValue(instance);
+const setLatLngs = vi.fn();
+const polygon = vi.fn((..._args: unknown[]) => {
+  const instance = { addTo: () => instance, setLatLngs };
+  return instance;
+});
+const circleMarker = vi.fn((..._args: unknown[]) => {
+  const instance = { addTo: () => instance };
   return instance;
 });
 const latLngBounds = vi.fn((box: [[number, number], [number, number]]) => {
@@ -54,7 +62,8 @@ const latLngBounds = vi.fn((box: [[number, number], [number, number]]) => {
 });
 class FakeLatLngBounds {}
 vi.mock("leaflet", () => ({
-  rectangle: (...args: unknown[]) => rectangle(...args),
+  polygon: (...args: unknown[]) => polygon(...args),
+  circleMarker: (...args: unknown[]) => circleMarker(...args),
   latLngBounds: (...args: [[[number, number], [number, number]]]) =>
     latLngBounds(...args),
   LatLngBounds: FakeLatLngBounds,
@@ -67,11 +76,11 @@ const BOUNDS: [[number, number], [number, number]] = [
   [100, 100],
 ];
 
-function mouseEvent(lat: number, lng: number, x: number, y: number) {
-  return { latlng: { lat, lng }, containerPoint: { x, y } };
-}
+const click = (lat: number, lng: number) => ({ latlng: { lat, lng } });
+const key = (value: string) =>
+  document.dispatchEvent(new KeyboardEvent("keydown", { key: value }));
 
-describe("useDrawArea", () => {
+describe("useDrawArea (SPEC-024: one click per vertex)", () => {
   let map: FakeMap;
 
   beforeEach(() => {
@@ -80,109 +89,174 @@ describe("useDrawArea", () => {
     setMap(map);
   });
 
-  it("disables map dragging while enabled and restores it when disabled", async () => {
-    const { rerender } = renderHook(
+  async function arm(
+    overrides: Partial<Parameters<typeof useDrawArea>[0]> = {}
+  ) {
+    const onComplete = vi.fn();
+    const onCancel = vi.fn();
+    const hook = renderHook(
       ({ enabled }: { enabled: boolean }) =>
         useDrawArea({
           enabled,
           bounds: BOUNDS,
-          onComplete: vi.fn(),
-          onCancel: vi.fn(),
+          onComplete,
+          onCancel,
+          ...overrides,
         }),
       { initialProps: { enabled: true } }
     );
+    await waitFor(() =>
+      expect(map.on).toHaveBeenCalledWith("click", expect.any(Function))
+    );
+    return { ...hook, onComplete, onCancel };
+  }
 
-    await waitFor(() => expect(map.dragging.disable).toHaveBeenCalled());
+  it("turns the double-click zoom off while drawing, and back on after", async () => {
+    const { rerender } = await arm();
+    expect(map.doubleClickZoom.disable).toHaveBeenCalled();
 
     rerender({ enabled: false });
 
-    await waitFor(() => expect(map.dragging.enable).toHaveBeenCalled());
+    expect(map.doubleClickZoom.enable).toHaveBeenCalled();
   });
 
-  it("produces a footprint from the drawn corners on a genuine drag", async () => {
-    const onComplete = vi.fn();
-    renderHook(() =>
-      useDrawArea({
-        enabled: true,
-        bounds: BOUNDS,
-        onComplete,
-        onCancel: vi.fn(),
-      })
-    );
-    await waitFor(() =>
-      expect(map.on).toHaveBeenCalledWith("mousedown", expect.any(Function))
-    );
+  it("adds a vertex per click and finishes on Enter", async () => {
+    const { onComplete } = await arm();
+    map.emit("click", click(10, 10));
+    map.emit("click", click(10, 50));
+    map.emit("click", click(50, 30));
 
-    map.emit("mousedown", mouseEvent(10, 10, 0, 0));
-    map.emit("mousemove", mouseEvent(40, 45, 30, 35));
-    map.emit("mouseup", mouseEvent(50, 60, 50, 60));
+    key("Enter");
 
-    expect(onComplete).toHaveBeenCalledWith([
-      [10, 10],
-      [50, 60],
-    ]);
-    expect(map.removeLayer).toHaveBeenCalled();
+    expect(onComplete).toHaveBeenCalledWith({
+      ring: [
+        [10, 10],
+        [10, 50],
+        [50, 30],
+      ],
+    });
   });
 
-  it("clamps each corner to the given bounds", async () => {
-    const onComplete = vi.fn();
-    renderHook(() =>
-      useDrawArea({
-        enabled: true,
-        bounds: BOUNDS,
-        onComplete,
-        onCancel: vi.fn(),
-      })
-    );
-    await waitFor(() =>
-      expect(map.on).toHaveBeenCalledWith("mousedown", expect.any(Function))
-    );
+  it("cannot finish with fewer than three vertices", async () => {
+    const { onComplete, onCancel } = await arm();
+    map.emit("click", click(10, 10));
+    map.emit("click", click(10, 50));
 
-    map.emit("mousedown", mouseEvent(-20, -30, 0, 0));
-    map.emit("mouseup", mouseEvent(150, 200, 80, 90));
+    key("Enter");
+    map.emit("dblclick");
 
-    expect(onComplete).toHaveBeenCalledWith([
-      [0, 0],
-      [100, 100],
-    ]);
+    expect(onComplete).not.toHaveBeenCalled();
+    expect(onCancel).not.toHaveBeenCalled();
   });
 
-  it("treats a sub-threshold drag as a cancel, not a completed area", async () => {
-    const onComplete = vi.fn();
-    const onCancel = vi.fn();
-    renderHook(() =>
-      useDrawArea({ enabled: true, bounds: BOUNDS, onComplete, onCancel })
-    );
-    await waitFor(() =>
-      expect(map.on).toHaveBeenCalledWith("mousedown", expect.any(Function))
-    );
+  it("closes the outline on a click on its first vertex", async () => {
+    const { onComplete } = await arm();
+    map.emit("click", click(10, 10));
+    map.emit("click", click(10, 50));
+    map.emit("click", click(50, 30));
 
-    map.emit("mousedown", mouseEvent(10, 10, 100, 100));
-    map.emit("mouseup", mouseEvent(10.1, 10.1, 102, 101));
+    map.emit("click", click(12, 13));
+
+    expect(onComplete).toHaveBeenCalledWith({
+      ring: [
+        [10, 10],
+        [10, 50],
+        [50, 30],
+      ],
+    });
+  });
+
+  it("finishes on a double-click, keeping the vertex its own clicks placed once", async () => {
+    const { onComplete } = await arm();
+    map.emit("click", click(10, 10));
+    map.emit("click", click(10, 50));
+    // A double-click: two clicks on the same spot, then the dblclick.
+    map.emit("click", click(50, 30));
+    map.emit("click", click(50, 30));
+    map.emit("dblclick");
+
+    expect(onComplete).toHaveBeenCalledWith({
+      ring: [
+        [10, 10],
+        [10, 50],
+        [50, 30],
+      ],
+    });
+  });
+
+  it("takes back the last vertex on Backspace", async () => {
+    const { onComplete } = await arm();
+    map.emit("click", click(10, 10));
+    map.emit("click", click(10, 50));
+    map.emit("click", click(90, 90));
+    key("Backspace");
+    map.emit("click", click(50, 30));
+
+    key("Enter");
+
+    expect(onComplete).toHaveBeenCalledWith({
+      ring: [
+        [10, 10],
+        [10, 50],
+        [50, 30],
+      ],
+    });
+  });
+
+  it("abandons the outline on Escape", async () => {
+    const { onComplete, onCancel } = await arm();
+    map.emit("click", click(10, 10));
+    map.emit("click", click(10, 50));
+
+    key("Escape");
 
     expect(onCancel).toHaveBeenCalled();
+    expect(setLatLngs).toHaveBeenLastCalledWith([]);
     expect(onComplete).not.toHaveBeenCalled();
   });
 
-  it("cancels and removes the temporary rectangle on Escape", async () => {
-    const onCancel = vi.fn();
-    renderHook(() =>
-      useDrawArea({
-        enabled: true,
-        bounds: BOUNDS,
-        onComplete: vi.fn(),
-        onCancel,
-      })
-    );
-    await waitFor(() =>
-      expect(map.on).toHaveBeenCalledWith("mousedown", expect.any(Function))
+  it("clamps every vertex to the map's bounds", async () => {
+    const { onComplete } = await arm();
+    map.emit("click", click(-20, 10));
+    map.emit("click", click(10, 150));
+    map.emit("click", click(120, -5));
+
+    key("Enter");
+
+    expect(onComplete).toHaveBeenCalledWith({
+      ring: [
+        [0, 10],
+        [10, 100],
+        [100, 0],
+      ],
+    });
+  });
+
+  it("follows the cursor with the edge that would close the outline", async () => {
+    await arm();
+    map.emit("click", click(10, 10));
+    map.emit("mousemove", click(40, 40));
+
+    expect(setLatLngs).toHaveBeenLastCalledWith([
+      [10, 10],
+      [40, 40],
+    ]);
+  });
+
+  it("leaves Enter and Backspace alone while a field has the focus", async () => {
+    const { onComplete } = await arm();
+    map.emit("click", click(10, 10));
+    map.emit("click", click(10, 50));
+    map.emit("click", click(50, 30));
+    const input = document.createElement("input");
+    document.body.appendChild(input);
+
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true })
     );
 
-    map.emit("mousedown", mouseEvent(10, 10, 0, 0));
-    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-
-    expect(map.removeLayer).toHaveBeenCalled();
-    expect(onCancel).toHaveBeenCalled();
+    expect(onComplete).not.toHaveBeenCalled();
+    input.remove();
   });
 
   it("does nothing when disabled", () => {
@@ -196,6 +270,5 @@ describe("useDrawArea", () => {
     );
 
     expect(map.on).not.toHaveBeenCalled();
-    expect(map.dragging.disable).not.toHaveBeenCalled();
   });
 });

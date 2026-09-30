@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { toast } from "sonner";
 import type { POI } from "@/app/modules/maps/types/poi";
-import type { Footprint } from "@/app/modules/maps/lib/utils/footprint";
+import { rectangleFootprint } from "@/app/modules/maps/lib/utils/footprint";
 
 // The formatted description resolves its record links under the route's
 // system (SPEC-019 T5), through a provider that renders next-intl's `Link`.
@@ -670,10 +670,7 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
 });
 
 describe("MapPOIPanel — draw-an-area flow (SPEC-009 T2)", () => {
-  const footprint: Footprint = [
-    [0, 0],
-    [10, 20],
-  ];
+  const footprint = rectangleFootprint([0, 0], [10, 20]);
 
   function kindSelect() {
     return screen
@@ -1058,10 +1055,7 @@ describe("MapPOIPanel — typed coordinates (SPEC-025)", () => {
           initialLng={250}
           mode="add"
           onModeChange={vi.fn()}
-          pendingFootprint={[
-            [100, 100],
-            [200, 200],
-          ]}
+          pendingFootprint={rectangleFootprint([100, 100], [200, 200])}
         />
       );
 

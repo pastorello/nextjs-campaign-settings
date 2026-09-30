@@ -1,6 +1,6 @@
 # SPEC-024: Polygon area footprints
 
-- **Status:** **Agreed 2026-09-30** — the DM approved the draft as written and answered the three open questions in chat (§9).
+- **Status:** **In progress** — drawing, the model and every check shipped as T1–T4; editing vertices and moving the centre (T5, T6) follow. Agreed 2026-09-30 — the DM approved the draft as written and answered the three open questions in chat (§9).
 - **Date:** 2026-09-22
 - **Phase:** 4
 - **Related:** [SPEC-009](./009-zones-as-areas.md) (§4 carries the dated supersession note this spec acts on) · [SPEC-017](./017-one-unplaced-pool.md) · [SPEC-015](./015-map-grid-and-scale.md) · `app/modules/maps/lib/utils/footprint.ts` · ROADMAP, _Reversed on 2026-08-18_
@@ -147,7 +147,55 @@ the map's own actions, which validate through `zoneMeta` for everything else
 
 ## 9. Implementation plan
 
-_Fill in after the sections above are agreed._
+**The library** is [ADR-0019](../adr/0019-polygon-geometry-from-small-libraries.md):
+`polygon-clipping` for overlap, `@turf/boolean-point-in-polygon` for
+containment, `@turf/kinks` for self-intersection, `polylabel` for the inside
+point, and the shoelace area by hand. All behind `footprint.ts`, the one module
+that knows a footprint is a polygon.
+
+**What is stored.** `zone.footprint` holds `{ ring }` only: the vertices in
+drawn order, the closing edge implicit. §6 proposed an optional `centre` in the
+same object. It is not there, because the centre already has a home: `lat`/`lng`
+has held an area's derived centre since SPEC-009, and a second copy in the Json
+would be one more thing to keep in agreement. The centre becomes `polylabel`'s
+pole of inaccessibility rather than the midpoint. For a rectangle the two are the
+same point.
+
+**The two openness rules carry over unchanged.** Containment is closed (a point
+on the border is inside). Overlap is open: two areas overlap when their
+intersection has positive area, with a tolerance of a billionth of the smaller
+area so that the floating-point dust of a border drawn twice is not a claim.
+Touching borders stay allowed, as SPEC-009 §5 says.
+
+**Degenerate** keeps SPEC-009's rule (the bounding box under 1% of the parent
+map on either axis), so a migrated rectangle is judged exactly as before. It adds
+an area floor of 1% × 1% of the parent map for the hairline sliver whose box
+looks healthy.
+
+**Drawing** is `useDrawArea`, rewritten: a click per vertex, clamped to the
+map's bounds. The outline follows the cursor. The first vertex, a double-click or
+Enter closes it, but only with three vertices; Backspace removes the last one and
+Escape abandons. The map still pans on a drag, but its double-click zoom is off
+while drawing. The same hook serves "Ridisegna il contorno", so redrawing an
+existing area is drawing its outline again.
+
+**Keyboard.** The keyboard finishes, undoes and abandons an outline, but cannot
+place a vertex: on these maps it can reach no point except the context menu's
+own. §8 asks for this to be stated plainly rather than implied; it is a limit of
+the whole map, not of this spec, and placing points by typing (SPEC-025) has no
+equivalent for a shape of arbitrary length.
+
+**Files, in order**
+
+| #   | File                                                                                 | Change                                                                       |
+| --- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| 1   | `docs/adr/0019-…`                                                                    | The library choice                                                           |
+| 2   | `app/modules/maps/lib/utils/footprint.ts`                                            | Polygon model and predicates, same names, same meanings                      |
+| 3   | `prisma/migrations/…_spec024_footprint_rings`                                        | Every two-corner rectangle to its four-vertex ring                           |
+| 4   | `footprintSchema.ts`, `placeSchema.ts`, `updateZonePosition.ts`, `checkPlacement.ts` | The boundary shape, and the self-intersection refusal (`areaSelfIntersects`) |
+| 5   | `app/modules/maps/hooks/useNavigableChildren.ts`                                     | Areas render as polygons, labelled at the stored centre                      |
+| 6   | `app/modules/maps/hooks/useDrawArea.ts`                                              | Click-per-vertex drawing                                                     |
+| 7   | `messages/{it,en}.json`                                                              | The drawing and redraw copy, which still said "drag" and "rectangle"         |
 
 **Open questions — answered by the DM 2026-09-30**
 
@@ -166,7 +214,20 @@ _Fill in after the sections above are agreed._
 
 ## 10. Task breakdown
 
-_Fill in after §9._
+- [x] **T1** — ADR-0019 and the polygon `footprint.ts` _(test: 37 cases — every
+      rectangle case from SPEC-009 kept unchanged, plus the concave notch,
+      shared borders, self-intersection, slivers and the inside centre)_
+- [x] **T2** — The data migration _(checked against a scratch row; applied to
+      the dev and E2E databases)_
+- [x] **T3** — The server boundary and checks _(test: `checkPlacement` refuses
+      a crossing outline by name, and accepts a concave area with a sibling in
+      its notch)_
+- [x] **T4** — Rendering and drawing _(test: 11 `useDrawArea` cases; the label
+      anchored at the stored centre; `e2e/map-polygon-area.spec.ts` draws an L,
+      and the right-click menu follows its outline, not its box)_
+- [ ] **T5** — Editing: drag a vertex, drag the whole polygon, add a vertex on a
+      segment, remove one (never below three), each edit re-running the checks
+- [ ] **T6** — The centre: draggable, stored as placed, kept inside the outline
 
 ## 11. Outcome
 

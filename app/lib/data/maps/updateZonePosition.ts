@@ -10,9 +10,11 @@ import requireSession from "@/app/lib/auth/requireSession";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { checkAreaPlacement, checkPointPlacement } from "./checkPlacement";
-import { footprintCentre } from "@/app/modules/maps/lib/utils/footprint";
-
-const coordinatePair = z.tuple([z.number().finite(), z.number().finite()]);
+import {
+  footprintCentre,
+  type Footprint,
+} from "@/app/modules/maps/lib/utils/footprint";
+import { footprintSchema } from "../validation/footprintSchema";
 
 const positionSchema = z.object({
   id: z.coerce.number().int().positive(),
@@ -20,12 +22,12 @@ const positionSchema = z.object({
   lng: z.number().finite(),
 });
 
-const footprintSchema = z.object({
+const redrawSchema = z.object({
   id: z.coerce.number().int().positive(),
-  footprint: z.tuple([coordinatePair, coordinatePair]),
+  footprint: footprintSchema,
 });
 
-const inputSchema = z.union([footprintSchema, positionSchema]);
+const inputSchema = z.union([redrawSchema, positionSchema]);
 
 /**
  * Repositions or resizes a Zone (TD-71, SPEC-005 §5.B; SPEC-009 T5). Two
@@ -38,7 +40,7 @@ const inputSchema = z.union([footprintSchema, positionSchema]);
  *   refuses a row that is already positioned. The two used to share this
  *   function under an `intent` discriminator (TD-93) — the discriminator is
  *   gone because the two acts are now two functions.
- * - `{ id, footprint }` — resizes/moves an area, re-drawing its rectangle
+ * - `{ id, footprint }` — resizes/moves an area, re-drawing its outline
  *   (`WorldMap`'s area-edit flow, SPEC-009 T5). The derived centre
  *   (`footprintCentre`) is recomputed and written alongside it, the same way
  *   `createPlace` derives it at creation (SPEC-009 T1).
@@ -57,7 +59,7 @@ const inputSchema = z.union([footprintSchema, positionSchema]);
 export default async function updateZonePosition(
   formData:
     | { id: number; lat: number; lng: number }
-    | { id: number; footprint: [[number, number], [number, number]] }
+    | { id: number; footprint: Footprint }
 ): Promise<MutationResult> {
   await requireSession();
 

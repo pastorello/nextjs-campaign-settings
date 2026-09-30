@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { rectangleFootprint } from "@/app/modules/maps/lib/utils/footprint";
 
 const { findMany, findUnique, poiFindMany } = vi.hoisted(() => ({
   findMany: vi.fn(),
@@ -46,10 +47,7 @@ describe("checkAreaPlacement", () => {
         title: "Kang",
         lat: 30,
         lng: 30,
-        footprint: [
-          [10, 10],
-          [50, 50],
-        ],
+        footprint: rectangleFootprint([10, 10], [50, 50]),
       },
     ];
     findMany.mockImplementation((args: { where?: { id?: { not?: number } } }) =>
@@ -58,10 +56,7 @@ describe("checkAreaPlacement", () => {
 
     const result = await checkAreaPlacement({
       parentId: 1,
-      footprint: [
-        [10, 10],
-        [60, 60],
-      ],
+      footprint: rectangleFootprint([10, 10], [60, 60]),
       excludeZoneId: 7,
     });
 
@@ -75,20 +70,14 @@ describe("checkAreaPlacement", () => {
         title: "Kang",
         lat: 30,
         lng: 30,
-        footprint: [
-          [10, 10],
-          [50, 50],
-        ],
+        footprint: rectangleFootprint([10, 10], [50, 50]),
       },
       {
         id: 8,
         title: "Orc Kingdom",
         lat: 70,
         lng: 70,
-        footprint: [
-          [60, 60],
-          [90, 90],
-        ],
+        footprint: rectangleFootprint([60, 60], [90, 90]),
       },
     ];
     findMany.mockImplementation((args: { where?: { id?: { not?: number } } }) =>
@@ -97,10 +86,7 @@ describe("checkAreaPlacement", () => {
 
     const result = await checkAreaPlacement({
       parentId: 1,
-      footprint: [
-        [10, 10],
-        [65, 65],
-      ],
+      footprint: rectangleFootprint([10, 10], [65, 65]),
       excludeZoneId: 7,
     });
 
@@ -116,10 +102,7 @@ describe("checkAreaPlacement", () => {
         title: "Kang",
         lat: 30,
         lng: 30,
-        footprint: [
-          [10, 10],
-          [50, 50],
-        ],
+        footprint: rectangleFootprint([10, 10], [50, 50]),
       },
       {
         id: 9,
@@ -135,10 +118,7 @@ describe("checkAreaPlacement", () => {
 
     const result = await checkAreaPlacement({
       parentId: 1,
-      footprint: [
-        [10, 10],
-        [60, 60],
-      ],
+      footprint: rectangleFootprint([10, 10], [60, 60]),
       excludeZoneId: 7,
     });
 
@@ -155,10 +135,7 @@ describe("checkAreaPlacement", () => {
 
     const result = await checkAreaPlacement({
       parentId: 1,
-      footprint: [
-        [10, 10],
-        [60, 60],
-      ],
+      footprint: rectangleFootprint([10, 10], [60, 60]),
     });
 
     expect(result).toBeNull();
@@ -169,15 +146,61 @@ describe("checkAreaPlacement", () => {
 
     const result = await checkAreaPlacement({
       parentId: 1,
-      footprint: [
-        [10, 10],
-        [10.05, 10.05],
-      ],
+      footprint: rectangleFootprint([10, 10], [10.05, 10.05]),
     });
 
     expect(result).toEqual({
       footprint: [{ key: "areaTooSmall" }],
     });
+  });
+
+  // SPEC-024 §5: every predicate assumes a simple polygon, so an outline
+  // that crosses itself is refused with its own reason, before anything else.
+  it("refuses an outline that crosses itself, naming why", async () => {
+    findMany.mockResolvedValue([]);
+
+    const result = await checkAreaPlacement({
+      parentId: 1,
+      footprint: {
+        ring: [
+          [10, 10],
+          [50, 50],
+          [50, 10],
+          [10, 50],
+        ],
+      },
+    });
+
+    expect(result).toEqual({
+      footprint: [{ key: "areaSelfIntersects" }],
+    });
+  });
+
+  it("allows a concave outline beside a sibling sitting in its notch", async () => {
+    findMany.mockResolvedValue([
+      {
+        title: "Fishing hamlet",
+        footprint: rectangleFootprint([22, 22], [38, 28]),
+      },
+    ]);
+
+    const result = await checkAreaPlacement({
+      parentId: 1,
+      footprint: {
+        ring: [
+          [10, 10],
+          [10, 40],
+          [40, 40],
+          [40, 30],
+          [20, 30],
+          [20, 20],
+          [40, 20],
+          [40, 10],
+        ],
+      },
+    });
+
+    expect(result).toBeNull();
   });
 });
 
@@ -190,10 +213,7 @@ describe("checkPointPlacement", () => {
     findMany.mockResolvedValue([
       {
         title: "Kang",
-        footprint: [
-          [10, 10],
-          [50, 50],
-        ],
+        footprint: rectangleFootprint([10, 10], [50, 50]),
       },
     ]);
 

@@ -1,19 +1,87 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  clampFootprint,
   findContainingSibling,
   findOverlappingSibling,
   findSwallowedPins,
+  footprintArea,
   footprintCentre,
   footprintContains,
   footprintsOverlap,
   isDegenerateFootprint,
+  isFootprint,
+  isSelfIntersecting,
+  rectangleFootprint,
+  type Bounds,
+  type Footprint,
+  type Point,
 } from "./footprint";
 
-const footprint: [[number, number], [number, number]] = [
-  [0, 0],
-  [10, 20],
-];
+// SPEC-009's rectangles, now four-vertex polygons (SPEC-024 §6). Every
+// rectangle case below predates polygons and is kept unchanged: it is the
+// proof that a migrated rectangle behaves exactly as it did.
+const rect = (a: Point, b: Point): Footprint => rectangleFootprint(a, b);
+const footprint = rect([0, 0], [10, 20]);
+
+// A horseshoe opening upwards: the square [0,0]–[30,30] with the notch
+// [10,10]–[30,20] cut out of its top middle. Its centroid falls in the notch.
+const horseshoe: Footprint = {
+  ring: [
+    [0, 0],
+    [0, 30],
+    [30, 30],
+    [30, 20],
+    [10, 20],
+    [10, 10],
+    [30, 10],
+    [30, 0],
+  ],
+};
+
+describe("isFootprint", () => {
+  it("accepts a ring of three or more points", () => {
+    expect(
+      isFootprint({
+        ring: [
+          [0, 0],
+          [0, 10],
+          [10, 0],
+        ],
+      })
+    ).toBe(true);
+  });
+
+  it("refuses the two-corner rectangle SPEC-009 stored — migrated, not tolerated", () => {
+    expect(
+      isFootprint([
+        [0, 0],
+        [10, 20],
+      ])
+    ).toBe(false);
+  });
+
+  it("refuses fewer than three vertices, and non-numeric ones", () => {
+    expect(
+      isFootprint({
+        ring: [
+          [0, 0],
+          [0, 10],
+        ],
+      })
+    ).toBe(false);
+    expect(
+      isFootprint({
+        ring: [
+          [0, 0],
+          [0, 10],
+          ["x", 1],
+        ],
+      })
+    ).toBe(false);
+    expect(isFootprint(null)).toBe(false);
+  });
+});
 
 describe("footprintContains", () => {
   it("contains a point strictly inside", () => {
@@ -36,129 +104,190 @@ describe("footprintContains", () => {
     expect(footprintContains(footprint, [0, 0])).toBe(true);
     expect(footprintContains(footprint, [10, 20])).toBe(true);
   });
+
+  it("excludes a point in a concave shape's notch, though inside its bounding box", () => {
+    expect(footprintContains(horseshoe, [20, 15])).toBe(false);
+    expect(footprintContains(horseshoe, [5, 15])).toBe(true);
+  });
 });
 
 describe("footprintsOverlap", () => {
   it("detects a partial overlap", () => {
-    const other: [[number, number], [number, number]] = [
-      [5, 15],
-      [15, 25],
-    ];
-    expect(footprintsOverlap(footprint, other)).toBe(true);
+    expect(footprintsOverlap(footprint, rect([5, 15], [15, 25]))).toBe(true);
   });
 
   it("detects one rectangle entirely inside another", () => {
-    const inner: [[number, number], [number, number]] = [
-      [2, 2],
-      [8, 8],
-    ];
+    const inner = rect([2, 2], [8, 8]);
     expect(footprintsOverlap(footprint, inner)).toBe(true);
     expect(footprintsOverlap(inner, footprint)).toBe(true);
   });
 
   it("does not consider rectangles that only touch on an edge as overlapping", () => {
-    const rightNeighbour: [[number, number], [number, number]] = [
-      [0, 20],
-      [10, 30],
-    ];
-    expect(footprintsOverlap(footprint, rightNeighbour)).toBe(false);
+    expect(footprintsOverlap(footprint, rect([0, 20], [10, 30]))).toBe(false);
   });
 
   it("does not consider rectangles that only touch at a corner as overlapping", () => {
-    const cornerNeighbour: [[number, number], [number, number]] = [
-      [10, 20],
-      [20, 30],
-    ];
-    expect(footprintsOverlap(footprint, cornerNeighbour)).toBe(false);
+    expect(footprintsOverlap(footprint, rect([10, 20], [20, 30]))).toBe(false);
   });
 
   it("does not consider disjoint rectangles as overlapping", () => {
-    const far: [[number, number], [number, number]] = [
-      [100, 100],
-      [110, 110],
-    ];
-    expect(footprintsOverlap(footprint, far)).toBe(false);
+    expect(footprintsOverlap(footprint, rect([100, 100], [110, 110]))).toBe(
+      false
+    );
+  });
+
+  it("lets an area sit inside a neighbour's notch — the bounding boxes overlap, the ground does not", () => {
+    const inTheNotch = rect([12, 12], [28, 18]);
+    expect(footprintsOverlap(horseshoe, inTheNotch)).toBe(false);
+  });
+
+  it("refuses an area that reaches into a neighbour's arm by any amount", () => {
+    const reachingIn = rect([12, 12], [28, 21]);
+    expect(footprintsOverlap(horseshoe, reachingIn)).toBe(true);
+  });
+
+  it("does not count a border shared exactly as overlap", () => {
+    const fillsTheNotch = rect([10, 10], [30, 20]);
+    expect(footprintsOverlap(horseshoe, fillsTheNotch)).toBe(false);
+  });
+});
+
+describe("isSelfIntersecting", () => {
+  it("flags an outline that crosses itself", () => {
+    const bowtie: Footprint = {
+      ring: [
+        [0, 0],
+        [10, 10],
+        [10, 0],
+        [0, 10],
+      ],
+    };
+    expect(isSelfIntersecting(bowtie)).toBe(true);
+  });
+
+  it("passes a simple polygon, concave or not", () => {
+    expect(isSelfIntersecting(footprint)).toBe(false);
+    expect(isSelfIntersecting(horseshoe)).toBe(false);
+  });
+});
+
+describe("footprintArea", () => {
+  it("measures a rectangle and a concave polygon, whatever the winding", () => {
+    expect(footprintArea(footprint)).toBe(200);
+    expect(footprintArea(horseshoe)).toBe(900 - 200);
+    expect(footprintArea({ ring: [...horseshoe.ring].reverse() })).toBe(700);
   });
 });
 
 describe("isDegenerateFootprint", () => {
-  const parentMapBounds: [[number, number], [number, number]] = [
+  const parentMapBounds: Bounds = [
     [0, 0],
     [100, 100],
   ];
 
   it("flags a rectangle below the 1% threshold on one side", () => {
-    const thin: [[number, number], [number, number]] = [
-      [0, 0],
-      [0.5, 50],
-    ];
-    expect(isDegenerateFootprint(thin, parentMapBounds)).toBe(true);
+    expect(
+      isDegenerateFootprint(rect([0, 0], [0.5, 50]), parentMapBounds)
+    ).toBe(true);
   });
 
   it("flags a rectangle below the threshold on both sides", () => {
-    const tiny: [[number, number], [number, number]] = [
-      [0, 0],
-      [0.5, 0.5],
-    ];
-    expect(isDegenerateFootprint(tiny, parentMapBounds)).toBe(true);
+    expect(
+      isDegenerateFootprint(rect([0, 0], [0.5, 0.5]), parentMapBounds)
+    ).toBe(true);
   });
 
   it("does not flag a rectangle exactly at the threshold", () => {
-    const atThreshold: [[number, number], [number, number]] = [
-      [0, 0],
-      [1, 1],
-    ];
-    expect(isDegenerateFootprint(atThreshold, parentMapBounds)).toBe(false);
+    expect(isDegenerateFootprint(rect([0, 0], [1, 1]), parentMapBounds)).toBe(
+      false
+    );
   });
 
   it("does not flag a comfortably sized rectangle", () => {
-    const roomy: [[number, number], [number, number]] = [
-      [10, 10],
-      [50, 50],
+    expect(
+      isDegenerateFootprint(rect([10, 10], [50, 50]), parentMapBounds)
+    ).toBe(false);
+  });
+
+  it("flags a hairline sliver whose bounding box looks healthy", () => {
+    const sliver: Footprint = {
+      ring: [
+        [0, 0],
+        [50, 50],
+        [50, 50.01],
+      ],
+    };
+    expect(isDegenerateFootprint(sliver, parentMapBounds)).toBe(true);
+  });
+});
+
+describe("footprintCentre", () => {
+  it("returns the midpoint of a rectangle", () => {
+    const [lat, lng] = footprintCentre(footprint);
+    expect(lat).toBeCloseTo(5, 1);
+    expect(lng).toBeCloseTo(10, 1);
+  });
+
+  it("returns the midpoint of a non-square rectangle", () => {
+    const [lat, lng] = footprintCentre(rect([-10, 0], [10, 100]));
+    expect(lat).toBeCloseTo(0, 1);
+    expect(lng).toBeCloseTo(50, 0);
+  });
+
+  it("puts a concave shape's centre inside it, never in its notch (SPEC-024 §5)", () => {
+    const centre = footprintCentre(horseshoe);
+    expect(footprintContains(horseshoe, centre)).toBe(true);
+  });
+});
+
+describe("clampFootprint", () => {
+  it("pulls every vertex into the map's bounds", () => {
+    const bounds: Bounds = [
+      [0, 0],
+      [100, 100],
     ];
-    expect(isDegenerateFootprint(roomy, parentMapBounds)).toBe(false);
+    const outside: Footprint = {
+      ring: [
+        [-5, 50],
+        [50, 120],
+        [110, -3],
+      ],
+    };
+    expect(clampFootprint(outside, bounds).ring).toEqual([
+      [0, 50],
+      [50, 100],
+      [100, 0],
+    ]);
   });
 });
 
 describe("findOverlappingSibling", () => {
   const siblings = [
-    { title: "Kang", footprint: footprint },
-    {
-      title: "Neighbour",
-      footprint: [
-        [0, 20],
-        [10, 30],
-      ] as [[number, number], [number, number]],
-    },
+    { title: "Kang", footprint },
+    { title: "Neighbour", footprint: rect([0, 20], [10, 30]) },
   ];
 
   it("returns the first sibling whose footprint overlaps", () => {
-    const dragged: [[number, number], [number, number]] = [
-      [2, 2],
-      [8, 8],
-    ];
-    expect(findOverlappingSibling(dragged, siblings)).toBe(siblings[0]);
+    expect(findOverlappingSibling(rect([2, 2], [8, 8]), siblings)).toBe(
+      siblings[0]
+    );
   });
 
   it("does not flag a sibling that only touches at an edge", () => {
-    const dragged: [[number, number], [number, number]] = [
-      [20, 20],
-      [30, 30],
-    ];
-    expect(findOverlappingSibling(dragged, siblings)).toBeUndefined();
+    expect(
+      findOverlappingSibling(rect([20, 20], [30, 30]), siblings)
+    ).toBeUndefined();
   });
 
   it("returns undefined when nothing overlaps", () => {
-    const dragged: [[number, number], [number, number]] = [
-      [200, 200],
-      [210, 210],
-    ];
-    expect(findOverlappingSibling(dragged, siblings)).toBeUndefined();
+    expect(
+      findOverlappingSibling(rect([200, 200], [210, 210]), siblings)
+    ).toBeUndefined();
   });
 });
 
 describe("findContainingSibling", () => {
-  const siblings = [{ title: "Kang", footprint: footprint }];
+  const siblings = [{ title: "Kang", footprint }];
 
   it("returns the sibling area containing the point", () => {
     expect(findContainingSibling([5, 10], siblings)).toBe(siblings[0]);
@@ -185,24 +314,11 @@ describe("findSwallowedPins", () => {
   });
 
   it("returns an empty array when no pin is covered", () => {
-    const empty: [[number, number], [number, number]] = [
-      [900, 900],
-      [910, 910],
-    ];
-    expect(findSwallowedPins(empty, pins)).toEqual([]);
-  });
-});
-
-describe("footprintCentre", () => {
-  it("returns the midpoint of a rectangle", () => {
-    expect(footprintCentre(footprint)).toEqual([5, 10]);
+    expect(findSwallowedPins(rect([900, 900], [910, 910]), pins)).toEqual([]);
   });
 
-  it("returns the midpoint of a non-square rectangle", () => {
-    const rect: [[number, number], [number, number]] = [
-      [-10, 0],
-      [10, 100],
-    ];
-    expect(footprintCentre(rect)).toEqual([0, 50]);
+  it("leaves a pin in a concave shape's notch alone", () => {
+    const inNotch = [{ title: "Fishing hut", lat: 20, lng: 15 }];
+    expect(findSwallowedPins(horseshoe, inNotch)).toEqual([]);
   });
 });

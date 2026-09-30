@@ -7,6 +7,12 @@ import resolveFieldErrors from "@/app/lib/utils/i18n/resolveFieldErrors";
 interface FormErrorSummaryProps {
   /** The key-based field errors a failed MutationResult carries (TD-124). */
   errors: FieldErrors;
+  /**
+   * Labels for fields outside the metadata layer, already translated. A
+   * bespoke form's fields have no `PageMeta` to name them, and would
+   * otherwise show their raw key (SPEC-022's account forms).
+   */
+  labels?: Record<string, string>;
 }
 
 /**
@@ -15,7 +21,10 @@ interface FormErrorSummaryProps {
  * the user sees "Livello", not "livello"; the messages are catalogue keys,
  * translated here at the render boundary (ADR-0007, TD-124).
  */
-export default function FormErrorSummary({ errors }: FormErrorSummaryProps) {
+export default function FormErrorSummary({
+  errors,
+  labels,
+}: FormErrorSummaryProps) {
   const t = useTranslations();
   const entries = Object.entries(resolveFieldErrors(errors, t));
 
@@ -31,9 +40,10 @@ export default function FormErrorSummary({ errors }: FormErrorSummaryProps) {
         {entries.map(([field, messages]) => (
           <li key={field}>
             <span className="font-medium">
-              {fieldMeta[field]?.labelKey
-                ? t(fieldMeta[field].labelKey)
-                : field}
+              {labels?.[field] ??
+                (fieldMeta[field]?.labelKey
+                  ? t(fieldMeta[field].labelKey)
+                  : field)}
             </span>
             {": "}
             {messages.join(", ")}

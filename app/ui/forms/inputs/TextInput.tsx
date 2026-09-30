@@ -15,6 +15,14 @@ interface TextInputProps {
   onChange: (value: MetaValue) => void;
   placeholder?: string;
   icon?: IconType;
+  /**
+   * The input's HTML `type`: `password` hides what is typed (SPEC-022's
+   * account forms). Not `type`, which the control registry already passes
+   * every control as its `ControlType`.
+   */
+  inputType?: "text" | "email" | "password";
+  /** The browser's autofill hint, e.g. `current-password`. */
+  autoComplete?: string;
 }
 
 const TextInput = ({
@@ -23,6 +31,8 @@ const TextInput = ({
   onChange,
   placeholder,
   icon,
+  inputType = "text",
+  autoComplete,
 }: TextInputProps) => {
   return (
     <Field className="w-full">
@@ -32,6 +42,8 @@ const TextInput = ({
           placeholder={isValidString(placeholder) ? placeholder : ""}
           className="flex h-[32px] w-full items-center truncate rounded-md border px-[5px] focus:ring-indigo-500"
           name="label"
+          type={inputType}
+          autoComplete={autoComplete}
           onChange={(event) => onChange(event.target.value)}
           value={String(value ?? "")}
         />

@@ -1,6 +1,6 @@
 # SPEC-012: Publishing this app on a public domain
 
-- **Status:** Draft — the audit in §5 is verified against the repo; every choice in §9 needs the DM's agreement before anything is bought
+- **Status:** **Deferred by the DM, 2026-09-30** — "not now": no publication and no production files are prepared yet. Previously: Draft — the audit in §5 is verified against the repo; every choice in §9 needs the DM's agreement before anything is bought. SPEC-022 is a prerequisite either way.
 - **Date:** 2026-08-18
 - **Phase:** 4
 - **Related:** [ADR-0008](../adr/0008-map-image-storage.md) (map image storage — its access rule is one of the findings), the accounts/roles/visibility block in [`ROADMAP.md`](../ROADMAP.md), [`PROJECT_STATE.md`](../PROJECT_STATE.md) §5

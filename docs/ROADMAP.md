@@ -193,7 +193,7 @@ the same authorisation check three times:
    factions are each secret or public, toggled from the admin list rows (e.g.
    `/dashboard/admin/factions`).
 
-**Specced as [SPEC-022](./specs/022-accounts-roles-and-party-visibility.md), 2026-09-22 (draft).**
+**Specced as [SPEC-022](./specs/022-accounts-roles-and-party-visibility.md), 2026-09-22 (draft).** _2026-09-30: the DM answered its open questions — reset by hand, visibility inherited down the tree, and several groups, each a campaign's players. The last contradicts the draft's "one party", so the spec is being rewritten before it is agreed._
 
 **The order that actually works is 1 → (2, 3, 4 in any order) → 5 → 6.** Roles
 first, because everything else is a rule about who may do what and there is
@@ -323,7 +323,7 @@ guesses.
 
 **SPEC-009 shipped rectangles only, and said to revisit "only if rectangles prove
 genuinely unusable in practice." They have.** **Specced as
-[SPEC-024](./specs/024-polygon-area-footprints.md), 2026-09-22 (draft).** The DM's evidence, drawing the real
+[SPEC-024](./specs/024-polygon-area-footprints.md), 2026-09-22; agreed 2026-09-30.** The DM's evidence, drawing the real
 campaign map: on the root map the material plane is the upper part of a
 hemisphere, and any rectangle over it takes in ground that is not the material
 plane; one level down, Kang's realm cannot be boxed without also claiming a piece
@@ -369,7 +369,7 @@ as work, not as a wish: `README.md`'s quickstart and `docker-compose.yml` are th
 whole deployment story today, and every doc that says "self-hosted" means "on the
 DM's machine".
 
-**Now specified: [SPEC-012](./specs/012-publishing-and-internet-exposure.md)**,
+**Now specified: [SPEC-012](./specs/012-publishing-and-internet-exposure.md)** — _deferred by the DM on 2026-09-30 ("not now")_ —
 written 2026-08-18 at the DM's request, carrying a ten-finding security audit
 verified against the repo, a recommended stack with costs, and the ordering that
 makes roles a prerequisite of publication rather than a follow-up.
@@ -438,7 +438,7 @@ Materiale / Regno di Kang / Skreebars` instead of the bare current title.
 - **Magic-item filters as dropdowns.** Replace the `SelectButtonery` for rarity
   and type with two dropdowns, same height as today's buttons, both on one row.
   A contained UI change to one domain's filter bar.
-- **Create a place, then attach entities to it.** **Specced as [SPEC-026](./specs/026-create-a-place-without-leaving-the-flow.md), 2026-09-22 (draft).** The DM's example: create "la
+- **Create a place, then attach entities to it.** **Specced as [SPEC-026](./specs/026-create-a-place-without-leaving-the-flow.md), 2026-09-22; agreed 2026-09-30.** The DM's example: create "la
   Taverna del Gallo Robin" inside Skreebars, and link a character there — rather
   than attaching an NPC or deity straight from the map's right-click menu. This
   is the model SPEC-008 T8 already chose (an entity has no coordinates of its

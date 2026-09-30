@@ -1,6 +1,6 @@
 # SPEC-024: Polygon area footprints
 
-- **Status:** Draft — needs the DM's agreement
+- **Status:** **Agreed 2026-09-30** — the DM approved the draft as written and answered the three open questions in chat (§9).
 - **Date:** 2026-09-22
 - **Phase:** 4
 - **Related:** [SPEC-009](./009-zones-as-areas.md) (§4 carries the dated supersession note this spec acts on) · [SPEC-017](./017-one-unplaced-pool.md) · [SPEC-015](./015-map-grid-and-scale.md) · `app/modules/maps/lib/utils/footprint.ts` · ROADMAP, _Reversed on 2026-08-18_
@@ -149,14 +149,20 @@ the map's own actions, which validate through `zoneMeta` for everything else
 
 _Fill in after the sections above are agreed._
 
-**Open questions**
+**Open questions — answered by the DM 2026-09-30**
 
 - **A geometry library or hand-written predicates?** Polygon intersection written
   by hand is a classic source of subtle, data-dependent bugs; a dependency is a
-  dependency. This is an ADR-sized choice and belongs in one.
-- Which "guaranteed inside" point, and is it draggable?
+  dependency. This is an ADR-sized choice and belongs in one. **Answer: a
+  library, chosen in an ADR** written before the first task that uses it.
+- Which "guaranteed inside" point, and is it draggable? **Answer: computed, then
+  draggable** — the app computes a point guaranteed inside the shape, the DM can
+  move it, and it is stored as placed, never recomputed behind their back.
 - Does the DM want to convert existing rectangles into real borders by hand
-  afterwards, and does anything help them do it?
+  afterwards, and does anything help them do it? **Answer: a migration converts
+  every rectangle into the identical four-vertex polygon**; the DM then moves the
+  vertices by hand, whenever they choose, with the new editor. No dedicated
+  conversion tool, and no second shape kind kept alive beside polygons.
 
 ## 10. Task breakdown
 

@@ -143,4 +143,11 @@ derives no budget from any system's tables. Should a 5e budgeting helper ever be
 wanted, it belongs in its own domain file and its own spec, built from the SRD
 5.1, and it stays optional — see [`README.md`](./README.md) on sources.
 
+_2026-09-30: the rule has one exception. The DM decided that Daggerheart's
+Battle Points are computed ([SPEC-030](../specs/030-daggerheart-campaign-management.md)
+§9). Its costs and budget formula are Daggerheart's own, short and fixed, and
+[`daggerheart.md`](./daggerheart.md) §5 restates them. The reason for the rule
+was PF2's numbers ending up in a 5e app, and it does not apply there. For 5e
+the rule stands._
+
 No rulebook text from either system is reproduced here, and none should be added.

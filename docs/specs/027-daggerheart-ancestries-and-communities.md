@@ -1,6 +1,6 @@
 # SPEC-027: Daggerheart — ancestries and communities
 
-- **Status:** Draft, 2026-09-30. Written by Claude from SPEC-018 §6, for the DM to review. One question is open (§9).
+- **Status:** Agreed 2026-09-30. Written by Claude from SPEC-018 §6; the DM approved it and answered its question (§9).
 - **Date:** 2026-09-30
 - **Phase:** 4
 - **Related:** [SPEC-018](./018-game-systems.md) T5 (§5 licence constraints and §6 catalogue structure, binding here) · [SPEC-021](./021-daggerheart-domains-and-classes.md) (the first Daggerheart slice; this one reuses its patterns) · [ADR-0013](../adr/0013-game-systems.md) · [`daggerheart.md`](../domain/daggerheart.md) · [`licensing.md`](../domain/licensing.md) · [SPEC-006](./006-factions.md) and [SPEC-004](./004-world-model.md) (the factions and places a community links to)
@@ -73,9 +73,8 @@ one as a card, and a community names the places and factions it belongs to.
    community list.
 5. **Search** (SPEC-011) and **record links** (SPEC-019 T5) reach both
    catalogues under `daggerheart` only, as SPEC-021 T7 did for the first four.
-6. **The world side** is open question 1 (§9). The draft proposes that, under
-   `daggerheart` only, a place's popover and a faction's card list the
-   communities linked to them.
+6. **The world side.** Under `daggerheart` only, a place's popover and a
+   faction's card list the communities linked to them (§9).
 
 **Edge cases**
 
@@ -153,7 +152,7 @@ model dhCommunity {
 - [ ] Deleting a linked place or faction keeps the community; deleting a community keeps the place and faction.
 - [ ] Both lists switch between rows and card views.
 - [ ] Search under `daggerheart` finds both catalogues; under `dnd5e` it does not.
-- [ ] Open question 1's answer, whichever it is, has its own test.
+- [ ] Under `daggerheart`, a place's popover and a faction's card list their communities; under `dnd5e` they do not.
 - [ ] No seed, fixture or test reproduces SRD content (checked in review).
 - [ ] New UI copy lands in both `messages/it.json` and `messages/en.json`.
 - [ ] Every new mutation rejects an unauthenticated request.
@@ -168,19 +167,13 @@ _Fill in once agreed._
 
 - **Two relations from a catalogue into the shared world.** Nothing in
   SPEC-021 touched `zone` or `faction`. The `isPageInSystem` filter already
-  hides the catalogue under `dnd5e`, but a world page showing communities (open
-  question 1) must check the URL's system itself.
+  hides the catalogue under `dnd5e`, but a world page showing communities must
+  check the URL's system itself.
 
-**Open — to ask the DM**
+**Answered by the DM on 2026-09-30**
 
-1. **Should the world show its communities?**
-   - (a) Under `daggerheart`, a place's popover and a faction's card list their
-     linked communities.
-   - (b) The link is visible only from the community's side.
-
-   The draft proposes (a): the link exists because the DM thinks of the people
-   and the place together. The cost is one read path on two shared pages, gated
-   by system.
+1. Should the world show its communities? **Yes, under `daggerheart`**: a
+   place's popover and a faction's card list their linked communities.
 
 ## 10. Task breakdown
 

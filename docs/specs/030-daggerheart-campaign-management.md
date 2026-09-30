@@ -1,6 +1,6 @@
 # SPEC-030: Daggerheart — campaign management
 
-- **Status:** Draft, 2026-09-30. Written by Claude from SPEC-018 §6 and §9, for the DM to review. Two questions are open (§9); the first is the decision SPEC-018 reserved for this slice.
+- **Status:** Agreed 2026-09-30. Written by Claude from SPEC-018 §6 and §9; the DM approved it and answered both questions (§9), including the one SPEC-018 reserved for this slice: Battle Points are computed.
 - **Date:** 2026-09-30
 - **Phase:** 4
 - **Related:** [SPEC-018](./018-game-systems.md) T8 (§6 "what a Daggerheart campaign counts … is decided in its own slice"; §9 on reversing the authored-values rule) · [SPEC-013](./013-campaign-management.md) (campaign → adventure → scene, the 5e counting this slice parallels) · [`campaign-design-method.md`](../domain/campaign-design-method.md) §6 (the authored-values rule) · [`daggerheart.md`](../domain/daggerheart.md) §3, §5, §6 · [SPEC-028](./028-daggerheart-adversaries-and-environments.md) and [SPEC-029](./029-daggerheart-weapons-armor-and-loot.md) (the catalogues a scene draws on; both are prerequisites)
@@ -63,11 +63,11 @@ from SPEC-029's catalogues. A 5e campaign is unchanged.
 | Scene: grants a hero point                    | Hidden                                                                                                                                                                |
 | Fight scene: creatures with level and XP each | **Adversaries** from SPEC-028, each row an adversary and a quantity (a Minion row is a group). Each row costs Battle Points by the adversary's type                   |
 | —                                             | **Budget**: 3 × party size + 2, plus the adjustments the DM ticks from `daggerheart.md` §5's list. Shown as spent / budget, like SPEC-013's totals                    |
-| Currency target and loot values in silver     | **Gold** in handfuls, shown as chests, bags and handfuls (10 : 1), with coins only if the optional rule is on                                                         |
+| Currency target and loot values in silver     | **Gold** in handfuls, shown as chests, bags and handfuls (10 : 1); the optional coin rule is off                                                                      |
 | Loot: magic item or treasure link             | Loot: a SPEC-029 weapon, armor or loot link, or free text. Items and consumables count toward the adventure's two targets, as 5e's permanent items and consumables do |
 
-- **How Battle Points are counted** is open question 1 (§9). The table above
-  assumes the draft's proposal: computed.
+- **Battle Points are computed** (§9), for Daggerheart only; 5e keeps its
+  authored values.
 - A creature row may still link an NPC as well as an adversary, so a named
   villain keeps their world record.
 - Every other part of SPEC-013 (adventure order, status, scenes and their kinds,
@@ -104,7 +104,7 @@ model loot {
   dhWeaponId Int?  // SetNull
   dhArmorId  Int?  // SetNull
   dhLootId   Int?  // SetNull
-  gold       Int?  // in handfuls (coins when the rule is on: see §9)
+  gold       Int?  // in handfuls; the coin rule is off (§9)
 }
 
 model adventure {
@@ -135,7 +135,7 @@ on `xpTarget`.
 
 - [ ] A Daggerheart adventure shows its target level and tier, and no XP target; a 5e adventure is unchanged.
 - [ ] A scene can be marked a milestone and ticked; the adventure totals planned and reached milestones.
-- [ ] A fight scene's creature rows link SPEC-028 adversaries, and the scene shows Battle Points spent against its budget per open question 1's answer.
+- [ ] A fight scene's creature rows link SPEC-028 adversaries, and the scene shows the Battle Points they cost, computed from their types, against the budget computed from the party size and the ticked adjustments.
 - [ ] Gold targets and loot gold are entered in handfuls and shown as chests, bags and handfuls.
 - [ ] Loot links a SPEC-029 weapon, armor or loot record, and items and consumables count toward the adventure's targets.
 - [ ] Deleting a used adversary or catalogue record keeps the row, unlinked.
@@ -148,28 +148,16 @@ on `xpTarget`.
 
 _Fill in once agreed. Depends on SPEC-028 and SPEC-029._
 
-**Open — to ask the DM**
+**Answered by the DM on 2026-09-30**
 
-1. **Are Battle Points computed or authored?** This is the decision SPEC-018 §9
-   reserved for this slice. It reverses `campaign-design-method.md` §6's rule
-   for Daggerheart only.
-   - (a) **Computed.** Each adversary's cost comes from its type, and the budget
-     from the party size plus the ticked adjustments. The DM authors nothing
-     but the fight.
-   - (b) **Authored.** The DM types each row's cost and the budget, and the app
-     only totals them, as it does for 5e's XP.
-
-   The draft proposes (a). The authored-values rule exists because PF2's
-   numbers were being copied into a 5e app, which does not apply here: the
-   costs and the formula are Daggerheart's own. They are short, fixed, and
-   already restated in `daggerheart.md` §5. The rule stays in force for 5e.
-
-2. **The optional coin rule: on, off, or per campaign?**
-   - (a) Off: handfuls are the smallest unit.
-   - (b) A per-campaign switch, so that gold is entered in coins where the table
-     uses them.
-
-   The draft proposes (a), with (b) as a later change if a table asks for it.
+1. Are Battle Points computed or authored? **Computed.** Each adversary's cost
+   comes from its type, and the budget from the party size plus the ticked
+   adjustments. This reverses `campaign-design-method.md` §6's authored-values
+   rule for Daggerheart only, as SPEC-018 §9 allowed. The costs and the formula
+   are Daggerheart's own, short and fixed, and are already restated in
+   `daggerheart.md` §5. The rule stays in force for 5e.
+2. The optional coin rule? **Off.** Handfuls are the smallest unit. A
+   per-campaign switch is a later change if a table asks for it.
 
 ## 10. Task breakdown
 

@@ -1,6 +1,6 @@
 # SPEC-029: Daggerheart — weapons, armor and loot
 
-- **Status:** Draft, 2026-09-30. Written by Claude from SPEC-018 §6, for the DM to review. One question is open (§9).
+- **Status:** Agreed 2026-09-30. Written by Claude from SPEC-018 §6; the DM approved it and answered its question (§9).
 - **Date:** 2026-09-30
 - **Phase:** 4
 - **Related:** [SPEC-018](./018-game-systems.md) T7 (§5 licence constraints and §6 catalogue structure, binding here) · [SPEC-021](./021-daggerheart-domains-and-classes.md) (the patterns reused) · [`daggerheart.md`](../domain/daggerheart.md) §3, §6, §7, §8 · [SPEC-030](./030-daggerheart-campaign-management.md) (a scene's loot, which draws on these catalogues)
@@ -73,7 +73,7 @@ card.
 4. **Search and record links** reach the three catalogues under `daggerheart`
    only.
 5. **Sidebar.** The three share one "Equipment" group, so the Daggerheart
-   section does not grow by three flat entries. This is open question 1.
+   section does not grow by three flat entries (§9).
 
 **Edge cases**
 
@@ -167,14 +167,10 @@ model dhLoot {
 
 _Fill in once agreed._
 
-**Open — to ask the DM**
+**Answered by the DM on 2026-09-30**
 
-1. **One "Equipment" group in the sidebar, or three flat entries?**
-   - (a) One group, the three catalogues as tabs or sub-entries.
-   - (b) Three entries beside the four SPEC-021 added.
-
-   The draft proposes (a): after SPEC-027 and SPEC-028, the Daggerheart section
-   would otherwise hold eleven entries.
+1. One "Equipment" group in the sidebar, or three flat entries? **One group**,
+   with the three catalogues as its sub-entries.
 
 ## 10. Task breakdown
 

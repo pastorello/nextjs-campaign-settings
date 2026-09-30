@@ -1,6 +1,6 @@
 # SPEC-022: Accounts, roles, and campaign visibility
 
-- **Status:** Draft — rewritten 2026-09-30 around the DM's answers (§9). Two questions remain open (§9) before it can be agreed.
+- **Status:** Agreed 2026-09-30. Rewritten that day around the DM's answers, then approved with the last two questions answered (§9).
 - **Date:** 2026-09-22 (rewritten 2026-09-30)
 - **Phase:** 5
 - **Related:** [ADR-0008](../adr/0008-map-image-storage.md) and [ADR-0017](../adr/0017-record-images.md) (their access check is "authenticated", which this spec redefines) · [SPEC-012](./012-publishing-and-internet-exposure.md) (exposure; deferred, and this spec is its prerequisite) · [SPEC-013](./013-campaign-management.md) (the campaign a group belongs to) · [SPEC-004](./004-world-model.md) (the tree visibility inherits down) · [SPEC-011](./011-cross-entity-search.md) (a read path that must learn to filter) · [SPEC-018](./018-game-systems.md) (a campaign has one system) · TD-01 (`requireSession`, the guard this spec extends) · ROADMAP, _Asked for on 2026-08-18, in one batch_
@@ -112,7 +112,7 @@ ancestor hides it.
 
 **What a player sees.** The dashboard's read pages, filtered:
 
-- only the records visible to the campaign they are viewing (§9, open question 1);
+- only the records visible to the campaign they are viewing. A player in several campaigns views one at a time, chosen from a selector in the side navigation (§9); with one campaign there is no selector;
 - without DM-only fields: `npc.motivations` and `npc.secrets` are the only such
   columns today, and any column added later declares whether it is one.
 
@@ -149,18 +149,18 @@ to filter keeps working and leaks quietly: this is the TD-19 failure mode
 
 **Edge cases**
 
-| Situation                                                       | Expected behaviour                                                                             |
-| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| A player requests an admin URL directly                         | 403 from the server, not a redirect to a prettier page that also renders the data.             |
-| A player opens a link to a hidden record                        | 404, not 403: the record's existence is itself information.                                    |
-| A place is revealed but its parent is not                       | Hidden: inheritance (above). The DM's reveal control names the ancestor that hides it.         |
-| An NPC or deity is revealed but the place it lives at is hidden | Open question 2 (§9). The draft's default: the NPC is shown and its location reads as unknown. |
-| A player is removed from a campaign                             | Their next request sees nothing of it. No background session invalidation is built.            |
-| A campaign is deleted                                           | Its memberships and reveals go with it. The records themselves are untouched.                  |
-| A record is deleted                                             | Its reveals go with it.                                                                        |
-| The last DM account is deleted, disabled or demoted             | Refused. There is always at least one active DM.                                               |
-| A player's session is open when their account is disabled       | The next request fails the check. No background invalidation is built.                         |
-| A player plays in no campaign                                   | They can log in and see the rules catalogues only.                                             |
+| Situation                                                       | Expected behaviour                                                                     |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| A player requests an admin URL directly                         | 403 from the server, not a redirect to a prettier page that also renders the data.     |
+| A player opens a link to a hidden record                        | 404, not 403: the record's existence is itself information.                            |
+| A place is revealed but its parent is not                       | Hidden: inheritance (above). The DM's reveal control names the ancestor that hides it. |
+| An NPC or deity is revealed but the place it lives at is hidden | The NPC is shown and its location reads as unknown (§9).                               |
+| A player is removed from a campaign                             | Their next request sees nothing of it. No background session invalidation is built.    |
+| A campaign is deleted                                           | Its memberships and reveals go with it. The records themselves are untouched.          |
+| A record is deleted                                             | Its reveals go with it.                                                                |
+| The last DM account is deleted, disabled or demoted             | Refused. There is always at least one active DM.                                       |
+| A player's session is open when their account is disabled       | The next request fails the check. No background invalidation is built.                 |
+| A player plays in no campaign                                   | They can log in and see the rules catalogues only.                                     |
 
 **Main flow — the order that works**
 
@@ -176,7 +176,7 @@ to filter keeps working and leaks quietly: this is the TD-19 failure mode
 5. **Campaign membership.** The players section on a campaign's page.
 6. **Reveals.** The relations, the controls, and the inheritance helper. This
    step is DM-only: no player read changes yet.
-7. **Player reads.** R1–R14, the campaign selector if §9 requires one, and a
+7. **Player reads.** R1–R14, the campaign selector, and a
    test per path.
 
 Steps 2 and 3 are independent of each other. Step 5 precedes step 6 because
@@ -262,16 +262,57 @@ lists users, and it does not need the layer.
 
 ## 9. Implementation plan
 
-_Fill in once the open questions below are answered._
+**Decisions the plan rests on**
 
-- **The player filter runs once per request.** Visibility of places is
-  recursive, but the world tree is small (hundreds of rows). So a single helper
-  computes the visible place ids for a campaign: the revealed set, walked down
-  from the roots. Every read path uses that helper rather than re-deriving
-  inheritance in SQL per query. It lives under `app/lib/data/visibility/`.
-- **An ADR before step 1:** how `role` and `active` reach the session (the JWT
-  callback in `auth.ts`), and how `forbidden()`/`notFound()` are raised from
-  pages and routes.
+- **The session carries the account's id and role, but the guards do not trust
+  it.** The JWT callback in `auth.config.ts` adds `id` and `role`, so that pages
+  can decide what to render without a query. Each guard still re-reads the row
+  (`role`, `active`). Otherwise a disabled or demoted account would keep its
+  powers until the token expired, and §5's edge case says the next request
+  fails. The page guard reads the row once per request through React's
+  `cache()`.
+- **Four guards in `app/lib/auth/`**, recorded in an ADR in T1:
+  - `requireDm()` for Server Actions. Throws `UnauthorizedError` without an
+    active session and `ForbiddenError` for a player.
+  - `requireApiDm()` for write route handlers. Returns 401 or 403.
+  - `requireDmPage()` for the layouts of R15's pages. Calls Next's
+    `forbidden()` (the `authInterrupts` flag), which renders a `forbidden.tsx`
+    with no data.
+  - `getViewer()` for read paths. Returns `{ kind: "dm" }` or
+    `{ kind: "player", campaignId, system }`.
+- **`requireSession` becomes `requireDm`.** Every one of today's mutations is
+  the DM's, so the ~90 call sites change name, not meaning. The rename lands
+  as its own commit (`CLAUDE.md`: a pure rename is never mixed into a
+  behaviour change), then the role check lands in the renamed function.
+- **The player filter lives in `app/lib/data/visibility/`.** Two helpers:
+  - `visiblePlaceIds(campaignId)` walks the tree once from the roots, keeping a
+    place only if it and every ancestor are revealed. The world tree is small
+    (hundreds of rows), so this is cheaper and far easier to test than a
+    recursive CTE per query.
+  - `revealedWhere(domain, campaignId)` returns the Prisma `where` fragment for
+    the four flat domains.
+
+  Each data function takes the viewer and applies the fragment once. Whether
+  `getQuery` applies it for the list pages is decided in T8 against the first
+  list; the criterion is one place per domain, never one per call site.
+
+- **The campaign a player is viewing is a cookie.** It is validated against
+  the player's memberships on every read, defaults to their first campaign,
+  and decides their `[system]`. A campaign the player is no longer in falls
+  back to the default, never to "everything".
+
+**Risks**
+
+- **The rename touches almost every mutation.** It is mechanical, and its
+  commit contains nothing else. The suites that mock `requireSession` change
+  with it.
+- **A read path that forgets the viewer leaks quietly.** R1–R14 each get a test
+  written against a fixture with one revealed and one hidden record per domain.
+  A new read path added after this spec has no such test until someone writes
+  one. The ADR says so, and `ARCHITECTURE.md` gains the rule.
+- **Existing E2E runs as the DM.** The E2E account becomes a `dm` through the
+  same backfill. The player journeys need a second account, created by a setup
+  step, never seeded into `.env`.
 
 **Answered by the DM on 2026-09-30**
 
@@ -286,31 +327,48 @@ _Fill in once the open questions below are answered._
   reveals is per campaign, and a player may play in more than one. The draft's
   "one DM, one party" non-goal and its `visibleToParty` boolean were replaced by
   this rewrite.
-
-**Open — to ask the DM**
-
-1. **A player in two campaigns of the same system: what do they see?**
-   - (a) One campaign at a time, chosen from a selector in the side navigation.
-   - (b) The union of what both campaigns have uncovered.
-
-   The draft proposes (a). It is what the player story asks for ("nothing my
-   character has not learned"), and the filter stays one campaign, which is also
-   what a later DM preview needs. (b) is simpler, but lets knowledge cross
-   between tables. With a single campaign the question does not arise and no
-   selector is shown.
-
-2. **An NPC or deity revealed, living in a hidden place: shown or hidden?**
-   - (a) Shown, with its location unknown.
-   - (b) Hidden, because "a hidden place hides everything inside it" extends to
-     who lives there.
-
-   The draft proposes (a). The party meets people away from home, and a
-   location that reads as unknown already exists for NPCs with no place.
+- A player in two campaigns of the same system: what do they see? **One
+  campaign at a time**, chosen from a selector. No knowledge crosses between
+  tables, and the filter stays one campaign.
+- An NPC or deity revealed, living in a hidden place: shown or hidden?
+  **Shown, with its location unknown.** The party meets people away from home.
 
 ## 10. Task breakdown
 
-_Fill in after §9. §5's seven steps are the slice boundaries; step 7 is large
-enough to split into the map (R8, R9, R11) and everything else._
+- [ ] **T1** — Roles. Write the ADR (roles in the session, the four guards,
+      `forbidden()`). Add a migration for `role` and `active` that backfills every
+      existing account to `dm`. Rename `requireSession` to `requireDm` (pure
+      rename), then give it the role and `active` checks, and add `requireApiDm`.
+      `requireDmPage` guards every R15 layout. Sign-in refuses an inactive account.
+      _(test: the guards; each R15 layout; a player refused by a mutation; the
+      backfill)_
+- [ ] **T2** — Account self-management: a DM's own name and password (the
+      current password required), on an account page.
+      _(test: the actions; a wrong current password)_
+- [ ] **T3** — Accounts page: create (name, email, first password, role),
+      rename, disable, delete, set a password, and activate. The last active DM
+      cannot be disabled, deleted or demoted.
+      _(test: every action; the last-DM refusals)_
+- [ ] **T4** — DM sign-up from the logged-out screen, created inactive.
+      _(test: sign-up; sign-in refused until activated)_
+- [ ] **T5** — Campaign membership: the players of a campaign, added and
+      removed by the DM. _(test: the actions; a campaign's deletion takes its
+      memberships)_
+- [ ] **T6** — Reveals:
+  - the implicit relations' migration;
+  - the `revealedTo` field on the four domains' forms and admin lists;
+  - the control in the map's place panels;
+  - `visiblePlaceIds` and the "hidden by <ancestor>" hint.
+
+  _(test: inheritance; the system restriction on the picker)_
+
+- [ ] **T7** — Player reads, map: `getViewer`, the campaign cookie and
+      selector, and R8, R9, R11. _(test: one per path)_
+- [ ] **T8** — Player reads, everything else: R1–R7, R10, R12–R14, and the
+      DM-only fields stripped. _(test: one per path)_
+- [ ] **T9** — i18n, a11y and an e2e journey. The DM reveals a place and an
+      NPC to one of two campaigns, and a player in both switches between them and
+      sees each campaign's share. _(test: e2e)_
 
 ## 11. Outcome
 

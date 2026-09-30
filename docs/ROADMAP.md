@@ -193,7 +193,7 @@ the same authorisation check three times:
    factions are each secret or public, toggled from the admin list rows (e.g.
    `/dashboard/admin/factions`).
 
-**Specced as [SPEC-022](./specs/022-accounts-roles-and-party-visibility.md), 2026-09-22 (draft).** _2026-09-30: the DM answered its open questions — reset by hand, visibility inherited down the tree, and several groups, each a campaign's players. The last contradicts the draft's "one party", so the spec was rewritten the same day: a record is revealed to campaigns, not flagged for one party, and §5 now carries the read-path inventory. Two questions remain before it is agreed (§9). A DM "view as campaign" preview is a non-goal there, cheap to add once the player filter exists._
+**Specced as [SPEC-022](./specs/022-accounts-roles-and-party-visibility.md), 2026-09-22 (draft).** _2026-09-30: the DM answered its open questions — reset by hand, visibility inherited down the tree, and several groups, each a campaign's players. The last contradicts the draft's "one party", so the spec was rewritten the same day: a record is revealed to campaigns, not flagged for one party, and §5 now carries the read-path inventory. The DM answered its last two questions and agreed it the same day (one campaign at a time for a player; an NPC in a hidden place shown with its location unknown). A DM "view as campaign" preview is a non-goal there, cheap to add once the player filter exists._
 
 **The order that actually works is 1 → (2, 3, 4 in any order) → 5 → 6.** Roles
 first, because everything else is a rule about who may do what and there is
@@ -571,7 +571,7 @@ _2026-09-30: the four slice specs are drafted for the DM's review —
 [SPEC-028](./specs/028-daggerheart-adversaries-and-environments.md),
 [SPEC-029](./specs/029-daggerheart-weapons-armor-and-loot.md),
 [SPEC-030](./specs/030-daggerheart-campaign-management.md). SPEC-030 carries
-the decision SPEC-018 reserved for T8: whether Battle Points are computed._
+the decision SPEC-018 reserved for T8: whether Battle Points are computed. All four were agreed the same day, and Battle Points are computed._
 
 ---
 

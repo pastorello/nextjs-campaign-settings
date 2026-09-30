@@ -1,6 +1,6 @@
 # SPEC-028: Daggerheart — adversaries and environments
 
-- **Status:** Draft, 2026-09-30. Written by Claude from SPEC-018 §6, for the DM to review. One question is open (§9).
+- **Status:** Agreed 2026-09-30. Written by Claude from SPEC-018 §6; the DM approved it and answered its question (§9).
 - **Date:** 2026-09-30
 - **Phase:** 4
 - **Related:** [SPEC-018](./018-game-systems.md) T6 (§5 licence constraints and §6 catalogue structure, binding here) · [SPEC-021](./021-daggerheart-domains-and-classes.md) (the patterns reused) · [ADR-0018](../adr/0018-daggerheart-features-one-table-per-owner.md) (ordered features, one table per owner) · [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md) · [`daggerheart.md`](../domain/daggerheart.md) §4, §5, §8 · [SPEC-030](./030-daggerheart-campaign-management.md) (the encounter budget that prices these adversaries)
@@ -85,7 +85,7 @@ adversaries it may bring.
 4. **Search and record links** reach both catalogues under `daggerheart` only.
 5. **The world side.** Under `daggerheart`, a place's popover lists the
    environments linked to it, the same answer SPEC-027 gives for communities.
-   Open question 1 asks whether adversaries get the same kind of link to NPCs.
+   Adversaries get no link to NPCs in this slice (§9).
 
 **Edge cases**
 
@@ -198,16 +198,11 @@ _Fill in once agreed._
   (minions in particular) is printed without thresholds. If one is, both
   thresholds become nullable for that type only, and §8 says so.
 
-**Open — to ask the DM**
+**Answered by the DM on 2026-09-30**
 
-1. **Should an adversary be able to name the NPC it is the stat block of?**
-   - (a) An optional link from an adversary to one NPC, shown on the NPC's
-     card under `daggerheart`.
-   - (b) Not in this slice.
-
-   The draft proposes (b). SPEC-018 keeps shared entities free of per-system
-   fields, and a scene's creature already links an NPC (SPEC-013), which is
-   where SPEC-030 joins the two.
+1. Should an adversary be able to name the NPC it is the stat block of? **Not
+   in this slice.** Shared entities stay free of per-system fields. A scene's
+   creature row already links an NPC, and it is where SPEC-030 joins the two.
 
 ## 10. Task breakdown
 

@@ -773,15 +773,22 @@
       "title": "Rimuovere «{title}»?",
       "description": "Scegli cosa deve succedere a questo luogo di interesse.",
       "legend": "Cosa vuoi fare?",
+      "loading": "Conteggio dei personaggi collegati…",
       "outcomes": {
         "unplaceLabel": "Rimuovi dalla mappa",
         "unplaceSummary": "«{title}» torna tra i luoghi non posizionati. Continua a esistere, con la sua descrizione e i personaggi collegati.",
         "deleteLabel": "Elimina definitivamente",
-        "deleteSummary": "«{title}» viene eliminato. Non contiene altri luoghi, quindi non trascina niente con sé, ma l'operazione non può essere annullata."
+        "deleteSummary": "«{title}» viene eliminato. Non contiene altri luoghi, quindi non trascina niente con sé, ma l'operazione non può essere annullata.",
+        "deleteNoEntities": "Nessun personaggio è collegato a questo luogo di interesse.",
+        "deleteNpcs": "{count, plural, one {# PNG resta in «{parentTitle}», senza più questo luogo di interesse} other {# PNG restano in «{parentTitle}», senza più questo luogo di interesse}}",
+        "deleteDeities": "{count, plural, one {# divinità resta in «{parentTitle}», senza più questo luogo di interesse} other {# divinità restano in «{parentTitle}», senza più questo luogo di interesse}}"
       },
       "cancel": "Annulla",
       "confirm": "Elimina",
-      "confirmUnplace": "Rimuovi dalla mappa"
+      "confirmUnplace": "Rimuovi dalla mappa",
+      "errors": {
+        "loadImpactFailed": "Impossibile contare i personaggi collegati. Riprova."
+      }
     },
     "mapUpload": {
       "uploadLabel": "Questo luogo non ha ancora una mappa.",

@@ -413,6 +413,13 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
         name: messages.geography.removeLandmark.outcomes.deleteLabel,
       })
       .click();
+    // The dialog says, before the delete is confirmed, who stays behind —
+    // counted from the database, and naming the place they stay in.
+    await expect(
+      page.getByText(
+        /^1 PNG resta in «.+», senza più questo luogo di interesse$/
+      )
+    ).toBeVisible();
     await page
       .getByRole("button", {
         name: messages.geography.removeLandmark.confirm,

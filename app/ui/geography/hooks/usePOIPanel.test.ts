@@ -33,6 +33,24 @@ describe("usePOIPanel (TD-127)", () => {
     });
   });
 
+  // SPEC-026: the unplaced pool's filter hands over the name it did not find.
+  it("carries a name to prefill when opened with one, and forgets it on close", () => {
+    vi.useFakeTimers();
+    const { result } = render();
+
+    act(() => result.current.openAddAt(3, 4, "Taverna"));
+    expect(result.current.initialTitle).toBe("Taverna");
+
+    act(() => result.current.close());
+    act(() => {
+      vi.runAllTimers();
+    });
+    expect(result.current.initialTitle).toBeNull();
+
+    act(() => result.current.openAddAt(3, 4));
+    expect(result.current.initialTitle).toBeNull();
+  });
+
   it("opens in add mode for a drawn footprint, until it is consumed", () => {
     const { result } = render();
 

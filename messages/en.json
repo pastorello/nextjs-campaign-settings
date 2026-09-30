@@ -80,7 +80,8 @@
       "saveFailed": "Saving failed. Try again."
     },
     "location": {
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "openOnMap": "Open \"{place}\" on the map"
     },
     "locationModal": {
       "title": "Assign location",
@@ -89,7 +90,8 @@
       "zonePlaceholder": "Select a zone",
       "poiLabel": "Specific landmark (optional)",
       "poiNoneOption": "None (zone only)",
-      "zoneNoneOption": "None (remove from its location)"
+      "zoneNoneOption": "None (remove from its location)",
+      "createPlace": "Create a new place"
     },
     "filters": {
       "all": "All",
@@ -734,7 +736,8 @@
         "noMatches": "No place matches.",
         "fromParent": "from “{parent}”",
         "placedToast": "“{title}” positioned.",
-        "movedToast": "“{title}” moved here from “{from}”."
+        "movedToast": "“{title}” moved here from “{from}”.",
+        "createNamed": "Add \"{title}\" here"
       }
     },
     "temporaryMarkers": {
@@ -919,6 +922,24 @@
       "goHome": "Go Home",
       "technicalDetails": "Technical Details",
       "noStackTrace": "No stack trace available"
+    },
+    "placeKinds": {
+      "poi": "Point of interest",
+      "region": "Region",
+      "plane": "Plane of existence",
+      "city": "City",
+      "dungeon": "Dungeon"
+    },
+    "createPlace": {
+      "title": "New place",
+      "kindLabel": "Type",
+      "parentLabel": "It is in",
+      "parentPlaceholder": "Choose the place that contains it",
+      "unplacedNote": "The place starts with no position: draw it on the map whenever you like, from \"Position a place\".",
+      "create": "Create",
+      "creating": "Creating…",
+      "cancel": "Cancel",
+      "failed": "Could not create the place. Try again."
     }
   },
   "world": {

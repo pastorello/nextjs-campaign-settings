@@ -16,6 +16,8 @@ import type FieldErrors from "@/app/lib/definitions/types/FieldErrors";
 import type MutationResult from "@/app/lib/definitions/types/MutationResult";
 import type ZoneOption from "@/app/lib/definitions/interfaces/maps/ZoneOption";
 import type { ResolvedOption } from "@/app/lib/definitions/types/SelectOption";
+import type { PickerPlace } from "@/app/lib/definitions/interfaces/maps/PickerPlace";
+import CreatePlaceForm from "@/app/ui/geography/CreatePlaceForm";
 
 const NO_LANDMARK = 0;
 const NO_ZONE = 0;
@@ -87,6 +89,8 @@ function AssignLocationModalBody({
   const [poiId, setPoiId] = useState<number | null>(currentPoiId);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
+  // SPEC-026 — the place the DM meant may not exist yet.
+  const [isCreatingPlace, setIsCreatingPlace] = useState(false);
 
   useEffect(() => {
     fetchZones()
@@ -116,6 +120,29 @@ function AssignLocationModalBody({
 
   const handlePoiChange = (value: number) => {
     setPoiId(value === NO_LANDMARK ? null : value);
+  };
+
+  // SPEC-026 §5.3 — the new place is the one selected. A landmark is
+  // selected as the landmark of its parent zone, so that zone's list is
+  // re-read even when it was already the selection; a zone joins the zone
+  // list, which is re-read, and becomes the selection itself.
+  const handlePlaceCreated = (place: PickerPlace) => {
+    setIsCreatingPlace(false);
+    if (place.kind === "poi") {
+      setZoneId(place.parentId);
+      setPoiId(place.id);
+      fetchZoneLandmarks(place.parentId)
+        .then(setLandmarks)
+        .catch(() => setLandmarks([]));
+      return;
+    }
+    fetchZones()
+      .then(setZones)
+      .catch(() => {
+        setErrors({ zoneId: [fieldError("noZonesAvailable")] });
+      });
+    setZoneId(place.id);
+    setPoiId(null);
   };
 
   const handleSubmit = async () => {
@@ -157,14 +184,37 @@ function AssignLocationModalBody({
           options={toLandmarkOptions(landmarks, t("poiNoneOption"))}
         />
       )}
-      <div className="flex justify-end gap-2">
-        <BaseButton onClick={() => void handleSubmit()} disabled={isSaving}>
-          {isSaving ? tForm("saving") : tForm("save")}
-        </BaseButton>
-        <BaseButton onClick={onClose} variant={ButtonVariant.secondary}>
-          {tForm("cancel")}
-        </BaseButton>
-      </div>
+      {/* SPEC-026: create the place instead of leaving to find it. Inline
+          rather than a second modal over this one, so the selection above
+          stays in view and focus never leaves the dialog the DM is in.
+          The parent defaults to the zone selected here — the entity's
+          current place, or the place whose popover opened this (§5.2). */}
+      {isCreatingPlace ? (
+        <CreatePlaceForm
+          zones={zones}
+          defaultParentId={zoneId}
+          onCreated={handlePlaceCreated}
+          onCancel={() => setIsCreatingPlace(false)}
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsCreatingPlace(true)}
+          className="text-sm text-blue-600 underline"
+        >
+          {t("createPlace")}
+        </button>
+      )}
+      {!isCreatingPlace && (
+        <div className="flex justify-end gap-2">
+          <BaseButton onClick={() => void handleSubmit()} disabled={isSaving}>
+            {isSaving ? tForm("saving") : tForm("save")}
+          </BaseButton>
+          <BaseButton onClick={onClose} variant={ButtonVariant.secondary}>
+            {tForm("cancel")}
+          </BaseButton>
+        </div>
+      )}
     </div>
   );
 }

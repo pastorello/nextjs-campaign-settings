@@ -176,6 +176,63 @@ describe("updateZonePosition", () => {
       });
     });
 
+    // SPEC-024 T6: the centre the DM placed is stored as placed, never
+    // recomputed behind their back — but it must lie inside the outline.
+    describe("with a centre the DM placed", () => {
+      beforeEach(() => {
+        findMany.mockResolvedValue([]);
+      });
+
+      it("stores the centre as given when it lies inside the outline", async () => {
+        const result = await updateZonePosition({
+          id: 7,
+          footprint,
+          centre: [15, 50],
+        });
+
+        expect(result).toEqual({ ok: true });
+        expect(update).toHaveBeenCalledWith({
+          where: { id: 7 },
+          data: { lat: 15, lng: 50, footprint },
+        });
+      });
+
+      it("refuses a centre outside the outline, writing nothing", async () => {
+        const result = await updateZonePosition({
+          id: 7,
+          footprint,
+          centre: [80, 80],
+        });
+
+        expect(result).toEqual({
+          ok: false,
+          errors: { centre: [{ key: "areaCentreOutside" }] },
+        });
+        expect(update).not.toHaveBeenCalled();
+      });
+
+      it("still runs the placement checks before the centre is looked at", async () => {
+        findMany.mockResolvedValue([
+          {
+            id: 8,
+            title: "Orc Kingdom",
+            lat: 50,
+            lng: 50,
+            footprint: rectangleFootprint([40, 40], [90, 90]),
+          },
+        ]);
+
+        const result = await updateZonePosition({
+          id: 7,
+          footprint,
+          centre: [15, 50],
+        });
+
+        expect(result.ok).toBe(false);
+        expect(update).not.toHaveBeenCalled();
+      });
+    });
+
     it("refuses a resize that would swallow a sibling pin", async () => {
       findMany.mockImplementation(
         (args: { where: { parentId: number; id?: { not: number } } }) => {

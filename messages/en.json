@@ -149,6 +149,7 @@
       "landmarkWithoutZone": "A landmark cannot be chosen without a zone — a landmark always belongs to a zone.",
       "beforeDawnOfTime": "This date is before the dawn of time.",
       "dayNotInMonth": "This month has {days} days.",
+      "areaCentreOutside": "The name's point must lie inside the area's outline.",
       "areaSelfIntersects": "The outline crosses itself: an area must be a single closed border.",
       "areaTooSmall": "This area is too small to draw.",
       "areaOverlaps": "Overlaps an existing area: {title}.",
@@ -682,7 +683,9 @@
         "label": "Area on the parent’s map",
         "redraw": "Redraw the outline",
         "redrawHint": "The changes above are saved, then draw the new outline on the map, one click per vertex — Esc to cancel.",
-        "noArea": "This place is a point, not an area: it has no outline to redraw."
+        "noArea": "This place is a point, not an area: it has no outline to redraw.",
+        "edit": "Edit the outline",
+        "editHint": "The changes above are saved, then move the vertices on the map and save the outline."
       },
       "errors": {
         "saveFailed": "Saving the place failed. Try again."
@@ -941,6 +944,14 @@
       "creating": "Creating…",
       "cancel": "Cancel",
       "failed": "Could not create the place. Try again."
+    },
+    "outlineEdit": {
+      "hint": "Drag the vertices or the whole area · + adds a vertex · right-click or Delete removes one · the diamond is the name's point",
+      "save": "Save outline",
+      "cancel": "Cancel",
+      "vertex": "Vertex {index} of {total}: arrows to move it, Delete to remove it",
+      "midpoint": "Add a vertex between {from} and {to}",
+      "centre": "The name's point: arrows to move it"
     }
   },
   "world": {

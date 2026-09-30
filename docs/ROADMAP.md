@@ -530,7 +530,12 @@ alone.
   recovery path where a recursive delete leaves none. Do not re-propose it as a
   fix; §5 of the spec carries the reasoning, and a cascade would be a new spec.
   _(`DeletePlaceButton` is `RemovePlaceDialog` since this spec; grep for the old
-  name and you will find nothing.)_ _(Found on the way: TD-147.)_
+  name and you will find nothing.)_ _(Found on the way: TD-147, closed
+  2026-09-30: a deleted landmark's characters stay in its enclosing place.)_
+  **Follow-up, not built:** the landmark dialog could state how many characters
+  that moves, as the place dialog states its counts. The DM kept it out of
+  TD-147's fix on 2026-09-30. It is a count query plus a sentence in both
+  catalogues, not a redesign (SPEC-023 §5).
 - **Landmark parity in the popover — closed, both halves, and this note is kept
   only so the gap is not re-filed.** Verified 2026-09-22: `PlacePopover` renders
   a landmark its own `unplace` entry beside `deleteLandmark`, and TD-140 gave

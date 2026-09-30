@@ -686,6 +686,12 @@ function WorldMap({
         positionPlaceElsewhereLabel={tContextMenu("positionPlace.elsewhere")}
         positionPlaceFilterPlaceholder={tContextMenu("positionPlace.filter")}
         positionPlaceNoMatchesLabel={tContextMenu("positionPlace.noMatches")}
+        onAddPlaceNamed={(title, lat, lng) =>
+          poiPanel.openAddAt(lat, lng, title)
+        }
+        positionPlaceCreateLabel={(title) =>
+          tContextMenu("positionPlace.createNamed", { title })
+        }
         onPositionPlace={(id, lat, lng) =>
           void handleContextMenuPositionPlace(id, lat, lng)
         }
@@ -724,6 +730,7 @@ function WorldMap({
         editTarget={poiPanel.editTarget}
         mapCorners={mapCorners}
         onFormPositionChange={setFormPosition}
+        initialTitle={poiPanel.initialTitle}
       />
     </div>
   );

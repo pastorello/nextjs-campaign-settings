@@ -12,6 +12,7 @@ import RecordThumbnail from "../components/RecordThumbnail";
 import RecordDisplayImage from "../components/RecordDisplayImage";
 import ItemMeta from "../components/ItemMeta";
 import AssignLocationButton from "../buttons/AssignLocationButton";
+import PlaceMapLink from "@/app/ui/geography/PlaceMapLink";
 import Deity from "@/app/lib/definitions/interfaces/deities/Deity";
 import pageMetaFields from "@/app/lib/config/pageMetaFields";
 import DeityMetaField from "@/app/lib/definitions/enums/deities/DeityMetaField";
@@ -148,14 +149,23 @@ const DeityCard = (props: {
               <ItemMeta
                 label={t("deities.card.residence")}
                 value={
-                  <AssignLocationButton
-                    pageType={PageType.Deity}
-                    entityId={props.cardItem.id}
-                    currentZoneId={props.placement?.zoneId ?? null}
-                    currentPoiId={props.placement?.poiId ?? null}
-                    currentLocationLabel={residenceLabel}
-                    variant="text"
-                  />
+                  <span className="inline-flex items-center gap-2">
+                    <AssignLocationButton
+                      pageType={PageType.Deity}
+                      entityId={props.cardItem.id}
+                      currentZoneId={props.placement?.zoneId ?? null}
+                      currentPoiId={props.placement?.poiId ?? null}
+                      currentLocationLabel={residenceLabel}
+                      variant="text"
+                    />
+                    {/* SPEC-026: the shortcut to the place itself. */}
+                    {props.placement?.zoneId != null && (
+                      <PlaceMapLink
+                        zoneId={props.placement.zoneId}
+                        placeLabel={props.placement.place ?? residenceLabel}
+                      />
+                    )}
+                  </span>
                 }
               />
               <ItemMeta

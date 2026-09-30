@@ -501,6 +501,25 @@ describe("MapPOIPanel — kind selector (SPEC-004 M5)", () => {
     );
   });
 
+  // TD-150: the options showed the raw ids ("region", "poi") in both
+  // locales; they read the catalogue's labels, the ones SPEC-026's dialog
+  // uses too.
+  it("labels every kind from the catalogue, not with its id", () => {
+    render(<MapPOIPanel {...baseProps()} />);
+    fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
+
+    const labels = [...kindSelect().querySelectorAll("option")].map(
+      (o) => o.textContent
+    );
+    expect(labels).toEqual([
+      "geography.placeKinds.region",
+      "geography.placeKinds.plane",
+      "geography.placeKinds.city",
+      "geography.placeKinds.dungeon",
+      "geography.placeKinds.poi",
+    ]);
+  });
+
   it("switching to city (T2) hides category and shows the map image field", () => {
     render(<MapPOIPanel {...baseProps()} />);
     fireEvent.click(screen.getByText("geography.poiPanel.addButton"));
@@ -958,6 +977,16 @@ describe("MapPOIPanel — typed coordinates (SPEC-025)", () => {
     const { across, down } = positionFields();
     expect(across.value).toBe("25");
     expect(down.value).toBe("25");
+  });
+
+  // SPEC-026: "Aggiungi «…» qui" from the unplaced pool's filter hands the
+  // name it did not find to the add form.
+  it("prefills the name it is handed with the point", () => {
+    openAddForm({ initialLat: 375, initialLng: 250, initialTitle: "Taverna" });
+
+    expect(
+      screen.getByPlaceholderText("geography.poiPanel.placeholders.placeName")
+    ).toHaveValue("Taverna");
   });
 
   // TD-149: SPEC-025 §5.2's "typing in them moves the marker" — the panel

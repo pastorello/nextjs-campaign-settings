@@ -91,6 +91,11 @@ interface MapContextMenuProps {
   unplacedHere?: UnplacedPickerRow[];
   unplacedElsewhere?: UnplacedPickerRow[];
   onPositionPlace?: (key: string, lat: number, lng: number) => void;
+  // SPEC-026 — when the pool's filter finds nothing, the typed name can be
+  // handed to "Aggiungi luogo" at the menu's own point. Absent, nothing is
+  // offered. The label is a function of the name the DM typed.
+  onAddPlaceNamed?: (title: string, lat: number, lng: number) => void;
+  positionPlaceCreateLabel?: (title: string) => string;
   positionPlaceLabel?: string;
   positionPlaceSublabel?: string;
   positionPlaceHereLabel?: string;
@@ -122,10 +127,14 @@ function PositionPlaceEntry({
   elsewhereLabel,
   filterPlaceholder,
   noMatchesLabel,
+  onCreateNamed,
+  createNamedLabel,
 }: {
   here: UnplacedPickerRow[];
   elsewhere: UnplacedPickerRow[];
   onPick: (key: string) => void;
+  onCreateNamed?: (title: string) => void;
+  createNamedLabel?: (title: string) => string;
   label: string;
   sublabel?: string;
   hereLabel: string;
@@ -192,6 +201,19 @@ function PositionPlaceEntry({
                 {noMatchesLabel}
               </p>
             )}
+            {/* SPEC-026: the place the DM filtered for may not exist yet. */}
+            {matchingHere.length === 0 &&
+              matchingElsewhere.length === 0 &&
+              term !== "" &&
+              onCreateNamed !== undefined &&
+              createNamedLabel !== undefined && (
+                <button
+                  onClick={() => onCreateNamed(filter.trim())}
+                  className="w-full rounded-lg px-2 py-1 text-left text-sm text-blue-700 hover:bg-gray-100"
+                >
+                  {createNamedLabel(filter.trim())}
+                </button>
+              )}
           </div>
         </div>
       )}
@@ -339,6 +361,8 @@ export const MapContextMenu = memo(function MapContextMenu({
   unplacedHere = [],
   unplacedElsewhere = [],
   onPositionPlace,
+  onAddPlaceNamed,
+  positionPlaceCreateLabel,
   positionPlaceLabel = "Position a place",
   positionPlaceSublabel,
   positionPlaceHereLabel = "On this map",
@@ -423,6 +447,19 @@ export const MapContextMenu = memo(function MapContextMenu({
       onClose();
     },
     [position, onPositionPlace, onClose]
+  );
+
+  /**
+   * Hands the name the pool's filter did not find to "Aggiungi luogo" at
+   * the menu's point (SPEC-026), then closes — the add panel takes over.
+   */
+  const handleAddPlaceNamed = useCallback(
+    (title: string) => {
+      if (!position || !onAddPlaceNamed) return;
+      onAddPlaceNamed(title, position.latlng.lat, position.latlng.lng);
+      onClose();
+    },
+    [position, onAddPlaceNamed, onClose]
   );
 
   /**
@@ -584,6 +621,12 @@ export const MapContextMenu = memo(function MapContextMenu({
           elsewhereLabel={positionPlaceElsewhereLabel}
           filterPlaceholder={positionPlaceFilterPlaceholder}
           noMatchesLabel={positionPlaceNoMatchesLabel}
+          {...(onAddPlaceNamed !== undefined && {
+            onCreateNamed: handleAddPlaceNamed,
+          })}
+          {...(positionPlaceCreateLabel !== undefined && {
+            createNamedLabel: positionPlaceCreateLabel,
+          })}
         />
       )}
     </div>

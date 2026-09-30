@@ -429,6 +429,50 @@ describe("MapContextMenu — Posiziona luogo (TD-85)", () => {
     expect(screen.getByText("Nessun luogo corrisponde.")).toBeInTheDocument();
   });
 
+  // SPEC-026: the place the DM filtered for may not exist yet. Choosing a
+  // place here means placing it where the menu opened, so the offer is
+  // "Aggiungi luogo" at that point with the typed name — one write, not a
+  // creation followed by a placement.
+  describe("offering to add the place the filter did not find (SPEC-026)", () => {
+    const openWithFilter = (value: string, withCaller = true) => {
+      const onAddPlaceNamed = vi.fn();
+      const utils = renderMenu({
+        onPositionPlace: vi.fn(),
+        ...(withCaller && { onAddPlaceNamed }),
+        positionPlaceCreateLabel: (title: string) => `Aggiungi «${title}» qui`,
+        unplacedHere,
+        unplacedElsewhere,
+        positionPlaceFilterPlaceholder: "Filtra per nome",
+      });
+      fireEvent.click(screen.getByText("Position a place"));
+      fireEvent.change(screen.getByLabelText("Filtra per nome"), {
+        target: { value },
+      });
+      return { ...utils, onAddPlaceNamed };
+    };
+
+    it("offers to add the typed name here when nothing matches", () => {
+      const { onAddPlaceNamed, onClose } = openWithFilter("  Taverna  ");
+
+      fireEvent.click(screen.getByText("Aggiungi «Taverna» qui"));
+
+      expect(onAddPlaceNamed).toHaveBeenCalledWith("Taverna", 12.3456, 65.4321);
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it("offers nothing while a place still matches", () => {
+      openWithFilter("skree");
+
+      expect(screen.queryByText(/^Aggiungi «/)).toBeNull();
+    });
+
+    it("offers nothing without a caller to hand the name to", () => {
+      openWithFilter("Taverna", false);
+
+      expect(screen.queryByText(/^Aggiungi «/)).toBeNull();
+    });
+  });
+
   it("forgets the filter when the menu closes, so the next right-click starts clean", () => {
     const { setOpen } = renderMenu({
       onPositionPlace: vi.fn(),

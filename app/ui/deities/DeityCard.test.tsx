@@ -10,6 +10,23 @@ vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }));
 
+vi.mock("@/app/lib/hooks/useGameSystem", () => ({ default: () => "dnd5e" }));
+
+vi.mock("@/i18n/navigation", () => ({
+  Link: ({
+    href,
+    children,
+    ...rest
+  }: {
+    href: string;
+    children: React.ReactNode;
+  }) => (
+    <a href={href} {...rest}>
+      {children}
+    </a>
+  ),
+}));
+
 // Has its own suite (SPEC-008 T5, SPEC-007 T3) — stubbed here so this file
 // stays about DeityCard's own rendering, not the assignment modal's flow.
 vi.mock(
@@ -111,5 +128,34 @@ describe("DeityCard", () => {
       "group-data-open:rotate-180",
       "transition-transform"
     );
+  });
+
+  // SPEC-026: the shortcut from the card to the place itself.
+  it("links the residence to its place on the map", () => {
+    render(
+      <DeityCard
+        cardItem={item}
+        placement={{
+          place: "Paradiso",
+          plane: "Cieli",
+          zoneId: 3,
+          poiId: null,
+        }}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Helios/ }));
+
+    expect(
+      screen.getByRole("link", { name: "common.location.openOnMap" })
+    ).toHaveAttribute("href", "/dashboard/dnd5e/geography?place=3");
+  });
+
+  it("offers no map link for a deity nobody has placed", () => {
+    render(<DeityCard cardItem={item} />);
+    fireEvent.click(screen.getByRole("button", { name: /Helios/ }));
+
+    expect(
+      screen.queryByRole("link", { name: "common.location.openOnMap" })
+    ).toBeNull();
   });
 });

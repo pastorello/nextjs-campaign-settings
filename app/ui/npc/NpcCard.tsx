@@ -13,6 +13,7 @@ import IconType from "../buttons/BaseButton/IconType";
 import RecordThumbnail from "../components/RecordThumbnail";
 import RecordDisplayImage from "../components/RecordDisplayImage";
 import AssignLocationButton from "../buttons/AssignLocationButton";
+import PlaceMapLink from "@/app/ui/geography/PlaceMapLink";
 import pageMetaFields from "@/app/lib/config/pageMetaFields";
 import NpcItem from "@/app/lib/definitions/interfaces/npc/NpcItem";
 import NpcMetaField from "@/app/lib/definitions/enums/npc/NpcMetaField";
@@ -104,7 +105,7 @@ const NpcCard = (props: {
               not nested inside it, since it is its own button. */}
           {/* Was text-xl — the same size as the NPC's own name above, so the
               eye went to the place first (TD-118). */}
-          <div className="text-sm md:w-[200px]">
+          <div className="flex items-center gap-2 text-sm md:w-[200px]">
             <AssignLocationButton
               pageType={PageType.Npc}
               entityId={props.cardItem.id}
@@ -113,6 +114,13 @@ const NpcCard = (props: {
               currentLocationLabel={locationLabel}
               variant="text"
             />
+            {/* SPEC-026: the shortcut to the place itself. */}
+            {props.placement?.zoneId != null && (
+              <PlaceMapLink
+                zoneId={props.placement.zoneId}
+                placeLabel={locationLabel}
+              />
+            )}
           </div>
           <DisclosureButton
             className="group flex h-10 w-10 items-center justify-center"

@@ -152,6 +152,11 @@ interface MapPOIPanelProps {
   onFormPositionChange?: (
     position: { lat: number; lng: number } | null
   ) => void;
+  /**
+   * A name to prefill the add form with (SPEC-026): the text the unplaced
+   * pool's filter did not find, handed over by the context menu.
+   */
+  initialTitle?: string | null;
 }
 
 export type ViewMode = "list" | "add" | "edit";
@@ -284,6 +289,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
   editTarget = null,
   mapCorners = null,
   onFormPositionChange,
+  initialTitle = null,
 }: MapPOIPanelProps) {
   const t = useTranslations();
   const [isMobile, setIsMobile] = useState(false);
@@ -430,6 +436,14 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     }
   }, [initialLatStr, initialLngStr]);
 
+  // SPEC-026 — the same prop synchronization for a name handed over with the
+  // point; `null` leaves whatever the DM already typed alone.
+  useEffect(() => {
+    if (initialTitle) {
+      setFormData((prev) => ({ ...prev, title: initialTitle }));
+    }
+  }, [initialTitle]);
+
   // A rectangle just finished drawing (SPEC-009 T2) — seed the form for an
   // area rather than a point: default to the first navigable kind (an area
   // is never a landmark), and clear the fields a fresh draw shouldn't
@@ -475,7 +489,8 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     setEditingPOI(null);
     setFormData({
       kind: "poi",
-      title: "",
+      // Seeded like the point is: a name handed over with it (SPEC-026).
+      title: initialTitle ?? "",
       description: "",
       lat: initialLatStr,
       lng: initialLngStr,
@@ -486,6 +501,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
     onFootprintConsumed?.();
   }, [
     setViewMode,
+    initialTitle,
     initialLatStr,
     initialLngStr,
     filterCategory,
@@ -794,7 +810,7 @@ export const MapPOIPanel = memo(function MapPOIPanel({
                 {(pendingFootprint ? NAVIGABLE_PLACE_KINDS : PLACE_KINDS).map(
                   (kind) => (
                     <option key={kind} value={kind}>
-                      {kind}
+                      {t(`geography.placeKinds.${kind}`)}
                     </option>
                   )
                 )}

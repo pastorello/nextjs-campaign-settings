@@ -140,4 +140,27 @@ describe("NpcCard", () => {
     );
     expect(toggleButton).not.toHaveClass("group-data-open:rotate-180");
   });
+
+  // SPEC-026: the shortcut from the card to the place itself — for an NPC at
+  // a landmark, the landmark's zone, the map the landmark is on.
+  it("links the location to its place on the map", () => {
+    render(
+      <NpcCard
+        cardItem={item}
+        placement={{ place: "Taverna", plane: null, zoneId: 5, poiId: 9 }}
+      />
+    );
+
+    expect(
+      screen.getByRole("link", { name: "common.location.openOnMap" })
+    ).toHaveAttribute("href", "/dashboard/dnd5e/geography?place=5");
+  });
+
+  it("offers no map link for an NPC nobody has placed", () => {
+    render(<NpcCard cardItem={item} />);
+
+    expect(
+      screen.queryByRole("link", { name: "common.location.openOnMap" })
+    ).toBeNull();
+  });
 });

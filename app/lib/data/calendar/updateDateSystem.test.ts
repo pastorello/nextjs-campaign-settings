@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
-import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import { UnauthorizedError } from "@/app/lib/auth/requireDm";
 import { humanCountInputFixture } from "@/app/lib/calendar/dateSystemFixtures";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));

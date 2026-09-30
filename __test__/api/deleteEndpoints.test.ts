@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Every DELETE handler is guarded by requireApiSession, which calls auth().
+// Every DELETE handler is guarded by requireApiDm, which calls auth().
 // Mock auth() to drive the session, and mock each delete function so no
 // database is touched — the 401 path must reject *before* any DB call anyway.
 import { auth } from "@/auth";

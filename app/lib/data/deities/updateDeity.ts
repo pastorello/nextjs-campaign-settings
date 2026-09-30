@@ -5,7 +5,7 @@ import releaseReplacedRecordImage from "@/app/lib/data/recordImages/releaseRepla
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import PageType from "@/app/lib/definitions/types/PageType";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildUpdateSchema } from "../validation/buildEntitySchema";
@@ -16,7 +16,7 @@ import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 export default async function updateDeity(
   formData: Deity
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = buildUpdateSchema(PageType.Deity).safeParse(formData);
   if (!parsed.success) {

@@ -4,7 +4,7 @@ import checkRecordImageReference from "@/app/lib/data/recordImages/checkRecordIm
 import releaseReplacedRecordImage from "@/app/lib/data/recordImages/releaseReplacedRecordImage";
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import PageType from "@/app/lib/definitions/types/PageType";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { buildUpdateSchema } from "../validation/buildEntitySchema";
@@ -16,7 +16,7 @@ import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 export default async function updateDhDomain(
   formData: DhDomain
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = buildUpdateSchema(PageType.DhDomain).safeParse(formData);
   if (!parsed.success) {

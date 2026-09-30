@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import recordImageKeysInclude from "@/app/lib/data/recordImages/recordImageKeysInclude";
 import type EntityAtPlace from "@/app/lib/definitions/interfaces/maps/EntityAtPlace";
@@ -28,7 +28,7 @@ const entitySelect = {
 export default async function fetchEntitiesAtPlace(
   target: { zoneId: number } | { poiId: number }
 ): Promise<EntityAtPlace[]> {
-  await requireSession();
+  await requireDm();
 
   const where =
     "zoneId" in target

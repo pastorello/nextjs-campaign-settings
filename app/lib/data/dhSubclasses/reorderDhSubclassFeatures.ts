@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import DhSubclassFeatureTier from "@/app/lib/definitions/enums/daggerheart/DhSubclassFeatureTier";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
@@ -27,7 +27,7 @@ export default async function reorderDhSubclassFeatures(
   tier: DhSubclassFeatureTier,
   orderedIds: number[]
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = reorderSchema.safeParse({ subclassId, tier, orderedIds });
   if (!parsed.success) {

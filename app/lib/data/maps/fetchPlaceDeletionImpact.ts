@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import type PlaceDeletionImpact from "../../definitions/interfaces/maps/PlaceDeletionImpact";
 
@@ -14,7 +14,7 @@ import type PlaceDeletionImpact from "../../definitions/interfaces/maps/PlaceDel
 export default async function fetchPlaceDeletionImpact(
   id: number
 ): Promise<PlaceDeletionImpact> {
-  await requireSession();
+  await requireDm();
 
   try {
     const [zoneCount, poiCount, npcCount, deityCount] = await Promise.all([

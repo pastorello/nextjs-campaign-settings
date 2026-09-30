@@ -3,7 +3,7 @@
 import { z } from "zod";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import calendarSettingsMeta from "@/app/lib/config/calendar/calendarSettingsMeta";
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
@@ -23,7 +23,7 @@ const moonSchema = z.object({
 export default async function setMoonReferenceDay(formData: {
   moonNewMoonDay: number | null;
 }): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = moonSchema.safeParse(formData);
   if (!parsed.success) {

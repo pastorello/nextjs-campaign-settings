@@ -2,7 +2,7 @@
 
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import Spell from "../../definitions/interfaces/spells/Spell";
 import PageType from "@/app/lib/definitions/types/PageType";
@@ -13,7 +13,7 @@ import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 export default async function createSpell(
   formData: Spell
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = buildCreateSchema(PageType.Spell).safeParse(formData);
   if (!parsed.success) {

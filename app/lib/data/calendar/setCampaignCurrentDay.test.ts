@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
-import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import { UnauthorizedError } from "@/app/lib/auth/requireDm";
 import NotFoundError from "@/app/lib/errors/NotFoundError";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));

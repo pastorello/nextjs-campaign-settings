@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import { isGameSystem } from "@/app/lib/definitions/GameSystem";
 import type RecordLinkResolution from "@/app/lib/definitions/types/RecordLinkResolution";
 
@@ -30,7 +30,7 @@ export default async function resolveRecordLinks(
   values: (string | null)[],
   system: string
 ): Promise<RecordLinkResolution> {
-  await requireSession();
+  await requireDm();
   const input = inputSchema.parse({ values, system });
   return fetchRecordLinkResolution(input.values, input.system);
 }

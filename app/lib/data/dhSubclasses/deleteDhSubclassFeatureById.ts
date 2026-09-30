@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import NotFoundError from "@/app/lib/errors/NotFoundError";
@@ -14,7 +14,7 @@ import NotFoundError from "@/app/lib/errors/NotFoundError";
 export default async function deleteDhSubclassFeatureById(
   id: number
 ): Promise<void> {
-  await requireSession();
+  await requireDm();
 
   let existing;
   try {

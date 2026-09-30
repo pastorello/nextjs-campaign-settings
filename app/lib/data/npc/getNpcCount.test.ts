@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 // getNpcCount now threads a zoneId/poiId filter (SPEC-008 T6) through
 // buildLocationWhere, which — for the zoneId branch only — calls
-// requireSession(); mocked here so the real next-auth config module never
+// requireDm(); mocked here so the real next-auth config module never
 // loads, regardless of whether that branch actually runs in a given test.
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 

@@ -8,11 +8,11 @@ import { auth } from "@/auth";
  * caller should return when there is no session, or `null` when authenticated:
  *
  * ```ts
- * const unauthorized = await requireApiSession();
+ * const unauthorized = await requireApiDm();
  * if (unauthorized) return unauthorized;
  * ```
  */
-export default async function requireApiSession(): Promise<NextResponse | null> {
+export default async function requireApiDm(): Promise<NextResponse | null> {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

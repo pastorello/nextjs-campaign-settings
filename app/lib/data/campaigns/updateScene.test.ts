@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
-import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import { UnauthorizedError } from "@/app/lib/auth/requireDm";
 import Scene from "@/app/lib/definitions/interfaces/campaign/Scene";
 import SceneKind from "@/app/lib/definitions/enums/campaign/SceneKind";
 

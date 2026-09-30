@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import worldHistoryEventSchema from "@/app/lib/data/validation/worldHistoryEventSchema";
@@ -22,7 +22,7 @@ export default async function updateWorldHistoryEvent(
   id: number,
   input: WorldHistoryEventInput
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = worldHistoryEventSchema.safeParse(input);
   if (!parsed.success) {

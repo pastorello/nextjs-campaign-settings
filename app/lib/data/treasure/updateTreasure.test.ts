@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
-import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import { UnauthorizedError } from "@/app/lib/auth/requireDm";
 import Treasure from "@/app/lib/definitions/interfaces/treasure/Treasure";
 import firstOptionValue from "@/app/lib/config/firstOptionValue";
 import treasureCategories from "@/app/lib/config/treasure/treasure-categories";

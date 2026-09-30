@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
-import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import { UnauthorizedError } from "@/app/lib/auth/requireDm";
 import DhDomain from "@/app/lib/definitions/interfaces/daggerheart/DhDomain";
 import DatabaseError from "@/app/lib/errors/DatabaseError";
 

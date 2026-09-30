@@ -2,7 +2,7 @@
 
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import PageType from "@/app/lib/definitions/types/PageType";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import DhClass from "@/app/lib/definitions/interfaces/daggerheart/DhClass";
@@ -19,7 +19,7 @@ import distinctDomainsError from "./distinctDomainsError";
 export default async function updateDhClass(
   formData: DhClass
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = buildUpdateSchema(PageType.DhClass).safeParse(formData);
   if (!parsed.success) {

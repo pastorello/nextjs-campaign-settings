@@ -5,7 +5,7 @@ import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { buildRootPlaceSchema } from "../validation/rootPlaceSchema";
 import type {
@@ -22,7 +22,7 @@ import type {
 export default async function createRootPlace(
   formData: CreateRootPlaceInput
 ): Promise<CreateRootPlaceResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = buildRootPlaceSchema().safeParse(formData);
   if (!parsed.success) {

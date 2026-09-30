@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import { isGameSystem } from "@/app/lib/definitions/GameSystem";
 import searchAllDomains, {
   type SearchAllDomainsResult,
@@ -28,7 +28,7 @@ export default async function searchRecordLinks(
   term: string,
   system: string
 ): Promise<SearchAllDomainsResult> {
-  await requireSession();
+  await requireDm();
   const input = inputSchema.parse({ term, system });
   return searchAllDomains(input.term, input.system);
 }

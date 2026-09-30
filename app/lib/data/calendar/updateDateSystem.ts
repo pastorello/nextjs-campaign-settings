@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import { dateSystemSchema } from "@/app/lib/config/calendar/dateSystemSchemas";
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import DateSystemInput from "@/app/lib/definitions/interfaces/calendar/DateSystemInput";
@@ -33,7 +33,7 @@ const updateSchema = dateSystemSchema.extend({
 export default async function updateDateSystem(
   formData: DateSystemInput & { id: number }
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = updateSchema.safeParse(formData);
   if (!parsed.success) {

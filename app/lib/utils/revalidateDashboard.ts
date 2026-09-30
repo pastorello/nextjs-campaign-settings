@@ -31,7 +31,7 @@ export type DashboardDomain =
  *
  * **What this call actually does today (ADR-0014, TD-105's 2026-09-11
  * correction).** No dashboard page is ever cached — every one reaches
- * `requireSession()`, which forces dynamic rendering — so there is no cache
+ * `requireDm()`, which forces dynamic rendering — so there is no cache
  * entry here to invalidate. What `revalidatePath` does regardless of the
  * path it is given is set `workStore.pathWasRevalidated`, and it is that
  * flag, not a cache match, that makes Next render the page again and send

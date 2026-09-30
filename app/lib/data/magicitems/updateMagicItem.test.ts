@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
-import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import { UnauthorizedError } from "@/app/lib/auth/requireDm";
 import MagicItem from "@/app/lib/definitions/interfaces/magicitem/MagicItem";
 import firstOptionValue from "@/app/lib/config/firstOptionValue";
 import rarity from "@/app/lib/config/magicitem/rarity";

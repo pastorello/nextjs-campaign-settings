@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { auth } from "@/auth";
-import { UnauthorizedError } from "@/app/lib/auth/requireSession";
+import { UnauthorizedError } from "@/app/lib/auth/requireDm";
 import DhDomainCard from "@/app/lib/definitions/interfaces/daggerheart/DhDomainCard";
 import { Prisma } from "@/generated/prisma/client";
 

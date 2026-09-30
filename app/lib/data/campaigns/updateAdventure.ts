@@ -2,7 +2,7 @@
 
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import Adventure from "@/app/lib/definitions/interfaces/campaign/Adventure";
 import adventureMeta from "@/app/lib/config/campaigns/adventureMeta";
@@ -22,7 +22,7 @@ import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 export default async function updateAdventure(
   formData: Adventure
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const schema = buildBespokeUpdateSchema(adventureMeta).extend({
     campaignId: z.coerce.number().int().positive().nullable().optional(),

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireApiSession from "@/app/lib/auth/requireApiSession";
+import requireApiDm from "@/app/lib/auth/requireApiDm";
 import parseIdParam from "@/app/lib/data/validation/parseIdParam";
 import toErrorResponse from "@/app/lib/errors/toErrorResponse";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
@@ -25,7 +25,7 @@ export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  const unauthorized = await requireApiSession();
+  const unauthorized = await requireApiDm();
   if (unauthorized) return unauthorized;
 
   const id = parseIdParam((await context.params).id);

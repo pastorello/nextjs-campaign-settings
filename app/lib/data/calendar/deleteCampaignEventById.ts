@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import findCampaignEvent from "./findCampaignEvent";
@@ -14,7 +14,7 @@ import findCampaignEvent from "./findCampaignEvent";
 export default async function deleteCampaignEventById(
   id: number
 ): Promise<void> {
-  await requireSession();
+  await requireDm();
 
   const event = await findCampaignEvent(id);
 

@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import MutationResult from "@/app/lib/definitions/types/MutationResult";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import validateAndReorder from "../campaigns/validateAndReorder";
@@ -23,7 +23,7 @@ export default async function reorderDhClassFeatures(
   classId: number,
   orderedIds: number[]
 ): Promise<MutationResult> {
-  await requireSession();
+  await requireDm();
 
   const parsed = reorderSchema.safeParse({ classId, orderedIds });
   if (!parsed.success) {

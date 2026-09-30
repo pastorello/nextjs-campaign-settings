@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import findWorldHistoryEvent from "./findWorldHistoryEvent";
@@ -15,7 +15,7 @@ import findWorldHistoryEvent from "./findWorldHistoryEvent";
 export default async function deleteWorldHistoryEventById(
   id: number
 ): Promise<void> {
-  await requireSession();
+  await requireDm();
 
   const eventId = await findWorldHistoryEvent(id);
 

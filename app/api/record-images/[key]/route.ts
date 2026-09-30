@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import requireApiSession from "@/app/lib/auth/requireApiSession";
+import requireApiDm from "@/app/lib/auth/requireApiDm";
 import defaultRecordImageStore from "@/app/lib/storage/defaultRecordImageStore";
 
 /**
@@ -21,7 +21,7 @@ export async function GET(
   _request: Request,
   context: { params: Promise<{ key: string }> }
 ) {
-  const unauthorized = await requireApiSession();
+  const unauthorized = await requireApiDm();
   if (unauthorized) return unauthorized;
 
   const { key } = await context.params;

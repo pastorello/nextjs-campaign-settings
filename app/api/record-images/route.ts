@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import FieldErrorKey from "@/app/lib/definitions/types/FieldErrorKey";
-import requireApiSession from "@/app/lib/auth/requireApiSession";
+import requireApiDm from "@/app/lib/auth/requireApiDm";
 import defaultRecordImageStore from "@/app/lib/storage/defaultRecordImageStore";
 import { MAX_IMAGE_BYTES } from "@/app/lib/storage/imageUploadRules";
 import storeRecordImage from "@/app/lib/storage/storeRecordImage";
@@ -42,7 +42,7 @@ function refuse(error: FieldErrorKey) {
  * the same reason map uploads use `/api/maps/upload`.
  */
 export async function POST(request: NextRequest) {
-  const unauthorized = await requireApiSession();
+  const unauthorized = await requireApiDm();
   if (unauthorized) return unauthorized;
 
   const formData = await request.formData();

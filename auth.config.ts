@@ -7,7 +7,7 @@ export const authConfig = {
   callbacks: {
     // Gates every proxy-matched path (the dashboard) on "is there a session".
     // The proxy matcher excludes /api, so route handlers and Server Actions
-    // guard themselves instead — see requireApiSession / requireSession (TD-01).
+    // guard themselves instead — see requireApiDm / requireDm (TD-01).
     // No per-route branching is needed here; login is the only requirement.
     authorized({ auth }) {
       return !!auth?.user;

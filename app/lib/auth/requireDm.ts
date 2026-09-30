@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 
 /**
- * Thrown by {@link requireSession} when a mutation is reached without a
+ * Thrown by {@link requireDm} when a mutation is reached without a
  * session. A distinct type so callers and tests can tell "not logged in" apart
  * from a database or validation failure.
  */
@@ -18,7 +18,7 @@ export class UnauthorizedError extends Error {
  * verify a session itself. Throws {@link UnauthorizedError} when none exists;
  * returns the session otherwise.
  */
-export default async function requireSession() {
+export default async function requireDm() {
   const session = await auth();
   if (!session?.user) {
     throw new UnauthorizedError();

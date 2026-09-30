@@ -4,7 +4,7 @@ import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 
 import { Prisma } from "@/generated/prisma/client";
 import prisma from "@/app/lib/connections/prisma";
-import requireSession from "@/app/lib/auth/requireSession";
+import requireDm from "@/app/lib/auth/requireDm";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import NotFoundError from "@/app/lib/errors/NotFoundError";
 import ConflictError from "@/app/lib/errors/ConflictError";
@@ -40,7 +40,7 @@ import deleteRecordImage from "@/app/lib/data/recordImages/deleteRecordImage";
  * reparent into.
  */
 export default async function deletePlace(id: number): Promise<void> {
-  await requireSession();
+  await requireDm();
 
   let place;
   try {

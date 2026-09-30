@@ -108,6 +108,13 @@ the landmark in the same transaction. The dialog still states no count, by the
 DM's choice. The count is a separate change, recorded under this spec's entry
 in `docs/ROADMAP.md`._
 
+_2026-09-30, later the same day: the count landed as that separate change. The
+dialog now fetches `fetchLandmarkDeletionImpact` when it opens, as a place's
+dialog fetches its figures. Under "Elimina definitivamente" it states how many
+NPCs and deities stay in the enclosing place, named, or that none is attached.
+Nothing can be confirmed until the count has arrived. It is the sentence this
+paragraph asked for, not a redesign._
+
 **Edge cases**
 
 | Situation                                 | Expected behaviour                                                                                            |
@@ -141,6 +148,8 @@ None. The dialog is a component concern; the counts come from the data layer.
 - [x] The dialog states the number of children, landmarks and entities affected
       by the chosen outcome before it is confirmed. **For a place.** A landmark's
       dialog states no counts — see §5's landmark paragraph and TD-147.
+      _(Since 2026-09-30 it states its one count, the characters attached: see
+      §5's second dated note.)_
 - [x] "Rimuovi dalla mappa" behaves exactly as today's unplace, and the place
       appears in the unplaced pool afterwards.
 - [x] "Elimina definitivamente" behaves as decided in §5, in one transaction.

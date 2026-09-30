@@ -532,10 +532,10 @@ alone.
   _(`DeletePlaceButton` is `RemovePlaceDialog` since this spec; grep for the old
   name and you will find nothing.)_ _(Found on the way: TD-147, closed
   2026-09-30: a deleted landmark's characters stay in its enclosing place.)_
-  **Follow-up, not built:** the landmark dialog could state how many characters
-  that moves, as the place dialog states its counts. The DM kept it out of
-  TD-147's fix on 2026-09-30. It is a count query plus a sentence in both
-  catalogues, not a redesign (SPEC-023 §5).
+  **Follow-up, built 2026-09-30:** the landmark dialog now states how many
+  characters stay in the enclosing place, as the place dialog states its counts.
+  The DM kept it out of TD-147's fix and it landed as its own change the same
+  day (SPEC-023 §5's second dated note).
 - **Landmark parity in the popover — closed, both halves, and this note is kept
   only so the gap is not re-filed.** Verified 2026-09-22: `PlacePopover` renders
   a landmark its own `unplace` entry beside `deleteLandmark`, and TD-140 gave

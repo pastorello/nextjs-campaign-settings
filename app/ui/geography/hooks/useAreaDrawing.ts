@@ -4,14 +4,24 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { useDrawArea } from "@/app/modules/maps/hooks/useDrawArea";
+import { useEditArea } from "@/app/modules/maps/hooks/useEditArea";
 import updateZonePosition from "@/app/lib/data/maps/updateZonePosition";
 import { resolveFirstFieldError } from "@/app/lib/utils/i18n/resolveFieldErrors";
-import type { Footprint } from "@/app/modules/maps/lib/utils/footprint";
+import type { Footprint, Point } from "@/app/modules/maps/lib/utils/footprint";
 
 /** The area armed for a redraw, as `armAreaRedraw` takes it. */
 export interface EditingArea {
   id: number;
   title: string;
+}
+
+/**
+ * The area armed for editing its outline in place (SPEC-024 T5): what the
+ * editor starts from — the stored outline and the centre its label sits on.
+ */
+export interface EditingOutline extends EditingArea {
+  footprint: Footprint;
+  centre: Point;
 }
 
 /**
@@ -38,8 +48,12 @@ export function useAreaDrawing({
 }): {
   isDrawingArea: boolean;
   editingArea: EditingArea | null;
+  editingOutline: EditingOutline | null;
   toggleDrawArea: () => void;
   armAreaRedraw: (area: EditingArea) => void;
+  armOutlineEdit: (area: EditingOutline) => void;
+  saveOutline: () => void;
+  cancelOutline: () => void;
   disarm: () => void;
 } {
   const t = useTranslations("geography.errors");
@@ -57,6 +71,11 @@ export function useAreaDrawing({
   // exclusive with the other two the same way they already exclude each
   // other.
   const [editingArea, setEditingArea] = useState<EditingArea | null>(null);
+  // An area whose outline is being edited in place (SPEC-024 T5) — the
+  // third area mode, exclusive with the two above the same way.
+  const [editingOutline, setEditingOutline] = useState<EditingOutline | null>(
+    null
+  );
 
   // A redraw in progress belongs to the map being left — `WorldMap` isn't
   // remounted on `parentId` change, so it is cancelled here, the same way
@@ -67,6 +86,7 @@ export function useAreaDrawing({
   if (parentId !== prevParentId) {
     setPrevParentId(parentId);
     setEditingArea(null);
+    setEditingOutline(null);
   }
 
   // Cancels both modes here — what arming the POI panel's location
@@ -74,6 +94,7 @@ export function useAreaDrawing({
   const disarm = useCallback(() => {
     setIsDrawingArea(false);
     setEditingArea(null);
+    setEditingOutline(null);
   }, []);
 
   // Arms/disarms draw-area mode (SPEC-009 T2), cancelling the other
@@ -81,6 +102,7 @@ export function useAreaDrawing({
   const toggleDrawArea = useCallback(() => {
     onArm();
     setEditingArea(null);
+    setEditingOutline(null);
     setIsDrawingArea((prev) => !prev);
   }, [onArm]);
 
@@ -95,10 +117,52 @@ export function useAreaDrawing({
   const armAreaRedraw = useCallback(
     (area: EditingArea) => {
       setIsDrawingArea(false);
+      setEditingOutline(null);
       onArm();
       setEditingArea(area);
     },
     [onArm]
+  );
+
+  // Arms in-place editing of an area's outline (SPEC-024 T5) — from
+  // `ZoneEditPanel`, like the redraw, and exclusive with the other modes.
+  const armOutlineEdit = useCallback(
+    (area: EditingOutline) => {
+      setIsDrawingArea(false);
+      setEditingArea(null);
+      onArm();
+      setEditingOutline(area);
+    },
+    [onArm]
+  );
+
+  const cancelOutline = useCallback(() => {
+    setEditingOutline(null);
+  }, []);
+
+  // The edited outline, with the centre the DM placed, re-runs every
+  // placement check server-side. Unlike the redraw, a refusal leaves the
+  // editor open with the edit intact: the DM fixes the vertex the message
+  // names instead of starting the outline over.
+  const handleOutlineSaved = useCallback(
+    async (footprint: Footprint, centre: Point) => {
+      if (!editingOutline) return;
+      const { id, title } = editingOutline;
+      try {
+        const result = await updateZonePosition({ id, footprint, centre });
+        if (result.ok) {
+          setEditingOutline(null);
+          onPlacesChanged();
+        } else {
+          const firstError = resolveFirstFieldError(result.errors ?? {}, tRoot);
+          toast.error(firstError ?? t("placePositionFailed", { title }));
+        }
+      } catch (error) {
+        console.error("Failed to save the edited outline:", error);
+        toast.error(t("placePositionFailed", { title }));
+      }
+    },
+    [editingOutline, onPlacesChanged, t, tRoot]
   );
 
   // The hook aborted the redraw gesture itself (Escape, a too-small drag)
@@ -176,5 +240,29 @@ export function useAreaDrawing({
     onCancel: handleAreaEditCancelled,
   });
 
-  return { isDrawingArea, editingArea, toggleDrawArea, armAreaRedraw, disarm };
+  const tOutline = useTranslations("geography.outlineEdit");
+  const { save: saveOutline } = useEditArea({
+    enabled: editingOutline !== null,
+    initial: editingOutline,
+    bounds,
+    labels: {
+      vertex: (index, total) => tOutline("vertex", { index, total }),
+      midpoint: (from, to) => tOutline("midpoint", { from, to }),
+      centre: tOutline("centre"),
+    },
+    onSave: (footprint, centre) => void handleOutlineSaved(footprint, centre),
+    onCancel: cancelOutline,
+  });
+
+  return {
+    isDrawingArea,
+    editingArea,
+    editingOutline,
+    toggleDrawArea,
+    armAreaRedraw,
+    armOutlineEdit,
+    saveOutline,
+    cancelOutline,
+    disarm,
+  };
 }

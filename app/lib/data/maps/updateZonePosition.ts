@@ -12,7 +12,9 @@ import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { checkAreaPlacement, checkPointPlacement } from "./checkPlacement";
 import {
   footprintCentre,
+  footprintContains,
   type Footprint,
+  type Point,
 } from "@/app/modules/maps/lib/utils/footprint";
 import { footprintSchema } from "../validation/footprintSchema";
 
@@ -25,6 +27,9 @@ const positionSchema = z.object({
 const redrawSchema = z.object({
   id: z.coerce.number().int().positive(),
   footprint: footprintSchema,
+  // SPEC-024 T6 — the centre the DM placed while editing the outline.
+  // Absent on a redraw, where the new outline's own centre is derived.
+  centre: z.tuple([z.number().finite(), z.number().finite()]).optional(),
 });
 
 const inputSchema = z.union([redrawSchema, positionSchema]);
@@ -59,7 +64,7 @@ const inputSchema = z.union([redrawSchema, positionSchema]);
 export default async function updateZonePosition(
   formData:
     | { id: number; lat: number; lng: number }
-    | { id: number; footprint: Footprint }
+    | { id: number; footprint: Footprint; centre?: Point }
 ): Promise<MutationResult> {
   await requireSession();
 
@@ -99,7 +104,16 @@ export default async function updateZonePosition(
     });
     if (errors) return { ok: false, errors };
 
-    const [lat, lng] = footprintCentre(data.footprint);
+    // SPEC-024 T6: a centre the DM placed is stored as placed — so it has
+    // to be inside the outline, where a label belongs. A redraw sends none,
+    // and the new outline's centre is derived, as at creation.
+    if (data.centre && !footprintContains(data.footprint, data.centre)) {
+      return {
+        ok: false,
+        errors: { centre: [fieldError("areaCentreOutside")] },
+      };
+    }
+    const [lat, lng] = data.centre ?? footprintCentre(data.footprint);
     try {
       await prisma.zone.update({
         where: { id: data.id },

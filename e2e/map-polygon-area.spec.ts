@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 import messages from "@/messages/it.json";
 import {
@@ -45,7 +46,7 @@ async function imageBox(page: Page) {
 }
 
 test.describe("polygon areas (SPEC-024)", () => {
-  test("draws a concave area vertex by vertex, and containment follows its outline", async ({
+  test("draws a concave area vertex by vertex, edits it in place, and containment follows its outline", async ({
     page,
   }) => {
     const title = `E2E SPEC-024 area ${Date.now()}`;
@@ -119,13 +120,79 @@ test.describe("polygon areas (SPEC-024)", () => {
     ).toBeVisible();
     await page.keyboard.press("Escape");
 
-    // Cleanup, through the area's own popover.
     const popover = page.getByRole("dialog", { name: title, exact: true });
-    await expect(async () => {
-      const arm = at(IN_THE_ARM);
-      await page.mouse.click(arm.x, arm.y);
-      await expect(popover).toBeVisible({ timeout: 1000 });
-    }).toPass({ timeout: 10_000 });
+    const openPopover = async () => {
+      await expect(async () => {
+        const arm = at(IN_THE_ARM);
+        await page.mouse.click(arm.x, arm.y);
+        await expect(popover).toBeVisible({ timeout: 1000 });
+      }).toPass({ timeout: 10_000 });
+    };
+    const addPlaceOffered = async (point: { x: number; y: number }) => {
+      const found = await openContextMenu(page, onMap(point));
+      const count = await found
+        .getByRole("button", {
+          name: messages.geography.contextMenu.addPlace.trigger,
+        })
+        .count();
+      await page.keyboard.press("Escape");
+      return count > 0;
+    };
+
+    // T5: edit the outline in place. Removing the L's inner corner (vertex
+    // 4 of 6) turns the notch into a slope, and a point that was in the
+    // notch is now inside the area.
+    const onTheSlope = { x: 0.72, y: 0.38 };
+    expect(await addPlaceOffered(onTheSlope)).toBe(true);
+    await openPopover();
+    await popover
+      .getByRole("button", { name: messages.geography.popover.editZone })
+      .click();
+    await page
+      .getByRole("button", { name: messages.geography.zoneEdit.area.edit })
+      .click();
+    const bar = page.getByRole("region", { name: title, exact: true });
+    await expect(bar).toBeVisible();
+    // Every handle is a named, focusable control, and the bar names the
+    // area: the keyboard can edit what the pointer can (§8).
+    const results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .include(".leaflet-container")
+      .analyze();
+    expect(
+      results.violations.map((v) => `${v.id} (${v.nodes.length} nodes)`),
+      "axe violations on the map while an outline is edited"
+    ).toEqual([]);
+    await page
+      .getByRole("button", {
+        name: messages.geography.outlineEdit.vertex
+          .replace("{index}", "4")
+          .replace("{total}", "6"),
+      })
+      .click({ button: "right" });
+    await expect(
+      page.getByRole("button", {
+        name: messages.geography.outlineEdit.vertex
+          .replace("{index}", "1")
+          .replace("{total}", "5"),
+      })
+    ).toBeVisible();
+    await bar
+      .getByRole("button", { name: messages.geography.outlineEdit.save })
+      .click();
+    await expect(bar).toHaveCount(0);
+    await expect.poll(() => addPlaceOffered(onTheSlope)).toBe(false);
+
+    // Stored, not only drawn: a fresh load reads the same outline.
+    await page.reload();
+    await expect(page.locator(".leaflet-container")).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(300);
+    expect(await addPlaceOffered(onTheSlope)).toBe(false);
+    expect(await addPlaceOffered(IN_THE_NOTCH)).toBe(true);
+
+    // Cleanup, through the area's own popover.
+    await openPopover();
     await popover
       .getByRole("button", {
         name: messages.geography.popover.remove,

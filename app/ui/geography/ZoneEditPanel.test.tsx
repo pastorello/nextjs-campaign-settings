@@ -51,6 +51,7 @@ function renderPanel(
     hasFootprint: true,
     onSaved: vi.fn(),
     onRedrawArea: vi.fn(),
+    onEditOutline: vi.fn(),
     ...overrides,
   };
   render(<ZoneEditPanel {...props} />);
@@ -225,6 +226,30 @@ describe("ZoneEditPanel (TD-104)", () => {
 
       expect(screen.getByText("area.redraw").closest("button")).toBeDisabled();
       expect(screen.getByText("area.noArea")).toBeInTheDocument();
+    });
+
+    // SPEC-024 T5: editing the outline in place, beside redrawing it — the
+    // same save-first hand-over, for the same reason.
+    it("saves the pending edits before handing the outline edit back", async () => {
+      const { onEditOutline, onRedrawArea, onClose } = renderPanel();
+
+      fireEvent.change(screen.getByLabelText(nameLabel), {
+        target: { value: "Kang Reach" },
+      });
+      fireEvent.click(screen.getByText("area.edit"));
+
+      await waitFor(() =>
+        expect(onEditOutline).toHaveBeenCalledWith("Kang Reach")
+      );
+      expect(updateZoneDetails).toHaveBeenCalled();
+      expect(onRedrawArea).not.toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it("disables the outline edit for a point-placed place", () => {
+      renderPanel({ hasFootprint: false });
+
+      expect(screen.getByText("area.edit").closest("button")).toBeDisabled();
     });
 
     it("offers the redraw for an area", () => {

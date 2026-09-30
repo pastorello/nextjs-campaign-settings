@@ -1,6 +1,6 @@
 # SPEC-024: Polygon area footprints
 
-- **Status:** **In progress** — drawing, the model and every check shipped as T1–T4; editing vertices and moving the centre (T5, T6) follow. Agreed 2026-09-30 — the DM approved the draft as written and answered the three open questions in chat (§9).
+- **Status:** **Shipped 2026-09-30; see §11.** T1–T4 in one pull request, T5–T6 in the next. Agreed 2026-09-30 — the DM approved the draft as written and answered the three open questions in chat (§9).
 - **Date:** 2026-09-22
 - **Phase:** 4
 - **Related:** [SPEC-009](./009-zones-as-areas.md) (§4 carries the dated supersession note this spec acts on) · [SPEC-017](./017-one-unplaced-pool.md) · [SPEC-015](./015-map-grid-and-scale.md) · `app/modules/maps/lib/utils/footprint.ts` · ROADMAP, _Reversed on 2026-08-18_
@@ -130,20 +130,26 @@ the map's own actions, which validate through `zoneMeta` for everything else
 
 ## 8. Acceptance criteria
 
-- [ ] An area can be drawn as a polygon of three or more vertices.
-- [ ] Existing rectangles render and behave identically after the migration.
-- [ ] A self-intersecting or degenerate outline is refused with a named reason.
-- [ ] Point-in-polygon containment agrees with what the map shows, including for
-      concave shapes.
-- [ ] Two polygons that overlap by any amount are refused as siblings.
-- [ ] The stored centre always lies inside its polygon.
-- [ ] A vertex can be added, moved and removed, and each edit re-runs both checks.
-- [ ] A polygon cannot leave the map's bounds.
-- [ ] The keyboard can draw and edit a footprint, or the spec states plainly that
+- [x] An area can be drawn as a polygon of three or more vertices.
+      _(`e2e/map-polygon-area.spec.ts`)_
+- [x] Existing rectangles render and behave identically after the migration.
+      _(every SPEC-009 rectangle case kept unchanged in `footprint.test.ts`)_
+- [x] A self-intersecting or degenerate outline is refused with a named reason.
+      _(`areaSelfIntersects`, `areaTooSmall`)_
+- [x] Point-in-polygon containment agrees with what the map shows, including for
+      concave shapes. _(the E2E's notch, before and after an edit)_
+- [x] Two polygons that overlap by any amount are refused as siblings.
+- [x] The stored centre always lies inside its polygon. _(derived by `polylabel`;
+      a placed one is checked, `areaCentreOutside`)_
+- [x] A vertex can be added, moved and removed, and each edit re-runs both checks.
+      _(saving the edit goes through `checkAreaPlacement`)_
+- [x] A polygon cannot leave the map's bounds.
+- [x] The keyboard can draw and edit a footprint, or the spec states plainly that
       it cannot and why (TD-133's standard applies to new map interactions).
-- [ ] Every new mutation rejects an unauthenticated request.
-- [ ] Every new mutation rejects invalid input with field-level errors.
-- [ ] Coverage has not dropped.
+      _(It edits; it cannot place a new vertex from nothing, stated in §9.)_
+- [x] Every new mutation rejects an unauthenticated request.
+- [x] Every new mutation rejects invalid input with field-level errors.
+- [x] Coverage has not dropped.
 
 ## 9. Implementation plan
 
@@ -179,11 +185,15 @@ Escape abandons. The map still pans on a drag, but its double-click zoom is off
 while drawing. The same hook serves "Ridisegna il contorno", so redrawing an
 existing area is drawing its outline again.
 
-**Keyboard.** The keyboard finishes, undoes and abandons an outline, but cannot
-place a vertex: on these maps it can reach no point except the context menu's
-own. §8 asks for this to be stated plainly rather than implied; it is a limit of
-the whole map, not of this spec, and placing points by typing (SPEC-025) has no
-equivalent for a shape of arbitrary length.
+**Keyboard.** **Editing** is fully keyboard-operable (T5): every vertex, every
+edge's "+" and the centre is a named control in the tab order. Arrows move a
+vertex or the centre (Shift for larger steps), Delete removes a vertex, Enter on
+a "+" adds one, Enter saves and Escape abandons. The focus stays on the handle
+across edits. **Drawing** a new outline is not: the keyboard finishes, undoes and
+abandons one, but cannot place its vertices, because on these maps it can reach
+no point except the context menu's own. §8 asks for this to be stated plainly
+rather than implied. Drawing a rough outline with the pointer and then refining
+it from the keyboard is the path that exists.
 
 **Files, in order**
 
@@ -225,10 +235,29 @@ equivalent for a shape of arbitrary length.
 - [x] **T4** — Rendering and drawing _(test: 11 `useDrawArea` cases; the label
       anchored at the stored centre; `e2e/map-polygon-area.spec.ts` draws an L,
       and the right-click menu follows its outline, not its box)_
-- [ ] **T5** — Editing: drag a vertex, drag the whole polygon, add a vertex on a
-      segment, remove one (never below three), each edit re-running the checks
-- [ ] **T6** — The centre: draggable, stored as placed, kept inside the outline
+- [x] **T5** — Editing: drag a vertex, drag the whole polygon, add a vertex on a
+      segment, remove one (never below three), each edit re-running the checks.
+      "Modifica il contorno" in the place's edit panel, beside the redraw; a bar
+      over the map names the area and offers Save and Cancel. A refusal leaves
+      the editor open with the edit intact. _(test: 12 `useEditArea` cases,
+      including the keyboard and the focus kept across edits; the arming and
+      refusal paths in `useAreaDrawing`; the E2E removes a vertex, saves, and
+      reads the outline back after a reload, with an axe scan while editing)_
+- [x] **T6** — The centre: draggable, stored as placed, kept inside the outline.
+      Dropped outside it goes back; an edit that leaves it outside moves it to
+      the new outline's centre, in view, before saving. `updateZonePosition`
+      takes it as `centre` and refuses one outside (`areaCentreOutside`); a
+      redraw sends none and derives it, as creation does. _(test: 3 server
+      cases, 3 editor cases)_
 
 ## 11. Outcome
 
-_Fill in at close._
+- **Shipped:** 2026-09-30, in two pull requests (T1–T4, then T5–T6).
+- **Deviations from spec.**
+  - **No `centre` key in the stored Json** (§6 proposed one): the centre stays
+    in `lat`/`lng`, where SPEC-009 already kept an area's derived centre.
+  - **Editing gained the keyboard** that drawing could not: see §9.
+  - **A redraw still derives the centre**, while an edit keeps the one the DM
+    placed. The redraw replaces the outline wholesale, so the old label point has
+    nothing to belong to.
+- **Follow-up debt created:** none.

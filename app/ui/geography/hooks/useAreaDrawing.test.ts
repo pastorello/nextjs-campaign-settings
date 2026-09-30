@@ -19,6 +19,22 @@ vi.mock("@/app/modules/maps/hooks/useDrawArea", () => ({
   },
 }));
 
+// SPEC-024 T5's editor, stood in for: its own suite drives the handles.
+type EditAreaOptions = {
+  enabled: boolean;
+  initial: unknown;
+  onSave: (footprint: unknown, centre: unknown) => void;
+  onCancel: () => void;
+};
+const edited: { options?: EditAreaOptions } = {};
+const saveOutlineSpy = vi.fn();
+vi.mock("@/app/modules/maps/hooks/useEditArea", () => ({
+  useEditArea: (options: EditAreaOptions) => {
+    edited.options = options;
+    return { save: saveOutlineSpy };
+  },
+}));
+
 const { updateZonePosition } = vi.hoisted(() => ({
   updateZonePosition: vi.fn(),
 }));
@@ -141,5 +157,79 @@ describe("useAreaDrawing (TD-127)", () => {
     act(() => result.current.toggleDrawArea());
     rerender({ ...props, parentId: 3 });
     expect(result.current.isDrawingArea).toBe(true);
+  });
+
+  describe("editing an outline in place (SPEC-024 T5)", () => {
+    const outline = {
+      id: 5,
+      title: "Kang",
+      footprint,
+      centre: [1.5, 1.5] as [number, number],
+    };
+
+    it("arms the editor with the area, and disarms the other two modes", () => {
+      const { result, props } = render();
+      act(() => result.current.toggleDrawArea());
+
+      act(() => result.current.armOutlineEdit(outline));
+
+      expect(result.current.editingOutline).toBe(outline);
+      expect(result.current.isDrawingArea).toBe(false);
+      expect(result.current.editingArea).toBeNull();
+      expect(props.onArm).toHaveBeenCalled();
+      expect(edited.options).toMatchObject({ enabled: true, initial: outline });
+    });
+
+    it("saves the outline with the placed centre, then refetches and disarms", async () => {
+      const { result, props } = render();
+      act(() => result.current.armOutlineEdit(outline));
+      const moved = rectangleFootprint([1, 1], [3, 3]);
+
+      act(() => edited.options!.onSave(moved, [2, 2]));
+
+      await waitFor(() => expect(props.onPlacesChanged).toHaveBeenCalled());
+      expect(updateZonePosition).toHaveBeenCalledWith({
+        id: 5,
+        footprint: moved,
+        centre: [2, 2],
+      });
+      expect(result.current.editingOutline).toBeNull();
+    });
+
+    it("keeps the editor open, edit intact, when the server refuses", async () => {
+      updateZonePosition.mockResolvedValue({
+        ok: false,
+        errors: {
+          footprint: [{ key: "areaOverlaps", values: { title: "Orc" } }],
+        },
+      });
+      const { result, props } = render();
+      act(() => result.current.armOutlineEdit(outline));
+
+      act(() => edited.options!.onSave(footprint, [1.5, 1.5]));
+
+      await waitFor(() => expect(toast.error).toHaveBeenCalled());
+      expect(result.current.editingOutline).toBe(outline);
+      expect(props.onPlacesChanged).not.toHaveBeenCalled();
+    });
+
+    it("disarms on cancel, writing nothing", () => {
+      const { result } = render();
+      act(() => result.current.armOutlineEdit(outline));
+
+      act(() => edited.options!.onCancel());
+
+      expect(result.current.editingOutline).toBeNull();
+      expect(updateZonePosition).not.toHaveBeenCalled();
+    });
+
+    it("hands the bar's Save to the editor's own save", () => {
+      const { result } = render();
+      act(() => result.current.armOutlineEdit(outline));
+
+      act(() => result.current.saveOutline());
+
+      expect(saveOutlineSpy).toHaveBeenCalled();
+    });
   });
 });

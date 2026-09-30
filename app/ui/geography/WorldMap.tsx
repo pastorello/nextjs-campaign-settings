@@ -28,6 +28,7 @@ import RemovePlaceDialog from "@/app/ui/geography/RemovePlaceDialog";
 import MapOptionsButton from "@/app/ui/geography/MapOptionsButton";
 import MapGridConfigPanel from "@/app/ui/geography/MapGridConfigPanel";
 import ZoneEditPanel from "@/app/ui/geography/ZoneEditPanel";
+import OutlineEditBar from "@/app/ui/geography/OutlineEditBar";
 import MapGridToggle from "@/app/ui/geography/MapGridToggle";
 import MapGridOverlay from "@/app/ui/geography/MapGridOverlay";
 import {
@@ -349,8 +350,12 @@ function WorldMap({
   const {
     isDrawingArea,
     editingArea,
+    editingOutline,
     toggleDrawArea: handleToggleDrawArea,
     armAreaRedraw,
+    armOutlineEdit,
+    saveOutline,
+    cancelOutline,
     disarm: disarmAreaDrawing,
   } = useAreaDrawing({
     parentId,
@@ -366,7 +371,8 @@ function WorldMap({
     parentId,
     handlePlaceClick,
     placesRefetchToken,
-    editingArea?.id ?? null
+    // Hidden while redrawn or edited: the drawing or the editor stands in.
+    editingArea?.id ?? editingOutline?.id ?? null
   );
 
   // The subset drawn as areas rather than points (SPEC-009 T2) — the only
@@ -626,6 +632,24 @@ function WorldMap({
           hasFootprint={editingZone.footprint !== null}
           onSaved={handleZoneEdited}
           onRedrawArea={(title) => armAreaRedraw({ id: editingZone.id, title })}
+          onEditOutline={(title) => {
+            if (!editingZone.footprint) return;
+            armOutlineEdit({
+              id: editingZone.id,
+              title,
+              footprint: editingZone.footprint,
+              centre: [editingZone.lat, editingZone.lng],
+            });
+          }}
+        />
+      )}
+
+      {/* SPEC-024 T5 — the editor's visible way out and way to commit. */}
+      {editingOutline && (
+        <OutlineEditBar
+          title={editingOutline.title}
+          onSave={saveOutline}
+          onCancel={cancelOutline}
         />
       )}
 

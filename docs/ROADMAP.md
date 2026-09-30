@@ -323,7 +323,7 @@ guesses.
 
 **SPEC-009 shipped rectangles only, and said to revisit "only if rectangles prove
 genuinely unusable in practice." They have.** **Specced as
-[SPEC-024](./specs/024-polygon-area-footprints.md), 2026-09-22; agreed 2026-09-30; drawing and every check shipped the same day, vertex editing to follow.** The DM's evidence, drawing the real
+[SPEC-024](./specs/024-polygon-area-footprints.md), 2026-09-22; agreed and ✅ shipped 2026-09-30** — drawing, every check, vertex editing and a movable label point. The DM's evidence, drawing the real
 campaign map: on the root map the material plane is the upper part of a
 hemisphere, and any rectangle over it takes in ground that is not the material
 plane; one level down, Kang's realm cannot be boxed without also claiming a piece

@@ -52,6 +52,11 @@ interface ZoneEditPanelProps {
    * debugging session.
    */
   onRedrawArea: (title: string) => void;
+  /**
+   * Hands in-place editing of the outline back to `WorldMap` (SPEC-024 T5),
+   * the same way and for the same reasons as `onRedrawArea`.
+   */
+  onEditOutline: (title: string) => void;
 }
 
 /**
@@ -84,6 +89,7 @@ export default function ZoneEditPanel({
   hasFootprint,
   onSaved,
   onRedrawArea,
+  onEditOutline,
 }: ZoneEditPanelProps) {
   const t = useTranslations();
   const tPanel = useTranslations("geography.zoneEdit");
@@ -162,6 +168,15 @@ export default function ZoneEditPanel({
     onRedrawArea(saved);
   }
 
+  // Saves first, like the redraw: the edit happens on the map, under no
+  // modal, so whatever was typed here must not be lost on the way.
+  async function handleEditOutline() {
+    const saved = name.trim();
+    if (!(await save())) return;
+    onClose();
+    onEditOutline(saved);
+  }
+
   return (
     <Modal
       isOpen={isOpen}
@@ -211,7 +226,18 @@ export default function ZoneEditPanel({
           <span className="text-sm font-bold uppercase text-gray-700">
             {tPanel("area.label")}
           </span>
-          <div>
+          <div className="flex flex-wrap gap-2">
+            <BaseButton
+              onClick={() => void handleEditOutline()}
+              variant={ButtonVariant.secondary}
+              buttonState={
+                !hasFootprint || isSaving
+                  ? ButtonState.Disabled
+                  : ButtonState.Default
+              }
+            >
+              {tPanel("area.edit")}
+            </BaseButton>
             <BaseButton
               onClick={() => void handleRedraw()}
               variant={ButtonVariant.secondary}
@@ -224,9 +250,16 @@ export default function ZoneEditPanel({
               {tPanel("area.redraw")}
             </BaseButton>
           </div>
-          <p className="text-xs text-gray-500">
-            {hasFootprint ? tPanel("area.redrawHint") : tPanel("area.noArea")}
-          </p>
+          {hasFootprint ? (
+            <>
+              <p className="text-xs text-gray-500">{tPanel("area.editHint")}</p>
+              <p className="text-xs text-gray-500">
+                {tPanel("area.redrawHint")}
+              </p>
+            </>
+          ) : (
+            <p className="text-xs text-gray-500">{tPanel("area.noArea")}</p>
+          )}
         </div>
 
         <div className="flex justify-end gap-2">

@@ -128,18 +128,22 @@ vi.mock("@/app/ui/geography/RemovePlaceDialog", () => ({
 const removeLandmarkProps = vi.fn();
 vi.mock("@/app/ui/geography/RemoveLandmarkDialog", () => ({
   default: ({
+    landmarkId,
     landmarkTitle,
+    parentTitle,
     isOpen,
     onUnplace,
     onDelete,
   }: {
+    landmarkId: number;
     landmarkTitle: string;
+    parentTitle: string;
     isOpen: boolean;
     onClose: () => void;
     onUnplace: () => void;
     onDelete: () => void;
   }) => {
-    removeLandmarkProps({ landmarkTitle, isOpen });
+    removeLandmarkProps({ landmarkId, landmarkTitle, parentTitle, isOpen });
     return isOpen ? (
       <>
         <button onClick={onUnplace}>simulate-landmark-unplace</button>
@@ -685,14 +689,17 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
   });
 
   // SPEC-023: a landmark's two entries became one question too, and it is
-  // the landmark's own dialog — not the zone's, which fetches counts a
-  // landmark has no equivalent of.
+  // the landmark's own dialog — not the zone's, whose counts are about
+  // children a landmark cannot have. Its one count, the characters attached
+  // (TD-147), is read by the row id and names the place they stay in.
   it("offers a landmark exactly one destructive entry, asking nothing until it is opened", () => {
     renderPopover({ kind: "poi", poi: { ...poi }, poiId: LANDMARK_ROW_ID });
 
     expect(screen.getAllByText("remove")).toHaveLength(1);
     expect(removeLandmarkProps).toHaveBeenCalledWith({
+      landmarkId: LANDMARK_ROW_ID,
       landmarkTitle: poi.title,
+      parentTitle,
       isOpen: false,
     });
     expect(onUnplaceLandmark).not.toHaveBeenCalled();
@@ -706,7 +713,9 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
     fireEvent.click(screen.getByText("remove"));
 
     expect(removeLandmarkProps).toHaveBeenLastCalledWith({
+      landmarkId: LANDMARK_ROW_ID,
       landmarkTitle: poi.title,
+      parentTitle,
       isOpen: true,
     });
   });

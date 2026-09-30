@@ -773,15 +773,22 @@
       "title": "Remove \"{title}\"?",
       "description": "Choose what should happen to this point of interest.",
       "legend": "What do you want to do?",
+      "loading": "Counting the characters attached…",
       "outcomes": {
         "unplaceLabel": "Remove from the map",
         "unplaceSummary": "\"{title}\" goes back to the unpositioned places. It keeps existing, with its description and the characters attached to it.",
         "deleteLabel": "Delete permanently",
-        "deleteSummary": "\"{title}\" is deleted. It contains no other place, so it drags nothing down with it, but the operation can't be undone."
+        "deleteSummary": "\"{title}\" is deleted. It contains no other place, so it drags nothing down with it, but the operation can't be undone.",
+        "deleteNoEntities": "No character is attached to this point of interest.",
+        "deleteNpcs": "{count, plural, one {# NPC stays in \"{parentTitle}\", no longer at this point of interest} other {# NPCs stay in \"{parentTitle}\", no longer at this point of interest}}",
+        "deleteDeities": "{count, plural, one {# deity stays in \"{parentTitle}\", no longer at this point of interest} other {# deities stay in \"{parentTitle}\", no longer at this point of interest}}"
       },
       "cancel": "Cancel",
       "confirm": "Delete",
-      "confirmUnplace": "Remove from the map"
+      "confirmUnplace": "Remove from the map",
+      "errors": {
+        "loadImpactFailed": "Could not count the characters attached. Try again."
+      }
     },
     "mapUpload": {
       "uploadLabel": "This place doesn't have a map yet.",

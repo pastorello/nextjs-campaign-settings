@@ -467,15 +467,18 @@ export default function PlacePopover({
       )}
 
       {/* The landmark's own one question (SPEC-023) — same two outcomes as
-          the zone's, minus the impact fetch: a landmark is a leaf, nothing
-          reparents when it goes. Landmark only. */}
-      {poi && (
+          the zone's. A landmark is a leaf, so nothing reparents when it
+          goes; its one count is the characters that stay in this place
+          without it (TD-147). Landmark only. */}
+      {target.kind === "poi" && (
         <RemoveLandmarkDialog
-          landmarkTitle={poi.title}
+          landmarkId={target.poiId}
+          landmarkTitle={target.poi.title}
+          parentTitle={parentTitle}
           isOpen={isRemoveLandmarkOpen}
           onClose={() => setIsRemoveLandmarkOpen(false)}
-          onUnplace={() => onUnplaceLandmark(poi)}
-          onDelete={() => onDeleteLandmark(poi)}
+          onUnplace={() => onUnplaceLandmark(target.poi)}
+          onDelete={() => onDeleteLandmark(target.poi)}
         />
       )}
     </div>

@@ -438,7 +438,7 @@ Materiale / Regno di Kang / Skreebars` instead of the bare current title.
 - **Magic-item filters as dropdowns.** Replace the `SelectButtonery` for rarity
   and type with two dropdowns, same height as today's buttons, both on one row.
   A contained UI change to one domain's filter bar.
-- **Create a place, then attach entities to it.** **Specced as [SPEC-026](./specs/026-create-a-place-without-leaving-the-flow.md), 2026-09-22; agreed 2026-09-30.** The DM's example: create "la
+- **Create a place, then attach entities to it.** **✅ Shipped as [SPEC-026](./specs/026-create-a-place-without-leaving-the-flow.md), 2026-09-30** (specced 2026-09-22, agreed the same day it shipped). The DM's example: create "la
   Taverna del Gallo Robin" inside Skreebars, and link a character there — rather
   than attaching an NPC or deity straight from the map's right-click menu. This
   is the model SPEC-008 T8 already chose (an entity has no coordinates of its

@@ -3283,6 +3283,7 @@ The summary table's closed rows, moved out of [`TECH_DEBT.md`](./TECH_DEBT.md) o
 | TD-147 | ✅ Deleting a landmark somebody is assigned to fails on the foreign key                                        | ~~🟠 High~~ done     | S      | 4     |
 | TD-148 | ✅ `pnpm typecheck` fails after an E2E run on a half-written dev type                                          | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-149 | ✅ Typing a position into the place form moves no marker (SPEC-025 §5.2)                                       | ~~🟡 Medium~~ done   | M      | 4     |
+| TD-150 | ✅ The map panel's kind select shows raw ids (`region`, `poi`) in both locales                                 | ~~🟢 Low~~ done      | S      | 4     |
 
 ---
 
@@ -5568,3 +5569,17 @@ edit form opens, had no test: only the add form's prefill was covered.
   provisional marker exists, that it moves up when "Dall'alto" drops from 70
   to 30, and that it is gone once the place is saved. It failed without the
   `WorldMap` wiring. `e2e/a11y.spec.ts` stays 32/32.
+
+### TD-150 ✅ The map panel's kind select shows raw ids in both locales — **DONE (2026-09-30)**
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-09-30, while adding place-type labels for SPEC-026
+
+`MapPOIPanel`'s "Tipo" select rendered each option as its id — `region`,
+`plane`, `city`, `dungeon`, `poi` — in Italian and English alike. It was a
+hardcoded UI string that TD-21's bilingual pass missed, because the text was
+the value itself and not a literal in the JSX.
+
+**Resolution:** the options read `geography.placeKinds.<kind>`, the same
+catalogue labels SPEC-026's create-a-place dialog uses, added in the same
+change. `MapPOIPanel.test.tsx` checks every option's label and failed before the
+fix.

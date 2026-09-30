@@ -1,0 +1,10 @@
+// `pnpm typecheck`'s project (TD-148). Identical to tsconfig.json except that
+// it leaves out `.next/dev`, the way `next build`'s own type check does.
+// `next dev` writes `.next/dev/types` and can leave a file there half-written;
+// `next typegen` has just regenerated the same types under `.next/types`, so
+// nothing is lost. tsconfig.json keeps the glob because `next dev` re-adds it,
+// and the editor wants it while a dev server runs.
+{
+  "extends": "./tsconfig.json",
+  "exclude": ["node_modules", ".next/dev"]
+}

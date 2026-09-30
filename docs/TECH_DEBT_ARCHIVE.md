@@ -3280,6 +3280,7 @@ The summary table's closed rows, moved out of [`TECH_DEBT.md`](./TECH_DEBT.md) o
 | TD-144 | ✅ `loot.checkOff.label` means different things in it and en                                                   | ~~🟢 Low~~ done      | S      | 4     |
 | TD-145 | ✅ Shared error messages don't say what to do next                                                             | ~~🟢 Low~~ done      | S      | 4     |
 | TD-146 | ✅ The "Collega personaggio" dialog's two selects have no accessible label, and hardcode "NPC"/"Deity"         | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-148 | ✅ `pnpm typecheck` fails after an E2E run on a half-written dev type                                          | ~~🟡 Medium~~ done   | S      | 4     |
 
 ---
 
@@ -5377,3 +5378,87 @@ keyboard can choose. The stored pair is unchanged — the percentage is the form
 view of it. The spec's §11 records one thing this write-up had wrong: the panel
 did already render raw `lat`/`lng` inputs once a click had set a position, so
 what was missing was the empty state, the labels and the validation.
+
+---
+
+## Closed after the sweep — TD-147 onward
+
+### TD-148 ✅ `pnpm typecheck` fails after an E2E run on a half-written `.next/dev/types` file — **DONE (2026-09-30)**
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-30, first run of `scripts/cloud-setup.sh` in a cloud container
+
+`tsconfig.json` includes `.next/dev/types/**/*.ts`, which `next dev` writes,
+and `pnpm test:e2e` starts `next dev`. In two of four single-spec E2E runs
+(`map.spec.ts`, `map-unplace.spec.ts`), the dev server left one of those
+files corrupt: once `validator.ts` — a line fragment (`n/domains/layout.tsx`)
+followed by a repeated tail, consistent with a shorter write landing over a
+longer one without truncating it — and once `routes.d.ts`, with 91 syntax
+errors. `pnpm typecheck` then fails on generated code rather than on the
+repo's, and does not heal it: `next typegen` rewrites `.next/types`, not
+`.next/dev/types`.
+
+**Workaround:** `rm -rf .next/dev/types` while no dev server is running; the
+next `pnpm dev` regenerates it. Seen only in a cloud container so far;
+whether a local run does the same is unverified.
+
+**Fix:** find out whether Playwright's teardown kills the dev server
+mid-write or two writes race inside one process, then choose between having
+`typecheck` clear or skip `.next/dev/types` and reporting it upstream. Not
+fixed where it was found: that change was the cloud setup script, and this
+is neither in the script nor known to be cloud-specific.
+
+**Resolution:** two writes race inside one process, and `pnpm typecheck` no
+longer reads `.next/dev`.
+
+- **Cause: a race in `next dev`'s startup, not Playwright's teardown.** A
+  `--require` preload logged every write to `.next/dev/types` (pid, start,
+  end, length) across four `map.spec.ts` runs. Every write came from the one
+  `start-server.js` process within about three seconds of boot, and none
+  after the first test worker started, so the teardown's kill never lands
+  mid-write. The writer is the Watchpack `aggregated` listener in
+  `next/dist/server/lib/router-utils/setup-dev-bundler.js`. It is `async`,
+  and nothing serialises it. The initial scan fires several aggregations as
+  it discovers the app tree, and each one regenerates `routes.d.ts` and
+  `validator.ts` from what it has seen so far (`validator.ts` grew through
+  2, 8.6, 17, 26 and 30 KB). In three of the four runs, two
+  `fs.promises.writeFile` calls to the same file were in flight at once, with
+  different lengths. `writeFile` truncates when it opens and writes later.
+  So when both calls open before either writes, and the shorter write lands
+  last, the file ends up as the shorter content followed by the longer one's
+  tail: the `validator.ts` shape above. Nothing repairs the file: the
+  listener runs again only when a watched source file changes, and an E2E
+  run changes none. None of the four traced runs ended corrupt, which fits a
+  race. It is not specific to E2E or the cloud; any `next dev` start can do
+  it.
+- **Upstream.** `next@16.3.7`, the latest release on 2026-09-30, has the
+  same code. `16.4.0-canary.53` now skips aggregations that fire before every
+  initial page file has been seen. That removes the partial passes that
+  produced the differing contents, but the listener is still unserialised.
+  No report filed; re-check when 16.4 ships.
+- **Fix: skip, not clear.** `pnpm typecheck` runs `tsc` on the new
+  `tsconfig.typecheck.json`, which extends `tsconfig.json` and excludes
+  `.next/dev`. That is what `next build`'s own type check does:
+  `next/dist/lib/typescript/runTypeCheck.js` filters `.next/dev/types` out
+  "to prevent stale dev types from causing errors". Nothing is lost.
+  `next typegen` has just written the same four files to `.next/types`, and
+  points `next-env.d.ts` at them. They are identical to the dev copies, apart
+  from one extra `../` in the validator's import paths for the deeper
+  directory.
+- **Rejected.** Dropping the glob from `tsconfig.json`: `next dev` re-adds it
+  on every start (`writeConfigurationDefaults`), and the editor wants it while
+  a dev server runs. Clearing `.next/dev/types` in the script: it works,
+  since `tsc` ignores a side-effect import of a missing file, but it deletes
+  a running dev server's output to do what a filter does without side
+  effects.
+- **Verified.** `tsconfig.typecheck.test.ts` parses both projects in a temp
+  dir with a half-written `.next/dev/types/validator.ts` planted, and checks
+  four things. The typecheck project has no syntax errors and no `.next/dev`
+  file. It still reads `.next/types`. It is the project the script runs.
+  `tsconfig.json`, by contrast, does hit the error. With the fix reverted,
+  the first and third checks fail. On the real checkout, with the observed
+  corruption planted in `.next/dev/types/validator.ts`, `pnpm exec tsc --noEmit`
+  reports 3 errors and `pnpm typecheck` passes.
+- **Left as is.** A bare `pnpm exec tsc --noEmit`, and the editor, still read
+  `.next/dev/types` through `tsconfig.json`. Saving any file under `app/`
+  while a dev server runs rewrites the files; `rm -rf .next/dev/types` with
+  no dev server running clears them.

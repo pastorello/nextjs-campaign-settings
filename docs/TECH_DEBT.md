@@ -3,7 +3,7 @@
 **Last updated:** 2026-09-30
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Two items are open: TD-147**, filed on 2026-09-24 while implementing SPEC-023, **and TD-148**, filed on 2026-09-30 during the first cloud-container run of `scripts/cloud-setup.sh`. Everything before them is closed and archived. The next thing found goes in as TD-149.
+**One item is open: TD-147**, filed on 2026-09-24 while implementing SPEC-023. Everything else is closed and archived, including TD-148, which was filed and closed on 2026-09-30. The next thing found goes in as TD-149.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -32,10 +32,9 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-| ID     | Severity  | Effort | Item                                                                 |
-| ------ | --------- | ------ | -------------------------------------------------------------------- |
-| TD-147 | 🟠 High   | S      | Deleting a landmark somebody is assigned to fails on the foreign key |
-| TD-148 | 🟡 Medium | S      | `pnpm typecheck` fails after an E2E run on a half-written dev type   |
+| ID     | Severity | Effort | Item                                                                 |
+| ------ | -------- | ------ | -------------------------------------------------------------------- |
+| TD-147 | 🟠 High  | S      | Deleting a landmark somebody is assigned to fails on the foreign key |
 
 **All 134 closed rows moved to the archive on 2026-09-22**, with the write-ups they
 index — see [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)'s _Index of every closed
@@ -43,11 +42,11 @@ item_. That list is the work queue, not a history of the project.
 
 ---
 
-## Closed items — TD-01 through TD-146, all of them
+## Closed items — TD-01 through TD-146, and TD-148
 
 Everything the 2026-07-22 audit found, plus everything found while doing the work through 2026-09-19, is closed: correctness, security, dead code, formatting, CI, accessibility, the metadata-layer types, the identifier rename, the bilingual UI, the migration drift, the E2E harness, the coverage sweep that crossed Phase 2's 70% gate, the whole SPEC-004 map/world-tree run, the clean-checkout `pnpm test` gap, the metadata layer's unguarded field-name collision, description fields rendering as unsanitised HTML, the entity-location read path duplication, the deity/magic-item/faction mutation coverage gap, SPEC-016/017's map work, and the September 2026 quality, accessibility and copy sweep (TD-112 – TD-146). The archive's _Index of every closed item_ carries the summary row for each.
 
-**Each item's full write-up — what was found, why, the fix — is in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)**, moved there in six passes (TD-01–TD-36 on 2026-08-01, TD-37–TD-75 on 2026-08-08, TD-76 and TD-77 on 2026-08-13, TD-80 on 2026-08-17, TD-81–TD-102 on 2026-08-31, and the remaining fifty-one on 2026-09-22). Nothing was deleted; the archive keeps every "(original)" problem framing exactly as recorded, per the policy in [`docs/README.md`](./README.md#keeping-them-honest).
+**Each item's full write-up — what was found, why, the fix — is in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)**, moved there in six passes (TD-01–TD-36 on 2026-08-01, TD-37–TD-75 on 2026-08-08, TD-76 and TD-77 on 2026-08-13, TD-80 on 2026-08-17, TD-81–TD-102 on 2026-08-31, and the remaining fifty-one on 2026-09-22), plus TD-148 on 2026-09-30, the day it was filed. Nothing was deleted; the archive keeps every "(original)" problem framing exactly as recorded, per the policy in [`docs/README.md`](./README.md#keeping-them-honest).
 
 ---
 
@@ -89,27 +88,3 @@ write (`RemoveLandmarkDialog`'s docblock records this).
 settled that for these same columns: `Restrict` is what makes an accidental
 detach impossible to perform silently, and the application layer is where
 the rewrite belongs, in one transaction, where it can be counted first.
-
-### TD-148 — `pnpm typecheck` fails after an E2E run on a half-written `.next/dev/types` file
-
-**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-09-30, first run of `scripts/cloud-setup.sh` in a cloud container
-
-`tsconfig.json` includes `.next/dev/types/**/*.ts`, which `next dev` writes,
-and `pnpm test:e2e` starts `next dev`. In two of four single-spec E2E runs
-(`map.spec.ts`, `map-unplace.spec.ts`), the dev server left one of those
-files corrupt: once `validator.ts` — a line fragment (`n/domains/layout.tsx`)
-followed by a repeated tail, consistent with a shorter write landing over a
-longer one without truncating it — and once `routes.d.ts`, with 91 syntax
-errors. `pnpm typecheck` then fails on generated code rather than on the
-repo's, and does not heal it: `next typegen` rewrites `.next/types`, not
-`.next/dev/types`.
-
-**Workaround:** `rm -rf .next/dev/types` while no dev server is running; the
-next `pnpm dev` regenerates it. Seen only in a cloud container so far;
-whether a local run does the same is unverified.
-
-**Fix:** find out whether Playwright's teardown kills the dev server
-mid-write or two writes race inside one process, then choose between having
-`typecheck` clear or skip `.next/dev/types` and reporting it upstream. Not
-fixed where it was found: that change was the cloud setup script, and this
-is neither in the script nor known to be cloud-specific.

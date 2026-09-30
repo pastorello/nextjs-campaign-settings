@@ -50,7 +50,7 @@ Rules that still hold:
 ```bash
 pnpm dev                # dev server (Turbopack)
 pnpm build              # production build
-pnpm typecheck          # next typegen && tsc --noEmit — MUST pass
+pnpm typecheck          # next typegen && tsc on tsconfig.typecheck.json — MUST pass
 pnpm lint               # eslint .              — MUST pass
 pnpm test               # vitest run            — MUST pass
 pnpm test:watch         # vitest

@@ -327,4 +327,120 @@ test.describe("landmark popover (SPEC-016 T7)", () => {
       .click();
     await expect(npcRow).toHaveCount(0);
   });
+
+  /**
+   * TD-147 — deleting a landmark somebody is assigned to used to fail in
+   * Postgres (`npc.poiId` is `onDelete: Restrict` and `deletePoi` detached
+   * nobody). The marker vanished optimistically and came back with
+   * `poiDeleteFailed`, which is why the proof here is a reload: before the
+   * fix the landmark is still on the map afterwards. The DM's decision is
+   * that the NPC keeps its place and loses only the landmark, so its row
+   * must name neither the landmark nor "Sconosciuta" — the latter is what
+   * clearing both columns would show.
+   */
+  test("deleting a landmark somebody is assigned to keeps them in the enclosing place (TD-147)", async ({
+    page,
+  }) => {
+    const stamp = Date.now();
+    const npcName = `E2E TD-147 PNG ${stamp}`;
+    const title = `E2E TD-147 landmark ${stamp}`;
+    const npcListUrl = `/dashboard/dnd5e/admin/npc?query=${encodeURIComponent(npcName)}`;
+
+    await page.goto("/dashboard/dnd5e/admin/npc/new");
+    await page.getByLabel(messages.common.fields.name.label).fill(npcName);
+    await page
+      .getByRole("button", { name: messages.npc.form.createButton })
+      .click();
+    await page.waitForURL("**/dashboard/dnd5e/admin/npc");
+
+    await page.goto("/dashboard/dnd5e/geography");
+    await expect(page.locator(".leaflet-container")).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(300);
+
+    await chooseFromContextMenu(
+      page,
+      { x: 480, y: 280 },
+      messages.geography.contextMenu.addPlace.trigger
+    );
+    await page
+      .getByPlaceholder(messages.geography.poiPanel.placeholders.placeName)
+      .fill(title);
+    await page
+      .getByRole("button", { name: messages.geography.poiPanel.save.save })
+      .click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.poiPanel.close,
+        exact: true,
+      })
+      .click();
+
+    // Same retry-the-click dance as above for `createPoi`'s round trip.
+    const marker = page.getByRole("button", { name: title, exact: true });
+    const popover = page.getByRole("dialog", { name: title, exact: true });
+    await expect(async () => {
+      await marker.click();
+      await expect(popover).toBeVisible({ timeout: 500 });
+    }).toPass({ timeout: 10_000 });
+
+    // Attach the NPC here: the assignment modal opens pre-filled with this
+    // landmark and its enclosing place, so saving it as-is sets both ids.
+    await popover
+      .getByRole("button", { name: messages.geography.popover.attach })
+      .click();
+    // Exact: "Personaggio" is a substring of the type select's own label.
+    await page
+      .getByLabel(messages.geography.attachEntity.typeLabel, { exact: true })
+      .selectOption("npc");
+    await page
+      .getByLabel(messages.geography.attachEntity.entityLabel, { exact: true })
+      .selectOption({ label: npcName });
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: messages.common.form.save })
+      .click();
+    await expect(popover.getByText(npcName)).toBeVisible();
+
+    await popover
+      .getByRole("button", {
+        name: messages.geography.popover.remove,
+        exact: true,
+      })
+      .click();
+    await page
+      .getByRole("radio", {
+        name: messages.geography.removeLandmark.outcomes.deleteLabel,
+      })
+      .click();
+    await page
+      .getByRole("button", {
+        name: messages.geography.removeLandmark.confirm,
+      })
+      .click();
+    await expect(popover).not.toBeVisible();
+
+    // The optimistic removal passes any check made now; only a fresh load
+    // shows whether the row is really gone.
+    await page.waitForLoadState("networkidle");
+    await page.reload();
+    await expect(page.locator(".leaflet-container")).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    await expect(marker).toHaveCount(0);
+
+    await page.goto(npcListUrl);
+    const npcRow = page.getByRole("row").filter({ hasText: npcName });
+    await expect(npcRow).toBeVisible();
+    await expect(npcRow).not.toContainText(title);
+    await expect(npcRow).not.toContainText(messages.common.location.unknown);
+
+    await npcRow
+      .getByRole("button", { name: messages.common.form.delete })
+      .click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: messages.common.form.delete })
+      .click();
+    await expect(npcRow).toHaveCount(0);
+  });
 });

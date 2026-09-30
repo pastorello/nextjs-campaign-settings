@@ -3280,6 +3280,7 @@ The summary table's closed rows, moved out of [`TECH_DEBT.md`](./TECH_DEBT.md) o
 | TD-144 | ✅ `loot.checkOff.label` means different things in it and en                                                   | ~~🟢 Low~~ done      | S      | 4     |
 | TD-145 | ✅ Shared error messages don't say what to do next                                                             | ~~🟢 Low~~ done      | S      | 4     |
 | TD-146 | ✅ The "Collega personaggio" dialog's two selects have no accessible label, and hardcode "NPC"/"Deity"         | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-147 | ✅ Deleting a landmark somebody is assigned to fails on the foreign key                                        | ~~🟠 High~~ done     | S      | 4     |
 | TD-148 | ✅ `pnpm typecheck` fails after an E2E run on a half-written dev type                                          | ~~🟡 Medium~~ done   | S      | 4     |
 
 ---
@@ -5382,6 +5383,70 @@ what was missing was the empty state, the labels and the validation.
 ---
 
 ## Closed after the sweep — TD-147 onward
+
+### TD-147 ✅ Deleting a landmark with an entity assigned to it fails in the database — **DONE (2026-09-30)**
+
+**Severity:** 🟠 High · **Effort:** S · **Found:** 2026-09-24, while implementing SPEC-023
+
+`npc.poiId` and `deities.poiId` are `onDelete: Restrict`
+(`20260808170000_add_zone_table_and_entity_location_fks`), and `deletePoi`
+deletes the row with a single `prisma.poi.delete` — nothing detaches the
+entities first. So deleting a landmark that an NPC or a deity is assigned to
+raises a foreign-key error from Postgres. `usePOIManager.removeFromMap`
+catches it, puts the marker back and shows `poiDeleteFailed`, so nothing is
+corrupted and nothing is silently lost — but the DM is told "could not
+delete" with no way to find out why, and no way forward short of finding
+every entity assigned there and detaching it by hand.
+
+`deletePlace` has the answer for the other table already (SPEC-010 rule 3):
+the deletion is a transaction that first rewrites the rows pointing at what
+is about to go. The landmark equivalent is the same shape, but **which**
+rewrite is a product decision the DM has to make, and that is why this is
+filed rather than fixed:
+
+- **`zoneId` kept, `poiId` cleared** — the entity falls back to the
+  enclosing place, exactly as a child falls back to the grandparent. Keeps
+  ADR-0010's invariant trivially, and nothing needs inventing.
+- **Both cleared** — the entity loses its location outright, as it does when
+  the _place_ it was assigned to directly is deleted.
+
+**Fix:** decide the above, then make `deletePoi` a transaction that performs
+it before the delete, with a test per branch. Then SPEC-023's landmark
+dialog can state the count the way the place dialog does — the reason it
+says nothing about entities today is that there is no honest sentence to
+write (`RemoveLandmarkDialog`'s docblock records this).
+
+**Do not "fix" it by switching the foreign keys to `SET NULL`.** SPEC-010 §6
+settled that for these same columns: `Restrict` is what makes an accidental
+detach impossible to perform silently, and the application layer is where
+the rewrite belongs, in one transaction, where it can be counted first.
+
+**Resolution:** the DM chose the first option on 2026-09-30, and `deletePoi`
+now performs it.
+
+- **Decision: `zoneId` kept, `poiId` cleared.** An NPC or deity assigned to
+  a deleted landmark stays in the place that enclosed it. ADR-0010's
+  `zoneId = poi.zoneId` invariant binds only while `poiId` is set, so nothing
+  else has to be rewritten.
+- **Fix.** `deletePoi` runs one `prisma.$transaction`: `npc.updateMany` and
+  `deities.updateMany` set `poiId` to `null` where it is the landmark's id,
+  and the `poi.delete` runs last. The foreign keys stay `Restrict`. A `P2025`
+  from the delete is now reported as `NotFoundError`, the same way
+  `deletePlace` handles two deletes racing.
+- **Not done here, by the DM's choice:** the landmark dialog still states no
+  count. That is a separate change, recorded under SPEC-023's entry in
+  `docs/ROADMAP.md`. Its delete copy ("drags nothing down with it") stays
+  true: nothing but the landmark is deleted.
+- **Verified.** `deletePoi.test.ts` has a test per table (NPCs, deities),
+  one for the order inside the single transaction, and one each for the race
+  and a generic failure; five of its seven tests failed before the change.
+  `e2e/map-landmark-popover.spec.ts` gained the regression against a real
+  Postgres: it attaches an NPC to a new landmark through the popover,
+  deletes the landmark, reloads the map, and checks that the NPC's row names
+  neither the landmark nor "Sconosciuta". The reload is needed because the
+  marker disappears optimistically. Run against the old `deletePoi`, the
+  test failed on Postgres's foreign-key error, with the landmark still on the
+  map after the reload.
 
 ### TD-148 ✅ `pnpm typecheck` fails after an E2E run on a half-written `.next/dev/types` file — **DONE (2026-09-30)**
 

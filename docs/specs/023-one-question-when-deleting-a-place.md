@@ -102,6 +102,12 @@ Filed as **TD-147**, whose fix needs a product decision of its own (does the
 character fall back to the enclosing place, or lose its location?). When that
 lands, the sentence to add here is a count, not a redesign.
 
+_2026-09-30: TD-147 is closed. The DM chose the fallback: `deletePoi` clears
+`poiId` on the landmark's NPCs and deities, keeps their `zoneId`, and deletes
+the landmark in the same transaction. The dialog still states no count, by the
+DM's choice. The count is a separate change, recorded under this spec's entry
+in `docs/ROADMAP.md`._
+
 **Edge cases**
 
 | Situation                                 | Expected behaviour                                                                                            |
@@ -208,7 +214,8 @@ round, under the harmless one.
 
 What it cost: no data-layer change, no migration, no new mutation. What it did
 not fix: TD-147, found on the way — deleting a landmark somebody is assigned to
-fails on a foreign key, which is why that dialog states no counts.
+fails on a foreign key, which is why that dialog states no counts. _(Fixed
+2026-09-30: see §5's dated note.)_
 
 **If the cascade comes back**, it is a new spec, not an edit of this one: §5
 records the rejection and the reason, and `CLAUDE.md`'s _Decisions and rejected

@@ -67,9 +67,16 @@ the same rules apply there.
   made while writing the commit message or closing a debt item. The recurring
   failure is: all checks green, then one more edit to `docs/TECH_DEBT.md`, then
   a push that CI rejects on formatting.
+- **Open the PR without asking, then bring its CI to green before reporting
+  back** (the maintainer, 2026-09-30). Once the Definition of Done holds and
+  the branch is pushed, open the PR (following
+  `.github/PULL_REQUEST_TEMPLATE.md`), follow its CI, and fix and push until it
+  is green. Only then hand over. Stop earlier only for a failure that needs
+  the DM's decision rather than a fix, and say exactly what it is.
 - **Never poll CI** (`gh pr checks` loops, `gh run watch`, sleep-and-retry).
   In the desktop app, turn on the PR's Auto-fix monitor after opening it and
-  act on its events; elsewhere, stop after pushing and say CI is pending.
+  act on its events. In a cloud session, subscribe to the PR's activity and
+  act on its events. Elsewhere, stop after pushing and say CI is pending.
 - **Diagnosing a CI-only E2E failure:** the run's `playwright-report` artifact
   (ask before downloading it — name, source, size). `data/` holds one
   `error-context` `.md` per attempt (cheap to read) and the trace `.zip`, kept

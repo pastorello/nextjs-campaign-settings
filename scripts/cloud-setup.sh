@@ -10,7 +10,8 @@
 #   3. writes `.env` and `.env.test` if they do not exist — never overwrites;
 #   4. installs dependencies, generates the Prisma client, and applies
 #      migrations and the seed to both databases;
-#   5. installs Playwright's Chromium.
+#   5. installs Playwright's Chromium — or, where its CDN is blocked, points
+#      .env.test at the container's own.
 #
 # Everything here is throwaway and container-local: the credentials are the
 # same fixed ones CI uses (.github/workflows/ci.yml), the databases hold only
@@ -128,13 +129,36 @@ done
 # --- 5. Playwright ----------------------------------------------------------
 # `--with-deps` here, unlike CI: a bare container is not the ubuntu-latest
 # runner image, and cannot be assumed to ship Chromium's system libraries.
+#
+# A Claude Code cloud container's egress proxy blocks cdn.playwright.dev
+# (403), so the download fails there — but the image ships a Chromium of its
+# own under $PLAYWRIGHT_BROWSERS_PATH. When the download fails and that
+# binary exists, .env.test is pointed at it (playwright.config.ts, note 5):
+# the key is appended only if absent, so a session's own value still wins.
 
 log "Installing Playwright Chromium"
-if [ -n "$SUDO" ]; then
-  pnpm exec playwright install chromium
-  $SUDO pnpm exec playwright install-deps chromium
-else
-  pnpm exec playwright install --with-deps chromium
+PREINSTALLED_CHROMIUM="${PLAYWRIGHT_BROWSERS_PATH:-/opt/pw-browsers}/chromium"
+
+install_chromium() {
+  if [ -n "$SUDO" ]; then
+    $SUDO pnpm exec playwright install-deps chromium &&
+      pnpm exec playwright install chromium
+  else
+    pnpm exec playwright install --with-deps chromium
+  fi
+}
+
+if ! install_chromium; then
+  if [ ! -x "$PREINSTALLED_CHROMIUM" ]; then
+    echo "Playwright could not download Chromium, and there is no" \
+      "pre-installed one at $PREINSTALLED_CHROMIUM." >&2
+    exit 1
+  fi
+  log "Download failed; using the container's Chromium ($("$PREINSTALLED_CHROMIUM" --version))"
+  if ! grep -q '^PLAYWRIGHT_CHROMIUM_EXECUTABLE=' .env.test; then
+    [ -z "$(tail -c 1 .env.test)" ] || echo >> .env.test
+    printf 'PLAYWRIGHT_CHROMIUM_EXECUTABLE="%s"\n' "$PREINSTALLED_CHROMIUM" >> .env.test
+  fi
 fi
 
 log "Ready. Check with: pnpm typecheck && pnpm test && pnpm test:e2e e2e/map.spec.ts --project=chromium"

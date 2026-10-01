@@ -42,6 +42,9 @@ const {
   fetchFilteredDhCommunities,
   fetchFilteredDhAdversaries,
   fetchFilteredDhEnvironments,
+  fetchFilteredDhWeapons,
+  fetchFilteredDhArmor,
+  fetchFilteredDhLoot,
 } = vi.hoisted(() => ({
   fetchFilteredDhDomains: vi.fn(),
   fetchFilteredDhDomainCards: vi.fn(),
@@ -51,6 +54,9 @@ const {
   fetchFilteredDhCommunities: vi.fn(),
   fetchFilteredDhAdversaries: vi.fn(),
   fetchFilteredDhEnvironments: vi.fn(),
+  fetchFilteredDhWeapons: vi.fn(),
+  fetchFilteredDhArmor: vi.fn(),
+  fetchFilteredDhLoot: vi.fn(),
 }));
 vi.mock("@/app/lib/data/dhDomains/fetchFilteredDhDomains", () => ({
   fetchFilteredDhDomains,
@@ -76,6 +82,15 @@ vi.mock("@/app/lib/data/dhAdversaries/fetchFilteredDhAdversaries", () => ({
 vi.mock("@/app/lib/data/dhEnvironments/fetchFilteredDhEnvironments", () => ({
   fetchFilteredDhEnvironments,
 }));
+vi.mock("@/app/lib/data/dhWeapons/fetchFilteredDhWeapons", () => ({
+  fetchFilteredDhWeapons,
+}));
+vi.mock("@/app/lib/data/dhArmor/fetchFilteredDhArmor", () => ({
+  fetchFilteredDhArmor,
+}));
+vi.mock("@/app/lib/data/dhLoot/fetchFilteredDhLoot", () => ({
+  fetchFilteredDhLoot,
+}));
 // SPEC-028: the reader decides whether the DM's prep is searched.
 const scope = vi.hoisted((): { current: object } => ({
   current: { kind: "all" },
@@ -93,6 +108,9 @@ const DAGGERHEART_DOMAINS = [
   "dhCommunities",
   "dhAdversaries",
   "dhEnvironments",
+  "dhWeapons",
+  "dhArmor",
+  "dhLoot",
 ] as const;
 const DAGGERHEART_FETCHERS = [
   fetchFilteredDhDomains,
@@ -103,6 +121,9 @@ const DAGGERHEART_FETCHERS = [
   fetchFilteredDhCommunities,
   fetchFilteredDhAdversaries,
   fetchFilteredDhEnvironments,
+  fetchFilteredDhWeapons,
+  fetchFilteredDhArmor,
+  fetchFilteredDhLoot,
 ];
 
 import { GAME_SYSTEMS } from "@/app/lib/definitions/GameSystem";
@@ -231,6 +252,9 @@ describe("searchAllDomains by game system (ADR-0013 rule 10)", () => {
     fetchFilteredDhEnvironments.mockResolvedValue([
       { id: 14, name: "Fire Pits" },
     ]);
+    fetchFilteredDhWeapons.mockResolvedValue([{ id: 15, name: "Fire Hook" }]);
+    fetchFilteredDhArmor.mockResolvedValue([{ id: 16, name: "Fire Coat" }]);
+    fetchFilteredDhLoot.mockResolvedValue([{ id: 17, name: "Fire Jar" }]);
     scope.current = { kind: "all" };
   });
 
@@ -280,6 +304,11 @@ describe("searchAllDomains by game system (ADR-0013 rule 10)", () => {
     expect(result.dhEnvironments).toEqual({ total: 0, items: [] });
     expect(fetchFilteredDhAdversaries).not.toHaveBeenCalled();
     expect(fetchFilteredDhEnvironments).not.toHaveBeenCalled();
+    // SPEC-029 §9 decision 1: loot is the DM's; weapons and armor are rules.
+    expect(result.dhLoot).toEqual({ total: 0, items: [] });
+    expect(fetchFilteredDhLoot).not.toHaveBeenCalled();
+    expect(result.dhWeapons.total).toBe(1);
+    expect(result.dhArmor.total).toBe(1);
     // The rules catalogues stay searchable.
     expect(result.dhCommunities.total).toBe(1);
   });

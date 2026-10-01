@@ -38,6 +38,9 @@ const result = (
   dhCommunities: group(),
   dhAdversaries: group(),
   dhEnvironments: group(),
+  dhWeapons: group(),
+  dhArmor: group(),
+  dhLoot: group(),
   ...groups,
 });
 

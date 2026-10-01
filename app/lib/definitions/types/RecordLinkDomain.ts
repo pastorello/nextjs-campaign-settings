@@ -25,6 +25,10 @@ export const RECORD_LINK_DOMAINS = [
   // SPEC-028 T4: the DM's alone, so cut for a player (`isPlayerSearchDomain`).
   "dhAdversaries",
   "dhEnvironments",
+  // SPEC-029 T5: loot is the DM's, cut for a player like the stat blocks.
+  "dhWeapons",
+  "dhArmor",
+  "dhLoot",
 ] as const;
 
 type RecordLinkDomain = (typeof RECORD_LINK_DOMAINS)[number];

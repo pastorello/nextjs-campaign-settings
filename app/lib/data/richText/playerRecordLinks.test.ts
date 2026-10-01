@@ -7,6 +7,8 @@ const { db } = vi.hoisted(() => ({
     spells: { findMany: vi.fn() },
     dhAdversary: { findMany: vi.fn() },
     dhCommunity: { findMany: vi.fn() },
+    dhLoot: { findMany: vi.fn() },
+    dhWeapon: { findMany: vi.fn() },
   },
 }));
 vi.mock("@/app/lib/connections/prisma", () => ({ default: db }));
@@ -93,6 +95,20 @@ describe("a player's links to the DM's prep", () => {
 
     expect(targets).toEqual({ "dhCommunities:4": "Valefolk" });
     expect(db.dhAdversary.findMany).not.toHaveBeenCalled();
+  });
+
+  it("renders loot as text too, and resolves a weapon (SPEC-029)", async () => {
+    db.dhLoot.findMany.mockResolvedValue([{ id: 5, name: "Jar" }]);
+    db.dhWeapon.findMany.mockResolvedValue([{ id: 6, name: "Hook" }]);
+
+    const { targets } = await fetchRecordLinkResolution(
+      [`<p>${link("dhLoot", 5)} ${link("dhWeapons", 6)}</p>`],
+      "daggerheart",
+      scope
+    );
+
+    expect(targets).toEqual({ "dhWeapons:6": "Hook" });
+    expect(db.dhLoot.findMany).not.toHaveBeenCalled();
   });
 
   it("resolves it for the DM", async () => {

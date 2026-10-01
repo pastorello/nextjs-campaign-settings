@@ -275,6 +275,9 @@ describe("RichTextInput", () => {
         dhCommunities: emptyGroup,
         dhAdversaries: emptyGroup,
         dhEnvironments: emptyGroup,
+        dhWeapons: emptyGroup,
+        dhArmor: emptyGroup,
+        dhLoot: emptyGroup,
       });
       const { editor, onChange } = await renderEditor("<p>Ask Mira</p>");
       act(() => {

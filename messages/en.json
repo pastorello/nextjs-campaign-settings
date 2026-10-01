@@ -52,7 +52,10 @@
       "dhAncestries": "Ancestries",
       "dhCommunities": "Communities",
       "dhAdversaries": "Adversaries",
-      "dhEnvironments": "Environments"
+      "dhEnvironments": "Environments",
+      "dhWeapons": "Weapons",
+      "dhArmor": "Armor",
+      "dhLoot": "Loot"
     },
     "auth": {
       "loginPrompt": "Please log in to continue.",

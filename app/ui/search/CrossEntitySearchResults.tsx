@@ -71,6 +71,9 @@ const DOMAIN_ORDER: {
       "dhCommunities",
       "dhAdversaries",
       "dhEnvironments",
+      "dhWeapons",
+      "dhArmor",
+      "dhLoot",
     ] as const
   ).map((domain) => ({
     domain,

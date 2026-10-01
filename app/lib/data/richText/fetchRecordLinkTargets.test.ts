@@ -15,6 +15,9 @@ const {
   dhCommunity,
   dhAdversary,
   dhEnvironment,
+  dhWeapon,
+  dhArmor,
+  dhLoot,
   inSystem,
 } = vi.hoisted(() => ({
   spells: { findMany: vi.fn() },
@@ -31,6 +34,9 @@ const {
   dhCommunity: { findMany: vi.fn() },
   dhAdversary: { findMany: vi.fn() },
   dhEnvironment: { findMany: vi.fn() },
+  dhWeapon: { findMany: vi.fn() },
+  dhArmor: { findMany: vi.fn() },
+  dhLoot: { findMany: vi.fn() },
   inSystem: vi.fn(),
 }));
 
@@ -50,6 +56,9 @@ vi.mock("@/app/lib/connections/prisma", () => ({
     dhCommunity,
     dhAdversary,
     dhEnvironment,
+    dhWeapon,
+    dhArmor,
+    dhLoot,
   },
 }));
 vi.mock("@/app/lib/data/search/searchAllDomains", () => ({
@@ -166,6 +175,26 @@ describe("fetchRecordLinkTargets (SPEC-019 T2)", () => {
       "dhDomainCards:2": "Lantern Step",
       "dhClasses:3": "Lamplighter",
       "dhSubclasses:4": "Glass Warden",
+    });
+  });
+
+  it("resolves links to weapons, armor and loot (SPEC-029 T5)", async () => {
+    dhWeapon.findMany.mockResolvedValue([{ id: 1, name: "Hook" }]);
+    dhArmor.findMany.mockResolvedValue([{ id: 2, name: "Coat" }]);
+    dhLoot.findMany.mockResolvedValue([{ id: 3, name: "Jar" }]);
+
+    const targets = await fetchRecordLinkTargets(
+      [
+        `<p>${link("dhWeapons", 1)} ${link("dhArmor", 2)} ${link("dhLoot", 3)}</p>`,
+      ],
+      "daggerheart",
+      ALL
+    );
+
+    expect(targets).toEqual({
+      "dhWeapons:1": "Hook",
+      "dhArmor:2": "Coat",
+      "dhLoot:3": "Jar",
     });
   });
 

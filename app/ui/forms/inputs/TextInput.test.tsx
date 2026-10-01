@@ -45,4 +45,27 @@ describe("TextInput", () => {
     rerender(<TextInput value="" onChange={vi.fn()} icon={IconType.search} />);
     expect(container.querySelector("svg")).toBeInTheDocument();
   });
+
+  it("is a plain text field unless told otherwise", () => {
+    render(<TextInput value="" onChange={() => {}} label="Name" />);
+
+    expect(screen.getByLabelText("Name")).toHaveAttribute("type", "text");
+  });
+
+  // SPEC-022: the account forms' password fields.
+  it("takes a type and an autofill hint", () => {
+    render(
+      <TextInput
+        value=""
+        onChange={() => {}}
+        label="Password"
+        inputType="password"
+        autoComplete="new-password"
+      />
+    );
+
+    const input = screen.getByLabelText("Password");
+    expect(input).toHaveAttribute("type", "password");
+    expect(input).toHaveAttribute("autocomplete", "new-password");
+  });
 });

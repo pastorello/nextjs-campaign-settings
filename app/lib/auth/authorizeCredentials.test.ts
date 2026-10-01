@@ -35,6 +35,17 @@ describe("authorizeCredentials", () => {
     await expect(authorizeCredentials(credentials)).resolves.toBe(row);
   });
 
+  it("matches the email however it was capitalised", async () => {
+    await authorizeCredentials({
+      email: " Mira@Example.TEST ",
+      password: "secret1",
+    });
+
+    expect(findUnique).toHaveBeenCalledWith({
+      where: { email: "mira@example.test" },
+    });
+  });
+
   it("refuses a wrong password", async () => {
     compare.mockResolvedValue(false);
 

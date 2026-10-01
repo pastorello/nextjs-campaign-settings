@@ -92,6 +92,11 @@ export const FIELD_ERROR_KEYS = [
   "classHasSubclasses",
   "classFeatureOrderMismatch",
   "subclassFeatureOrderMismatch",
+  // Accounts (SPEC-022 T2, T3)
+  "accountNotFound",
+  "emailTaken",
+  "wrongPassword",
+  "lastActiveDm",
 ] as const;
 
 type FieldErrorKey = (typeof FIELD_ERROR_KEYS)[number];

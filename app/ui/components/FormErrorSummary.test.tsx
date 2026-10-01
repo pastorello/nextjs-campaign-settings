@@ -35,4 +35,18 @@ describe("FormErrorSummary (TD-124)", () => {
       "unknownField: common.fieldErrors.factionNotFound"
     );
   });
+
+  // SPEC-022: a bespoke form names its own fields.
+  it("names a field outside the metadata layer by the label it is given", () => {
+    render(
+      <FormErrorSummary
+        errors={{ email: [{ key: "emailTaken" }] }}
+        labels={{ email: "Email" }}
+      />
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Email: common.fieldErrors.emailTaken"
+    );
+  });
 });

@@ -22,7 +22,8 @@
       "dhDomains": "Domini",
       "dhDomainCards": "Carte dominio",
       "dhClasses": "Classi",
-      "dhSubclasses": "Sottoclassi"
+      "dhSubclasses": "Sottoclassi",
+      "accounts": "Account"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -206,7 +207,11 @@
       "classNeedsFeature": "Una classe deve avere almeno un privilegio.",
       "classHasSubclasses": "{count, plural, one {# sottoclasse appartiene} other {# sottoclassi appartengono}} ancora a questa classe. Eliminale o spostale prima.",
       "classFeatureOrderMismatch": "I privilegi indicati non corrispondono all'elenco attuale dei privilegi della classe.",
-      "subclassFeatureOrderMismatch": "I privilegi indicati non corrispondono all'elenco attuale dei privilegi di questo grado."
+      "subclassFeatureOrderMismatch": "I privilegi indicati non corrispondono all'elenco attuale dei privilegi di questo grado.",
+      "accountNotFound": "Questo account non esiste più.",
+      "emailTaken": "Un altro account usa già questa email.",
+      "wrongPassword": "La password attuale non è corretta.",
+      "lastActiveDm": "È l'ultimo DM attivo: deve restarne almeno uno."
     },
     "errorPage": {
       "genericTitle": "Qualcosa è andato storto",
@@ -1833,5 +1838,64 @@
         "label": "Grado"
       }
     }
+  },
+  "accounts": {
+    "ownPage": {
+      "title": "Il mio account",
+      "nameSection": "Nome",
+      "passwordSection": "Password",
+      "name": "Nome",
+      "email": "Email",
+      "emailHint": "Per cambiarla, chiedi a un altro DM dalla pagina degli account.",
+      "currentPassword": "Password attuale",
+      "newPassword": "Nuova password",
+      "passwordHint": "Almeno 8 caratteri.",
+      "saveName": "Salva il nome",
+      "changePassword": "Cambia la password",
+      "nameSaved": "Nome salvato.",
+      "passwordChanged": "Password cambiata."
+    },
+    "page": {
+      "title": "Account",
+      "intro": "Chi può entrare nell'applicazione. Un DM modifica il mondo; un giocatore vede solo quello che hai rivelato alle sue campagne.",
+      "newTitle": "Nuovo account",
+      "name": "Nome",
+      "email": "Email",
+      "password": "Password",
+      "firstPasswordHint": "Almeno 8 caratteri. Comunicala tu alla persona: non viene inviata nessuna email.",
+      "role": "Ruolo",
+      "status": "Stato",
+      "actions": "Azioni",
+      "create": "Crea l'account",
+      "created": "Account creato.",
+      "listTitle": "Account esistenti",
+      "you": "(tu)",
+      "edit": "Modifica {name}",
+      "editTitle": "Modifica {name}",
+      "setPassword": "Nuova password per {name}",
+      "setPasswordTitle": "Nuova password per {name}",
+      "disable": "Disattiva {name}",
+      "activate": "Attiva {name}",
+      "delete": "Elimina {name}",
+      "deleteTitle": "Eliminare {name}?",
+      "deleteBody": "L'account non potrà più accedere e la sua sessione aperta si chiude alla prossima richiesta. Non si può annullare.",
+      "save": "Salva",
+      "cancel": "Annulla",
+      "confirmDelete": "Elimina l'account",
+      "saved": "Account aggiornato.",
+      "passwordSet": "Password impostata. Comunicala a {name}.",
+      "disabled": "Account disattivato.",
+      "activated": "Account attivato.",
+      "deleted": "Account eliminato."
+    },
+    "roles": {
+      "dm": "DM",
+      "player": "Giocatore"
+    },
+    "statuses": {
+      "active": "Attivo",
+      "inactive": "Disattivato"
+    },
+    "failed": "Operazione non riuscita. Riprova."
   }
 }

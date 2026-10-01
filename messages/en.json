@@ -22,7 +22,8 @@
       "dhDomains": "Domains",
       "dhDomainCards": "Domain Cards",
       "dhClasses": "Classes",
-      "dhSubclasses": "Subclasses"
+      "dhSubclasses": "Subclasses",
+      "accounts": "Account"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -206,7 +207,11 @@
       "classNeedsFeature": "A class needs at least one feature.",
       "classHasSubclasses": "{count, plural, one {# subclass still belongs} other {# subclasses still belong}} to this class. Delete or move them first.",
       "classFeatureOrderMismatch": "The given features do not match this class's current feature list.",
-      "subclassFeatureOrderMismatch": "The given features do not match this tier's current feature list."
+      "subclassFeatureOrderMismatch": "The given features do not match this tier's current feature list.",
+      "accountNotFound": "This account no longer exists.",
+      "emailTaken": "Another account already uses this email.",
+      "wrongPassword": "The current password is not correct.",
+      "lastActiveDm": "This is the last active DM: at least one must remain."
     },
     "errorPage": {
       "genericTitle": "Something went wrong",
@@ -1833,5 +1838,64 @@
         "label": "Tier"
       }
     }
+  },
+  "accounts": {
+    "ownPage": {
+      "title": "My account",
+      "nameSection": "Name",
+      "passwordSection": "Password",
+      "name": "Name",
+      "email": "Email",
+      "emailHint": "To change it, ask another DM from the accounts page.",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "passwordHint": "At least 8 characters.",
+      "saveName": "Save name",
+      "changePassword": "Change password",
+      "nameSaved": "Name saved.",
+      "passwordChanged": "Password changed."
+    },
+    "page": {
+      "title": "Accounts",
+      "intro": "Who can sign in. A DM edits the world; a player sees only what you have revealed to their campaigns.",
+      "newTitle": "New account",
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "firstPasswordHint": "At least 8 characters. Tell it to the person yourself: no email is sent.",
+      "role": "Role",
+      "status": "Status",
+      "actions": "Actions",
+      "create": "Create account",
+      "created": "Account created.",
+      "listTitle": "Existing accounts",
+      "you": "(you)",
+      "edit": "Edit {name}",
+      "editTitle": "Edit {name}",
+      "setPassword": "New password for {name}",
+      "setPasswordTitle": "New password for {name}",
+      "disable": "Disable {name}",
+      "activate": "Activate {name}",
+      "delete": "Delete {name}",
+      "deleteTitle": "Delete {name}?",
+      "deleteBody": "The account can no longer sign in, and its open session ends at its next request. This cannot be undone.",
+      "save": "Save",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete account",
+      "saved": "Account updated.",
+      "passwordSet": "Password set. Tell it to {name}.",
+      "disabled": "Account disabled.",
+      "activated": "Account activated.",
+      "deleted": "Account deleted."
+    },
+    "roles": {
+      "dm": "DM",
+      "player": "Player"
+    },
+    "statuses": {
+      "active": "Active",
+      "inactive": "Disabled"
+    },
+    "failed": "That did not work. Try again."
   }
 }

@@ -53,6 +53,55 @@ export function contextMenu(page: Page): Locator {
 }
 
 /**
+ * Waits until the map's camera has stopped moving (TD-152).
+ *
+ * Every caller right-clicks a fixed pixel, and what it creates lands
+ * wherever that pixel falls in the view *at that moment*. The view is not
+ * still when `.leaflet-container` turns visible: measured 2026-10-01, the
+ * root map's pane pans ~380px down and back on its own for ~500ms after
+ * load (TD-153), the container's size unchanged throughout. A right-click
+ * inside that window read `(400, 250)` as `-3.7` % from the image's top —
+ * outside the map — so the place form refused to save, and the spec timed
+ * out waiting for a row that would never appear. `map-poi-crud.spec.ts`
+ * failed that way one run in three locally, and three attempts in three on
+ * CI; `map-place-repositioning.spec.ts` the same way at `-22.6` %.
+ *
+ * Settled means the map pane's transform (every pan) and the image layer's
+ * box (every zoom too, when the map has an image) read the same three times
+ * running, 150ms apart. The pane exists on every map; the image does not.
+ */
+export async function waitForSettledMap(page: Page): Promise<void> {
+  const readings: string[] = [];
+  await expect
+    .poll(
+      async () => {
+        readings.push(
+          await page.evaluate(() => {
+            const pane =
+              document.querySelector<HTMLElement>(".leaflet-map-pane");
+            if (!pane) return "";
+            const box = document
+              .querySelector(".leaflet-image-layer")
+              ?.getBoundingClientRect();
+            return JSON.stringify([
+              pane.style.transform,
+              box ? [box.x, box.y, box.width, box.height] : null,
+            ]);
+          })
+        );
+        const last = readings.slice(-3);
+        return (
+          last.length === 3 &&
+          last[0] !== "" &&
+          last.every((r) => r === last[0])
+        );
+      },
+      { intervals: [150], timeout: 10_000 }
+    )
+    .toBe(true);
+}
+
+/**
  * Right-click the map at `position` until the menu is actually open, and
  * return it. Use this only when the menu's contents are the assertion; if the
  * test just wants to pick an entry, use `chooseFromContextMenu`.
@@ -63,6 +112,7 @@ export async function openContextMenu(
 ): Promise<Locator> {
   const map = page.locator(".leaflet-container");
   const menu = contextMenu(page);
+  await waitForSettledMap(page);
 
   await expect(async () => {
     await map.click({ button: "right", position });
@@ -88,6 +138,7 @@ export async function chooseFromContextMenu(
 ): Promise<void> {
   const map = page.locator(".leaflet-container");
   const menu = contextMenu(page);
+  await waitForSettledMap(page);
 
   await expect(async () => {
     await map.click({ button: "right", position });

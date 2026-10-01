@@ -3,7 +3,7 @@
 **Last updated:** 2026-10-01
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**No item is open.** The last, TD-151, closed on 2026-10-01 and is archived with the rest. The next thing found goes in as TD-152.
+**One item is open: TD-153.** The last closed, TD-152, closed on 2026-10-01 and is archived with the rest. The next thing found goes in as TD-154.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -32,7 +32,9 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-None open.
+| ID     | Item                                                            | Severity | Effort | Phase |
+| ------ | --------------------------------------------------------------- | -------- | ------ | ----- |
+| TD-153 | The map pans ~380px down and back on its own for ~500ms on load | 🟢 Low   | S      | 4     |
 
 **All 134 closed rows moved to the archive on 2026-09-22**, with the write-ups they
 index — see [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)'s _Index of every closed
@@ -40,14 +42,34 @@ item_. That list is the work queue, not a history of the project.
 
 ---
 
-## Closed items — TD-01 through TD-151
+## Closed items — TD-01 through TD-152
 
 Everything the 2026-07-22 audit found, plus everything found while doing the work through 2026-09-19, is closed: correctness, security, dead code, formatting, CI, accessibility, the metadata-layer types, the identifier rename, the bilingual UI, the migration drift, the E2E harness, the coverage sweep that crossed Phase 2's 70% gate, the whole SPEC-004 map/world-tree run, the clean-checkout `pnpm test` gap, the metadata layer's unguarded field-name collision, description fields rendering as unsanitised HTML, the entity-location read path duplication, the deity/magic-item/faction mutation coverage gap, SPEC-016/017's map work, and the September 2026 quality, accessibility and copy sweep (TD-112 – TD-146). The archive's _Index of every closed item_ carries the summary row for each.
 
-**Each item's full write-up — what was found, why, the fix — is in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)**, moved there in six passes (TD-01–TD-36 on 2026-08-01, TD-37–TD-75 on 2026-08-08, TD-76 and TD-77 on 2026-08-13, TD-80 on 2026-08-17, TD-81–TD-102 on 2026-08-31, and the remaining fifty-one on 2026-09-22), plus TD-147 to TD-150 on 2026-09-30, the day TD-148 to TD-150 were filed, and TD-151 on 2026-10-01, filed and closed the same day. Nothing was deleted; the archive keeps every "(original)" problem framing exactly as recorded, per the policy in [`docs/README.md`](./README.md#keeping-them-honest).
+**Each item's full write-up — what was found, why, the fix — is in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)**, moved there in six passes (TD-01–TD-36 on 2026-08-01, TD-37–TD-75 on 2026-08-08, TD-76 and TD-77 on 2026-08-13, TD-80 on 2026-08-17, TD-81–TD-102 on 2026-08-31, and the remaining fifty-one on 2026-09-22), plus TD-147 to TD-150 on 2026-09-30, the day TD-148 to TD-150 were filed, and TD-151 and TD-152 on 2026-10-01, each filed and closed the same day. Nothing was deleted; the archive keeps every "(original)" problem framing exactly as recorded, per the policy in [`docs/README.md`](./README.md#keeping-them-honest).
 
 ---
 
 ## Open items
 
-None.
+### TD-153 The map pans ~380px down and back on its own for ~500ms on load
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-10-01, while diagnosing TD-152
+
+Opening `/dashboard/dnd5e/geography` on the E2E world, the map pane's
+`transform` was sampled every 20ms from the moment `.leaflet-container` is
+visible: it slides from 0 to ~381px down, then back to 0, over ~500ms, with
+the container's size unchanged throughout — on every load, throttled or
+not. The DM sees the image drop and spring back each time a map opens, and
+a right-click inside that half-second lands on a moving map (TD-152's
+failures were exactly that).
+
+Not yet traced. Nothing in `app/` calls an animated pan at mount
+(`useMapImageOverlay`'s framing is `animate: false`); the shape — out and
+back — suggests Leaflet's own `panInsideMaxBounds` on a `moveend`, animated
+by default, reacting to an earlier view change (the vendored `LeafletMap`'s
+delayed `invalidateSize`, or the interim view landing partly outside the
+bounds it then sets). Reproduce with a `page.evaluate` sampling loop like
+TD-152's, find the first `movestart`'s stack, and fix it there. The E2E
+helpers' `waitForSettledMap` stays either way: a test should not right-click
+a map that is still moving, whatever moves it.

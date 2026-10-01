@@ -64,6 +64,9 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
   test("repositions an already-placed marker by dragging it", async ({
     page,
   }) => {
+    // Two map loads, a create, a drag and a reload: past the default 30s on
+    // a slow runner (TD-152), as `map-move-between-maps.spec.ts` was (TD-151).
+    test.setTimeout(60_000);
     const title = `E2E drag POI ${Date.now()}`;
 
     await page.goto("/dashboard/dnd5e/geography");
@@ -91,6 +94,7 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
     // read back after can be shown to have actually changed, not just to be
     // some number.
     const initialListItem = page.locator("button", { hasText: title }).first();
+    await expect(initialListItem).toBeVisible();
     const initialRow = page.locator("div", { has: initialListItem }).last();
     const initialCoords = initialRow
       .locator("div", { hasText: /-?\d+\.\d+, -?\d+\.\d+/ })
@@ -121,6 +125,21 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
     await page.mouse.down();
     await page.mouse.move(startX + 40, startY + 20, { steps: 5 });
     await page.mouse.move(targetX, targetY, { steps: 5 });
+    // The drop's save, told apart from the create's by its payload: the
+    // drag's `updatePoi` sends the row's `id` and the new position, never a
+    // title; `createPoi` sends a title and no `id`. Registered before the
+    // drop so a fast response cannot slip past it.
+    const saved = page.waitForResponse((response) => {
+      const request = response.request();
+      const body = request.postData() ?? "";
+      return (
+        request.method() === "POST" &&
+        request.headers()["next-action"] !== undefined &&
+        body.includes('"id"') &&
+        body.includes('"lat"') &&
+        !body.includes('"title"')
+      );
+    });
     await page.mouse.up();
 
     // First, that the drop landed at all: `dragend` fires, `updatePOI`
@@ -141,6 +160,12 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
     // the better reading: it is the same source `initialCoordsText` came
     // from above, so the two are compared like for like rather than across
     // two different formatters.
+    //
+    // Only once the drop's save has answered (TD-152): the optimistic move
+    // above lands before the server round trip, and a reload issued straight
+    // after it aborted the in-flight `updatePoi` on a slow runner, so the
+    // row read back below still held the creation point.
+    await saved;
     await page.reload();
     await expect(map).toBeVisible();
     const movedMarker = page.locator(".custom-poi-marker").last();

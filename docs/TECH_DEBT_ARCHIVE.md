@@ -3285,6 +3285,7 @@ The summary table's closed rows, moved out of [`TECH_DEBT.md`](./TECH_DEBT.md) o
 | TD-149 | ✅ Typing a position into the place form moves no marker (SPEC-025 §5.2)                                       | ~~🟡 Medium~~ done   | M      | 4     |
 | TD-150 | ✅ The map panel's kind select shows raw ids (`region`, `poi`) in both locales                                 | ~~🟢 Low~~ done      | S      | 4     |
 | TD-151 | ✅ `map-move-between-maps.spec.ts` counts the previous map's markers on a fresh database                       | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-152 | ✅ The map specs right-click a still-moving map; one reloads before the drag saves                             | ~~🟡 Medium~~ done   | S      | 4     |
 
 ---
 
@@ -5616,3 +5617,41 @@ for the new region's own marker, clicks markers by name rather than by an
 index taken from a count, and treats the page's `<h1>` naming the place as
 arrival. The spec's budget is 90 s. Verified on a fresh database in CI's
 order, where the old spec failed.
+
+### TD-152 ✅ The map specs right-click a still-moving map, and `map-place-repositioning.spec.ts` reloads before the drag saves — **DONE (2026-10-01)**
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-10-01, red on the docs-only SPEC-031 PR, whose diff touches no code, then on this item's own PR
+
+Two failures, neither in the code the specs test:
+
+- **A refused save.** `map-place-repositioning.spec.ts`'s first attempt
+  timed out reading the new row's coordinates (line 98). The page snapshot,
+  reproduced locally on a cold dev server and again under 6× CPU
+  throttling, shows why: the place form held `-22.6` (then `-6.6`) % from
+  the top, flagged invalid, so the save was refused and no row appeared.
+  This item's own PR then went red on `map-poi-crud.spec.ts` the same way,
+  three attempts in three (`-3.7` %), and that spec failed one run in three
+  locally, warm and unthrottled. A probe sampling the map every 20ms found
+  the cause: the map pane pans ~380px down and back on its own for ~500ms
+  after `.leaflet-container` turns visible (TD-153), and every map spec
+  right-clicks a fixed pixel, so a right-click inside that window lands
+  above the image.
+- **A lost save.** `map-place-repositioning`'s retry failed the final
+  comparison (line 178): after the reload the row still held the creation
+  point. The drag's optimistic move lands at once, while `updatePoi` is
+  queued behind the create; the spec reloaded straight after the
+  optimistic assertion, which aborts a save still in flight. Inferred from
+  the code and the failure, not reproduced locally.
+
+**Resolution:** `e2e/helpers/mapContextMenu.ts` gained `waitForSettledMap`
+— the map pane's transform and the image layer's box unchanged across
+three reads 150ms apart — and both `openContextMenu` and
+`chooseFromContextMenu` call it before the first right-click, so every spec
+that uses them waits for a still map. `map-place-repositioning` also waits
+for the drag's own `updatePoi` response (a Server Action POST carrying an
+`id` and a `lat` but no `title`, unlike the create) before reloading, and
+for the saved row to be visible, so a refused save fails in seconds rather
+than at the test timeout; its budget is 60 s. Under 6× CPU throttling the
+old repositioning spec failed one run in three exactly as on CI and the new
+one passed eight in eight. The app-side pan is TD-153, left open: the wait
+is right whatever moves the map.

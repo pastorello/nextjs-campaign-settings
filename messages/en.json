@@ -1659,6 +1659,11 @@
     "origins": {
       "homebrew": "Homebrew",
       "srdReference": "SRD reference"
+    },
+    "view": {
+      "label": "Show as",
+      "rows": "Rows",
+      "cards": "Cards"
     }
   },
   "dhDomains": {
@@ -1747,11 +1752,6 @@
     "card": {
       "level": "Level {level}",
       "emblemAlt": "Emblem of {domain}"
-    },
-    "view": {
-      "label": "Show as",
-      "rows": "Rows",
-      "cards": "Cards"
     }
   },
   "dhClasses": {

@@ -9,10 +9,10 @@ import DhDomainCard from "@/app/lib/definitions/interfaces/daggerheart/DhDomainC
 import resolveFieldValue from "@/app/lib/utils/data/resolveFieldValue";
 import SelectButtonery from "../buttons/SelectButtonery";
 import DhDomainCardView from "./DhDomainCardView";
-import DhDomainCardViewSwitch, {
-  dhDomainCardListView,
+import CardListViewSwitch, {
+  cardListView,
   VIEW_PARAM,
-} from "./DhDomainCardViewSwitch";
+} from "../daggerheart/CardListViewSwitch";
 
 /**
  * The public domain card list (SPEC-021 T3): level and type filters, and a
@@ -20,7 +20,7 @@ import DhDomainCardViewSwitch, {
  */
 export default function DhDomainCardLibrary(props: { items: DhDomainCard[] }) {
   const t = useTranslations();
-  const view = dhDomainCardListView(useSearchParams().get(VIEW_PARAM));
+  const view = cardListView(useSearchParams().get(VIEW_PARAM));
 
   return (
     <div className="w-full pt-5">
@@ -31,7 +31,7 @@ export default function DhDomainCardLibrary(props: { items: DhDomainCard[] }) {
         <SelectButtonery fieldKey={DhDomainCardMetaField.cardType} />
       </div>
       <div className="mb-4 flex justify-end">
-        <DhDomainCardViewSwitch />
+        <CardListViewSwitch />
       </div>
       {view === "cards" ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -3,7 +3,7 @@
 **Last updated:** 2026-10-01
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**No item is open.** The last, TD-152, closed on 2026-10-01 and is archived with the rest. The next thing found goes in as TD-153.
+**One item is open: TD-153.** The last closed, TD-152, closed on 2026-10-01 and is archived with the rest. The next thing found goes in as TD-154.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -32,7 +32,9 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-None open.
+| ID     | Item                                                            | Severity | Effort | Phase |
+| ------ | --------------------------------------------------------------- | -------- | ------ | ----- |
+| TD-153 | The map pans ~380px down and back on its own for ~500ms on load | 🟢 Low   | S      | 4     |
 
 **All 134 closed rows moved to the archive on 2026-09-22**, with the write-ups they
 index — see [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)'s _Index of every closed
@@ -50,4 +52,24 @@ Everything the 2026-07-22 audit found, plus everything found while doing the wor
 
 ## Open items
 
-None.
+### TD-153 The map pans ~380px down and back on its own for ~500ms on load
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-10-01, while diagnosing TD-152
+
+Opening `/dashboard/dnd5e/geography` on the E2E world, the map pane's
+`transform` was sampled every 20ms from the moment `.leaflet-container` is
+visible: it slides from 0 to ~381px down, then back to 0, over ~500ms, with
+the container's size unchanged throughout — on every load, throttled or
+not. The DM sees the image drop and spring back each time a map opens, and
+a right-click inside that half-second lands on a moving map (TD-152's
+failures were exactly that).
+
+Not yet traced. Nothing in `app/` calls an animated pan at mount
+(`useMapImageOverlay`'s framing is `animate: false`); the shape — out and
+back — suggests Leaflet's own `panInsideMaxBounds` on a `moveend`, animated
+by default, reacting to an earlier view change (the vendored `LeafletMap`'s
+delayed `invalidateSize`, or the interim view landing partly outside the
+bounds it then sets). Reproduce with a `page.evaluate` sampling loop like
+TD-152's, find the first `movestart`'s stack, and fix it there. The E2E
+helpers' `waitForSettledMap` stays either way: a test should not right-click
+a map that is still moving, whatever moves it.

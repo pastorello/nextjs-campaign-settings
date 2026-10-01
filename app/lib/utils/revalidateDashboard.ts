@@ -27,6 +27,7 @@ export type DashboardDomain =
   | "npc"
   | "spells"
   | "treasures"
+  | "weapons"
   | "world"
   | "world/calendar"
   | "world/history";

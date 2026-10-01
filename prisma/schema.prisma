@@ -562,6 +562,9 @@ model recordImage {
   dhCommunity   dhCommunity?
   dhAdversary   dhAdversary?
   dhEnvironment dhEnvironment?
+  dhWeapon      dhWeapon?
+  dhArmor       dhArmor?
+  dhLoot        dhLoot?
 }
 
 // SPEC-021 T1 — the Daggerheart catalogue: domains, domain cards, classes and
@@ -848,4 +851,69 @@ model dhEnvironmentFeature {
   questions     String?
 
   @@index([environmentId])
+}
+
+// SPEC-029: equipment. Keys that would collide in the metadata layer's flat
+// namespace are prefixed in code and `@map`ped to the spec's columns. The
+// CHECKs are in the migration: tier 1–4, the die, the bonus, the burden,
+// the armor score, Major < Severe, the roll value, and a feature's name
+// and text as a pair.
+model dhWeapon {
+  id                Int      @id @default(autoincrement())
+  name              String
+  tier              Int
+  weaponSlot        String   @map("slot")
+  weaponTrait       String   @map("trait")
+  weaponRange       String   @map("range")
+  damageDie         Int
+  damageBonus       Int      @default(0)
+  weaponDamageType  String   @map("damageType")
+  burden            Int
+  weaponFeatureName String?  @map("featureName")
+  weaponFeatureText String?  @map("featureText")
+  origin            String   @default("homebrew")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  imageId Int?         @unique
+  image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+
+  @@index([name])
+}
+
+model dhArmor {
+  id               Int      @id @default(autoincrement())
+  name             String
+  tier             Int
+  armorMajor       Int      @map("majorThreshold")
+  armorSevere      Int      @map("severeThreshold")
+  armorScore       Int
+  armorFeatureName String?  @map("featureName")
+  armorFeatureText String?  @map("featureText")
+  origin           String   @default("homebrew")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  imageId Int?         @unique
+  image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+
+  @@index([name])
+}
+
+model dhLoot {
+  id         Int      @id @default(autoincrement())
+  name       String
+  lootKind   String   @map("kind")
+  lootRarity String   @map("rarity")
+  rollValue  Int?
+  effectText String
+  origin     String   @default("homebrew")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  imageId Int?         @unique
+  image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+
+  @@index([name])
+  @@index([rollValue])
 }

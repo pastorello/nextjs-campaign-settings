@@ -1,6 +1,6 @@
 # SPEC-029: Daggerheart — weapons, armor and loot
 
-- **Status:** Agreed 2026-09-30. Written by Claude from SPEC-018 §6; the DM approved it and answered its question (§9).
+- **Status:** In progress 2026-10-01. Agreed 2026-09-30. Written by Claude from SPEC-018 §6; the DM approved it and answered its question (§9).
 - **Date:** 2026-09-30
 - **Phase:** 4
 - **Related:** [SPEC-018](./018-game-systems.md) T7 (§5 licence constraints and §6 catalogue structure, binding here) · [SPEC-021](./021-daggerheart-domains-and-classes.md) (the patterns reused) · [`daggerheart.md`](../domain/daggerheart.md) §3, §6, §7, §8 · [SPEC-030](./030-daggerheart-campaign-management.md) (a scene's loot, which draws on these catalogues)
@@ -165,7 +165,31 @@ model dhLoot {
 
 ## 9. Implementation plan
 
-_Fill in once agreed._
+**Depends on** SPEC-028, which added the shared `tier` field, the range and
+damage-type vocabularies, `StatBlockView` and `isPlayerSearchDomain`.
+
+**Decided while planning (2026-10-01)**
+
+1. **Weapons and armor are rules; loot is the DM's.** Weapons and armor
+   are what the players choose from at the table, like SPEC-022 R14's
+   catalogues. They join `PLAYER_PAGES`, whole and unfiltered. Loot is
+   handed out, like the 5e treasure catalogue (R15), so it stays the
+   DM's: no player page, search hit or record link, through SPEC-028's
+   cuts. Opening loot later means adding it to `PLAYER_PAGES` and to
+   `isRecordImageVisible`.
+2. **The trait reuses `DhSpellcastTrait`**, the six traits of
+   `daggerheart.md` §7, through its own option list without "none".
+3. **A feature is both or neither.** `featurePairErrors` refuses a name
+   without text, or text without a name, on the missing field
+   (`featureNeedsBoth`). An update judges the stored row with the payload
+   over it, as SPEC-028's adversary rules do.
+4. **Armor's Major < Severe** reuses SPEC-028's `majorBelowSevere`, on
+   `armorSevere`.
+5. **The cards are `StatBlockView`s**: tier and kind on the band, the
+   numbers below, the feature last.
+6. **The "Equipment" group** is a labelled group in the sidebar holding
+   the three catalogues' tiles. It has no page of its own. A player sees
+   the group with weapons and armor only.
 
 **Answered by the DM on 2026-09-30**
 
@@ -174,8 +198,36 @@ _Fill in once agreed._
 
 ## 10. Task breakdown
 
-_Fill in after §9. Likely: T1 schema and metas; T2 weapons; T3 armor; T4 loot; T5
-search, record links, i18n, a11y and e2e with invented content._
+- [x] **T1** — Schema with CHECKs, the vocabularies, the three metas and
+      `featurePairErrors`. _(test: validators, the pair rule)_ _Done
+      2026-10-01._
+  - Migration `20261001300000_spec029_equipment` adds the three tables and
+    ten CHECKs: tiers, die, bonus, burden, armor score, Major < Severe,
+    roll value, and the feature pairs.
+  - Keys are prefixed and `@map`ped per §7.
+  - The die list is `DH_DICE` from SPEC-028's dice validator.
+  - `blankToNull` stores an emptied feature half as `null`, so the pair
+    rule and the CHECK see the same thing.
+- [x] **T2** — Weapons end to end: lists with every §5 filter, the form,
+      the card, the delete route; open to players. _(test: actions, card;
+      e2e)_ _Done 2026-10-01._
+  - **Pages and players:** `PageType.DhWeapon`. Weapons are in
+    `PLAYER_PAGES`, and their pictures are visible to players
+    (`isRecordImageVisible`'s catalogue list).
+  - **Sidebar:** the "Equipment" group arrives here (`NavGroup` in
+    `nav-links.tsx`). It is a `role="group"` named by its label, holding
+    the weapons tile; T3 and T4 add theirs.
+  - **Card:** `DhWeaponCard`, on `StatBlockView`, shows the damage as die
+    and bonus (`d8+2`).
+  - **E2E:** `daggerheart-weapons.spec.ts` covers the half-feature
+    refusal, the card with an axe scan, the 404 under 5e and the delete.
+    The a11y scan covers the four new pages.
+- [ ] **T3** — Armor end to end, open to players. _(test: thresholds,
+      score; e2e)_
+- [ ] **T4** — Loot end to end, the DM's alone. _(test: roll value,
+      rarity filter; e2e)_
+- [ ] **T5** — The sidebar group, search and record links (loot cut for
+      players), i18n and a11y.
 
 ## 11. Outcome
 

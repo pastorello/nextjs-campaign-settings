@@ -19,6 +19,7 @@ import { fetchFilteredDhAncestries } from "@/app/lib/data/dhAncestries/fetchFilt
 import { fetchFilteredDhCommunities } from "@/app/lib/data/dhCommunities/fetchFilteredDhCommunities";
 import { fetchFilteredDhAdversaries } from "@/app/lib/data/dhAdversaries/fetchFilteredDhAdversaries";
 import { fetchFilteredDhEnvironments } from "@/app/lib/data/dhEnvironments/fetchFilteredDhEnvironments";
+import { fetchFilteredDhWeapons } from "@/app/lib/data/dhWeapons/fetchFilteredDhWeapons";
 import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
 
 import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
@@ -38,6 +39,7 @@ import DhAncestryLibrary from "../dhAncestries/DhAncestryLibrary";
 import DhCommunityLibrary from "../dhCommunities/DhCommunityLibrary";
 import DhAdversaryLibrary from "../dhAdversaries/DhAdversaryLibrary";
 import DhEnvironmentLibrary from "../dhEnvironments/DhEnvironmentLibrary";
+import DhWeaponLibrary from "../dhWeapons/DhWeaponLibrary";
 import ResolvedRecordLinks from "../richText/ResolvedRecordLinks";
 import richTextValuesOf from "@/app/lib/utils/richText/richTextValuesOf";
 
@@ -199,6 +201,10 @@ export default async function EntityLibrary(props: {
           <DhEnvironmentLibrary items={items} />
         </ResolvedRecordLinks>
       );
+    }
+    case PageType.DhWeapon: {
+      const items = await fetchFilteredDhWeapons(searchParams);
+      return withRecordLinks(items, <DhWeaponLibrary items={items} />);
     }
   }
 }

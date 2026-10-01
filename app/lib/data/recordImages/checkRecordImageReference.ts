@@ -39,6 +39,9 @@ export default async function checkRecordImageReference(
         dhCommunity: HOLDER,
         dhAdversary: HOLDER,
         dhEnvironment: HOLDER,
+        dhWeapon: HOLDER,
+        dhArmor: HOLDER,
+        dhLoot: HOLDER,
       },
     });
   } catch (error) {

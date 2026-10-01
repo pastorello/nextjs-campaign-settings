@@ -16,7 +16,10 @@ type RecordImageOwner = {
     | "dhAncestry"
     | "dhCommunity"
     | "dhAdversary"
-    | "dhEnvironment";
+    | "dhEnvironment"
+    | "dhWeapon"
+    | "dhArmor"
+    | "dhLoot";
   id?: number;
 };
 

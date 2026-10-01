@@ -29,7 +29,9 @@
       "dhAncestries": "Ancestries",
       "dhCommunities": "Communities",
       "dhAdversaries": "Adversaries",
-      "dhEnvironments": "Environments"
+      "dhEnvironments": "Environments",
+      "dhEquipment": "Equipment",
+      "dhWeapons": "Weapons"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -236,7 +238,8 @@
       "adversaryInEnvironments": "{count, plural, one {# environment still lists} other {# environments still list}} this adversary. Remove it there first.",
       "adversaryExperienceOrderMismatch": "The experiences given do not match the adversary's current list.",
       "adversaryFeatureOrderMismatch": "The features given do not match the adversary's current list.",
-      "environmentFeatureOrderMismatch": "The features given do not match the environment's current list."
+      "environmentFeatureOrderMismatch": "The features given do not match the environment's current list.",
+      "featureNeedsBoth": "A feature has both a name and a text, or neither."
     },
     "errorPage": {
       "genericTitle": "Something went wrong",
@@ -1729,6 +1732,32 @@
       "social": "Social",
       "traversal": "Traversal",
       "event": "Event"
+    },
+    "weaponSlots": {
+      "primary": "Primary",
+      "secondary": "Secondary"
+    },
+    "lootKinds": {
+      "item": "Item",
+      "consumable": "Consumable"
+    },
+    "rarities": {
+      "common": "Common",
+      "uncommon": "Uncommon",
+      "rare": "Rare",
+      "legendary": "Legendary"
+    },
+    "dice": {
+      "d4": "d4",
+      "d6": "d6",
+      "d8": "d8",
+      "d10": "d10",
+      "d12": "d12",
+      "d20": "d20"
+    },
+    "burdens": {
+      "oneHanded": "One-handed",
+      "twoHanded": "Two-handed"
     }
   },
   "dhDomains": {
@@ -2128,6 +2157,60 @@
     },
     "world": {
       "title": "Environments"
+    }
+  },
+  "dhEquipment": {
+    "fields": {
+      "featureName": {
+        "label": "Feature"
+      },
+      "featureText": {
+        "label": "Feature text"
+      }
+    }
+  },
+  "dhWeapons": {
+    "page": {
+      "title": "Weapons",
+      "searchPlaceholder": "Search weapons...",
+      "itemSingular": "weapon",
+      "itemPlural": "weapons",
+      "newItemButton": "New weapon",
+      "emptyMessage": "No weapons."
+    },
+    "form": {
+      "createTitle": "Create new weapon",
+      "editTitle": "Edit weapon",
+      "createButton": "Create weapon",
+      "editButton": "Save weapon"
+    },
+    "fields": {
+      "slot": {
+        "label": "Slot"
+      },
+      "trait": {
+        "label": "Trait"
+      },
+      "range": {
+        "label": "Range"
+      },
+      "damageDie": {
+        "label": "Damage die"
+      },
+      "damageBonus": {
+        "label": "Damage bonus"
+      },
+      "damageType": {
+        "label": "Damage type"
+      },
+      "burden": {
+        "label": "Burden"
+      }
+    },
+    "card": {
+      "header": "Tier {tier} · {slot}",
+      "damage": "Damage",
+      "imageAlt": "Image of {name}"
     }
   },
   "dhStatBlock": {

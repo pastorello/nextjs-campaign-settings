@@ -17,6 +17,8 @@ describe("isPlayerPath (SPEC-022 T7)", () => {
     "/dashboard/dnd5e/deities",
     "/dashboard/dnd5e/magicitems",
     "/dashboard/daggerheart/factions",
+    // SPEC-029 §9 decision 1.
+    "/dashboard/daggerheart/weapons",
   ])("lets a player through to %s", (path) => {
     expect(isPlayerPath(path)).toBe(true);
   });

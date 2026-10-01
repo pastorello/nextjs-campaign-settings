@@ -92,6 +92,11 @@ const PAGES = [
   "/dashboard/daggerheart/environments?view=cards",
   "/dashboard/daggerheart/admin/environments",
   "/dashboard/daggerheart/admin/environments/new",
+  // SPEC-029: the equipment lists and forms.
+  "/dashboard/daggerheart/weapons",
+  "/dashboard/daggerheart/weapons?view=cards",
+  "/dashboard/daggerheart/admin/weapons",
+  "/dashboard/daggerheart/admin/weapons/new",
   // SPEC-022 T2, T3: the DM's own account and the accounts page. The latter
   // always lists at least the signed-in DM.
   "/dashboard/dnd5e/account",

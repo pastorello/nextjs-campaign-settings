@@ -12,6 +12,7 @@ const { db } = vi.hoisted(() => {
       dhDomain: finder(),
       dhAncestry: finder(),
       dhCommunity: finder(),
+      dhWeapon: finder(),
     },
   };
 });
@@ -66,8 +67,8 @@ describe("image visibility for a player (SPEC-022 T7, R11, R12)", () => {
     await expect(isRecordImageVisible(9, scope)).resolves.toBe(true);
   });
 
-  // SPEC-027: the heritage catalogues are rules too.
-  it.each(["dhAncestry", "dhCommunity"] as const)(
+  // SPEC-027: the heritage catalogues are rules too, and SPEC-029's weapons.
+  it.each(["dhAncestry", "dhCommunity", "dhWeapon"] as const)(
     "serves a %s's picture, a rules catalogue",
     async (model) => {
       db[model].findFirst.mockResolvedValue({ id: 3 });

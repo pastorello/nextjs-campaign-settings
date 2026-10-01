@@ -61,13 +61,20 @@ const DOMAIN_ORDER: {
   },
   // SPEC-021 T7 — searched under `daggerheart` alone, so under `dnd5e`
   // these groups are always empty and hidden.
-  ...(["dhDomains", "dhDomainCards", "dhClasses", "dhSubclasses"] as const).map(
-    (domain) => ({
-      domain,
-      headingNamespace: "common.cards",
-      headingKey: domain,
-    })
-  ),
+  ...(
+    [
+      "dhDomains",
+      "dhDomainCards",
+      "dhClasses",
+      "dhSubclasses",
+      "dhAncestries",
+      "dhCommunities",
+    ] as const
+  ).map((domain) => ({
+    domain,
+    headingNamespace: "common.cards",
+    headingKey: domain,
+  })),
 ];
 
 function DomainGroup({

@@ -67,6 +67,9 @@ record links reach all four catalogues under `daggerheart` only. The 5e
 catalogues are a 404 there, and the Daggerheart ones under `dnd5e`. No rules
 content is in the repository: nothing is seeded, and tests use invented
 content (SPEC-018 §5). See the spec's §11.
+Ancestries and communities followed on 2026-10-01 (SPEC-027); a community
+links to places and factions, and the place popover and faction cards name
+their communities under `daggerheart` only.
 
 **Identifiers are English; the UI ships bilingual (Italian + English).** See [ADR-0005](./adr/0005-english-identifiers.md), implemented as TD-19 on 2026-07-30, and [ADR-0006](./adr/0006-bilingual-ui.md), implemented as TD-21 — copy lives in `messages/{it,en}.json`, not in JSX. Postgres columns keep their Italian names, decoupled from the code by Prisma `@map` (`name @map("nome")`) — so raw SQL and `psql` still show `nome`, `descrizione`, `livello`.
 

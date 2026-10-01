@@ -38,11 +38,15 @@ const {
   fetchFilteredDhDomainCards,
   fetchFilteredDhClasses,
   fetchFilteredDhSubclasses,
+  fetchFilteredDhAncestries,
+  fetchFilteredDhCommunities,
 } = vi.hoisted(() => ({
   fetchFilteredDhDomains: vi.fn(),
   fetchFilteredDhDomainCards: vi.fn(),
   fetchFilteredDhClasses: vi.fn(),
   fetchFilteredDhSubclasses: vi.fn(),
+  fetchFilteredDhAncestries: vi.fn(),
+  fetchFilteredDhCommunities: vi.fn(),
 }));
 vi.mock("@/app/lib/data/dhDomains/fetchFilteredDhDomains", () => ({
   fetchFilteredDhDomains,
@@ -56,18 +60,28 @@ vi.mock("@/app/lib/data/dhClasses/fetchFilteredDhClasses", () => ({
 vi.mock("@/app/lib/data/dhSubclasses/fetchFilteredDhSubclasses", () => ({
   fetchFilteredDhSubclasses,
 }));
+vi.mock("@/app/lib/data/dhAncestries/fetchFilteredDhAncestries", () => ({
+  fetchFilteredDhAncestries,
+}));
+vi.mock("@/app/lib/data/dhCommunities/fetchFilteredDhCommunities", () => ({
+  fetchFilteredDhCommunities,
+}));
 
 const DAGGERHEART_DOMAINS = [
   "dhDomains",
   "dhDomainCards",
   "dhClasses",
   "dhSubclasses",
+  "dhAncestries",
+  "dhCommunities",
 ] as const;
 const DAGGERHEART_FETCHERS = [
   fetchFilteredDhDomains,
   fetchFilteredDhDomainCards,
   fetchFilteredDhClasses,
   fetchFilteredDhSubclasses,
+  fetchFilteredDhAncestries,
+  fetchFilteredDhCommunities,
 ];
 
 import { GAME_SYSTEMS } from "@/app/lib/definitions/GameSystem";
@@ -184,6 +198,12 @@ describe("searchAllDomains by game system (ADR-0013 rule 10)", () => {
     fetchFilteredDhSubclasses.mockResolvedValue([
       { id: 10, name: "Fire Warden" },
     ]);
+    fetchFilteredDhAncestries.mockResolvedValue([
+      { id: 11, name: "Firebrand" },
+    ]);
+    fetchFilteredDhCommunities.mockResolvedValue([
+      { id: 12, name: "Firewatch" },
+    ]);
   });
 
   it("searches every domain but the Daggerheart catalogues under dnd5e", async () => {
@@ -198,7 +218,7 @@ describe("searchAllDomains by game system (ADR-0013 rule 10)", () => {
     }
   });
 
-  it("finds the four Daggerheart catalogues under daggerheart (SPEC-021 T7)", async () => {
+  it("finds the Daggerheart catalogues under daggerheart (SPEC-021 T7, SPEC-027 T4)", async () => {
     const result = await searchAllDomains("Fire", "daggerheart");
 
     expect(result.dhDomains.items).toEqual([{ id: 7, name: "Firewright" }]);
@@ -207,6 +227,8 @@ describe("searchAllDomains by game system (ADR-0013 rule 10)", () => {
     expect(result.dhSubclasses.items).toEqual([
       { id: 10, name: "Fire Warden" },
     ]);
+    expect(result.dhAncestries.items).toEqual([{ id: 11, name: "Firebrand" }]);
+    expect(result.dhCommunities.items).toEqual([{ id: 12, name: "Firewatch" }]);
     for (const fetcher of DAGGERHEART_FETCHERS) {
       expect(fetcher).toHaveBeenCalledWith({ query: "Fire" });
     }

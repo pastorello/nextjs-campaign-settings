@@ -128,6 +128,17 @@ const FIND_EXISTING: Record<
       ...byIds(ids),
       select: { id: true, name: true },
     }),
+  // SPEC-027 T4.
+  dhAncestries: (ids) =>
+    prisma.dhAncestry.findMany({
+      ...byIds(ids),
+      select: { id: true, name: true },
+    }),
+  dhCommunities: (ids) =>
+    prisma.dhCommunity.findMany({
+      ...byIds(ids),
+      select: { id: true, name: true },
+    }),
 };
 
 /**

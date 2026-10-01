@@ -42,7 +42,9 @@
       "dhDomains": "Domini",
       "dhDomainCards": "Carte dominio",
       "dhClasses": "Classi",
-      "dhSubclasses": "Sottoclassi"
+      "dhSubclasses": "Sottoclassi",
+      "dhAncestries": "Ascendenze",
+      "dhCommunities": "Comunità"
     },
     "auth": {
       "loginPrompt": "Accedi per continuare.",

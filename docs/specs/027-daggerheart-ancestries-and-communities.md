@@ -1,6 +1,6 @@
 # SPEC-027: Daggerheart — ancestries and communities
 
-- **Status:** In progress — T1–T3 shipped 2026-10-01. Agreed 2026-09-30. Written by Claude from SPEC-018 §6; the DM approved it and answered its question (§9).
+- **Status:** Shipped 2026-10-01 (T1–T4). Agreed 2026-09-30. Written by Claude from SPEC-018 §6; the DM approved it and answered its question (§9).
 - **Date:** 2026-09-30
 - **Phase:** 4
 - **Related:** [SPEC-018](./018-game-systems.md) T5 (§5 licence constraints and §6 catalogue structure, binding here) · [SPEC-021](./021-daggerheart-domains-and-classes.md) (the first Daggerheart slice; this one reuses its patterns) · [ADR-0013](../adr/0013-game-systems.md) · [`daggerheart.md`](../domain/daggerheart.md) · [`licensing.md`](../domain/licensing.md) · [SPEC-006](./006-factions.md) and [SPEC-004](./004-world-model.md) (the factions and places a community links to)
@@ -146,18 +146,18 @@ model dhCommunity {
 
 ## 8. Acceptance criteria
 
-- [ ] Ancestries and communities can be created, edited, listed with filters and deleted under `daggerheart`, and are not found under `dnd5e`.
-- [ ] An ancestry without both features is rejected with field errors.
-- [ ] A community's places and factions are saved, shown as links on its card, and filterable.
-- [ ] Deleting a linked place or faction keeps the community; deleting a community keeps the place and faction.
-- [ ] Both lists switch between rows and card views.
-- [ ] Search under `daggerheart` finds both catalogues; under `dnd5e` it does not.
-- [ ] Under `daggerheart`, a place's popover and a faction's card list their communities; under `dnd5e` they do not.
-- [ ] No seed, fixture or test reproduces SRD content (checked in review).
-- [ ] New UI copy lands in both `messages/it.json` and `messages/en.json`.
-- [ ] Every new mutation rejects an unauthenticated request.
-- [ ] Every new mutation rejects invalid input with field-level errors.
-- [ ] Coverage has not dropped.
+- [x] Ancestries and communities can be created, edited, listed with filters and deleted under `daggerheart`, and are not found under `dnd5e`.
+- [x] An ancestry without both features is rejected with field errors.
+- [x] A community's places and factions are saved, shown as links on its card, and filterable.
+- [x] Deleting a linked place or faction keeps the community; deleting a community keeps the place and faction.
+- [x] Both lists switch between rows and card views.
+- [x] Search under `daggerheart` finds both catalogues; under `dnd5e` it does not.
+- [x] Under `daggerheart`, a place's popover and a faction's card list their communities; under `dnd5e` they do not.
+- [x] No seed, fixture or test reproduces SRD content (checked in review).
+- [x] New UI copy lands in both `messages/it.json` and `messages/en.json`.
+- [x] Every new mutation rejects an unauthenticated request.
+- [x] Every new mutation rejects invalid input with field-level errors.
+- [ ] Coverage has not dropped. _Not measured: each slice added tests with its code, but no before/after coverage run was made._
 
 ## 9. Implementation plan
 
@@ -226,9 +226,35 @@ model dhCommunity {
     a new faction, its card's links, the faction's card naming it back
     under Daggerheart and not under 5e, and the faction kept when the
     community is deleted. The a11y scan covers its four pages.
-- [ ] **T4** — Search, record links, i18n, a11y and e2e with invented
-      content.
+- [x] **T4** — Search, record links, i18n, a11y and e2e with invented
+      content. _Done 2026-10-01._
+  - Both catalogues are search and record-link domains (`RECORD_LINK_DOMAINS`,
+    `SEARCH_DOMAIN_PAGE`), searched and resolved under `daggerheart` alone.
+    Neither has a page of its own, so a hit opens its list filtered by name.
+  - `daggerheart-communities.spec.ts` gained the search (found under
+    Daggerheart, not under 5e), an axe scan of a card with real links, and a
+    linked faction's deletion leaving the community unlinked.
 
 ## 11. Outcome
 
-_Fill in at close._
+Shipped 2026-10-01, T1–T4 in three PRs. Under `/dashboard/daggerheart/` the
+DM can author ancestries (two required features) and communities (adjectives,
+one feature, and links to places and factions), both with a rows/cards list
+and an admin list; a place's popover and a faction's card list their
+communities under Daggerheart alone; and search and record links reach both
+catalogues there. Nothing is seeded.
+
+**Deviations from the agreed text**
+
+- **Field names (T1).** A feature's name and text are `ancestryFeatureAName`
+  and so on in code, `@map`ped to §6's columns: `pageMetaFields` is one
+  namespace (`CLAUDE.md`'s decision of 2026-09-19). The pairwise-disjoint check
+  over the metas is now computed from one map rather than listed by hand.
+- **Players (SPEC-022, which shipped first).** Both catalogues are open to
+  players; a community's places and factions, its list filters, the popover
+  list and a faction's communities are cut to what the player's campaign has
+  been shown.
+
+**Not tested end to end:** deleting a linked _place_. It rides the same
+`ON DELETE CASCADE` join table as a faction, whose deletion the E2E covers;
+deleting a world place in an E2E would disturb the shared fixture.

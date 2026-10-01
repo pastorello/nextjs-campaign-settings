@@ -11,6 +11,8 @@ const {
   dhDomainCard,
   dhClass,
   dhSubclass,
+  dhAncestry,
+  dhCommunity,
   inSystem,
 } = vi.hoisted(() => ({
   spells: { findMany: vi.fn() },
@@ -23,6 +25,8 @@ const {
   dhDomainCard: { findMany: vi.fn() },
   dhClass: { findMany: vi.fn() },
   dhSubclass: { findMany: vi.fn() },
+  dhAncestry: { findMany: vi.fn() },
+  dhCommunity: { findMany: vi.fn() },
   inSystem: vi.fn(),
 }));
 
@@ -38,6 +42,8 @@ vi.mock("@/app/lib/connections/prisma", () => ({
     dhDomainCard,
     dhClass,
     dhSubclass,
+    dhAncestry,
+    dhCommunity,
   },
 }));
 vi.mock("@/app/lib/data/search/searchAllDomains", () => ({
@@ -152,6 +158,22 @@ describe("fetchRecordLinkTargets (SPEC-019 T2)", () => {
       "dhDomainCards:2": "Lantern Step",
       "dhClasses:3": "Lamplighter",
       "dhSubclasses:4": "Glass Warden",
+    });
+  });
+
+  it("resolves links to ancestries and communities (SPEC-027 T4)", async () => {
+    dhAncestry.findMany.mockResolvedValue([{ id: 5, name: "Emberkin" }]);
+    dhCommunity.findMany.mockResolvedValue([{ id: 6, name: "Valefolk" }]);
+
+    const targets = await fetchRecordLinkTargets(
+      [`<p>${link("dhAncestries", 5)} ${link("dhCommunities", 6)}</p>`],
+      "daggerheart",
+      ALL
+    );
+
+    expect(targets).toEqual({
+      "dhAncestries:5": "Emberkin",
+      "dhCommunities:6": "Valefolk",
     });
   });
 

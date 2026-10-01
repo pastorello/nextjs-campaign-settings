@@ -16,6 +16,11 @@ let access: "dm" | "player" | "none" = "dm";
 vi.mock("./app/lib/auth/dashboardAccess", () => ({
   default: () => Promise.resolve(access),
 }));
+// A player's campaigns' systems (SPEC-022 §8); null is no campaign.
+let home: { systems: Set<string>; current: string } | null = null;
+vi.mock("./app/lib/auth/playerSystems", () => ({
+  default: () => Promise.resolve(home),
+}));
 process.env.AUTH_SECRET ??= "test-secret";
 
 const { config, default: proxy, systemRedirectPath } = await import("./proxy");
@@ -80,6 +85,7 @@ describe("proxy", () => {
   beforeEach(() => {
     token = { sub: "1" };
     access = "dm";
+    home = null;
   });
 
   function run(url: string) {
@@ -183,11 +189,52 @@ describe("proxy", () => {
       "/dashboard/dnd5e/geography",
       "/en/dashboard/daggerheart/geography",
       "/dashboard/dnd5e",
+      "/dashboard/dnd5e/spells",
     ])("lets a player through to %s", async (path) => {
       const response = await run(path);
 
       expect(response.status).toBe(200);
       expect(response.headers.get("x-middleware-rewrite")).toBeNull();
+    });
+
+    // SPEC-022 §8: signing in lands on the default system's overview.
+    describe("landing on another system's overview", () => {
+      beforeEach(() => {
+        home = { systems: new Set(["daggerheart"]), current: "daggerheart" };
+      });
+
+      it.each([
+        ["/dashboard/dnd5e", "http://localhost:3000/dashboard/daggerheart"],
+        [
+          "/en/dashboard/dnd5e",
+          "http://localhost:3000/en/dashboard/daggerheart",
+        ],
+      ])("sends %s to the player's own system", async (path, target) => {
+        const response = await run(path);
+
+        expect(response.status).toBe(307);
+        expect(response.headers.get("location")).toBe(target);
+      });
+
+      it("leaves the player's own system's overview alone", async () => {
+        const response = await run("/dashboard/daggerheart");
+
+        expect(response.headers.get("location")).toBeNull();
+      });
+
+      it("leaves another system's page to the layout's 404", async () => {
+        const response = await run("/dashboard/dnd5e/spells");
+
+        expect(response.headers.get("location")).toBeNull();
+      });
+
+      it("sends no player in no campaign anywhere", async () => {
+        home = null;
+
+        const response = await run("/dashboard/dnd5e");
+
+        expect(response.headers.get("location")).toBeNull();
+      });
     });
 
     it("is not refused outside the dashboard", async () => {

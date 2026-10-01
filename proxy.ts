@@ -9,8 +9,10 @@ import {
 } from "./app/lib/definitions/GameSystem";
 import dashboardAccess from "./app/lib/auth/dashboardAccess";
 import { isPlayerPath } from "./app/lib/auth/playerPages";
+import playerSystems from "./app/lib/auth/playerSystems";
+import { CAMPAIGN_COOKIE } from "./app/lib/auth/campaignCookie";
 import { authConfig } from "./auth.config";
-import { DASHBOARD_ROOT } from "./i18n/dashboardPath";
+import { DASHBOARD_ROOT, dashboardPath } from "./i18n/dashboardPath";
 import { routing } from "./i18n/routing";
 
 const handleI18nRouting = createMiddleware(routing);
@@ -68,6 +70,17 @@ function isDashboardPath(rest: string) {
   return rest === DASHBOARD_ROOT || rest.startsWith(`${DASHBOARD_ROOT}/`);
 }
 
+// `/dashboard/<system>`, the overview: the system it names, or null.
+function overviewSystem(rest: string): string | null {
+  const match = rest.match(new RegExp(`^${DASHBOARD_ROOT}/([^/]+)/?$`));
+  return match?.[1] ?? null;
+}
+
+// A path in the request's locale (unprefixed for the default one).
+function localized(locale: string, path: string) {
+  return locale === routing.defaultLocale ? path : `/${locale}${path}`;
+}
+
 const signInPage = authConfig.pages?.signIn ?? "/login";
 
 // The pages a signed-out request may reach: signing in, and asking for a DM
@@ -78,8 +91,7 @@ const PUBLIC_PAGES = [signInPage, "/signup"];
 // the request was going.
 function signInUrlFor(req: NextRequest, locale: string) {
   const signInUrl = req.nextUrl.clone();
-  signInUrl.pathname =
-    locale === routing.defaultLocale ? signInPage : `/${locale}${signInPage}`;
+  signInUrl.pathname = localized(locale, signInPage);
   signInUrl.searchParams.set("callbackUrl", req.nextUrl.href);
   return signInUrl;
 }
@@ -139,6 +151,23 @@ export default async function proxy(req: NextRequest) {
     if (access === "none") {
       // Disabled or deleted since it signed in: signed out, in effect.
       return NextResponse.redirect(signInUrlFor(req, locale));
+    }
+    // A player who lands on the overview of a system none of their
+    // campaigns plays, which is where signing in leads by default, is sent
+    // to their own system's (SPEC-022 §8). Any other page of that system is
+    // the layout's 404.
+    const landedOn = overviewSystem(rest);
+    if (access === "player" && token.sub && landedOn !== null) {
+      const preferred = Number(req.cookies.get(CAMPAIGN_COOKIE)?.value);
+      const home = await playerSystems(
+        token.sub,
+        Number.isInteger(preferred) ? preferred : null
+      );
+      if (home && !(home.systems as ReadonlySet<string>).has(landedOn)) {
+        const homeUrl = req.nextUrl.clone();
+        homeUrl.pathname = localized(locale, dashboardPath(home.current));
+        return NextResponse.redirect(homeUrl, 307);
+      }
     }
     if (access === "player" && !isServerAction(req) && !isPlayerPath(rest)) {
       // Rewritten, not redirected, so the address bar keeps the URL that was

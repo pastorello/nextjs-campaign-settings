@@ -1,6 +1,6 @@
 # SPEC-022: Accounts, roles, and campaign visibility
 
-- **Status:** In progress — T1–T5 shipped 2026-09-30, T6 and T7 2026-10-01. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
+- **Status:** In progress — T1–T5 shipped 2026-09-30, T6, T7 and T8a 2026-10-01. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
 - **Date:** 2026-09-22 (rewritten 2026-09-30)
 - **Phase:** 5
 - **Related:** [ADR-0008](../adr/0008-map-image-storage.md) and [ADR-0017](../adr/0017-record-images.md) (their access check is "authenticated", which this spec redefines) · [SPEC-012](./012-publishing-and-internet-exposure.md) (exposure; deferred, and this spec is its prerequisite) · [SPEC-013](./013-campaign-management.md) (the campaign a group belongs to) · [SPEC-004](./004-world-model.md) (the tree visibility inherits down) · [SPEC-011](./011-cross-entity-search.md) (a read path that must learn to filter) · [SPEC-018](./018-game-systems.md) (a campaign has one system) · TD-01 (`requireSession`, the guard this spec extends) · ROADMAP, _Asked for on 2026-08-18, in one batch_
@@ -569,7 +569,26 @@ lists users, and it does not need the layer.
       in no campaign to land on the map page's message.
 - [ ] **T8** — Player reads, everything else: R1–R7, R10, R14 (R12 and R13
       shipped with T7), and the DM-only fields stripped. _(test: one per
-      path)_
+      path)_ Split in three:
+  - [x] **T8a** — R14, the rules catalogues, and the system rule. _Done
+        2026-10-01._
+    - `PLAYER_PAGES` gains spells, classes, subclasses, domains and domain
+      cards. Their pages read nothing but rules, and no client component on
+      them calls a Server Action other than the scoped record links, so they
+      open unfiltered, as §5 says.
+    - The dashboard layout is a 404 for a player under a system none of
+      their campaigns plays (§8). A player in no campaign reads the
+      catalogues of either system, per §5's edge case.
+    - Signing in lands on the default system's overview, so the proxy sends
+      a player who lands on another system's overview to their own
+      (`playerSystems`: the cookie's campaign, else their first). Without
+      it, a player whose campaigns are all Daggerheart would sign in to a 404.
+    - E2E: `accounts.spec.ts` (a player in no campaign opens the spells and
+      the Daggerheart domains) and `player-map.spec.ts` (a dnd5e player
+      opens the spells, and the Daggerheart domains are a 404).
+  - [ ] **T8b** — R2–R7: NPCs, deities, magic items and factions, their
+        relation labels and filter options, and the DM-only fields stripped.
+  - [ ] **T8c** — R1 and R10: the overview counts and the search.
 - [ ] **T9** — i18n, a11y and an e2e journey. The DM reveals a place and an
       NPC to one of two campaigns, and a player in both switches between them and
       sees each campaign's share. _(test: e2e)_

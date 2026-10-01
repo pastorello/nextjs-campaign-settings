@@ -150,6 +150,12 @@ test("a player sees the places revealed to their campaign, and nothing else", as
       "/dashboard/dnd5e/geography?place=999999999"
     );
     expect(missing?.status()).toBe(404);
+
+    // The rules of the campaign's system, and nothing of another (T8).
+    const spells = await player.goto("/dashboard/dnd5e/spells");
+    expect(spells?.status()).toBe(200);
+    const otherSystem = await player.goto("/dashboard/daggerheart/domains");
+    expect(otherSystem?.status()).toBe(404);
   } finally {
     await player.context().close();
     await revealRoot(page, campaign, false);

@@ -59,6 +59,31 @@ describe("dashboard Layout", () => {
     expect(screen.queryByText("page content")).not.toBeInTheDocument();
   });
 
+  // SPEC-022 §8: another system's pages are a 404 for a player.
+  it("is a 404 for a player under a system none of their campaigns plays", async () => {
+    getViewer.mockResolvedValueOnce({
+      kind: "player",
+      userId: "2",
+      campaigns: [{ id: 1, title: "Marea", system: "daggerheart" }],
+      campaign: { id: 1, title: "Marea", system: "daggerheart" },
+    });
+
+    await expect(renderLayout("dnd5e")).rejects.toThrow("NEXT_NOT_FOUND");
+  });
+
+  it("lets a player in no campaign read either system", async () => {
+    getViewer.mockResolvedValueOnce({
+      kind: "player",
+      userId: "2",
+      campaigns: [],
+      campaign: null,
+    });
+
+    await renderLayout("daggerheart");
+
+    expect(screen.getByText("page content")).toBeInTheDocument();
+  });
+
   it("renders the dashboard for a player, handing the side nav the viewer", async () => {
     const player = {
       kind: "player",

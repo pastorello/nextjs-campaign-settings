@@ -49,6 +49,15 @@ test.describe("accounts", () => {
       expect(await admin?.text()).not.toContain("E2E");
       const deleted = await player.request.delete("/api/npc/999999");
       expect(deleted.status()).toBe(403);
+      // The rules catalogues are every player's, in either system while
+      // they are in no campaign (T8).
+      const spells = await player.goto("/dashboard/dnd5e/spells");
+      expect(spells?.status()).toBe(200);
+      await expect(
+        player.getByRole("heading", { name: messages.spells.page.title })
+      ).toBeVisible();
+      const domains = await player.goto("/dashboard/daggerheart/domains");
+      expect(domains?.status()).toBe(200);
 
       // The hand-performed reset (SPEC-022 §9).
       await row

@@ -8,7 +8,16 @@ type DashboardSubpath = Parameters<typeof dashboardPath>[1];
  * reaches filters by the viewer's campaign: until then the proxy rewrites a
  * player to the 403 page, and the side navigation does not offer it.
  */
-export const PLAYER_PAGES: readonly DashboardSubpath[] = ["/geography"];
+export const PLAYER_PAGES: readonly DashboardSubpath[] = [
+  "/geography",
+  // The rules catalogues (R14, T8): the rules the table plays by, the same
+  // for every player, so no filter. Each is a 404 under the other system.
+  "/spells",
+  "/classes",
+  "/subclasses",
+  "/domains",
+  "/domain-cards",
+];
 
 /**
  * Whether the proxy lets a player through to a dashboard path

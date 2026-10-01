@@ -1,6 +1,6 @@
 # SPEC-030: Daggerheart — campaign management
 
-- **Status:** In progress 2026-10-01. Agreed 2026-09-30. Written by Claude from SPEC-018 §6 and §9; the DM approved it and answered both questions (§9), including the one SPEC-018 reserved for this slice: Battle Points are computed.
+- **Status:** Shipped 2026-10-01 (T1–T5). Agreed 2026-09-30. Written by Claude from SPEC-018 §6 and §9; the DM approved it and answered both questions (§9), including the one SPEC-018 reserved for this slice: Battle Points are computed.
 - **Date:** 2026-09-30
 - **Phase:** 4
 - **Related:** [SPEC-018](./018-game-systems.md) T8 (§6 "what a Daggerheart campaign counts … is decided in its own slice"; §9 on reversing the authored-values rule) · [SPEC-013](./013-campaign-management.md) (campaign → adventure → scene, the 5e counting this slice parallels) · [`campaign-design-method.md`](../domain/campaign-design-method.md) §6 (the authored-values rule) · [`daggerheart.md`](../domain/daggerheart.md) §3, §5, §6 · [SPEC-028](./028-daggerheart-adversaries-and-environments.md) and [SPEC-029](./029-daggerheart-weapons-armor-and-loot.md) (the catalogues a scene draws on; both are prerequisites)
@@ -133,16 +133,16 @@ on `xpTarget`.
 
 ## 8. Acceptance criteria
 
-- [ ] A Daggerheart adventure shows its target level and tier, and no XP target; a 5e adventure is unchanged.
-- [ ] A scene can be marked a milestone and ticked; the adventure totals planned and reached milestones.
-- [ ] A fight scene's creature rows link SPEC-028 adversaries, and the scene shows the Battle Points they cost, computed from their types, against the budget computed from the party size and the ticked adjustments.
-- [ ] Gold targets and loot gold are entered in handfuls and shown as chests, bags and handfuls.
-- [ ] Loot links a SPEC-029 weapon, armor or loot record, and items and consumables count toward the adventure's targets.
-- [ ] Deleting a used adversary or catalogue record keeps the row, unlinked.
-- [ ] No 5e field is accepted on a Daggerheart scene, and no Daggerheart field on a 5e scene.
-- [ ] New UI copy lands in both message catalogues.
-- [ ] Every new mutation rejects an unauthenticated request and invalid input.
-- [ ] Coverage has not dropped.
+- [x] A Daggerheart adventure shows its target level and tier, and no XP target; a 5e adventure is unchanged.
+- [x] A scene can be marked a milestone and ticked; the adventure totals planned and reached milestones.
+- [x] A fight scene's creature rows link SPEC-028 adversaries, and the scene shows the Battle Points they cost, computed from their types, against the budget computed from the party size and the ticked adjustments.
+- [x] Gold targets and loot gold are entered in handfuls and shown as chests, bags and handfuls.
+- [x] Loot links a SPEC-029 weapon, armor or loot record, and items and consumables count toward the adventure's targets.
+- [x] Deleting a used adversary or catalogue record keeps the row, unlinked.
+- [x] No 5e field is accepted on a Daggerheart scene, and no Daggerheart field on a 5e scene.
+- [x] New UI copy lands in both message catalogues.
+- [x] Every new mutation rejects an unauthenticated request and invalid input.
+- [x] Coverage has not dropped.
 
 ## 9. Implementation plan
 
@@ -236,8 +236,39 @@ equipment catalogues), both shipped.
     5e magic item's `value`, which is the item's own worth, gold is coin
     found beside it.
   - _(test: the totals, the display)_
-- [ ] **T5** — i18n, a11y, and an e2e journey with invented content.
+- [x] **T5** — i18n, a11y, and an e2e journey with invented content.
+      _Done 2026-10-01._ `e2e/daggerheart-campaign.spec.ts`: an invented
+      Bruiser on a fight scene of a level-5 adventure, the harder-fight
+      adjustment, the lower-tier suggestion, twelve handfuls read as a bag
+      and two handfuls, a played milestone, and an axe scan with the forms
+      open. Every new string is in both catalogues.
 
 ## 11. Outcome
 
-_Fill in at close._
+Shipped 2026-10-01, T1–T5, in the PR after SPEC-029's. A Daggerheart
+campaign's adventures are planned under its own rules:
+
+- **Adventure:** the target level and its tier; a gold target in handfuls
+  instead of XP and silver.
+- **Scene:** a milestone instead of XP and a hero point, its tick reading
+  "played"; the adventure totals planned and reached milestones.
+- **Fight:** creature rows link adversaries and cost Battle Points by type
+  (a Minion row per party-sized group), against 3 × party + 2 plus the
+  ticked adjustments; the lower-tier +1 is suggested, never ticked.
+- **Loot:** gold in handfuls, shown as chests, bags and handfuls, and at
+  most one weapon, armor or piece of loot, counted toward the two item
+  targets.
+
+A 5e adventure is unchanged, and the other system's fields are refused on
+every write (`otherSystemFieldErrors`).
+
+**Deviations from the agreed text**
+
+- **A Daggerheart creature row has no check-off.** Its only effect in 5e
+  is the XP found, which Daggerheart has none of (T3).
+- **A row's gold counts whatever it links.** §9 decision 6 said "as 5e's
+  value does", but 5e ignores a magic item's value because it is the
+  item's worth; gold is coin found beside the item, so it always counts
+  toward the gold total (T4).
+- **Adjustments exist on fights only.** A scene changed away from a fight
+  saves none, rather than keeping ticks it no longer shows (T3).

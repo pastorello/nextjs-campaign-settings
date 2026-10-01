@@ -1,34 +1,7 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import messages from "@/messages/it.json";
 
 import { chooseFromContextMenu } from "./helpers/mapContextMenu";
-
-/**
- * Waits until the map's camera has stopped moving (TD-152). The test
- * right-clicks a fixed pixel, and the place it creates is wherever that
- * pixel falls in the view at the time: `useMapImageOverlay` frames the view
- * in the callback that attaches the image layer, and a late container
- * resize still pans it. On a cold runner the right-click landed first, the
- * form read the point as `-22.6` % from the top, refused to save it, and no
- * row ever appeared. Attached first, then the image's box unchanged across
- * two reads — the image moves with the camera, whatever moved it.
- */
-async function waitForSettledMap(page: Page) {
-  const image = page.locator(".leaflet-image-layer");
-  await expect(image).toBeAttached();
-  let previous = "";
-  await expect
-    .poll(
-      async () => {
-        const box = JSON.stringify(await image.boundingBox());
-        const settled = box === previous;
-        previous = box;
-        return settled;
-      },
-      { intervals: [250] }
-    )
-    .toBe(true);
-}
 
 /**
  * TD-71 / SPEC-005 §5.B: a DM can drag an already-placed marker to a new
@@ -99,7 +72,6 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
     await page.goto("/dashboard/dnd5e/geography");
     const map = page.locator(".leaflet-container");
     await expect(map).toBeVisible();
-    await waitForSettledMap(page);
 
     // Clear of `MapPOIPanel` (TD-101): the panel is open in list view for
     // the whole drag below, and it covers the map's leftmost 384px, so a

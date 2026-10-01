@@ -3284,6 +3284,7 @@ The summary table's closed rows, moved out of [`TECH_DEBT.md`](./TECH_DEBT.md) o
 | TD-148 | ✅ `pnpm typecheck` fails after an E2E run on a half-written dev type                                          | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-149 | ✅ Typing a position into the place form moves no marker (SPEC-025 §5.2)                                       | ~~🟡 Medium~~ done   | M      | 4     |
 | TD-150 | ✅ The map panel's kind select shows raw ids (`region`, `poi`) in both locales                                 | ~~🟢 Low~~ done      | S      | 4     |
+| TD-151 | ✅ `map-move-between-maps.spec.ts` fails on a cold dev server                                                  | ~~🟡 Medium~~ done   | S      | 4     |
 
 ---
 
@@ -5583,3 +5584,27 @@ the value itself and not a literal in the JSX.
 catalogue labels SPEC-026's create-a-place dialog uses, added in the same
 change. `MapPOIPanel.test.tsx` checks every option's label and failed before the
 fix.
+
+### TD-151 ✅ `map-move-between-maps.spec.ts` fails on a cold dev server — **DONE (2026-10-01)**
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-10-01, red on three PRs in a row (SPEC-028 T3, SPEC-029 T3/T4) and on `main` locally
+
+The spec failed in two ways, neither in the code it tests:
+
+- **Timeout.** Warm, it takes about 20 s; on a server still compiling, the
+  first run took 30–35 s, over Playwright's default 30 s budget.
+- **A lost save.** On CI, saving the workspace's second region left the
+  map with its markers gone, then back without the new one (`Expected: 2,
+Received: 1`, the call log reading 0 elements, then 1). `test:e2e` runs
+  against `next dev`, which compiles a route on its first request and
+  broadcasts the finished compile to open pages as a Fast Refresh. The
+  local trace showed `[Fast Refresh] rebuilding` right after the first
+  map-image upload; on a slow runner that compile ends seconds later, in
+  the middle of the next save.
+
+**Resolution:** `world.setup.ts` asks for each image route once
+(`/api/maps/upload`, `/api/maps/[id]/image`, the three record-image
+routes) before any spec runs, so their compiles are over before a page is
+open; a cold local run now shows Fast Refresh only while a page first
+compiles, never during a save. The spec's budget is 90 s. Verified on a
+cold `.next`: three runs green, the first at 35 s.

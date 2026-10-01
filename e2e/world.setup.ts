@@ -33,3 +33,31 @@ setup("create the world", async ({ page }) => {
 
   await expect(nameInput).toBeHidden();
 });
+
+/**
+ * Compiles the image routes before any spec reaches them. `test:e2e` runs
+ * against `next dev`, which compiles a route on its first request, and a
+ * finished compile is broadcast to every open page as a Fast Refresh. On a
+ * cold CI runner that compile can end seconds after the request that began
+ * it, in the middle of whatever the spec does next: `map-move-between-maps`
+ * lost a region's save that way (its markers dropped to none, then came back
+ * without the new one), and only ever in a run where a map image had been
+ * uploaded or read for the first time a moment earlier. Asking for each
+ * route once, here, moves those compiles before any page is open.
+ *
+ * The answers do not matter (a GET on the upload route is a 405, an unknown
+ * image a 404); a 5xx would mean the route failed to compile, which every
+ * spec using it would hit anyway, so it fails here, where it is clearer.
+ */
+setup("compile the image routes", async ({ request }) => {
+  for (const path of [
+    "/api/maps/upload",
+    "/api/maps/warm-up/image",
+    "/api/record-images",
+    "/api/record-images/warm-up",
+    "/api/record-images/by-id/0",
+  ]) {
+    const response = await request.get(path);
+    expect(response.status(), path).toBeLessThan(500);
+  }
+});

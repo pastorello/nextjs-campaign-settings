@@ -55,6 +55,10 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
   test("moves a landmark to another map, and the NPC standing at it follows", async ({
     page,
   }) => {
+    // The longest walk in the suite: about 20 s warm and 30 s on a server
+    // still compiling, which is the default budget, so a cold run timed out
+    // with nothing wrong.
+    test.setTimeout(90_000);
     const stamp = Date.now();
     const workspaceTitle = `E2E move workspace ${stamp}`;
     const npcName = `E2E move npc ${stamp}`;

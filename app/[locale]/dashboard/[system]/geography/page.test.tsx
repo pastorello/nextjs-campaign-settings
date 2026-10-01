@@ -48,20 +48,38 @@ vi.mock("@/app/modules/maps/lib/utils/toStackEntry", () => ({
   }),
 }));
 
+// SPEC-022 T7: who is reading, and what their campaign may see.
+const getViewer = vi.fn<() => Promise<unknown>>();
+vi.mock("@/app/lib/auth/getViewer", () => ({
+  default: () => getViewer(),
+}));
+const getVisibilityScope = vi.fn<() => Promise<unknown>>();
+vi.mock("@/app/lib/data/visibility/getVisibilityScope", () => ({
+  default: () => getVisibilityScope(),
+}));
+
+const notFound = vi.fn(() => {
+  throw new Error("NEXT_NOT_FOUND");
+});
+vi.mock("next/navigation", () => ({ notFound: () => notFound() }));
+
 vi.mock("@/app/ui/geography/GeographyExplorer", () => ({
   default: ({
     root,
     unpositionedCount,
     blockedUnpositionedCount,
     initialStack,
+    readOnly,
   }: {
     root: { title: string };
     unpositionedCount: number;
     blockedUnpositionedCount?: number;
     initialStack?: { id: number; title: string }[];
+    readOnly?: boolean;
   }) => (
     <div
       data-testid="geography-explorer"
+      data-read-only={String(readOnly ?? false)}
       data-unpositioned={unpositionedCount}
       data-blocked-unpositioned={blockedUnpositionedCount}
       data-initial-stack={
@@ -74,6 +92,17 @@ vi.mock("@/app/ui/geography/GeographyExplorer", () => ({
 }));
 
 import GeographyPage, { generateMetadata } from "./page";
+
+beforeEach(() => {
+  getViewer.mockResolvedValue({ kind: "dm", userId: "1" });
+});
+
+function pageProps(search: Record<string, string> = {}, system = "dnd5e") {
+  return {
+    params: Promise.resolve({ locale: "it", system }),
+    searchParams: Promise.resolve(search),
+  };
+}
 
 describe("dashboard geography Page (SPEC-004 M7)", () => {
   it("titles the page from the geography.page catalogue", async () => {
@@ -220,5 +249,110 @@ describe("dashboard geography Page — ?place= landing (SPEC-011 T4)", () => {
       "data-initial-stack",
       ""
     );
+  });
+});
+
+// SPEC-022 T7 (R8): a player's map shows what their campaign may see, read
+// only, and nothing of the unpositioned pool.
+describe("dashboard geography Page — a player (SPEC-022 T7)", () => {
+  const root = {
+    id: 1,
+    title: "Aerivel",
+    mapImage: "aerivel.png",
+    mapBounds: null,
+    mapInitialView: null,
+    mapInitialZoom: null,
+  };
+  const campaign = { id: 7, title: "Rovine", system: "dnd5e" };
+  const player = (current: unknown = campaign) => ({
+    kind: "player",
+    userId: "2",
+    campaigns: current ? [current] : [],
+    campaign: current,
+  });
+  const scope = (zones: number[]) => ({
+    kind: "campaign",
+    campaignId: campaign.id,
+    zones: new Set(zones),
+    pois: new Set(),
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    fetchRootPlace.mockResolvedValue(root);
+    getViewer.mockResolvedValue(player());
+    getVisibilityScope.mockResolvedValue(scope([1, 2]));
+  });
+
+  it("shows the read-only explorer from the root, without the unpositioned counts", async () => {
+    render(await GeographyPage(pageProps()));
+
+    const explorer = screen.getByTestId("geography-explorer");
+    expect(explorer).toHaveTextContent("Aerivel");
+    expect(explorer).toHaveAttribute("data-read-only", "true");
+    expect(explorer).toHaveAttribute("data-unpositioned", "0");
+    expect(countUnpositionedPlaces).not.toHaveBeenCalled();
+    expect(countBlockedUnpositionedPlaces).not.toHaveBeenCalled();
+  });
+
+  it("lands on a visible place's map from a deep link", async () => {
+    fetchPlaceAncestryChain.mockResolvedValue([
+      { id: 1, title: "Aerivel" },
+      { id: 2, title: "Kang" },
+    ]);
+
+    render(await GeographyPage(pageProps({ place: "2" })));
+
+    expect(screen.getByTestId("geography-explorer")).toHaveAttribute(
+      "data-initial-stack",
+      "Aerivel>Kang"
+    );
+  });
+
+  it("is a 404 for a deep link to a hidden place", async () => {
+    fetchPlaceAncestryChain.mockResolvedValue([
+      { id: 1, title: "Aerivel" },
+      { id: 3, title: "Secret" },
+    ]);
+
+    await expect(GeographyPage(pageProps({ place: "3" }))).rejects.toThrow(
+      "NEXT_NOT_FOUND"
+    );
+  });
+
+  it.each([
+    ["a missing place", "999"],
+    ["a garbage value", "not-a-number"],
+  ])("is a 404 for a deep link to %s, like a hidden one", async (_, place) => {
+    fetchPlaceAncestryChain.mockResolvedValue(null);
+
+    await expect(GeographyPage(pageProps({ place }))).rejects.toThrow(
+      "NEXT_NOT_FOUND"
+    );
+  });
+
+  it("says nothing is revealed yet when the root is hidden from the campaign", async () => {
+    getVisibilityScope.mockResolvedValue(scope([]));
+
+    render(await GeographyPage(pageProps()));
+
+    expect(screen.getByText("player.nothingRevealed")).toBeInTheDocument();
+    expect(screen.queryByTestId("geography-explorer")).not.toBeInTheDocument();
+  });
+
+  it("says the player is in no campaign yet, reading nothing", async () => {
+    getViewer.mockResolvedValue(player(null));
+
+    render(await GeographyPage(pageProps()));
+
+    expect(screen.getByText("player.noCampaign")).toBeInTheDocument();
+    expect(fetchRootPlace).not.toHaveBeenCalled();
+  });
+
+  it("is a 404 under a system that is not the campaign's", async () => {
+    await expect(GeographyPage(pageProps({}, "daggerheart"))).rejects.toThrow(
+      "NEXT_NOT_FOUND"
+    );
+    expect(fetchRootPlace).not.toHaveBeenCalled();
   });
 });

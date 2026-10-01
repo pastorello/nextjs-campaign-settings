@@ -12,6 +12,7 @@ describe("MapOptionsButton (usability fix, 2026-08-17)", () => {
         onReplaceMap={vi.fn()}
         onDeleteMap={vi.fn()}
         onConfigureGrid={vi.fn()}
+        onReveal={vi.fn()}
       />
     );
 
@@ -27,6 +28,7 @@ describe("MapOptionsButton (usability fix, 2026-08-17)", () => {
         onReplaceMap={vi.fn()}
         onDeleteMap={vi.fn()}
         onConfigureGrid={vi.fn()}
+        onReveal={vi.fn()}
       />
     );
 
@@ -44,6 +46,7 @@ describe("MapOptionsButton (usability fix, 2026-08-17)", () => {
         onReplaceMap={vi.fn()}
         onDeleteMap={vi.fn()}
         onConfigureGrid={vi.fn()}
+        onReveal={vi.fn()}
       />
     );
 
@@ -61,6 +64,7 @@ describe("MapOptionsButton (usability fix, 2026-08-17)", () => {
         onReplaceMap={onReplaceMap}
         onDeleteMap={vi.fn()}
         onConfigureGrid={vi.fn()}
+        onReveal={vi.fn()}
       />
     );
 
@@ -80,6 +84,7 @@ describe("MapOptionsButton (usability fix, 2026-08-17)", () => {
         onReplaceMap={vi.fn()}
         onDeleteMap={onDeleteMap}
         onConfigureGrid={vi.fn()}
+        onReveal={vi.fn()}
       />
     );
 
@@ -98,6 +103,7 @@ describe("MapOptionsButton (usability fix, 2026-08-17)", () => {
         onReplaceMap={vi.fn()}
         onDeleteMap={vi.fn()}
         onConfigureGrid={onConfigureGrid}
+        onReveal={vi.fn()}
       />
     );
 
@@ -117,6 +123,7 @@ describe("MapOptionsButton (usability fix, 2026-08-17)", () => {
         onReplaceMap={vi.fn()}
         onDeleteMap={vi.fn()}
         onConfigureGrid={vi.fn()}
+        onReveal={vi.fn()}
       />
     );
 
@@ -133,6 +140,7 @@ describe("MapOptionsButton (usability fix, 2026-08-17)", () => {
         onReplaceMap={vi.fn()}
         onDeleteMap={vi.fn()}
         onConfigureGrid={vi.fn()}
+        onReveal={vi.fn()}
       />
     );
 
@@ -140,4 +148,29 @@ describe("MapOptionsButton (usability fix, 2026-08-17)", () => {
 
     expect(screen.queryByText("trigger")).not.toBeInTheDocument();
   });
+
+  // SPEC-022 T7: the root has no popover, so the reveal for the place in
+  // view lives here.
+  it.each([true, false])(
+    "offers revealing the place in view (root: %s), and calls onReveal",
+    (isRoot) => {
+      const onReveal = vi.fn();
+      render(
+        <MapOptionsButton
+          hasMap
+          isRoot={isRoot}
+          onReplaceMap={vi.fn()}
+          onDeleteMap={vi.fn()}
+          onConfigureGrid={vi.fn()}
+          onReveal={onReveal}
+        />
+      );
+
+      fireEvent.click(screen.getByRole("button", { name: "trigger" }));
+      fireEvent.click(screen.getByText("popover.reveal"));
+
+      expect(onReveal).toHaveBeenCalled();
+      expect(screen.queryByText("popover.reveal")).not.toBeInTheDocument();
+    }
+  );
 });

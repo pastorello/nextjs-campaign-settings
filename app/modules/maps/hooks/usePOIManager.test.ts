@@ -510,6 +510,19 @@ describe("usePOIManager — marker drag (TD-71, SPEC-005 §5.B)", () => {
     expect(options.draggable).toBe(true);
   });
 
+  // SPEC-022 T7: moving a landmark is the DM's.
+  it("renders the marker fixed on a player's read-only map", async () => {
+    const rendered = renderHook(
+      () => usePOIManager(PARENT_ID, undefined, true),
+      { wrapper: MapProvider }
+    );
+    await waitFor(() => expect(rendered.result.current.isLoading).toBe(false));
+
+    await waitFor(() => expect(marker).toHaveBeenCalled());
+    const options = marker.mock.calls[0]?.[1] as { draggable?: boolean };
+    expect(options.draggable).toBe(false);
+  });
+
   it("repositions the POI when the marker's dragend fires", async () => {
     updatePoi.mockResolvedValue({ ok: true });
     const { result } = await renderLoaded();

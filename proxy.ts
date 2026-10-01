@@ -8,6 +8,7 @@ import {
   isGameSystem,
 } from "./app/lib/definitions/GameSystem";
 import dashboardAccess from "./app/lib/auth/dashboardAccess";
+import { isPlayerPath } from "./app/lib/auth/playerPages";
 import { authConfig } from "./auth.config";
 import { DASHBOARD_ROOT } from "./i18n/dashboardPath";
 import { routing } from "./i18n/routing";
@@ -126,11 +127,12 @@ export default async function proxy(req: NextRequest) {
     }
   }
 
-  // SPEC-022 T1 (ADR-0020): the dashboard is the DM's alone until T7/T8
-  // open its read pages to players, one filtered path at a time. The check
-  // is here, before anything renders, because a page's data renders in
-  // parallel with its layout: a layout's refusal would still send it. The
-  // role is read fresh from the row, since the token's is fixed at sign-in.
+  // SPEC-022 T1 (ADR-0020): a player reaches only the dashboard pages whose
+  // reads filter by their campaign (`PLAYER_PAGES`, opened one at a time by
+  // T7/T8). The check is here, before anything renders, because a page's
+  // data renders in parallel with its layout: a layout's refusal would still
+  // send it. The role is read fresh from the row, since the token's is fixed
+  // at sign-in.
   const { locale, rest } = splitLocale(req.nextUrl.pathname);
   if (token && isDashboardPath(rest)) {
     const access = await dashboardAccess(token);
@@ -138,7 +140,7 @@ export default async function proxy(req: NextRequest) {
       // Disabled or deleted since it signed in: signed out, in effect.
       return NextResponse.redirect(signInUrlFor(req, locale));
     }
-    if (access === "player" && !isServerAction(req)) {
+    if (access === "player" && !isServerAction(req) && !isPlayerPath(rest)) {
       // Rewritten, not redirected, so the address bar keeps the URL that was
       // asked for. The target answers with `forbidden()`: a 403 page that
       // offers the way to sign out. A client navigation is rewritten the same

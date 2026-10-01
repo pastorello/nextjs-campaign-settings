@@ -44,11 +44,15 @@ export type { UnplacedPlace };
  */
 export function useUnplacedPlaces(
   refetchToken: number = 0,
-  mapInView: number = 0
+  mapInView: number = 0,
+  // SPEC-022 T7: a player's map has no pool to place from, and the read is
+  // the DM's.
+  enabled: boolean = true
 ): UnplacedPlace[] {
   const [places, setPlaces] = useState<UnplacedPlace[]>([]);
 
   useEffect(() => {
+    if (!enabled) return;
     let cancelled = false;
 
     const load = async () => {
@@ -65,7 +69,7 @@ export function useUnplacedPlaces(
     return () => {
       cancelled = true;
     };
-  }, [refetchToken, mapInView]);
+  }, [refetchToken, mapInView, enabled]);
 
   return places;
 }

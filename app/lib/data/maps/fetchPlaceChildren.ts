@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireDm from "@/app/lib/auth/requireDm";
+import getVisibilityScope from "@/app/lib/data/visibility/getVisibilityScope";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import type PlaceChild from "../../definitions/interfaces/maps/PlaceChild";
 
@@ -20,7 +20,10 @@ import type PlaceChild from "../../definitions/interfaces/maps/PlaceChild";
 export default async function fetchPlaceChildren(
   parentId: number
 ): Promise<PlaceChild[]> {
-  await requireDm();
+  // SPEC-022 T7: a player reads only what their campaign has been shown,
+  // inheritance applied, so nothing under a hidden parent at all.
+  const scope = await getVisibilityScope();
+  if (scope.kind === "campaign" && !scope.zones.has(parentId)) return [];
 
   let zoneRows, poiRows;
   try {
@@ -36,6 +39,11 @@ export default async function fetchPlaceChildren(
     ]);
   } catch (error) {
     throw toDatabaseError("fetching place children", error);
+  }
+
+  if (scope.kind === "campaign") {
+    zoneRows = zoneRows.filter((row) => scope.zones.has(row.id));
+    poiRows = poiRows.filter((row) => scope.pois.has(row.id));
   }
 
   const zoneChildren: PlaceChild[] = zoneRows.map((row) => ({

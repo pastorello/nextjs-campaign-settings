@@ -21,6 +21,7 @@ import {
 import clsx from "clsx";
 import { useTranslations } from "next-intl";
 
+import { PLAYER_PAGES } from "@/app/lib/auth/playerPages";
 import isPageInSystem from "@/app/lib/config/isPageInSystem";
 import PageType from "@/app/lib/definitions/types/PageType";
 import useGameSystem from "@/app/lib/hooks/useGameSystem";
@@ -137,14 +138,21 @@ const links: {
   },
 ];
 
-export default function NavLinks() {
+/**
+ * `player` (SPEC-022 T7) keeps the tiles of the pages open to players
+ * (`PLAYER_PAGES`), without the admin pencil: everything else is refused to
+ * them by the server, so offering it would only lead to the 403 page.
+ */
+export default function NavLinks({ player = false }: { player?: boolean }) {
   // next-intl's usePathname, so the comparison below ignores the locale
   // prefix: with next/navigation's, no English page was ever highlighted.
   const pathname = usePathname();
   const system = useGameSystem();
   const t = useTranslations("common.nav");
   const systemLinks = links.filter(
-    (link) => link.page === undefined || isPageInSystem(link.page, system)
+    (link) =>
+      (link.page === undefined || isPageInSystem(link.page, system)) &&
+      (!player || PLAYER_PAGES.includes(link.href))
   );
 
   return (
@@ -160,7 +168,8 @@ export default function NavLinks() {
           const name = t(link.key);
           const LinkIcon = link.icon;
           const href = dashboardPath(system, link.href);
-          const adminHref = link.admin && dashboardPath(system, link.admin);
+          const adminHref =
+            !player && link.admin && dashboardPath(system, link.admin);
           return (
             <div
               key={link.key}

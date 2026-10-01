@@ -5,6 +5,9 @@ import { lusitana } from "@/app/ui/fonts";
 import { Suspense } from "react";
 import { CardsSkeleton } from "@/app/ui/skeletons";
 import { isGameSystem } from "@/app/lib/definitions/GameSystem";
+import getViewer from "@/app/lib/auth/getViewer";
+import { dashboardPath } from "@/i18n/dashboardPath";
+import { redirect } from "@/i18n/navigation";
 
 // The cards below are live record counts. Without this the page has no dynamic
 // input — no searchParams, no cookies — so Next prerenders it at build time and
@@ -19,8 +22,20 @@ export const dynamic = "force-dynamic";
 export default async function Page(
   props: PageProps<"/[locale]/dashboard/[system]">
 ) {
-  const { system } = await props.params;
+  const { locale, system } = await props.params;
   if (!isGameSystem(system)) notFound();
+
+  // SPEC-022 T7: the counts below are not filtered yet (T8), so a player is
+  // sent on to the map of the campaign they are viewing, under its system,
+  // before anything is read. This is also where a player lands after
+  // signing in. Without a campaign, the map page says so.
+  const viewer = await getViewer();
+  if (viewer?.kind === "player") {
+    redirect({
+      href: dashboardPath(viewer.campaign?.system ?? system, "/geography"),
+      locale,
+    });
+  }
 
   const t = await getTranslations("common.dashboard");
 

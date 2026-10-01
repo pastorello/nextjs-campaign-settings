@@ -36,6 +36,7 @@ export default function GeographyExplorer({
   unpositionedCount,
   blockedUnpositionedCount,
   initialStack,
+  readOnly = false,
 }: {
   root: RootPlace;
   // Tree-wide, not scoped to the place in view (SPEC-007 T2) — how much of
@@ -56,6 +57,8 @@ export default function GeographyExplorer({
   // Absent (the default) preserves today's behaviour exactly: start at
   // `[root]`.
   initialStack?: PlaceStackEntry[];
+  // A player's map (SPEC-022 T7): browse and read, change nothing.
+  readOnly?: boolean;
 }) {
   const t = useTranslations("geography");
   const [stack, setStack] = useState<PlaceStackEntry[]>(
@@ -176,6 +179,7 @@ export default function GeographyExplorer({
               onDeleted={handleDeleted}
               unpositionedCount={unpositionedCount}
               blockedUnpositionedCount={blockedUnpositionedCount ?? 0}
+              readOnly={readOnly}
             />
             <MapLoadingSpinner />
           </MapProvider>

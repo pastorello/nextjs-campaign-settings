@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 
 import fetchRecordLinkResolution from "@/app/lib/data/richText/fetchRecordLinkResolution";
+import getVisibilityScope from "@/app/lib/data/visibility/getVisibilityScope";
 import RecordLinkTargetsProvider from "./RecordLinkTargetsProvider";
 
 /**
@@ -22,7 +23,13 @@ export default async function ResolvedRecordLinks({
   system: string;
   children: ReactNode;
 }) {
-  const { targets, deleted } = await fetchRecordLinkResolution(values, system);
+  // The reader's scope (SPEC-022 T7, R13): a player's links to records
+  // their campaign has not been shown render as plain text.
+  const { targets, deleted } = await fetchRecordLinkResolution(
+    values,
+    system,
+    await getVisibilityScope()
+  );
   return (
     <RecordLinkTargetsProvider targets={targets} deleted={deleted}>
       {children}

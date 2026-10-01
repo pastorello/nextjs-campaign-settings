@@ -36,7 +36,9 @@ describe("resolveRecordLinks (SPEC-019 T5)", () => {
     await expect(resolveRecordLinks(["<p>x</p>", null], "dnd5e")).resolves.toBe(
       result
     );
-    expect(fetchResolution).toHaveBeenCalledWith(["<p>x</p>", null], "dnd5e");
+    expect(fetchResolution).toHaveBeenCalledWith(["<p>x</p>", null], "dnd5e", {
+      kind: "all",
+    });
   });
 
   it("rejects an unknown system and too many values", async () => {

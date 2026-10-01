@@ -15,6 +15,10 @@ vi.mock("@/app/lib/data/richText/fetchRecordLinkResolution", () => ({
   default: fetchResolution,
 }));
 
+vi.mock("@/app/lib/data/visibility/getVisibilityScope", () => ({
+  default: () => Promise.resolve({ kind: "all" }),
+}));
+
 import renderRichText from "@/app/lib/utils/data/renderRichText";
 import ResolvedRecordLinks from "./ResolvedRecordLinks";
 
@@ -37,7 +41,9 @@ describe("ResolvedRecordLinks (SPEC-019 T5)", () => {
       })
     );
 
-    expect(fetchResolution).toHaveBeenCalledWith([value], "dnd5e");
+    expect(fetchResolution).toHaveBeenCalledWith([value], "dnd5e", {
+      kind: "all",
+    });
     expect(screen.getByRole("link", { name: "Mira" })).toBeVisible();
     expect(screen.queryByRole("link", { name: "Tobin" })).toBeNull();
     expect(screen.getByText(/Tobin/)).toBeVisible();

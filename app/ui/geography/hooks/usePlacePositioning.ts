@@ -33,12 +33,15 @@ export function usePlacePositioning({
   refetchToken,
   onPlacesChanged,
   reloadPOIs,
+  readOnly = false,
 }: {
   parentId: number;
   ancestorIds: number[];
   refetchToken: number;
   onPlacesChanged: () => void;
   reloadPOIs: () => Promise<void>;
+  /** A player's map (SPEC-022 T7): no pool is read. */
+  readOnly?: boolean;
 }): {
   picker: {
     here: UnplacedPickerRow[];
@@ -56,7 +59,7 @@ export function usePlacePositioning({
   // `MapPOIPanel`'s "Unplaced places" picker as well; that was the DM's
   // second method for the same job and is withdrawn (SPEC-016 T9,
   // SPEC-005 §3).
-  const unplacedPlaces = useUnplacedPlaces(refetchToken, parentId);
+  const unplacedPlaces = useUnplacedPlaces(refetchToken, parentId, !readOnly);
 
   // What may be placed *here*, split the way the picker shows it (T9):
   // this map's own unplaced children first, then the rest of the campaign,

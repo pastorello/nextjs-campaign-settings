@@ -49,12 +49,14 @@ vi.mock("@/app/ui/geography/PlaceEntityList", () => ({
   default: ({
     target,
     refreshKey,
+    readOnly,
   }: {
     target: unknown;
     refreshKey?: number;
+    readOnly?: boolean;
   }) => {
     entityListProps(target, refreshKey);
-    return <div data-testid="entity-list" />;
+    return <div data-testid="entity-list" data-read-only={String(readOnly)} />;
   },
 }));
 
@@ -325,6 +327,82 @@ describe("PlacePopover — keyboard focus (TD-133)", () => {
     expect(document.activeElement).toBe(panelField);
     marker.remove();
     panelField.remove();
+  });
+});
+
+// SPEC-022 T7: a player's popover reads the place and opens its map; every
+// entry that changes the world is the DM's.
+describe("PlacePopover — read only (SPEC-022 T7)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function renderReadOnly(
+    target: PopoverTarget,
+    returnFocusTo: HTMLElement | null = null
+  ) {
+    return render(
+      <PlacePopover
+        target={target}
+        returnFocusTo={returnFocusTo}
+        readOnly
+        parentId={parentId}
+        parentTitle={parentTitle}
+        onClose={onClose}
+        onOpenMap={onOpenMap}
+        onUnplace={onUnplace}
+        onDeleted={onDeleted}
+        onEditZone={onEditZone}
+        onEditLandmark={onEditLandmark}
+        onUnplaceLandmark={onUnplaceLandmark}
+        onDeleteLandmark={onDeleteLandmark}
+      />
+    );
+  }
+
+  it("keeps the entities and the open-map action, and nothing that writes", () => {
+    renderReadOnly({ kind: "zone", place });
+
+    expect(screen.getByTestId("entity-list")).toHaveAttribute(
+      "data-read-only",
+      "true"
+    );
+    expect(screen.getByRole("button", { name: "openMap" })).toBeEnabled();
+    for (const name of ["attach", "editZone", "remove", "reveal"]) {
+      expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
+    }
+  });
+
+  it("offers a landmark nothing to change either", () => {
+    renderReadOnly({ kind: "poi", poi, poiId: LANDMARK_ROW_ID });
+
+    for (const name of ["attach", "editLandmark", "remove", "reveal"]) {
+      expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
+    }
+  });
+
+  it("focuses the open-map action when opened from the keyboard", () => {
+    const marker = focusedMarker();
+
+    renderReadOnly({ kind: "zone", place }, marker);
+
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "openMap" })
+    );
+    marker.remove();
+  });
+
+  it("focuses the close button when the place has no map to open", () => {
+    const marker = focusedMarker();
+
+    renderReadOnly(
+      { kind: "zone", place: { ...place, mapImage: null } },
+      marker
+    );
+
+    const [closeButton] = screen.getAllByRole("button");
+    expect(document.activeElement).toBe(closeButton);
+    marker.remove();
   });
 });
 

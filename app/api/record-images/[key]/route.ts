@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import requireApiDm from "@/app/lib/auth/requireApiDm";
+import prisma from "@/app/lib/connections/prisma";
+import apiVisibilityScope from "@/app/lib/auth/apiVisibilityScope";
+import isRecordImageVisible from "@/app/lib/data/visibility/isRecordImageVisible";
+import toDatabaseError from "@/app/lib/errors/toDatabaseError";
+import toErrorResponse from "@/app/lib/errors/toErrorResponse";
 import defaultRecordImageStore from "@/app/lib/storage/defaultRecordImageStore";
 
 /**
@@ -21,10 +25,27 @@ export async function GET(
   _request: Request,
   context: { params: Promise<{ key: string }> }
 ) {
-  const unauthorized = await requireApiDm();
-  if (unauthorized) return unauthorized;
+  // SPEC-022 T7 (R12): a player gets the image of a record they can see,
+  // and a 404 otherwise. The key names one of the image's two files.
+  const scope = await apiVisibilityScope();
+  if (scope instanceof NextResponse) return scope;
 
   const { key } = await context.params;
+  if (scope.kind === "campaign") {
+    try {
+      const row = await prisma.recordImage.findFirst({
+        where: { OR: [{ displayKey: key }, { thumbKey: key }] },
+        select: { id: true },
+      });
+      if (!row || !(await isRecordImageVisible(row.id, scope))) {
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
+      }
+    } catch (error) {
+      return toErrorResponse(
+        toDatabaseError("checking who may see a record image", error)
+      );
+    }
+  }
   const image = await defaultRecordImageStore.get(key);
   if (!image) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

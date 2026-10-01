@@ -86,7 +86,10 @@ export function useNavigableChildren(
     returnFocusTo?: FocusReturnTarget
   ) => void,
   refetchToken: number = 0,
-  editingChildId: number | null = null
+  editingChildId: number | null = null,
+  // SPEC-022 T7: a player's map. Nothing to drag: a reposition is the DM's,
+  // and its action would refuse anyway.
+  readOnly: boolean = false
 ): NavigableChild[] {
   const map = useLeafletMap();
   const t = useTranslations("geography.errors");
@@ -263,8 +266,8 @@ export function useNavigableChildren(
         // can tell the two apart before clicking through.
         const hasMap = child.mapImage !== null;
         const marker = L.marker([child.lat, child.lng], {
-          // TD-71, SPEC-005 §5.B — draggable to reposition.
-          draggable: true,
+          // TD-71, SPEC-005 §5.B — draggable to reposition, for the DM.
+          draggable: !readOnly,
           // TD-133 — Leaflet's default, stated: the icon gets tabindex="0"
           // and role="button"; `makeKeyboardActivatable` below names it.
           keyboard: true,
@@ -322,7 +325,7 @@ export function useNavigableChildren(
       });
       markersRef.current = [];
     };
-  }, [map, children, repositionChild, editingChildId]);
+  }, [map, children, repositionChild, editingChildId, readOnly]);
 
   return children;
 }

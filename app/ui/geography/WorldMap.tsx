@@ -25,6 +25,7 @@ import { resolveFirstFieldError } from "@/app/lib/utils/i18n/resolveFieldErrors"
 import PlacePopover from "@/app/ui/geography/PlacePopover";
 import MapUploadControl from "@/app/ui/geography/MapUploadControl";
 import RemovePlaceDialog from "@/app/ui/geography/RemovePlaceDialog";
+import PlaceRevealDialog from "@/app/ui/geography/PlaceRevealDialog";
 import MapOptionsButton from "@/app/ui/geography/MapOptionsButton";
 import MapGridConfigPanel from "@/app/ui/geography/MapGridConfigPanel";
 import ZoneEditPanel from "@/app/ui/geography/ZoneEditPanel";
@@ -93,6 +94,7 @@ function WorldMap({
   onDeleted,
   unpositionedCount,
   blockedUnpositionedCount = 0,
+  readOnly = false,
 }: {
   parentId: number;
   // This map's own ancestor chain, itself included — `GeographyExplorer`'s
@@ -146,6 +148,13 @@ function WorldMap({
   // to 0: every test call site but the real page can omit it, and the
   // sublabel text is unchanged from before TD-79 when it's 0.
   blockedUnpositionedCount?: number;
+  /**
+   * A player's map (SPEC-022 T7): the places, landmarks, popovers, grid and
+   * measuring, with no way to change anything. Every write is refused by
+   * its action anyway; this keeps the controls that would only be refused
+   * off the screen.
+   */
+  readOnly?: boolean;
 }) {
   const tRoot = useTranslations();
   const tGeography = useTranslations("geography");
@@ -162,6 +171,7 @@ function WorldMap({
   const [isMapUploadOpen, setIsMapUploadOpen] = useState(false);
   const [isDeleteMapOpen, setIsDeleteMapOpen] = useState(false);
   const [isGridConfigOpen, setIsGridConfigOpen] = useState(false);
+  const [isRevealOpen, setIsRevealOpen] = useState(false);
   // The grid overlay's toggle (SPEC-015 §5 step 5) — off on every load and
   // never persisted (§9, decided 2026-08-20; do not add storage for it).
   const [isGridVisible, setIsGridVisible] = useState(false);
@@ -265,7 +275,7 @@ function WorldMap({
     importGeoJSON,
     flyToPOI,
     reloadPOIs,
-  } = usePOIManager(parentId, handlePOIClick);
+  } = usePOIManager(parentId, handlePOIClick, readOnly);
 
   const poiPanel = usePOIPanel({ parentId });
   // Destructured where a callback below depends on it; the JSX reads the
@@ -372,7 +382,8 @@ function WorldMap({
     handlePlaceClick,
     placesRefetchToken,
     // Hidden while redrawn or edited: the drawing or the editor stands in.
-    editingArea?.id ?? editingOutline?.id ?? null
+    editingArea?.id ?? editingOutline?.id ?? null,
+    readOnly
   );
 
   // The subset drawn as areas rather than points (SPEC-009 T2) — the only
@@ -400,6 +411,7 @@ function WorldMap({
       refetchToken: placesRefetchToken,
       onPlacesChanged: bumpPlacesRefetchToken,
       reloadPOIs,
+      readOnly,
     });
 
   // Creates a navigable place under the current parent (SPEC-004 M5, T2).
@@ -531,18 +543,24 @@ function WorldMap({
           above zoom/reset/fullscreen via MapControls' extraControls slot. */}
       <MapControls
         extraControls={
-          <MapOptionsButton
-            hasMap={isValidString(mapUrl)}
-            isRoot={isRoot}
-            onReplaceMap={() => setIsMapUploadOpen(true)}
-            onDeleteMap={() => setIsDeleteMapOpen(true)}
-            onConfigureGrid={() => setIsGridConfigOpen(true)}
-          />
+          readOnly ? undefined : (
+            <MapOptionsButton
+              hasMap={isValidString(mapUrl)}
+              isRoot={isRoot}
+              onReplaceMap={() => setIsMapUploadOpen(true)}
+              onDeleteMap={() => setIsDeleteMapOpen(true)}
+              onConfigureGrid={() => setIsGridConfigOpen(true)}
+              onReveal={() => setIsRevealOpen(true)}
+            />
+          )
         }
         belowZoomControls={
           // No map image → no grid surface at all (§5's edge-case table),
           // matching the absence of the configuration entry above.
-          isValidString(mapUrl) ? (
+          // A player toggles a grid the DM configured; configuring is the
+          // DM's (SPEC-022 T7).
+          isValidString(mapUrl) &&
+          !(readOnly && (gridColumns === null || gridScale === null)) ? (
             <MapGridToggle
               isConfigured={gridColumns !== null && gridScale !== null}
               isVisible={isGridVisible}
@@ -614,6 +632,19 @@ function WorldMap({
         onSaved={onGridChanged}
       />
 
+      {/* Which campaigns see the place in view (SPEC-022 T7), opened from
+          `MapOptionsButton`'s menu. A child's is the popover's; this one is
+          the only way to the root's. */}
+      {!readOnly && (
+        <PlaceRevealDialog
+          kind="zone"
+          placeId={parentId}
+          title={placeTitle}
+          isOpen={isRevealOpen}
+          onClose={() => setIsRevealOpen(false)}
+        />
+      )}
+
       {/* "Modifica" for a place (TD-104) — name, description and area in
           one panel, opened from `PlacePopover`. Mounted on `editingZone`
           rather than gated by an `isOpen` prop like its siblings above:
@@ -683,6 +714,7 @@ function WorldMap({
           onEditLandmark={handleEditLandmark}
           onUnplaceLandmark={(poi) => void handleUnplaceLandmark(poi)}
           onDeleteLandmark={handleDeleteLandmark}
+          readOnly={readOnly}
         />
       )}
 
@@ -693,8 +725,18 @@ function WorldMap({
         onClose={closeContextMenu}
         onAddMarker={handleAddMarker}
         onStartMeasurement={handleContextMenuMeasurement}
-        onAddPOI={poiPanel.openAddAt}
-        hideAddPlace={!!contextMenuOverArea}
+        // A player keeps the temporary marker and measuring (TD-86: "for
+        // players too"); adding, drawing and positioning places are the
+        // DM's (SPEC-022 T7).
+        {...(!readOnly && {
+          onAddPOI: poiPanel.openAddAt,
+          onAddSubMap: handleToggleDrawArea,
+          onPositionPlace: (id: string, lat: number, lng: number) =>
+            void handleContextMenuPositionPlace(id, lat, lng),
+          onAddPlaceNamed: (title: string, lat: number, lng: number) =>
+            poiPanel.openAddAt(lat, lng, title),
+        })}
+        hideAddPlace={readOnly || !!contextMenuOverArea}
         ariaLabel={tContextMenu("ariaLabel")}
         addMarkerLabel={tContextMenu("addMarker.trigger")}
         addMarkerSublabel={tContextMenu("addMarker.sublabel")}
@@ -702,7 +744,6 @@ function WorldMap({
         measureSublabel={tContextMenu("measure.sublabel")}
         addPlaceLabel={tContextMenu("addPlace.trigger")}
         addPlaceSublabel={tContextMenu("addPlace.sublabel")}
-        onAddSubMap={handleToggleDrawArea}
         addSubMapLabel={tDrawArea("trigger")}
         unplacedHere={picker.here}
         unplacedElsewhere={picker.elsewhere}
@@ -710,14 +751,8 @@ function WorldMap({
         positionPlaceElsewhereLabel={tContextMenu("positionPlace.elsewhere")}
         positionPlaceFilterPlaceholder={tContextMenu("positionPlace.filter")}
         positionPlaceNoMatchesLabel={tContextMenu("positionPlace.noMatches")}
-        onAddPlaceNamed={(title, lat, lng) =>
-          poiPanel.openAddAt(lat, lng, title)
-        }
         positionPlaceCreateLabel={(title) =>
           tContextMenu("positionPlace.createNamed", { title })
-        }
-        onPositionPlace={(id, lat, lng) =>
-          void handleContextMenuPositionPlace(id, lat, lng)
         }
         positionPlaceLabel={tContextMenu("positionPlace.trigger")}
         positionPlaceSublabel={tGeography("unpositionedCount", {
@@ -726,36 +761,38 @@ function WorldMap({
         })}
       />
 
-      {/* POI Panel */}
-      <MapPOIPanel
-        isOpen={poiPanel.isOpen}
-        onClose={poiPanel.close}
-        pois={pois}
-        filterCategory={poiPanel.filterCategory}
-        onAddPOI={addPOI}
-        onUpdatePOI={updatePOI}
-        onDeletePOI={deletePOI}
-        onClearAll={clearAllPOIs}
-        onExport={handlePOIExport}
-        onImport={(file) => void handlePOIImport(file)}
-        onFlyTo={flyToPOI}
-        onRequestLocation={handleRequestPOILocation}
-        onClearCoordinates={poiPanel.clearCoordinates}
-        onModeChange={poiPanel.changeMode}
-        isSelectingLocation={isSelectingPOILocation}
-        initialLat={poiPanel.initialCoords?.lat}
-        initialLng={poiPanel.initialCoords?.lng}
-        cursorLat={poiPanel.cursorCoords?.lat}
-        cursorLng={poiPanel.cursorCoords?.lng}
-        mode={poiPanel.mode}
-        onAddPlace={handleAddPlace}
-        pendingFootprint={poiPanel.pendingFootprint}
-        onFootprintConsumed={poiPanel.consumeFootprint}
-        editTarget={poiPanel.editTarget}
-        mapCorners={mapCorners}
-        onFormPositionChange={setFormPosition}
-        initialTitle={poiPanel.initialTitle}
-      />
+      {/* POI Panel — the DM's alone (SPEC-022 T7). */}
+      {!readOnly && (
+        <MapPOIPanel
+          isOpen={poiPanel.isOpen}
+          onClose={poiPanel.close}
+          pois={pois}
+          filterCategory={poiPanel.filterCategory}
+          onAddPOI={addPOI}
+          onUpdatePOI={updatePOI}
+          onDeletePOI={deletePOI}
+          onClearAll={clearAllPOIs}
+          onExport={handlePOIExport}
+          onImport={(file) => void handlePOIImport(file)}
+          onFlyTo={flyToPOI}
+          onRequestLocation={handleRequestPOILocation}
+          onClearCoordinates={poiPanel.clearCoordinates}
+          onModeChange={poiPanel.changeMode}
+          isSelectingLocation={isSelectingPOILocation}
+          initialLat={poiPanel.initialCoords?.lat}
+          initialLng={poiPanel.initialCoords?.lng}
+          cursorLat={poiPanel.cursorCoords?.lat}
+          cursorLng={poiPanel.cursorCoords?.lng}
+          mode={poiPanel.mode}
+          onAddPlace={handleAddPlace}
+          pendingFootprint={poiPanel.pendingFootprint}
+          onFootprintConsumed={poiPanel.consumeFootprint}
+          editTarget={poiPanel.editTarget}
+          mapCorners={mapCorners}
+          onFormPositionChange={setFormPosition}
+          initialTitle={poiPanel.initialTitle}
+        />
+      )}
     </div>
   );
 }

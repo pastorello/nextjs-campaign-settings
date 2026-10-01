@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import { test, expect, type Browser, type Page } from "@playwright/test";
 
 import messages from "@/messages/it.json";
 
@@ -35,4 +35,36 @@ export async function deleteAccountIfPresent(page: Page, name: string) {
     .getByRole("button", { name: t.confirmDelete })
     .click();
   await expect(row).toHaveCount(0);
+}
+
+/** A signed-out browser, to sign in as an account the test created. */
+export async function signedOutPage(browser: Browser) {
+  const { baseURL } = test.info().project.use;
+  const context = await browser.newContext({
+    storageState: { cookies: [], origins: [] },
+    ...(baseURL !== undefined && { baseURL }),
+  });
+  return context.newPage();
+}
+
+export async function signIn(page: Page, email: string, password: string) {
+  await page.goto("/login");
+  await page.getByLabel(messages.common.auth.email).fill(email);
+  await page.getByLabel(messages.common.auth.password).fill(password);
+  await page.getByRole("button", { name: messages.common.auth.submit }).click();
+}
+
+/** Adds a player to the dnd5e campaign from its page (SPEC-022 T5). */
+export async function addPlayerToCampaign(page: Page, name: string) {
+  const players = messages.campaign.players;
+  await page.goto("/dashboard/dnd5e/campaign");
+  const section = page.getByRole("region", { name: players.title });
+  await section.getByRole("button", { name: players.candidate }).click();
+  await page.getByRole("option", { name }).click();
+  await section.getByRole("button", { name: players.add }).click();
+  await expect(
+    section.getByRole("button", {
+      name: fillTemplate(players.remove, { name }),
+    })
+  ).toBeVisible();
 }

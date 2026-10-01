@@ -98,6 +98,11 @@ interface PlacePopoverProps {
    */
   onEditLandmark: (poi: POI) => void;
   /**
+   * A player's popover (SPEC-022 T7): the place's description, entities and
+   * "Apri mappa", with none of the entries that change the world.
+   */
+  readOnly?: boolean;
+  /**
    * "Rimuovi dalla mappa" for a landmark (SPEC-017 T10) — the same act as
    * `onUnplace` above, on the other table, and since SPEC-023 reached
    * through the same one question. Separate rather than widened because
@@ -174,6 +179,7 @@ export default function PlacePopover({
   onDeleted,
   onEditZone,
   onEditLandmark,
+  readOnly = false,
   onUnplaceLandmark,
   onDeleteLandmark,
 }: PlacePopoverProps) {
@@ -181,6 +187,7 @@ export default function PlacePopover({
   const t = useTranslations("geography.popover");
   const popoverRef = useRef<HTMLDivElement>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
+  const openMapRef = useRef<HTMLDivElement>(null);
   const [isAttachOpen, setIsAttachOpen] = useState(false);
   const [isRemoveOpen, setIsRemoveOpen] = useState(false);
   const [isRemoveLandmarkOpen, setIsRemoveLandmarkOpen] = useState(false);
@@ -270,9 +277,14 @@ export default function PlacePopover({
   useEffect(() => {
     if (!returnFocusTo || !isPositioned) return;
 
-    const actions = actionsRef.current;
-    actions
-      ?.querySelector<HTMLButtonElement>("button:not([disabled])")
+    // A player's popover has no actions block (SPEC-022 T7): "Apri mappa"
+    // then, and failing that (a landmark, or a place with no map yet) the
+    // close button.
+    [actionsRef.current, openMapRef.current, popoverRef.current]
+      .map((section) =>
+        section?.querySelector<HTMLButtonElement>("button:not([disabled])")
+      )
+      .find((button) => button)
       ?.focus();
 
     const popover = popoverRef.current;
@@ -351,89 +363,95 @@ export default function PlacePopover({
       <PlaceEntityList
         target={entityListTarget}
         refreshKey={entitiesRefreshKey}
+        readOnly={readOnly}
       />
 
-      <div ref={actionsRef} className="mb-3 flex flex-col gap-1">
-        <button
-          type="button"
-          onClick={() => setIsAttachOpen(true)}
-          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
-        >
-          {t("attach")}
-        </button>
+      {/* Every entry below changes the world: the DM's alone (SPEC-022 T7).
+          A player's popover keeps the description, the entities and
+          "Apri mappa". */}
+      {!readOnly && (
+        <div ref={actionsRef} className="mb-3 flex flex-col gap-1">
+          <button
+            type="button"
+            onClick={() => setIsAttachOpen(true)}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+          >
+            {t("attach")}
+          </button>
 
-        {place && (
-          <>
-            {/* "Modifica" (TD-104) — `WorldMap` opens `ZoneEditPanel` for
+          {place && (
+            <>
+              {/* "Modifica" (TD-104) — `WorldMap` opens `ZoneEditPanel` for
                 this place. First in the fragment, ahead of the two entries
                 that take something away. Shown for every zone, not only an
                 area: the name and description are the half that had no edit
                 surface anywhere in the application, and a point-placed
                 place has those too. */}
-            <button
-              type="button"
-              onClick={() => onEditZone(place)}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
-            >
-              {t("editZone")}
-            </button>
-            {/* "Rimuovi" (SPEC-023) — one entry where T5's un-place and
+              <button
+                type="button"
+                onClick={() => onEditZone(place)}
+                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+              >
+                {t("editZone")}
+              </button>
+              {/* "Rimuovi" (SPEC-023) — one entry where T5's un-place and
                 T6's delete used to be two, opening the dialog that asks
                 which of the two is meant. Styled as an ordinary entry
                 rather than a red one: the destructive outcome is one of
                 two answers inside, not what this button does. */}
-            <button
-              type="button"
-              onClick={() => setIsRemoveOpen(true)}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
-            >
-              {t("remove")}
-            </button>
-          </>
-        )}
+              <button
+                type="button"
+                onClick={() => setIsRemoveOpen(true)}
+                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+              >
+                {t("remove")}
+              </button>
+            </>
+          )}
 
-        {/* "Rivela…" (SPEC-022 T6b) — which campaigns see this place, for
+          {/* "Rivela…" (SPEC-022 T6b) — which campaigns see this place, for
             a zone and a landmark alike. Here rather than in the edit
             panels: the landmark panel works on client keys, not row ids,
             and the popover holds the row id for both kinds. */}
-        <button
-          type="button"
-          onClick={() => setIsRevealOpen(true)}
-          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
-        >
-          {t("reveal")}
-        </button>
+          <button
+            type="button"
+            onClick={() => setIsRevealOpen(true)}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+          >
+            {t("reveal")}
+          </button>
 
-        {poi && (
-          <>
-            {/* "Modifica" (T7) — `WorldMap` opens `MapPOIPanel` in edit
+          {poi && (
+            <>
+              {/* "Modifica" (T7) — `WorldMap` opens `MapPOIPanel` in edit
                 mode, pre-filled with this landmark. */}
-            <button
-              type="button"
-              onClick={() => onEditLandmark(poi)}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
-            >
-              {t("editLandmark")}
-            </button>
-            {/* "Rimuovi" (SPEC-023) — the landmark's own single entry,
+              <button
+                type="button"
+                onClick={() => onEditLandmark(poi)}
+                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+              >
+                {t("editLandmark")}
+              </button>
+              {/* "Rimuovi" (SPEC-023) — the landmark's own single entry,
                 same shape and same position as the zone's. Behind it,
                 SPEC-017 T10's un-place and T7's delete are the two named
                 outcomes of `RemoveLandmarkDialog`; TD-140's standalone
                 confirmation is folded into it. Both mutations stay
                 `usePOIManager`'s, reached through `WorldMap`. */}
-            <button
-              type="button"
-              onClick={() => setIsRemoveLandmarkOpen(true)}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
-            >
-              {t("remove")}
-            </button>
-          </>
-        )}
-      </div>
+              <button
+                type="button"
+                onClick={() => setIsRemoveLandmarkOpen(true)}
+                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+              >
+                {t("remove")}
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       {place && (
-        <div className="flex flex-col gap-1">
+        <div ref={openMapRef} className="flex flex-col gap-1">
           <button
             type="button"
             disabled={!hasMap}

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireApiDm from "@/app/lib/auth/requireApiDm";
+import apiVisibilityScope from "@/app/lib/auth/apiVisibilityScope";
+import isRecordImageVisible from "@/app/lib/data/visibility/isRecordImageVisible";
 import parseIdParam from "@/app/lib/data/validation/parseIdParam";
 import toErrorResponse from "@/app/lib/errors/toErrorResponse";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
@@ -25,11 +26,20 @@ export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  const unauthorized = await requireApiDm();
-  if (unauthorized) return unauthorized;
+  // SPEC-022 T7 (R12): a player gets the image of a record they can see,
+  // and a 404 otherwise.
+  const scope = await apiVisibilityScope();
+  if (scope instanceof NextResponse) return scope;
 
   const id = parseIdParam((await context.params).id);
   if (id instanceof NextResponse) return id;
+  try {
+    if (!(await isRecordImageVisible(id, scope))) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+  } catch (error) {
+    return toErrorResponse(error);
+  }
 
   const size = request.nextUrl.searchParams.get("size") ?? "thumb";
   if (size !== "thumb" && size !== "display") {

@@ -582,8 +582,7 @@ lists users, and it does not need the layer.
     - Signing in lands on the default system's overview, so the proxy sends
       a player who lands on another system's overview to their own
       (`playerSystems`: the cookie's campaign, else their first). Without
-      it, a player whose campaigns are all Daggerheart would sign in to a
-      404.
+      it, a player whose campaigns are all Daggerheart would sign in to a 404.
     - E2E: `accounts.spec.ts` (a player in no campaign opens the spells and
       the Daggerheart domains) and `player-map.spec.ts` (a dnd5e player
       opens the spells, and the Daggerheart domains are a 404).

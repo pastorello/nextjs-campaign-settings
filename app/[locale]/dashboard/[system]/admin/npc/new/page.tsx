@@ -5,7 +5,12 @@ import NewNpcForm from "./NewNpcForm";
 // (SPEC-006 §7, decision 10) — this route has no other server ancestor to
 // resolve the bundle from, unlike the admin list's edit modal.
 export default async function Page() {
-  const optionBundle = { faction: await fetchFieldOptions("faction") };
+  const [faction, campaign] = await Promise.all([
+    fetchFieldOptions("faction"),
+    // SPEC-022 T6: the campaigns a new NPC can be revealed to.
+    fetchFieldOptions("campaign"),
+  ]);
+  const optionBundle = { faction, campaign };
 
   return <NewNpcForm optionBundle={optionBundle} />;
 }

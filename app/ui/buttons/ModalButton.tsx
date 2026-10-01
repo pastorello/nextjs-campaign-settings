@@ -94,6 +94,7 @@ const ModalButton = ({
           {modalContent === "magicitemform" && (
             <MagicItemForm
               {...componentProps}
+              optionBundle={optionBundle}
               onCancel={closeModal}
               onSaveFinished={saveFinished}
             />
@@ -116,6 +117,7 @@ const ModalButton = ({
           {modalContent === "deityform" && (
             <DeityForm
               {...componentProps}
+              optionBundle={optionBundle}
               onCancel={closeModal}
               onSaveFinished={saveFinished}
             />
@@ -123,6 +125,7 @@ const ModalButton = ({
           {modalContent === "factionform" && (
             <FactionForm
               {...componentProps}
+              optionBundle={optionBundle}
               onCancel={closeModal}
               onSaveFinished={saveFinished}
             />

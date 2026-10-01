@@ -1,19 +1,13 @@
-"use client";
+import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
+import NewMagicItemForm from "./NewMagicItemForm";
 
-import MagicItemForm from "@/app/ui/magicitems/MagicItemForm";
-import { useRouter } from "@/i18n/navigation";
-import useGameSystem from "@/app/lib/hooks/useGameSystem";
-import { dashboardPath } from "@/i18n/dashboardPath";
-
-export default function Page() {
-  const router = useRouter();
-  const system = useGameSystem();
-  const onCancel = () => {
-    router.push(dashboardPath(system, "/admin/magicitems"));
-  };
-  const onSaveFinished = () => {
-    router.push(dashboardPath(system, "/admin/magicitems"));
+// A server component so the campaigns a new record can be revealed to
+// (SPEC-022 T6) are in the select on first paint, as the NPC page does for
+// factions.
+export default async function Page() {
+  const optionBundle = {
+    dnd5eCampaign: await fetchFieldOptions("dnd5eCampaign"),
   };
 
-  return <MagicItemForm onCancel={onCancel} onSaveFinished={onSaveFinished} />;
+  return <NewMagicItemForm optionBundle={optionBundle} />;
 }

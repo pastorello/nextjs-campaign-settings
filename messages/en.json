@@ -214,7 +214,8 @@
       "wrongPassword": "The current password is not correct.",
       "lastActiveDm": "This is the last active DM: at least one must remain.",
       "campaignNotFound": "This campaign no longer exists.",
-      "notAPlayer": "Only a player account can be part of a campaign."
+      "notAPlayer": "Only a player account can be part of a campaign.",
+      "revealWrongSystem": "This campaign belongs to another game system."
     },
     "errorPage": {
       "genericTitle": "Something went wrong",
@@ -248,6 +249,9 @@
         "remove": "Remove",
         "uploading": "Uploading…",
         "previewAlt": "Preview of the chosen image"
+      },
+      "revealedTo": {
+        "label": "Revealed to"
       }
     },
     "richText": {

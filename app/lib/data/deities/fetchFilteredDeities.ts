@@ -3,6 +3,8 @@ import queryFields from "@/app/lib/config/queryFields";
 import PageType from "@/app/lib/definitions/types/PageType";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import recordImageKeysInclude from "@/app/lib/data/recordImages/recordImageKeysInclude";
+import revealedToInclude from "@/app/lib/data/visibility/revealedToInclude";
+import withRevealedIds from "@/app/lib/data/visibility/withRevealedIds";
 import DatabaseError from "@/app/lib/errors/DatabaseError";
 import prisma from "../../connections/prisma";
 import getQuery from "../getQuery";
@@ -29,13 +31,16 @@ export async function fetchFilteredDeities(
       orderBy: applyLocationSort(theQuery.orderBy),
       skip: theQuery.skip,
       take: theQuery.take,
-      include: recordImageKeysInclude,
+      // SPEC-022 T6: the campaigns each record is revealed to.
+      include: { ...recordImageKeysInclude, ...revealedToInclude },
     });
   } catch (error) {
     throw toDatabaseError("fetching deities", error);
   }
 
-  const parsed = z.array(buildResultSchema(PageType.Deity)).safeParse(result);
+  const parsed = z
+    .array(buildResultSchema(PageType.Deity))
+    .safeParse(result.map((row) => withRevealedIds(row)));
   if (!parsed.success) {
     throw new DatabaseError("validating fetched deities", parsed.error);
   }

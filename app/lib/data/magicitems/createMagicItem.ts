@@ -1,5 +1,7 @@
 "use server";
 
+import checkRevealCampaigns from "@/app/lib/data/visibility/checkRevealCampaigns";
+import { revealedToCreate } from "@/app/lib/data/visibility/revealedToWrite";
 import checkRecordImageReference from "@/app/lib/data/recordImages/checkRecordImageReference";
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
 import prisma from "@/app/lib/connections/prisma";
@@ -34,9 +36,21 @@ export default async function createMagicItem(
   });
   if (imageErrors) return { ok: false, errors: imageErrors };
 
+  // SPEC-022 T6: the campaigns this record starts revealed to, which exist
+  // and fit the catalogue's system.
+  const { revealedToDnd5e: revealedTo } = parsed.data as {
+    revealedToDnd5e?: number[];
+  };
+  const revealErrors = await checkRevealCampaigns(revealedTo, {
+    field: "revealedToDnd5e",
+    system: "dnd5e",
+  });
+  if (revealErrors) return { ok: false, errors: revealErrors };
+
   try {
     await prisma.magicitems.create({
       data: {
+        ...revealedToCreate(revealedTo),
         ...(imageId != null && { imageId }),
         name,
         description,

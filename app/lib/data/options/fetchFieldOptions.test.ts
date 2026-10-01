@@ -11,6 +11,7 @@ const {
   deitiesFindMany,
   dhDomainFindMany,
   dhClassFindMany,
+  campaignFindMany,
 } = vi.hoisted(() => ({
   findMany: vi.fn(),
   zoneFindMany: vi.fn(),
@@ -20,10 +21,12 @@ const {
   deitiesFindMany: vi.fn(),
   dhDomainFindMany: vi.fn(),
   dhClassFindMany: vi.fn(),
+  campaignFindMany: vi.fn(),
 }));
 vi.mock("@/app/lib/connections/prisma", () => ({
   default: {
     faction: { findMany },
+    campaign: { findMany: campaignFindMany },
     zone: { findMany: zoneFindMany },
     npc: { findMany: npcFindMany },
     magicitems: { findMany: magicitemsFindMany },
@@ -129,4 +132,29 @@ describe("fetchFieldOptions (SPEC-006 T6)", () => {
       });
     }
   );
+
+  // SPEC-022 T6: the campaigns a record can be revealed to.
+  it("lists every campaign by title for the shared world", async () => {
+    const { default: fetchFieldOptions } = await import("./fetchFieldOptions");
+    campaignFindMany.mockResolvedValue([{ id: 2, title: "Ashes" }]);
+
+    await expect(fetchFieldOptions("campaign")).resolves.toEqual([
+      { value: 2, label: "Ashes" },
+    ]);
+    expect(campaignFindMany).toHaveBeenCalledWith({
+      select: { id: true, title: true },
+      orderBy: [{ title: "asc" }, { id: "asc" }],
+    });
+  });
+
+  it("lists only 5e campaigns for a 5e catalogue", async () => {
+    const { default: fetchFieldOptions } = await import("./fetchFieldOptions");
+    campaignFindMany.mockResolvedValue([]);
+
+    await fetchFieldOptions("dnd5eCampaign");
+
+    expect(campaignFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { system: "dnd5e" } })
+    );
+  });
 });

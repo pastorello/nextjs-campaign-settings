@@ -100,6 +100,8 @@ export const FIELD_ERROR_KEYS = [
   // Campaign membership (SPEC-022 T5)
   "campaignNotFound",
   "notAPlayer",
+  // Reveals (SPEC-022 T6)
+  "revealWrongSystem",
 ] as const;
 
 type FieldErrorKey = (typeof FIELD_ERROR_KEYS)[number];

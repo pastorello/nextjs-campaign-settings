@@ -9,17 +9,21 @@ import updateMagicItem from "@/app/lib/data/magicitems/updateMagicItem";
 import MagicItem from "@/app/lib/definitions/interfaces/magicitem/MagicItem";
 import MagicItemMetaField from "@/app/lib/definitions/enums/magicitem/MagicItemMetaField";
 import PageType from "@/app/lib/definitions/types/PageType";
+import type OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
 interface MagicItemFormProps {
   formData?: MagicItem;
   onCancel: () => void;
   onSaveFinished: (page: MagicItem) => void;
+  /** The campaigns a record can be revealed to (SPEC-022 T6). */
+  optionBundle?: OptionBundle | undefined;
 }
 
 export default function MagicItemForm({
   formData,
   onCancel,
   onSaveFinished,
+  optionBundle,
 }: MagicItemFormProps) {
   const t = useTranslations("magicItems.form");
 
@@ -27,6 +31,7 @@ export default function MagicItemForm({
     <EntityForm<MagicItem>
       pageType={PageType.MagicItem}
       formData={formData}
+      optionBundle={optionBundle}
       mutations={{ create: createMagicItem, update: updateMagicItem }}
       copy={{
         createTitle: t("createTitle"),
@@ -69,6 +74,8 @@ export default function MagicItemForm({
           </div>
           {/* The record's one image (SPEC-020 T3). */}
           <div className="mb-2 flex w-full p-2">{field("imageId")}</div>
+          {/* The campaigns that see this record (SPEC-022 T6). */}
+          <div className="mb-2 flex w-full p-2">{field("revealedToDnd5e")}</div>
         </Fieldset>
       )}
     </EntityForm>

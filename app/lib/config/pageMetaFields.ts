@@ -13,6 +13,10 @@ import treasureMeta from "./treasure/treasureMeta";
 import renderRichText from "../utils/data/renderRichText";
 import richTextValidator from "../utils/validators/richTextValidator";
 import imageMeta from "./image/imageMeta";
+import {
+  revealedToDnd5eMeta,
+  revealedToMeta,
+} from "./visibility/revealedToMeta";
 import dhOriginMeta from "./daggerheart/dhOriginMeta";
 import dhDomainMeta from "./daggerheart/dhDomainMeta";
 import dhDomainCardMeta from "./daggerheart/dhDomainCardMeta";
@@ -172,6 +176,9 @@ const pageMetaFields = {
   // `zoneMeta` composes too, so places and the metadata-driven domains
   // share one validator and one label key.
   imageId: imageMeta,
+  // The campaigns a record is revealed to (SPEC-022 T6), declared once.
+  revealedTo: revealedToMeta,
+  revealedToDnd5e: revealedToDnd5eMeta,
   ...deitiesMeta,
   ...spellsMeta,
   ...magicItemsMeta,

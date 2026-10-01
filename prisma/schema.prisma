@@ -47,6 +47,10 @@ model deities {
   imageId Int?         @unique
   image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
 
+  // SPEC-022 T6 — the campaigns this record is revealed to. Implicit
+  // many-to-many: deleting either side removes the reveal.
+  revealedTo campaign[] @relation("deityReveals")
+
   @@index([name])
 }
 
@@ -76,6 +80,10 @@ model magicitems {
   // when the record is deleted or its image replaced or removed (T3).
   imageId Int?         @unique
   image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+
+  // SPEC-022 T6 — the campaigns this record is revealed to. Implicit
+  // many-to-many: deleting either side removes the reveal.
+  revealedTo campaign[] @relation("magicItemReveals")
 
   @@index([name])
 }
@@ -125,6 +133,10 @@ model npc {
   imageId Int?         @unique
   image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
 
+  // SPEC-022 T6 — the campaigns this record is revealed to. Implicit
+  // many-to-many: deleting either side removes the reveal.
+  revealedTo campaign[] @relation("npcReveals")
+
   @@index([name])
 }
 
@@ -144,6 +156,10 @@ model faction {
   // when the record is deleted or its image replaced or removed (T3).
   imageId Int?         @unique
   image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+
+  // SPEC-022 T6 — the campaigns this record is revealed to. Implicit
+  // many-to-many: deleting either side removes the reveal.
+  revealedTo campaign[] @relation("factionReveals")
 }
 
 // The containment tree (§6/ADR-0010) — `region`/`plane`/`city`/`dungeon`,
@@ -194,6 +210,10 @@ model zone {
   imageId Int?         @unique
   image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
 
+  // SPEC-022 T6 — the campaigns this record is revealed to. Implicit
+  // many-to-many: deleting either side removes the reveal.
+  revealedTo campaign[] @relation("zoneReveals")
+
   @@index([parentId])
 }
 
@@ -220,6 +240,10 @@ model poi {
 
   npc     npc[]
   deities deities[]
+
+  // SPEC-022 T6 — the campaigns this record is revealed to. Implicit
+  // many-to-many: deleting either side removes the reveal.
+  revealedTo campaign[] @relation("poiReveals")
 
   @@index([zoneId])
 }
@@ -289,10 +313,17 @@ model campaign {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  adventures     adventure[]
-  calendarEvents calendarEvent[]
+  adventures       adventure[]
+  calendarEvents   calendarEvent[]
   // SPEC-022 T5 — the players of this campaign (see `users.campaigns`).
-  members        users[]         @relation("campaignMembers")
+  members          users[]         @relation("campaignMembers")
+  // SPEC-022 T6 — what this campaign's players have been shown.
+  revealedZones    zone[]          @relation("zoneReveals")
+  revealedPois     poi[]           @relation("poiReveals")
+  revealedNpcs     npc[]           @relation("npcReveals")
+  revealedDeities  deities[]       @relation("deityReveals")
+  revealedItems    magicitems[]    @relation("magicItemReveals")
+  revealedFactions faction[]       @relation("factionReveals")
 }
 
 model adventure {

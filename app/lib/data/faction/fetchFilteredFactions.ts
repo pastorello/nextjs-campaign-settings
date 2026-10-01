@@ -3,6 +3,8 @@ import queryFields from "@/app/lib/config/queryFields";
 import PageType from "@/app/lib/definitions/types/PageType";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import recordImageKeysInclude from "@/app/lib/data/recordImages/recordImageKeysInclude";
+import revealedToInclude from "@/app/lib/data/visibility/revealedToInclude";
+import withRevealedIds from "@/app/lib/data/visibility/withRevealedIds";
 import DatabaseError from "@/app/lib/errors/DatabaseError";
 import Faction from "@/app/lib/definitions/interfaces/faction/Faction";
 import prisma from "../../connections/prisma";
@@ -24,7 +26,8 @@ export async function fetchFilteredFactions(
   try {
     factions = await prisma.faction.findMany({
       ...theQuery,
-      include: recordImageKeysInclude,
+      // SPEC-022 T6: the campaigns each record is revealed to.
+      include: { ...recordImageKeysInclude, ...revealedToInclude },
     });
   } catch (error) {
     throw toDatabaseError("fetching factions", error);
@@ -32,7 +35,7 @@ export async function fetchFilteredFactions(
 
   const parsed = z
     .array(buildResultSchema(PageType.Faction))
-    .safeParse(factions);
+    .safeParse(factions.map((row) => withRevealedIds(row)));
   if (!parsed.success) {
     throw new DatabaseError("validating fetched factions", parsed.error);
   }

@@ -214,7 +214,8 @@
       "wrongPassword": "La password attuale non è corretta.",
       "lastActiveDm": "È l'ultimo DM attivo: deve restarne almeno uno.",
       "campaignNotFound": "Questa campagna non esiste più.",
-      "notAPlayer": "Solo un account da giocatore può far parte di una campagna."
+      "notAPlayer": "Solo un account da giocatore può far parte di una campagna.",
+      "revealWrongSystem": "Questa campagna è di un altro sistema di gioco."
     },
     "errorPage": {
       "genericTitle": "Qualcosa è andato storto",
@@ -248,6 +249,9 @@
         "remove": "Rimuovi",
         "uploading": "Caricamento…",
         "previewAlt": "Anteprima dell'immagine scelta"
+      },
+      "revealedTo": {
+        "label": "Rivelato a"
       }
     },
     "richText": {

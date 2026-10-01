@@ -48,6 +48,8 @@ const formFields: Record<PageType, MetaConfigKey[]> = {
     MagicItemMetaField.attuned,
     MagicItemMetaField.consumable,
     "imageId",
+    // SPEC-022 T6: the campaigns that see the record.
+    "revealedToDnd5e",
   ],
 
   [PageType.Npc]: [
@@ -63,6 +65,8 @@ const formFields: Record<PageType, MetaConfigKey[]> = {
     NpcMetaField.motivations,
     NpcMetaField.secrets,
     "imageId",
+    // SPEC-022 T6: the campaigns that see the record.
+    "revealedTo",
   ],
 
   // No `descrizione`: deities carry `significato` instead, and the schema has
@@ -83,9 +87,12 @@ const formFields: Record<PageType, MetaConfigKey[]> = {
     DeityMetaField.alignmentDomain,
     DeityMetaField.meaning,
     "imageId",
+    // SPEC-022 T6: the campaigns that see the record.
+    "revealedTo",
   ],
 
-  [PageType.Faction]: ["name", "description", "imageId"],
+  // SPEC-022 T6: `revealedTo`, the campaigns that see the record.
+  [PageType.Faction]: ["name", "description", "imageId", "revealedTo"],
 
   [PageType.Treasure]: [
     TreasureMetaField.name,

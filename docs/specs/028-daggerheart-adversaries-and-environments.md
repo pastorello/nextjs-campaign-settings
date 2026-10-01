@@ -1,6 +1,6 @@
 # SPEC-028: Daggerheart — adversaries and environments
 
-- **Status:** Agreed 2026-09-30. Written by Claude from SPEC-018 §6; the DM approved it and answered its question (§9).
+- **Status:** In progress 2026-10-01. Agreed 2026-09-30. Written by Claude from SPEC-018 §6; the DM approved it and answered its question (§9).
 - **Date:** 2026-09-30
 - **Phase:** 4
 - **Related:** [SPEC-018](./018-game-systems.md) T6 (§5 licence constraints and §6 catalogue structure, binding here) · [SPEC-021](./021-daggerheart-domains-and-classes.md) (the patterns reused) · [ADR-0018](../adr/0018-daggerheart-features-one-table-per-owner.md) (ordered features, one table per owner) · [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md) · [`daggerheart.md`](../domain/daggerheart.md) §4, §5, §8 · [SPEC-030](./030-daggerheart-campaign-management.md) (the encounter budget that prices these adversaries)
@@ -187,16 +187,54 @@ model dhEnvironmentFeature  { id, environmentId (Cascade), position, kind, name,
 
 ## 9. Implementation plan
 
-_Fill in once agreed._
+**Depends on** SPEC-027, whose patterns this slice reuses: the computed
+meta-pair check, the rows/cards switch, the place popover's list of linked
+records, and links from a catalogue into `zone`.
+
+**Decided while planning (2026-10-01)**
+
+1. **Minions have no thresholds.** Every minion in the SRD prints its
+   thresholds as "None" (and 1 HP); no other type does. So `majorThreshold`
+   and `severeThreshold` are nullable: required for every type but a minion,
+   and for a minion either both empty or both given. Major < Severe whenever
+   both are given. A CHECK holds the same rule.
+2. **A listed adversary cannot be deleted.** The environment ↔ adversary
+   relation is an explicit join model, `dhEnvironmentAdversary`, with
+   `Restrict` on the adversary and `Cascade` on the environment. The delete
+   counts the environments first and refuses with the count
+   (`adversaryInEnvironments`), as a used domain is refused. A silent unlink
+   would leave an environment that names fewer adversaries than the DM wrote,
+   with no notice.
+3. **Adversaries and environments are the DM's alone.** They are GM-side stat
+   blocks, like the treasure catalogue (SPEC-022 R15), not rules the players
+   read (R14). Neither enters `PLAYER_PAGES`: the proxy refuses a player, and
+   each layout calls `requireDmPage()`. For a player, search skips both and a
+   record link to either renders as text. The place popover shows a player no
+   environments. Opening them to players later means adding them to
+   `PLAYER_PAGES` and removing those three cuts.
+4. **`tier` and `difficulty` are declared once**, as `origin` is
+   (`dhTierMeta`, `dhDifficultyMeta`, spread into `pageMetaFields` by key).
+   This replaces §7's `SharedMetaField`: the shared-field type is for keys two
+   domain metas each declare, and here neither does.
+5. **A damage expression** is `NdS+k`, `NdS-k`, `NdS`, `dS` or a flat
+   number. `N` and `k` are whole numbers, and `S` is one of 4, 6, 8, 10, 12 or 20. The field's hint lists the forms; the validator is
+   `diceExpressionValidator`.
+6. **The inline lists share one component.** An adversary's experiences and
+   features and an environment's features are three ordered lists edited in
+   the edit dialog (ADR-0011). They share an `InlineOrderedList` shell for
+   add, edit, move and delete. Each list keeps its own form and actions,
+   and SPEC-021's two lists are left as they are.
+7. **Prompt questions** are optional formatted text on an environment
+   feature.
+8. **The stat-block view** is the card view of the public list (`?view=cards`),
+   as SPEC-027's cards are: no per-record page. An environment's adversaries
+   link to the adversary list filtered by name, in card view.
 
 **Risks**
 
 - **The largest form in the app.** Some twenty scalar fields and two inline
   lists. SPEC-021's class dialog is the nearest precedent, and it held
   up. The stat-block view is where the design effort goes.
-- **Thresholds.** Before T1, check against the SRD whether any adversary type
-  (minions in particular) is printed without thresholds. If one is, both
-  thresholds become nullable for that type only, and §8 says so.
 
 **Answered by the DM on 2026-09-30**
 
@@ -206,9 +244,48 @@ _Fill in once agreed._
 
 ## 10. Task breakdown
 
-_Fill in after §9. Likely: T1 schema, metas and ADR-0018's two new owners; T2
-adversaries with the stat-block view; T3 environments with their links; T4 the
-place popover, search, record links, i18n, a11y and e2e with invented content._
+- [x] **T1** — Schema, migration with CHECKs, enums, option lists, metas
+      (adversary, environment, the three inline rows) and the dice
+      validator. _(test: validators; the meta-pair check)_ _Done 2026-10-01._
+  - Migration `20261001200000_spec028_stat_blocks`: the six §6 tables plus
+    the places join, and four hand-written CHECKs (tiers, HP and Stress,
+    the horde's density, the minion's thresholds with Major < Severe).
+  - `tier` and `difficulty` are `dhSharedStatMetas`, spread into
+    `pageMetaFields` by key like `origin`. `adversaryType`,
+    `environmentType`, the attack's fields and the environment's links are
+    prefixed.
+  - The row metas are `dhStatBlockRowMetas`, outside the registry
+    (ADR-0011).
+  - `diceExpressionValidator` normalises (`2D8 + 3` → `2d8+3`) and accepts
+    d4–d20 only.
+  - `dhAdversary` is an option table; it is empty for a player.
+- [x] **T2** — Adversaries end to end: lists with header filters (tier,
+      type, origin), the form with the horde and threshold rules, the inline
+      experiences and features, the stat-block card, the delete route, the
+      nav tile; DM-only. _(test: actions, cross-field rules, the inline
+      lists, the stat block; e2e)_ _Done 2026-10-01._
+  - **Pages:** `PageType.DhAdversary`. Both layouts call
+    `requireDmPage()`, and `/adversaries` is not in `PLAYER_PAGES`.
+  - **Cross-field rules:** `adversaryShapeErrors` holds them. An update is
+    judged on the stored row with the payload over it.
+  - **Delete:** the refusal (`adversaryInEnvironments`, with the count)
+    is in place before T3 adds the environments that can trigger it.
+  - **Inline rows:** experiences and features are edited in the list's edit
+    dialog through `InlineOrderedList`, with `StatBlockFeatureForm` shared
+    with T3.
+  - **Stat block:** `DhAdversaryStatBlock` (`StatBlockView`), in the
+    public list's card view. Its features' record links resolve in the
+    same batch as the fields'.
+  - **E2E:** `daggerheart-adversaries.spec.ts` covers the refusals, the
+    inline rows, the stat block with an axe scan, the 404 under 5e, and
+    the delete. The a11y scan covers the four new pages.
+- [ ] **T3** — Environments end to end: lists with header filters (tier,
+      type, origin, place), the form with the adversary and place links, the
+      inline features, the stat-block card with links to its adversaries, and
+      the refused delete of a listed adversary. _(test: links, the refusal;
+      e2e)_
+- [ ] **T4** — The place popover, search, record links (cut for players),
+      i18n, a11y, and the e2e with invented content.
 
 ## 11. Outcome
 

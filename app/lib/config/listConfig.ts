@@ -10,6 +10,7 @@ import DhClassMetaField from "../definitions/enums/daggerheart/DhClassMetaField"
 import DhSubclassMetaField from "../definitions/enums/daggerheart/DhSubclassMetaField";
 import DhAncestryMetaField from "../definitions/enums/daggerheart/DhAncestryMetaField";
 import DhCommunityMetaField from "../definitions/enums/daggerheart/DhCommunityMetaField";
+import DhAdversaryMetaField from "../definitions/enums/daggerheart/DhAdversaryMetaField";
 import PageType from "../definitions/types/PageType";
 
 /**
@@ -364,6 +365,33 @@ const listConfig: Record<PageType, ListConfig> = {
     emptyMessageKey: "dhCommunities.page.emptyMessage",
     editModalTitleKey: "dhCommunities.form.editTitle",
     modalContent: "dhcommunityform",
+  },
+
+  // SPEC-028 T2. The header filters are §5's tier, type and origin; the
+  // numbers are read on the stat block.
+  [PageType.DhAdversary]: {
+    columns: [
+      {
+        fieldKey: DhAdversaryMetaField.tier,
+        labelKey: "daggerheart.fields.tier.label",
+      },
+      {
+        fieldKey: DhAdversaryMetaField.adversaryType,
+        labelKey: "dhAdversaries.fields.adversaryType.label",
+      },
+      {
+        fieldKey: DhAdversaryMetaField.difficulty,
+        labelKey: "daggerheart.fields.difficulty.label",
+        isFiltrable: false,
+      },
+      {
+        fieldKey: DhAdversaryMetaField.origin,
+        labelKey: "daggerheart.fields.origin.label",
+      },
+    ],
+    emptyMessageKey: "dhAdversaries.page.emptyMessage",
+    editModalTitleKey: "dhAdversaries.form.editTitle",
+    modalContent: "dhadversaryform",
   },
 };
 

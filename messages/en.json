@@ -27,7 +27,8 @@
       "campaignSelector": "Current campaign",
       "campaignUnavailable": "You are no longer in this campaign.",
       "dhAncestries": "Ancestries",
-      "dhCommunities": "Communities"
+      "dhCommunities": "Communities",
+      "dhAdversaries": "Adversaries"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -221,7 +222,18 @@
       "lastActiveDm": "This is the last active DM: at least one must remain.",
       "campaignNotFound": "This campaign no longer exists.",
       "notAPlayer": "Only a player account can be part of a campaign.",
-      "revealWrongSystem": "This campaign belongs to another game system."
+      "revealWrongSystem": "This campaign belongs to another game system.",
+      "diceExpression": "Write damage as 2d8+3, d12 or a number; the dice are d4, d6, d8, d10, d12 and d20.",
+      "hordeNeedsDensity": "A horde needs a density: how many creatures per HP.",
+      "densityOnlyForHorde": "Only a horde has a density.",
+      "thresholdsRequired": "Only a minion can have no thresholds.",
+      "thresholdsPair": "Give both thresholds, or neither.",
+      "majorBelowSevere": "The Severe threshold must be above the Major one.",
+      "adversaryNotFound": "This adversary does not exist.",
+      "adversaryInEnvironments": "{count, plural, one {# environment still lists} other {# environments still list}} this adversary. Remove it there first.",
+      "adversaryExperienceOrderMismatch": "The experiences given do not match the adversary's current list.",
+      "adversaryFeatureOrderMismatch": "The features given do not match the adversary's current list.",
+      "environmentFeatureOrderMismatch": "The features given do not match the environment's current list."
     },
     "errorPage": {
       "genericTitle": "Something went wrong",
@@ -1658,6 +1670,12 @@
     "fields": {
       "origin": {
         "label": "Origin"
+      },
+      "tier": {
+        "label": "Tier"
+      },
+      "difficulty": {
+        "label": "Difficulty"
       }
     },
     "origins": {
@@ -1668,6 +1686,46 @@
       "label": "Show as",
       "rows": "Rows",
       "cards": "Cards"
+    },
+    "tiers": {
+      "tier1": "Tier 1",
+      "tier2": "Tier 2",
+      "tier3": "Tier 3",
+      "tier4": "Tier 4"
+    },
+    "adversaryTypes": {
+      "bruiser": "Bruiser",
+      "horde": "Horde",
+      "leader": "Leader",
+      "minion": "Minion",
+      "ranged": "Ranged",
+      "skulk": "Skulk",
+      "social": "Social",
+      "solo": "Solo",
+      "standard": "Standard",
+      "support": "Support"
+    },
+    "ranges": {
+      "melee": "Melee",
+      "veryClose": "Very Close",
+      "close": "Close",
+      "far": "Far",
+      "veryFar": "Very Far"
+    },
+    "damageTypes": {
+      "physical": "Physical",
+      "magic": "Magic"
+    },
+    "featureKinds": {
+      "action": "Action",
+      "reaction": "Reaction",
+      "passive": "Passive"
+    },
+    "environmentTypes": {
+      "exploration": "Exploration",
+      "social": "Social",
+      "traversal": "Traversal",
+      "event": "Event"
     }
   },
   "dhDomains": {
@@ -1935,6 +1993,106 @@
     },
     "world": {
       "title": "Communities"
+    }
+  },
+  "dhAdversaries": {
+    "page": {
+      "title": "Adversaries",
+      "searchPlaceholder": "Search adversaries...",
+      "itemSingular": "adversary",
+      "itemPlural": "adversaries",
+      "newItemButton": "New adversary",
+      "emptyMessage": "No adversaries."
+    },
+    "form": {
+      "createTitle": "Create new adversary",
+      "editTitle": "Edit adversary",
+      "createButton": "Create adversary",
+      "editButton": "Save adversary"
+    },
+    "fields": {
+      "adversaryType": {
+        "label": "Type"
+      },
+      "hordeDensity": {
+        "label": "Horde density",
+        "placeholder": "A horde only: creatures per HP"
+      },
+      "motives": {
+        "label": "Motives and tactics"
+      },
+      "majorThreshold": {
+        "label": "Major threshold"
+      },
+      "severeThreshold": {
+        "label": "Severe threshold"
+      },
+      "hp": {
+        "label": "HP"
+      },
+      "stress": {
+        "label": "Stress"
+      },
+      "attackModifier": {
+        "label": "Attack modifier"
+      },
+      "attackName": {
+        "label": "Attack"
+      },
+      "attackRange": {
+        "label": "Range"
+      },
+      "attackDamage": {
+        "label": "Damage",
+        "placeholder": "2d8+3, d12 or 6"
+      },
+      "attackType": {
+        "label": "Damage type"
+      }
+    },
+    "statBlock": {
+      "header": "Tier {tier} · {type}",
+      "hordeDensity": "{count} per HP",
+      "thresholds": "Thresholds",
+      "noThresholds": "None",
+      "attack": "Attack",
+      "experiences": "Experiences",
+      "features": "Features",
+      "fear": "Fear",
+      "imageAlt": "Image of {name}"
+    },
+    "experiences": {
+      "title": "Experiences",
+      "addButton": "Add experience",
+      "saveButton": "Save experience",
+      "moveUp": "Move {name} up",
+      "moveDown": "Move {name} down"
+    },
+    "features": {
+      "title": "Features",
+      "addButton": "Add feature",
+      "saveButton": "Save feature",
+      "moveUp": "Move {name} up",
+      "moveDown": "Move {name} down"
+    }
+  },
+  "dhStatBlock": {
+    "fields": {
+      "kind": {
+        "label": "Kind"
+      },
+      "fear": {
+        "label": "Fear feature"
+      },
+      "experienceName": {
+        "label": "Experience"
+      },
+      "bonus": {
+        "label": "Bonus"
+      },
+      "questions": {
+        "label": "Questions"
+      }
     }
   },
   "dhFeature": {

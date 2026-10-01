@@ -11,6 +11,7 @@ import DhClassMetaField from "../definitions/enums/daggerheart/DhClassMetaField"
 import DhSubclassMetaField from "../definitions/enums/daggerheart/DhSubclassMetaField";
 import DhAncestryMetaField from "../definitions/enums/daggerheart/DhAncestryMetaField";
 import DhCommunityMetaField from "../definitions/enums/daggerheart/DhCommunityMetaField";
+import DhAdversaryMetaField from "../definitions/enums/daggerheart/DhAdversaryMetaField";
 
 /**
  * The fields a domain can be filtered by, declared once (TD-12).
@@ -131,6 +132,11 @@ const queryFields: Record<PageType, MetaConfigKey[]> = {
     DhCommunityMetaField.placeIds,
     DhCommunityMetaField.factionIds,
     DhCommunityMetaField.origin,
+  ],
+  [PageType.DhAdversary]: [
+    DhAdversaryMetaField.tier,
+    DhAdversaryMetaField.adversaryType,
+    DhAdversaryMetaField.origin,
   ],
 };
 

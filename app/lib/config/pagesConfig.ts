@@ -13,6 +13,7 @@ import DhClassMetaField from "@/app/lib/definitions/enums/daggerheart/DhClassMet
 import DhSubclassMetaField from "@/app/lib/definitions/enums/daggerheart/DhSubclassMetaField";
 import DhAncestryMetaField from "@/app/lib/definitions/enums/daggerheart/DhAncestryMetaField";
 import DhCommunityMetaField from "@/app/lib/definitions/enums/daggerheart/DhCommunityMetaField";
+import DhAdversaryMetaField from "@/app/lib/definitions/enums/daggerheart/DhAdversaryMetaField";
 
 /**
  * Which fields make up each page, in order.
@@ -219,6 +220,31 @@ const pagesConfig: Record<PageType, PageConfig> = {
       DhCommunityMetaField.placeIds,
       DhCommunityMetaField.factionIds,
       DhCommunityMetaField.origin,
+    ],
+    system: "daggerheart",
+  },
+  // SPEC-028 T2. Its experiences and features are inline rows (ADR-0011).
+  [PageType.DhAdversary]: {
+    fields: [
+      "id",
+      "imageId",
+      DhAdversaryMetaField.name,
+      DhAdversaryMetaField.description,
+      DhAdversaryMetaField.tier,
+      DhAdversaryMetaField.adversaryType,
+      DhAdversaryMetaField.hordeDensity,
+      DhAdversaryMetaField.motives,
+      DhAdversaryMetaField.difficulty,
+      DhAdversaryMetaField.majorThreshold,
+      DhAdversaryMetaField.severeThreshold,
+      DhAdversaryMetaField.hp,
+      DhAdversaryMetaField.stress,
+      DhAdversaryMetaField.attackModifier,
+      DhAdversaryMetaField.attackName,
+      DhAdversaryMetaField.attackRange,
+      DhAdversaryMetaField.attackDamage,
+      DhAdversaryMetaField.attackType,
+      DhAdversaryMetaField.origin,
     ],
     system: "daggerheart",
   },

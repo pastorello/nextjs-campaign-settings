@@ -15,6 +15,8 @@ enum PageType {
   // SPEC-027 — the heritage catalogues.
   DhAncestry = "ancestries",
   DhCommunity = "communities",
+  // SPEC-028 — the GM-side stat blocks, the DM's alone.
+  DhAdversary = "adversaries",
 }
 
 export default PageType;

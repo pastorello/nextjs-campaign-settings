@@ -79,6 +79,21 @@ describe("NavLinks under a system", () => {
     );
   });
 
+  it("lists the adversaries, with their admin link, for the DM (SPEC-028)", () => {
+    system = "daggerheart";
+    pathname = "/dashboard/daggerheart";
+    render(<NavLinks />);
+
+    expect(screen.getByLabelText("dhAdversaries")).toHaveAttribute(
+      "href",
+      "/dashboard/daggerheart/adversaries"
+    );
+    expect(screen.getByLabelText("manage:dhadversaries")).toHaveAttribute(
+      "href",
+      "/dashboard/daggerheart/admin/adversaries"
+    );
+  });
+
   it("leaves the Daggerheart catalogues out under dnd5e", () => {
     pathname = "/dashboard/dnd5e";
     render(<NavLinks />);

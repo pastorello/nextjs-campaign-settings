@@ -17,6 +17,7 @@ import { fetchFilteredDhDomainCards } from "@/app/lib/data/dhDomainCards/fetchFi
 import { fetchFilteredDhClasses } from "@/app/lib/data/dhClasses/fetchFilteredDhClasses";
 import { fetchFilteredDhAncestries } from "@/app/lib/data/dhAncestries/fetchFilteredDhAncestries";
 import { fetchFilteredDhCommunities } from "@/app/lib/data/dhCommunities/fetchFilteredDhCommunities";
+import { fetchFilteredDhAdversaries } from "@/app/lib/data/dhAdversaries/fetchFilteredDhAdversaries";
 import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
 
 import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
@@ -34,6 +35,7 @@ import DhDomainCardLibrary from "../dhDomainCards/DhDomainCardLibrary";
 import DhClassLibrary from "../dhClasses/DhClassLibrary";
 import DhAncestryLibrary from "../dhAncestries/DhAncestryLibrary";
 import DhCommunityLibrary from "../dhCommunities/DhCommunityLibrary";
+import DhAdversaryLibrary from "../dhAdversaries/DhAdversaryLibrary";
 import ResolvedRecordLinks from "../richText/ResolvedRecordLinks";
 import richTextValuesOf from "@/app/lib/utils/richText/richTextValuesOf";
 
@@ -158,6 +160,24 @@ export default async function EntityLibrary(props: {
     case PageType.DhCommunity: {
       const items = await fetchFilteredDhCommunities(searchParams);
       return withRecordLinks(items, <DhCommunityLibrary items={items} />);
+    }
+    case PageType.DhAdversary: {
+      const items = await fetchFilteredDhAdversaries(searchParams);
+      // The features' texts are rows, not fields: their links resolve in
+      // the same batch as the fields'.
+      return (
+        <ResolvedRecordLinks
+          values={[
+            ...richTextValuesOf(pageType, items),
+            ...items.flatMap((item) =>
+              (item.features ?? []).map((feature) => feature.text)
+            ),
+          ]}
+          system={system}
+        >
+          <DhAdversaryLibrary items={items} />
+        </ResolvedRecordLinks>
+      );
     }
   }
 }

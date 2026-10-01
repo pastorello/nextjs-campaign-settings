@@ -32,6 +32,7 @@ const db = vi.hoisted(() => {
     poi: model(),
     treasure: model(),
     dhDomain: model(),
+    dhAdversary: model(),
   };
 });
 vi.mock("@/app/lib/connections/prisma", () => ({ default: db }));
@@ -212,7 +213,10 @@ describe("R7 — option lists", () => {
   it("offers none of the DM's prep", async () => {
     await expect(fetchFieldOptions("treasure")).resolves.toEqual([]);
     await expect(fetchFieldOptions("campaign")).resolves.toEqual([]);
+    // SPEC-028 §9 decision 3: the stat blocks are prep too.
+    await expect(fetchFieldOptions("dhAdversary")).resolves.toEqual([]);
     expect(db.treasure.findMany).not.toHaveBeenCalled();
+    expect(db.dhAdversary.findMany).not.toHaveBeenCalled();
   });
 
   it("offers the rules catalogues in full", async () => {

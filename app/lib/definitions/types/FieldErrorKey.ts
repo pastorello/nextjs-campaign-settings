@@ -38,6 +38,7 @@ export const FIELD_ERROR_KEYS = [
   "endBeforeStart",
   "repeatSpansOverAYear",
   "campaignEventNoLinks",
+  "diceExpression",
   // Data-layer refusals
   "areaCentreOutside",
   "areaSelfIntersects",
@@ -92,6 +93,17 @@ export const FIELD_ERROR_KEYS = [
   "classHasSubclasses",
   "classFeatureOrderMismatch",
   "subclassFeatureOrderMismatch",
+  // Daggerheart stat blocks (SPEC-028)
+  "hordeNeedsDensity",
+  "densityOnlyForHorde",
+  "thresholdsRequired",
+  "thresholdsPair",
+  "majorBelowSevere",
+  "adversaryNotFound",
+  "adversaryInEnvironments",
+  "adversaryExperienceOrderMismatch",
+  "adversaryFeatureOrderMismatch",
+  "environmentFeatureOrderMismatch",
   // Accounts (SPEC-022 T2, T3)
   "accountNotFound",
   "emailTaken",

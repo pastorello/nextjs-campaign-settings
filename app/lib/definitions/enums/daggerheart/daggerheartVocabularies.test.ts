@@ -5,6 +5,11 @@ import DhDomainCardType from "./DhDomainCardType";
 import DhOrigin from "./DhOrigin";
 import DhSpellcastTrait from "./DhSpellcastTrait";
 import DhSubclassFeatureTier from "./DhSubclassFeatureTier";
+import DhAdversaryType from "./DhAdversaryType";
+import DhRange from "./DhRange";
+import DhDamageType from "./DhDamageType";
+import DhFeatureKind from "./DhFeatureKind";
+import DhEnvironmentType from "./DhEnvironmentType";
 
 /**
  * SPEC-021's string vocabularies are stored as raw `String` columns, like
@@ -24,6 +29,31 @@ describe.each([
     "DhSpellcastTrait",
     DhSpellcastTrait,
     ["agility", "strength", "finesse", "instinct", "presence", "knowledge"],
+  ],
+  // SPEC-028.
+  [
+    "DhAdversaryType",
+    DhAdversaryType,
+    [
+      "bruiser",
+      "horde",
+      "leader",
+      "minion",
+      "ranged",
+      "skulk",
+      "social",
+      "solo",
+      "standard",
+      "support",
+    ],
+  ],
+  ["DhRange", DhRange, ["melee", "veryClose", "close", "far", "veryFar"]],
+  ["DhDamageType", DhDamageType, ["physical", "magic"]],
+  ["DhFeatureKind", DhFeatureKind, ["action", "reaction", "passive"]],
+  [
+    "DhEnvironmentType",
+    DhEnvironmentType,
+    ["exploration", "social", "traversal", "event"],
   ],
 ] as const)("%s", (_name, vocabulary, stored) => {
   const validator = z.nativeEnum(vocabulary);

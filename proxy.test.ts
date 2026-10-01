@@ -183,6 +183,7 @@ describe("proxy", () => {
       "/dashboard/dnd5e/geography",
       "/en/dashboard/daggerheart/geography",
       "/dashboard/dnd5e",
+      "/dashboard/dnd5e/spells",
     ])("lets a player through to %s", async (path) => {
       const response = await run(path);
 

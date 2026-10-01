@@ -179,6 +179,22 @@ describe("NavLinks for a player", () => {
 
     expect(
       screen.getAllByRole("link").map((link) => link.getAttribute("href"))
-    ).toEqual(["/dashboard/dnd5e/geography"]);
+    ).toEqual(["/dashboard/dnd5e/geography", "/dashboard/dnd5e/spells"]);
+  });
+
+  // T8: the rules catalogues, under the system that has them.
+  it("offers a player the Daggerheart catalogues under daggerheart", () => {
+    system = "daggerheart";
+    pathname = "/dashboard/daggerheart/domains";
+    render(<NavLinks player />);
+
+    expect(
+      screen.getAllByRole("link").map((link) => link.getAttribute("href"))
+    ).toEqual([
+      "/dashboard/daggerheart/geography",
+      "/dashboard/daggerheart/domains",
+      "/dashboard/daggerheart/domain-cards",
+      "/dashboard/daggerheart/classes",
+    ]);
   });
 });

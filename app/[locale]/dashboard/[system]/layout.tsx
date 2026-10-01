@@ -26,6 +26,15 @@ export default async function Layout({
     redirect({ href: "/login", locale });
     return null;
   }
+  // SPEC-022 §8: a player reaches only the systems of their campaigns. One
+  // in no campaign reads the rules catalogues of either.
+  if (
+    viewer.kind === "player" &&
+    viewer.campaigns.length > 0 &&
+    !viewer.campaigns.some((campaign) => campaign.system === system)
+  ) {
+    notFound();
+  }
 
   return (
     <div className="flex h-screen flex-col md:flex-row md:overflow-hidden">

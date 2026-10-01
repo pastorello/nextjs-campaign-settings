@@ -1380,7 +1380,13 @@
       "label": "Awarded",
       "played": "Played"
     },
-    "milestone": "Milestone"
+    "milestone": "Milestone",
+    "battlePoints": {
+      "summary": "Battle Points: {spent} / {budget}",
+      "over": "{points} over budget",
+      "unpriced": "{count, plural, one {# row unpriced: no adversary linked} other {# rows unpriced: no adversary linked}}",
+      "lowerTierSuggestion": "An adversary is from a lower tier than the adventure's: consider the +1 adjustment."
+    }
   },
   "sceneCreature": {
     "fields": {
@@ -1417,7 +1423,9 @@
       "emptyMessage": "No creatures yet.",
       "moveUp": "Move \"{name}\" up",
       "moveDown": "Move \"{name}\" down",
-      "xpTotal": "XP total"
+      "xpTotal": "XP total",
+      "battlePoints": "Battle Points",
+      "unpriced": "unpriced"
     },
     "form": {
       "createButton": "Add creature",

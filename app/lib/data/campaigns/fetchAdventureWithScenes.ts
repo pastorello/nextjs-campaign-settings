@@ -7,9 +7,16 @@ import SceneKind from "@/app/lib/definitions/enums/campaign/SceneKind";
 import SceneCreature from "@/app/lib/definitions/interfaces/campaign/SceneCreature";
 import Loot from "@/app/lib/definitions/interfaces/campaign/Loot";
 import GameSystem, { isGameSystem } from "@/app/lib/definitions/GameSystem";
+import { PricedAdversary } from "@/app/lib/utils/daggerheart/battlePoints";
+
+/** A creature row with the adversary its Battle Points come from (SPEC-030 T3). */
+export interface SceneCreatureWithAdversary extends SceneCreature {
+  /** `null` when unlinked, the deleted-adversary case included. */
+  dhAdversary?: (PricedAdversary & { name: string }) | null;
+}
 
 export interface SceneWithDetails extends Scene {
-  creatures: SceneCreature[];
+  creatures: SceneCreatureWithAdversary[];
   loot: Loot[];
 }
 
@@ -102,6 +109,9 @@ export default async function fetchAdventureWithScenes(
                 awarded: true,
                 npcId: true,
                 dhAdversaryId: true,
+                dhAdversary: {
+                  select: { name: true, adversaryType: true, tier: true },
+                },
               },
             },
             loot: {

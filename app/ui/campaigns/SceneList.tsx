@@ -25,6 +25,8 @@ import SceneForm from "./SceneForm";
 import SceneCreatureList from "./SceneCreatureList";
 import LootList from "./LootList";
 import CheckOffControl from "./CheckOffControl";
+import BattlePointsSummary from "./BattlePointsSummary";
+import SceneKind from "@/app/lib/definitions/enums/campaign/SceneKind";
 import renderRichText from "@/app/lib/utils/data/renderRichText";
 import type GameSystem from "@/app/lib/definitions/GameSystem";
 
@@ -38,6 +40,12 @@ interface SceneListProps {
   npcOptions: ResolvedOption<number>[];
   magicItemOptions: ResolvedOption<number>[];
   treasureOptions: ResolvedOption<number>[];
+  /** SPEC-030 T3, Daggerheart only: what a creature row may price. */
+  adversaryOptions?: ResolvedOption<number>[];
+  /** The party a fight's Battle Point budget is built from. */
+  partySize?: number;
+  /** The adventure's tier, below which an adversary suggests the +1. */
+  adventureTier?: number;
 }
 
 function zoneName(
@@ -63,6 +71,9 @@ export default function SceneList({
   npcOptions,
   magicItemOptions,
   treasureOptions,
+  adversaryOptions = [],
+  partySize = 4,
+  adventureTier = 1,
 }: SceneListProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -171,11 +182,21 @@ export default function SceneList({
                         </div>
                       )}
                       {rulesSystem === "daggerheart" ? (
-                        scene.milestone && (
-                          <p className="mt-1 text-sm font-medium text-purple-800">
-                            {t("scene.milestone")}
-                          </p>
-                        )
+                        <>
+                          {scene.milestone && (
+                            <p className="mt-1 text-sm font-medium text-purple-800">
+                              {t("scene.milestone")}
+                            </p>
+                          )}
+                          {scene.kind === SceneKind.Fight && (
+                            <BattlePointsSummary
+                              creatures={scene.creatures}
+                              partySize={partySize}
+                              adventureTier={adventureTier}
+                              adjustments={scene.battleAdjustments ?? []}
+                            />
+                          )}
+                        </>
                       ) : (
                         <p className="mt-1 text-sm text-gray-600">
                           {t("scene.fields.xpAward.label")}
@@ -256,9 +277,12 @@ export default function SceneList({
 
                   <div className="grid grid-cols-1 gap-4 border-t pt-3 md:grid-cols-2">
                     <SceneCreatureList
+                      rulesSystem={rulesSystem}
                       sceneId={scene.id}
                       creatures={scene.creatures}
                       npcOptions={npcOptions}
+                      adversaryOptions={adversaryOptions}
+                      partySize={partySize}
                     />
                     <LootList
                       sceneId={scene.id}

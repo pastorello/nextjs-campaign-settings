@@ -205,11 +205,24 @@ equipment catalogues), both shipped.
     - a scene's tick reads "played";
     - the budget panel drops XP, currency and hero points for planned and
       reached milestones (`getBudgetTotals.milestones`).
-- [ ] **T3** — Adversaries on creature rows and the Battle Point budget.
+- [x] **T3** — Adversaries on creature rows and the Battle Point budget.
+      _Done 2026-10-01._
   - A row's cost comes from its adversary's type, and the budget is
-    3 × party size + 2 plus the ticked adjustments.
-  - The lower-tier suggestion.
-  - A deleted adversary leaves the row unpriced.
+    3 × party size + 2 plus the ticked adjustments
+    (`app/lib/utils/daggerheart/battlePoints.ts`, computed at render time
+    from `fetchAdventureWithScenes`'s `dhAdversary` on each row).
+  - The lower-tier suggestion, against `tierOfLevel(targetLevel)`.
+  - A deleted adversary leaves the row unpriced, counted apart rather than
+    priced at zero; so does a type outside the vocabulary.
+  - **Under Daggerheart:**
+    - the creature form trades level and XP for an adversary, and names a
+      still-unnamed row after it;
+    - a creature row shows its Battle Points and no check-off, whose only
+      effect is 5e's XP found;
+    - a fight scene shows spent / budget, the ticked adjustments, the
+      unpriced rows and the suggestion (`BattlePointsSummary`);
+    - the scene form offers the six adjustments on a fight only, and a
+      scene changed away from a fight saves none.
   - _(test: the costs, the budget, the suggestion)_
 - [ ] **T4** — Gold and loot.
   - The adventure's gold target, and a loot row's gold, in handfuls and

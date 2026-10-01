@@ -1380,7 +1380,13 @@
       "label": "Assegnato",
       "played": "Giocata"
     },
-    "milestone": "Traguardo"
+    "milestone": "Traguardo",
+    "battlePoints": {
+      "summary": "Punti Battaglia: {spent} / {budget}",
+      "over": "{points} oltre il budget",
+      "unpriced": "{count, plural, one {# riga senza costo: nessun avversario collegato} other {# righe senza costo: nessun avversario collegato}}",
+      "lowerTierSuggestion": "Un avversario è di un grado inferiore a quello dell'avventura: valuta l'aggiustamento +1."
+    }
   },
   "sceneCreature": {
     "fields": {
@@ -1417,7 +1423,9 @@
       "emptyMessage": "Nessuna creatura ancora.",
       "moveUp": "Sposta \"{name}\" in alto",
       "moveDown": "Sposta \"{name}\" in basso",
-      "xpTotal": "PE totali"
+      "xpTotal": "PE totali",
+      "battlePoints": "Punti Battaglia",
+      "unpriced": "senza costo"
     },
     "form": {
       "createButton": "Aggiungi creatura",

@@ -21,6 +21,8 @@ interface Adventure {
   currencyUnit: string | null;
   permanentItemTarget: number | null;
   consumableTarget: number | null;
+  /** SPEC-030, Daggerheart only: the gold target in handfuls. */
+  goldTarget?: number | null;
 }
 
 export default Adventure;

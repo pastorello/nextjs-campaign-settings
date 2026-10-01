@@ -121,6 +121,18 @@ const adventureMeta = {
     validator: nullableAmountValidator(),
     getDatum: renderAmount,
   },
+  // SPEC-030, Daggerheart only: handfuls, shown as chests, bags and
+  // handfuls. 5e's `currencyTarget` is silver; the campaign's system decides
+  // which of the two an adventure has (`campaignSystemFields`).
+  [AdventureMetaField.goldTarget]: {
+    metaField: "goldTarget",
+    labelKey: "adventure.fields.goldTarget.label",
+    defaultValue: null,
+    fieldType: FieldType.integer,
+    controlType: ControlType.Text,
+    validator: nullableAmountValidator(),
+    getDatum: renderAmount,
+  },
 } satisfies Record<string, PageMeta>;
 
 export default adventureMeta;

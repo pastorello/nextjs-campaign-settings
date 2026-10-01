@@ -60,7 +60,8 @@ const lootMeta = {
     fieldType: FieldType.integer,
     optionTable: "magicitems",
     controlType: ControlType.Select,
-    validator: z.coerce.number().int().positive().nullable(),
+    // Optional too: a Daggerheart row never mentions it (SPEC-030).
+    validator: z.coerce.number().int().positive().nullable().optional(),
   },
   [LootMetaField.treasureId]: {
     metaField: "treasureId",
@@ -69,7 +70,47 @@ const lootMeta = {
     fieldType: FieldType.integer,
     optionTable: "treasure",
     controlType: ControlType.Select,
-    validator: z.coerce.number().int().positive().nullable(),
+    // Optional too: a Daggerheart row never mentions it (SPEC-030).
+    validator: z.coerce.number().int().positive().nullable().optional(),
+  },
+  // SPEC-030, Daggerheart only (`campaignSystemFields`): gold in handfuls,
+  // and a link to one of SPEC-029's catalogues. At most one of the five
+  // links is set, as `magicItemId`/`treasureId` already are.
+  [LootMetaField.gold]: {
+    metaField: "gold",
+    labelKey: "loot.fields.gold.label",
+    defaultValue: null,
+    fieldType: FieldType.integer,
+    controlType: ControlType.Text,
+    validator: nullableAmountValidator(),
+    getDatum: (datum: number | null) => (datum === null ? "—" : datum),
+  },
+  [LootMetaField.dhWeaponId]: {
+    metaField: "dhWeaponId",
+    labelKey: "loot.fields.dhWeaponId.label",
+    defaultValue: null,
+    fieldType: FieldType.integer,
+    optionTable: "dhWeapon",
+    controlType: ControlType.Select,
+    validator: z.coerce.number().int().positive().nullable().optional(),
+  },
+  [LootMetaField.dhArmorId]: {
+    metaField: "dhArmorId",
+    labelKey: "loot.fields.dhArmorId.label",
+    defaultValue: null,
+    fieldType: FieldType.integer,
+    optionTable: "dhArmor",
+    controlType: ControlType.Select,
+    validator: z.coerce.number().int().positive().nullable().optional(),
+  },
+  [LootMetaField.dhLootId]: {
+    metaField: "dhLootId",
+    labelKey: "loot.fields.dhLootId.label",
+    defaultValue: null,
+    fieldType: FieldType.integer,
+    optionTable: "dhLoot",
+    controlType: ControlType.Select,
+    validator: z.coerce.number().int().positive().nullable().optional(),
   },
 } satisfies Record<string, PageMeta>;
 

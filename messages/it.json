@@ -168,7 +168,7 @@
       "notMultipleOf": "Deve essere un multiplo di {divisor}.",
       "unrecognizedKeys": "Contiene campi non previsti.",
       "positiveAmount": "Inserisci una quantità positiva.",
-      "lootLinksBoth": "Un bottino non può collegarsi sia a un oggetto magico sia a un tesoro del catalogo.",
+      "lootLinksBoth": "Un bottino si collega al massimo a un elemento del catalogo.",
       "landmarkWithoutZone": "Non si può scegliere un luogo specifico senza una zona: un luogo specifico appartiene sempre a una zona.",
       "beforeDawnOfTime": "Questa data è precedente all'alba dei tempi.",
       "dayNotInMonth": "Questo mese ha {days} giorni.",
@@ -244,7 +244,8 @@
       "adversaryExperienceOrderMismatch": "Le esperienze indicate non corrispondono all'elenco attuale dell'avversario.",
       "adversaryFeatureOrderMismatch": "I privilegi indicati non corrispondono all'elenco attuale dell'avversario.",
       "environmentFeatureOrderMismatch": "I privilegi indicati non corrispondono all'elenco attuale dell'ambiente.",
-      "featureNeedsBoth": "Un privilegio ha un nome e un testo, o nessuno dei due."
+      "featureNeedsBoth": "Un privilegio ha un nome e un testo, o nessuno dei due.",
+      "notInThisSystem": "Questo campo non appartiene al sistema di gioco della campagna."
     },
     "errorPage": {
       "genericTitle": "Qualcosa è andato storto",
@@ -1290,6 +1291,9 @@
       },
       "consumableTarget": {
         "label": "Obiettivo consumabili"
+      },
+      "goldTarget": {
+        "label": "Obiettivo oro (manciate)"
       }
     },
     "statuses": {
@@ -1315,7 +1319,8 @@
       },
       "moveUp": "Sposta \"{title}\" in alto",
       "moveDown": "Sposta \"{title}\" in basso"
-    }
+    },
+    "tier": "Grado {tier}"
   },
   "scene": {
     "fields": {
@@ -1340,6 +1345,12 @@
       "zoneId": {
         "label": "Luogo",
         "noneOption": "Nessun luogo"
+      },
+      "milestone": {
+        "label": "Traguardo: il gruppo sale di livello dopo questa scena"
+      },
+      "battleAdjustments": {
+        "label": "Aggiustamenti dei Punti Battaglia"
       }
     },
     "kinds": {
@@ -1366,8 +1377,10 @@
       "editButton": "Salva modifiche"
     },
     "checkOff": {
-      "label": "Assegnato"
-    }
+      "label": "Assegnato",
+      "played": "Giocata"
+    },
+    "milestone": "Traguardo"
   },
   "sceneCreature": {
     "fields": {
@@ -1392,6 +1405,10 @@
       "npcId": {
         "label": "PNG collegato",
         "noneOption": "Non collegato"
+      },
+      "dhAdversaryId": {
+        "label": "Avversario",
+        "noneOption": "Nessun avversario"
       }
     },
     "list": {
@@ -1431,6 +1448,21 @@
       "treasureId": {
         "label": "Tesoro del catalogo",
         "noneOption": "Non collegato"
+      },
+      "gold": {
+        "label": "Oro (manciate)"
+      },
+      "dhWeaponId": {
+        "label": "Arma",
+        "noneOption": "Nessuna arma"
+      },
+      "dhArmorId": {
+        "label": "Armatura",
+        "noneOption": "Nessuna armatura"
+      },
+      "dhLootId": {
+        "label": "Bottino del catalogo",
+        "noneOption": "Nessun bottino"
       }
     },
     "list": {
@@ -1464,7 +1496,12 @@
       "permanentItems": "Oggetti permanenti",
       "consumables": "Consumabili"
     },
-    "heroPoints": "Punti eroe guadagnati"
+    "heroPoints": "Punti eroe guadagnati",
+    "milestones": {
+      "title": "Traguardi",
+      "planned": "Pianificati",
+      "reached": "Raggiunti"
+    }
   },
   "gameSystems": {
     "dnd5e": "D&D 5e",
@@ -1763,6 +1800,14 @@
     "burdens": {
       "oneHanded": "A una mano",
       "twoHanded": "A due mani"
+    },
+    "battleAdjustments": {
+      "easierOrShorter": "Scontro più facile o più breve (−1)",
+      "twoOrMoreSolos": "Due o più Solitari (−2)",
+      "boostedDamage": "Danni potenziati per tutti (−2)",
+      "lowerTierAdversary": "Un avversario di grado inferiore (+1)",
+      "noHeavyHitters": "Nessun Bruto, Orda, Capo o Solitario (+1)",
+      "harderOrLonger": "Scontro più difficile o più lungo (+2)"
     }
   },
   "dhDomains": {

@@ -168,7 +168,7 @@
       "notMultipleOf": "Must be a multiple of {divisor}.",
       "unrecognizedKeys": "Contains unexpected fields.",
       "positiveAmount": "Please enter a positive amount.",
-      "lootLinksBoth": "A loot row cannot link to both a magic item and a catalogue treasure.",
+      "lootLinksBoth": "A loot row links to at most one catalogue record.",
       "landmarkWithoutZone": "A landmark cannot be chosen without a zone — a landmark always belongs to a zone.",
       "beforeDawnOfTime": "This date is before the dawn of time.",
       "dayNotInMonth": "This month has {days} days.",
@@ -244,7 +244,8 @@
       "adversaryExperienceOrderMismatch": "The experiences given do not match the adversary's current list.",
       "adversaryFeatureOrderMismatch": "The features given do not match the adversary's current list.",
       "environmentFeatureOrderMismatch": "The features given do not match the environment's current list.",
-      "featureNeedsBoth": "A feature has both a name and a text, or neither."
+      "featureNeedsBoth": "A feature has both a name and a text, or neither.",
+      "notInThisSystem": "This field does not belong to the campaign's game system."
     },
     "errorPage": {
       "genericTitle": "Something went wrong",
@@ -1290,6 +1291,9 @@
       },
       "consumableTarget": {
         "label": "Consumable target"
+      },
+      "goldTarget": {
+        "label": "Gold target (handfuls)"
       }
     },
     "statuses": {
@@ -1315,7 +1319,8 @@
       },
       "moveUp": "Move \"{title}\" up",
       "moveDown": "Move \"{title}\" down"
-    }
+    },
+    "tier": "Tier {tier}"
   },
   "scene": {
     "fields": {
@@ -1340,6 +1345,12 @@
       "zoneId": {
         "label": "Place",
         "noneOption": "No place"
+      },
+      "milestone": {
+        "label": "Milestone: the party levels up after this scene"
+      },
+      "battleAdjustments": {
+        "label": "Battle Point adjustments"
       }
     },
     "kinds": {
@@ -1366,8 +1377,10 @@
       "editButton": "Save changes"
     },
     "checkOff": {
-      "label": "Awarded"
-    }
+      "label": "Awarded",
+      "played": "Played"
+    },
+    "milestone": "Milestone"
   },
   "sceneCreature": {
     "fields": {
@@ -1392,6 +1405,10 @@
       "npcId": {
         "label": "Linked NPC",
         "noneOption": "Not linked"
+      },
+      "dhAdversaryId": {
+        "label": "Adversary",
+        "noneOption": "No adversary"
       }
     },
     "list": {
@@ -1431,6 +1448,21 @@
       "treasureId": {
         "label": "Catalogue treasure",
         "noneOption": "Not linked"
+      },
+      "gold": {
+        "label": "Gold (handfuls)"
+      },
+      "dhWeaponId": {
+        "label": "Weapon",
+        "noneOption": "No weapon"
+      },
+      "dhArmorId": {
+        "label": "Armor",
+        "noneOption": "No armor"
+      },
+      "dhLootId": {
+        "label": "Catalogue loot",
+        "noneOption": "No loot"
       }
     },
     "list": {
@@ -1464,7 +1496,12 @@
       "permanentItems": "Permanent items",
       "consumables": "Consumables"
     },
-    "heroPoints": "Hero points earned"
+    "heroPoints": "Hero points earned",
+    "milestones": {
+      "title": "Milestones",
+      "planned": "Planned",
+      "reached": "Reached"
+    }
   },
   "gameSystems": {
     "dnd5e": "D&D 5e",
@@ -1763,6 +1800,14 @@
     "burdens": {
       "oneHanded": "One-handed",
       "twoHanded": "Two-handed"
+    },
+    "battleAdjustments": {
+      "easierOrShorter": "An easier or shorter fight (−1)",
+      "twoOrMoreSolos": "Two or more Solos (−2)",
+      "boostedDamage": "Every adversary's damage boosted (−2)",
+      "lowerTierAdversary": "An adversary from a lower tier (+1)",
+      "noHeavyHitters": "No Bruiser, Horde, Leader or Solo (+1)",
+      "harderOrLonger": "A harder or longer fight (+2)"
     }
   },
   "dhDomains": {

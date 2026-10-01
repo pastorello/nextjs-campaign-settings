@@ -19,6 +19,7 @@ function makeTotals(overrides: Partial<BudgetTotals> = {}): BudgetTotals {
     permanentItems: { assigned: 0, found: 0 },
     consumables: { assigned: 0, found: 0 },
     heroPoints: 0,
+    milestones: { planned: 0, reached: 0 },
     ...overrides,
   };
 }
@@ -85,5 +86,29 @@ describe("BudgetPanel (SPEC-013 §5.6, T9)", () => {
     render(ui);
 
     expect(screen.getByText(/3/)).toBeInTheDocument();
+  });
+
+  // SPEC-030 T2: Daggerheart counts milestones, not XP, silver or hero points.
+  it("shows a Daggerheart adventure's milestones and items only", async () => {
+    const ui = await BudgetPanel({
+      rulesSystem: "daggerheart",
+      totals: makeTotals({ milestones: { planned: 3, reached: 1 } }),
+      currencyUnit: "silver",
+      xpTarget: null,
+      currencyTarget: null,
+      permanentItemTarget: null,
+      consumableTarget: null,
+    });
+    render(ui);
+
+    expect(screen.queryByText("budget.categories.xp")).toBeNull();
+    expect(screen.queryByText(/budget\.categories\.currency/)).toBeNull();
+    expect(screen.queryByText(/budget\.heroPoints/)).toBeNull();
+    expect(
+      screen.getByText("budget.categories.permanentItems")
+    ).toBeInTheDocument();
+    expect(screen.getByText(/budget\.milestones\.title/)).toHaveTextContent(
+      "budget.milestones.planned 3 · budget.milestones.reached 1"
+    );
   });
 });

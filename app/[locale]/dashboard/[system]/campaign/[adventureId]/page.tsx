@@ -71,8 +71,12 @@ export default async function AdventurePage({
       system={system}
     >
       <div>
-        <AdventureHeader adventure={adventure} />
+        <AdventureHeader
+          adventure={adventure}
+          rulesSystem={adventure.rulesSystem}
+        />
         <BudgetPanel
+          rulesSystem={adventure.rulesSystem}
           totals={totals}
           currencyUnit={currencyUnit}
           xpTarget={adventure.xpTarget}
@@ -81,6 +85,7 @@ export default async function AdventurePage({
           consumableTarget={adventure.consumableTarget}
         />
         <SceneList
+          rulesSystem={adventure.rulesSystem}
           adventureId={adventure.id}
           scenes={adventure.scenes}
           currencyUnit={currencyUnit}

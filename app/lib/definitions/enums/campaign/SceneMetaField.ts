@@ -12,6 +12,9 @@ enum SceneMetaField {
   xpAward = "xpAward",
   grantsHeroPoint = "grantsHeroPoint",
   zoneId = "zoneId",
+  // SPEC-030 — Daggerheart only.
+  milestone = "milestone",
+  battleAdjustments = "battleAdjustments",
 }
 
 export default SceneMetaField;

@@ -6,8 +6,14 @@ import {
   toDisplayAmount,
 } from "@/app/lib/utils/currency/convertCurrency";
 import SectionTitle from "@/app/ui/typography/SectionTitle";
+import type GameSystem from "@/app/lib/definitions/GameSystem";
 
 interface BudgetPanelProps {
+  /**
+   * SPEC-030: Daggerheart counts milestones and items, not XP, silver or
+   * hero points.
+   */
+  rulesSystem?: GameSystem;
   totals: BudgetTotals;
   currencyUnit: CurrencyUnit;
   xpTarget: number | null;
@@ -37,6 +43,7 @@ function remaining(target: number | null, assigned: number): string {
  * makes it update without a full page reload, not client state here.
  */
 export default async function BudgetPanel({
+  rulesSystem = "dnd5e",
   totals,
   currencyUnit,
   xpTarget,
@@ -56,7 +63,8 @@ export default async function BudgetPanel({
   );
   const currencyFound = toDisplayAmount(totals.currency.found, currencyUnit);
 
-  const rows = [
+  const isDaggerheart = rulesSystem === "daggerheart";
+  const allRows = [
     {
       key: "xp",
       label: t("budget.categories.xp"),
@@ -86,6 +94,10 @@ export default async function BudgetPanel({
       found: totals.consumables.found,
     },
   ];
+  // Daggerheart has no XP and no silver (SPEC-030 §5).
+  const rows = isDaggerheart
+    ? allRows.filter((row) => row.key !== "xp" && row.key !== "currency")
+    : allRows;
 
   return (
     <div className="mb-6 rounded-md border p-4">
@@ -128,9 +140,17 @@ export default async function BudgetPanel({
           </tbody>
         </table>
       </div>
-      <p className="mt-3 text-sm text-gray-600">
-        {t("budget.heroPoints")}: {totals.heroPoints}
-      </p>
+      {isDaggerheart ? (
+        <p className="mt-3 text-sm text-gray-600">
+          {t("budget.milestones.title")}: {t("budget.milestones.planned")}{" "}
+          {totals.milestones.planned} · {t("budget.milestones.reached")}{" "}
+          {totals.milestones.reached}
+        </p>
+      ) : (
+        <p className="mt-3 text-sm text-gray-600">
+          {t("budget.heroPoints")}: {totals.heroPoints}
+        </p>
+      )}
     </div>
   );
 }

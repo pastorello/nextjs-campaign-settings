@@ -13,6 +13,11 @@ enum LootMetaField {
   value = "value",
   magicItemId = "magicItemId",
   treasureId = "treasureId",
+  // SPEC-030 — Daggerheart only.
+  gold = "gold",
+  dhWeaponId = "dhWeaponId",
+  dhArmorId = "dhArmorId",
+  dhLootId = "dhLootId",
 }
 
 export default LootMetaField;

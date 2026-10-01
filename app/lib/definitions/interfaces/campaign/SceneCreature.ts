@@ -14,6 +14,8 @@ interface SceneCreature {
   note: string | null;
   awarded: boolean;
   npcId: number | null;
+  /** SPEC-030, Daggerheart only: the adversary the row prices. */
+  dhAdversaryId?: number | null;
 }
 
 export default SceneCreature;

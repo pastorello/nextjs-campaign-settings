@@ -71,7 +71,7 @@ Steps 1–3 are cheap and go in one file. Do not skip straight to 4 for anything
 | 027 | [Daggerheart: ancestries and communities](./027-daggerheart-ancestries-and-communities.md)     | Shipped 2026-10-01            | 4     |
 | 028 | [Daggerheart: adversaries and environments](./028-daggerheart-adversaries-and-environments.md) | Shipped 2026-10-01            | 4     |
 | 029 | [Daggerheart: weapons, armor and loot](./029-daggerheart-weapons-armor-and-loot.md)            | Shipped 2026-10-01            | 4     |
-| 030 | [Daggerheart: campaign management](./030-daggerheart-campaign-management.md)                   | Agreed 2026-09-30             | 4     |
+| 030 | [Daggerheart: campaign management](./030-daggerheart-campaign-management.md)                   | In progress 2026-10-01        | 4     |
 
 Feature ideas live in [`../ROADMAP.md`](../ROADMAP.md) until they are ready for a spec.
 

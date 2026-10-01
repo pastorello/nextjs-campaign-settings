@@ -20,6 +20,7 @@ describe("getBudgetTotals (SPEC-013 T5)", () => {
       permanentItems: { assigned: 0, found: 0 },
       consumables: { assigned: 0, found: 0 },
       heroPoints: 0,
+      milestones: { planned: 0, reached: 0 },
     });
   });
 
@@ -136,6 +137,27 @@ describe("getBudgetTotals (SPEC-013 T5)", () => {
 
     expect(totals.currency).toEqual({ assigned: 0, found: 0 });
     expect(totals.permanentItems).toEqual({ assigned: 1, found: 0 });
+  });
+
+  it("counts planned and reached milestones (SPEC-030 T2)", async () => {
+    const scene = (milestone: boolean, awarded: boolean) => ({
+      xpAward: null,
+      awarded,
+      grantsHeroPoint: false,
+      milestone,
+      creatures: [],
+      loot: [],
+    });
+    findMany.mockResolvedValue([
+      scene(true, true),
+      scene(true, false),
+      scene(false, true),
+    ]);
+
+    const { default: getBudgetTotals } = await import("./getBudgetTotals");
+    const totals = await getBudgetTotals(1);
+
+    expect(totals.milestones).toEqual({ planned: 2, reached: 1 });
   });
 
   it("wraps a Prisma failure in a DatabaseError", async () => {

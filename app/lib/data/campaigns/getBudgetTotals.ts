@@ -12,6 +12,11 @@ export interface BudgetTotals {
   permanentItems: BudgetFigure;
   consumables: BudgetFigure;
   heroPoints: number;
+  /**
+   * SPEC-030: a Daggerheart adventure's milestones, planned (marked) and
+   * reached (marked and played). Zero for a 5e one, which has none.
+   */
+  milestones: { planned: number; reached: number };
 }
 
 /**
@@ -50,6 +55,7 @@ export default async function getBudgetTotals(
         xpAward: true,
         awarded: true,
         grantsHeroPoint: true,
+        milestone: true,
         creatures: {
           select: { xpEach: true, quantity: true, awarded: true },
         },
@@ -75,9 +81,15 @@ export default async function getBudgetTotals(
     permanentItems: { assigned: 0, found: 0 },
     consumables: { assigned: 0, found: 0 },
     heroPoints: 0,
+    milestones: { planned: 0, reached: 0 },
   };
 
   for (const scene of scenes) {
+    if (scene.milestone) {
+      totals.milestones.planned += 1;
+      if (scene.awarded) totals.milestones.reached += 1;
+    }
+
     const sceneXp = scene.xpAward ?? 0;
     totals.xp.assigned += sceneXp;
     if (scene.awarded) {

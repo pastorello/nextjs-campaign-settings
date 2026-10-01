@@ -10,6 +10,8 @@ import { buildBespokeCreateSchema } from "../validation/buildBespokeEntitySchema
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import { z } from "zod";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
+import otherSystemFieldErrors from "./otherSystemFieldErrors";
+import fetchRulesSystem from "./fetchRulesSystem";
 
 /**
  * Adds a creature to a scene (SPEC-013 §5). `sceneId` is deliberately not
@@ -30,15 +32,47 @@ export default async function createSceneCreature(
     return { ok: false, errors: toFieldErrors(parsed.error) };
   }
 
+  // SPEC-030: the campaign's system decides which fields exist.
+  const system = await fetchRulesSystem({
+    sceneId: parsed.data.sceneId as number,
+  });
+  const systemErrors = otherSystemFieldErrors(
+    "sceneCreature",
+    system,
+    parsed.data
+  );
+  if (systemErrors) return { ok: false, errors: systemErrors };
+
   // Read from `parsed.data`, never the raw payload: its values are the
   // coerced ones (TD-122). The schema is built from a runtime field list, so
   // its output type is widened; this assertion narrows it back.
-  const { sceneId, position, name, level, xpEach, quantity, note, npcId } =
-    parsed.data as Omit<SceneCreature, "id">;
+  const {
+    sceneId,
+    position,
+    name,
+    level,
+    xpEach,
+    quantity,
+    note,
+    npcId,
+    dhAdversaryId,
+  } = parsed.data as Omit<SceneCreature, "id">;
 
   try {
     await prisma.sceneCreature.create({
-      data: { sceneId, position, name, level, xpEach, quantity, note, npcId },
+      data: {
+        sceneId,
+        position,
+        name,
+        level,
+        xpEach,
+        quantity,
+        note,
+        npcId,
+        ...(system === "daggerheart" && {
+          dhAdversaryId: dhAdversaryId ?? null,
+        }),
+      },
     });
   } catch (error) {
     throw toDatabaseError("creating scene creature", error);

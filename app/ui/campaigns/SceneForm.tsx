@@ -22,10 +22,13 @@ import BespokeFormErrorSummary from "@/app/ui/forms/BespokeFormErrorSummary";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import ButtonState from "@/app/ui/buttons/BaseButton/ButtonState";
+import type GameSystem from "@/app/lib/definitions/GameSystem";
 
 const NONE = 0;
 
 interface SceneFormProps {
+  /** SPEC-030: Daggerheart marks milestones instead of XP and hero points. */
+  rulesSystem?: GameSystem;
   adventureId: number;
   nextPosition: number;
   zoneOptions: ResolvedOption<number>[];
@@ -43,6 +46,7 @@ interface SceneFormProps {
  * `AssignLocationModal`'s zone/POI pair, so it is a normal form field.
  */
 export default function SceneForm({
+  rulesSystem = "dnd5e",
   adventureId,
   nextPosition,
   zoneOptions,
@@ -70,6 +74,8 @@ export default function SceneForm({
     scene?.grantsHeroPoint ?? false
   );
   const [zoneId, setZoneId] = useState<number>(scene?.zoneId ?? NONE);
+  const [milestone, setMilestone] = useState(scene?.milestone ?? false);
+  const isDaggerheart = rulesSystem === "daggerheart";
   const { errors, isSaving, submit } = useMutationSubmit();
 
   const zoneSelectOptions = [
@@ -85,8 +91,13 @@ export default function SceneForm({
       kind,
       title,
       description: description.trim() === "" ? null : description,
-      xpAward: xpAward.trim() === "" ? null : Number(xpAward),
-      grantsHeroPoint,
+      // Each system writes its own fields (SPEC-030 §9 decision 2).
+      ...(isDaggerheart
+        ? { milestone }
+        : {
+            xpAward: xpAward.trim() === "" ? null : Number(xpAward),
+            grantsHeroPoint,
+          }),
       zoneId: zoneId === NONE ? null : zoneId,
     } as Scene;
 
@@ -118,16 +129,26 @@ export default function SceneForm({
         value={description}
         onChange={(value) => setDescription(String(value))}
       />
-      <TextInput
-        label={t(sceneMeta[SceneMetaField.xpAward].labelKey ?? "")}
-        value={xpAward}
-        onChange={(value) => setXpAward(String(value))}
-      />
-      <CheckboxInput
-        label={t(sceneMeta[SceneMetaField.grantsHeroPoint].labelKey ?? "")}
-        value={grantsHeroPoint}
-        onChange={(value) => setGrantsHeroPoint(value === true)}
-      />
+      {isDaggerheart ? (
+        <CheckboxInput
+          label={t(sceneMeta[SceneMetaField.milestone].labelKey)}
+          value={milestone}
+          onChange={(value) => setMilestone(value === true)}
+        />
+      ) : (
+        <>
+          <TextInput
+            label={t(sceneMeta[SceneMetaField.xpAward].labelKey ?? "")}
+            value={xpAward}
+            onChange={(value) => setXpAward(String(value))}
+          />
+          <CheckboxInput
+            label={t(sceneMeta[SceneMetaField.grantsHeroPoint].labelKey ?? "")}
+            value={grantsHeroPoint}
+            onChange={(value) => setGrantsHeroPoint(value === true)}
+          />
+        </>
+      )}
       <Select
         label={t(sceneMeta[SceneMetaField.zoneId].labelKey ?? "")}
         value={zoneId}

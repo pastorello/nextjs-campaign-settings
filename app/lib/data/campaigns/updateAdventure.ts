@@ -10,6 +10,8 @@ import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import { z } from "zod";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
+import otherSystemFieldErrors from "./otherSystemFieldErrors";
+import fetchRulesSystem from "./fetchRulesSystem";
 
 /**
  * Updates an adventure's own fields, including its position — the direct,
@@ -31,6 +33,15 @@ export default async function updateAdventure(
   if (!parsed.success) {
     return { ok: false, errors: toFieldErrors(parsed.error) };
   }
+
+  // SPEC-030: the campaign's system decides which fields exist.
+  const system = await fetchRulesSystem(
+    parsed.data.campaignId !== undefined
+      ? { campaignId: parsed.data.campaignId as number | null }
+      : { adventureId: parsed.data.id as number }
+  );
+  const systemErrors = otherSystemFieldErrors("adventure", system, parsed.data);
+  if (systemErrors) return { ok: false, errors: systemErrors };
 
   // Written from `parsed.data`, never the raw payload: it holds only the
   // declared keys the payload carried, already coerced (TD-122). The schema is

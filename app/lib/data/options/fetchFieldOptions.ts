@@ -30,7 +30,8 @@ export default async function fetchFieldOptions(
     (table === "treasure" ||
       table === "campaign" ||
       table === "dnd5eCampaign" ||
-      table === "dhAdversary")
+      table === "dhAdversary" ||
+      table === "dhLoot")
   ) {
     return [];
   }
@@ -157,6 +158,28 @@ export default async function fetchFieldOptions(
         });
       } catch (error) {
         throw toDatabaseError("fetching dhAdversary options", error);
+      }
+
+      return rows.map((row) => ({ value: row.id, label: row.name }));
+    }
+    // SPEC-030: a Daggerheart loot row's catalogue links.
+    case "dhWeapon":
+    case "dhArmor":
+    case "dhLoot": {
+      const read = {
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+      } as const;
+      let rows;
+      try {
+        rows =
+          table === "dhWeapon"
+            ? await prisma.dhWeapon.findMany(read)
+            : table === "dhArmor"
+              ? await prisma.dhArmor.findMany(read)
+              : await prisma.dhLoot.findMany(read);
+      } catch (error) {
+        throw toDatabaseError(`fetching ${table} options`, error);
       }
 
       return rows.map((row) => ({ value: row.id, label: row.name }));

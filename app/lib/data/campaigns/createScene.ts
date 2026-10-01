@@ -10,6 +10,8 @@ import { buildBespokeCreateSchema } from "../validation/buildBespokeEntitySchema
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import { z } from "zod";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
+import otherSystemFieldErrors from "./otherSystemFieldErrors";
+import fetchRulesSystem from "./fetchRulesSystem";
 
 /**
  * Adds a scene to an adventure (SPEC-013 §5). `adventureId` is deliberately
@@ -30,6 +32,13 @@ export default async function createScene(
     return { ok: false, errors: toFieldErrors(parsed.error) };
   }
 
+  // SPEC-030: the campaign's system decides which fields exist.
+  const system = await fetchRulesSystem({
+    adventureId: parsed.data.adventureId as number,
+  });
+  const systemErrors = otherSystemFieldErrors("scene", system, parsed.data);
+  if (systemErrors) return { ok: false, errors: systemErrors };
+
   // Read from `parsed.data`, never the raw payload: its values are the
   // coerced ones (TD-122). The schema is built from a runtime field list, so
   // its output type is widened; this assertion narrows it back.
@@ -42,6 +51,8 @@ export default async function createScene(
     xpAward,
     grantsHeroPoint,
     zoneId,
+    milestone,
+    battleAdjustments,
   } = parsed.data as Omit<Scene, "id">;
 
   try {
@@ -55,6 +66,10 @@ export default async function createScene(
         xpAward,
         grantsHeroPoint,
         zoneId,
+        ...(system === "daggerheart" && {
+          milestone: milestone ?? false,
+          battleAdjustments: battleAdjustments ?? [],
+        }),
       },
     });
   } catch (error) {

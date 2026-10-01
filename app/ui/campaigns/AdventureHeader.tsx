@@ -17,9 +17,13 @@ import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 
 import AdventureInfoForm from "./AdventureInfoForm";
 import renderRichText from "@/app/lib/utils/data/renderRichText";
+import type GameSystem from "@/app/lib/definitions/GameSystem";
+import tierOfLevel from "@/app/lib/utils/daggerheart/tierOfLevel";
 
 interface AdventureHeaderProps {
   adventure: Adventure;
+  /** The rules it is planned under (SPEC-030): Daggerheart shows a tier. */
+  rulesSystem?: GameSystem;
 }
 
 /**
@@ -31,7 +35,10 @@ interface AdventureHeaderProps {
  * The free-text `timeline` field this used to show, with a note to move it
  * into calendar events, was dropped in SPEC-014 T8 — see that spec's §10.
  */
-export default function AdventureHeader({ adventure }: AdventureHeaderProps) {
+export default function AdventureHeader({
+  adventure,
+  rulesSystem = "dnd5e",
+}: AdventureHeaderProps) {
   const t = useTranslations();
   const system = useGameSystem();
   const [isEditing, setIsEditing] = useState(false);
@@ -40,6 +47,7 @@ export default function AdventureHeader({ adventure }: AdventureHeaderProps) {
     return (
       <AdventureInfoForm
         adventure={adventure}
+        rulesSystem={rulesSystem}
         onCancel={() => setIsEditing(false)}
         onSaved={() => setIsEditing(false)}
       />
@@ -60,16 +68,21 @@ export default function AdventureHeader({ adventure }: AdventureHeaderProps) {
       <p className="mb-2 text-sm text-gray-600">
         {t(adventureMeta[AdventureMetaField.targetLevel].labelKey ?? "")}:{" "}
         {adventure.targetLevel}
+        {rulesSystem === "daggerheart" &&
+          ` · ${t("adventure.tier", { tier: tierOfLevel(adventure.targetLevel) })}`}
       </p>
       {adventure.synopsis && (
         <div className="mb-2 text-gray-700">
           {renderRichText(adventure.synopsis)}
         </div>
       )}
-      <p className="mb-4 text-sm text-gray-600">
-        {t(adventureMeta[AdventureMetaField.currencyUnit].labelKey ?? "")}:{" "}
-        {t(`adventure.currencyUnits.${currencyUnit}`)}
-      </p>
+      {/* 5e's display unit; a Daggerheart adventure counts in handfuls. */}
+      {rulesSystem === "dnd5e" && (
+        <p className="mb-4 text-sm text-gray-600">
+          {t(adventureMeta[AdventureMetaField.currencyUnit].labelKey ?? "")}:{" "}
+          {t(`adventure.currencyUnits.${currencyUnit}`)}
+        </p>
+      )}
       <BaseButton
         onClick={() => setIsEditing(true)}
         size={ButtonSize.small}

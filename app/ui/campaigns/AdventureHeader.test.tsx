@@ -4,7 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import AdventureStatus from "@/app/lib/definitions/enums/campaign/AdventureStatus";
 
 vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
+  useTranslations: () => (key: string, values?: Record<string, unknown>) =>
+    values ? `${key} ${JSON.stringify(values)}` : key,
 }));
 
 vi.mock("@/i18n/navigation", () => ({
@@ -77,5 +78,17 @@ describe("AdventureHeader (SPEC-013 T8)", () => {
     fireEvent.click(screen.getByTestId("adventure-info-form"));
     expect(screen.queryByTestId("adventure-info-form")).not.toBeInTheDocument();
     expect(screen.getByText("Into the Mire")).toBeInTheDocument();
+  });
+
+  // SPEC-030 T2.
+  it("shows a Daggerheart adventure's tier, and no currency unit", () => {
+    render(<AdventureHeader adventure={adventure} rulesSystem="daggerheart" />);
+
+    expect(
+      screen.getByText(/adventure\.tier \{"tier":2\}/)
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/adventure\.fields\.currencyUnit\.label/)
+    ).toBeNull();
   });
 });

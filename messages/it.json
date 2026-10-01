@@ -31,7 +31,9 @@
       "dhAdversaries": "Avversari",
       "dhEnvironments": "Ambienti",
       "dhEquipment": "Equipaggiamento",
-      "dhWeapons": "Armi"
+      "dhWeapons": "Armi",
+      "dhArmor": "Armature",
+      "dhLoot": "Bottino"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -2210,6 +2212,74 @@
     "card": {
       "header": "Grado {tier} · {slot}",
       "damage": "Danni",
+      "imageAlt": "Immagine di {name}"
+    }
+  },
+  "dhArmor": {
+    "page": {
+      "title": "Armature",
+      "searchPlaceholder": "Cerca armature...",
+      "itemSingular": "armatura",
+      "itemPlural": "armature",
+      "newItemButton": "Nuova armatura",
+      "emptyMessage": "Nessuna armatura."
+    },
+    "form": {
+      "createTitle": "Crea nuova armatura",
+      "editTitle": "Modifica armatura",
+      "createButton": "Crea armatura",
+      "editButton": "Salva armatura"
+    },
+    "fields": {
+      "major": {
+        "label": "Soglia Maggiore base"
+      },
+      "severe": {
+        "label": "Soglia Grave base"
+      },
+      "armorScore": {
+        "label": "Punteggio armatura"
+      }
+    },
+    "card": {
+      "header": "Grado {tier}",
+      "thresholds": "Soglie base",
+      "imageAlt": "Immagine di {name}"
+    }
+  },
+  "dhLoot": {
+    "page": {
+      "title": "Bottino",
+      "searchPlaceholder": "Cerca bottino...",
+      "itemSingular": "oggetto",
+      "itemPlural": "oggetti",
+      "newItemButton": "Nuovo bottino",
+      "emptyMessage": "Nessun bottino."
+    },
+    "form": {
+      "createTitle": "Crea nuovo bottino",
+      "editTitle": "Modifica bottino",
+      "createButton": "Crea bottino",
+      "editButton": "Salva bottino"
+    },
+    "fields": {
+      "kind": {
+        "label": "Tipo"
+      },
+      "rarity": {
+        "label": "Rarità"
+      },
+      "rollValue": {
+        "label": "Valore sul dado",
+        "placeholder": "La voce della tua tabella"
+      },
+      "effectText": {
+        "label": "Effetto"
+      }
+    },
+    "card": {
+      "header": "{kind} · {rarity}",
+      "rollValue": "Tiro {value}",
       "imageAlt": "Immagine di {name}"
     }
   },

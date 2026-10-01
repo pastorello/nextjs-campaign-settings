@@ -112,6 +112,24 @@ describe("NavLinks under a system", () => {
       "href",
       "/dashboard/daggerheart/admin/weapons"
     );
+    expect(within(group).getByLabelText("dhArmor")).toHaveAttribute(
+      "href",
+      "/dashboard/daggerheart/armor"
+    );
+    expect(within(group).getByLabelText("dhLoot")).toHaveAttribute(
+      "href",
+      "/dashboard/daggerheart/loot"
+    );
+  });
+
+  it("gives a player the group without the DM's loot (SPEC-029 §9 decision 1)", () => {
+    system = "daggerheart";
+    pathname = "/dashboard/daggerheart";
+    render(<NavLinks player />);
+
+    const group = screen.getByRole("group", { name: "dhEquipment" });
+    expect(within(group).queryByLabelText("dhLoot")).toBeNull();
+    expect(within(group).getByLabelText("dhArmor")).toBeInTheDocument();
   });
 
   it("leaves the equipment group out under dnd5e", () => {
@@ -255,6 +273,7 @@ describe("NavLinks for a player", () => {
       "/dashboard/daggerheart/communities",
       // SPEC-029: the equipment players choose from, in its group.
       "/dashboard/daggerheart/weapons",
+      "/dashboard/daggerheart/armor",
     ]);
   });
 });

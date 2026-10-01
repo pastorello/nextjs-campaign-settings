@@ -31,7 +31,9 @@
       "dhAdversaries": "Adversaries",
       "dhEnvironments": "Environments",
       "dhEquipment": "Equipment",
-      "dhWeapons": "Weapons"
+      "dhWeapons": "Weapons",
+      "dhArmor": "Armor",
+      "dhLoot": "Loot"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -2210,6 +2212,74 @@
     "card": {
       "header": "Tier {tier} · {slot}",
       "damage": "Damage",
+      "imageAlt": "Image of {name}"
+    }
+  },
+  "dhArmor": {
+    "page": {
+      "title": "Armor",
+      "searchPlaceholder": "Search armor...",
+      "itemSingular": "armor",
+      "itemPlural": "armor",
+      "newItemButton": "New armor",
+      "emptyMessage": "No armor."
+    },
+    "form": {
+      "createTitle": "Create new armor",
+      "editTitle": "Edit armor",
+      "createButton": "Create armor",
+      "editButton": "Save armor"
+    },
+    "fields": {
+      "major": {
+        "label": "Base Major threshold"
+      },
+      "severe": {
+        "label": "Base Severe threshold"
+      },
+      "armorScore": {
+        "label": "Armor score"
+      }
+    },
+    "card": {
+      "header": "Tier {tier}",
+      "thresholds": "Base thresholds",
+      "imageAlt": "Image of {name}"
+    }
+  },
+  "dhLoot": {
+    "page": {
+      "title": "Loot",
+      "searchPlaceholder": "Search loot...",
+      "itemSingular": "item",
+      "itemPlural": "items",
+      "newItemButton": "New loot",
+      "emptyMessage": "No loot."
+    },
+    "form": {
+      "createTitle": "Create new loot",
+      "editTitle": "Edit loot",
+      "createButton": "Create loot",
+      "editButton": "Save loot"
+    },
+    "fields": {
+      "kind": {
+        "label": "Kind"
+      },
+      "rarity": {
+        "label": "Rarity"
+      },
+      "rollValue": {
+        "label": "Roll value",
+        "placeholder": "The entry on your table"
+      },
+      "effectText": {
+        "label": "Effect"
+      }
+    },
+    "card": {
+      "header": "{kind} · {rarity}",
+      "rollValue": "Roll {value}",
       "imageAlt": "Image of {name}"
     }
   },

@@ -14,6 +14,8 @@ import DhCommunityMetaField from "../definitions/enums/daggerheart/DhCommunityMe
 import DhAdversaryMetaField from "../definitions/enums/daggerheart/DhAdversaryMetaField";
 import DhEnvironmentMetaField from "../definitions/enums/daggerheart/DhEnvironmentMetaField";
 import DhWeaponMetaField from "../definitions/enums/daggerheart/DhWeaponMetaField";
+import DhArmorMetaField from "../definitions/enums/daggerheart/DhArmorMetaField";
+import DhLootMetaField from "../definitions/enums/daggerheart/DhLootMetaField";
 
 /**
  * The fields a domain can be filtered by, declared once (TD-12).
@@ -155,6 +157,12 @@ const queryFields: Record<PageType, MetaConfigKey[]> = {
     DhWeaponMetaField.damageType,
     DhWeaponMetaField.burden,
     DhWeaponMetaField.origin,
+  ],
+  [PageType.DhArmor]: [DhArmorMetaField.tier, DhArmorMetaField.origin],
+  [PageType.DhLoot]: [
+    DhLootMetaField.kind,
+    DhLootMetaField.rarity,
+    DhLootMetaField.origin,
   ],
 };
 

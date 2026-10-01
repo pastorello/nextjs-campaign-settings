@@ -29,6 +29,8 @@ const counts = vi.hoisted(() => ({
   getDhAdversariesCount: vi.fn(),
   getDhEnvironmentsCount: vi.fn(),
   getDhWeaponsCount: vi.fn(),
+  getDhArmorCount: vi.fn(),
+  getDhLootCount: vi.fn(),
 }));
 vi.mock("@/app/lib/data/dhDomains/getDhDomainsCount", () => ({
   getDhDomainsCount: counts.getDhDomainsCount,
@@ -53,6 +55,12 @@ vi.mock("@/app/lib/data/dhEnvironments/getDhEnvironmentsCount", () => ({
 }));
 vi.mock("@/app/lib/data/dhWeapons/getDhWeaponsCount", () => ({
   getDhWeaponsCount: counts.getDhWeaponsCount,
+}));
+vi.mock("@/app/lib/data/dhArmor/getDhArmorCount", () => ({
+  getDhArmorCount: counts.getDhArmorCount,
+}));
+vi.mock("@/app/lib/data/dhLoot/getDhLootCount", () => ({
+  getDhLootCount: counts.getDhLootCount,
 }));
 
 vi.mock("@/app/ui/containers/ListPage", () => ({
@@ -134,6 +142,7 @@ import SubclassesLayout from "./subclasses/layout";
 import AncestriesLayout from "./ancestries/layout";
 import CommunitiesLayout from "./communities/layout";
 import WeaponsLayout from "./weapons/layout";
+import ArmorLayout from "./armor/layout";
 import CommunitiesPage, {
   generateMetadata as communitiesMetadata,
 } from "./communities/page";
@@ -149,6 +158,8 @@ import EnvironmentsPage, {
 import WeaponsPage, {
   generateMetadata as weaponsMetadata,
 } from "./weapons/page";
+import ArmorPage, { generateMetadata as armorMetadata } from "./armor/page";
+import LootPage, { generateMetadata as lootMetadata } from "./loot/page";
 import DomainsPage, {
   generateMetadata as domainsMetadata,
 } from "./domains/page";
@@ -180,6 +191,7 @@ describe("the Daggerheart catalogue layouts (SPEC-021)", () => {
     ["ancestries", AncestriesLayout],
     ["communities", CommunitiesLayout],
     ["weapons", WeaponsLayout],
+    ["armor", ArmorLayout],
   ] as const;
 
   it.each(layouts)("%s renders under daggerheart", async (_, Layout) => {
@@ -243,6 +255,8 @@ describe("the public Daggerheart lists (SPEC-021 T2, T3, T6)", () => {
       PageType.DhEnvironment,
     ],
     [WeaponsPage, weaponsMetadata, counts.getDhWeaponsCount, PageType.DhWeapon],
+    [ArmorPage, armorMetadata, counts.getDhArmorCount, PageType.DhArmor],
+    [LootPage, lootMetadata, counts.getDhLootCount, PageType.DhLoot],
   ])(
     "counts with the search params and renders the library (%#)",
     async (Page, metadata, count, pageType) => {

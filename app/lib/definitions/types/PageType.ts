@@ -20,6 +20,8 @@ enum PageType {
   DhEnvironment = "environments",
   // SPEC-029 — equipment, under one sidebar group.
   DhWeapon = "weapons",
+  DhArmor = "armor",
+  DhLoot = "loot",
 }
 
 export default PageType;

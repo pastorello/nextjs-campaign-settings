@@ -9,8 +9,8 @@ import type VisibilityScope from "./VisibilityScope";
  * always for the DM; for a player, only when the record that owns it is
  * visible to their campaign. That means a visible place, a revealed NPC,
  * deity, magic item or faction, or a Daggerheart catalogue record (a
- * domain, an ancestry, a community or a weapon: the rules, shown to every
- * player). A treasure is prep material, never shown, and so are an
+ * domain, an ancestry, a community, a weapon or an armor: the rules, shown
+ * to every player). A treasure is prep material, never shown, and so are an
  * adversary's, an environment's (SPEC-028 §9 decision 3) and loot's
  * (SPEC-029 §9 decision 1). An image no record owns is shown to no player.
  */
@@ -34,6 +34,7 @@ export default async function isRecordImageVisible(
       prisma.dhAncestry.findFirst({ where: { imageId }, select }),
       prisma.dhCommunity.findFirst({ where: { imageId }, select }),
       prisma.dhWeapon.findFirst({ where: { imageId }, select }),
+      prisma.dhArmor.findFirst({ where: { imageId }, select }),
     ]);
     return (
       (zone !== null && scope.zones.has(zone.id)) ||

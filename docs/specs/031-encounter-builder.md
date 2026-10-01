@@ -1,253 +1,284 @@
-# SPEC-031: Encounter builder — a creature's stats per system, and a fight's difficulty
+# SPEC-031: Encounter builder — where a creature's stats are, and how hard a fight is
 
-- **Status:** Draft 2026-10-01. Written by Claude from the ROADMAP's Phase 4 entry, then rewritten the same day around the DM's answers to its four questions (§9). The revised text is waiting for the DM's agreement; §9 lists the choices Claude made in reading the answers.
+- **Status:** Agreed 2026-10-01. Drafted by Claude from the ROADMAP's Phase 4 entry, rewritten twice the same day around the DM's two rounds of answers (§9), and agreed by the DM with the implementation plan. **T1 is half done:** this text is agreed, but `docs/domain/5e-encounters.md` is not written yet, because the SRD 5.2.1 PDF could not be reached from the cloud session (§9, _Open before T4_).
 - **Date:** 2026-10-01
 - **Phase:** 4
-- **Related:** [SPEC-013](./013-campaign-management.md) (the fight scene and its creature rows: "a scene with its creatures is that encounter"; §3's "not a rules engine", which this spec narrows for 5e) · [SPEC-030](./030-daggerheart-campaign-management.md) (Daggerheart's Battle Points, already a computed difficulty) · [SPEC-018](./018-game-systems.md) §5 and rule 3 (NPCs the same under every system), which this spec amends · [SPEC-022](./022-accounts-roles-and-party-visibility.md) (`dmOnly` fields) · [`campaign-design-method.md`](../domain/campaign-design-method.md) §6 (the authored-values rule) · [`licensing.md`](../domain/licensing.md) §3 (SRD 5.2.1 under CC-BY-4.0) · ADR-0021 (to be written, T1)
+- **Related:** [SPEC-013](./013-campaign-management.md) (the fight scene and its creature rows: "a scene with its creatures is that encounter"; §3's "not a rules engine", which this spec narrows for 5e) · [SPEC-030](./030-daggerheart-campaign-management.md) (Daggerheart's Battle Points, already a computed difficulty) · [SPEC-022](./022-accounts-roles-and-party-visibility.md) R15 (the campaign section is the DM's alone) · [`campaign-design-method.md`](../domain/campaign-design-method.md) §6 (the authored-values rule) · [`licensing.md`](../domain/licensing.md) §3 (SRD 5.2.1 under CC-BY-4.0)
 
 ---
 
 ## 1. Problem
 
-**An NPC is a character of the story, not a stat block.** SPEC-018 keeps every
-NPC the same under every system: Tusk, the orc shaman of the level-3 adventure,
-has one name, one description, one place in the world. But when Tusk fights,
-the table needs his statistics, and those depend on the system being played: an
-orc in 5e, something else in Daggerheart. Today the app has nowhere to say where
-they are. The DM keeps them outside it, in an online compendium page, a monster
-editor or a page of the _Monster Manual_, and has to remember which, per NPC
-and per system.
+**A fight's creatures have statistics the app cannot point to.** SPEC-013 made
+a fight scene the encounter: creature rows with a name, a quantity, an optional
+NPC and the XP each is worth. When the table fights, the DM needs each
+creature's statistics, and those live outside the app: an online compendium
+page, a monster made in an external editor, a page of the _Monster Manual_.
+Nothing on the row says where, so the DM has to remember it.
 
-**A 5e fight cannot tell how hard it is.** SPEC-013 made a fight scene the
-encounter: creature rows with a name, a quantity, an optional NPC and the XP
-each is worth, typed by hand. Under Daggerheart, SPEC-030 already prices each
-row in Battle Points against the party's budget. Under 5e nothing is compared,
-so the DM builds a fight blind, or does the arithmetic outside the app. The
-DM's own planning spreadsheet records each creature's level by hand precisely
-so that a fight can be judged against the party; the app keeps the numbers and
-never puts them together.
+**A 5e fight cannot tell how hard it is.** Under Daggerheart, SPEC-030 already
+prices each row in Battle Points against the party's budget. Under 5e nothing
+is compared, so the DM builds a fight blind, or does the arithmetic outside the
+app. The DM's own planning spreadsheet records each creature's challenge by
+hand precisely so that a fight can be judged against the party; the app keeps
+the numbers and never puts them together.
+
+**And the party on the day is not always the party on paper.** A player is
+missing, a fight is split into two waves, a monster flees before the fight
+starts. The DM wants to see the difficulty change with that, without editing
+the fight it was prepared as.
 
 ## 2. Goal
 
-For every NPC, the DM records, per game system, where its statistics are; and
-every fight scene shows how hard it is for the party, worked out from each
-creature's hand-entered challenge under the adventure's system.
+Every creature row in a fight says where its statistics are; every fight scene
+shows how hard it is for the party, from each creature's hand-entered
+challenge under the adventure's system; and the DM can change the number of
+characters, or count a creature out, in or more or fewer times, on the fly,
+without changing what is saved.
 
 ## 3. Non-goals
 
-- **No stat blocks and no monster builder.** The DM uses external tools for
-  that and does not want another one here. The app stores a link or a note
-  pointing at the statistics, never the statistics themselves.
+- **No stat blocks and no monster builder.** The DM uses external tools and
+  does not want another one here. A row stores a link or a note pointing at
+  the statistics, never the statistics.
+- **No per-NPC statistics record.** Everything about fighting lives in the
+  campaign, which only the DM sees (DM's answer 3). An NPC and a monster that
+  is not an NPC are treated alike: both have an external statistics link on
+  their row; the NPC row also links to the NPC's page in the app (answer 5).
+  The first draft's `npcSystemStats` table, its ADR and the NPC-page section
+  are dropped. **Do not re-propose them**; a campaign has one system, so a
+  row's link is already that system's.
+- **No pre-filling a recurring NPC's link** from its earlier rows. A possible
+  later addition, not this spec.
 - **No 5e monster catalogue.** Daggerheart has its adversaries (SPEC-028); 5e
   creatures stay where the DM keeps them, reached by link or note.
-- **No change to Daggerheart's difficulty.** SPEC-030's Battle Points are
-  Daggerheart's half of this spec, and stay as they are.
-- **No reusable encounters.** The fight scene is the encounter (§9 answer 4).
-- **No change to the NPC's own fields.** They stay the same under every system;
-  the per-system reference is a record of its own (ADR-0021).
-- **No Pathfinder 2e yet.** It is not a system in the app. The design leaves
-  room for it: a creature's challenge in that system's own terms and one
-  difficulty function per system.
-- **No combat tracker.** Initiative, hit points and conditions stay at the
-  table (ROADMAP, _Explicitly not planned_).
-- **Nothing for players.** Statistics references are the DM's, like an NPC's
-  secrets.
+- **No change to how Daggerheart prices a fight.** SPEC-030's Battle Points
+  stay; they only read the on-the-fly party size and counts (§5.C).
+- **No reusable encounters.** The fight scene is the encounter (answer 4).
+- **No combat tracker.** The on-the-fly layer changes the difficulty readout
+  and nothing else: no hit points, initiative, turns or conditions (ROADMAP,
+  _Explicitly not planned_; CLAUDE.md 2026-09-22).
+- **No Pathfinder 2e yet.** The design leaves room for it: a creature's
+  challenge in that system's own terms and one difficulty function per system.
+- **Nothing for players.** The campaign section is the DM's alone (SPEC-022
+  R15: the proxy and `campaign/layout.tsx`'s `requireDmPage`), so no field
+  here needs `dmOnly`.
 
 ## 4. User stories
 
-- As a DM, I want to record for each NPC, per game system, a link to where its
-  statistics are or a note saying how to find them, so that I do not have to
-  remember it.
-- As a DM, when I put Tusk in a fight, I want his statistics' link for the
-  adventure's system right there on the row, so that I can open it while
-  preparing.
+- As a DM, I want every creature row in a fight to carry a link to its
+  statistics, or a note on how to find them, so that I do not have to
+  remember where they are.
+- As a DM, I want a row linked to an NPC to take me to the NPC's page as well.
 - As a DM preparing a 5e fight, I want to give each creature its challenge
   rating by hand, and have its XP filled in from it.
 - As a DM, I want a 5e fight scene to tell me whether the fight is low,
-  moderate or high for the party at the adventure's level, as a Daggerheart
-  fight already tells me its Battle Points.
-- As a DM, I want the verdict to follow a change of party size or level, so
-  that a fight planned months ago is still judged correctly.
+  moderate or high for the party, as a Daggerheart fight already tells me its
+  Battle Points.
+- As a DM, I want to set how many characters are playing on the adventure's
+  page, starting from the campaign's number of players, and have every fight's
+  difficulty follow — without saving it anywhere but my browser.
+- As a DM, I want to count a creature out, or count more or fewer of it, on
+  the fly, in case something unexpected happens or the party takes the fight
+  in two waves, and to put it all back with one click.
 
 ## 5. Behaviour
 
-**A. An NPC's statistics, per system**
+**A. Creature rows**
 
-1. The NPC's edit page gains a section **"Statistics — <system>"** for the
-   system in the URL. It holds a **link** (an `http`/`https` address) and a
-   **note** (for example "Monster Manual, p. 123"). Either may be left blank.
-2. The NPC's page shows the DM the reference for the current system: the link
-   opens in a new tab, the note reads as text. Players never see it.
-3. Under another system the NPC shows that system's reference, or none. The
-   NPC's own fields are the same under every system, as SPEC-018 requires.
+1. Every creature row, under every system, gains a **statistics link** (an
+   `http`/`https` address). The row's existing **note** carries a textual
+   pointer instead ("Monster Manual, p. 123"). Both may be blank.
+2. The row shows the link as an anchor opening in a new tab
+   (`rel="noopener noreferrer"`). A row linked to an NPC also links to the
+   NPC's page in the app (the record link `recordHref` builds).
+3. **5e:** the creature form gains a **challenge rating** select: 0, 1/8, 1/4,
+   1/2, then 1 to 30. Picking one fills **XP each** from the SRD's table if XP
+   is blank or still the previous CR's value. XP stays editable, and a typed
+   value wins. The row shows its CR. The existing `level` field (the DM's own
+   notation, from the spreadsheet) stays as it is.
+4. **Daggerheart:** a row still links an adversary, and its challenge is the
+   adversary's type and tier (SPEC-030). It gets the statistics link too, for
+   an adversary that lives outside the catalogue.
 
-**B. Creatures in a fight**
+**B. A fight's difficulty**
 
-4. A creature row linked to an NPC shows that NPC's reference for the
-   adventure's rules system (SPEC-030 §9 decision 1), or a "no statistics
-   recorded for <system>" hint linking to the NPC's edit page.
-5. **5e:** the creature form gains a **challenge rating** select: 0, 1/8, 1/4,
-   1/2, then 1 to 30. Picking one fills **XP each** from the SRD's table. The
-   field stays editable, and a typed value wins. The row shows its CR.
-6. A creature that is not an NPC (four goblins) keeps where its statistics are
-   in the row's existing note.
-7. **Daggerheart:** unchanged. The row links an adversary, and its challenge is
-   the adversary's type and tier (SPEC-030).
-
-**C. A fight's difficulty**
-
-8. **5e fight scenes** show an **encounter summary**:
-   - the fight's XP: XP each × quantity, summed over the rows;
-   - the party's low, moderate and high budgets: party size × the SRD 5.2.1
-     per-character budget at the adventure's target level;
+5. **5e fight scenes** show an **encounter summary**:
+   - the fight's XP: XP each × the counted quantity, over the counted rows;
+   - the party's low, moderate and high budgets: the party size (§5.C) × the
+     SRD 5.2.1 per-character budget at the adventure's target level;
    - the band the XP falls in: below low, low, moderate, high, above high.
-9. **Daggerheart fight scenes** keep SPEC-030's Battle Points summary.
-10. The party is the campaign's party size (4 for a standalone adventure) at
-    the adventure's target level, as SPEC-030 does.
+6. **Daggerheart fight scenes** keep SPEC-030's Battle Points summary, read
+   with the party size and counts of §5.C.
+7. Other scene kinds show no summary; their rows keep their CR and XP.
+
+**C. On the fly (the browser only)**
+
+8. The adventure's page gains a **number of characters** select above the
+   scenes. It starts at the campaign's **"Numero di giocatori"**
+   (`campaign.partySize`; 4 for a standalone adventure). Changing it
+   recomputes every fight's difficulty on the page, under both systems
+   (budgets and bands in 5e; the budget and Minion cost in Daggerheart).
+9. Each creature row in a fight gains **Exclude/Include** and **− / +** on the
+   **counted** quantity (at least 1; excluding covers zero). A row whose count
+   differs shows it ("counted 3 of 4").
+10. These values are kept **only in `localStorage`**, in one object per
+    adventure: `{ partySize?, creatures: { [id]: { excluded?, quantity? } } }`.
+    Nothing reaches the database. The party select shows its default and a
+    **Reset**; each scene has a **Reset** for its rows.
+11. They change the difficulty readout and nothing else: not the stored rows,
+    not the form, not `BudgetPanel`'s awarded XP or totals.
 
 **Edge cases**
 
-| Situation                                        | Expected behaviour                                                                                  |
-| ------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| A link that is not `http`/`https`                | Refused, field by field (`javascript:` and the like never reach a page)                             |
-| A reference saved with both fields blank         | No reference is kept for that system                                                                |
-| An NPC deleted                                   | Its references go with it; creature rows keep their name and lose the link (SPEC-013, `SetNull`)    |
-| A row with neither CR nor XP                     | Counted apart as "no XP", as SPEC-030 counts unpriced rows; it adds nothing and is not read as zero |
-| A row with typed XP and no CR                    | Its XP counts; the row shows no CR                                                                  |
-| CR picked after XP was typed                     | XP changes only if it was blank or still the previous CR's value                                    |
-| Target level outside 1–20                        | Clamped to 1–20 for the budget                                                                      |
-| A fight with no creature rows                    | XP 0, the budgets shown, no band                                                                    |
-| Party size or level changed later                | Budgets recompute; nothing stored changes                                                           |
-| A CR sent to a Daggerheart row                   | Refused by `otherSystemFieldErrors` (`notInThisSystem`)                                             |
-| A 5e scene of another kind (exploration, clue …) | No summary; the rows keep their CR and XP                                                           |
-| A player                                         | Sees no reference anywhere: NPC page, card, search, record links                                    |
+| Situation                                           | Expected behaviour                                                                                  |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| A link that is not `http`/`https`                   | Refused, field by field (`javascript:` and the like never reach a page)                             |
+| A row with neither CR nor XP                        | Counted apart as "no XP", as SPEC-030 counts unpriced rows; it adds nothing and is not read as zero |
+| A row with typed XP and no CR                       | Its XP counts; the row shows no CR                                                                  |
+| CR picked after XP was typed                        | XP changes only if it was blank or still the previous CR's value                                    |
+| Target level outside 1–20                           | Clamped to 1–20 for the budget                                                                      |
+| A fight with no creature rows, or all excluded      | XP 0, the budgets shown, no band                                                                    |
+| The campaign's number of players changes later      | With no override, the page follows it; an override stays until Reset                                |
+| `localStorage` missing, full or throwing            | The page works on the stored values; nothing on the fly is kept                                     |
+| A creature row deleted                              | Its on-the-fly entry is pruned the next time the adventure's page loads                             |
+| First render (server) vs the browser's stored state | The page renders the stored values, then applies the browser's overrides — no hydration mismatch    |
+| A CR sent to a Daggerheart row                      | Refused by `otherSystemFieldErrors` (`notInThisSystem`)                                             |
+| An NPC deleted                                      | The row keeps its name and statistics link and loses the NPC link (SPEC-013, `SetNull`)             |
 
 ## 6. Data model changes
 
 ```prisma
-/// SPEC-031: where an NPC's statistics are under one game system. The NPC's
-/// own fields stay the same under every system (SPEC-018); this is the
-/// per-system half (ADR-0021).
-model npcSystemStats {
-  id        Int      @id @default(autoincrement())
-  npcId     Int
-  npc       npc      @relation(fields: [npcId], references: [id], onDelete: Cascade)
-  system    String   // a GAME_SYSTEMS value
-  statsUrl  String?
-  statsNote String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([npcId, system])
-}
-
 model sceneCreature {
   // …
+  // SPEC-031: where the creature's statistics are; any system.
+  statsUrl        String?
   // SPEC-031, 5e only: "0", "1/8", "1/4", "1/2", "1" … "30".
   challengeRating String?
 }
 ```
 
-- **Migration:** additive; no backfill. CHECKs: a reference has a link or a
-  note; a link starts with `http://` or `https://`; a CR is one of the fixed
-  values.
-- **Reversible:** dropping the table and the column loses only references and
-  CRs; every row keeps its XP.
-- **ADR-0021** records the pattern, because SPEC-018 said "no extension tables"
-  for shared entities: a shared record's per-system half lives in its own table,
-  keyed by the record and the system, and never adds a column to the shared
-  record.
+- **Migration:** additive; no backfill. CHECKs: `statsUrl` starts with
+  `http://` or `https://`; `challengeRating` is one of the fixed values.
+- **Reversible:** dropping the two columns loses only links and CRs; every row
+  keeps its XP.
+- **No table for the on-the-fly layer.** It is browser state by the DM's
+  explicit choice (answer 2), not a record.
 
 ## 7. Metadata changes
 
-- **`app/lib/config/npc/npcSystemStatsMeta.ts`** (new): `statsUrl` (an
-  `http`/`https` URL validator, bounded length) and `statsNote` (bounded text),
-  both `dmOnly`. The section that edits them is bespoke, outside the metadata
-  layer: per ADR-0011's test it has no list page of its own. It consumes these
-  declarations.
-- **`sceneCreatureMeta.challengeRating`:** select over `fiveEChallengeRatings`,
+- **`sceneCreatureMeta.statsUrl`:** an `http`/`https` URL validator with a
+  bounded length; shared across systems.
+- **`sceneCreatureMeta.challengeRating`:** a select over the fixed CR list,
   validator `z.enum([...]).nullable().optional()`.
 - **`campaignSystemFields.sceneCreature.dnd5e`** gains `challengeRating`.
 - **`app/lib/config/dnd5e/encounterBudget.ts`** (new, not `PageMeta`): the
   CR-to-XP table and the per-character budget table, restated from
   `docs/domain/5e-encounters.md`, as `dhBattlePoints.ts` holds Daggerheart's.
+- The on-the-fly controls are bespoke UI, outside the metadata layer: they
+  edit no stored field (ADR-0011's test does not even arise).
 
 ## 8. Acceptance criteria
 
-- [ ] An NPC can be given, per game system, a link and/or a note to its statistics; under another system it shows that system's.
-- [ ] A link that is not `http`/`https` is refused; a reference with both fields blank is not kept.
-- [ ] A player never sees a statistics reference.
-- [ ] A creature row linked to an NPC shows that NPC's reference for the adventure's system.
-- [ ] A 5e creature row can be given a challenge rating, which fills its XP; the XP stays editable.
-- [ ] A 5e fight scene shows its XP, the party's three budgets and the band; a change of party size or level changes them, with nothing stored changing.
-- [ ] Rows with no XP are counted apart, not as zero.
-- [ ] A Daggerheart scene is unchanged, and a CR sent to one is refused.
-- [ ] The numbers come from `docs/domain/5e-encounters.md`, restated from the SRD 5.2.1, with the CC-BY attribution statement in the repository.
+- [ ] A creature row, under either system, can carry a statistics link; a link that is not `http`/`https` is refused.
+- [ ] A row linked to an NPC links to the NPC's page; the statistics link opens in a new tab.
+- [ ] A 5e row can be given a challenge rating, which fills its XP; the XP stays editable; a CR sent to a Daggerheart row is refused.
+- [ ] A 5e fight scene shows its XP, the party's three budgets and the band; rows with no XP are counted apart, not as zero.
+- [ ] The adventure page's number of characters starts at the campaign's, can be changed and reset, survives a reload, and is not shared with another adventure or saved to the database.
+- [ ] Excluding a creature, or changing its counted quantity, changes the difficulty under both systems and nothing stored; Reset puts it back.
+- [ ] A Daggerheart scene prices exactly as SPEC-030 does when nothing is overridden.
+- [ ] The numbers come from `docs/domain/5e-encounters.md`, restated from the SRD 5.2.1 text (not from memory), with the CC-BY attribution statement in the repository.
 - [ ] New UI copy lands in both message catalogues.
-- [ ] Every new mutation rejects an unauthenticated or non-DM request and invalid input with field-level errors.
+- [ ] Every changed mutation rejects an unauthenticated or non-DM request and invalid input with field-level errors.
 - [ ] Coverage has not dropped.
 
 ## 9. Implementation plan
 
-**The DM's answers (2026-10-01)**
+**The DM's first answers (2026-10-01)**
 
-1. **Where a creature's statistics live.** An NPC is a narrated character, and
-   is the same everywhere. Each NPC has, for each game system, a link to where
-   its statistics are kept (an online compendium page, a monster made in an
-   external editor), or a note on how to find them ("page 123 of the Monster
-   Manual"). No monster builder in this app: plenty exist elsewhere.
-2. **Difficulty is computed, per system.** Each creature in a fight carries its
-   challenge, entered by hand as in the DM's spreadsheet, so that each system
-   can compute how hard the fight is from its creatures and the party.
+1. **Where a creature's statistics live.** An NPC is a narrated character and
+   is the same everywhere; for fights it corresponds to a monster model,
+   declined per system: a link to something existing (an online compendium
+   page) or a monster made by hand in an external editor, or a text note on
+   how to find the statistics ("page 123 of the Monster Manual"). No monster
+   builder in this app: plenty exist elsewhere.
+2. **Difficulty is computed, per system**, from each monster's challenge,
+   entered by hand as in the DM's spreadsheet, and the characters present.
 3. **Method:** SRD 5.2.1 (2024 rules), XP budget per character, low/moderate/
    high.
 4. **An encounter is the fight scene.** No reusable library.
 
-**Choices Claude made in reading the answers (to confirm)**
+**The DM's second answers (2026-10-01), on the draft's five readings**
 
-- **The CR is typed on the fight's row, not on the NPC's reference.** Answer 1
-  gives the reference a link and a note. Putting a CR on it too, to fill the
-  row, is a small later addition if wanted.
-- **The party is the campaign's party size at the adventure's level**, as in
-  SPEC-030. There is no per-fight count of the characters present.
-- **References are DM-only**, as an NPC's secrets and motivations are
-  (SPEC-022).
-- **Links are `http`/`https` only** and open in a new tab with
-  `rel="noopener noreferrer"`.
-- **A creature that is not an NPC** records its statistics' source in the row's
-  existing note.
+1. **The CR is typed on the fight's row.** Confirmed.
+2. **The party size:** not a field per fight — too much noise. A **number of
+   characters select on the page**, defaulting to the number of characters in
+   the group; it can be changed, but the value is kept **only in local
+   storage**, and changing it changes the fights' difficulty. And **for each
+   monster**, the ability to **remove it from the count, or increase or
+   decrease it, on the fly**, in case something unexpected happens or the
+   party takes the fight in two waves.
+3. **Visibility:** everything about fighting lives inside the campaign, which
+   only the DM sees; players have no access to the campaign section.
+4. **Links are `http`/`https` only.** Confirmed.
+5. **NPC or not, no difference:** both have a statistics link, external
+   either way; the NPC also has a link to its description in the app, which
+   a monster does not.
+
+**Choices Claude made in reading the second answers (agreed with the plan)**
+
+- "The number of characters in the group" is the campaign's **"Numero di
+  giocatori"** (`campaign.partySize`), not a count of SPEC-022 member
+  accounts: not every player has one.
+- The override is kept **per adventure** ("on the page"), so one adventure's
+  missing player does not change another's fights.
+- The on-the-fly layer applies to **both systems**, and has **Reset** at the
+  page (party size) and scene (counts) level.
+- The statistics link is **shared** across systems; a Daggerheart row may
+  point outside the adversary catalogue.
+
+**Open before T4**
+
+- **The SRD numbers are not written yet.** The cloud session that agreed this
+  spec could not reach `media.dndbeyond.com` (the environment's network policy
+  denies it; the DM can allow the host under the environment's _Network
+  access_ settings). `docs/domain/5e-encounters.md` must be restated from the
+  SRD 5.2.1 text — the CR-to-XP table and the per-character budget for levels
+  1–20 — and checked against it, **not recalled**; if the host stays blocked,
+  ask the DM for the PDF or the two tables before writing T4's numbers.
 
 **Files touched, in order**
 
-| #   | File                                                                       | Change                                                              |
-| --- | -------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| 1   | `docs/adr/0021-…`, `docs/domain/5e-encounters.md`, `NOTICE`, SPEC-018 note | The pattern; the 5e method in our own words; CC-BY attribution      |
-| 2   | `prisma/schema.prisma`, migration                                          | `npcSystemStats`; `sceneCreature.challengeRating`; their CHECKs     |
-| 3   | `npcSystemStatsMeta`, `app/lib/data/npcSystemStats/*`                      | Upsert/clear (`requireDm`, validated), fetch for one NPC and system |
-| 4   | `app/ui/npc/NpcStatsSection` (new), the NPC edit page and card             | Edit and show the current system's reference, DM only               |
-| 5   | `sceneCreatureMeta`, `campaignSystemFields`, the creature writes           | The CR field and the per-system rule                                |
-| 6   | `SceneCreatureForm`, `SceneCreatureList`, `fetchAdventureWithScenes`       | CR filling XP; the linked NPC's reference on the row                |
-| 7   | `encounterBudget.ts`, `encounterDifficulty.ts`, `EncounterSummary`         | The budget, the band and the summary on 5e fight scenes             |
-| 8   | `messages/{it,en}.json`, an e2e journey                                    | Copy in both catalogues; invented content                           |
+| #   | File                                                                                  | Change                                                                            |
+| --- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| 1   | `docs/domain/5e-encounters.md`, the attribution statement (`licensing.md` §3)         | The 5e method in our own words, from the SRD text; CC-BY attribution              |
+| 2   | `prisma/schema.prisma`, migration                                                     | `sceneCreature.statsUrl`, `sceneCreature.challengeRating`; their CHECKs           |
+| 3   | `sceneCreatureMeta`, `SceneCreatureMetaField`, `campaignSystemFields`                 | The two fields and the per-system rule                                            |
+| 4   | `createSceneCreature.ts`, `updateSceneCreature.ts`, `fetchAdventureWithScenes`        | Write and read them (`requireDm` and validation are already there)                |
+| 5   | `SceneCreatureForm`, `SceneCreatureList`, `encounterBudget.ts`                        | CR filling XP; the links and the CR on the row                                    |
+| 6   | `app/lib/utils/dnd5e/encounterDifficulty.ts`, `EncounterSummary`                      | The budgets, the band, the summary on 5e fight scenes                             |
+| 7   | `app/lib/hooks/useEncounterAdjustments.ts`, its provider, `PartySizeControl`, the row | The on-the-fly layer; `BattlePointsSummary` and `rowBattlePoints` read through it |
+| 8   | `messages/{it,en}.json`, an e2e journey                                               | Copy in both catalogues; invented content                                         |
 
 **Risks**
 
-- **The SRD numbers.** Checked against the SRD 5.2.1 text when the domain file
-  is written, not recalled. The file records the version, as `daggerheart.md`
-  does.
+- **The SRD numbers.** See _Open before T4_.
 - **A stored link is user input rendered on a page.** Validation keeps it to
   `http`/`https`, and it renders as a plain anchor, never as HTML.
+- **Hydration.** `localStorage` exists only in the browser: the hook reads it
+  through `useSyncExternalStore` with a server snapshot of "no overrides", and
+  wraps every access in `try`/`catch`.
 - **XP and CR drifting apart.** A typed XP that no longer matches the CR is
   deliberate (a weakened villain), so the row shows both and nothing
   "corrects" it.
 
 ## 10. Task breakdown
 
-- [ ] **T1** — ADR-0021; `docs/domain/5e-encounters.md` from the SRD 5.2.1 and the attribution statement; a dated note in SPEC-018 §5 and in `CLAUDE.md`'s decisions. _(review: numbers checked against the SRD text)_
-- [ ] **T2** — `npcSystemStats`: schema, migration, meta, actions, the NPC section and card. _(test: refused links; blank clears; per-system; a player sees nothing)_
-- [ ] **T3** — Creature rows: the CR column, the per-system rule, the form, and the linked NPC's reference on the row. _(test: CR fills XP; a typed XP survives; a Daggerheart CR is refused)_
-- [ ] **T4** — Budget tables, `encounterDifficulty`, the encounter summary on 5e fight scenes. _(test: XP, budgets by level and party size, bands, rows with no XP, clamping)_
-- [ ] **T5** — i18n, a11y, an e2e journey with invented content; close the spec, with dated notes in `campaign-design-method.md` §6 and SPEC-013 §3.
+- [ ] **T1** — `docs/domain/5e-encounters.md` from the SRD 5.2.1 text and the attribution statement; dated notes in SPEC-013 §3 and `campaign-design-method.md` §6. _(This spec's agreement landed first, 2026-10-01; the domain file waits on the SRD text — §9.)_
+- [ ] **T2** — Schema and migration for `statsUrl` and `challengeRating`; meta, per-system rule, create/update actions, fetch. _(test: refused links; a Daggerheart CR refused; round trip)_
+- [ ] **T3** — The form and the row: CR filling XP, the statistics and NPC links, the CR shown. _(test: CR fills XP; a typed XP survives; the links render as anchors)_
+- [ ] **T4** — `encounterBudget.ts`, `encounterDifficulty`, `EncounterSummary`, and the on-the-fly layer (party select, Exclude/Include, −/+, Reset) under both systems. _(test: XP, budgets by level and party size, bands, rows with no XP, clamping; the hook with `localStorage` missing or throwing, reset and pruning)_
+- [ ] **T5** — i18n, a11y, an e2e journey with invented content (a 5e fight, the band, a changed party size surviving a reload, an excluded creature, Reset); close the spec, ROADMAP and PROJECT_STATE.
 
 ## 11. Outcome
 

@@ -59,7 +59,7 @@ describe("usePlacePositioning (TD-127)", () => {
 
   it("reads the pool with the places token and the map in view", () => {
     render();
-    expect(useUnplacedPlaces).toHaveBeenCalledWith(4, 1);
+    expect(useUnplacedPlaces).toHaveBeenCalledWith(4, 1, true);
   });
 
   it("splits the pool into this map's places and the rest, leaving out ancestors", () => {

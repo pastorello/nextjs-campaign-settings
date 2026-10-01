@@ -42,6 +42,7 @@ interface CapturedWorldMapProps {
   onDeleted: () => void;
   unpositionedCount: number;
   blockedUnpositionedCount: number;
+  readOnly: boolean;
 }
 
 let capturedProps: CapturedWorldMapProps | null = null;
@@ -527,5 +528,20 @@ describe("GeographyExplorer — initial stack (SPEC-011 T4)", () => {
     expect(screen.getByText("Aerivel")).toBeInTheDocument();
     expect(capturedProps?.isRoot).toBe(true);
     expect(screen.queryByText("up")).not.toBeInTheDocument();
+  });
+});
+
+// SPEC-022 T7: a player's explorer browses the same tree, read only.
+describe("GeographyExplorer — read only (SPEC-022 T7)", () => {
+  it("hands the map its read-only flag", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={0} readOnly />);
+
+    expect(capturedProps?.readOnly).toBe(true);
+  });
+
+  it("is editable by default, for the DM", () => {
+    render(<GeographyExplorer root={root} unpositionedCount={0} />);
+
+    expect(capturedProps?.readOnly).toBe(false);
   });
 });

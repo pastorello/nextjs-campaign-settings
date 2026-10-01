@@ -1,8 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+const sideNav = vi.fn();
 vi.mock("@/app/ui/dashboard/sidenav", () => ({
-  default: () => <nav data-testid="sidenav" />,
+  default: ({ viewer }: { viewer: unknown }) => {
+    sideNav(viewer);
+    return <nav data-testid="sidenav" />;
+  },
 }));
 
 const notFound = vi.fn(() => {
@@ -10,9 +14,15 @@ const notFound = vi.fn(() => {
 });
 vi.mock("next/navigation", () => ({ notFound: () => notFound() }));
 
-const requireDmPage = vi.fn(() => Promise.resolve());
-vi.mock("@/app/lib/auth/requireDmPage", () => ({
-  default: () => requireDmPage(),
+const dm = { kind: "dm", userId: "1" };
+const getViewer = vi.fn<() => Promise<unknown>>(() => Promise.resolve(dm));
+vi.mock("@/app/lib/auth/getViewer", () => ({
+  default: () => getViewer(),
+}));
+
+const redirect = vi.fn<(...args: unknown[]) => void>();
+vi.mock("@/i18n/navigation", () => ({
+  redirect: (...args: unknown[]) => redirect(...args),
 }));
 
 import Layout from "./layout";
@@ -38,16 +48,30 @@ describe("dashboard Layout", () => {
     expect(notFound).toHaveBeenCalled();
   });
 
-  // SPEC-022 T1: the guard's refusal (`forbidden()` for a player) stops the
-  // layout before anything renders.
-  it("renders nothing past the DM guard's refusal", async () => {
-    requireDmPage.mockImplementationOnce(() =>
-      Promise.reject(new Error("NEXT_HTTP_ERROR_FALLBACK;403"))
-    );
+  // SPEC-022 T7: a player reads part of the dashboard too; which part is
+  // the proxy's to decide. Without a session the layout signs them out.
+  it("sends a request without a session to the login page", async () => {
+    getViewer.mockResolvedValueOnce(null);
 
-    await expect(renderLayout("dnd5e")).rejects.toThrow(
-      "NEXT_HTTP_ERROR_FALLBACK;403"
-    );
+    await renderLayout("dnd5e");
+
+    expect(redirect).toHaveBeenCalledWith({ href: "/login", locale: "it" });
+    expect(screen.queryByText("page content")).not.toBeInTheDocument();
+  });
+
+  it("renders the dashboard for a player, handing the side nav the viewer", async () => {
+    const player = {
+      kind: "player",
+      userId: "2",
+      campaigns: [],
+      campaign: null,
+    };
+    getViewer.mockResolvedValueOnce(player);
+
+    await renderLayout("dnd5e");
+
+    expect(screen.getByText("page content")).toBeInTheDocument();
+    expect(sideNav).toHaveBeenLastCalledWith(player);
   });
 
   // TD-88: the sidebar's own column now scrolls (see sidenav.test.tsx), but

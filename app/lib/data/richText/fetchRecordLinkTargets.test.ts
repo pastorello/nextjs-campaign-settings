@@ -46,6 +46,8 @@ vi.mock("@/app/lib/data/search/searchAllDomains", () => ({
 
 import fetchRecordLinkTargets from "./fetchRecordLinkTargets";
 
+const ALL = { kind: "all" } as const;
+
 const link = (domain: string, id: number, text = "x") =>
   `<a data-record-domain="${domain}" data-record-id="${id}">${text}</a>`;
 
@@ -62,7 +64,8 @@ describe("fetchRecordLinkTargets (SPEC-019 T2)", () => {
     await expect(
       fetchRecordLinkTargets(
         ["plain text", null, undefined, "<p>no links</p>"],
-        "dnd5e"
+        "dnd5e",
+        ALL
       )
     ).resolves.toEqual({});
     expect(npc.findMany).not.toHaveBeenCalled();
@@ -81,7 +84,8 @@ describe("fetchRecordLinkTargets (SPEC-019 T2)", () => {
         `<p>${link("npc", 1)} and ${link("npc", 2)}</p>`,
         `<ul><li>${link("npc", 1)}</li><li>${link("places", 9)}</li></ul>`,
       ],
-      "dnd5e"
+      "dnd5e",
+      ALL
     );
 
     expect(npc.findMany).toHaveBeenCalledTimes(1);
@@ -106,7 +110,8 @@ describe("fetchRecordLinkTargets (SPEC-019 T2)", () => {
 
     const targets = await fetchRecordLinkTargets(
       [`<p>${link("deities", 4)} ${link("deities", 5)}</p>`],
-      "dnd5e"
+      "dnd5e",
+      ALL
     );
 
     expect(targets).toEqual({ "deities:4": "Solan" });
@@ -118,7 +123,8 @@ describe("fetchRecordLinkTargets (SPEC-019 T2)", () => {
 
     const targets = await fetchRecordLinkTargets(
       [`<p>${link("spells", 1)} ${link("factions", 3)}</p>`],
-      "otherSystem"
+      "otherSystem",
+      ALL
     );
 
     expect(spells.findMany).not.toHaveBeenCalled();
@@ -137,7 +143,8 @@ describe("fetchRecordLinkTargets (SPEC-019 T2)", () => {
         `<p>${link("dhDomains", 1)} ${link("dhDomainCards", 2)}</p>`,
         `<p>${link("dhClasses", 3)} ${link("dhSubclasses", 4)}</p>`,
       ],
-      "daggerheart"
+      "daggerheart",
+      ALL
     );
 
     expect(targets).toEqual({
@@ -153,7 +160,8 @@ describe("fetchRecordLinkTargets (SPEC-019 T2)", () => {
       [
         `<p>${link("users", 1)} <a data-record-domain="npc" data-record-id="0">x</a></p>`,
       ],
-      "dnd5e"
+      "dnd5e",
+      ALL
     );
 
     expect(npc.findMany).not.toHaveBeenCalled();
@@ -163,7 +171,7 @@ describe("fetchRecordLinkTargets (SPEC-019 T2)", () => {
     magicitems.findMany.mockRejectedValue(new Error("down"));
 
     await expect(
-      fetchRecordLinkTargets([`<p>${link("magicItems", 1)}</p>`], "dnd5e")
+      fetchRecordLinkTargets([`<p>${link("magicItems", 1)}</p>`], "dnd5e", ALL)
     ).rejects.toThrow(/resolving record links/);
   });
 });

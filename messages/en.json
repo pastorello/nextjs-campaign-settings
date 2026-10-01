@@ -23,7 +23,9 @@
       "dhDomainCards": "Domain Cards",
       "dhClasses": "Classes",
       "dhSubclasses": "Subclasses",
-      "accounts": "Account"
+      "accounts": "Account",
+      "campaignSelector": "Current campaign",
+      "campaignUnavailable": "You are no longer in this campaign."
     },
     "dashboard": {
       "title": "Dashboard"
@@ -980,6 +982,10 @@
       "hidden": "Hidden from {campaign}.",
       "failed": "Could not change who sees this place.",
       "close": "Close"
+    },
+    "player": {
+      "noCampaign": "You are not in a campaign yet: the DM will add you to a group.",
+      "nothingRevealed": "The DM has not revealed any place to “{campaign}” yet."
     }
   },
   "world": {

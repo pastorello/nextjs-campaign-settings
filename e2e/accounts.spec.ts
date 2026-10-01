@@ -1,37 +1,22 @@
-import { test, expect, type Browser, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
 import messages from "@/messages/it.json";
 
+import {
+  fillTemplate as fill,
+  signIn,
+  signedOutPage,
+} from "./helpers/accounts";
+
 const t = messages.accounts;
-
-/** `{name}`-style placeholders, as next-intl fills them. */
-function fill(template: string, values: Record<string, string>) {
-  return template.replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? "");
-}
-
-/** A signed-out browser, to sign in as the account the test created. */
-async function signedOutPage(browser: Browser) {
-  const { baseURL } = test.info().project.use;
-  const context = await browser.newContext({
-    storageState: { cookies: [], origins: [] },
-    ...(baseURL !== undefined && { baseURL }),
-  });
-  return context.newPage();
-}
-
-async function signIn(page: Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.getByLabel(messages.common.auth.email).fill(email);
-  await page.getByLabel(messages.common.auth.password).fill(password);
-  await page.getByRole("button", { name: messages.common.auth.submit }).click();
-}
 
 /**
  * SPEC-022 T2, T3: the DM's accounts page, and what a player's account can
- * do with the dashboard before T7/T8 open it (nothing: the 403 page).
+ * do with the dashboard while it is in no campaign: open the map page, which
+ * says so (T7), and nothing else (the 403 page).
  */
 test.describe("accounts", () => {
-  test("the DM creates a player, who gets the 403 page, then disables and deletes it", async ({
+  test("the DM creates a player, who is refused the DM's pages, then disables and deletes it", async ({
     page,
     browser,
   }) => {
@@ -52,11 +37,12 @@ test.describe("accounts", () => {
       await expect(row).toContainText(messages.accounts.roles.player);
       await expect(row).toContainText(t.statuses.active);
 
-      // The player signs in and reaches nothing but the 403 page.
+      // The player signs in and lands on the map page, which says they are
+      // in no campaign yet (T7). Every DM page is the 403 page.
       const player = await signedOutPage(browser);
       await signIn(player, email, firstPassword);
       await expect(
-        player.getByRole("heading", { name: messages.common.forbidden.title })
+        player.getByText(messages.geography.player.noCampaign)
       ).toBeVisible();
       const admin = await player.goto("/dashboard/dnd5e/admin/npc");
       expect(admin?.status()).toBe(403);
@@ -80,7 +66,7 @@ test.describe("accounts", () => {
       await player.context().clearCookies();
       await signIn(player, email, secondPassword);
       await expect(
-        player.getByRole("heading", { name: messages.common.forbidden.title })
+        player.getByText(messages.geography.player.noCampaign)
       ).toBeVisible();
 
       // Disabled: the open session ends, and signing in again fails.

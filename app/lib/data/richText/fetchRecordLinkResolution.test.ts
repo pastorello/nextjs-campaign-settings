@@ -12,6 +12,8 @@ vi.mock("@/app/lib/data/search/searchAllDomains", () => ({
 
 import fetchRecordLinkResolution from "./fetchRecordLinkResolution";
 
+const ALL = { kind: "all" } as const;
+
 const link = (domain: string, id: number) =>
   `<a data-record-domain="${domain}" data-record-id="${id}">x</a>`;
 
@@ -28,18 +30,20 @@ describe("fetchRecordLinkResolution (SPEC-019 T5)", () => {
       null,
     ];
     fetchTargets.mockResolvedValue({ "npc:1": "Mira" });
-    await expect(fetchRecordLinkResolution(values, "dnd5e")).resolves.toEqual({
+    await expect(
+      fetchRecordLinkResolution(values, "dnd5e", ALL)
+    ).resolves.toEqual({
       targets: { "npc:1": "Mira" },
       deleted: ["npc:2"],
     });
-    expect(fetchTargets).toHaveBeenCalledWith(values, "dnd5e");
+    expect(fetchTargets).toHaveBeenCalledWith(values, "dnd5e", { kind: "all" });
   });
 
   it("never reports a link outside the system as deleted", async () => {
     fetchTargets.mockResolvedValue({});
     inSystem.mockImplementation((domain: string) => domain !== "spells");
     await expect(
-      fetchRecordLinkResolution([`<p>${link("spells", 3)}</p>`], "other")
+      fetchRecordLinkResolution([`<p>${link("spells", 3)}</p>`], "other", ALL)
     ).resolves.toEqual({ targets: {}, deleted: [] });
   });
 });

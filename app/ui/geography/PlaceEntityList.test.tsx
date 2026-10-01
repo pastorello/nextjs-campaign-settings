@@ -118,6 +118,14 @@ describe("PlaceEntityList", () => {
     expect(screen.queryByText("entitiesEmpty")).not.toBeInTheDocument();
   });
 
+  // SPEC-022 T7: detaching is the DM's.
+  it("lists without detach buttons on a player's read-only popover", async () => {
+    render(<PlaceEntityList target={{ zoneId: 7 }} readOnly />);
+
+    expect(await screen.findByText("Aelar")).toBeInTheDocument();
+    expect(screen.queryByLabelText("detach")).not.toBeInTheDocument();
+  });
+
   it("detaches an NPC back to the unattached pool, clearing both references", async () => {
     render(<PlaceEntityList target={{ zoneId: 7 }} />);
     await screen.findByText("Aelar");

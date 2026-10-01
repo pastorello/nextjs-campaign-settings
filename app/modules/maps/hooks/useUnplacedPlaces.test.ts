@@ -36,6 +36,15 @@ describe("useUnplacedPlaces (SPEC-017 T8)", () => {
     expect(fetchUnplacedPlaces).toHaveBeenCalledWith();
   });
 
+  // SPEC-022 T7: the pool is the DM's; a player's map never asks for it.
+  it("reads nothing when disabled, for a player's map", async () => {
+    const { result } = renderHook(() => useUnplacedPlaces(0, 1, false));
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(fetchUnplacedPlaces).not.toHaveBeenCalled();
+    expect(result.current).toEqual([]);
+  });
+
   it("returns the pool as read, without filtering it again", async () => {
     const rows = [place(), place({ id: 6, title: "Skreebars", kind: "city" })];
     fetchUnplacedPlaces.mockResolvedValue(rows);

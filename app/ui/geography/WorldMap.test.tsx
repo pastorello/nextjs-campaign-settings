@@ -8,7 +8,7 @@ import {
 } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { rectangleFootprint } from "@/app/modules/maps/lib/utils/footprint";
-import type { ReactNode } from "react";
+import { cloneElement, type ReactNode } from "react";
 import { toast } from "sonner";
 
 // WorldMap composes five already-independently-tested map subcomponents and
@@ -31,11 +31,41 @@ vi.mock("@/app/modules/maps/components/map/LeafletMap", () => ({
   },
 }));
 // Renders the `belowZoomControls` slot so the grid toggle (SPEC-015 T6)
-// is reachable; `extraControls` stays swallowed — `MapOptionsButton`'s
-// menu has its own suite.
+// is reachable, and `extraControls`, where `MapOptionsButton` sits; its
+// menu has its own suite, so it is stubbed to hand over its callbacks.
 vi.mock("@/app/modules/maps/components/map/MapControls", () => ({
-  MapControls: (props: { belowZoomControls?: ReactNode }) => (
-    <div data-testid="map-controls">{props.belowZoomControls}</div>
+  MapControls: (props: {
+    belowZoomControls?: ReactNode;
+    extraControls?: ReactNode;
+  }) => (
+    <div data-testid="map-controls">
+      {props.extraControls}
+      {props.belowZoomControls}
+    </div>
+  ),
+}));
+let mapOptionsOnReveal: (() => void) | undefined;
+vi.mock("@/app/ui/geography/MapOptionsButton", () => ({
+  default: (props: { onReveal: () => void }) => {
+    mapOptionsOnReveal = props.onReveal;
+    return <div data-testid="map-options" />;
+  },
+}));
+// SPEC-022 T7: the reveal for the place in view. Has its own suite.
+vi.mock("@/app/ui/geography/PlaceRevealDialog", () => ({
+  default: (props: {
+    kind: string;
+    placeId: number;
+    title: string;
+    isOpen: boolean;
+  }) => (
+    <div
+      data-testid="place-reveal-dialog"
+      data-kind={props.kind}
+      data-place-id={props.placeId}
+      data-title={props.title}
+      data-open={props.isOpen}
+    />
   ),
 }));
 // Has its own suite (SPEC-015 T7) — stubbed so these tests assert on the
@@ -2453,7 +2483,11 @@ describe("WorldMap — landmark popover (SPEC-016 T7)", () => {
   it("passes the WorldMap-scoped onPOIClick callback as usePOIManager's second argument", async () => {
     await renderMap();
 
-    expect(usePOIManager).toHaveBeenLastCalledWith(1, expect.any(Function));
+    expect(usePOIManager).toHaveBeenLastCalledWith(
+      1,
+      expect.any(Function),
+      false
+    );
   });
 
   it("opens the popover for the clicked landmark", async () => {
@@ -2754,5 +2788,86 @@ describe("WorldMap — a zone's edit panel (TD-104)", () => {
     rerender(<WorldMap parentId={2} ancestorIds={[2]} {...props} />);
 
     expect(screen.queryByTestId("zone-edit-panel")).not.toBeInTheDocument();
+  });
+});
+
+// SPEC-022 T7: the reveal for the place in view, the root included, which
+// has no popover of its own.
+describe("WorldMap — revealing the place in view (SPEC-022 T7)", () => {
+  it("opens the reveal dialog for the map's own place from its options menu", async () => {
+    await renderMap();
+    const dialog = screen.getByTestId("place-reveal-dialog");
+    expect(dialog).toHaveAttribute("data-open", "false");
+
+    act(() => {
+      mapOptionsOnReveal?.();
+    });
+
+    expect(dialog).toHaveAttribute("data-open", "true");
+    expect(dialog).toHaveAttribute("data-kind", "zone");
+    expect(dialog).toHaveAttribute("data-place-id", "1");
+    expect(dialog).toHaveAttribute("data-title", "Terra");
+  });
+});
+
+// SPEC-022 T7: a player's map. Browsing and reading stay; every way to
+// change the world is gone, and the DM's unpositioned pool is never read.
+describe("WorldMap — read only (SPEC-022 T7)", () => {
+  async function renderReadOnly() {
+    render(
+      cloneElement(
+        mapElement(
+          "/maps/test.jpg",
+          0,
+          { gridColumns: null, gridScale: null },
+          1
+        ),
+        { readOnly: true }
+      )
+    );
+    await waitFor(() => {
+      expect(imageAddTo).toHaveBeenCalled();
+    });
+    act(() => {
+      imageOnLoad?.();
+    });
+  }
+
+  it("has no options menu, landmark panel or reveal dialog", async () => {
+    await renderReadOnly();
+
+    expect(screen.queryByTestId("map-options")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("map-poi-panel")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("place-reveal-dialog")).not.toBeInTheDocument();
+  });
+
+  it("offers no add entries in the context menu", async () => {
+    await renderReadOnly();
+
+    expect(screen.getByTestId("map-context-menu")).toHaveAttribute(
+      "data-hide-add-place",
+      "true"
+    );
+    expect(onAddPOI).toBeUndefined();
+    expect(onAddSubMap).toBeUndefined();
+    expect(onContextMenuPositionPlace).toBeUndefined();
+  });
+
+  it("keeps markers and areas fixed, and reads no unpositioned pool", async () => {
+    await renderReadOnly();
+
+    expect(usePOIManager).toHaveBeenLastCalledWith(
+      1,
+      expect.any(Function),
+      true
+    );
+    expect(useNavigableChildren.mock.calls.at(-1)?.[4]).toBe(true);
+    expect(useUnplacedPlaces.mock.calls.at(-1)?.[2]).toBe(false);
+  });
+
+  it("hides a grid the DM has not configured, rather than offering to configure it", async () => {
+    await renderReadOnly();
+
+    expect(screen.queryByTitle("configure")).not.toBeInTheDocument();
   });
 });

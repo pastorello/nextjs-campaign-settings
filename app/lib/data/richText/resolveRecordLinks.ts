@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 
-import requireDm from "@/app/lib/auth/requireDm";
+import getVisibilityScope from "@/app/lib/data/visibility/getVisibilityScope";
 import { isGameSystem } from "@/app/lib/definitions/GameSystem";
 import type RecordLinkResolution from "@/app/lib/definitions/types/RecordLinkResolution";
 
@@ -30,7 +30,9 @@ export default async function resolveRecordLinks(
   values: (string | null)[],
   system: string
 ): Promise<RecordLinkResolution> {
-  await requireDm();
+  // SPEC-022 T7 (R13): a player's popover resolves only what their
+  // campaign has been shown.
+  const scope = await getVisibilityScope();
   const input = inputSchema.parse({ values, system });
-  return fetchRecordLinkResolution(input.values, input.system);
+  return fetchRecordLinkResolution(input.values, input.system, scope);
 }

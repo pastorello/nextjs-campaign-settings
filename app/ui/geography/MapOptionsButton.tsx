@@ -16,6 +16,8 @@ interface MapOptionsButtonProps {
   // aspect ratio to derive a height from, and §5's edge-case table says
   // the configuration surface does not exist at all.
   onConfigureGrid: () => void;
+  /** Which campaigns see the place in view (SPEC-022 T7). */
+  onReveal: () => void;
 }
 
 /**
@@ -35,6 +37,7 @@ export default function MapOptionsButton({
   onReplaceMap,
   onDeleteMap,
   onConfigureGrid,
+  onReveal,
 }: MapOptionsButtonProps) {
   const t = useTranslations("geography.mapOptions");
   const tMapUpload = useTranslations("geography.mapUpload");
@@ -79,6 +82,18 @@ export default function MapOptionsButton({
               {tGeography("gridConfig.trigger")}
             </button>
           )}
+          {/* The place in view, the root included: the popover reveals a
+              child, but nothing else reaches the root, and a player sees
+              nothing until it is revealed (SPEC-022 T7). */}
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              onReveal();
+            }}
+            className="rounded px-3 py-2 text-left text-sm text-gray-900 hover:bg-gray-100"
+          >
+            {tGeography("popover.reveal")}
+          </button>
           {!isRoot && (
             <button
               onClick={() => {

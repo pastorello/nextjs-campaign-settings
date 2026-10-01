@@ -178,6 +178,18 @@ describe("proxy", () => {
       );
     });
 
+    // SPEC-022 T7: the pages whose reads filter by the player's campaign.
+    it.each([
+      "/dashboard/dnd5e/geography",
+      "/en/dashboard/daggerheart/geography",
+      "/dashboard/dnd5e",
+    ])("lets a player through to %s", async (path) => {
+      const response = await run(path);
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("x-middleware-rewrite")).toBeNull();
+    });
+
     it("is not refused outside the dashboard", async () => {
       const response = await run("/login");
 

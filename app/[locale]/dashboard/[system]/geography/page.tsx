@@ -4,7 +4,11 @@ import { Metadata } from "next";
 
 import { Link } from "@/i18n/navigation";
 import { dashboardPath } from "@/i18n/dashboardPath";
+import type GameSystem from "@/app/lib/definitions/GameSystem";
 import { isGameSystem } from "@/app/lib/definitions/GameSystem";
+import getViewer from "@/app/lib/auth/getViewer";
+import type { ViewerCampaign } from "@/app/lib/auth/Viewer";
+import getVisibilityScope from "@/app/lib/data/visibility/getVisibilityScope";
 import fetchRootPlace from "@/app/lib/data/maps/fetchRootPlace";
 import fetchPlaceAncestryChain from "@/app/lib/data/maps/fetchPlaceAncestryChain";
 import countUnpositionedPlaces from "@/app/lib/data/maps/countUnpositionedPlaces";
@@ -47,6 +51,14 @@ export default async function GeographyPage(
   if (!isGameSystem(system)) notFound();
 
   const t = await getTranslations("geography");
+  // The layout sends a request without a session to the login page; this
+  // page renders in parallel with it, so it must not read anything first.
+  const viewer = await getViewer();
+  if (!viewer) notFound();
+  if (viewer.kind === "player") {
+    return playerGeography(system, viewer.campaign, await props.searchParams);
+  }
+
   const root = await fetchRootPlace();
 
   if (!root) {
@@ -89,5 +101,68 @@ export default async function GeographyPage(
       blockedUnpositionedCount={blockedUnpositionedCount}
       {...(initialStack ? { initialStack } : {})}
     />
+  );
+}
+
+/**
+ * A player's map (SPEC-022 T7, R8): the campaign they are viewing, read
+ * only. Every read path under the explorer filters by the same scope; this
+ * page decides the entry point. The unpositioned pool is the DM's (R15), so
+ * its counts are not read.
+ *
+ * A deep link to a place the campaign cannot see is a 404, and so is one to
+ * a place that does not exist: the two must look the same, or the
+ * difference would reveal the place.
+ */
+async function playerGeography(
+  system: GameSystem,
+  campaign: ViewerCampaign | null,
+  searchParams: Record<string, string | string[] | undefined> | undefined
+) {
+  const t = await getTranslations("geography");
+  if (!campaign) {
+    return playerMessage(t("page.title"), t("player.noCampaign"));
+  }
+  // A player reaches only the system of the campaign they are viewing.
+  if (campaign.system !== system) notFound();
+
+  const [root, scope] = await Promise.all([
+    fetchRootPlace(),
+    getVisibilityScope(),
+  ]);
+  const isVisible = (id: number) => scope.kind === "all" || scope.zones.has(id);
+  if (!root || !isVisible(root.id)) {
+    return playerMessage(
+      t("page.title"),
+      t("player.nothingRevealed", { campaign: campaign.title })
+    );
+  }
+
+  let initialStack: PlaceStackEntry[] | undefined;
+  if (searchParams?.place !== undefined) {
+    const placeId = Number(searchParams.place);
+    const chain = Number.isInteger(placeId)
+      ? await fetchPlaceAncestryChain(placeId)
+      : null;
+    if (!chain?.every((zone) => isVisible(zone.id))) notFound();
+    initialStack = chain.map(toStackEntry);
+  }
+
+  return (
+    <GeographyExplorer
+      root={root}
+      unpositionedCount={0}
+      readOnly
+      {...(initialStack ? { initialStack } : {})}
+    />
+  );
+}
+
+function playerMessage(title: string, message: string) {
+  return (
+    <div>
+      <PageTitle className="mb-4">{title}</PageTitle>
+      <p>{message}</p>
+    </div>
   );
 }

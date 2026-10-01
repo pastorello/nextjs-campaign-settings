@@ -41,6 +41,8 @@ interface PlaceEntityListProps {
    * local mutation to fold into state the way a detach has.
    */
   refreshKey?: number;
+  /** A player's popover (SPEC-022 T7): the list, without the detach Xs. */
+  readOnly?: boolean;
 }
 
 const rowKey = (entity: EntityAtPlace) => `${entity.type}-${entity.id}`;
@@ -70,6 +72,7 @@ const rowKey = (entity: EntityAtPlace) => `${entity.type}-${entity.id}`;
 export default function PlaceEntityList({
   target,
   refreshKey,
+  readOnly = false,
 }: PlaceEntityListProps) {
   const t = useTranslations("geography.popover");
   const [entities, setEntities] = useState<EntityAtPlace[]>([]);
@@ -162,15 +165,17 @@ export default function PlaceEntityList({
                   {entity.name}
                 </span>
               </span>
-              <button
-                type="button"
-                disabled={detachingKey === rowKey(entity)}
-                onClick={() => void handleDetach(entity)}
-                aria-label={t("detach", { name: entity.name })}
-                className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+              {!readOnly && (
+                <button
+                  type="button"
+                  disabled={detachingKey === rowKey(entity)}
+                  onClick={() => void handleDetach(entity)}
+                  aria-label={t("detach", { name: entity.name })}
+                  className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </li>
           ))}
         </ul>

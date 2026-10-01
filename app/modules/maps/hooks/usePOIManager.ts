@@ -105,7 +105,9 @@ export function usePOIManager(
     poi: POI,
     serverId: number,
     returnFocusTo?: FocusReturnTarget
-  ) => void
+  ) => void,
+  // SPEC-022 T7: a player's map. Landmarks are not draggable.
+  readOnly: boolean = false
 ) {
   const map = useLeafletMap();
   const t = useTranslations("geography.errors");
@@ -367,8 +369,9 @@ export function usePOIManager(
         const marker = L.marker([poi.lat, poi.lng], {
           // TD-71, SPEC-005 §5.B — a placed marker can be dragged to a new
           // spot; `renderMarkers` wires the `dragend` handler once this
-          // returns, since `updatePOI` isn't in scope here.
-          draggable: true,
+          // returns, since `updatePOI` isn't in scope here. Not on a
+          // player's map (SPEC-022 T7).
+          draggable: !readOnly,
           // TD-133 — Leaflet's default, stated: tabindex="0" and
           // role="button" on the icon; `renderMarkers` names it.
           keyboard: true,
@@ -396,7 +399,7 @@ export function usePOIManager(
         return null;
       }
     },
-    [map]
+    [map, readOnly]
   );
 
   /**

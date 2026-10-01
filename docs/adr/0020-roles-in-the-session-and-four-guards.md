@@ -118,7 +118,13 @@ refused page. The rewrite gives the same status with the page that explains it.
 **Neutral / follow-up work**
 
 - T7/T8 add `getViewer()` and relax the proxy and the layout for the read paths
-  they filter. Each opened path gets a test that a player sees only what their
+  they filter. _T7 (2026-10-01):_ the proxy lets a player through to
+  `PLAYER_PAGES` (`app/lib/auth/playerPages.ts`) and to the overview, which
+  sends them on to their campaign's map. The dashboard layout now takes any
+  active account (`getViewer()`), so guard (4) moved into the layouts of the
+  sections that stay the DM's: `admin/`, `campaign/`, `treasures/` and
+  `world/`, plus the account page itself. The catalogues T8 has not opened
+  yet are refused by the proxy alone in between. Each opened path gets a test that a player sees only what their
   campaign has been shown. A page that stays the DM's (R15) keeps the proxy's
   refusal, since its data renders in parallel with anything the page itself
   would check late.

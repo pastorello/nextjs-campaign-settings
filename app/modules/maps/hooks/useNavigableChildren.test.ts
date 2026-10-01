@@ -452,6 +452,17 @@ describe("useNavigableChildren — drag to reposition (TD-71, SPEC-005 §5.B)", 
     expect(options.draggable).toBe(true);
   });
 
+  // SPEC-022 T7: a reposition is the DM's.
+  it("renders the marker fixed on a player's read-only map", async () => {
+    fetchPlaceChildren.mockResolvedValue([row({ id: 1 })]);
+
+    renderHook(() => useNavigableChildren(1, vi.fn(), 0, null, true));
+
+    await waitFor(() => expect(marker).toHaveBeenCalled());
+    const options = marker.mock.calls[0]?.[1] as { draggable?: boolean };
+    expect(options.draggable).toBe(false);
+  });
+
   it("sends id/lat/lng on drop, never category", async () => {
     fetchPlaceChildren.mockResolvedValue([row({ id: 1 })]);
 

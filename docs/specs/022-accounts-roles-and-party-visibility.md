@@ -1,6 +1,6 @@
 # SPEC-022: Accounts, roles, and campaign visibility
 
-- **Status:** In progress — T1–T5 shipped 2026-09-30, T6 2026-10-01. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
+- **Status:** In progress — T1–T5 shipped 2026-09-30, T6 and T7 2026-10-01. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
 - **Date:** 2026-09-22 (rewritten 2026-09-30)
 - **Phase:** 5
 - **Related:** [ADR-0008](../adr/0008-map-image-storage.md) and [ADR-0017](../adr/0017-record-images.md) (their access check is "authenticated", which this spec redefines) · [SPEC-012](./012-publishing-and-internet-exposure.md) (exposure; deferred, and this spec is its prerequisite) · [SPEC-013](./013-campaign-management.md) (the campaign a group belongs to) · [SPEC-004](./004-world-model.md) (the tree visibility inherits down) · [SPEC-011](./011-cross-entity-search.md) (a read path that must learn to filter) · [SPEC-018](./018-game-systems.md) (a campaign has one system) · TD-01 (`requireSession`, the guard this spec extends) · ROADMAP, _Asked for on 2026-08-18, in one batch_
@@ -516,10 +516,60 @@ lists users, and it does not need the layer.
       root is revealed to no one), hides it again, and runs an axe scan of
       the dialog.
 
-- [ ] **T7** — Player reads, map: `getViewer`, the campaign cookie and
+- [x] **T7** — Player reads, map: `getViewer`, the campaign cookie and
       selector, and R8, R9, R11. _(test: one per path)_
-- [ ] **T8** — Player reads, everything else: R1–R7, R10, R12–R14, and the
-      DM-only fields stripped. _(test: one per path)_
+  - _Done 2026-10-01._ R12 and R13 came with it, since a player's popover
+    shows a place's picture, its NPCs' portraits and its formatted
+    description.
+    - **The viewer.** `getViewer()` (`app/lib/auth/`) returns the DM, or a
+      player with their campaigns and the one they are viewing. That one is
+      the `campaign` cookie, checked against their memberships on every
+      read, else their first. `selectCampaign` writes the cookie, only for a
+      campaign the player is in. The sidebar's `CampaignSelector` replaces
+      the system switch for a player with two campaigns or more, and opens
+      the chosen campaign's map under its system.
+    - **The scope.** `getVisibilityScope()` (`app/lib/data/visibility/`) is
+      what every read path below asks: `{ kind: "all" }` for the DM, else the
+      campaign's id with its visible zones and landmarks, computed once per
+      request. `revealedWhere(scope)` is the `where` fragment for the four
+      revealed domains.
+    - **Pages.** The proxy lets a player through to `PLAYER_PAGES`
+      (`["/geography"]`, `app/lib/auth/playerPages.ts`) and to the overview,
+      which sends them to their campaign's map before reading anything, until
+      T8 filters its counts. The dashboard layout takes any active account;
+      `admin/`, `campaign/`, `treasures/` and `world/` keep `requireDmPage()`
+      in their own layouts as the second layer (ADR-0020's follow-up).
+    - **R8.** The geography page, for a player: no campaign says so; another
+      system's URL is a 404; a hidden root says nothing is revealed yet; a
+      deep link to a hidden, missing or malformed place is a 404, the three
+      alike. The explorer is read only: no options menu, no landmark panel,
+      no add entries, no dragging, no actions in the popover but "Apri
+      mappa", no unpositioned pool. `fetchPlaceChildren` returns the visible
+      children of a visible place, and nothing for a hidden one.
+    - **R9.** `fetchEntitiesAtPlace` returns nothing for a hidden place, and
+      only the revealed NPCs and deities of a visible one.
+    - **R11, R12.** The map-image route and both record-image routes take
+      the scope (`apiVisibilityScope`): a player gets a 404 unless the place,
+      or the record owning the image, is visible. A treasure's image never is.
+    - **R13.** `fetchRecordLinkTargets` takes the scope, now a required
+      argument so no caller can forget it. A link to a hidden place or an
+      unrevealed record resolves to nothing and renders as its text, and a
+      player is never told which links point at deleted records.
+      `ResolvedRecordLinks` and `resolveRecordLinks` read the scope.
+    - **Found while building it:** nothing could reveal the **root**. The
+      popover reveals a child, and the root is nobody's child, so a player
+      could never see anything. The map options menu gained "Rivela…" for
+      the place in view, the root included.
+    - E2E: `player-map.spec.ts`. The DM adds a player to the campaign and
+      reveals one of two new landmarks. With the root hidden the player sees
+      the "nothing revealed" page and a 404 for the root's map image; once
+      the root is revealed, the revealed landmark and not the other, the
+      image, no options menu, a popover without writes, and a 404 for a
+      deep link to a missing place. `accounts.spec.ts` now expects a player
+      in no campaign to land on the map page's message.
+- [ ] **T8** — Player reads, everything else: R1–R7, R10, R14 (R12 and R13
+      shipped with T7), and the DM-only fields stripped. _(test: one per
+      path)_
 - [ ] **T9** — i18n, a11y and an e2e journey. The DM reveals a place and an
       NPC to one of two campaigns, and a player in both switches between them and
       sees each campaign's share. _(test: e2e)_

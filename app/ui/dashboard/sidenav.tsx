@@ -4,10 +4,15 @@ import LocaleSwitcher from "@/app/ui/dashboard/LocaleSwitcher";
 import SystemSwitcher from "@/app/ui/dashboard/SystemSwitcher";
 import { Link } from "@/i18n/navigation";
 import SignOutButton from "@/app/ui/dashboard/SignOutButton";
+import CampaignSelector from "@/app/ui/dashboard/CampaignSelector";
+import type Viewer from "@/app/lib/auth/Viewer";
 import CampaignSettingsLogo from "../icons/CampaignSettingsLogo";
 
-export default async function SideNav() {
+export default async function SideNav({ viewer }: { viewer: Viewer }) {
   const t = await getTranslations("common.nav");
+  // SPEC-022 T7: a player gets the pages open to them, and in place of the
+  // system switch, the campaign they are viewing, which decides the system.
+  const isPlayer = viewer.kind === "player";
 
   return (
     <div className="flex h-full flex-col py-4 px-2 md:overflow-y-auto">
@@ -23,9 +28,18 @@ export default async function SideNav() {
         aria-label={t("sidebarLabel")}
         className="flex grow flex-row justify-between space-x-2 md:flex-col md:space-x-0 md:space-y-2"
       >
-        <NavLinks />
+        <NavLinks player={isPlayer} />
         <div className="hidden h-auto w-full grow rounded-md bg-gray-50 md:block"></div>
-        <SystemSwitcher />
+        {viewer.kind === "dm" ? (
+          <SystemSwitcher />
+        ) : (
+          viewer.campaigns.length > 1 && (
+            <CampaignSelector
+              campaigns={viewer.campaigns}
+              currentId={viewer.campaign?.id ?? null}
+            />
+          )
+        )}
         <LocaleSwitcher />
         <SignOutButton />
       </nav>

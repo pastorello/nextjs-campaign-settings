@@ -1,7 +1,8 @@
 "use server";
 
 import prisma from "@/app/lib/connections/prisma";
-import requireDm from "@/app/lib/auth/requireDm";
+import getVisibilityScope from "@/app/lib/data/visibility/getVisibilityScope";
+import revealedWhere from "@/app/lib/data/visibility/revealedWhere";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import recordImageKeysInclude from "@/app/lib/data/recordImages/recordImageKeysInclude";
 import type EntityAtPlace from "@/app/lib/definitions/interfaces/maps/EntityAtPlace";
@@ -28,12 +29,24 @@ const entitySelect = {
 export default async function fetchEntitiesAtPlace(
   target: { zoneId: number } | { poiId: number }
 ): Promise<EntityAtPlace[]> {
-  await requireDm();
+  // SPEC-022 T7 (R9): a player sees the entities of a place they can see,
+  // and of those only the ones revealed to their campaign.
+  const scope = await getVisibilityScope();
+  if (
+    scope.kind === "campaign" &&
+    ("zoneId" in target
+      ? !scope.zones.has(target.zoneId)
+      : !scope.pois.has(target.poiId))
+  ) {
+    return [];
+  }
 
-  const where =
-    "zoneId" in target
+  const where = {
+    ...("zoneId" in target
       ? { zoneId: target.zoneId, poiId: null }
-      : { poiId: target.poiId };
+      : { poiId: target.poiId }),
+    ...revealedWhere(scope),
+  };
 
   try {
     const [npcs, deities] = await Promise.all([

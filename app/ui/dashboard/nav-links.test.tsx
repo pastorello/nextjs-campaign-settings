@@ -170,3 +170,15 @@ describe("NavLinks", () => {
     );
   });
 });
+
+// SPEC-022 T7: a player is offered only the pages open to them.
+describe("NavLinks for a player", () => {
+  it("lists only the player pages, without the admin pencil", () => {
+    pathname = "/dashboard/dnd5e/geography";
+    render(<NavLinks player />);
+
+    expect(
+      screen.getAllByRole("link").map((link) => link.getAttribute("href"))
+    ).toEqual(["/dashboard/dnd5e/geography"]);
+  });
+});

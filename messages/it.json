@@ -23,7 +23,9 @@
       "dhDomainCards": "Carte dominio",
       "dhClasses": "Classi",
       "dhSubclasses": "Sottoclassi",
-      "accounts": "Account"
+      "accounts": "Account",
+      "campaignSelector": "Campagna in corso",
+      "campaignUnavailable": "Non fai più parte di questa campagna."
     },
     "dashboard": {
       "title": "Dashboard"
@@ -980,6 +982,10 @@
       "hidden": "Nascosto a {campaign}.",
       "failed": "Non è stato possibile cambiare chi vede questo luogo.",
       "close": "Chiudi"
+    },
+    "player": {
+      "noCampaign": "Non fai ancora parte di una campagna: il DM ti aggiungerà a un gruppo.",
+      "nothingRevealed": "Il DM non ha ancora rivelato nessun luogo a «{campaign}»."
     }
   },
   "world": {

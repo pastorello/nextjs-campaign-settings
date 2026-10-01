@@ -27,6 +27,7 @@ export const PLAYER_PAGES: readonly DashboardSubpath[] = [
   "/subclasses",
   "/domains",
   "/domain-cards",
+  "/ancestries",
 ];
 
 /**

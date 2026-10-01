@@ -22,6 +22,8 @@ import dhDomainMeta from "./daggerheart/dhDomainMeta";
 import dhDomainCardMeta from "./daggerheart/dhDomainCardMeta";
 import dhClassMeta from "./daggerheart/dhClassMeta";
 import dhSubclassMeta from "./daggerheart/dhSubclassMeta";
+import dhAncestryMeta from "./daggerheart/dhAncestryMeta";
+import dhCommunityMeta from "./daggerheart/dhCommunityMeta";
 
 /**
  * Fields more than one domain meta may declare without it being an accident —
@@ -50,63 +52,47 @@ type CollidingKeys<
 >;
 
 /**
- * Fails to typecheck unless every domain-meta pair below is disjoint outside
+ * The domain metas spread into the registry below, by name. Every one is
+ * checked against every other: add a new domain meta here as well as to the
+ * spread, or it escapes the check.
+ */
+type DomainMetas = {
+  deities: typeof deitiesMeta;
+  spells: typeof spellsMeta;
+  magicItems: typeof magicItemsMeta;
+  npc: typeof npcMeta;
+  treasure: typeof treasureMeta;
+  dhDomain: typeof dhDomainMeta;
+  dhDomainCard: typeof dhDomainCardMeta;
+  dhClass: typeof dhClassMeta;
+  dhSubclass: typeof dhSubclassMeta;
+  dhAncestry: typeof dhAncestryMeta;
+  dhCommunity: typeof dhCommunityMeta;
+};
+
+/**
+ * Fails to typecheck unless every pair of domain metas is disjoint outside
  * `SharedMetaField`. `object spread` does not report duplicate keys — the
  * last one wins silently — so without this, a field name reused across two
  * domain metas would compile clean and one domain's declaration would just
  * disappear at runtime. See TD-74.
  *
- * A mapped type rather than a union of `CollidingKeys<...>`: today every pair
- * is genuinely disjoint, so a union of six `never`s would be indistinguishable
- * constituents — exactly what `no-duplicate-type-constituents` and
- * `no-redundant-type-constituents` exist to catch, and rightly so for a real
- * union. This isn't one; each property below type-checks independently
- * against `never`; whichever pair collides names itself in the error.
+ * Every pair, computed: the list of pairs used to be written by hand, and
+ * by SPEC-027 it had already missed some (a domain against a class). A
+ * collision names both metas and the key in the error, as
+ * `DomainMetaPairs[A][B]` failing to be `never`.
  */
 type DomainMetaPairs = {
-  deitiesSpells: CollidingKeys<typeof deitiesMeta, typeof spellsMeta>;
-  deitiesMagicItems: CollidingKeys<typeof deitiesMeta, typeof magicItemsMeta>;
-  deitiesNpc: CollidingKeys<typeof deitiesMeta, typeof npcMeta>;
-  spellsMagicItems: CollidingKeys<typeof spellsMeta, typeof magicItemsMeta>;
-  spellsNpc: CollidingKeys<typeof spellsMeta, typeof npcMeta>;
-  magicItemsNpc: CollidingKeys<typeof magicItemsMeta, typeof npcMeta>;
-  deitiesTreasure: CollidingKeys<typeof deitiesMeta, typeof treasureMeta>;
-  spellsTreasure: CollidingKeys<typeof spellsMeta, typeof treasureMeta>;
-  magicItemsTreasure: CollidingKeys<typeof magicItemsMeta, typeof treasureMeta>;
-  npcTreasure: CollidingKeys<typeof npcMeta, typeof treasureMeta>;
-  // SPEC-021's Daggerheart metas share the namespace: a card's `level` and
-  // `type` would have collided with spells' and magic items' (see
-  // `DhDomainCardMetaField`).
-  dhDomainDeities: CollidingKeys<typeof dhDomainMeta, typeof deitiesMeta>;
-  dhDomainSpells: CollidingKeys<typeof dhDomainMeta, typeof spellsMeta>;
-  dhDomainMagicItems: CollidingKeys<typeof dhDomainMeta, typeof magicItemsMeta>;
-  dhDomainNpc: CollidingKeys<typeof dhDomainMeta, typeof npcMeta>;
-  dhDomainTreasure: CollidingKeys<typeof dhDomainMeta, typeof treasureMeta>;
-  dhDomainDhCard: CollidingKeys<typeof dhDomainMeta, typeof dhDomainCardMeta>;
-  dhCardDeities: CollidingKeys<typeof dhDomainCardMeta, typeof deitiesMeta>;
-  dhCardSpells: CollidingKeys<typeof dhDomainCardMeta, typeof spellsMeta>;
-  dhCardMagicItems: CollidingKeys<
-    typeof dhDomainCardMeta,
-    typeof magicItemsMeta
-  >;
-  dhCardNpc: CollidingKeys<typeof dhDomainCardMeta, typeof npcMeta>;
-  dhCardTreasure: CollidingKeys<typeof dhDomainCardMeta, typeof treasureMeta>;
-  deitiesDhClass: CollidingKeys<typeof deitiesMeta, typeof dhClassMeta>;
-  deitiesDhSubclass: CollidingKeys<typeof deitiesMeta, typeof dhSubclassMeta>;
-  spellsDhClass: CollidingKeys<typeof spellsMeta, typeof dhClassMeta>;
-  spellsDhSubclass: CollidingKeys<typeof spellsMeta, typeof dhSubclassMeta>;
-  magicItemsDhClass: CollidingKeys<typeof magicItemsMeta, typeof dhClassMeta>;
-  magicItemsDhSubclass: CollidingKeys<
-    typeof magicItemsMeta,
-    typeof dhSubclassMeta
-  >;
-  npcDhClass: CollidingKeys<typeof npcMeta, typeof dhClassMeta>;
-  npcDhSubclass: CollidingKeys<typeof npcMeta, typeof dhSubclassMeta>;
-  treasureDhClass: CollidingKeys<typeof treasureMeta, typeof dhClassMeta>;
-  treasureDhSubclass: CollidingKeys<typeof treasureMeta, typeof dhSubclassMeta>;
-  dhClassDhSubclass: CollidingKeys<typeof dhClassMeta, typeof dhSubclassMeta>;
+  [A in keyof DomainMetas]: {
+    [B in Exclude<keyof DomainMetas, A>]: CollidingKeys<
+      DomainMetas[A],
+      DomainMetas[B]
+    >;
+  };
 };
-type AssertAllDisjoint<T extends Record<keyof DomainMetaPairs, never>> = T;
+type AssertAllDisjoint<
+  T extends { [A in keyof T]: { [B in keyof T[A]]: never } },
+> = T;
 export type DomainMetaFieldsAreDisjoint = AssertAllDisjoint<DomainMetaPairs>;
 
 const pageMetaFields = {
@@ -190,6 +176,8 @@ const pageMetaFields = {
   ...dhDomainCardMeta,
   ...dhClassMeta,
   ...dhSubclassMeta,
+  ...dhAncestryMeta,
+  ...dhCommunityMeta,
 } satisfies Record<string, PageMeta>;
 
 /**

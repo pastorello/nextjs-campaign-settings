@@ -10,6 +10,7 @@ import { revalidatePath } from "next/cache";
 export type DashboardDomain =
   | "account"
   | "admin/accounts"
+  | "ancestries"
   | "admin/classes"
   | "admin/subclasses"
   | "campaign"

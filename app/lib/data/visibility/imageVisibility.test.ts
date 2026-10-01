@@ -10,6 +10,8 @@ const { db } = vi.hoisted(() => {
       magicitems: finder(),
       faction: finder(),
       dhDomain: finder(),
+      dhAncestry: finder(),
+      dhCommunity: finder(),
     },
   };
 });
@@ -63,6 +65,16 @@ describe("image visibility for a player (SPEC-022 T7, R11, R12)", () => {
 
     await expect(isRecordImageVisible(9, scope)).resolves.toBe(true);
   });
+
+  // SPEC-027: the heritage catalogues are rules too.
+  it.each(["dhAncestry", "dhCommunity"] as const)(
+    "serves a %s's picture, a rules catalogue",
+    async (model) => {
+      db[model].findFirst.mockResolvedValue({ id: 3 });
+
+      await expect(isRecordImageVisible(9, scope)).resolves.toBe(true);
+    }
+  );
 
   it("serves an image no visible record owns to no player", async () => {
     await expect(isRecordImageVisible(9, scope)).resolves.toBe(false);

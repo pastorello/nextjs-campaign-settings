@@ -12,6 +12,8 @@ enum PageType {
   // `pagesConfig`. The value is the route segment under `[system]/admin/`.
   DhClass = "classes",
   DhSubclass = "subclasses",
+  // SPEC-027 — the heritage catalogues.
+  DhAncestry = "ancestries",
 }
 
 export default PageType;

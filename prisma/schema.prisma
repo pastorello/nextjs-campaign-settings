@@ -160,6 +160,9 @@ model faction {
   // SPEC-022 T6 — the campaigns this record is revealed to. Implicit
   // many-to-many: deleting either side removes the reveal.
   revealedTo campaign[] @relation("factionReveals")
+
+  // SPEC-027 — the Daggerheart communities tied to this faction.
+  dhCommunities dhCommunity[] @relation("dhCommunityFactions")
 }
 
 // The containment tree (§6/ADR-0010) — `region`/`plane`/`city`/`dungeon`,
@@ -213,6 +216,9 @@ model zone {
   // SPEC-022 T6 — the campaigns this record is revealed to. Implicit
   // many-to-many: deleting either side removes the reveal.
   revealedTo campaign[] @relation("zoneReveals")
+
+  // SPEC-027 — the Daggerheart communities rooted in this place.
+  dhCommunities dhCommunity[] @relation("dhCommunityPlaces")
 
   @@index([parentId])
 }
@@ -543,13 +549,16 @@ model recordImage {
   height     Int
   createdAt  DateTime @default(now())
 
-  npc       npc?
-  deity     deities?
-  magicItem magicitems?
-  treasure  treasure?
-  faction   faction?
-  zone      zone?
-  dhDomain  dhDomain?
+  npc         npc?
+  deity       deities?
+  magicItem   magicitems?
+  treasure    treasure?
+  faction     faction?
+  zone        zone?
+  dhDomain    dhDomain?
+  // SPEC-027 — the heritage catalogues' pictures.
+  dhAncestry  dhAncestry?
+  dhCommunity dhCommunity?
 }
 
 // SPEC-021 T1 — the Daggerheart catalogue: domains, domain cards, classes and
@@ -680,4 +689,52 @@ model dhSubclassFeature {
   text       String
 
   @@index([subclassId])
+}
+
+// SPEC-027 — the heritage catalogues: ancestries and communities. A
+// feature here is a pair of columns, not ADR-0018's per-owner feature
+// table: an ancestry has exactly two and a community exactly one, never
+// reordered, and fixed columns enforce the count on their own (SPEC-027
+// §6). The code keys are prefixed (`ancestryFeatureAName`, …) and `@map`ped,
+// since `featureText` is already a domain card's key in the flat metadata
+// namespace.
+model dhAncestry {
+  id                   Int      @id @default(autoincrement())
+  name                 String
+  description          String?
+  ancestryFeatureAName String   @map("featureAName")
+  ancestryFeatureAText String   @map("featureAText")
+  ancestryFeatureBName String   @map("featureBName")
+  ancestryFeatureBText String   @map("featureBText")
+  origin               String   @default("homebrew")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  imageId Int?         @unique
+  image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+
+  @@index([name])
+}
+
+// A community is a Daggerheart catalogue that links to the shared world,
+// not a world entity (SPEC-027 §3). Implicit many-to-many links: deleting
+// either end removes the link and nothing else.
+model dhCommunity {
+  id                   Int      @id @default(autoincrement())
+  name                 String
+  description          String?
+  adjectives           String?
+  communityFeatureName String   @map("featureName")
+  communityFeatureText String   @map("featureText")
+  origin               String   @default("homebrew")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  imageId Int?         @unique
+  image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+
+  places   zone[]    @relation("dhCommunityPlaces")
+  factions faction[] @relation("dhCommunityFactions")
+
+  @@index([name])
 }

@@ -9,6 +9,7 @@ import PageType from "../definitions/types/PageType";
 import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
 import DhClassMetaField from "../definitions/enums/daggerheart/DhClassMetaField";
 import DhSubclassMetaField from "../definitions/enums/daggerheart/DhSubclassMetaField";
+import DhAncestryMetaField from "../definitions/enums/daggerheart/DhAncestryMetaField";
 
 /**
  * The fields each domain's form holds state for (TD-09).
@@ -139,6 +140,17 @@ const formFields: Record<PageType, MetaConfigKey[]> = {
     DhSubclassMetaField.classId,
     DhSubclassMetaField.spellcastTrait,
     DhSubclassMetaField.origin,
+  ],
+
+  [PageType.DhAncestry]: [
+    DhAncestryMetaField.name,
+    DhAncestryMetaField.description,
+    DhAncestryMetaField.featureAName,
+    DhAncestryMetaField.featureAText,
+    DhAncestryMetaField.featureBName,
+    DhAncestryMetaField.featureBText,
+    DhAncestryMetaField.origin,
+    DhAncestryMetaField.imageId,
   ],
 };
 

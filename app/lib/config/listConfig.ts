@@ -8,6 +8,7 @@ import NpcMetaField from "../definitions/enums/npc/NpcMetaField";
 import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
 import DhClassMetaField from "../definitions/enums/daggerheart/DhClassMetaField";
 import DhSubclassMetaField from "../definitions/enums/daggerheart/DhSubclassMetaField";
+import DhAncestryMetaField from "../definitions/enums/daggerheart/DhAncestryMetaField";
 import PageType from "../definitions/types/PageType";
 
 /**
@@ -310,6 +311,29 @@ const listConfig: Record<PageType, ListConfig> = {
     emptyMessageKey: "dhSubclasses.page.emptyMessage",
     editModalTitleKey: "dhSubclasses.form.editTitle",
     modalContent: "dhsubclassform",
+  },
+
+  // SPEC-027 T2. The features are long text, read on the card view.
+  [PageType.DhAncestry]: {
+    columns: [
+      {
+        fieldKey: DhAncestryMetaField.featureAName,
+        labelKey: "dhAncestries.fields.featureAName.label",
+        isFiltrable: false,
+      },
+      {
+        fieldKey: DhAncestryMetaField.featureBName,
+        labelKey: "dhAncestries.fields.featureBName.label",
+        isFiltrable: false,
+      },
+      {
+        fieldKey: DhAncestryMetaField.origin,
+        labelKey: "daggerheart.fields.origin.label",
+      },
+    ],
+    emptyMessageKey: "dhAncestries.page.emptyMessage",
+    editModalTitleKey: "dhAncestries.form.editTitle",
+    modalContent: "dhancestryform",
   },
 };
 

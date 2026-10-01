@@ -25,7 +25,8 @@
       "dhSubclasses": "Sottoclassi",
       "accounts": "Account",
       "campaignSelector": "Campagna in corso",
-      "campaignUnavailable": "Non fai più parte di questa campagna."
+      "campaignUnavailable": "Non fai più parte di questa campagna.",
+      "dhAncestries": "Ascendenze"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -1659,6 +1660,11 @@
     "origins": {
       "homebrew": "Homebrew",
       "srdReference": "Riferimento SRD"
+    },
+    "view": {
+      "label": "Mostra come",
+      "rows": "Righe",
+      "cards": "Carte"
     }
   },
   "dhDomains": {
@@ -1747,11 +1753,6 @@
     "card": {
       "level": "Livello {level}",
       "emblemAlt": "Emblema di {domain}"
-    },
-    "view": {
-      "label": "Mostra come",
-      "rows": "Righe",
-      "cards": "Carte"
     }
   },
   "dhClasses": {
@@ -1858,6 +1859,39 @@
       "addToTier": "Aggiungi un privilegio: {tier}",
       "saveButton": "Salva privilegio",
       "emptyTier": "Ancora nessun privilegio in questo grado."
+    }
+  },
+  "dhAncestries": {
+    "page": {
+      "title": "Ascendenze",
+      "searchPlaceholder": "Cerca ascendenze...",
+      "itemSingular": "ascendenza",
+      "itemPlural": "ascendenze",
+      "newItemButton": "Nuova ascendenza",
+      "emptyMessage": "Nessuna ascendenza."
+    },
+    "form": {
+      "createTitle": "Crea nuova ascendenza",
+      "editTitle": "Modifica ascendenza",
+      "createButton": "Crea ascendenza",
+      "editButton": "Salva ascendenza"
+    },
+    "fields": {
+      "featureAName": {
+        "label": "Primo tratto"
+      },
+      "featureAText": {
+        "label": "Testo del primo tratto"
+      },
+      "featureBName": {
+        "label": "Secondo tratto"
+      },
+      "featureBText": {
+        "label": "Testo del secondo tratto"
+      }
+    },
+    "card": {
+      "imageAlt": "Immagine di {name}"
     }
   },
   "dhFeature": {

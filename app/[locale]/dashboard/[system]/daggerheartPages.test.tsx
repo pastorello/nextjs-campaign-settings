@@ -24,6 +24,7 @@ const counts = vi.hoisted(() => ({
   getDhDomainsCount: vi.fn(),
   getDhDomainCardsCount: vi.fn(),
   getDhClassesCount: vi.fn(),
+  getDhAncestriesCount: vi.fn(),
 }));
 vi.mock("@/app/lib/data/dhDomains/getDhDomainsCount", () => ({
   getDhDomainsCount: counts.getDhDomainsCount,
@@ -33,6 +34,9 @@ vi.mock("@/app/lib/data/dhDomainCards/getDhDomainCardsCount", () => ({
 }));
 vi.mock("@/app/lib/data/dhClasses/getDhClassesCount", () => ({
   getDhClassesCount: counts.getDhClassesCount,
+}));
+vi.mock("@/app/lib/data/dhAncestries/getDhAncestriesCount", () => ({
+  getDhAncestriesCount: counts.getDhAncestriesCount,
 }));
 
 vi.mock("@/app/ui/containers/ListPage", () => ({
@@ -111,6 +115,10 @@ import DomainsLayout from "./domains/layout";
 import DomainCardsLayout from "./domain-cards/layout";
 import ClassesLayout from "./classes/layout";
 import SubclassesLayout from "./subclasses/layout";
+import AncestriesLayout from "./ancestries/layout";
+import AncestriesPage, {
+  generateMetadata as ancestriesMetadata,
+} from "./ancestries/page";
 import DomainsPage, {
   generateMetadata as domainsMetadata,
 } from "./domains/page";
@@ -139,6 +147,7 @@ describe("the Daggerheart catalogue layouts (SPEC-021)", () => {
     ["domain-cards", DomainCardsLayout],
     ["classes", ClassesLayout],
     ["subclasses", SubclassesLayout],
+    ["ancestries", AncestriesLayout],
   ] as const;
 
   it.each(layouts)("%s renders under daggerheart", async (_, Layout) => {
@@ -177,6 +186,12 @@ describe("the public Daggerheart lists (SPEC-021 T2, T3, T6)", () => {
       PageType.DhDomainCard,
     ],
     [ClassesPage, classesMetadata, counts.getDhClassesCount, PageType.DhClass],
+    [
+      AncestriesPage,
+      ancestriesMetadata,
+      counts.getDhAncestriesCount,
+      PageType.DhAncestry,
+    ],
   ])(
     "counts with the search params and renders the library (%#)",
     async (Page, metadata, count, pageType) => {

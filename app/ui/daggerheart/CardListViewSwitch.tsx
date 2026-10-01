@@ -9,29 +9,28 @@ import ButtonState from "../buttons/BaseButton/ButtonState";
 
 /** The URL parameter the switch writes, and its two values. */
 export const VIEW_PARAM = "view";
-export type DhDomainCardListView = "rows" | "cards";
+export type CardListView = "rows" | "cards";
 
 /** The list's view from its search params: rows unless `view=cards`. */
-export function dhDomainCardListView(
-  value: string | null | undefined
-): DhDomainCardListView {
+export function cardListView(value: string | null | undefined): CardListView {
   return value === "cards" ? "cards" : "rows";
 }
 
 /**
- * Switches the domain card list between rows and a grid of card views
- * (SPEC-021 §5.3). The choice lives in the URL (`?view=cards`), so it
+ * Switches a Daggerheart catalogue list between rows and a grid of card
+ * views: domain cards (SPEC-021 §5.3), ancestries and communities (SPEC-027
+ * §5.3). The choice lives in the URL (`?view=cards`), so it
  * survives a reload, a filter change and a shared link; rows are the default
  * and write no parameter.
  */
-export default function DhDomainCardViewSwitch() {
-  const t = useTranslations("dhDomainCards.view");
+export default function CardListViewSwitch() {
+  const t = useTranslations("daggerheart.view");
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
-  const current = dhDomainCardListView(searchParams.get(VIEW_PARAM));
+  const current = cardListView(searchParams.get(VIEW_PARAM));
 
-  const select = (view: DhDomainCardListView) => {
+  const select = (view: CardListView) => {
     const params = new URLSearchParams(searchParams);
     if (view === "cards") params.set(VIEW_PARAM, view);
     else params.delete(VIEW_PARAM);

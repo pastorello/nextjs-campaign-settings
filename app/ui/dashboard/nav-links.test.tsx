@@ -209,6 +209,7 @@ describe("NavLinks for a player", () => {
       "/dashboard/daggerheart/domains",
       "/dashboard/daggerheart/domain-cards",
       "/dashboard/daggerheart/classes",
+      "/dashboard/daggerheart/ancestries",
     ]);
   });
 });

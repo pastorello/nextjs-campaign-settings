@@ -1,6 +1,6 @@
 # SPEC-027: Daggerheart — ancestries and communities
 
-- **Status:** Agreed 2026-09-30. Written by Claude from SPEC-018 §6; the DM approved it and answered its question (§9).
+- **Status:** In progress — T1, T2 shipped 2026-10-01. Agreed 2026-09-30. Written by Claude from SPEC-018 §6; the DM approved it and answered its question (§9).
 - **Date:** 2026-09-30
 - **Phase:** 4
 - **Related:** [SPEC-018](./018-game-systems.md) T5 (§5 licence constraints and §6 catalogue structure, binding here) · [SPEC-021](./021-daggerheart-domains-and-classes.md) (the first Daggerheart slice; this one reuses its patterns) · [ADR-0013](../adr/0013-game-systems.md) · [`daggerheart.md`](../domain/daggerheart.md) · [`licensing.md`](../domain/licensing.md) · [SPEC-006](./006-factions.md) and [SPEC-004](./004-world-model.md) (the factions and places a community links to)
@@ -161,7 +161,27 @@ model dhCommunity {
 
 ## 9. Implementation plan
 
-_Fill in once agreed._
+- **Schema** (T1): `dhAncestry` and `dhCommunity` as §6, the feature keys
+  prefixed in code and `@map`ped to §6's columns; the community's links are
+  implicit many-to-many relations (`_dhCommunityPlaces`,
+  `_dhCommunityFactions`); both tables own a record image. One additive
+  migration.
+- **Metadata** (T1): `dhAncestryMeta` and `dhCommunityMeta`, built on a
+  shared pair of feature-field helpers (`dhFeatureFields.ts`). The
+  key-collision check became computed over every pair of domain metas, so
+  the two new metas are checked against all the others; the hand-kept list
+  had already missed pairs.
+- **Ancestries** (T2) copy SPEC-021's domain card end to end: list with
+  rows/cards (`CardListViewSwitch`, now shared), admin list, form, delete
+  route, nav tile. A rules catalogue, so it joins `PLAYER_PAGES` unfiltered
+  (SPEC-022 R14), and its picture is shown to players.
+- **Communities** (T3): the same, plus the links. Filtering by place or
+  faction maps the multiselect's `hasSome` to a relation filter. For a
+  player (SPEC-022), a community's links name only visible places and
+  revealed factions.
+- **The world side** (T3): `fetchEntitiesAtPlace`-style reads for a place's
+  popover and a faction's card, shown under `daggerheart` only.
+- **Search and record links** (T4), as SPEC-021 T7.
 
 **Risks**
 
@@ -177,8 +197,19 @@ _Fill in once agreed._
 
 ## 10. Task breakdown
 
-_Fill in after §9. Likely: T1 schema and metas; T2 ancestries; T3 communities and
-their links; T4 search, record links, i18n, a11y and e2e with invented content._
+- [x] **T1** — Schema and metas for both catalogues. _Done 2026-10-01._
+      Migration `20261001100000_spec027_heritage`; the computed meta-pair check.
+- [x] **T2** — Ancestries end to end. _Done 2026-10-01._
+  - List with rows/cards, admin list, form, `DELETE /api/ancestries/[id]`,
+    nav tile; under `dnd5e` every page is a 404.
+  - Both features are required fields: one alone is refused field by field.
+  - A rules catalogue: open to players (`PLAYER_PAGES`), and its picture is
+    visible to them (`isRecordImageVisible`).
+  - E2E `daggerheart-ancestries.spec.ts` (refused with one feature, card
+    view, edit, delete, 404 under 5e); the a11y scan covers its four pages.
+- [ ] **T3** — Communities and their links, and the world side (§5.6).
+- [ ] **T4** — Search, record links, i18n, a11y and e2e with invented
+      content.
 
 ## 11. Outcome
 

@@ -13,6 +13,7 @@ import { fetchFilteredTreasures } from "@/app/lib/data/treasure/fetchFilteredTre
 import { fetchFilteredDhDomains } from "@/app/lib/data/dhDomains/fetchFilteredDhDomains";
 import { fetchFilteredDhDomainCards } from "@/app/lib/data/dhDomainCards/fetchFilteredDhDomainCards";
 import { fetchFilteredDhClasses } from "@/app/lib/data/dhClasses/fetchFilteredDhClasses";
+import { fetchFilteredDhAncestries } from "@/app/lib/data/dhAncestries/fetchFilteredDhAncestries";
 import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
 
 import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
@@ -28,6 +29,7 @@ import TreasureLibrary from "../treasures/TreasureLibrary";
 import DhDomainLibrary from "../dhDomains/DhDomainLibrary";
 import DhDomainCardLibrary from "../dhDomainCards/DhDomainCardLibrary";
 import DhClassLibrary from "../dhClasses/DhClassLibrary";
+import DhAncestryLibrary from "../dhAncestries/DhAncestryLibrary";
 import ResolvedRecordLinks from "../richText/ResolvedRecordLinks";
 import richTextValuesOf from "@/app/lib/utils/richText/richTextValuesOf";
 
@@ -137,5 +139,9 @@ export default async function EntityLibrary(props: {
     // No public list: a subclass is shown on its class's page (SPEC-021 T6).
     case PageType.DhSubclass:
       return null;
+    case PageType.DhAncestry: {
+      const items = await fetchFilteredDhAncestries(searchParams);
+      return withRecordLinks(items, <DhAncestryLibrary items={items} />);
+    }
   }
 }

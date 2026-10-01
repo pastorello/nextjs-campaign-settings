@@ -21,10 +21,15 @@ import ButtonSize from "@/app/ui/buttons/BaseButton/ButtonSize";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import IconType from "@/app/ui/buttons/BaseButton/IconType";
 
-import LootForm from "./LootForm";
+import LootForm, { DhEquipmentOptions } from "./LootForm";
+import { formatGold } from "@/app/lib/utils/daggerheart/gold";
+import type GameSystem from "@/app/lib/definitions/GameSystem";
 import CheckOffControl from "./CheckOffControl";
 
 interface LootListProps {
+  /** SPEC-030 T4: Daggerheart rows hold gold and SPEC-029's equipment. */
+  rulesSystem?: GameSystem;
+  equipmentOptions?: DhEquipmentOptions;
   sceneId: number;
   loot: Loot[];
   currencyUnit: CurrencyUnit;
@@ -47,6 +52,8 @@ function optionLabel(
  * Outside the metadata layer (ADR-0011), same shape as `SceneCreatureList`.
  */
 export default function LootList({
+  rulesSystem = "dnd5e",
+  equipmentOptions,
   sceneId,
   loot,
   currencyUnit,
@@ -55,6 +62,10 @@ export default function LootList({
 }: LootListProps) {
   const t = useTranslations();
   const router = useRouter();
+  const equipmentLabel = (row: Loot) =>
+    optionLabel(equipmentOptions?.weapons ?? [], row.dhWeaponId ?? null) ??
+    optionLabel(equipmentOptions?.armor ?? [], row.dhArmorId ?? null) ??
+    optionLabel(equipmentOptions?.loot ?? [], row.dhLootId ?? null);
 
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -118,6 +129,8 @@ export default function LootList({
             sceneId={sceneId}
             nextPosition={loot.length + 1}
             currencyUnit={currencyUnit}
+            rulesSystem={rulesSystem}
+            {...(equipmentOptions && { equipmentOptions })}
             magicItemOptions={magicItemOptions}
             treasureOptions={treasureOptions}
             onCancel={() => setIsAdding(false)}
@@ -137,6 +150,8 @@ export default function LootList({
                   sceneId={sceneId}
                   nextPosition={row.position}
                   currencyUnit={currencyUnit}
+                  rulesSystem={rulesSystem}
+                  {...(equipmentOptions && { equipmentOptions })}
                   magicItemOptions={magicItemOptions}
                   treasureOptions={treasureOptions}
                   loot={row}
@@ -166,6 +181,18 @@ export default function LootList({
                   {optionLabel(treasureOptions, row.treasureId) && (
                     <span className="ml-2 text-gray-600">
                       ({optionLabel(treasureOptions, row.treasureId)})
+                    </span>
+                  )}
+                  {row.gold != null && (
+                    <span className="ml-2 text-gray-600">
+                      {formatGold(row.gold, (unit, count) =>
+                        t(`daggerheart.gold.${unit}`, { count })
+                      )}
+                    </span>
+                  )}
+                  {equipmentLabel(row) && (
+                    <span className="ml-2 text-gray-600">
+                      ({equipmentLabel(row)})
                     </span>
                   )}
                   <div className="mt-1 max-w-[120px]">

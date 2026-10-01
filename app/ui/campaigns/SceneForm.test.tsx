@@ -148,4 +148,107 @@ describe("SceneForm (SPEC-013 T8)", () => {
     ).toBeEnabled();
     expect(onSaved).not.toHaveBeenCalled();
   });
+
+  // SPEC-030 T2: a Daggerheart scene marks a milestone instead.
+  it("asks a Daggerheart scene for a milestone, and sends no 5e field", async () => {
+    createScene.mockResolvedValue({ ok: true });
+    render(
+      <SceneForm
+        rulesSystem="daggerheart"
+        adventureId={1}
+        nextPosition={1}
+        zoneOptions={zoneOptions}
+        onCancel={onCancel}
+        onSaved={onSaved}
+      />
+    );
+
+    expect(screen.queryByLabelText("scene.fields.xpAward.label")).toBeNull();
+    fireEvent.change(screen.getByLabelText("scene.fields.title.label"), {
+      target: { value: "The bell tower" },
+    });
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "scene.fields.milestone.label" })
+    );
+    fireEvent.click(screen.getByText("scene.form.createButton"));
+
+    await vi.waitFor(() => expect(createScene).toHaveBeenCalled());
+    const [payload] = createScene.mock.lastCall as [Record<string, unknown>];
+    expect(payload).toMatchObject({ milestone: true });
+    expect(payload).not.toHaveProperty("xpAward");
+    expect(payload).not.toHaveProperty("grantsHeroPoint");
+  });
+
+  // SPEC-030 T3: a fight's budget takes the DM's ticked adjustments.
+  it("ticks a Daggerheart fight's Battle Point adjustments", async () => {
+    createScene.mockResolvedValue({ ok: true });
+    render(
+      <SceneForm
+        rulesSystem="daggerheart"
+        adventureId={1}
+        nextPosition={1}
+        zoneOptions={zoneOptions}
+        onCancel={onCancel}
+        onSaved={onSaved}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText("scene.fields.title.label"), {
+      target: { value: "The bell tower" },
+    });
+    fireEvent.click(
+      screen.getByRole("checkbox", {
+        name: "daggerheart.battleAdjustments.harderOrLonger",
+      })
+    );
+    fireEvent.click(screen.getByText("scene.form.createButton"));
+
+    await vi.waitFor(() => expect(createScene).toHaveBeenCalled());
+    expect(createScene.mock.lastCall?.[0]).toMatchObject({
+      kind: SceneKind.Fight,
+      battleAdjustments: ["harderOrLonger"],
+    });
+  });
+
+  it("offers no adjustments outside a fight, and sheds stored ones", async () => {
+    updateScene.mockResolvedValue({ ok: true });
+    render(
+      <SceneForm
+        rulesSystem="daggerheart"
+        adventureId={1}
+        nextPosition={1}
+        zoneOptions={zoneOptions}
+        scene={{
+          id: 9,
+          adventureId: 1,
+          position: 1,
+          kind: SceneKind.Explore,
+          title: "The marsh road",
+          description: null,
+          xpAward: null,
+          grantsHeroPoint: false,
+          awarded: false,
+          zoneId: null,
+          milestone: false,
+          battleAdjustments: ["harderOrLonger"],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }}
+        onCancel={onCancel}
+        onSaved={onSaved}
+      />
+    );
+
+    expect(
+      screen.queryByRole("checkbox", {
+        name: "daggerheart.battleAdjustments.harderOrLonger",
+      })
+    ).toBeNull();
+    fireEvent.click(screen.getByText("scene.form.editButton"));
+
+    await vi.waitFor(() => expect(updateScene).toHaveBeenCalled());
+    expect(updateScene.mock.lastCall?.[0]).toMatchObject({
+      battleAdjustments: [],
+    });
+  });
 });

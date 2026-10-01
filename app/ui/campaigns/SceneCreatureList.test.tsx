@@ -185,4 +185,36 @@ describe("SceneCreatureList (SPEC-013 T8)", () => {
     );
     expect(refresh).toHaveBeenCalled();
   });
+
+  // SPEC-030 T3: a Daggerheart row is priced in Battle Points.
+  it("prices a Daggerheart row in Battle Points, and an unlinked one not at all", () => {
+    render(
+      <SceneCreatureList
+        rulesSystem="daggerheart"
+        sceneId={1}
+        creatures={[
+          {
+            ...goblins,
+            quantity: 3,
+            dhAdversaryId: 7,
+            dhAdversary: { name: "Lurker", adversaryType: "standard", tier: 1 },
+          },
+          { ...boss, dhAdversaryId: null, dhAdversary: null },
+        ]}
+        npcOptions={[]}
+        partySize={4}
+      />
+    );
+
+    expect(
+      screen.getByText("sceneCreature.list.battlePoints: 6")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "sceneCreature.list.battlePoints: sceneCreature.list.unpriced"
+      )
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/sceneCreature.list.xpTotal/)).toBeNull();
+    expect(screen.queryByRole("checkbox")).toBeNull();
+  });
 });

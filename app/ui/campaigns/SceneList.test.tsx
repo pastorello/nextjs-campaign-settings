@@ -245,4 +245,25 @@ describe("SceneList (SPEC-013 T8)", () => {
     expect(setSceneAwarded).not.toHaveBeenCalledWith(2, expect.anything());
     expect(refresh).toHaveBeenCalled();
   });
+
+  // SPEC-030 T3: a Daggerheart fight shows its Battle Points; nothing else does.
+  it("shows a Daggerheart fight's Battle Points, and no other scene's", () => {
+    render(
+      <SceneList
+        {...baseProps}
+        rulesSystem="daggerheart"
+        partySize={3}
+        adventureTier={1}
+        scenes={[
+          makeScene({ id: 1, kind: SceneKind.Fight, title: "Ambush" }),
+          makeScene({ id: 2, kind: SceneKind.Explore, title: "Road" }),
+        ]}
+      />
+    );
+
+    expect(screen.getAllByText(/scene.battlePoints.summary/)).toHaveLength(1);
+    expect(screen.getByText(/scene.battlePoints.summary/)).toHaveTextContent(
+      '{"spent":0,"budget":11}'
+    );
+  });
 });

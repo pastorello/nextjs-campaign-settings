@@ -36,6 +36,9 @@ type OptionTableName =
   | "dhDomain"
   | "dhClass"
   | "dhAdversary"
+  | "dhWeapon"
+  | "dhArmor"
+  | "dhLoot"
   // SPEC-022 T6: the campaigns a record is revealed to; the second offers
   // 5e campaigns only, for the 5e catalogues.
   | "campaign"

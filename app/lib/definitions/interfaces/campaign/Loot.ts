@@ -15,6 +15,14 @@ interface Loot {
   taken: boolean;
   magicItemId: number | null;
   treasureId: number | null;
+  /**
+   * SPEC-030, Daggerheart only: gold in handfuls and the catalogue link.
+   * Optional so a 5e row need not carry them.
+   */
+  gold?: number | null;
+  dhWeaponId?: number | null;
+  dhArmorId?: number | null;
+  dhLootId?: number | null;
 }
 
 export default Loot;

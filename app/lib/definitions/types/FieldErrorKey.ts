@@ -106,6 +106,8 @@ export const FIELD_ERROR_KEYS = [
   "environmentFeatureOrderMismatch",
   // Daggerheart equipment (SPEC-029)
   "featureNeedsBoth",
+  // Daggerheart campaigns (SPEC-030)
+  "notInThisSystem",
   // Accounts (SPEC-022 T2, T3)
   "accountNotFound",
   "emailTaken",

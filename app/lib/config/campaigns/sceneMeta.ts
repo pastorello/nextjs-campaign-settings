@@ -10,6 +10,8 @@ import richTextValidator from "@/app/lib/utils/validators/richTextValidator";
 import z from "zod";
 
 import sceneKinds from "./scene-kinds";
+import DhBattleAdjustment from "@/app/lib/definitions/enums/daggerheart/DhBattleAdjustment";
+import { dhBattleAdjustments } from "../daggerheart/dhBattlePoints";
 
 /**
  * A scene's own scalar fields (SPEC-013 §5/§6) — outside the metadata layer
@@ -86,6 +88,25 @@ const sceneMeta = {
     optionTable: "zone",
     controlType: ControlType.Select,
     validator: z.coerce.number().int().positive().nullable(),
+  },
+  // SPEC-030, Daggerheart only (`campaignSystemFields`): a milestone, ticked
+  // through `awarded` when played, and a fight's Battle Point adjustments.
+  [SceneMetaField.milestone]: {
+    metaField: "milestone",
+    labelKey: "scene.fields.milestone.label",
+    defaultValue: false,
+    fieldType: FieldType.boolean,
+    controlType: ControlType.Bool,
+    validator: z.coerce.boolean().optional(),
+  },
+  [SceneMetaField.battleAdjustments]: {
+    metaField: "battleAdjustments",
+    labelKey: "scene.fields.battleAdjustments.label",
+    defaultValue: [],
+    fieldType: FieldType.array,
+    options: dhBattleAdjustments,
+    controlType: ControlType.Multiselect,
+    validator: z.array(z.nativeEnum(DhBattleAdjustment)).optional(),
   },
 } satisfies Record<string, PageMeta>;
 

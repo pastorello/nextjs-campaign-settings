@@ -9,6 +9,8 @@ import sceneMeta from "@/app/lib/config/campaigns/sceneMeta";
 import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
+import otherSystemFieldErrors from "./otherSystemFieldErrors";
+import fetchRulesSystem from "./fetchRulesSystem";
 
 /**
  * Updates a scene's own fields, including its position — the direct,
@@ -26,6 +28,11 @@ export default async function updateScene(
   if (!parsed.success) {
     return { ok: false, errors: toFieldErrors(parsed.error) };
   }
+
+  // SPEC-030: the campaign's system decides which fields exist.
+  const system = await fetchRulesSystem({ sceneId: parsed.data.id as number });
+  const systemErrors = otherSystemFieldErrors("scene", system, parsed.data);
+  if (systemErrors) return { ok: false, errors: systemErrors };
 
   // Written from `parsed.data`, never the raw payload: it holds only the
   // declared keys the payload carried, already coerced (TD-122).

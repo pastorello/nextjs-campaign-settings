@@ -9,6 +9,8 @@ enum AdventureMetaField {
   currencyUnit = "currencyUnit",
   permanentItemTarget = "permanentItemTarget",
   consumableTarget = "consumableTarget",
+  // SPEC-030 — Daggerheart only.
+  goldTarget = "goldTarget",
 }
 
 export default AdventureMetaField;

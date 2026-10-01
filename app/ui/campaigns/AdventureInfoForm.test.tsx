@@ -167,4 +167,33 @@ describe("AdventureInfoForm (SPEC-013 T8)", () => {
     );
     expect(onSaved).not.toHaveBeenCalled();
   });
+
+  // SPEC-030 T2: no XP or silver under Daggerheart; a gold target instead.
+  it("takes a Daggerheart adventure's gold target, and sends no 5e target", async () => {
+    updateAdventure.mockResolvedValue({ ok: true });
+    render(
+      <AdventureInfoForm
+        adventure={{ ...adventure, goldTarget: 12 }}
+        rulesSystem="daggerheart"
+        onCancel={onCancel}
+        onSaved={onSaved}
+      />
+    );
+
+    expect(
+      screen.queryByLabelText("adventure.fields.xpTarget.label")
+    ).toBeNull();
+    const gold = screen.getByLabelText("adventure.fields.goldTarget.label");
+    expect(gold).toHaveValue("12");
+    fireEvent.change(gold, { target: { value: "30" } });
+    fireEvent.click(screen.getByText("adventure.form.editButton"));
+
+    await waitFor(() => expect(updateAdventure).toHaveBeenCalled());
+    const [payload] = updateAdventure.mock.lastCall as [
+      Record<string, unknown>,
+    ];
+    expect(payload).toMatchObject({ goldTarget: 30 });
+    expect(payload).not.toHaveProperty("xpTarget");
+    expect(payload).not.toHaveProperty("currencyTarget");
+  });
 });

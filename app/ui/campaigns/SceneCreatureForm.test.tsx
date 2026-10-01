@@ -20,6 +20,33 @@ vi.mock("@/app/lib/data/campaigns/updateSceneCreature", () => ({
   default: (...args: unknown[]) => updateSceneCreature(...args),
 }));
 
+// A native <select> stands in for the Headless UI listbox, which jsdom
+// cannot drive by label.
+vi.mock("@/app/ui/forms/inputs/Select", () => ({
+  default: ({
+    label,
+    value,
+    options = [],
+    onChange,
+  }: {
+    label?: string;
+    value: number;
+    options?: { value: number; label: string }[];
+    onChange: (value: string) => void;
+  }) => (
+    <label>
+      {label}
+      <select value={value} onChange={(event) => onChange(event.target.value)}>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  ),
+}));
+
 import SceneCreatureForm from "./SceneCreatureForm";
 
 describe("SceneCreatureForm (SPEC-013 T8)", () => {
@@ -84,5 +111,67 @@ describe("SceneCreatureForm (SPEC-013 T8)", () => {
       )
     );
     expect(onSaved).not.toHaveBeenCalled();
+  });
+
+  // SPEC-030 T3: a Daggerheart row prices an adversary, not level and XP.
+  it("links a Daggerheart row to an adversary, naming it after it", async () => {
+    createSceneCreature.mockResolvedValue({ ok: true });
+    render(
+      <SceneCreatureForm
+        rulesSystem="daggerheart"
+        adversaryOptions={[{ value: 7, label: "Marsh Lurker" }]}
+        sceneId={3}
+        nextPosition={1}
+        npcOptions={[]}
+        onCancel={onCancel}
+        onSaved={onSaved}
+      />
+    );
+
+    expect(
+      screen.queryByLabelText("sceneCreature.fields.xpEach.label")
+    ).toBeNull();
+    fireEvent.change(
+      screen.getByLabelText("sceneCreature.fields.dhAdversaryId.label"),
+      { target: { value: "7" } }
+    );
+    expect(
+      screen.getByLabelText("sceneCreature.fields.name.label")
+    ).toHaveValue("Marsh Lurker");
+    fireEvent.click(screen.getByText("sceneCreature.form.createButton"));
+
+    await vi.waitFor(() => expect(createSceneCreature).toHaveBeenCalled());
+    const [payload] = createSceneCreature.mock.lastCall as [
+      Record<string, unknown>,
+    ];
+    expect(payload).toMatchObject({ name: "Marsh Lurker", dhAdversaryId: 7 });
+    expect(payload).not.toHaveProperty("level");
+    expect(payload).not.toHaveProperty("xpEach");
+  });
+
+  it("keeps a row's own name when an adversary is picked", () => {
+    render(
+      <SceneCreatureForm
+        rulesSystem="daggerheart"
+        adversaryOptions={[{ value: 7, label: "Marsh Lurker" }]}
+        sceneId={3}
+        nextPosition={1}
+        npcOptions={[]}
+        onCancel={onCancel}
+        onSaved={onSaved}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText("sceneCreature.fields.name.label"), {
+      target: { value: "Old Grey" },
+    });
+    fireEvent.change(
+      screen.getByLabelText("sceneCreature.fields.dhAdversaryId.label"),
+      { target: { value: "7" } }
+    );
+
+    expect(
+      screen.getByLabelText("sceneCreature.fields.name.label")
+    ).toHaveValue("Old Grey");
   });
 });

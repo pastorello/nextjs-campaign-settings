@@ -17,10 +17,14 @@ import BespokeFormErrorSummary from "@/app/ui/forms/BespokeFormErrorSummary";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import ButtonState from "@/app/ui/buttons/BaseButton/ButtonState";
+import type GameSystem from "@/app/lib/definitions/GameSystem";
 
 const NONE = 0;
 
 interface SceneCreatureFormProps {
+  /** SPEC-030 T3: Daggerheart links an adversary instead of level and XP. */
+  rulesSystem?: GameSystem;
+  adversaryOptions?: ResolvedOption<number>[];
   sceneId: number;
   nextPosition: number;
   npcOptions: ResolvedOption<number>[];
@@ -34,8 +38,13 @@ interface SceneCreatureFormProps {
  * plain nullable FK Select, like `SceneForm`'s `zoneId` — no cross-field
  * invariant to resolve, so `NONE` (0) stands in for "not linked" the same
  * way `AssignLocationModal` uses a sentinel for "no landmark".
+ *
+ * Under Daggerheart the adversary takes level's and XP's place, through the
+ * same sentinel; picking one names a still-unnamed row after it.
  */
 export default function SceneCreatureForm({
+  rulesSystem = "dnd5e",
+  adversaryOptions = [],
   sceneId,
   nextPosition,
   npcOptions,
@@ -61,12 +70,26 @@ export default function SceneCreatureForm({
   const [quantity, setQuantity] = useState(String(creature?.quantity ?? 1));
   const [note, setNote] = useState(creature?.note ?? "");
   const [npcId, setNpcId] = useState<number>(creature?.npcId ?? NONE);
+  const [dhAdversaryId, setDhAdversaryId] = useState<number>(
+    creature?.dhAdversaryId ?? NONE
+  );
+  const isDaggerheart = rulesSystem === "daggerheart";
   const { errors, isSaving, submit } = useMutationSubmit();
 
   const npcSelectOptions = [
     { value: NONE, label: t("sceneCreature.fields.npcId.noneOption") },
     ...npcOptions,
   ];
+  const adversarySelectOptions = [
+    { value: NONE, label: t("sceneCreature.fields.dhAdversaryId.noneOption") },
+    ...adversaryOptions,
+  ];
+
+  function chooseAdversary(id: number) {
+    setDhAdversaryId(id);
+    const picked = adversaryOptions.find((option) => option.value === id);
+    if (picked && name.trim() === "") setName(picked.label);
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -74,8 +97,13 @@ export default function SceneCreatureForm({
       ...(isEditMode ? { id: creature.id } : { sceneId }),
       position: isEditMode ? creature.position : nextPosition,
       name,
-      level: level.trim() === "" ? null : Number(level),
-      xpEach: xpEach.trim() === "" ? null : Number(xpEach),
+      // Each system writes its own fields (SPEC-030 §9 decision 2).
+      ...(isDaggerheart
+        ? { dhAdversaryId: dhAdversaryId === NONE ? null : dhAdversaryId }
+        : {
+            level: level.trim() === "" ? null : Number(level),
+            xpEach: xpEach.trim() === "" ? null : Number(xpEach),
+          }),
       quantity: Number(quantity),
       note: note.trim() === "" ? null : note,
       npcId: npcId === NONE ? null : npcId,
@@ -98,20 +126,33 @@ export default function SceneCreatureForm({
         value={name}
         onChange={(value) => setName(String(value))}
       />
-      <TextInput
-        label={t(
-          sceneCreatureMeta[SceneCreatureMetaField.level].labelKey ?? ""
-        )}
-        value={level}
-        onChange={(value) => setLevel(String(value))}
-      />
-      <TextInput
-        label={t(
-          sceneCreatureMeta[SceneCreatureMetaField.xpEach].labelKey ?? ""
-        )}
-        value={xpEach}
-        onChange={(value) => setXpEach(String(value))}
-      />
+      {isDaggerheart ? (
+        <Select
+          label={t(
+            sceneCreatureMeta[SceneCreatureMetaField.dhAdversaryId].labelKey
+          )}
+          value={dhAdversaryId}
+          options={adversarySelectOptions}
+          onChange={(value) => chooseAdversary(Number(value))}
+        />
+      ) : (
+        <>
+          <TextInput
+            label={t(
+              sceneCreatureMeta[SceneCreatureMetaField.level].labelKey ?? ""
+            )}
+            value={level}
+            onChange={(value) => setLevel(String(value))}
+          />
+          <TextInput
+            label={t(
+              sceneCreatureMeta[SceneCreatureMetaField.xpEach].labelKey ?? ""
+            )}
+            value={xpEach}
+            onChange={(value) => setXpEach(String(value))}
+          />
+        </>
+      )}
       <TextInput
         label={t(
           sceneCreatureMeta[SceneCreatureMetaField.quantity].labelKey ?? ""

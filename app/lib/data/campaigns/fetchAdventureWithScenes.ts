@@ -7,9 +7,16 @@ import SceneKind from "@/app/lib/definitions/enums/campaign/SceneKind";
 import SceneCreature from "@/app/lib/definitions/interfaces/campaign/SceneCreature";
 import Loot from "@/app/lib/definitions/interfaces/campaign/Loot";
 import GameSystem, { isGameSystem } from "@/app/lib/definitions/GameSystem";
+import { PricedAdversary } from "@/app/lib/utils/daggerheart/battlePoints";
+
+/** A creature row with the adversary its Battle Points come from (SPEC-030 T3). */
+export interface SceneCreatureWithAdversary extends SceneCreature {
+  /** `null` when unlinked, the deleted-adversary case included. */
+  dhAdversary?: (PricedAdversary & { name: string }) | null;
+}
 
 export interface SceneWithDetails extends Scene {
-  creatures: SceneCreature[];
+  creatures: SceneCreatureWithAdversary[];
   loot: Loot[];
 }
 
@@ -20,6 +27,13 @@ export interface AdventureWithScenes extends Adventure {
    * it. `null` for a standalone adventure, which has no system of its own.
    */
   campaignSystem: GameSystem | null;
+  /**
+   * The rules the adventure is planned under (SPEC-030 §9 decision 1): its
+   * campaign's system, 5e for a standalone adventure.
+   */
+  rulesSystem: GameSystem;
+  /** The campaign's party size, which Battle Point budgets are built from. */
+  partySize: number;
 }
 
 /**
@@ -62,7 +76,8 @@ export default async function fetchAdventureWithScenes(
         currencyUnit: true,
         permanentItemTarget: true,
         consumableTarget: true,
-        campaign: { select: { system: true } },
+        goldTarget: true,
+        campaign: { select: { system: true, partySize: true } },
         scenes: {
           orderBy: { position: "asc" },
           select: {
@@ -76,6 +91,8 @@ export default async function fetchAdventureWithScenes(
             grantsHeroPoint: true,
             awarded: true,
             zoneId: true,
+            milestone: true,
+            battleAdjustments: true,
             createdAt: true,
             updatedAt: true,
             creatures: {
@@ -91,6 +108,10 @@ export default async function fetchAdventureWithScenes(
                 note: true,
                 awarded: true,
                 npcId: true,
+                dhAdversaryId: true,
+                dhAdversary: {
+                  select: { name: true, adversaryType: true, tier: true },
+                },
               },
             },
             loot: {
@@ -105,6 +126,10 @@ export default async function fetchAdventureWithScenes(
                 taken: true,
                 magicItemId: true,
                 treasureId: true,
+                gold: true,
+                dhWeaponId: true,
+                dhArmorId: true,
+                dhLootId: true,
               },
             },
           },
@@ -130,7 +155,11 @@ export default async function fetchAdventureWithScenes(
     currencyUnit: row.currencyUnit,
     permanentItemTarget: row.permanentItemTarget,
     consumableTarget: row.consumableTarget,
+    goldTarget: row.goldTarget,
     campaignSystem: toCampaignSystem(row.campaign?.system),
+    rulesSystem: toCampaignSystem(row.campaign?.system) ?? "dnd5e",
+    // SPEC-013's default party, for a standalone adventure.
+    partySize: row.campaign?.partySize ?? 4,
     // `kind` is a raw `String` column (SPEC-013 §6); the six values written
     // to it are exactly `SceneKind`'s members, enforced at write time by
     // the scene editor's validator (T6).

@@ -22,10 +22,16 @@ import BespokeFormErrorSummary from "@/app/ui/forms/BespokeFormErrorSummary";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import ButtonState from "@/app/ui/buttons/BaseButton/ButtonState";
+import type GameSystem from "@/app/lib/definitions/GameSystem";
+import { dhBattleAdjustments } from "@/app/lib/config/daggerheart/dhBattlePoints";
+import { knownAdjustments } from "@/app/lib/utils/daggerheart/battlePoints";
+import type DhBattleAdjustment from "@/app/lib/definitions/enums/daggerheart/DhBattleAdjustment";
 
 const NONE = 0;
 
 interface SceneFormProps {
+  /** SPEC-030: Daggerheart marks milestones instead of XP and hero points. */
+  rulesSystem?: GameSystem;
   adventureId: number;
   nextPosition: number;
   zoneOptions: ResolvedOption<number>[];
@@ -43,6 +49,7 @@ interface SceneFormProps {
  * `AssignLocationModal`'s zone/POI pair, so it is a normal form field.
  */
 export default function SceneForm({
+  rulesSystem = "dnd5e",
   adventureId,
   nextPosition,
   zoneOptions,
@@ -70,6 +77,11 @@ export default function SceneForm({
     scene?.grantsHeroPoint ?? false
   );
   const [zoneId, setZoneId] = useState<number>(scene?.zoneId ?? NONE);
+  const [milestone, setMilestone] = useState(scene?.milestone ?? false);
+  const [adjustments, setAdjustments] = useState<DhBattleAdjustment[]>(
+    knownAdjustments(scene?.battleAdjustments ?? [])
+  );
+  const isDaggerheart = rulesSystem === "daggerheart";
   const { errors, isSaving, submit } = useMutationSubmit();
 
   const zoneSelectOptions = [
@@ -85,8 +97,19 @@ export default function SceneForm({
       kind,
       title,
       description: description.trim() === "" ? null : description,
-      xpAward: xpAward.trim() === "" ? null : Number(xpAward),
-      grantsHeroPoint,
+      // Each system writes its own fields (SPEC-030 §9 decision 2).
+      ...(isDaggerheart
+        ? {
+            milestone,
+            // Only a fight is budgeted (SPEC-030 T3): another kind keeps
+            // no adjustments, so a scene changed away from a fight sheds
+            // its ticks rather than hiding them.
+            battleAdjustments: kind === SceneKind.Fight ? adjustments : [],
+          }
+        : {
+            xpAward: xpAward.trim() === "" ? null : Number(xpAward),
+            grantsHeroPoint,
+          }),
       zoneId: zoneId === NONE ? null : zoneId,
     } as Scene;
 
@@ -118,16 +141,51 @@ export default function SceneForm({
         value={description}
         onChange={(value) => setDescription(String(value))}
       />
-      <TextInput
-        label={t(sceneMeta[SceneMetaField.xpAward].labelKey ?? "")}
-        value={xpAward}
-        onChange={(value) => setXpAward(String(value))}
-      />
-      <CheckboxInput
-        label={t(sceneMeta[SceneMetaField.grantsHeroPoint].labelKey ?? "")}
-        value={grantsHeroPoint}
-        onChange={(value) => setGrantsHeroPoint(value === true)}
-      />
+      {isDaggerheart ? (
+        <>
+          <CheckboxInput
+            label={t(sceneMeta[SceneMetaField.milestone].labelKey)}
+            value={milestone}
+            onChange={(value) => setMilestone(value === true)}
+          />
+          {kind === SceneKind.Fight && (
+            <fieldset className="space-y-1">
+              <legend className="mb-1 text-sm font-medium">
+                {t(sceneMeta[SceneMetaField.battleAdjustments].labelKey)}
+              </legend>
+              {dhBattleAdjustments.map((option) => (
+                <CheckboxInput
+                  key={option.value}
+                  label={t(option.labelKey)}
+                  value={adjustments.includes(option.value)}
+                  onChange={(value) =>
+                    setAdjustments((current) =>
+                      knownAdjustments(
+                        value === true
+                          ? [...current, option.value]
+                          : current.filter((key) => key !== option.value)
+                      )
+                    )
+                  }
+                />
+              ))}
+            </fieldset>
+          )}
+        </>
+      ) : (
+        <>
+          <TextInput
+            label={t(sceneMeta[SceneMetaField.xpAward].labelKey ?? "")}
+            value={xpAward}
+            onChange={(value) => setXpAward(String(value))}
+          />
+          <CheckboxInput
+            label={t(sceneMeta[SceneMetaField.grantsHeroPoint].labelKey ?? "")}
+            value={grantsHeroPoint}
+            onChange={(value) => setGrantsHeroPoint(value === true)}
+          />
+        </>
+      )}
       <Select
         label={t(sceneMeta[SceneMetaField.zoneId].labelKey ?? "")}
         value={zoneId}

@@ -78,6 +78,7 @@ describe("Adventure page (SPEC-013 T8)", () => {
     getBudgetTotals.mockResolvedValue({
       xp: { assigned: 0, found: 0 },
       currency: { assigned: 0, found: 0 },
+      gold: { assigned: 0, found: 0 },
       permanentItems: { assigned: 0, found: 0 },
       consumables: { assigned: 0, found: 0 },
       heroPoints: 0,

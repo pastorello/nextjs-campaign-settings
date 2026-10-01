@@ -6,6 +6,7 @@ import fetchAdventureWithScenes from "@/app/lib/data/campaigns/fetchAdventureWit
 import getBudgetTotals from "@/app/lib/data/campaigns/getBudgetTotals";
 import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
 import { CurrencyUnit } from "@/app/lib/utils/currency/convertCurrency";
+import tierOfLevel from "@/app/lib/utils/daggerheart/tierOfLevel";
 import AdventureHeader from "@/app/ui/campaigns/AdventureHeader";
 import BudgetPanel from "@/app/ui/campaigns/BudgetPanel";
 import SceneList from "@/app/ui/campaigns/SceneList";
@@ -51,14 +52,30 @@ export default async function AdventurePage({
     });
   }
 
-  const [zoneOptions, npcOptions, magicItemOptions, treasureOptions, totals] =
-    await Promise.all([
-      fetchFieldOptions("zone"),
-      fetchFieldOptions("npc"),
-      fetchFieldOptions("magicitems"),
-      fetchFieldOptions("treasure"),
-      getBudgetTotals(id),
-    ]);
+  const isDaggerheart = adventure.rulesSystem === "daggerheart";
+  const [
+    zoneOptions,
+    npcOptions,
+    magicItemOptions,
+    treasureOptions,
+    adversaryOptions,
+    weaponOptions,
+    armorOptions,
+    lootOptions,
+    totals,
+  ] = await Promise.all([
+    fetchFieldOptions("zone"),
+    fetchFieldOptions("npc"),
+    fetchFieldOptions("magicitems"),
+    fetchFieldOptions("treasure"),
+    // SPEC-030 T3: a 5e adventure has no adversaries to pick.
+    isDaggerheart ? fetchFieldOptions("dhAdversary") : Promise.resolve([]),
+    // SPEC-030 T4: nor equipment for its loot.
+    isDaggerheart ? fetchFieldOptions("dhWeapon") : Promise.resolve([]),
+    isDaggerheart ? fetchFieldOptions("dhArmor") : Promise.resolve([]),
+    isDaggerheart ? fetchFieldOptions("dhLoot") : Promise.resolve([]),
+    getBudgetTotals(id),
+  ]);
 
   const currencyUnit = (adventure.currencyUnit ?? "silver") as CurrencyUnit;
 
@@ -71,16 +88,22 @@ export default async function AdventurePage({
       system={system}
     >
       <div>
-        <AdventureHeader adventure={adventure} />
+        <AdventureHeader
+          adventure={adventure}
+          rulesSystem={adventure.rulesSystem}
+        />
         <BudgetPanel
+          rulesSystem={adventure.rulesSystem}
           totals={totals}
           currencyUnit={currencyUnit}
           xpTarget={adventure.xpTarget}
           currencyTarget={adventure.currencyTarget}
           permanentItemTarget={adventure.permanentItemTarget}
           consumableTarget={adventure.consumableTarget}
+          goldTarget={adventure.goldTarget ?? null}
         />
         <SceneList
+          rulesSystem={adventure.rulesSystem}
           adventureId={adventure.id}
           scenes={adventure.scenes}
           currencyUnit={currencyUnit}
@@ -88,6 +111,14 @@ export default async function AdventurePage({
           npcOptions={npcOptions}
           magicItemOptions={magicItemOptions}
           treasureOptions={treasureOptions}
+          adversaryOptions={adversaryOptions}
+          equipmentOptions={{
+            weapons: weaponOptions,
+            armor: armorOptions,
+            loot: lootOptions,
+          }}
+          partySize={adventure.partySize}
+          adventureTier={tierOfLevel(adventure.targetLevel)}
         />
       </div>
     </ResolvedRecordLinks>

@@ -79,6 +79,17 @@ const sceneCreatureMeta = {
     controlType: ControlType.Select,
     validator: z.coerce.number().int().positive().nullable(),
   },
+  // SPEC-030, Daggerheart only: the adversary the row prices. Deleting it
+  // nulls the link (`SetNull`) and leaves the row unpriced.
+  [SceneCreatureMetaField.dhAdversaryId]: {
+    metaField: "dhAdversaryId",
+    labelKey: "sceneCreature.fields.dhAdversaryId.label",
+    defaultValue: null,
+    fieldType: FieldType.integer,
+    optionTable: "dhAdversary",
+    controlType: ControlType.Select,
+    validator: z.coerce.number().int().positive().nullable().optional(),
+  },
 } satisfies Record<string, PageMeta>;
 
 export default sceneCreatureMeta;

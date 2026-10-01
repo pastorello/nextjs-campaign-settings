@@ -9,6 +9,8 @@ import sceneCreatureMeta from "@/app/lib/config/campaigns/sceneCreatureMeta";
 import { buildBespokeUpdateSchema } from "../validation/buildBespokeEntitySchema";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
+import otherSystemFieldErrors from "./otherSystemFieldErrors";
+import fetchRulesSystem from "./fetchRulesSystem";
 
 /**
  * Updates a creature row's own fields, including its position. Written
@@ -26,6 +28,17 @@ export default async function updateSceneCreature(
   if (!parsed.success) {
     return { ok: false, errors: toFieldErrors(parsed.error) };
   }
+
+  // SPEC-030: the campaign's system decides which fields exist.
+  const system = await fetchRulesSystem({
+    sceneCreatureId: parsed.data.id as number,
+  });
+  const systemErrors = otherSystemFieldErrors(
+    "sceneCreature",
+    system,
+    parsed.data
+  );
+  if (systemErrors) return { ok: false, errors: systemErrors };
 
   // Written from `parsed.data`, never the raw payload: it holds only the
   // declared keys the payload carried, already coerced (TD-122).

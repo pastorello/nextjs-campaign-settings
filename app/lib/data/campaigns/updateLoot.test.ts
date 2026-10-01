@@ -6,6 +6,10 @@ import Loot from "@/app/lib/definitions/interfaces/campaign/Loot";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+// SPEC-030: a 5e campaign's row; the per-system rule has its own suite.
+vi.mock("./fetchRulesSystem", () => ({
+  default: () => Promise.resolve("dnd5e"),
+}));
 
 const { update } = vi.hoisted(() => ({ update: vi.fn() }));
 vi.mock("@/app/lib/connections/prisma", () => ({

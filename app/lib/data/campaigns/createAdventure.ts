@@ -10,6 +10,8 @@ import { buildBespokeCreateSchema } from "../validation/buildBespokeEntitySchema
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import { z } from "zod";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
+import otherSystemFieldErrors from "./otherSystemFieldErrors";
+import fetchRulesSystem from "./fetchRulesSystem";
 
 /**
  * Creates an adventure on the campaign's ladder, or standalone when
@@ -32,6 +34,13 @@ export default async function createAdventure(
     return { ok: false, errors: toFieldErrors(parsed.error) };
   }
 
+  // SPEC-030: the campaign's system decides which fields exist.
+  const system = await fetchRulesSystem({
+    campaignId: parsed.data.campaignId as number | null,
+  });
+  const systemErrors = otherSystemFieldErrors("adventure", system, parsed.data);
+  if (systemErrors) return { ok: false, errors: systemErrors };
+
   // Read from `parsed.data`, never the raw payload: its values are the
   // coerced ones (TD-122). The schema is built from a runtime field list, so
   // its output type is widened; this assertion narrows it back.
@@ -47,6 +56,7 @@ export default async function createAdventure(
     currencyUnit,
     permanentItemTarget,
     consumableTarget,
+    goldTarget,
   } = parsed.data as Omit<Adventure, "id">;
 
   try {
@@ -63,6 +73,7 @@ export default async function createAdventure(
         currencyUnit,
         permanentItemTarget,
         consumableTarget,
+        ...(system === "daggerheart" && { goldTarget: goldTarget ?? null }),
       },
     });
   } catch (error) {

@@ -349,6 +349,10 @@ model adventure {
   currencyUnit        String? // silver | gold — DISPLAY only, see the counting rule
   permanentItemTarget Int?
   consumableTarget    Int?
+  // SPEC-030: a Daggerheart adventure's gold target, in handfuls. 5e's
+  // `currencyTarget` stays silver; the campaign's system decides which one
+  // the editors write.
+  goldTarget          Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -364,13 +368,17 @@ model scene {
   adventureId Int
   adventure   adventure @relation(fields: [adventureId], references: [id], onDelete: Cascade)
 
-  position        Int
-  kind            String // fight | explore | clue | goal | dungeon | break
-  title           String
-  description     String?
-  xpAward         Int?
-  grantsHeroPoint Boolean @default(false)
-  awarded         Boolean @default(false)
+  position          Int
+  kind              String // fight | explore | clue | goal | dungeon | break
+  title             String
+  description       String?
+  xpAward           Int?
+  grantsHeroPoint   Boolean  @default(false)
+  awarded           Boolean  @default(false)
+  // SPEC-030: Daggerheart's milestone (ticked through `awarded`) and the
+  // Battle Point adjustments the DM ticks, as keys.
+  milestone         Boolean  @default(false)
+  battleAdjustments String[] @default([])
 
   zoneId Int?
   zone   zone? @relation(fields: [zoneId], references: [id], onDelete: SetNull)
@@ -405,6 +413,11 @@ model sceneCreature {
   npcId Int?
   npc   npc? @relation(fields: [npcId], references: [id], onDelete: SetNull)
 
+  // SPEC-030: the adversary a Daggerheart row prices; deleting it leaves
+  // the row unpriced.
+  dhAdversaryId Int?
+  dhAdversary   dhAdversary? @relation(fields: [dhAdversaryId], references: [id], onDelete: SetNull)
+
   @@index([sceneId])
 }
 
@@ -427,6 +440,16 @@ model loot {
   magicitem   magicitems? @relation(fields: [magicItemId], references: [id], onDelete: SetNull)
   treasureId  Int?
   treasure    treasure?   @relation(fields: [treasureId], references: [id], onDelete: SetNull)
+
+  // SPEC-030: a Daggerheart row's gold, in handfuls, and its catalogue
+  // link. At most one of the five links is set (CHECK).
+  gold       Int?
+  dhWeaponId Int?
+  dhWeapon   dhWeapon? @relation(fields: [dhWeaponId], references: [id], onDelete: SetNull)
+  dhArmorId  Int?
+  dhArmor    dhArmor?  @relation(fields: [dhArmorId], references: [id], onDelete: SetNull)
+  dhLootId   Int?
+  dhLoot     dhLoot?   @relation(fields: [dhLootId], references: [id], onDelete: SetNull)
 
   @@index([sceneId])
 }
@@ -777,6 +800,7 @@ model dhAdversary {
   experiences  dhAdversaryExperience[]
   features     dhAdversaryFeature[]
   environments dhEnvironmentAdversary[]
+  sceneRows    sceneCreature[]
 
   @@index([name])
 }
@@ -878,6 +902,8 @@ model dhWeapon {
   imageId Int?         @unique
   image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
 
+  loot loot[]
+
   @@index([name])
 }
 
@@ -897,6 +923,8 @@ model dhArmor {
   imageId Int?         @unique
   image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
 
+  loot loot[]
+
   @@index([name])
 }
 
@@ -913,6 +941,8 @@ model dhLoot {
 
   imageId Int?         @unique
   image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+
+  loot loot[]
 
   @@index([name])
   @@index([rollValue])

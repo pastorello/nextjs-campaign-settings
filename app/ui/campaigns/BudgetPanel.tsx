@@ -6,22 +6,23 @@ import {
   toDisplayAmount,
 } from "@/app/lib/utils/currency/convertCurrency";
 import SectionTitle from "@/app/ui/typography/SectionTitle";
+import { formatGold } from "@/app/lib/utils/daggerheart/gold";
+import type GameSystem from "@/app/lib/definitions/GameSystem";
 
 interface BudgetPanelProps {
+  /**
+   * SPEC-030: Daggerheart counts milestones and items, not XP, silver or
+   * hero points.
+   */
+  rulesSystem?: GameSystem;
   totals: BudgetTotals;
   currencyUnit: CurrencyUnit;
   xpTarget: number | null;
   currencyTarget: number | null;
   permanentItemTarget: number | null;
   consumableTarget: number | null;
-}
-
-function formatFigure(value: number | null): string {
-  return value === null ? "—" : String(value);
-}
-
-function remaining(target: number | null, assigned: number): string {
-  return target === null ? "—" : String(target - assigned);
+  /** SPEC-030 T4: a Daggerheart adventure's gold target, in handfuls. */
+  goldTarget?: number | null;
 }
 
 /**
@@ -37,14 +38,20 @@ function remaining(target: number | null, assigned: number): string {
  * makes it update without a full page reload, not client state here.
  */
 export default async function BudgetPanel({
+  rulesSystem = "dnd5e",
   totals,
   currencyUnit,
   xpTarget,
   currencyTarget,
   permanentItemTarget,
   consumableTarget,
+  goldTarget = null,
 }: BudgetPanelProps) {
   const t = await getTranslations();
+  const gold = (handfuls: number) =>
+    formatGold(handfuls, (unit, count) =>
+      t(`daggerheart.gold.${unit}`, { count })
+    );
 
   const currencyDisplayTarget =
     currencyTarget === null
@@ -56,7 +63,8 @@ export default async function BudgetPanel({
   );
   const currencyFound = toDisplayAmount(totals.currency.found, currencyUnit);
 
-  const rows = [
+  const isDaggerheart = rulesSystem === "daggerheart";
+  const allRows = [
     {
       key: "xp",
       label: t("budget.categories.xp"),
@@ -70,6 +78,14 @@ export default async function BudgetPanel({
       target: currencyDisplayTarget,
       assigned: currencyAssigned,
       found: currencyFound,
+    },
+    {
+      key: "gold",
+      label: t("budget.categories.gold"),
+      target: goldTarget,
+      assigned: totals.gold.assigned,
+      found: totals.gold.found,
+      format: gold,
     },
     {
       key: "permanentItems",
@@ -86,6 +102,18 @@ export default async function BudgetPanel({
       found: totals.consumables.found,
     },
   ];
+  // Daggerheart has no XP and no silver, and 5e no handfuls (SPEC-030 §5).
+  const notInSystem = isDaggerheart ? ["xp", "currency"] : ["gold"];
+  const rows = allRows
+    .filter((row) => !notInSystem.includes(row.key))
+    .map(({ format = String, ...row }) => ({
+      ...row,
+      target: row.target === null ? "—" : format(row.target),
+      assigned: format(row.assigned),
+      remaining: row.target === null ? "—" : format(row.target - row.assigned),
+      found: format(row.found),
+      missed: format(row.assigned - row.found),
+    }));
 
   return (
     <div className="mb-6 rounded-md border p-4">
@@ -116,21 +144,27 @@ export default async function BudgetPanel({
             {rows.map((row) => (
               <tr key={row.key} className="border-t">
                 <td className="py-1 pr-4">{row.label}</td>
-                <td className="py-1 pr-4">{formatFigure(row.target)}</td>
+                <td className="py-1 pr-4">{row.target}</td>
                 <td className="py-1 pr-4">{row.assigned}</td>
-                <td className="py-1 pr-4">
-                  {remaining(row.target, row.assigned)}
-                </td>
+                <td className="py-1 pr-4">{row.remaining}</td>
                 <td className="py-1 pr-4">{row.found}</td>
-                <td className="py-1">{row.assigned - row.found}</td>
+                <td className="py-1">{row.missed}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <p className="mt-3 text-sm text-gray-600">
-        {t("budget.heroPoints")}: {totals.heroPoints}
-      </p>
+      {isDaggerheart ? (
+        <p className="mt-3 text-sm text-gray-600">
+          {t("budget.milestones.title")}: {t("budget.milestones.planned")}{" "}
+          {totals.milestones.planned} · {t("budget.milestones.reached")}{" "}
+          {totals.milestones.reached}
+        </p>
+      ) : (
+        <p className="mt-3 text-sm text-gray-600">
+          {t("budget.heroPoints")}: {totals.heroPoints}
+        </p>
+      )}
     </div>
   );
 }

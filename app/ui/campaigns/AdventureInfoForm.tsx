@@ -23,9 +23,12 @@ import BespokeFormErrorSummary from "@/app/ui/forms/BespokeFormErrorSummary";
 import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import ButtonState from "@/app/ui/buttons/BaseButton/ButtonState";
+import type GameSystem from "@/app/lib/definitions/GameSystem";
 
 interface AdventureInfoFormProps {
   adventure: Adventure;
+  /** SPEC-030: Daggerheart has no XP or silver, and a gold target. */
+  rulesSystem?: GameSystem;
   onCancel: () => void;
   onSaved: () => void;
 }
@@ -53,6 +56,7 @@ function fromAmountInput(raw: string, unit: CurrencyUnit): number | null {
  */
 export default function AdventureInfoForm({
   adventure,
+  rulesSystem = "dnd5e",
   onCancel,
   onSaved,
 }: AdventureInfoFormProps) {
@@ -82,6 +86,12 @@ export default function AdventureInfoForm({
       ? ""
       : String(adventure.consumableTarget)
   );
+  const [goldTarget, setGoldTarget] = useState(
+    adventure.goldTarget === null || adventure.goldTarget === undefined
+      ? ""
+      : String(adventure.goldTarget)
+  );
+  const isDaggerheart = rulesSystem === "daggerheart";
   const { errors, isSaving, submit } = useMutationSubmit();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -91,9 +101,14 @@ export default function AdventureInfoForm({
       title,
       targetLevel: Number(targetLevel),
       synopsis: synopsis.trim() === "" ? null : synopsis,
-      xpTarget: xpTarget.trim() === "" ? null : Number(xpTarget),
-      currencyTarget: fromAmountInput(currencyTarget, currencyUnit),
-      currencyUnit,
+      // Each system writes its own targets (SPEC-030 §9 decision 2).
+      ...(isDaggerheart
+        ? { goldTarget: goldTarget.trim() === "" ? null : Number(goldTarget) }
+        : {
+            xpTarget: xpTarget.trim() === "" ? null : Number(xpTarget),
+            currencyTarget: fromAmountInput(currencyTarget, currencyUnit),
+            currencyUnit,
+          }),
       permanentItemTarget:
         permanentItemTarget.trim() === "" ? null : Number(permanentItemTarget),
       consumableTarget:
@@ -128,36 +143,48 @@ export default function AdventureInfoForm({
         value={synopsis}
         onChange={(value) => setSynopsis(String(value))}
       />
-      <TextInput
-        label={t(adventureMeta[AdventureMetaField.xpTarget].labelKey ?? "")}
-        value={xpTarget}
-        onChange={(value) => setXpTarget(String(value))}
-      />
-      <Select
-        label={t(adventureMeta[AdventureMetaField.currencyUnit].labelKey ?? "")}
-        value={currencyUnit}
-        options={unitOptions}
-        onChange={(value) => {
-          const nextUnit = value as CurrencyUnit;
-          // Re-derive the displayed target through stored silver as the
-          // pivot, so switching units mid-edit never silently changes what
-          // gets saved (§6: switching units rewrites no stored value).
-          setCurrencyTarget(
-            toAmountInput(
-              fromAmountInput(currencyTarget, currencyUnit),
-              nextUnit
-            )
-          );
-          setCurrencyUnit(nextUnit);
-        }}
-      />
-      <TextInput
-        label={t(
-          adventureMeta[AdventureMetaField.currencyTarget].labelKey ?? ""
-        )}
-        value={currencyTarget}
-        onChange={(value) => setCurrencyTarget(String(value))}
-      />
+      {isDaggerheart ? (
+        <TextInput
+          label={t(adventureMeta[AdventureMetaField.goldTarget].labelKey ?? "")}
+          value={goldTarget}
+          onChange={(value) => setGoldTarget(String(value))}
+        />
+      ) : (
+        <>
+          <TextInput
+            label={t(adventureMeta[AdventureMetaField.xpTarget].labelKey ?? "")}
+            value={xpTarget}
+            onChange={(value) => setXpTarget(String(value))}
+          />
+          <Select
+            label={t(
+              adventureMeta[AdventureMetaField.currencyUnit].labelKey ?? ""
+            )}
+            value={currencyUnit}
+            options={unitOptions}
+            onChange={(value) => {
+              const nextUnit = value as CurrencyUnit;
+              // Re-derive the displayed target through stored silver as the
+              // pivot, so switching units mid-edit never silently changes what
+              // gets saved (§6: switching units rewrites no stored value).
+              setCurrencyTarget(
+                toAmountInput(
+                  fromAmountInput(currencyTarget, currencyUnit),
+                  nextUnit
+                )
+              );
+              setCurrencyUnit(nextUnit);
+            }}
+          />
+          <TextInput
+            label={t(
+              adventureMeta[AdventureMetaField.currencyTarget].labelKey ?? ""
+            )}
+            value={currencyTarget}
+            onChange={(value) => setCurrencyTarget(String(value))}
+          />
+        </>
+      )}
       <TextInput
         label={t(
           adventureMeta[AdventureMetaField.permanentItemTarget].labelKey ?? ""

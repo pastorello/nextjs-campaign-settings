@@ -24,10 +24,16 @@ import SectionTitle from "@/app/ui/typography/SectionTitle";
 import SceneForm from "./SceneForm";
 import SceneCreatureList from "./SceneCreatureList";
 import LootList from "./LootList";
+import { DhEquipmentOptions } from "./LootForm";
 import CheckOffControl from "./CheckOffControl";
+import BattlePointsSummary from "./BattlePointsSummary";
+import SceneKind from "@/app/lib/definitions/enums/campaign/SceneKind";
 import renderRichText from "@/app/lib/utils/data/renderRichText";
+import type GameSystem from "@/app/lib/definitions/GameSystem";
 
 interface SceneListProps {
+  /** SPEC-030: which system's scene fields to show and edit. */
+  rulesSystem?: GameSystem;
   adventureId: number;
   scenes: SceneWithDetails[];
   currencyUnit: CurrencyUnit;
@@ -35,6 +41,14 @@ interface SceneListProps {
   npcOptions: ResolvedOption<number>[];
   magicItemOptions: ResolvedOption<number>[];
   treasureOptions: ResolvedOption<number>[];
+  /** SPEC-030 T3, Daggerheart only: what a creature row may price. */
+  adversaryOptions?: ResolvedOption<number>[];
+  /** SPEC-030 T4, Daggerheart only: what a loot row may link. */
+  equipmentOptions?: DhEquipmentOptions;
+  /** The party a fight's Battle Point budget is built from. */
+  partySize?: number;
+  /** The adventure's tier, below which an adversary suggests the +1. */
+  adventureTier?: number;
 }
 
 function zoneName(
@@ -52,6 +66,7 @@ function zoneName(
  * metadata layer (ADR-0011), same shape as `AdventureLadder`.
  */
 export default function SceneList({
+  rulesSystem = "dnd5e",
   adventureId,
   scenes,
   currencyUnit,
@@ -59,6 +74,10 @@ export default function SceneList({
   npcOptions,
   magicItemOptions,
   treasureOptions,
+  adversaryOptions = [],
+  equipmentOptions,
+  partySize = 4,
+  adventureTier = 1,
 }: SceneListProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -125,6 +144,7 @@ export default function SceneList({
       {isAdding && (
         <div className="mb-6 rounded-md border p-4">
           <SceneForm
+            rulesSystem={rulesSystem}
             adventureId={adventureId}
             nextPosition={scenes.length + 1}
             zoneOptions={zoneOptions}
@@ -142,6 +162,7 @@ export default function SceneList({
             <li key={scene.id} className="rounded-md border p-4">
               {editingId === scene.id ? (
                 <SceneForm
+                  rulesSystem={rulesSystem}
                   adventureId={adventureId}
                   nextPosition={scene.position}
                   zoneOptions={zoneOptions}
@@ -164,13 +185,31 @@ export default function SceneList({
                           {renderRichText(scene.description)}
                         </div>
                       )}
-                      <p className="mt-1 text-sm text-gray-600">
-                        {t("scene.fields.xpAward.label")}
-                        {": "}
-                        {scene.xpAward === null ? "—" : scene.xpAward}
-                        {scene.grantsHeroPoint &&
-                          ` · ${t("scene.fields.grantsHeroPoint.label")}`}
-                      </p>
+                      {rulesSystem === "daggerheart" ? (
+                        <>
+                          {scene.milestone && (
+                            <p className="mt-1 text-sm font-medium text-purple-800">
+                              {t("scene.milestone")}
+                            </p>
+                          )}
+                          {scene.kind === SceneKind.Fight && (
+                            <BattlePointsSummary
+                              creatures={scene.creatures}
+                              partySize={partySize}
+                              adventureTier={adventureTier}
+                              adjustments={scene.battleAdjustments ?? []}
+                            />
+                          )}
+                        </>
+                      ) : (
+                        <p className="mt-1 text-sm text-gray-600">
+                          {t("scene.fields.xpAward.label")}
+                          {": "}
+                          {scene.xpAward === null ? "—" : scene.xpAward}
+                          {scene.grantsHeroPoint &&
+                            ` · ${t("scene.fields.grantsHeroPoint.label")}`}
+                        </p>
+                      )}
                       <p className="mt-1 text-sm">
                         {scene.zoneId !== null ? (
                           <Link
@@ -191,7 +230,11 @@ export default function SceneList({
                       </p>
                       <div className="mt-2 max-w-[140px]">
                         <CheckOffControl
-                          label={t("scene.checkOff.label")}
+                          label={
+                            rulesSystem === "daggerheart"
+                              ? t("scene.checkOff.played")
+                              : t("scene.checkOff.label")
+                          }
                           checked={scene.awarded}
                           onToggle={(next) => setSceneAwarded(scene.id, next)}
                           errorMessage={t("common.checkOff.failed")}
@@ -238,11 +281,16 @@ export default function SceneList({
 
                   <div className="grid grid-cols-1 gap-4 border-t pt-3 md:grid-cols-2">
                     <SceneCreatureList
+                      rulesSystem={rulesSystem}
                       sceneId={scene.id}
                       creatures={scene.creatures}
                       npcOptions={npcOptions}
+                      adversaryOptions={adversaryOptions}
+                      partySize={partySize}
                     />
                     <LootList
+                      rulesSystem={rulesSystem}
+                      {...(equipmentOptions && { equipmentOptions })}
                       sceneId={scene.id}
                       loot={scene.loot}
                       currencyUnit={currencyUnit}

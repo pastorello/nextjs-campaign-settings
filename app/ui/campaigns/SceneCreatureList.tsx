@@ -7,7 +7,9 @@ import { useRouter } from "@/i18n/navigation";
 import reorderSceneCreatures from "@/app/lib/data/campaigns/reorderSceneCreatures";
 import deleteSceneCreatureById from "@/app/lib/data/campaigns/deleteSceneCreatureById";
 import setSceneCreatureAwarded from "@/app/lib/data/campaigns/setSceneCreatureAwarded";
-import SceneCreature from "@/app/lib/definitions/interfaces/campaign/SceneCreature";
+import { SceneCreatureWithAdversary } from "@/app/lib/data/campaigns/fetchAdventureWithScenes";
+import { rowBattlePoints } from "@/app/lib/utils/daggerheart/battlePoints";
+import type GameSystem from "@/app/lib/definitions/GameSystem";
 import { ResolvedOption } from "@/app/lib/definitions/types/SelectOption";
 import { notifyError, notifySuccess } from "@/app/lib/notifications/notify";
 import Modal from "@/app/ui/components/Modal";
@@ -21,9 +23,13 @@ import SceneCreatureForm from "./SceneCreatureForm";
 import CheckOffControl from "./CheckOffControl";
 
 interface SceneCreatureListProps {
+  /** SPEC-030: Daggerheart prices rows in Battle Points, not XP. */
+  rulesSystem?: GameSystem;
   sceneId: number;
-  creatures: SceneCreature[];
+  creatures: SceneCreatureWithAdversary[];
   npcOptions: ResolvedOption<number>[];
+  adversaryOptions?: ResolvedOption<number>[];
+  partySize?: number;
 }
 
 /**
@@ -32,20 +38,27 @@ interface SceneCreatureListProps {
  * (`SceneCreature`'s own comment). `awarded` is deliberately not shown
  * here — the check-off control is T9's. Outside the metadata layer
  * (ADR-0011), same shape as `AdventureLadder`.
+ *
+ * Under Daggerheart (SPEC-030 T3) a row shows its Battle Points instead, and
+ * no check-off: its only effect is the XP found, which Daggerheart has none
+ * of.
  */
 export default function SceneCreatureList({
+  rulesSystem = "dnd5e",
   sceneId,
   creatures,
   npcOptions,
+  adversaryOptions = [],
+  partySize = 4,
 }: SceneCreatureListProps) {
   const t = useTranslations();
+  const isDaggerheart = rulesSystem === "daggerheart";
   const router = useRouter();
 
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [pendingDelete, setPendingDelete] = useState<SceneCreature | null>(
-    null
-  );
+  const [pendingDelete, setPendingDelete] =
+    useState<SceneCreatureWithAdversary | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   async function moveCreature(index: number, direction: -1 | 1) {
@@ -107,6 +120,8 @@ export default function SceneCreatureList({
             sceneId={sceneId}
             nextPosition={creatures.length + 1}
             npcOptions={npcOptions}
+            rulesSystem={rulesSystem}
+            adversaryOptions={adversaryOptions}
             onCancel={() => setIsAdding(false)}
             onSaved={() => setIsAdding(false)}
           />
@@ -126,6 +141,8 @@ export default function SceneCreatureList({
                   sceneId={sceneId}
                   nextPosition={creature.position}
                   npcOptions={npcOptions}
+                  rulesSystem={rulesSystem}
+                  adversaryOptions={adversaryOptions}
                   creature={creature}
                   onCancel={() => setEditingId(null)}
                   onSaved={() => setEditingId(null)}
@@ -141,22 +158,32 @@ export default function SceneCreatureList({
                   <span className="ml-2 text-gray-600">
                     ×{creature.quantity}
                   </span>
-                  <span className="ml-2 text-gray-600">
-                    {t("sceneCreature.list.xpTotal")}:{" "}
-                    {creature.xpEach === null
-                      ? "—"
-                      : creature.xpEach * creature.quantity}
-                  </span>
-                  <div className="mt-1 max-w-[120px]">
-                    <CheckOffControl
-                      label={t("sceneCreature.checkOff.label")}
-                      checked={creature.awarded}
-                      onToggle={(next) =>
-                        setSceneCreatureAwarded(creature.id, next)
-                      }
-                      errorMessage={t("common.checkOff.failed")}
-                    />
-                  </div>
+                  {isDaggerheart ? (
+                    <span className="ml-2 text-gray-600">
+                      {t("sceneCreature.list.battlePoints")}:{" "}
+                      {rowBattlePoints(creature, partySize) ??
+                        t("sceneCreature.list.unpriced")}
+                    </span>
+                  ) : (
+                    <>
+                      <span className="ml-2 text-gray-600">
+                        {t("sceneCreature.list.xpTotal")}:{" "}
+                        {creature.xpEach === null
+                          ? "—"
+                          : creature.xpEach * creature.quantity}
+                      </span>
+                      <div className="mt-1 max-w-[120px]">
+                        <CheckOffControl
+                          label={t("sceneCreature.checkOff.label")}
+                          checked={creature.awarded}
+                          onToggle={(next) =>
+                            setSceneCreatureAwarded(creature.id, next)
+                          }
+                          errorMessage={t("common.checkOff.failed")}
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
                 <div className="flex items-center gap-1">
                   <BaseButton

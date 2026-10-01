@@ -11,6 +11,8 @@ enum SceneCreatureMetaField {
   quantity = "quantity",
   note = "note",
   npcId = "npcId",
+  // SPEC-030 — Daggerheart only.
+  dhAdversaryId = "dhAdversaryId",
 }
 
 export default SceneCreatureMetaField;

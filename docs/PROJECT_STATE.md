@@ -74,7 +74,11 @@ followed the same day (SPEC-028): GM-side stat blocks, the DM's alone (no
 player page, search hit or record link), with inline experiences and
 features and environments linked to adversaries and places. Equipment
 followed (SPEC-029): weapons and armor, open to players, and loot, the
-DM's alone, under one "Equipment" sidebar group.
+DM's alone, under one "Equipment" sidebar group. Campaign management closed
+the slices (SPEC-030): a Daggerheart campaign's adventures count
+milestones instead of XP, price fights in Battle Points from their
+adversaries against the party's budget, and hold loot as gold in handfuls
+and equipment; a 5e campaign is unchanged.
 
 **Identifiers are English; the UI ships bilingual (Italian + English).** See [ADR-0005](./adr/0005-english-identifiers.md), implemented as TD-19 on 2026-07-30, and [ADR-0006](./adr/0006-bilingual-ui.md), implemented as TD-21 — copy lives in `messages/{it,en}.json`, not in JSX. Postgres columns keep their Italian names, decoupled from the code by Prisma `@map` (`name @map("nome")`) — so raw SQL and `psql` still show `nome`, `descrizione`, `livello`.
 

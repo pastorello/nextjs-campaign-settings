@@ -18,6 +18,13 @@ interface Scene {
   grantsHeroPoint: boolean;
   awarded: boolean;
   zoneId: number | null;
+  /**
+   * SPEC-030, Daggerheart only: a milestone (ticked through `awarded`) and
+   * the Battle Point adjustments ticked on a fight, as
+   * `DhBattleAdjustment` keys.
+   */
+  milestone?: boolean;
+  battleAdjustments?: string[];
   createdAt: Date;
   updatedAt: Date;
 }

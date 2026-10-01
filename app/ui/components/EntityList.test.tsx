@@ -286,8 +286,11 @@ describe("EntityList", () => {
 
     const header = screen.getByText("npc.fields.faction.label");
     expect(header).toHaveAttribute("data-filtrable", "true");
+    // The bundle also carries the campaigns a record can be revealed to
+    // (SPEC-022 T6): every table the page's fields name.
     expect(JSON.parse(header.getAttribute("data-bundle") ?? "null")).toEqual({
       faction: [{ value: 3, label: "Gilda dei Ladri" }],
+      campaign: [{ value: 3, label: "Gilda dei Ladri" }],
     });
   });
 

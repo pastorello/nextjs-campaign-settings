@@ -97,6 +97,8 @@ export default function NpcForm({
           </div>
           {/* The record's one image (SPEC-020 T3). */}
           <div className="mb-2 flex w-full p-2">{field("imageId")}</div>
+          {/* The campaigns that see this record (SPEC-022 T6). */}
+          <div className="mb-2 flex w-full p-2">{field("revealedTo")}</div>
         </Fieldset>
       )}
     </EntityForm>

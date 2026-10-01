@@ -7,6 +7,7 @@ import EntityForm from "@/app/ui/forms/EntityForm";
 import createDeity from "@/app/lib/data/deities/createDeity";
 import updateDeity from "@/app/lib/data/deities/updateDeity";
 import PageType from "@/app/lib/definitions/types/PageType";
+import type OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 import Deity from "@/app/lib/definitions/interfaces/deities/Deity";
 import DeityMetaField from "@/app/lib/definitions/enums/deities/DeityMetaField";
 
@@ -14,12 +15,15 @@ interface DeityFormProps {
   formData?: Deity;
   onCancel: () => void;
   onSaveFinished: (page: Deity) => void;
+  /** The campaigns a record can be revealed to (SPEC-022 T6). */
+  optionBundle?: OptionBundle | undefined;
 }
 
 export default function DeityForm({
   formData,
   onCancel,
   onSaveFinished,
+  optionBundle,
 }: DeityFormProps) {
   const t = useTranslations("deities.form");
 
@@ -27,6 +31,7 @@ export default function DeityForm({
     <EntityForm<Deity>
       pageType={PageType.Deity}
       formData={formData}
+      optionBundle={optionBundle}
       mutations={{ create: createDeity, update: updateDeity }}
       copy={{
         createTitle: t("createTitle"),
@@ -65,6 +70,8 @@ export default function DeityForm({
           </div>
           {/* The record's one image (SPEC-020 T3). */}
           <div className="mb-2 flex w-full p-2">{field("imageId")}</div>
+          {/* The campaigns that see this record (SPEC-022 T6). */}
+          <div className="mb-2 flex w-full p-2">{field("revealedTo")}</div>
         </Fieldset>
       )}
     </EntityForm>

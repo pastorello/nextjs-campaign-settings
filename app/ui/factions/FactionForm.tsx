@@ -8,17 +8,21 @@ import createFaction from "@/app/lib/data/faction/createFaction";
 import updateFaction from "@/app/lib/data/faction/updateFaction";
 import Faction from "@/app/lib/definitions/interfaces/faction/Faction";
 import PageType from "@/app/lib/definitions/types/PageType";
+import type OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
 interface FactionFormProps {
   formData?: Faction;
   onCancel: () => void;
   onSaveFinished: (page: Faction) => void;
+  /** The campaigns a record can be revealed to (SPEC-022 T6). */
+  optionBundle?: OptionBundle | undefined;
 }
 
 export default function FactionForm({
   formData,
   onCancel,
   onSaveFinished,
+  optionBundle,
 }: FactionFormProps) {
   const t = useTranslations("factions.form");
 
@@ -26,6 +30,7 @@ export default function FactionForm({
     <EntityForm<Faction>
       pageType={PageType.Faction}
       formData={formData}
+      optionBundle={optionBundle}
       mutations={{ create: createFaction, update: updateFaction }}
       copy={{
         createTitle: t("createTitle"),
@@ -42,6 +47,8 @@ export default function FactionForm({
           <div className="mb-2 flex w-full p-2">{field("description")}</div>
           {/* The record's one image (SPEC-020 T3). */}
           <div className="mb-2 flex w-full p-2">{field("imageId")}</div>
+          {/* The campaigns that see this record (SPEC-022 T6). */}
+          <div className="mb-2 flex w-full p-2">{field("revealedTo")}</div>
         </Fieldset>
       )}
     </EntityForm>

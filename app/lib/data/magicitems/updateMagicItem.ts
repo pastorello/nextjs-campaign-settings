@@ -1,5 +1,7 @@
 "use server";
 
+import checkRevealCampaigns from "@/app/lib/data/visibility/checkRevealCampaigns";
+import { revealedToUpdate } from "@/app/lib/data/visibility/revealedToWrite";
 import checkRecordImageReference from "@/app/lib/data/recordImages/checkRecordImageReference";
 import releaseReplacedRecordImage from "@/app/lib/data/recordImages/releaseReplacedRecordImage";
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
@@ -36,6 +38,15 @@ export default async function updateMagicItem(
   });
   if (imageErrors) return { ok: false, errors: imageErrors };
 
+  // SPEC-022 T6: the campaigns this record is revealed to, which exist and
+  // fit the catalogue's system; replaced as a set when the payload carries it.
+  const { revealedToDnd5e: revealedTo, ...fields } = data;
+  const revealErrors = await checkRevealCampaigns(revealedTo, {
+    field: "revealedToDnd5e",
+    system: "dnd5e",
+  });
+  if (revealErrors) return { ok: false, errors: revealErrors };
+
   // The image this save replaces or removes, when the payload touches the
   // field at all — deleted only once the update has committed, so a failed
   // save keeps the record's previous image (SPEC-020 §5).
@@ -51,7 +62,7 @@ export default async function updateMagicItem(
     }
     await prisma.magicitems.update({
       where: { id },
-      data,
+      data: { ...fields, ...revealedToUpdate(revealedTo) },
     });
   } catch (error) {
     throw toDatabaseError("updating magic item", error);

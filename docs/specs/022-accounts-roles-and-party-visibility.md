@@ -1,6 +1,6 @@
 # SPEC-022: Accounts, roles, and campaign visibility
 
-- **Status:** In progress — T1–T5 shipped 2026-09-30. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
+- **Status:** In progress — T1–T5 shipped 2026-09-30, T6a 2026-10-01. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
 - **Date:** 2026-09-22 (rewritten 2026-09-30)
 - **Phase:** 5
 - **Related:** [ADR-0008](../adr/0008-map-image-storage.md) and [ADR-0017](../adr/0017-record-images.md) (their access check is "authenticated", which this spec redefines) · [SPEC-012](./012-publishing-and-internet-exposure.md) (exposure; deferred, and this spec is its prerequisite) · [SPEC-013](./013-campaign-management.md) (the campaign a group belongs to) · [SPEC-004](./004-world-model.md) (the tree visibility inherits down) · [SPEC-011](./011-cross-entity-search.md) (a read path that must learn to filter) · [SPEC-018](./018-game-systems.md) (a campaign has one system) · TD-01 (`requireSession`, the guard this spec extends) · ROADMAP, _Asked for on 2026-08-18, in one batch_
@@ -462,13 +462,39 @@ lists users, and it does not need the layer.
     - E2E: `campaign-players.spec.ts` adds a player and removes them. The
       shared account helpers live in `e2e/helpers/accounts.ts`.
 
-- [ ] **T6** — Reveals:
-  - the implicit relations' migration;
-  - the `revealedTo` field on the four domains' forms and admin lists;
-  - the control in the map's place panels;
-  - `visiblePlaceIds` and the "hidden by <ancestor>" hint.
+- [ ] **T6** — Reveals. Split in two on 2026-10-01: the records in the
+      metadata layer, then the places on the map.
+  - [x] **T6a** — The four metadata-layer domains. _Done 2026-10-01._
+    - Migration `*_spec022_reveals` creates all six implicit relations
+      (`_zoneReveals` … `_factionReveals`), the places' included.
+    - The field is `revealedTo`, a multiselect over the new `campaign`
+      option table, on NPCs, deities and factions.
+    - Magic items get `revealedToDnd5e`, over `dnd5eCampaign`. A 5e catalogue
+      offers only 5e campaigns, and `checkRevealCampaigns` refuses another
+      system's (`revealWrongSystem`) or a missing one (`campaignNotFound`).
+    - Both keys read and write the one Prisma relation `revealedTo`:
+      - lists read it through `revealedToInclude` + `withRevealedIds`;
+      - create connects, and update replaces the set (`revealedToWrite`);
+      - an update that leaves the field out does not touch the reveals.
+    - Each admin list shows the column, neither sortable nor filtrable,
+      because a relation is neither.
+    - Generic machinery fixed on the way: `InputComponent` gave a
+      table-backed _multiselect_ the single select's "none" entry, worth 0,
+      which the validator refused. A multiselect now has no "none" and an
+      empty list for nothing.
+    - The three "new" pages for deities, magic items and factions became
+      server pages that load the option bundle, as the NPC one already did.
+    - New invariant test: `formFields` lists only fields its page declares.
+      It caught the reveal field on the treasure form instead of the
+      faction's while this was built.
+    - E2E: `reveals.spec.ts` reveals an NPC to a campaign from its form,
+      checks the admin list shows it, and hides it again. The four domains'
+      CRUD specs and the admin a11y scans are green with the new field.
+  - [ ] **T6b** — Places:
+    - the reveal control in the map's place panels (zones and landmarks);
+    - `visiblePlaceIds` and the "hidden by <ancestor>" hint.
 
-  _(test: inheritance; the system restriction on the picker)_
+    _(test: inheritance)_
 
 - [ ] **T7** — Player reads, map: `getViewer`, the campaign cookie and
       selector, and R8, R9, R11. _(test: one per path)_

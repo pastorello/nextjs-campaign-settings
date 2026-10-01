@@ -72,6 +72,7 @@ const pagesConfig: Record<PageType, PageConfig> = {
       MagicItemMetaField.type,
       MagicItemMetaField.attuned,
       MagicItemMetaField.consumable,
+      "revealedToDnd5e",
     ],
     system: "dnd5e",
   },
@@ -90,6 +91,7 @@ const pagesConfig: Record<PageType, PageConfig> = {
       NpcMetaField.personality,
       NpcMetaField.motivations,
       NpcMetaField.secrets,
+      "revealedTo",
     ],
   },
   [PageType.Deity]: {
@@ -110,12 +112,13 @@ const pagesConfig: Record<PageType, PageConfig> = {
       NpcMetaField.alignment,
       NpcMetaField.alignmentDomain,
       DeityMetaField.meaning,
+      "revealedTo",
     ],
   },
   // No domain meta: `id`, `name` and `description` are declared directly in
   // `pageMetaFields`, and a faction has no field beyond them (SPEC-006 §7).
   [PageType.Faction]: {
-    fields: ["id", "name", "description", "imageId"],
+    fields: ["id", "name", "description", "imageId", "revealedTo"],
   },
   // The seventh domain (SPEC-013 §6/§7) — same shape as magic items.
   [PageType.Treasure]: {

@@ -1,5 +1,7 @@
 "use server";
 
+import checkRevealCampaigns from "@/app/lib/data/visibility/checkRevealCampaigns";
+import { revealedToCreate } from "@/app/lib/data/visibility/revealedToWrite";
 import checkRecordImageReference from "@/app/lib/data/recordImages/checkRecordImageReference";
 import fieldError from "@/app/lib/data/validation/fieldError";
 import toFieldErrors from "@/app/lib/data/validation/toFieldErrors";
@@ -47,9 +49,18 @@ export default async function createNpc(
   });
   if (imageErrors) return { ok: false, errors: imageErrors };
 
+  // SPEC-022 T6: the campaigns this record starts revealed to, which exist
+  // and fit the catalogue's system.
+  const { revealedTo: revealedTo } = parsed.data as { revealedTo?: number[] };
+  const revealErrors = await checkRevealCampaigns(revealedTo, {
+    field: "revealedTo",
+  });
+  if (revealErrors) return { ok: false, errors: revealErrors };
+
   try {
     await prisma.npc.create({
       data: {
+        ...revealedToCreate(revealedTo),
         ...(imageId != null && { imageId }),
         name,
         description,

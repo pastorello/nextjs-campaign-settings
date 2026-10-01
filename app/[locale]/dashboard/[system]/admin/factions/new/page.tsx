@@ -1,19 +1,11 @@
-"use client";
+import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
+import NewFactionForm from "./NewFactionForm";
 
-import FactionForm from "@/app/ui/factions/FactionForm";
-import { useRouter } from "@/i18n/navigation";
-import useGameSystem from "@/app/lib/hooks/useGameSystem";
-import { dashboardPath } from "@/i18n/dashboardPath";
+// A server component so the campaigns a new record can be revealed to
+// (SPEC-022 T6) are in the select on first paint, as the NPC page does for
+// factions.
+export default async function Page() {
+  const optionBundle = { campaign: await fetchFieldOptions("campaign") };
 
-export default function Page() {
-  const router = useRouter();
-  const system = useGameSystem();
-  const onCancel = () => {
-    router.push(dashboardPath(system, "/admin/factions"));
-  };
-  const onSaveFinished = () => {
-    router.push(dashboardPath(system, "/admin/factions"));
-  };
-
-  return <FactionForm onCancel={onCancel} onSaveFinished={onSaveFinished} />;
+  return <NewFactionForm optionBundle={optionBundle} />;
 }

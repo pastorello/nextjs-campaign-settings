@@ -76,6 +76,15 @@ const listConfig: Record<PageType, ListConfig> = {
         labelKey: "common.table.location",
         isFiltrable: false,
       },
+      // SPEC-022 T6: the campaigns that see the record.
+      {
+        fieldKey: "revealedTo",
+        labelKey: "common.fields.revealedTo.label",
+        // A relation, not a column: Prisma cannot order by it, and getQuery's
+        // array filter (`hasSome`) is for scalar lists.
+        sortable: false,
+        isFiltrable: false,
+      },
     ],
     emptyMessageKey: "npc.page.emptyMessage",
     editModalTitleKey: "npc.form.editTitle",
@@ -106,6 +115,15 @@ const listConfig: Record<PageType, ListConfig> = {
         labelKey: "common.table.location",
         isFiltrable: false,
       },
+      // SPEC-022 T6: the campaigns that see the record.
+      {
+        fieldKey: "revealedTo",
+        labelKey: "common.fields.revealedTo.label",
+        // A relation, not a column: Prisma cannot order by it, and getQuery's
+        // array filter (`hasSome`) is for scalar lists.
+        sortable: false,
+        isFiltrable: false,
+      },
     ],
     emptyMessageKey: "deities.page.emptyMessage",
     editModalTitleKey: "deities.form.editTitle",
@@ -133,6 +151,15 @@ const listConfig: Record<PageType, ListConfig> = {
         labelKey: "magicItems.fields.consumable.shortLabel",
         sortable: false,
       },
+      // SPEC-022 T6: the campaigns that see the record.
+      {
+        fieldKey: "revealedToDnd5e",
+        labelKey: "common.fields.revealedTo.label",
+        // A relation, not a column: Prisma cannot order by it, and getQuery's
+        // array filter (`hasSome`) is for scalar lists.
+        sortable: false,
+        isFiltrable: false,
+      },
     ],
     emptyMessageKey: "magicItems.page.emptyMessage",
     editModalTitleKey: "magicItems.form.editTitle",
@@ -147,6 +174,15 @@ const listConfig: Record<PageType, ListConfig> = {
         // Free text, not a closed vocabulary — SortableHeader's built-in
         // filter select needs `PageMeta.options`, which this field has none
         // of.
+        isFiltrable: false,
+      },
+      // SPEC-022 T6: the campaigns that see the record.
+      {
+        fieldKey: "revealedTo",
+        labelKey: "common.fields.revealedTo.label",
+        // A relation, not a column: Prisma cannot order by it, and getQuery's
+        // array filter (`hasSome`) is for scalar lists.
+        sortable: false,
         isFiltrable: false,
       },
     ],

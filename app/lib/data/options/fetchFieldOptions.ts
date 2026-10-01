@@ -118,5 +118,21 @@ export default async function fetchFieldOptions(
 
       return rows.map((row) => ({ value: row.id, label: row.name }));
     }
+    // SPEC-022 T6: the campaigns a record can be revealed to.
+    case "campaign":
+    case "dnd5eCampaign": {
+      let rows;
+      try {
+        rows = await prisma.campaign.findMany({
+          ...(table === "dnd5eCampaign" && { where: { system: "dnd5e" } }),
+          select: { id: true, title: true },
+          orderBy: [{ title: "asc" }, { id: "asc" }],
+        });
+      } catch (error) {
+        throw toDatabaseError("fetching campaign options", error);
+      }
+
+      return rows.map((row) => ({ value: row.id, label: row.title }));
+    }
   }
 }

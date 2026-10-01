@@ -34,7 +34,11 @@ type OptionTableName =
   | "magicitems"
   | "treasure"
   | "dhDomain"
-  | "dhClass";
+  | "dhClass"
+  // SPEC-022 T6: the campaigns a record is revealed to; the second offers
+  // 5e campaigns only, for the 5e catalogues.
+  | "campaign"
+  | "dnd5eCampaign";
 
 /**
  * A field's options are either a static list or rows in a table — never

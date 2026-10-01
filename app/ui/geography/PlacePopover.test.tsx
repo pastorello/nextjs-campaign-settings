@@ -46,9 +46,12 @@ vi.mock("@/app/modules/maps/hooks/useLeafletMap", () => ({
 // fetch behind it.
 const entityListProps = vi.fn();
 // SPEC-027 §5.6: its own suite; here, only whether the popover mounts it.
-vi.mock("@/app/ui/geography/PlaceCommunityList", () => ({
-  default: ({ zoneId }: { zoneId: number }) => (
-    <div data-testid="community-list" data-zone-id={zoneId} />
+vi.mock("@/app/lib/data/dhCommunities/fetchCommunitiesAtPlace", () => ({
+  default: vi.fn(),
+}));
+vi.mock("@/app/ui/geography/PlaceCatalogueList", () => ({
+  default: ({ zoneId, page }: { zoneId: number; page: string }) => (
+    <div data-testid={`${page}-list`} data-zone-id={zoneId} />
   ),
 }));
 
@@ -346,7 +349,7 @@ describe("PlacePopover — communities (SPEC-027 T3)", () => {
   it("lists a place's communities, by its id", () => {
     renderPopover({ kind: "zone", place });
 
-    expect(screen.getByTestId("community-list")).toHaveAttribute(
+    expect(screen.getByTestId("communities-list")).toHaveAttribute(
       "data-zone-id",
       String(place.id)
     );
@@ -355,7 +358,7 @@ describe("PlacePopover — communities (SPEC-027 T3)", () => {
   it("lists none for a landmark", () => {
     renderPopover({ kind: "poi", poi, poiId: LANDMARK_ROW_ID });
 
-    expect(screen.queryByTestId("community-list")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("communities-list")).not.toBeInTheDocument();
   });
 });
 

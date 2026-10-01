@@ -13,7 +13,9 @@ import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
 import RemovePlaceDialog from "@/app/ui/geography/RemovePlaceDialog";
 import RemoveLandmarkDialog from "@/app/ui/geography/RemoveLandmarkDialog";
 import PlaceRevealDialog from "@/app/ui/geography/PlaceRevealDialog";
-import PlaceCommunityList from "@/app/ui/geography/PlaceCommunityList";
+import PlaceCatalogueList from "@/app/ui/geography/PlaceCatalogueList";
+import fetchCommunitiesAtPlace from "@/app/lib/data/dhCommunities/fetchCommunitiesAtPlace";
+import PageType from "@/app/lib/definitions/types/PageType";
 import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildren";
 import type { POI } from "@/app/modules/maps/types/poi";
 import type { FocusReturnTarget } from "@/app/modules/maps/lib/utils/keyboardActivation";
@@ -369,7 +371,14 @@ export default function PlacePopover({
 
       {/* SPEC-027 §5.6: the communities rooted in a place, under a system
           that has them. A community links to places, not to landmarks. */}
-      {place && <PlaceCommunityList zoneId={place.id} />}
+      {place && (
+        <PlaceCatalogueList
+          zoneId={place.id}
+          page={PageType.DhCommunity}
+          load={fetchCommunitiesAtPlace}
+          titleKey="dhCommunities.world.title"
+        />
+      )}
 
       {/* Every entry below changes the world: the DM's alone (SPEC-022 T7).
           A player's popover keeps the description, the entities and

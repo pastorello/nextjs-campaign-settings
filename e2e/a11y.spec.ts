@@ -72,6 +72,11 @@ const PAGES = [
   "/dashboard/daggerheart/admin/domain-cards",
   "/dashboard/daggerheart/admin/classes",
   "/dashboard/daggerheart/admin/subclasses",
+  // SPEC-027: the heritage catalogues, and the ancestry form.
+  "/dashboard/daggerheart/ancestries",
+  "/dashboard/daggerheart/ancestries?view=cards",
+  "/dashboard/daggerheart/admin/ancestries",
+  "/dashboard/daggerheart/admin/ancestries/new",
   // SPEC-022 T2, T3: the DM's own account and the accounts page. The latter
   // always lists at least the signed-in DM.
   "/dashboard/dnd5e/account",

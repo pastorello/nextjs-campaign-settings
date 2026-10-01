@@ -12,7 +12,9 @@ type RecordImageOwner = {
     | "treasure"
     | "faction"
     | "zone"
-    | "dhDomain";
+    | "dhDomain"
+    | "dhAncestry"
+    | "dhCommunity";
   id?: number;
 };
 

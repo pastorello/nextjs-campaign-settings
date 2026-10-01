@@ -9,6 +9,7 @@ import NpcMetaField from "../definitions/enums/npc/NpcMetaField";
 import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
 import DhClassMetaField from "../definitions/enums/daggerheart/DhClassMetaField";
 import DhSubclassMetaField from "../definitions/enums/daggerheart/DhSubclassMetaField";
+import DhAncestryMetaField from "../definitions/enums/daggerheart/DhAncestryMetaField";
 
 /**
  * The fields a domain can be filtered by, declared once (TD-12).
@@ -122,6 +123,7 @@ const queryFields: Record<PageType, MetaConfigKey[]> = {
     DhSubclassMetaField.classId,
     DhSubclassMetaField.origin,
   ],
+  [PageType.DhAncestry]: [DhAncestryMetaField.origin],
 };
 
 export default queryFields;

@@ -18,6 +18,7 @@ import DhDomainForm from "../dhDomains/DhDomainForm";
 import DhDomainCardForm from "../dhDomainCards/DhDomainCardForm";
 import DhClassForm from "../dhClasses/DhClassForm";
 import DhSubclassForm from "../dhSubclasses/DhSubclassForm";
+import DhAncestryForm from "../dhAncestries/DhAncestryForm";
 import OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
 interface ModalButtonProps {
@@ -164,6 +165,13 @@ const ModalButton = ({
             <DhSubclassForm
               {...componentProps}
               optionBundle={optionBundle}
+              onCancel={closeModal}
+              onSaveFinished={saveFinished}
+            />
+          )}
+          {modalContent === "dhancestryform" && (
+            <DhAncestryForm
+              {...componentProps}
               onCancel={closeModal}
               onSaveFinished={saveFinished}
             />

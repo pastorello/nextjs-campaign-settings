@@ -35,6 +35,8 @@ export default async function checkRecordImageReference(
         faction: HOLDER,
         zone: HOLDER,
         dhDomain: HOLDER,
+        dhAncestry: HOLDER,
+        dhCommunity: HOLDER,
       },
     });
   } catch (error) {

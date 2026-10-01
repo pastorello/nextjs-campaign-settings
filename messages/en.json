@@ -25,7 +25,8 @@
       "dhSubclasses": "Subclasses",
       "accounts": "Account",
       "campaignSelector": "Current campaign",
-      "campaignUnavailable": "You are no longer in this campaign."
+      "campaignUnavailable": "You are no longer in this campaign.",
+      "dhAncestries": "Ancestries"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -1858,6 +1859,39 @@
       "addToTier": "Add a {tier} feature",
       "saveButton": "Save feature",
       "emptyTier": "No features in this tier yet."
+    }
+  },
+  "dhAncestries": {
+    "page": {
+      "title": "Ancestries",
+      "searchPlaceholder": "Search ancestries...",
+      "itemSingular": "ancestry",
+      "itemPlural": "ancestries",
+      "newItemButton": "New ancestry",
+      "emptyMessage": "No ancestries."
+    },
+    "form": {
+      "createTitle": "Create new ancestry",
+      "editTitle": "Edit ancestry",
+      "createButton": "Create ancestry",
+      "editButton": "Save ancestry"
+    },
+    "fields": {
+      "featureAName": {
+        "label": "First feature"
+      },
+      "featureAText": {
+        "label": "First feature text"
+      },
+      "featureBName": {
+        "label": "Second feature"
+      },
+      "featureBText": {
+        "label": "Second feature text"
+      }
+    },
+    "card": {
+      "imageAlt": "Picture of {name}"
     }
   },
   "dhFeature": {

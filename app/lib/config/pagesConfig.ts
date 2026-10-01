@@ -11,6 +11,7 @@ import DhDomainMetaField from "@/app/lib/definitions/enums/daggerheart/DhDomainM
 import DhDomainCardMetaField from "@/app/lib/definitions/enums/daggerheart/DhDomainCardMetaField";
 import DhClassMetaField from "@/app/lib/definitions/enums/daggerheart/DhClassMetaField";
 import DhSubclassMetaField from "@/app/lib/definitions/enums/daggerheart/DhSubclassMetaField";
+import DhAncestryMetaField from "@/app/lib/definitions/enums/daggerheart/DhAncestryMetaField";
 
 /**
  * Which fields make up each page, in order.
@@ -185,6 +186,22 @@ const pagesConfig: Record<PageType, PageConfig> = {
       DhSubclassMetaField.classId,
       DhSubclassMetaField.spellcastTrait,
       DhSubclassMetaField.origin,
+    ],
+    system: "daggerheart",
+  },
+  // SPEC-027 T2. Its two features are fields, not an inline collection:
+  // there are always exactly two (SPEC-027 §6).
+  [PageType.DhAncestry]: {
+    fields: [
+      "id",
+      "imageId",
+      DhAncestryMetaField.name,
+      DhAncestryMetaField.description,
+      DhAncestryMetaField.featureAName,
+      DhAncestryMetaField.featureAText,
+      DhAncestryMetaField.featureBName,
+      DhAncestryMetaField.featureBText,
+      DhAncestryMetaField.origin,
     ],
     system: "daggerheart",
   },

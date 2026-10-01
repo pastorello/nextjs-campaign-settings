@@ -22,6 +22,8 @@ import dhDomainMeta from "./daggerheart/dhDomainMeta";
 import dhDomainCardMeta from "./daggerheart/dhDomainCardMeta";
 import dhClassMeta from "./daggerheart/dhClassMeta";
 import dhSubclassMeta from "./daggerheart/dhSubclassMeta";
+import dhAncestryMeta from "./daggerheart/dhAncestryMeta";
+import dhCommunityMeta from "./daggerheart/dhCommunityMeta";
 
 /**
  * Fields more than one domain meta may declare without it being an accident —
@@ -64,6 +66,8 @@ type DomainMetas = {
   dhDomainCard: typeof dhDomainCardMeta;
   dhClass: typeof dhClassMeta;
   dhSubclass: typeof dhSubclassMeta;
+  dhAncestry: typeof dhAncestryMeta;
+  dhCommunity: typeof dhCommunityMeta;
 };
 
 /**
@@ -172,6 +176,8 @@ const pageMetaFields = {
   ...dhDomainCardMeta,
   ...dhClassMeta,
   ...dhSubclassMeta,
+  ...dhAncestryMeta,
+  ...dhCommunityMeta,
 } satisfies Record<string, PageMeta>;
 
 /**

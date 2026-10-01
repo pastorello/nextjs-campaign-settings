@@ -17,6 +17,7 @@ import {
   AcademicCapIcon,
   RectangleGroupIcon,
   UserCircleIcon,
+  IdentificationIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useTranslations } from "next-intl";
@@ -127,6 +128,14 @@ const links: {
     page: PageType.DhSubclass,
     href: "/admin/subclasses",
     icon: RectangleGroupIcon,
+  },
+  // SPEC-027: the heritage catalogues.
+  {
+    key: "dhAncestries",
+    page: PageType.DhAncestry,
+    href: "/ancestries",
+    admin: "/admin/ancestries",
+    icon: IdentificationIcon,
   },
   // SPEC-022 T2, T3: the tile is the DM's own account, the pencil every
   // account. Last, beside the sign-out tile it relates to.

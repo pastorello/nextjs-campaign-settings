@@ -27,6 +27,7 @@ const counts = vi.hoisted(() => ({
   getDhDomainCardsCount: vi.fn(),
   getDhClassesCount: vi.fn(),
   getDhSubclassesCount: vi.fn(),
+  getDhAncestriesCount: vi.fn(),
 }));
 vi.mock("@/app/lib/data/dhDomains/getDhDomainsCount", () => ({
   getDhDomainsCount: counts.getDhDomainsCount,
@@ -39,6 +40,9 @@ vi.mock("@/app/lib/data/dhClasses/getDhClassesCount", () => ({
 }));
 vi.mock("@/app/lib/data/dhSubclasses/getDhSubclassesCount", () => ({
   getDhSubclassesCount: counts.getDhSubclassesCount,
+}));
+vi.mock("@/app/lib/data/dhAncestries/getDhAncestriesCount", () => ({
+  getDhAncestriesCount: counts.getDhAncestriesCount,
 }));
 const { fetchFieldOptions } = vi.hoisted(() => ({
   fetchFieldOptions: vi.fn(),
@@ -108,11 +112,15 @@ vi.mock("@/app/ui/dhClasses/DhClassForm", () => ({
 vi.mock("@/app/ui/dhSubclasses/DhSubclassForm", () => ({
   default: formStub("DhSubclassForm"),
 }));
+vi.mock("@/app/ui/dhAncestries/DhAncestryForm", () => ({
+  default: formStub("DhAncestryForm"),
+}));
 
 import DomainsLayout from "./domains/layout";
 import DomainCardsLayout from "./domain-cards/layout";
 import ClassesLayout from "./classes/layout";
 import SubclassesLayout from "./subclasses/layout";
+import AncestriesLayout from "./ancestries/layout";
 import DomainsPage, {
   generateMetadata as domainsMetadata,
 } from "./domains/page";
@@ -129,6 +137,10 @@ import NewDomainPage from "./domains/new/page";
 import NewDomainCardPage from "./domain-cards/new/page";
 import NewClassPage from "./classes/new/page";
 import NewSubclassPage from "./subclasses/new/page";
+import AncestriesPage, {
+  generateMetadata as ancestriesMetadata,
+} from "./ancestries/page";
+import NewAncestryPage from "./ancestries/new/page";
 
 describe("the Daggerheart admin layouts (SPEC-021)", () => {
   const layouts = [
@@ -136,6 +148,7 @@ describe("the Daggerheart admin layouts (SPEC-021)", () => {
     ["domain-cards", DomainCardsLayout],
     ["classes", ClassesLayout],
     ["subclasses", SubclassesLayout],
+    ["ancestries", AncestriesLayout],
   ] as const;
 
   it.each(layouts)("%s renders under daggerheart only", async (_, Layout) => {
@@ -172,6 +185,12 @@ describe("the Daggerheart admin lists (SPEC-021 T2–T5)", () => {
       subclassesMetadata,
       counts.getDhSubclassesCount,
       PageType.DhSubclass,
+    ],
+    [
+      AncestriesPage,
+      ancestriesMetadata,
+      counts.getDhAncestriesCount,
+      PageType.DhAncestry,
     ],
   ])(
     "counts, links the new form and lists its rows (%#)",
@@ -223,6 +242,12 @@ describe("the Daggerheart new-record pages (SPEC-021 T2–T5)", () => {
     ["DhDomainCardForm", NewDomainCardPage, "dhDomain", "/admin/domain-cards"],
     ["DhClassForm", NewClassPage, "dhDomain", "/admin/classes"],
     ["DhSubclassForm", NewSubclassPage, "dhClass", "/admin/subclasses"],
+    [
+      "DhAncestryForm",
+      () => Promise.resolve(NewAncestryPage()),
+      "",
+      "/admin/ancestries",
+    ],
   ])(
     "%s gets its options and returns to its list on cancel and on save",
     async (form, Page, table, listPath) => {

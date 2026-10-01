@@ -26,7 +26,8 @@
       "accounts": "Account",
       "campaignSelector": "Current campaign",
       "campaignUnavailable": "You are no longer in this campaign.",
-      "dhAncestries": "Ancestries"
+      "dhAncestries": "Ancestries",
+      "dhCommunities": "Communities"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -1892,6 +1893,46 @@
     },
     "card": {
       "imageAlt": "Picture of {name}"
+    }
+  },
+  "dhCommunities": {
+    "page": {
+      "title": "Communities",
+      "searchPlaceholder": "Search communities...",
+      "itemSingular": "community",
+      "itemPlural": "communities",
+      "newItemButton": "New community",
+      "emptyMessage": "No communities."
+    },
+    "form": {
+      "createTitle": "Create new community",
+      "editTitle": "Edit community",
+      "createButton": "Create community",
+      "editButton": "Save community"
+    },
+    "fields": {
+      "adjectives": {
+        "label": "Adjectives",
+        "placeholder": "Three or four adjectives that describe it"
+      },
+      "featureName": {
+        "label": "Feature"
+      },
+      "featureText": {
+        "label": "Feature text"
+      },
+      "placeIds": {
+        "label": "Places"
+      },
+      "factionIds": {
+        "label": "Factions"
+      }
+    },
+    "card": {
+      "imageAlt": "Picture of {name}"
+    },
+    "world": {
+      "title": "Communities"
     }
   },
   "dhFeature": {

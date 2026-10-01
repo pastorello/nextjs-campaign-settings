@@ -15,9 +15,16 @@ import RecordThumbnail from "../components/RecordThumbnail";
 import RecordDisplayImage from "../components/RecordDisplayImage";
 import Faction from "@/app/lib/definitions/interfaces/faction/Faction";
 import { RosterMember } from "@/app/lib/data/faction/fetchFactionRosters";
+import type DhCommunityLink from "@/app/lib/definitions/interfaces/daggerheart/DhCommunityLink";
 
-const FactionCard = (props: { cardItem: Faction; roster: RosterMember[] }) => {
+const FactionCard = (props: {
+  cardItem: Faction;
+  roster: RosterMember[];
+  /** Its communities (SPEC-027 §5.6): set only under Daggerheart. */
+  communities?: DhCommunityLink[];
+}) => {
   const t = useTranslations("factions.card");
+  const tCommunities = useTranslations("dhCommunities");
   const system = useGameSystem();
 
   return (
@@ -80,6 +87,26 @@ const FactionCard = (props: { cardItem: Faction; roster: RosterMember[] }) => {
                 </ul>
               )}
             </div>
+            {props.communities && props.communities.length > 0 && (
+              <div className="p-3">
+                <h4 className="mb-2 text-lg">{tCommunities("world.title")}</h4>
+                <ul className="list-disc pl-5">
+                  {props.communities.map((community) => (
+                    <li key={community.id}>
+                      <Link
+                        href={dashboardPath(
+                          system,
+                          `/communities?query=${encodeURIComponent(community.name)}&view=cards`
+                        )}
+                        className="text-blue-400 hover:underline"
+                      >
+                        {community.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </DisclosurePanel>
       </div>

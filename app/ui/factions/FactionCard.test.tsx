@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import Faction from "@/app/lib/definitions/interfaces/faction/Faction";
@@ -65,5 +65,32 @@ describe("FactionCard", () => {
       "group-data-open:rotate-180",
       "transition-transform"
     );
+  });
+});
+
+// SPEC-027 §5.6: under Daggerheart, a faction's card names its communities.
+describe("FactionCard — communities", () => {
+  it("links each community to its card", () => {
+    render(
+      <FactionCard
+        cardItem={item}
+        roster={[]}
+        communities={[{ id: 5, name: "Valefolk" }]}
+      />
+    );
+    fireEvent.click(screen.getByRole("button"));
+
+    expect(screen.getByText("world.title")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Valefolk" })).toHaveAttribute(
+      "href",
+      "/dashboard/dnd5e/communities?query=Valefolk&view=cards"
+    );
+  });
+
+  it("shows no communities section without any, or outside Daggerheart", () => {
+    render(<FactionCard cardItem={item} roster={[]} communities={[]} />);
+    fireEvent.click(screen.getByRole("button"));
+
+    expect(screen.queryByText("world.title")).not.toBeInTheDocument();
   });
 });

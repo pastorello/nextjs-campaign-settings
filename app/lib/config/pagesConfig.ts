@@ -12,6 +12,7 @@ import DhDomainCardMetaField from "@/app/lib/definitions/enums/daggerheart/DhDom
 import DhClassMetaField from "@/app/lib/definitions/enums/daggerheart/DhClassMetaField";
 import DhSubclassMetaField from "@/app/lib/definitions/enums/daggerheart/DhSubclassMetaField";
 import DhAncestryMetaField from "@/app/lib/definitions/enums/daggerheart/DhAncestryMetaField";
+import DhCommunityMetaField from "@/app/lib/definitions/enums/daggerheart/DhCommunityMetaField";
 
 /**
  * Which fields make up each page, in order.
@@ -202,6 +203,22 @@ const pagesConfig: Record<PageType, PageConfig> = {
       DhAncestryMetaField.featureBName,
       DhAncestryMetaField.featureBText,
       DhAncestryMetaField.origin,
+    ],
+    system: "daggerheart",
+  },
+  // SPEC-027 T3. Its places and factions are links into the shared world.
+  [PageType.DhCommunity]: {
+    fields: [
+      "id",
+      "imageId",
+      DhCommunityMetaField.name,
+      DhCommunityMetaField.description,
+      DhCommunityMetaField.adjectives,
+      DhCommunityMetaField.featureName,
+      DhCommunityMetaField.featureText,
+      DhCommunityMetaField.placeIds,
+      DhCommunityMetaField.factionIds,
+      DhCommunityMetaField.origin,
     ],
     system: "daggerheart",
   },

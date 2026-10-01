@@ -28,6 +28,9 @@ export const PLAYER_PAGES: readonly DashboardSubpath[] = [
   "/domains",
   "/domain-cards",
   "/ancestries",
+  // A catalogue too, but linked into the world: its places and factions are
+  // filtered to the campaign's (SPEC-027 T3).
+  "/communities",
 ];
 
 /**

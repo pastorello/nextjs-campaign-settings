@@ -10,6 +10,7 @@ import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
 import DhClassMetaField from "../definitions/enums/daggerheart/DhClassMetaField";
 import DhSubclassMetaField from "../definitions/enums/daggerheart/DhSubclassMetaField";
 import DhAncestryMetaField from "../definitions/enums/daggerheart/DhAncestryMetaField";
+import DhCommunityMetaField from "../definitions/enums/daggerheart/DhCommunityMetaField";
 
 /**
  * The fields each domain's form holds state for (TD-09).
@@ -151,6 +152,18 @@ const formFields: Record<PageType, MetaConfigKey[]> = {
     DhAncestryMetaField.featureBText,
     DhAncestryMetaField.origin,
     DhAncestryMetaField.imageId,
+  ],
+
+  [PageType.DhCommunity]: [
+    DhCommunityMetaField.name,
+    DhCommunityMetaField.description,
+    DhCommunityMetaField.adjectives,
+    DhCommunityMetaField.featureName,
+    DhCommunityMetaField.featureText,
+    DhCommunityMetaField.placeIds,
+    DhCommunityMetaField.factionIds,
+    DhCommunityMetaField.origin,
+    DhCommunityMetaField.imageId,
   ],
 };
 

@@ -3,6 +3,7 @@
 import FactionCard from "./FactionCard";
 import Faction from "@/app/lib/definitions/interfaces/faction/Faction";
 import { RosterMember } from "@/app/lib/data/faction/fetchFactionRosters";
+import type DhCommunityLink from "@/app/lib/definitions/interfaces/daggerheart/DhCommunityLink";
 
 // No `SelectButtonery` row: a faction has no closed-vocabulary field to filter
 // by, and SPEC-006 §9's open question 2 says ship whatever the shared
@@ -10,6 +11,8 @@ import { RosterMember } from "@/app/lib/data/faction/fetchFactionRosters";
 export default function FactionLibrary(props: {
   items: Faction[];
   rosters: Map<number, RosterMember[]>;
+  /** Each faction's communities (SPEC-027), under a system that has them. */
+  communities?: Map<number, DhCommunityLink[]> | undefined;
 }) {
   return (
     <div className="w-full pt-5">
@@ -17,6 +20,9 @@ export default function FactionLibrary(props: {
         <FactionCard
           cardItem={item}
           roster={props.rosters.get(item.id) ?? []}
+          {...(props.communities && {
+            communities: props.communities.get(item.id) ?? [],
+          })}
           key={item.id}
         />
       ))}

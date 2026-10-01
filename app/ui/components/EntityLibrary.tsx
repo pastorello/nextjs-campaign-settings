@@ -9,11 +9,14 @@ import { fetchFilteredNpc } from "@/app/lib/data/npc/fetchFilteredNpc";
 import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
 import { fetchFilteredFactions } from "@/app/lib/data/faction/fetchFilteredFactions";
 import fetchFactionRosters from "@/app/lib/data/faction/fetchFactionRosters";
+import fetchFactionCommunities from "@/app/lib/data/dhCommunities/fetchFactionCommunities";
+import isPageInSystem from "@/app/lib/config/isPageInSystem";
 import { fetchFilteredTreasures } from "@/app/lib/data/treasure/fetchFilteredTreasures";
 import { fetchFilteredDhDomains } from "@/app/lib/data/dhDomains/fetchFilteredDhDomains";
 import { fetchFilteredDhDomainCards } from "@/app/lib/data/dhDomainCards/fetchFilteredDhDomainCards";
 import { fetchFilteredDhClasses } from "@/app/lib/data/dhClasses/fetchFilteredDhClasses";
 import { fetchFilteredDhAncestries } from "@/app/lib/data/dhAncestries/fetchFilteredDhAncestries";
+import { fetchFilteredDhCommunities } from "@/app/lib/data/dhCommunities/fetchFilteredDhCommunities";
 import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
 
 import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
@@ -30,6 +33,7 @@ import DhDomainLibrary from "../dhDomains/DhDomainLibrary";
 import DhDomainCardLibrary from "../dhDomainCards/DhDomainCardLibrary";
 import DhClassLibrary from "../dhClasses/DhClassLibrary";
 import DhAncestryLibrary from "../dhAncestries/DhAncestryLibrary";
+import DhCommunityLibrary from "../dhCommunities/DhCommunityLibrary";
 import ResolvedRecordLinks from "../richText/ResolvedRecordLinks";
 import richTextValuesOf from "@/app/lib/utils/richText/richTextValuesOf";
 
@@ -111,7 +115,15 @@ export default async function EntityLibrary(props: {
       const items = await fetchFilteredFactions(searchParams);
       return withRecordLinks(
         items,
-        <FactionLibrary items={items} rosters={await fetchFactionRosters()} />
+        <FactionLibrary
+          items={items}
+          rosters={await fetchFactionRosters()}
+          // SPEC-027 §5.6: a faction's communities, under a system that
+          // has them.
+          {...(isPageInSystem(PageType.DhCommunity, system) && {
+            communities: await fetchFactionCommunities(),
+          })}
+        />
       );
     }
     case PageType.Treasure: {
@@ -142,6 +154,10 @@ export default async function EntityLibrary(props: {
     case PageType.DhAncestry: {
       const items = await fetchFilteredDhAncestries(searchParams);
       return withRecordLinks(items, <DhAncestryLibrary items={items} />);
+    }
+    case PageType.DhCommunity: {
+      const items = await fetchFilteredDhCommunities(searchParams);
+      return withRecordLinks(items, <DhCommunityLibrary items={items} />);
     }
   }
 }

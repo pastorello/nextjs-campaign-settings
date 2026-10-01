@@ -273,6 +273,8 @@ describe("RichTextInput", () => {
         dhSubclasses: emptyGroup,
         dhAncestries: emptyGroup,
         dhCommunities: emptyGroup,
+        dhAdversaries: emptyGroup,
+        dhEnvironments: emptyGroup,
       });
       const { editor, onChange } = await renderEditor("<p>Ask Mira</p>");
       act(() => {

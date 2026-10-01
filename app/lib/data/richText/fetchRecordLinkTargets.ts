@@ -1,6 +1,9 @@
 import prisma from "@/app/lib/connections/prisma";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
-import { isSearchDomainInSystem } from "@/app/lib/data/search/searchAllDomains";
+import {
+  isPlayerSearchDomain,
+  isSearchDomainInSystem,
+} from "@/app/lib/data/search/searchAllDomains";
 import type RecordLinkDomain from "@/app/lib/definitions/types/RecordLinkDomain";
 import type RecordLinkTargets from "@/app/lib/definitions/types/RecordLinkTargets";
 import type VisibilityScope from "@/app/lib/data/visibility/VisibilityScope";
@@ -139,6 +142,17 @@ const FIND_EXISTING: Record<
       ...byIds(ids),
       select: { id: true, name: true },
     }),
+  // SPEC-028 T4.
+  dhAdversaries: (ids) =>
+    prisma.dhAdversary.findMany({
+      ...byIds(ids),
+      select: { id: true, name: true },
+    }),
+  dhEnvironments: (ids) =>
+    prisma.dhEnvironment.findMany({
+      ...byIds(ids),
+      select: { id: true, name: true },
+    }),
 };
 
 /**
@@ -162,6 +176,9 @@ export default async function fetchRecordLinkTargets(
   const idsByDomain = new Map<RecordLinkDomain, number[]>();
   for (const { domain, id } of collectRecordLinks(values)) {
     if (!isSearchDomainInSystem(domain, system)) continue;
+    // The DM's prep (SPEC-028 §9 decision 3) is not even read for a player:
+    // a link to it renders as its text.
+    if (scope.kind === "campaign" && !isPlayerSearchDomain(domain)) continue;
     idsByDomain.set(domain, [...(idsByDomain.get(domain) ?? []), id]);
   }
 

@@ -22,6 +22,8 @@ export const RECORD_LIST_PATH: Record<RecordLinkDomain, `/${string}` | null> = {
   dhSubclasses: "/admin/subclasses",
   dhAncestries: "/ancestries",
   dhCommunities: "/communities",
+  dhAdversaries: "/adversaries",
+  dhEnvironments: "/environments",
 };
 
 /**

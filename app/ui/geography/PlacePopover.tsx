@@ -13,7 +13,10 @@ import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
 import RemovePlaceDialog from "@/app/ui/geography/RemovePlaceDialog";
 import RemoveLandmarkDialog from "@/app/ui/geography/RemoveLandmarkDialog";
 import PlaceRevealDialog from "@/app/ui/geography/PlaceRevealDialog";
-import PlaceCommunityList from "@/app/ui/geography/PlaceCommunityList";
+import PlaceCatalogueList from "@/app/ui/geography/PlaceCatalogueList";
+import fetchCommunitiesAtPlace from "@/app/lib/data/dhCommunities/fetchCommunitiesAtPlace";
+import fetchEnvironmentsAtPlace from "@/app/lib/data/dhEnvironments/fetchEnvironmentsAtPlace";
+import PageType from "@/app/lib/definitions/types/PageType";
 import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildren";
 import type { POI } from "@/app/modules/maps/types/poi";
 import type { FocusReturnTarget } from "@/app/modules/maps/lib/utils/keyboardActivation";
@@ -368,8 +371,26 @@ export default function PlacePopover({
       />
 
       {/* SPEC-027 §5.6: the communities rooted in a place, under a system
-          that has them. A community links to places, not to landmarks. */}
-      {place && <PlaceCommunityList zoneId={place.id} />}
+          that has them. A community links to places, not to landmarks, and
+          so does an environment. */}
+      {place && (
+        <>
+          <PlaceCatalogueList
+            zoneId={place.id}
+            page={PageType.DhCommunity}
+            load={fetchCommunitiesAtPlace}
+            titleKey="dhCommunities.world.title"
+          />
+          {/* SPEC-028 §5.5: the environments that describe it — the DM's
+              alone, so a player's loader returns none. */}
+          <PlaceCatalogueList
+            zoneId={place.id}
+            page={PageType.DhEnvironment}
+            load={fetchEnvironmentsAtPlace}
+            titleKey="dhEnvironments.world.title"
+          />
+        </>
+      )}
 
       {/* Every entry below changes the world: the DM's alone (SPEC-022 T7).
           A player's popover keeps the description, the entities and

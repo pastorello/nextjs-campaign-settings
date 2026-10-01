@@ -44,6 +44,8 @@ function makeResults(
     dhSubclasses: emptyGroup,
     dhAncestries: emptyGroup,
     dhCommunities: emptyGroup,
+    dhAdversaries: emptyGroup,
+    dhEnvironments: emptyGroup,
     ...overrides,
   };
 }
@@ -128,6 +130,8 @@ describe("CrossEntitySearchResults (SPEC-011 T2)", () => {
           dhSubclasses: one(11, "Lantern Warden"),
           dhAncestries: one(12, "Lanternkin"),
           dhCommunities: one(13, "Lanternfolk"),
+          dhAdversaries: one(14, "Lantern Wraith"),
+          dhEnvironments: one(15, "Lamplit Market"),
         })}
       />
     );
@@ -142,6 +146,8 @@ describe("CrossEntitySearchResults (SPEC-011 T2)", () => {
       "dhSubclasses (1)",
       "dhAncestries (1)",
       "dhCommunities (1)",
+      "dhAdversaries (1)",
+      "dhEnvironments (1)",
     ]);
     expect(screen.getByRole("link", { name: "Lanternfall" })).toHaveAttribute(
       "href",
@@ -166,6 +172,13 @@ describe("CrossEntitySearchResults (SPEC-011 T2)", () => {
     expect(screen.getByRole("link", { name: "Lanternfolk" })).toHaveAttribute(
       "href",
       "/dashboard/dnd5e/communities?query=Lanternfolk"
+    );
+    // SPEC-028 T4: likewise.
+    expect(
+      screen.getByRole("link", { name: "Lantern Wraith" })
+    ).toHaveAttribute(
+      "href",
+      "/dashboard/dnd5e/adversaries?query=Lantern%20Wraith"
     );
   });
 

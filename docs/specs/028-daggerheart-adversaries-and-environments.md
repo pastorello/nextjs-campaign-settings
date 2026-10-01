@@ -1,6 +1,6 @@
 # SPEC-028: Daggerheart — adversaries and environments
 
-- **Status:** In progress 2026-10-01. Agreed 2026-09-30. Written by Claude from SPEC-018 §6; the DM approved it and answered its question (§9).
+- **Status:** Shipped 2026-10-01 (T1–T4). Agreed 2026-09-30. Written by Claude from SPEC-018 §6; the DM approved it and answered its question (§9).
 - **Date:** 2026-09-30
 - **Phase:** 4
 - **Related:** [SPEC-018](./018-game-systems.md) T6 (§5 licence constraints and §6 catalogue structure, binding here) · [SPEC-021](./021-daggerheart-domains-and-classes.md) (the patterns reused) · [ADR-0018](../adr/0018-daggerheart-features-one-table-per-owner.md) (ordered features, one table per owner) · [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md) · [`daggerheart.md`](../domain/daggerheart.md) §4, §5, §8 · [SPEC-030](./030-daggerheart-campaign-management.md) (the encounter budget that prices these adversaries)
@@ -172,18 +172,18 @@ model dhEnvironmentFeature  { id, environmentId (Cascade), position, kind, name,
 
 ## 8. Acceptance criteria
 
-- [ ] Adversaries and environments can be created, edited, listed with filters and deleted under `daggerheart`, and are not found under `dnd5e`.
-- [ ] Horde density is required for a horde and refused otherwise.
-- [ ] Major ≥ Severe, and an unparseable damage expression, are refused with field errors.
-- [ ] Experiences and features are added, edited, reordered and deleted inline.
-- [ ] The stat-block view shows every field in §5, with Fear features marked.
-- [ ] An environment's adversaries link to their blocks, and its places are saved, filterable and listed on the place's popover under `daggerheart`.
-- [ ] Deleting an adversary an environment lists is refused with the count.
-- [ ] Search under `daggerheart` finds both catalogues; under `dnd5e` it does not.
-- [ ] No seed, fixture or test reproduces SRD content (checked in review).
-- [ ] New UI copy lands in both message catalogues.
-- [ ] Every new mutation rejects an unauthenticated request and invalid input.
-- [ ] Coverage has not dropped.
+- [x] Adversaries and environments can be created, edited, listed with filters and deleted under `daggerheart`, and are not found under `dnd5e`.
+- [x] Horde density is required for a horde and refused otherwise.
+- [x] Major ≥ Severe, and an unparseable damage expression, are refused with field errors. _(Major must be below Severe; a minion may have no thresholds, §9 decision 1.)_
+- [x] Experiences and features are added, edited, reordered and deleted inline.
+- [x] The stat-block view shows every field in §5, with Fear features marked.
+- [x] An environment's adversaries link to their blocks, and its places are saved, filterable and listed on the place's popover under `daggerheart`.
+- [x] Deleting an adversary an environment lists is refused with the count.
+- [x] Search under `daggerheart` finds both catalogues; under `dnd5e` it does not.
+- [x] No seed, fixture or test reproduces SRD content (checked in review).
+- [x] New UI copy lands in both message catalogues.
+- [x] Every new mutation rejects an unauthenticated request and invalid input.
+- [ ] Coverage has not dropped. _Not measured: each slice added tests with its code, but no before/after coverage run was made._
 
 ## 9. Implementation plan
 
@@ -300,9 +300,50 @@ records, and links from a catalogue into `zone`.
     an environment, a feature with questions, the link to the adversary's
     block, the adversary's refused and then allowed delete, and the 404
     under 5e. The a11y scan covers the four new pages.
-- [ ] **T4** — The place popover, search, record links (cut for players),
-      i18n, a11y, and the e2e with invented content.
+- [x] **T4** — The place popover, search, record links (cut for players),
+      i18n, a11y, and the e2e with invented content. _Done 2026-10-01._
+  - **Popover:** `PlaceCommunityList` became `PlaceCatalogueList` (a pure
+    refactor commit). The popover mounts it twice, for communities and for
+    environments; `fetchEnvironmentsAtPlace` returns a player nothing.
+  - **Search and record links:** both catalogues are in `SEARCH_DOMAINS`
+    and `RECORD_LINK_DOMAINS`, under `daggerheart` alone.
+    `isPlayerSearchDomain` ties a domain to `PLAYER_PAGES`. A player's
+    search skips the stat blocks, and their record links render as text
+    without a read.
+  - **E2E:** `daggerheart-environments.spec.ts` gained the search (found
+    under Daggerheart, not under 5e).
 
 ## 11. Outcome
 
-_Fill in at close._
+Shipped 2026-10-01, T1–T4 in three PRs. Under `/dashboard/daggerheart/`:
+
+- **Adversaries.** The DM writes them with the horde and threshold rules
+  enforced, edits their experiences and features inline, and reads them as
+  stat blocks.
+- **Environments.** The DM links them to adversaries and places, gives
+  them features with prompt questions, and reads them as stat blocks whose
+  adversaries open their own.
+- **Deletes.** An adversary an environment lists cannot be deleted until
+  it is unlisted.
+- **Reach.** A place's popover names its environments. Search and record
+  links reach both catalogues.
+- **Players.** All of it is the DM's: no player page, search hit or link.
+
+Nothing is seeded.
+
+**Deviations from the agreed text**
+
+- **Thresholds are nullable (T1).** §6 had them required. Minions print
+  none in the SRD, so a minion may go without, as a pair (§9 decision 1).
+- **`tier` and `difficulty` are shared registry fields**, like `origin`,
+  rather than `SharedMetaField` entries (§9 decision 4).
+- **An environment's description is the shared formatted `description`.**
+  It is optional like every other catalogue's, where §6 sketched a
+  required one-line column.
+- **No per-record page.** The stat block is the list's card view, and an
+  environment's adversaries link to the adversary list filtered by name
+  (§9 decision 8).
+- **A record's origin shows in the rows, not on the block.** It is
+  bookkeeping, not part of a stat block as the table reads it.
+- **Adversaries and environments are DM-only.** The spec was silent on
+  players; §9 decision 3 records the choice and how to reverse it.

@@ -40,6 +40,8 @@ const {
   fetchFilteredDhSubclasses,
   fetchFilteredDhAncestries,
   fetchFilteredDhCommunities,
+  fetchFilteredDhAdversaries,
+  fetchFilteredDhEnvironments,
 } = vi.hoisted(() => ({
   fetchFilteredDhDomains: vi.fn(),
   fetchFilteredDhDomainCards: vi.fn(),
@@ -47,6 +49,8 @@ const {
   fetchFilteredDhSubclasses: vi.fn(),
   fetchFilteredDhAncestries: vi.fn(),
   fetchFilteredDhCommunities: vi.fn(),
+  fetchFilteredDhAdversaries: vi.fn(),
+  fetchFilteredDhEnvironments: vi.fn(),
 }));
 vi.mock("@/app/lib/data/dhDomains/fetchFilteredDhDomains", () => ({
   fetchFilteredDhDomains,
@@ -66,6 +70,19 @@ vi.mock("@/app/lib/data/dhAncestries/fetchFilteredDhAncestries", () => ({
 vi.mock("@/app/lib/data/dhCommunities/fetchFilteredDhCommunities", () => ({
   fetchFilteredDhCommunities,
 }));
+vi.mock("@/app/lib/data/dhAdversaries/fetchFilteredDhAdversaries", () => ({
+  fetchFilteredDhAdversaries,
+}));
+vi.mock("@/app/lib/data/dhEnvironments/fetchFilteredDhEnvironments", () => ({
+  fetchFilteredDhEnvironments,
+}));
+// SPEC-028: the reader decides whether the DM's prep is searched.
+const scope = vi.hoisted((): { current: object } => ({
+  current: { kind: "all" },
+}));
+vi.mock("@/app/lib/data/visibility/getVisibilityScope", () => ({
+  default: () => Promise.resolve(scope.current),
+}));
 
 const DAGGERHEART_DOMAINS = [
   "dhDomains",
@@ -74,6 +91,8 @@ const DAGGERHEART_DOMAINS = [
   "dhSubclasses",
   "dhAncestries",
   "dhCommunities",
+  "dhAdversaries",
+  "dhEnvironments",
 ] as const;
 const DAGGERHEART_FETCHERS = [
   fetchFilteredDhDomains,
@@ -82,6 +101,8 @@ const DAGGERHEART_FETCHERS = [
   fetchFilteredDhSubclasses,
   fetchFilteredDhAncestries,
   fetchFilteredDhCommunities,
+  fetchFilteredDhAdversaries,
+  fetchFilteredDhEnvironments,
 ];
 
 import { GAME_SYSTEMS } from "@/app/lib/definitions/GameSystem";
@@ -204,6 +225,13 @@ describe("searchAllDomains by game system (ADR-0013 rule 10)", () => {
     fetchFilteredDhCommunities.mockResolvedValue([
       { id: 12, name: "Firewatch" },
     ]);
+    fetchFilteredDhAdversaries.mockResolvedValue([
+      { id: 13, name: "Fire Imp" },
+    ]);
+    fetchFilteredDhEnvironments.mockResolvedValue([
+      { id: 14, name: "Fire Pits" },
+    ]);
+    scope.current = { kind: "all" };
   });
 
   it("searches every domain but the Daggerheart catalogues under dnd5e", async () => {
@@ -229,9 +257,31 @@ describe("searchAllDomains by game system (ADR-0013 rule 10)", () => {
     ]);
     expect(result.dhAncestries.items).toEqual([{ id: 11, name: "Firebrand" }]);
     expect(result.dhCommunities.items).toEqual([{ id: 12, name: "Firewatch" }]);
+    expect(result.dhAdversaries.items).toEqual([{ id: 13, name: "Fire Imp" }]);
+    expect(result.dhEnvironments.items).toEqual([
+      { id: 14, name: "Fire Pits" },
+    ]);
     for (const fetcher of DAGGERHEART_FETCHERS) {
       expect(fetcher).toHaveBeenCalledWith({ query: "Fire" });
     }
+  });
+
+  it("does not search a player the DM's stat blocks (SPEC-028 §9 decision 3)", async () => {
+    scope.current = {
+      kind: "campaign",
+      campaignId: 7,
+      zones: new Set([1]),
+      pois: new Set(),
+    };
+
+    const result = await searchAllDomains("Fire", "daggerheart");
+
+    expect(result.dhAdversaries).toEqual({ total: 0, items: [] });
+    expect(result.dhEnvironments).toEqual({ total: 0, items: [] });
+    expect(fetchFilteredDhAdversaries).not.toHaveBeenCalled();
+    expect(fetchFilteredDhEnvironments).not.toHaveBeenCalled();
+    // The rules catalogues stay searchable.
+    expect(result.dhCommunities.total).toBe(1);
   });
 
   it("searches every world domain under every system", async () => {

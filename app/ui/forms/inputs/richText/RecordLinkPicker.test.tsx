@@ -36,6 +36,8 @@ const result = (
   dhSubclasses: group(),
   dhAncestries: group(),
   dhCommunities: group(),
+  dhAdversaries: group(),
+  dhEnvironments: group(),
   ...groups,
 });
 

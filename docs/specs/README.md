@@ -69,7 +69,7 @@ Steps 1–3 are cheap and go in one file. Do not skip straight to 4 for anything
 | 025 | [Typed coordinates for a place](./025-typed-coordinates.md)                                    | Shipped 2026-09-22            | 4     |
 | 026 | [Create a place without leaving the flow](./026-create-a-place-without-leaving-the-flow.md)    | Shipped 2026-09-30            | 4     |
 | 027 | [Daggerheart: ancestries and communities](./027-daggerheart-ancestries-and-communities.md)     | Shipped 2026-10-01            | 4     |
-| 028 | [Daggerheart: adversaries and environments](./028-daggerheart-adversaries-and-environments.md) | In progress 2026-10-01        | 4     |
+| 028 | [Daggerheart: adversaries and environments](./028-daggerheart-adversaries-and-environments.md) | Shipped 2026-10-01            | 4     |
 | 029 | [Daggerheart: weapons, armor and loot](./029-daggerheart-weapons-armor-and-loot.md)            | Agreed 2026-09-30             | 4     |
 | 030 | [Daggerheart: campaign management](./030-daggerheart-campaign-management.md)                   | Agreed 2026-09-30             | 4     |
 

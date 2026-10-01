@@ -13,6 +13,8 @@ const {
   dhSubclass,
   dhAncestry,
   dhCommunity,
+  dhAdversary,
+  dhEnvironment,
   inSystem,
 } = vi.hoisted(() => ({
   spells: { findMany: vi.fn() },
@@ -27,6 +29,8 @@ const {
   dhSubclass: { findMany: vi.fn() },
   dhAncestry: { findMany: vi.fn() },
   dhCommunity: { findMany: vi.fn() },
+  dhAdversary: { findMany: vi.fn() },
+  dhEnvironment: { findMany: vi.fn() },
   inSystem: vi.fn(),
 }));
 
@@ -44,10 +48,14 @@ vi.mock("@/app/lib/connections/prisma", () => ({
     dhSubclass,
     dhAncestry,
     dhCommunity,
+    dhAdversary,
+    dhEnvironment,
   },
 }));
 vi.mock("@/app/lib/data/search/searchAllDomains", () => ({
   isSearchDomainInSystem: inSystem,
+  // The player cut has its own suite (`playerRecordLinks.test.ts`).
+  isPlayerSearchDomain: () => true,
 }));
 
 import fetchRecordLinkTargets from "./fetchRecordLinkTargets";
@@ -158,6 +166,22 @@ describe("fetchRecordLinkTargets (SPEC-019 T2)", () => {
       "dhDomainCards:2": "Lantern Step",
       "dhClasses:3": "Lamplighter",
       "dhSubclasses:4": "Glass Warden",
+    });
+  });
+
+  it("resolves links to adversaries and environments (SPEC-028 T4)", async () => {
+    dhAdversary.findMany.mockResolvedValue([{ id: 7, name: "Wraith" }]);
+    dhEnvironment.findMany.mockResolvedValue([{ id: 8, name: "Market" }]);
+
+    const targets = await fetchRecordLinkTargets(
+      [`<p>${link("dhAdversaries", 7)} ${link("dhEnvironments", 8)}</p>`],
+      "daggerheart",
+      ALL
+    );
+
+    expect(targets).toEqual({
+      "dhAdversaries:7": "Wraith",
+      "dhEnvironments:8": "Market",
     });
   });
 

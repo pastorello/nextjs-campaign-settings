@@ -48,7 +48,8 @@
       "passwordPlaceholder": "Enter password",
       "submit": "Log in",
       "invalidCredentials": "Invalid credentials.",
-      "somethingWrong": "Something went wrong."
+      "somethingWrong": "Something went wrong.",
+      "signUpLink": "A DM without an account? Request one"
     },
     "search": {
       "label": "Search"
@@ -1896,6 +1897,18 @@
       "active": "Active",
       "inactive": "Disabled"
     },
-    "failed": "That did not work. Try again."
+    "failed": "That did not work. Try again.",
+    "signUp": {
+      "title": "Request a DM account",
+      "intro": "An active DM has to activate the account before you can sign in.",
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "passwordHint": "At least 8 characters.",
+      "submit": "Request account",
+      "doneTitle": "Request sent",
+      "doneBody": "If the address is not already in use, the account waits for a DM to activate it. You can sign in from then on.",
+      "backToLogin": "Back to sign in"
+    }
   }
 }

@@ -111,6 +111,65 @@ test.describe("accounts", () => {
     }
   });
 
+  // SPEC-022 T4: the logged-out sign-up, inactive until a DM activates it.
+  test("a DM signs up, cannot sign in until activated, then can", async ({
+    page,
+    browser,
+  }) => {
+    const stamp = Date.now();
+    const name = `E2E New DM ${stamp}`;
+    const email = `e2e-new-dm-${stamp}@example.test`;
+    const password = "sign up secret";
+
+    const newcomer = await signedOutPage(browser);
+    await newcomer.goto("/login");
+    await newcomer
+      .getByRole("link", { name: messages.common.auth.signUpLink })
+      .click();
+    await newcomer.getByLabel(t.signUp.name, { exact: true }).fill(name);
+    await newcomer.getByLabel(t.signUp.email, { exact: true }).fill(email);
+    await newcomer
+      .getByLabel(t.signUp.password, { exact: true })
+      .fill(password);
+    await newcomer.getByRole("button", { name: t.signUp.submit }).click();
+    await expect(
+      newcomer.getByRole("heading", { name: t.signUp.doneTitle })
+    ).toBeVisible();
+
+    try {
+      await signIn(newcomer, email, password);
+      await expect(
+        newcomer.getByText(messages.common.auth.invalidCredentials)
+      ).toBeVisible();
+
+      await page.goto("/dashboard/dnd5e/admin/accounts");
+      const row = page.getByRole("row", { name: new RegExp(name) });
+      await expect(row).toContainText(messages.accounts.roles.dm);
+      await expect(row).toContainText(t.statuses.inactive);
+      await row
+        .getByRole("button", { name: fill(t.page.activate, { name }) })
+        .click();
+      await expect(row).toContainText(t.statuses.active);
+
+      await signIn(newcomer, email, password);
+      await expect(newcomer).toHaveURL(/\/dashboard\/dnd5e$/);
+      await newcomer.context().close();
+    } finally {
+      await page.goto("/dashboard/dnd5e/admin/accounts");
+      const leftover = page.getByRole("row", { name: new RegExp(name) });
+      if (await leftover.count()) {
+        await leftover
+          .getByRole("button", { name: fill(t.page.delete, { name }) })
+          .click();
+        await page
+          .getByRole("dialog")
+          .getByRole("button", { name: t.page.confirmDelete })
+          .click();
+        await expect(leftover).toHaveCount(0);
+      }
+    }
+  });
+
   test("the last active DM cannot be disabled", async ({ page }) => {
     await page.goto("/dashboard/dnd5e/admin/accounts");
     const self = page.getByRole("row", {

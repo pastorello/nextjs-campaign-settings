@@ -186,6 +186,27 @@ describe("proxy", () => {
     });
   });
 
+  // SPEC-022 T4: the DM sign-up is the second public page.
+  it.each(["/signup", "/en/signup"])(
+    "lets a signed-out request reach %s",
+    async (path) => {
+      token = null;
+
+      const response = await run(path);
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("location")).toBeNull();
+    }
+  );
+
+  it("still sends a signed-out request elsewhere to the login page", async () => {
+    token = null;
+
+    const response = await run("/signup/extra");
+
+    expect(response.status).toBe(307);
+  });
+
   it("lets the DM through", async () => {
     const response = await run("/dashboard/dnd5e/admin/npc");
 

@@ -76,6 +76,8 @@ const PAGES = [
   // always lists at least the signed-in DM.
   "/dashboard/dnd5e/account",
   "/dashboard/dnd5e/admin/accounts",
+  // SPEC-022 T4: the logged-out DM sign-up, reachable signed in as well.
+  "/signup",
 ];
 
 for (const path of PAGES) {

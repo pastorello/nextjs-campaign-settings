@@ -1,6 +1,6 @@
 # SPEC-022: Accounts, roles, and campaign visibility
 
-- **Status:** In progress — T1–T3 shipped 2026-09-30. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
+- **Status:** In progress — T1–T4 shipped 2026-09-30. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
 - **Date:** 2026-09-22 (rewritten 2026-09-30)
 - **Phase:** 5
 - **Related:** [ADR-0008](../adr/0008-map-image-storage.md) and [ADR-0017](../adr/0017-record-images.md) (their access check is "authenticated", which this spec redefines) · [SPEC-012](./012-publishing-and-internet-exposure.md) (exposure; deferred, and this spec is its prerequisite) · [SPEC-013](./013-campaign-management.md) (the campaign a group belongs to) · [SPEC-004](./004-world-model.md) (the tree visibility inherits down) · [SPEC-011](./011-cross-entity-search.md) (a read path that must learn to filter) · [SPEC-018](./018-game-systems.md) (a campaign has one system) · TD-01 (`requireSession`, the guard this spec extends) · ROADMAP, _Asked for on 2026-08-18, in one batch_
@@ -424,8 +424,26 @@ lists users, and it does not need the layer.
       - The DM renames their own account.
 
       `a11y.spec.ts` scans both pages.
-- [ ] **T4** — DM sign-up from the logged-out screen, created inactive.
+- [x] **T4** — DM sign-up from the logged-out screen, created inactive.
       _(test: sign-up; sign-in refused until activated)_
+  - _Done 2026-09-30._ `/signup`, linked from the login form
+    (`SignUpForm`, `requestDmAccount`). It is the proxy's second public
+    page.
+    - **The only mutation without a session**, recorded as the one exception
+      to `CLAUDE.md` rule 1. It creates an _inactive_ `dm`, never takes role
+      or `active` from the client, and answers a taken email exactly like a
+      free one. The form therefore cannot tell anyone which addresses have
+      accounts.
+    - Signing in before activation reads as invalid credentials, like any
+      inactive account. T3's "Activate" is the activation.
+    - **No rate limit.** Nothing in the app has one. A flood of requests
+      creates inactive rows the DM can delete from the accounts page, and
+      grants no one anything. If the app is ever exposed (SPEC-012), this is
+      one of the things to revisit.
+    - E2E: `accounts.spec.ts` covers the whole flow. A newcomer signs up and
+      cannot sign in; the DM activates the account; the newcomer then reaches
+      the dashboard. `a11y.spec.ts` scans `/signup`.
+
 - [ ] **T5** — Campaign membership: the players of a campaign, added and
       removed by the DM. _(test: the actions; a campaign's deletion takes its
       memberships)_

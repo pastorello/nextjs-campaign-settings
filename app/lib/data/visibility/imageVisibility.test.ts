@@ -13,6 +13,7 @@ const { db } = vi.hoisted(() => {
       dhAncestry: finder(),
       dhCommunity: finder(),
       dhWeapon: finder(),
+      dhArmor: finder(),
     },
   };
 });
@@ -68,7 +69,7 @@ describe("image visibility for a player (SPEC-022 T7, R11, R12)", () => {
   });
 
   // SPEC-027: the heritage catalogues are rules too, and SPEC-029's weapons.
-  it.each(["dhAncestry", "dhCommunity", "dhWeapon"] as const)(
+  it.each(["dhAncestry", "dhCommunity", "dhWeapon", "dhArmor"] as const)(
     "serves a %s's picture, a rules catalogue",
     async (model) => {
       db[model].findFirst.mockResolvedValue({ id: 3 });

@@ -32,6 +32,8 @@ const counts = vi.hoisted(() => ({
   getDhAdversariesCount: vi.fn(),
   getDhEnvironmentsCount: vi.fn(),
   getDhWeaponsCount: vi.fn(),
+  getDhArmorCount: vi.fn(),
+  getDhLootCount: vi.fn(),
 }));
 vi.mock("@/app/lib/data/dhDomains/getDhDomainsCount", () => ({
   getDhDomainsCount: counts.getDhDomainsCount,
@@ -59,6 +61,12 @@ vi.mock("@/app/lib/data/dhEnvironments/getDhEnvironmentsCount", () => ({
 }));
 vi.mock("@/app/lib/data/dhWeapons/getDhWeaponsCount", () => ({
   getDhWeaponsCount: counts.getDhWeaponsCount,
+}));
+vi.mock("@/app/lib/data/dhArmor/getDhArmorCount", () => ({
+  getDhArmorCount: counts.getDhArmorCount,
+}));
+vi.mock("@/app/lib/data/dhLoot/getDhLootCount", () => ({
+  getDhLootCount: counts.getDhLootCount,
 }));
 const { fetchFieldOptions } = vi.hoisted(() => ({
   fetchFieldOptions: vi.fn(),
@@ -143,6 +151,12 @@ vi.mock("@/app/ui/dhEnvironments/DhEnvironmentForm", () => ({
 vi.mock("@/app/ui/dhWeapons/DhWeaponForm", () => ({
   default: formStub("DhWeaponForm"),
 }));
+vi.mock("@/app/ui/dhArmor/DhArmorForm", () => ({
+  default: formStub("DhArmorForm"),
+}));
+vi.mock("@/app/ui/dhLoot/DhLootForm", () => ({
+  default: formStub("DhLootForm"),
+}));
 
 import DomainsLayout from "./domains/layout";
 import DomainCardsLayout from "./domain-cards/layout";
@@ -153,6 +167,8 @@ import CommunitiesLayout from "./communities/layout";
 import AdversariesLayout from "./adversaries/layout";
 import EnvironmentsLayout from "./environments/layout";
 import WeaponsLayout from "./weapons/layout";
+import ArmorLayout from "./armor/layout";
+import LootLayout from "./loot/layout";
 import DomainsPage, {
   generateMetadata as domainsMetadata,
 } from "./domains/page";
@@ -189,6 +205,10 @@ import WeaponsPage, {
   generateMetadata as weaponsMetadata,
 } from "./weapons/page";
 import NewWeaponPage from "./weapons/new/page";
+import ArmorPage, { generateMetadata as armorMetadata } from "./armor/page";
+import NewArmorPage from "./armor/new/page";
+import LootPage, { generateMetadata as lootMetadata } from "./loot/page";
+import NewLootPage from "./loot/new/page";
 
 describe("the Daggerheart admin layouts (SPEC-021)", () => {
   const layouts = [
@@ -201,6 +221,8 @@ describe("the Daggerheart admin layouts (SPEC-021)", () => {
     ["adversaries", AdversariesLayout],
     ["environments", EnvironmentsLayout],
     ["weapons", WeaponsLayout],
+    ["armor", ArmorLayout],
+    ["loot", LootLayout],
   ] as const;
 
   it.each(layouts)("%s renders under daggerheart only", async (_, Layout) => {
@@ -263,6 +285,8 @@ describe("the Daggerheart admin lists (SPEC-021 T2–T5)", () => {
       PageType.DhEnvironment,
     ],
     [WeaponsPage, weaponsMetadata, counts.getDhWeaponsCount, PageType.DhWeapon],
+    [ArmorPage, armorMetadata, counts.getDhArmorCount, PageType.DhArmor],
+    [LootPage, lootMetadata, counts.getDhLootCount, PageType.DhLoot],
   ])(
     "counts, links the new form and lists its rows (%#)",
     async (Page, metadata, count, pageType) => {
@@ -331,6 +355,8 @@ describe("the Daggerheart new-record pages (SPEC-021 T2–T5)", () => {
       "",
       "/admin/weapons",
     ],
+    ["DhArmorForm", () => Promise.resolve(NewArmorPage()), "", "/admin/armor"],
+    ["DhLootForm", () => Promise.resolve(NewLootPage()), "", "/admin/loot"],
   ])(
     "%s gets its options and returns to its list on cancel and on save",
     async (form, Page, table, listPath) => {

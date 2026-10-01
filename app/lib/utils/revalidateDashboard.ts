@@ -10,6 +10,7 @@ import { revalidatePath } from "next/cache";
 export type DashboardDomain =
   | "account"
   | "admin/accounts"
+  | "armor"
   | "adversaries"
   | "ancestries"
   | "admin/classes"
@@ -23,6 +24,7 @@ export type DashboardDomain =
   | "environments"
   | "factions"
   | "geography"
+  | "loot"
   | "magicitems"
   | "npc"
   | "spells"

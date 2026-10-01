@@ -20,6 +20,8 @@ import { fetchFilteredDhCommunities } from "@/app/lib/data/dhCommunities/fetchFi
 import { fetchFilteredDhAdversaries } from "@/app/lib/data/dhAdversaries/fetchFilteredDhAdversaries";
 import { fetchFilteredDhEnvironments } from "@/app/lib/data/dhEnvironments/fetchFilteredDhEnvironments";
 import { fetchFilteredDhWeapons } from "@/app/lib/data/dhWeapons/fetchFilteredDhWeapons";
+import { fetchFilteredDhArmor } from "@/app/lib/data/dhArmor/fetchFilteredDhArmor";
+import { fetchFilteredDhLoot } from "@/app/lib/data/dhLoot/fetchFilteredDhLoot";
 import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
 
 import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
@@ -40,6 +42,8 @@ import DhCommunityLibrary from "../dhCommunities/DhCommunityLibrary";
 import DhAdversaryLibrary from "../dhAdversaries/DhAdversaryLibrary";
 import DhEnvironmentLibrary from "../dhEnvironments/DhEnvironmentLibrary";
 import DhWeaponLibrary from "../dhWeapons/DhWeaponLibrary";
+import DhArmorLibrary from "../dhArmor/DhArmorLibrary";
+import DhLootLibrary from "../dhLoot/DhLootLibrary";
 import ResolvedRecordLinks from "../richText/ResolvedRecordLinks";
 import richTextValuesOf from "@/app/lib/utils/richText/richTextValuesOf";
 
@@ -205,6 +209,14 @@ export default async function EntityLibrary(props: {
     case PageType.DhWeapon: {
       const items = await fetchFilteredDhWeapons(searchParams);
       return withRecordLinks(items, <DhWeaponLibrary items={items} />);
+    }
+    case PageType.DhArmor: {
+      const items = await fetchFilteredDhArmor(searchParams);
+      return withRecordLinks(items, <DhArmorLibrary items={items} />);
+    }
+    case PageType.DhLoot: {
+      const items = await fetchFilteredDhLoot(searchParams);
+      return withRecordLinks(items, <DhLootLibrary items={items} />);
     }
   }
 }

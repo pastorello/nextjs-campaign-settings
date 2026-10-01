@@ -24,6 +24,8 @@ import { fetchFilteredDhCommunities } from "@/app/lib/data/dhCommunities/fetchFi
 import { fetchFilteredDhAdversaries } from "@/app/lib/data/dhAdversaries/fetchFilteredDhAdversaries";
 import { fetchFilteredDhEnvironments } from "@/app/lib/data/dhEnvironments/fetchFilteredDhEnvironments";
 import { fetchFilteredDhWeapons } from "@/app/lib/data/dhWeapons/fetchFilteredDhWeapons";
+import { fetchFilteredDhArmor } from "@/app/lib/data/dhArmor/fetchFilteredDhArmor";
+import { fetchFilteredDhLoot } from "@/app/lib/data/dhLoot/fetchFilteredDhLoot";
 import { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import type { OptionTableName } from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
@@ -97,6 +99,10 @@ const fetchItems = (pageType: PageType, searchParams: SearchParamsInput) => {
       return fetchFilteredDhEnvironments(searchParams);
     case PageType.DhWeapon:
       return fetchFilteredDhWeapons(searchParams);
+    case PageType.DhArmor:
+      return fetchFilteredDhArmor(searchParams);
+    case PageType.DhLoot:
+      return fetchFilteredDhLoot(searchParams);
   }
 };
 

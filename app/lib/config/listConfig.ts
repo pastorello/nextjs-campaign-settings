@@ -13,6 +13,8 @@ import DhCommunityMetaField from "../definitions/enums/daggerheart/DhCommunityMe
 import DhAdversaryMetaField from "../definitions/enums/daggerheart/DhAdversaryMetaField";
 import DhEnvironmentMetaField from "../definitions/enums/daggerheart/DhEnvironmentMetaField";
 import DhWeaponMetaField from "../definitions/enums/daggerheart/DhWeaponMetaField";
+import DhArmorMetaField from "../definitions/enums/daggerheart/DhArmorMetaField";
+import DhLootMetaField from "../definitions/enums/daggerheart/DhLootMetaField";
 import PageType from "../definitions/types/PageType";
 
 /**
@@ -458,6 +460,65 @@ const listConfig: Record<PageType, ListConfig> = {
     emptyMessageKey: "dhWeapons.page.emptyMessage",
     editModalTitleKey: "dhWeapons.form.editTitle",
     modalContent: "dhweaponform",
+  },
+
+  // SPEC-029 T3. The header filters are §5's tier and origin.
+  [PageType.DhArmor]: {
+    columns: [
+      {
+        fieldKey: DhArmorMetaField.tier,
+        labelKey: "daggerheart.fields.tier.label",
+      },
+      {
+        fieldKey: DhArmorMetaField.major,
+        labelKey: "dhArmor.fields.major.label",
+        isFiltrable: false,
+      },
+      {
+        fieldKey: DhArmorMetaField.severe,
+        labelKey: "dhArmor.fields.severe.label",
+        isFiltrable: false,
+      },
+      {
+        fieldKey: DhArmorMetaField.armorScore,
+        labelKey: "dhArmor.fields.armorScore.label",
+        isFiltrable: false,
+      },
+      {
+        fieldKey: DhArmorMetaField.origin,
+        labelKey: "daggerheart.fields.origin.label",
+      },
+    ],
+    emptyMessageKey: "dhArmor.page.emptyMessage",
+    editModalTitleKey: "dhArmor.form.editTitle",
+    modalContent: "dharmorform",
+  },
+
+  // SPEC-029 T4. Kind, rarity and origin filter; the roll value sorts, so
+  // records sharing one sit together (§5).
+  [PageType.DhLoot]: {
+    columns: [
+      {
+        fieldKey: DhLootMetaField.rollValue,
+        labelKey: "dhLoot.fields.rollValue.label",
+        isFiltrable: false,
+      },
+      {
+        fieldKey: DhLootMetaField.kind,
+        labelKey: "dhLoot.fields.kind.label",
+      },
+      {
+        fieldKey: DhLootMetaField.rarity,
+        labelKey: "dhLoot.fields.rarity.label",
+      },
+      {
+        fieldKey: DhLootMetaField.origin,
+        labelKey: "daggerheart.fields.origin.label",
+      },
+    ],
+    emptyMessageKey: "dhLoot.page.emptyMessage",
+    editModalTitleKey: "dhLoot.form.editTitle",
+    modalContent: "dhlootform",
   },
 };
 

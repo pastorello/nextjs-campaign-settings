@@ -19,6 +19,7 @@ describe("isPlayerPath (SPEC-022 T7)", () => {
     "/dashboard/daggerheart/factions",
     // SPEC-029 §9 decision 1.
     "/dashboard/daggerheart/weapons",
+    "/dashboard/daggerheart/armor",
   ])("lets a player through to %s", (path) => {
     expect(isPlayerPath(path)).toBe(true);
   });
@@ -34,6 +35,7 @@ describe("isPlayerPath (SPEC-022 T7)", () => {
     // SPEC-028 §9 decision 3: the GM-side stat blocks.
     "/dashboard/daggerheart/adversaries",
     "/dashboard/daggerheart/environments",
+    "/dashboard/daggerheart/loot",
   ])("refuses a player %s", (path) => {
     expect(isPlayerPath(path)).toBe(false);
   });

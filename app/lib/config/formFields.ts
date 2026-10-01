@@ -14,6 +14,8 @@ import DhCommunityMetaField from "../definitions/enums/daggerheart/DhCommunityMe
 import DhAdversaryMetaField from "../definitions/enums/daggerheart/DhAdversaryMetaField";
 import DhEnvironmentMetaField from "../definitions/enums/daggerheart/DhEnvironmentMetaField";
 import DhWeaponMetaField from "../definitions/enums/daggerheart/DhWeaponMetaField";
+import DhArmorMetaField from "../definitions/enums/daggerheart/DhArmorMetaField";
+import DhLootMetaField from "../definitions/enums/daggerheart/DhLootMetaField";
 
 /**
  * The fields each domain's form holds state for (TD-09).
@@ -215,6 +217,26 @@ const formFields: Record<PageType, MetaConfigKey[]> = {
     DhWeaponMetaField.featureText,
     DhWeaponMetaField.origin,
     DhWeaponMetaField.imageId,
+  ],
+  [PageType.DhArmor]: [
+    DhArmorMetaField.name,
+    DhArmorMetaField.tier,
+    DhArmorMetaField.major,
+    DhArmorMetaField.severe,
+    DhArmorMetaField.armorScore,
+    DhArmorMetaField.featureName,
+    DhArmorMetaField.featureText,
+    DhArmorMetaField.origin,
+    DhArmorMetaField.imageId,
+  ],
+  [PageType.DhLoot]: [
+    DhLootMetaField.name,
+    DhLootMetaField.kind,
+    DhLootMetaField.rarity,
+    DhLootMetaField.rollValue,
+    DhLootMetaField.effectText,
+    DhLootMetaField.origin,
+    DhLootMetaField.imageId,
   ],
 };
 

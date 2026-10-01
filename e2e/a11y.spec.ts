@@ -97,6 +97,14 @@ const PAGES = [
   "/dashboard/daggerheart/weapons?view=cards",
   "/dashboard/daggerheart/admin/weapons",
   "/dashboard/daggerheart/admin/weapons/new",
+  "/dashboard/daggerheart/armor",
+  "/dashboard/daggerheart/armor?view=cards",
+  "/dashboard/daggerheart/admin/armor",
+  "/dashboard/daggerheart/admin/armor/new",
+  "/dashboard/daggerheart/loot",
+  "/dashboard/daggerheart/loot?view=cards",
+  "/dashboard/daggerheart/admin/loot",
+  "/dashboard/daggerheart/admin/loot/new",
   // SPEC-022 T2, T3: the DM's own account and the accounts page. The latter
   // always lists at least the signed-in DM.
   "/dashboard/dnd5e/account",

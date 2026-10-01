@@ -23,6 +23,8 @@ import {
   GlobeEuropeAfricaIcon,
   WrenchScrewdriverIcon,
   BoltIcon,
+  ShieldCheckIcon,
+  GiftIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useTranslations } from "next-intl";
@@ -187,6 +189,21 @@ const links: (NavLink | NavGroup)[] = [
         href: "/weapons",
         admin: "/admin/weapons",
         icon: BoltIcon,
+      },
+      {
+        key: "dhArmor",
+        page: PageType.DhArmor,
+        href: "/armor",
+        admin: "/admin/armor",
+        icon: ShieldCheckIcon,
+      },
+      // The DM's alone (§9 decision 1), so a player's group lacks it.
+      {
+        key: "dhLoot",
+        page: PageType.DhLoot,
+        href: "/loot",
+        admin: "/admin/loot",
+        icon: GiftIcon,
       },
     ],
   },

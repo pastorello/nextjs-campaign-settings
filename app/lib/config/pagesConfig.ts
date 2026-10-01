@@ -16,6 +16,8 @@ import DhCommunityMetaField from "@/app/lib/definitions/enums/daggerheart/DhComm
 import DhAdversaryMetaField from "@/app/lib/definitions/enums/daggerheart/DhAdversaryMetaField";
 import DhEnvironmentMetaField from "@/app/lib/definitions/enums/daggerheart/DhEnvironmentMetaField";
 import DhWeaponMetaField from "@/app/lib/definitions/enums/daggerheart/DhWeaponMetaField";
+import DhArmorMetaField from "@/app/lib/definitions/enums/daggerheart/DhArmorMetaField";
+import DhLootMetaField from "@/app/lib/definitions/enums/daggerheart/DhLootMetaField";
 
 /**
  * Which fields make up each page, in order.
@@ -286,6 +288,36 @@ const pagesConfig: Record<PageType, PageConfig> = {
       DhWeaponMetaField.featureName,
       DhWeaponMetaField.featureText,
       DhWeaponMetaField.origin,
+    ],
+    system: "daggerheart",
+  },
+  // SPEC-029 T3.
+  [PageType.DhArmor]: {
+    fields: [
+      "id",
+      "imageId",
+      DhArmorMetaField.name,
+      DhArmorMetaField.tier,
+      DhArmorMetaField.major,
+      DhArmorMetaField.severe,
+      DhArmorMetaField.armorScore,
+      DhArmorMetaField.featureName,
+      DhArmorMetaField.featureText,
+      DhArmorMetaField.origin,
+    ],
+    system: "daggerheart",
+  },
+  // SPEC-029 T4. The DM's alone (§9 decision 1).
+  [PageType.DhLoot]: {
+    fields: [
+      "id",
+      "imageId",
+      DhLootMetaField.name,
+      DhLootMetaField.kind,
+      DhLootMetaField.rarity,
+      DhLootMetaField.rollValue,
+      DhLootMetaField.effectText,
+      DhLootMetaField.origin,
     ],
     system: "daggerheart",
   },

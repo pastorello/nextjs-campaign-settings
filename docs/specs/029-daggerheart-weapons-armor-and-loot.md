@@ -222,10 +222,26 @@ damage-type vocabularies, `StatBlockView` and `isPlayerSearchDomain`.
   - **E2E:** `daggerheart-weapons.spec.ts` covers the half-feature
     refusal, the card with an axe scan, the 404 under 5e and the delete.
     The a11y scan covers the four new pages.
-- [ ] **T3** — Armor end to end, open to players. _(test: thresholds,
-      score; e2e)_
-- [ ] **T4** — Loot end to end, the DM's alone. _(test: roll value,
-      rarity filter; e2e)_
+- [x] **T3** — Armor end to end, open to players. _(test: thresholds,
+      score; e2e)_ _Done 2026-10-01._
+  - `PageType.DhArmor` (`/armor`), in `PLAYER_PAGES`; its pictures are
+    visible to players.
+  - `armorThresholdErrors` refuses Major at or above Severe on
+    `armorSevere`. An update judges the stored row with the payload over
+    it, as it does the feature pair.
+  - `DhArmorCard` shows the base thresholds and the score.
+- [x] **T4** — Loot end to end, the DM's alone. _(test: roll value,
+      rarity filter; e2e)_ _Done 2026-10-01._
+  - **Pages:** `PageType.DhLoot` (`/loot`). Both layouts call
+    `requireDmPage()`; it is not in `PLAYER_PAGES`, and its pictures are
+    never served to a player.
+  - **Roll value:** a blank roll value is `null`. The admin list's roll
+    column sorts, so records sharing one sit together; kind, rarity and
+    origin filter.
+  - **E2E:** `daggerheart-armor-loot.spec.ts` covers armor refused with
+    Major at Severe and then saved, loot with a roll value, both cards
+    with axe scans, both 404s under 5e, and both deletes. The a11y scan
+    covers the eight new pages.
 - [ ] **T5** — The sidebar group, search and record links (loot cut for
       players), i18n and a11y.
 

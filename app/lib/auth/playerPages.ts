@@ -31,6 +31,7 @@ export const PLAYER_PAGES: readonly DashboardSubpath[] = [
   // SPEC-029 §9 decision 1: the equipment the players choose from. Loot is
   // handed out, so it stays the DM's.
   "/weapons",
+  "/armor",
   // A catalogue too, but linked into the world: its places and factions are
   // filtered to the campaign's (SPEC-027 T3).
   "/communities",

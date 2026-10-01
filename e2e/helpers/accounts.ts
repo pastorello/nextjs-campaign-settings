@@ -1,0 +1,38 @@
+import { expect, type Page } from "@playwright/test";
+
+import messages from "@/messages/it.json";
+
+const t = messages.accounts.page;
+
+/** `{name}`-style placeholders, as next-intl fills them. */
+export function fillTemplate(template: string, values: Record<string, string>) {
+  return template.replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? "");
+}
+
+/** Creates a player account from the DM's accounts page (SPEC-022 T3). */
+export async function createPlayerAccount(
+  page: Page,
+  { name, email, password }: { name: string; email: string; password: string }
+) {
+  await page.goto("/dashboard/dnd5e/admin/accounts");
+  await page.getByLabel(t.name, { exact: true }).fill(name);
+  await page.getByLabel(t.email, { exact: true }).fill(email);
+  await page.getByLabel(t.password, { exact: true }).fill(password);
+  await page.getByRole("button", { name: t.create }).click();
+  await expect(page.getByRole("row", { name: new RegExp(name) })).toBeVisible();
+}
+
+/** Deletes an account from the accounts page, if it is still there. */
+export async function deleteAccountIfPresent(page: Page, name: string) {
+  await page.goto("/dashboard/dnd5e/admin/accounts");
+  const row = page.getByRole("row", { name: new RegExp(name) });
+  if (!(await row.count())) return;
+  await row
+    .getByRole("button", { name: fillTemplate(t.delete, { name }) })
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: t.confirmDelete })
+    .click();
+  await expect(row).toHaveCount(0);
+}

@@ -1,6 +1,6 @@
 # SPEC-022: Accounts, roles, and campaign visibility
 
-- **Status:** In progress — T1–T4 shipped 2026-09-30. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
+- **Status:** In progress — T1–T5 shipped 2026-09-30. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
 - **Date:** 2026-09-22 (rewritten 2026-09-30)
 - **Phase:** 5
 - **Related:** [ADR-0008](../adr/0008-map-image-storage.md) and [ADR-0017](../adr/0017-record-images.md) (their access check is "authenticated", which this spec redefines) · [SPEC-012](./012-publishing-and-internet-exposure.md) (exposure; deferred, and this spec is its prerequisite) · [SPEC-013](./013-campaign-management.md) (the campaign a group belongs to) · [SPEC-004](./004-world-model.md) (the tree visibility inherits down) · [SPEC-011](./011-cross-entity-search.md) (a read path that must learn to filter) · [SPEC-018](./018-game-systems.md) (a campaign has one system) · TD-01 (`requireSession`, the guard this spec extends) · ROADMAP, _Asked for on 2026-08-18, in one batch_
@@ -444,9 +444,24 @@ lists users, and it does not need the layer.
       cannot sign in; the DM activates the account; the newcomer then reaches
       the dashboard. `a11y.spec.ts` scans `/signup`.
 
-- [ ] **T5** — Campaign membership: the players of a campaign, added and
+- [x] **T5** — Campaign membership: the players of a campaign, added and
       removed by the DM. _(test: the actions; a campaign's deletion takes its
       memberships)_
+  - _Done 2026-09-30._ Migration `*_spec022_campaign_members`: the implicit
+    relation `campaign.members` ↔ `users.campaigns` (`_campaignMembers`,
+    cascades on both sides).
+    - The campaign page ends with a "Players" section (`CampaignPlayers`,
+      `fetchCampaignPlayers`, `addCampaignMember`, `removeCampaignMember`):
+      the members, a select of player accounts not yet in the group, and a
+      remove button per member that names them.
+    - **Only `player` accounts join** (`notAPlayer`). A member later promoted
+      to DM keeps the row but is no longer listed, since a DM sees everything.
+    - Campaigns have no delete (SPEC-013 T6), so "a deleted campaign takes
+      its memberships" holds through the cascade and has no UI to test it.
+      The cascade is in the migration.
+    - E2E: `campaign-players.spec.ts` adds a player and removes them. The
+      shared account helpers live in `e2e/helpers/accounts.ts`.
+
 - [ ] **T6** — Reveals:
   - the implicit relations' migration;
   - the `revealedTo` field on the four domains' forms and admin lists;

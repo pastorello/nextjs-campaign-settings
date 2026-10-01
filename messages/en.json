@@ -212,7 +212,9 @@
       "accountNotFound": "This account no longer exists.",
       "emailTaken": "Another account already uses this email.",
       "wrongPassword": "The current password is not correct.",
-      "lastActiveDm": "This is the last active DM: at least one must remain."
+      "lastActiveDm": "This is the last active DM: at least one must remain.",
+      "campaignNotFound": "This campaign no longer exists.",
+      "notAPlayer": "Only a player account can be part of a campaign."
     },
     "errorPage": {
       "genericTitle": "Something went wrong",
@@ -1190,6 +1192,18 @@
       "system": {
         "label": "Game system"
       }
+    },
+    "players": {
+      "title": "Players",
+      "intro": "Who plays this campaign. They will see what you reveal to it (SPEC-022).",
+      "empty": "No players yet.",
+      "candidate": "Account to add",
+      "add": "Add to the campaign",
+      "remove": "Remove {name} from the campaign",
+      "added": "Player added.",
+      "removed": "Player removed.",
+      "noCandidates": "No player account left to add. Create one from the accounts page.",
+      "accountsLink": "Go to the accounts"
     }
   },
   "adventure": {

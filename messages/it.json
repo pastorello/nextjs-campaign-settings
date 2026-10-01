@@ -212,7 +212,9 @@
       "accountNotFound": "Questo account non esiste più.",
       "emailTaken": "Un altro account usa già questa email.",
       "wrongPassword": "La password attuale non è corretta.",
-      "lastActiveDm": "È l'ultimo DM attivo: deve restarne almeno uno."
+      "lastActiveDm": "È l'ultimo DM attivo: deve restarne almeno uno.",
+      "campaignNotFound": "Questa campagna non esiste più.",
+      "notAPlayer": "Solo un account da giocatore può far parte di una campagna."
     },
     "errorPage": {
       "genericTitle": "Qualcosa è andato storto",
@@ -1190,6 +1192,18 @@
       "system": {
         "label": "Sistema di gioco"
       }
+    },
+    "players": {
+      "title": "Giocatori",
+      "intro": "Chi gioca questa campagna. Vedranno ciò che le riveli (SPEC-022).",
+      "empty": "Nessun giocatore ancora.",
+      "candidate": "Account da aggiungere",
+      "add": "Aggiungi alla campagna",
+      "remove": "Togli {name} dalla campagna",
+      "added": "Giocatore aggiunto.",
+      "removed": "Giocatore tolto.",
+      "noCandidates": "Nessun account da giocatore da aggiungere. Creane uno dalla pagina degli account.",
+      "accountsLink": "Vai agli account"
     }
   },
   "adventure": {

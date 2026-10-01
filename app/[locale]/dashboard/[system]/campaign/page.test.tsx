@@ -64,6 +64,16 @@ vi.mock("@/app/ui/campaigns/AdventureLadder", () => ({
   default: () => <div data-testid="adventure-ladder" />,
 }));
 
+// SPEC-022 T5: the campaign's group, below the ladder.
+vi.mock("@/app/lib/data/campaigns/fetchCampaignPlayers", () => ({
+  default: () => Promise.resolve({ members: [], candidates: [] }),
+}));
+vi.mock("@/app/ui/campaigns/CampaignPlayers", () => ({
+  default: ({ campaignId }: { campaignId: number }) => (
+    <div data-testid="campaign-players">{campaignId}</div>
+  ),
+}));
+
 vi.mock("@/app/ui/calendar/UpcomingEvents", () => ({
   default: ({
     upcoming,
@@ -147,6 +157,10 @@ describe("Campaign page (SPEC-013 T7)", () => {
     expect(screen.getByTestId("campaign-header")).toBeInTheDocument();
     expect(screen.getByTestId("adventure-ladder")).toBeInTheDocument();
     expect(fetchAdventureSceneProgress).toHaveBeenCalledWith([10, 11]);
+    // SPEC-022 T5: the campaign's players, for this campaign.
+    expect(screen.getByTestId("campaign-players")).toHaveTextContent(
+      String(campaign.id)
+    );
   });
 
   // SPEC-018 T3: the list is filtered by the URL's system.

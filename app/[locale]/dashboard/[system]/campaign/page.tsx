@@ -9,12 +9,14 @@ import { resolveDisplayDateSystem } from "@/app/lib/calendar/resolveDisplayDateS
 import { upcomingEvents } from "@/app/lib/calendar/upcomingEvents";
 import fetchCampaign from "@/app/lib/data/campaigns/fetchCampaign";
 import fetchAdventureSceneProgress from "@/app/lib/data/campaigns/fetchAdventureSceneProgress";
+import fetchCampaignPlayers from "@/app/lib/data/campaigns/fetchCampaignPlayers";
 import fetchCampaignEvents from "@/app/lib/data/calendar/fetchCampaignEvents";
 import fetchDateSystems from "@/app/lib/data/calendar/fetchDateSystems";
 import readDisplayDateSystemId from "@/app/lib/data/calendar/readDisplayDateSystemId";
 import CampaignForm from "@/app/ui/campaigns/CampaignForm";
 import CampaignHeader from "@/app/ui/campaigns/CampaignHeader";
 import AdventureLadder from "@/app/ui/campaigns/AdventureLadder";
+import CampaignPlayersSection from "@/app/ui/campaigns/CampaignPlayers";
 import UpcomingEvents from "@/app/ui/calendar/UpcomingEvents";
 import PageTitle from "@/app/ui/typography/PageTitle";
 import ResolvedRecordLinks from "@/app/ui/richText/ResolvedRecordLinks";
@@ -40,6 +42,8 @@ export async function generateMetadata(): Promise<Metadata> {
  * Links to the campaign calendar, and shows the next three events coming
  * up after the campaign's current day (SPEC-014 §5.5, T6) — nothing, and
  * no calendar read, while no current day is set.
+ *
+ * Ends with the campaign's players, its group (SPEC-022 T5).
  */
 export default async function CampaignPage({
   params,
@@ -61,11 +65,12 @@ export default async function CampaignPage({
     );
   }
 
-  const [progress, upcoming] = await Promise.all([
+  const [progress, upcoming, players] = await Promise.all([
     fetchAdventureSceneProgress(
       campaign.adventures.map((adventure) => adventure.id)
     ),
     readUpcoming(campaign.id, campaign.currentDay),
+    fetchCampaignPlayers(campaign.id),
   ]);
 
   // The synopsis is formatted text (SPEC-019 T5), shown by the header and
@@ -92,6 +97,7 @@ export default async function CampaignPage({
           adventures={campaign.adventures}
           progress={progress}
         />
+        <CampaignPlayersSection campaignId={campaign.id} players={players} />
       </div>
     </ResolvedRecordLinks>
   );

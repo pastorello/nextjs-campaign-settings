@@ -262,6 +262,11 @@ model users {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // SPEC-022 T5 — the campaigns a player plays in: a group is a campaign's
+  // players. Implicit many-to-many, like `calendarEvent`'s links: deleting
+  // either side removes the membership.
+  campaigns campaign[] @relation("campaignMembers")
 }
 
 // SPEC-013 T2 — campaign management. Six tables: a campaign groups
@@ -286,6 +291,8 @@ model campaign {
 
   adventures     adventure[]
   calendarEvents calendarEvent[]
+  // SPEC-022 T5 — the players of this campaign (see `users.campaigns`).
+  members        users[]         @relation("campaignMembers")
 }
 
 model adventure {

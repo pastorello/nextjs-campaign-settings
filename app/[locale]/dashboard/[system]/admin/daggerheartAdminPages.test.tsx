@@ -28,6 +28,7 @@ const counts = vi.hoisted(() => ({
   getDhClassesCount: vi.fn(),
   getDhSubclassesCount: vi.fn(),
   getDhAncestriesCount: vi.fn(),
+  getDhCommunitiesCount: vi.fn(),
 }));
 vi.mock("@/app/lib/data/dhDomains/getDhDomainsCount", () => ({
   getDhDomainsCount: counts.getDhDomainsCount,
@@ -43,6 +44,9 @@ vi.mock("@/app/lib/data/dhSubclasses/getDhSubclassesCount", () => ({
 }));
 vi.mock("@/app/lib/data/dhAncestries/getDhAncestriesCount", () => ({
   getDhAncestriesCount: counts.getDhAncestriesCount,
+}));
+vi.mock("@/app/lib/data/dhCommunities/getDhCommunitiesCount", () => ({
+  getDhCommunitiesCount: counts.getDhCommunitiesCount,
 }));
 const { fetchFieldOptions } = vi.hoisted(() => ({
   fetchFieldOptions: vi.fn(),
@@ -115,12 +119,16 @@ vi.mock("@/app/ui/dhSubclasses/DhSubclassForm", () => ({
 vi.mock("@/app/ui/dhAncestries/DhAncestryForm", () => ({
   default: formStub("DhAncestryForm"),
 }));
+vi.mock("@/app/ui/dhCommunities/DhCommunityForm", () => ({
+  default: formStub("DhCommunityForm"),
+}));
 
 import DomainsLayout from "./domains/layout";
 import DomainCardsLayout from "./domain-cards/layout";
 import ClassesLayout from "./classes/layout";
 import SubclassesLayout from "./subclasses/layout";
 import AncestriesLayout from "./ancestries/layout";
+import CommunitiesLayout from "./communities/layout";
 import DomainsPage, {
   generateMetadata as domainsMetadata,
 } from "./domains/page";
@@ -141,6 +149,10 @@ import AncestriesPage, {
   generateMetadata as ancestriesMetadata,
 } from "./ancestries/page";
 import NewAncestryPage from "./ancestries/new/page";
+import CommunitiesPage, {
+  generateMetadata as communitiesMetadata,
+} from "./communities/page";
+import NewCommunityPage from "./communities/new/page";
 
 describe("the Daggerheart admin layouts (SPEC-021)", () => {
   const layouts = [
@@ -149,6 +161,7 @@ describe("the Daggerheart admin layouts (SPEC-021)", () => {
     ["classes", ClassesLayout],
     ["subclasses", SubclassesLayout],
     ["ancestries", AncestriesLayout],
+    ["communities", CommunitiesLayout],
   ] as const;
 
   it.each(layouts)("%s renders under daggerheart only", async (_, Layout) => {
@@ -191,6 +204,12 @@ describe("the Daggerheart admin lists (SPEC-021 T2–T5)", () => {
       ancestriesMetadata,
       counts.getDhAncestriesCount,
       PageType.DhAncestry,
+    ],
+    [
+      CommunitiesPage,
+      communitiesMetadata,
+      counts.getDhCommunitiesCount,
+      PageType.DhCommunity,
     ],
   ])(
     "counts, links the new form and lists its rows (%#)",
@@ -264,4 +283,24 @@ describe("the Daggerheart new-record pages (SPEC-021 T2–T5)", () => {
       ]);
     }
   );
+});
+
+// SPEC-027 T3: a community's form offers places and factions.
+describe("the new-community page (SPEC-027 T3)", () => {
+  beforeEach(() => {
+    push.mockReset();
+    fetchFieldOptions.mockReset();
+    fetchFieldOptions.mockResolvedValue([{ value: 1, label: "Aerivel" }]);
+  });
+
+  it("loads the place and faction options, and returns to its list", async () => {
+    render(await NewCommunityPage());
+
+    expect(fetchFieldOptions).toHaveBeenCalledWith("zone");
+    expect(fetchFieldOptions).toHaveBeenCalledWith("faction");
+    fireEvent.click(screen.getByRole("button", { name: "cancel" }));
+    expect(push).toHaveBeenCalledWith(
+      "/dashboard/daggerheart/admin/communities"
+    );
+  });
 });

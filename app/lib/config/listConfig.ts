@@ -9,6 +9,7 @@ import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
 import DhClassMetaField from "../definitions/enums/daggerheart/DhClassMetaField";
 import DhSubclassMetaField from "../definitions/enums/daggerheart/DhSubclassMetaField";
 import DhAncestryMetaField from "../definitions/enums/daggerheart/DhAncestryMetaField";
+import DhCommunityMetaField from "../definitions/enums/daggerheart/DhCommunityMetaField";
 import PageType from "../definitions/types/PageType";
 
 /**
@@ -334,6 +335,35 @@ const listConfig: Record<PageType, ListConfig> = {
     emptyMessageKey: "dhAncestries.page.emptyMessage",
     editModalTitleKey: "dhAncestries.form.editTitle",
     modalContent: "dhancestryform",
+  },
+
+  // SPEC-027 T3. Places and factions filter (§5.4), but cannot sort: they
+  // are relations, not columns.
+  [PageType.DhCommunity]: {
+    columns: [
+      {
+        fieldKey: DhCommunityMetaField.featureName,
+        labelKey: "dhCommunities.fields.featureName.label",
+        isFiltrable: false,
+      },
+      {
+        fieldKey: DhCommunityMetaField.placeIds,
+        labelKey: "dhCommunities.fields.placeIds.label",
+        sortable: false,
+      },
+      {
+        fieldKey: DhCommunityMetaField.factionIds,
+        labelKey: "dhCommunities.fields.factionIds.label",
+        sortable: false,
+      },
+      {
+        fieldKey: DhCommunityMetaField.origin,
+        labelKey: "daggerheart.fields.origin.label",
+      },
+    ],
+    emptyMessageKey: "dhCommunities.page.emptyMessage",
+    editModalTitleKey: "dhCommunities.form.editTitle",
+    modalContent: "dhcommunityform",
   },
 };
 

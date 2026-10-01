@@ -77,6 +77,10 @@ const PAGES = [
   "/dashboard/daggerheart/ancestries?view=cards",
   "/dashboard/daggerheart/admin/ancestries",
   "/dashboard/daggerheart/admin/ancestries/new",
+  "/dashboard/daggerheart/communities",
+  "/dashboard/daggerheart/communities?view=cards",
+  "/dashboard/daggerheart/admin/communities",
+  "/dashboard/daggerheart/admin/communities/new",
   // SPEC-022 T2, T3: the DM's own account and the accounts page. The latter
   // always lists at least the signed-in DM.
   "/dashboard/dnd5e/account",

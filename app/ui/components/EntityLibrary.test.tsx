@@ -63,9 +63,50 @@ vi.mock("../spells/SpellLibrary", () => ({
 // this same module), so FactionLibrary is stubbed like its four siblings
 // above even though no case here exercises PageType.Faction yet.
 vi.mock("../factions/FactionLibrary", () => ({
-  default: ({ items }: { items: unknown[] }) => (
-    <div>FactionLibrary:{items.length}</div>
+  default: ({
+    items,
+    communities,
+  }: {
+    items: unknown[];
+    communities?: Map<number, unknown[]>;
+  }) => (
+    <div>
+      FactionLibrary:{items.length}:
+      {communities ? `communities:${communities.size}` : "no-communities"}
+    </div>
   ),
+}));
+// SPEC-027: the heritage libraries, and the faction cards' communities.
+vi.mock("../dhAncestries/DhAncestryLibrary", () => ({
+  default: ({ items }: { items: unknown[] }) => (
+    <div>DhAncestryLibrary:{items.length}</div>
+  ),
+}));
+vi.mock("../dhCommunities/DhCommunityLibrary", () => ({
+  default: ({ items }: { items: unknown[] }) => (
+    <div>DhCommunityLibrary:{items.length}</div>
+  ),
+}));
+const fetchFilteredDhAncestries = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/dhAncestries/fetchFilteredDhAncestries", () => ({
+  fetchFilteredDhAncestries: (...args: unknown[]) =>
+    fetchFilteredDhAncestries(...args),
+}));
+const fetchFilteredDhCommunities = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/dhCommunities/fetchFilteredDhCommunities", () => ({
+  fetchFilteredDhCommunities: (...args: unknown[]) =>
+    fetchFilteredDhCommunities(...args),
+}));
+const fetchFactionCommunities = vi.fn<() => unknown>();
+vi.mock("@/app/lib/data/dhCommunities/fetchFactionCommunities", () => ({
+  default: () => fetchFactionCommunities(),
+}));
+const fetchFilteredFactions = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/faction/fetchFilteredFactions", () => ({
+  fetchFilteredFactions: (...args: unknown[]) => fetchFilteredFactions(...args),
+}));
+vi.mock("@/app/lib/data/faction/fetchFactionRosters", () => ({
+  default: () => Promise.resolve(new Map()),
 }));
 
 // SPEC-021's Daggerheart libraries reach the same next-intl navigation (the
@@ -254,6 +295,39 @@ describe("EntityLibrary", () => {
 
     expect(screen.getByText("DhClassLibrary:2:Veilwright")).toBeInTheDocument();
     expect(fetchFieldOptions).toHaveBeenCalledWith("dhDomain");
+  });
+
+  // SPEC-027.
+  it.each([
+    [PageType.DhAncestry, fetchFilteredDhAncestries, "DhAncestryLibrary:2"],
+    [PageType.DhCommunity, fetchFilteredDhCommunities, "DhCommunityLibrary:2"],
+  ])(
+    "fetches %s and renders its library",
+    async (pageType, fetch, rendered) => {
+      fetch.mockResolvedValue([{ id: 1 }, { id: 2 }]);
+
+      render(await EntityLibrary({ system: "daggerheart", pageType }));
+
+      expect(screen.getByText(rendered)).toBeInTheDocument();
+    }
+  );
+
+  it("gives the faction cards their communities under daggerheart only", async () => {
+    fetchFilteredFactions.mockResolvedValue([{ id: 1 }]);
+    fetchFactionCommunities.mockResolvedValue(new Map([[1, []]]));
+
+    const { unmount } = render(
+      await EntityLibrary({ system: "daggerheart", pageType: PageType.Faction })
+    );
+    expect(screen.getByText(/communities:1/)).toBeInTheDocument();
+    unmount();
+
+    fetchFactionCommunities.mockClear();
+    render(
+      await EntityLibrary({ system: "dnd5e", pageType: PageType.Faction })
+    );
+    expect(screen.getByText(/no-communities/)).toBeInTheDocument();
+    expect(fetchFactionCommunities).not.toHaveBeenCalled();
   });
 
   it("passes the search params through to the fetch call", async () => {

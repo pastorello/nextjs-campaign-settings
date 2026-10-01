@@ -10,6 +10,7 @@ import SpellMetaField from "../definitions/enums/spells/SpellMetaField";
 import DhClassMetaField from "../definitions/enums/daggerheart/DhClassMetaField";
 import DhSubclassMetaField from "../definitions/enums/daggerheart/DhSubclassMetaField";
 import DhAncestryMetaField from "../definitions/enums/daggerheart/DhAncestryMetaField";
+import DhCommunityMetaField from "../definitions/enums/daggerheart/DhCommunityMetaField";
 
 /**
  * The fields a domain can be filtered by, declared once (TD-12).
@@ -124,6 +125,13 @@ const queryFields: Record<PageType, MetaConfigKey[]> = {
     DhSubclassMetaField.origin,
   ],
   [PageType.DhAncestry]: [DhAncestryMetaField.origin],
+  // The place and faction filters are relation filters, not scalar-list
+  // ones: `buildDhCommunityWhere` turns getQuery's `hasSome` into them.
+  [PageType.DhCommunity]: [
+    DhCommunityMetaField.placeIds,
+    DhCommunityMetaField.factionIds,
+    DhCommunityMetaField.origin,
+  ],
 };
 
 export default queryFields;

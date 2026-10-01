@@ -45,6 +45,13 @@ vi.mock("@/app/modules/maps/hooks/useLeafletMap", () => ({
 // this suite stays a test of the popover shell rather than of the entity
 // fetch behind it.
 const entityListProps = vi.fn();
+// SPEC-027 §5.6: its own suite; here, only whether the popover mounts it.
+vi.mock("@/app/ui/geography/PlaceCommunityList", () => ({
+  default: ({ zoneId }: { zoneId: number }) => (
+    <div data-testid="community-list" data-zone-id={zoneId} />
+  ),
+}));
+
 vi.mock("@/app/ui/geography/PlaceEntityList", () => ({
   default: ({
     target,
@@ -327,6 +334,28 @@ describe("PlacePopover — keyboard focus (TD-133)", () => {
     expect(document.activeElement).toBe(panelField);
     marker.remove();
     panelField.remove();
+  });
+});
+
+// SPEC-027 §5.6: a place's communities; a landmark has none.
+describe("PlacePopover — communities (SPEC-027 T3)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("lists a place's communities, by its id", () => {
+    renderPopover({ kind: "zone", place });
+
+    expect(screen.getByTestId("community-list")).toHaveAttribute(
+      "data-zone-id",
+      String(place.id)
+    );
+  });
+
+  it("lists none for a landmark", () => {
+    renderPopover({ kind: "poi", poi, poiId: LANDMARK_ROW_ID });
+
+    expect(screen.queryByTestId("community-list")).not.toBeInTheDocument();
   });
 });
 

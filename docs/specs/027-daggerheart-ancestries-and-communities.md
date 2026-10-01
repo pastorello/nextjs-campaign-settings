@@ -1,6 +1,6 @@
 # SPEC-027: Daggerheart — ancestries and communities
 
-- **Status:** In progress — T1, T2 shipped 2026-10-01. Agreed 2026-09-30. Written by Claude from SPEC-018 §6; the DM approved it and answered its question (§9).
+- **Status:** In progress — T1–T3 shipped 2026-10-01. Agreed 2026-09-30. Written by Claude from SPEC-018 §6; the DM approved it and answered its question (§9).
 - **Date:** 2026-09-30
 - **Phase:** 4
 - **Related:** [SPEC-018](./018-game-systems.md) T5 (§5 licence constraints and §6 catalogue structure, binding here) · [SPEC-021](./021-daggerheart-domains-and-classes.md) (the first Daggerheart slice; this one reuses its patterns) · [ADR-0013](../adr/0013-game-systems.md) · [`daggerheart.md`](../domain/daggerheart.md) · [`licensing.md`](../domain/licensing.md) · [SPEC-006](./006-factions.md) and [SPEC-004](./004-world-model.md) (the factions and places a community links to)
@@ -207,7 +207,25 @@ model dhCommunity {
     visible to them (`isRecordImageVisible`).
   - E2E `daggerheart-ancestries.spec.ts` (refused with one feature, card
     view, edit, delete, 404 under 5e); the a11y scan covers its four pages.
-- [ ] **T3** — Communities and their links, and the world side (§5.6).
+- [x] **T3** — Communities and their links, and the world side (§5.6).
+      _Done 2026-10-01._
+  - List with rows/cards, admin list with place and faction filters, form
+    with the two multiselects, `DELETE /api/communities/[id]`, nav tile.
+  - Links: `connect` on create, `set` on update when the payload carries
+    them; a missing place or faction is a field error
+    (`checkDhCommunityLinks`). The list's place and faction filters are
+    relation filters (`buildDhCommunityWhere`), not getQuery's scalar
+    `hasSome`.
+  - The world side: a place's popover (`PlaceCommunityList`) and a
+    faction's card list their communities, under a system with
+    communities only (`isPageInSystem`).
+  - For a player (SPEC-022), a community's links, its filters, the
+    popover list and the faction map are limited to visible places and
+    revealed factions. The catalogue itself is open to every player.
+  - E2E `daggerheart-communities.spec.ts`: a community tied to a place and
+    a new faction, its card's links, the faction's card naming it back
+    under Daggerheart and not under 5e, and the faction kept when the
+    community is deleted. The a11y scan covers its four pages.
 - [ ] **T4** — Search, record links, i18n, a11y and e2e with invented
       content.
 

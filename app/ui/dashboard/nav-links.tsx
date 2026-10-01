@@ -18,6 +18,7 @@ import {
   RectangleGroupIcon,
   UserCircleIcon,
   IdentificationIcon,
+  HomeModernIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useTranslations } from "next-intl";
@@ -136,6 +137,13 @@ const links: {
     href: "/ancestries",
     admin: "/admin/ancestries",
     icon: IdentificationIcon,
+  },
+  {
+    key: "dhCommunities",
+    page: PageType.DhCommunity,
+    href: "/communities",
+    admin: "/admin/communities",
+    icon: HomeModernIcon,
   },
   // SPEC-022 T2, T3: the tile is the DM's own account, the pencil every
   // account. Last, beside the sign-out tile it relates to.

@@ -20,6 +20,7 @@ import { fetchFilteredDhDomainCards } from "@/app/lib/data/dhDomainCards/fetchFi
 import { fetchFilteredDhClasses } from "@/app/lib/data/dhClasses/fetchFilteredDhClasses";
 import { fetchFilteredDhSubclasses } from "@/app/lib/data/dhSubclasses/fetchFilteredDhSubclasses";
 import { fetchFilteredDhAncestries } from "@/app/lib/data/dhAncestries/fetchFilteredDhAncestries";
+import { fetchFilteredDhCommunities } from "@/app/lib/data/dhCommunities/fetchFilteredDhCommunities";
 import { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import type { OptionTableName } from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
@@ -85,6 +86,8 @@ const fetchItems = (pageType: PageType, searchParams: SearchParamsInput) => {
       return fetchFilteredDhSubclasses(searchParams);
     case PageType.DhAncestry:
       return fetchFilteredDhAncestries(searchParams);
+    case PageType.DhCommunity:
+      return fetchFilteredDhCommunities(searchParams);
   }
 };
 

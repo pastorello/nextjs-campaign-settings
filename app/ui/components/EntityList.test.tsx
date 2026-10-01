@@ -109,6 +109,12 @@ vi.mock("@/app/lib/data/dhClasses/fetchFilteredDhClasses", () => ({
   fetchFilteredDhClasses: (...args: unknown[]) =>
     fetchFilteredDhClasses(...args),
 }));
+vi.mock("@/app/lib/data/dhAncestries/fetchFilteredDhAncestries", () => ({
+  fetchFilteredDhAncestries: () => Promise.resolve([]),
+}));
+vi.mock("@/app/lib/data/dhCommunities/fetchFilteredDhCommunities", () => ({
+  fetchFilteredDhCommunities: () => Promise.resolve([]),
+}));
 const fetchFilteredDhSubclasses = vi.fn<(...args: unknown[]) => unknown>();
 vi.mock("@/app/lib/data/dhSubclasses/fetchFilteredDhSubclasses", () => ({
   fetchFilteredDhSubclasses: (...args: unknown[]) =>

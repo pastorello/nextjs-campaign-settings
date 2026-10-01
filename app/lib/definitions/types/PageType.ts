@@ -14,6 +14,7 @@ enum PageType {
   DhSubclass = "subclasses",
   // SPEC-027 — the heritage catalogues.
   DhAncestry = "ancestries",
+  DhCommunity = "communities",
 }
 
 export default PageType;

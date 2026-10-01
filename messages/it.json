@@ -26,7 +26,8 @@
       "accounts": "Account",
       "campaignSelector": "Campagna in corso",
       "campaignUnavailable": "Non fai più parte di questa campagna.",
-      "dhAncestries": "Ascendenze"
+      "dhAncestries": "Ascendenze",
+      "dhCommunities": "Comunità"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -1892,6 +1893,46 @@
     },
     "card": {
       "imageAlt": "Immagine di {name}"
+    }
+  },
+  "dhCommunities": {
+    "page": {
+      "title": "Comunità",
+      "searchPlaceholder": "Cerca comunità...",
+      "itemSingular": "comunità",
+      "itemPlural": "comunità",
+      "newItemButton": "Nuova comunità",
+      "emptyMessage": "Nessuna comunità."
+    },
+    "form": {
+      "createTitle": "Crea nuova comunità",
+      "editTitle": "Modifica comunità",
+      "createButton": "Crea comunità",
+      "editButton": "Salva comunità"
+    },
+    "fields": {
+      "adjectives": {
+        "label": "Aggettivi",
+        "placeholder": "Tre o quattro aggettivi che la descrivono"
+      },
+      "featureName": {
+        "label": "Tratto"
+      },
+      "featureText": {
+        "label": "Testo del tratto"
+      },
+      "placeIds": {
+        "label": "Luoghi"
+      },
+      "factionIds": {
+        "label": "Fazioni"
+      }
+    },
+    "card": {
+      "imageAlt": "Immagine di {name}"
+    },
+    "world": {
+      "title": "Comunità"
     }
   },
   "dhFeature": {

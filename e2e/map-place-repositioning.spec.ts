@@ -1,7 +1,34 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import messages from "@/messages/it.json";
 
 import { chooseFromContextMenu } from "./helpers/mapContextMenu";
+
+/**
+ * Waits until the map's camera has stopped moving (TD-152). The test
+ * right-clicks a fixed pixel, and the place it creates is wherever that
+ * pixel falls in the view at the time: `useMapImageOverlay` frames the view
+ * in the callback that attaches the image layer, and a late container
+ * resize still pans it. On a cold runner the right-click landed first, the
+ * form read the point as `-22.6` % from the top, refused to save it, and no
+ * row ever appeared. Attached first, then the image's box unchanged across
+ * two reads — the image moves with the camera, whatever moved it.
+ */
+async function waitForSettledMap(page: Page) {
+  const image = page.locator(".leaflet-image-layer");
+  await expect(image).toBeAttached();
+  let previous = "";
+  await expect
+    .poll(
+      async () => {
+        const box = JSON.stringify(await image.boundingBox());
+        const settled = box === previous;
+        previous = box;
+        return settled;
+      },
+      { intervals: [250] }
+    )
+    .toBe(true);
+}
 
 /**
  * TD-71 / SPEC-005 §5.B: a DM can drag an already-placed marker to a new
@@ -64,11 +91,15 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
   test("repositions an already-placed marker by dragging it", async ({
     page,
   }) => {
+    // Two map loads, a create, a drag and a reload: past the default 30s on
+    // a slow runner (TD-152), as `map-move-between-maps.spec.ts` was (TD-151).
+    test.setTimeout(60_000);
     const title = `E2E drag POI ${Date.now()}`;
 
     await page.goto("/dashboard/dnd5e/geography");
     const map = page.locator(".leaflet-container");
     await expect(map).toBeVisible();
+    await waitForSettledMap(page);
 
     // Clear of `MapPOIPanel` (TD-101): the panel is open in list view for
     // the whole drag below, and it covers the map's leftmost 384px, so a
@@ -91,6 +122,7 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
     // read back after can be shown to have actually changed, not just to be
     // some number.
     const initialListItem = page.locator("button", { hasText: title }).first();
+    await expect(initialListItem).toBeVisible();
     const initialRow = page.locator("div", { has: initialListItem }).last();
     const initialCoords = initialRow
       .locator("div", { hasText: /-?\d+\.\d+, -?\d+\.\d+/ })
@@ -121,6 +153,21 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
     await page.mouse.down();
     await page.mouse.move(startX + 40, startY + 20, { steps: 5 });
     await page.mouse.move(targetX, targetY, { steps: 5 });
+    // The drop's save, told apart from the create's by its payload: the
+    // drag's `updatePoi` sends the row's `id` and the new position, never a
+    // title; `createPoi` sends a title and no `id`. Registered before the
+    // drop so a fast response cannot slip past it.
+    const saved = page.waitForResponse((response) => {
+      const request = response.request();
+      const body = request.postData() ?? "";
+      return (
+        request.method() === "POST" &&
+        request.headers()["next-action"] !== undefined &&
+        body.includes('"id"') &&
+        body.includes('"lat"') &&
+        !body.includes('"title"')
+      );
+    });
     await page.mouse.up();
 
     // First, that the drop landed at all: `dragend` fires, `updatePOI`
@@ -141,6 +188,12 @@ test.describe("place repositioning (TD-71, SPEC-005 §5.B)", () => {
     // the better reading: it is the same source `initialCoordsText` came
     // from above, so the two are compared like for like rather than across
     // two different formatters.
+    //
+    // Only once the drop's save has answered (TD-152): the optimistic move
+    // above lands before the server round trip, and a reload issued straight
+    // after it aborted the in-flight `updatePoi` on a slow runner, so the
+    // row read back below still held the creation point.
+    await saved;
     await page.reload();
     await expect(map).toBeVisible();
     const movedMarker = page.locator(".custom-poi-marker").last();

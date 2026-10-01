@@ -3285,6 +3285,7 @@ The summary table's closed rows, moved out of [`TECH_DEBT.md`](./TECH_DEBT.md) o
 | TD-149 | ✅ Typing a position into the place form moves no marker (SPEC-025 §5.2)                                       | ~~🟡 Medium~~ done   | M      | 4     |
 | TD-150 | ✅ The map panel's kind select shows raw ids (`region`, `poi`) in both locales                                 | ~~🟢 Low~~ done      | S      | 4     |
 | TD-151 | ✅ `map-move-between-maps.spec.ts` counts the previous map's markers on a fresh database                       | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-152 | ✅ `map-place-repositioning.spec.ts` right-clicks before the view settles, and reloads before the drag saves   | ~~🟡 Medium~~ done   | S      | 4     |
 
 ---
 
@@ -5616,3 +5617,35 @@ for the new region's own marker, clicks markers by name rather than by an
 index taken from a count, and treats the page's `<h1>` naming the place as
 arrival. The spec's budget is 90 s. Verified on a fresh database in CI's
 order, where the old spec failed.
+
+### TD-152 ✅ `map-place-repositioning.spec.ts` right-clicks before the view settles, and reloads before the drag saves — **DONE (2026-10-01)**
+
+**Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-10-01, red on the docs-only SPEC-031 PR, whose diff touches no code
+
+Two failures, one per attempt on CI, neither in the code the spec tests:
+
+- **A refused save.** The first attempt timed out reading the new row's
+  coordinates (line 98). The page snapshot of the same failure, reproduced
+  locally on a cold dev server and again under 6× CPU throttling, shows why:
+  the place form held `-22.6` (then `-6.6`) % from the top, flagged invalid,
+  so the save was refused and no row ever appeared. The spec right-clicks a
+  fixed pixel, and it right-clicked before the map's view had settled
+  (`useMapImageOverlay` frames it in the callback that attaches the image
+  layer; a late container resize still pans it), so the pixel fell above
+  the image.
+- **A lost save.** The retry got past that and failed the final comparison
+  (line 178): after the reload the row still held the creation point. The
+  drag's optimistic move lands at once, while `updatePoi` is queued behind
+  the create; the spec reloaded straight after the optimistic assertion,
+  which aborts a save still in flight. This one is inferred from the code
+  and the failure, not reproduced locally.
+
+**Resolution:** the spec waits for a settled map before the right-click —
+the image layer attached, then its box unchanged across two reads — and
+for the drag's own `updatePoi` response (a Server Action POST carrying an
+`id` and a `lat` but no `title`, unlike the create) before reloading. It
+also waits for the saved row to be visible, so a refused save fails in
+seconds with a readable message rather than at the test timeout, and its
+budget is 60 s. Under 6× CPU throttling the old spec failed one run in
+three exactly as on CI; the new one passed eight in eight, and five more
+unthrottled.

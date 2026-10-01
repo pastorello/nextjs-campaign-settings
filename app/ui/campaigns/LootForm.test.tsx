@@ -131,4 +131,57 @@ describe("LootForm (SPEC-013 T8)", () => {
     );
     expect(onSaved).not.toHaveBeenCalled();
   });
+
+  // SPEC-030 T4: a Daggerheart row holds gold and one piece of equipment.
+  it("saves a Daggerheart row's gold and its one equipment link", async () => {
+    createLoot.mockResolvedValue({ ok: true });
+    render(
+      <LootForm
+        rulesSystem="daggerheart"
+        equipmentOptions={{
+          weapons: [{ value: 3, label: "Hooked Spear" }],
+          armor: [{ value: 4, label: "Reed Mail" }],
+          loot: [],
+        }}
+        sceneId={9}
+        nextPosition={1}
+        currencyUnit="silver"
+        magicItemOptions={magicItemOptions}
+        treasureOptions={treasureOptions}
+        onCancel={onCancel}
+        onSaved={onSaved}
+      />
+    );
+
+    expect(screen.queryByLabelText(/loot.fields.value.label/)).toBeNull();
+    fireEvent.change(screen.getByLabelText("loot.fields.description.label"), {
+      target: { value: "The ferryman's chest" },
+    });
+    fireEvent.change(screen.getByLabelText("loot.fields.gold.label"), {
+      target: { value: "12" },
+    });
+    const selects = screen.getAllByTestId("form-select");
+    // Field order: weapon, armor, loot. Picking the armor clears the weapon.
+    fireEvent.click(within(selects[0]!).getByRole("button"));
+    fireEvent.click(screen.getByText("Hooked Spear"));
+    fireEvent.click(within(selects[1]!).getByRole("button"));
+    fireEvent.click(screen.getByText("Reed Mail"));
+    expect(
+      within(selects[0]!).getByText("loot.fields.dhWeaponId.noneOption")
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("loot.form.createButton"));
+
+    await vi.waitFor(() => expect(createLoot).toHaveBeenCalled());
+    const [payload] = createLoot.mock.lastCall as [Record<string, unknown>];
+    expect(payload).toMatchObject({
+      gold: 12,
+      dhWeaponId: null,
+      dhArmorId: 4,
+      dhLootId: null,
+    });
+    expect(payload).not.toHaveProperty("value");
+    expect(payload).not.toHaveProperty("magicItemId");
+    expect(payload).not.toHaveProperty("treasureId");
+  });
 });

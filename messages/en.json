@@ -1502,7 +1502,8 @@
       "xp": "Experience",
       "currency": "Currency",
       "permanentItems": "Permanent items",
-      "consumables": "Consumables"
+      "consumables": "Consumables",
+      "gold": "Gold"
     },
     "heroPoints": "Hero points earned",
     "milestones": {
@@ -1816,6 +1817,11 @@
       "lowerTierAdversary": "An adversary from a lower tier (+1)",
       "noHeavyHitters": "No Bruiser, Horde, Leader or Solo (+1)",
       "harderOrLonger": "A harder or longer fight (+2)"
+    },
+    "gold": {
+      "chests": "{count, plural, one {# chest} other {# chests}}",
+      "bags": "{count, plural, one {# bag} other {# bags}}",
+      "handfuls": "{count, plural, one {# handful} other {# handfuls}}"
     }
   },
   "dhDomains": {

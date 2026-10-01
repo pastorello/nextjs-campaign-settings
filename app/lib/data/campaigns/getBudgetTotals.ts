@@ -1,5 +1,6 @@
 import prisma from "@/app/lib/connections/prisma";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
+import DhLootKind from "@/app/lib/definitions/enums/daggerheart/DhLootKind";
 
 export interface BudgetFigure {
   assigned: number;
@@ -9,6 +10,8 @@ export interface BudgetFigure {
 export interface BudgetTotals {
   xp: BudgetFigure;
   currency: BudgetFigure;
+  /** SPEC-030 T4: a Daggerheart adventure's gold, in handfuls. */
+  gold: BudgetFigure;
   permanentItems: BudgetFigure;
   consumables: BudgetFigure;
   heroPoints: number;
@@ -33,6 +36,13 @@ export interface BudgetTotals {
  * own `value` if set, else the linked catalogue treasure's, else 0 (an
  * unlinked row with no value contributes 0, i.e. counts toward no total,
  * per §5's edge case) — and never toward the other two.
+ *
+ * Daggerheart's rows (SPEC-030 §9 decisions 6 and 7) follow the same
+ * shape: a row linked to a weapon, an armor or an item counts toward
+ * `permanentItems`, one linked to a consumable toward `consumables`, both
+ * by quantity. Its `gold` counts toward `gold` by `gold × quantity` whatever
+ * it links — unlike a magic item's `value`, which is the item's own worth,
+ * gold is coin found beside it — and toward no item total.
  *
  * `assigned` sums every row regardless of its check state; `found` sums
  * only the checked ones (`scene.awarded`, `sceneCreature.awarded`,
@@ -67,6 +77,11 @@ export default async function getBudgetTotals(
             magicItemId: true,
             magicitem: { select: { consumable: true } },
             treasure: { select: { value: true } },
+            gold: true,
+            dhWeaponId: true,
+            dhArmorId: true,
+            dhLootId: true,
+            dhLoot: { select: { lootKind: true } },
           },
         },
       },
@@ -78,10 +93,15 @@ export default async function getBudgetTotals(
   const totals: BudgetTotals = {
     xp: { assigned: 0, found: 0 },
     currency: { assigned: 0, found: 0 },
+    gold: { assigned: 0, found: 0 },
     permanentItems: { assigned: 0, found: 0 },
     consumables: { assigned: 0, found: 0 },
     heroPoints: 0,
     milestones: { planned: 0, reached: 0 },
+  };
+  const count = (figure: BudgetFigure, amount: number, found: boolean) => {
+    figure.assigned += amount;
+    if (found) figure.found += amount;
   };
 
   for (const scene of scenes) {
@@ -104,6 +124,22 @@ export default async function getBudgetTotals(
     }
 
     for (const lootRow of scene.loot) {
+      if (lootRow.gold !== null) {
+        count(totals.gold, lootRow.gold * lootRow.quantity, lootRow.taken);
+      }
+      if (lootRow.dhWeaponId !== null || lootRow.dhArmorId !== null) {
+        count(totals.permanentItems, lootRow.quantity, lootRow.taken);
+        continue;
+      }
+      if (lootRow.dhLootId !== null) {
+        const figure =
+          lootRow.dhLoot?.lootKind === DhLootKind.Consumable
+            ? totals.consumables
+            : totals.permanentItems;
+        count(figure, lootRow.quantity, lootRow.taken);
+        continue;
+      }
+
       if (lootRow.magicItemId !== null) {
         const figure = lootRow.magicitem?.consumable
           ? totals.consumables

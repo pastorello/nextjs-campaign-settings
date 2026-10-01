@@ -171,4 +171,30 @@ describe("LootList (SPEC-013 T8)", () => {
     fireEvent.click(screen.getByTestId("loot-form"));
     expect(screen.queryByTestId("loot-form")).not.toBeInTheDocument();
   });
+
+  // SPEC-030 T4: gold reads as chests, bags and handfuls.
+  it("shows a Daggerheart row's gold in denominations and its equipment", () => {
+    render(
+      <LootList
+        rulesSystem="daggerheart"
+        equipmentOptions={{
+          weapons: [],
+          armor: [{ value: 4, label: "Reed Mail" }],
+          loot: [],
+        }}
+        sceneId={1}
+        loot={[{ ...coin, value: null, gold: 123, dhArmorId: 4 }]}
+        currencyUnit="silver"
+        magicItemOptions={[]}
+        treasureOptions={[]}
+      />
+    );
+
+    expect(
+      screen.getByText(
+        'daggerheart.gold.chests {"count":1}, daggerheart.gold.bags {"count":2}, daggerheart.gold.handfuls {"count":3}'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText("(Reed Mail)")).toBeInTheDocument();
+  });
 });

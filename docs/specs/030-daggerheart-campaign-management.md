@@ -224,11 +224,17 @@ equipment catalogues), both shipped.
     - the scene form offers the six adjustments on a fight only, and a
       scene changed away from a fight saves none.
   - _(test: the costs, the budget, the suggestion)_
-- [ ] **T4** — Gold and loot.
+- [x] **T4** — Gold and loot. _Done 2026-10-01._
   - The adventure's gold target, and a loot row's gold, in handfuls and
-    shown as chests, bags and handfuls.
-  - Loot links a weapon, an armor or a piece of loot.
-  - The two item targets count them.
+    shown as chests, bags and handfuls (`app/lib/utils/daggerheart/gold.ts`;
+    the budget panel's gold row, the loot list).
+  - Loot links a weapon, an armor or a piece of loot: three selects, and
+    picking one clears the other two, as 5e's two links do.
+  - The two item targets count them (`getBudgetTotals`): a weapon, an
+    armor or an item as a permanent item, a consumable as a consumable.
+    A row's gold counts toward the gold total whatever it links — unlike a
+    5e magic item's `value`, which is the item's own worth, gold is coin
+    found beside it.
   - _(test: the totals, the display)_
 - [ ] **T5** — i18n, a11y, and an e2e journey with invented content.
 

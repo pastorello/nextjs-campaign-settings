@@ -7,6 +7,15 @@ vi.mock("@/app/lib/connections/prisma", () => ({
   default: { scene: { findMany } },
 }));
 
+// The SPEC-030 loot columns, unset, as a 5e row reads them.
+const noDaggerheart = {
+  gold: null,
+  dhWeaponId: null,
+  dhArmorId: null,
+  dhLootId: null,
+  dhLoot: null,
+};
+
 describe("getBudgetTotals (SPEC-013 T5)", () => {
   it("returns all-zero totals for an adventure with no scenes", async () => {
     findMany.mockResolvedValue([]);
@@ -17,6 +26,7 @@ describe("getBudgetTotals (SPEC-013 T5)", () => {
     expect(totals).toEqual({
       xp: { assigned: 0, found: 0 },
       currency: { assigned: 0, found: 0 },
+      gold: { assigned: 0, found: 0 },
       permanentItems: { assigned: 0, found: 0 },
       consumables: { assigned: 0, found: 0 },
       heroPoints: 0,
@@ -44,6 +54,7 @@ describe("getBudgetTotals (SPEC-013 T5)", () => {
             magicItemId: 1,
             magicitem: { consumable: false },
             treasure: null,
+            ...noDaggerheart,
           },
           // Consumable magic item, not yet taken.
           {
@@ -53,6 +64,7 @@ describe("getBudgetTotals (SPEC-013 T5)", () => {
             magicItemId: 2,
             magicitem: { consumable: true },
             treasure: null,
+            ...noDaggerheart,
           },
           // Unlinked coin, its own value, taken.
           {
@@ -62,6 +74,7 @@ describe("getBudgetTotals (SPEC-013 T5)", () => {
             magicItemId: null,
             magicitem: null,
             treasure: null,
+            ...noDaggerheart,
           },
           // Unlinked, value from the catalogue treasure it points at.
           {
@@ -71,6 +84,7 @@ describe("getBudgetTotals (SPEC-013 T5)", () => {
             magicItemId: null,
             magicitem: null,
             treasure: { value: 20 },
+            ...noDaggerheart,
           },
           // Unlinked, no value at all — a plot item; contributes to nothing.
           {
@@ -80,6 +94,7 @@ describe("getBudgetTotals (SPEC-013 T5)", () => {
             magicItemId: null,
             magicitem: null,
             treasure: null,
+            ...noDaggerheart,
           },
         ],
       },
@@ -127,6 +142,7 @@ describe("getBudgetTotals (SPEC-013 T5)", () => {
             magicItemId: 1,
             magicitem: { consumable: false },
             treasure: null,
+            ...noDaggerheart,
           },
         ],
       },
@@ -158,6 +174,51 @@ describe("getBudgetTotals (SPEC-013 T5)", () => {
     const totals = await getBudgetTotals(1);
 
     expect(totals.milestones).toEqual({ planned: 2, reached: 1 });
+  });
+
+  it("counts Daggerheart gold and equipment (SPEC-030 T4)", async () => {
+    const lootRow = (row: Record<string, unknown>) => ({
+      quantity: 1,
+      value: null,
+      taken: false,
+      magicItemId: null,
+      magicitem: null,
+      treasure: null,
+      ...noDaggerheart,
+      ...row,
+    });
+    findMany.mockResolvedValue([
+      {
+        xpAward: null,
+        awarded: false,
+        grantsHeroPoint: false,
+        milestone: false,
+        creatures: [],
+        loot: [
+          // Gold alone, taken: 3 handfuls × 2.
+          lootRow({ gold: 3, quantity: 2, taken: true }),
+          // A weapon with gold beside it: an item, and its gold still counts.
+          lootRow({ dhWeaponId: 1, gold: 10 }),
+          // An armor, taken.
+          lootRow({ dhArmorId: 4, taken: true }),
+          // A consumable and an item from the loot catalogue.
+          lootRow({
+            dhLootId: 2,
+            dhLoot: { lootKind: "consumable" },
+            quantity: 3,
+          }),
+          lootRow({ dhLootId: 5, dhLoot: { lootKind: "item" } }),
+        ],
+      },
+    ]);
+
+    const { default: getBudgetTotals } = await import("./getBudgetTotals");
+    const totals = await getBudgetTotals(1);
+
+    expect(totals.gold).toEqual({ assigned: 16, found: 6 });
+    expect(totals.permanentItems).toEqual({ assigned: 3, found: 1 });
+    expect(totals.consumables).toEqual({ assigned: 3, found: 0 });
+    expect(totals.currency).toEqual({ assigned: 0, found: 0 });
   });
 
   it("wraps a Prisma failure in a DatabaseError", async () => {

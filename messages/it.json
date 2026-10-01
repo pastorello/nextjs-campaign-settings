@@ -1502,7 +1502,8 @@
       "xp": "Esperienza",
       "currency": "Valuta",
       "permanentItems": "Oggetti permanenti",
-      "consumables": "Consumabili"
+      "consumables": "Consumabili",
+      "gold": "Oro"
     },
     "heroPoints": "Punti eroe guadagnati",
     "milestones": {
@@ -1816,6 +1817,11 @@
       "lowerTierAdversary": "Un avversario di grado inferiore (+1)",
       "noHeavyHitters": "Nessun Bruto, Orda, Capo o Solitario (+1)",
       "harderOrLonger": "Scontro più difficile o più lungo (+2)"
+    },
+    "gold": {
+      "chests": "{count, plural, one {# forziere} other {# forzieri}}",
+      "bags": "{count, plural, one {# borsa} other {# borse}}",
+      "handfuls": "{count, plural, one {# manciata} other {# manciate}}"
     }
   },
   "dhDomains": {

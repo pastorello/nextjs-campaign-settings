@@ -24,6 +24,7 @@ import SectionTitle from "@/app/ui/typography/SectionTitle";
 import SceneForm from "./SceneForm";
 import SceneCreatureList from "./SceneCreatureList";
 import LootList from "./LootList";
+import { DhEquipmentOptions } from "./LootForm";
 import CheckOffControl from "./CheckOffControl";
 import BattlePointsSummary from "./BattlePointsSummary";
 import SceneKind from "@/app/lib/definitions/enums/campaign/SceneKind";
@@ -42,6 +43,8 @@ interface SceneListProps {
   treasureOptions: ResolvedOption<number>[];
   /** SPEC-030 T3, Daggerheart only: what a creature row may price. */
   adversaryOptions?: ResolvedOption<number>[];
+  /** SPEC-030 T4, Daggerheart only: what a loot row may link. */
+  equipmentOptions?: DhEquipmentOptions;
   /** The party a fight's Battle Point budget is built from. */
   partySize?: number;
   /** The adventure's tier, below which an adversary suggests the +1. */
@@ -72,6 +75,7 @@ export default function SceneList({
   magicItemOptions,
   treasureOptions,
   adversaryOptions = [],
+  equipmentOptions,
   partySize = 4,
   adventureTier = 1,
 }: SceneListProps) {
@@ -285,6 +289,8 @@ export default function SceneList({
                       partySize={partySize}
                     />
                     <LootList
+                      rulesSystem={rulesSystem}
+                      {...(equipmentOptions && { equipmentOptions })}
                       sceneId={scene.id}
                       loot={scene.loot}
                       currencyUnit={currencyUnit}

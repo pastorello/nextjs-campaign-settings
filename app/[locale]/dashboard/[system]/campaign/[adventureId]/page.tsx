@@ -59,6 +59,9 @@ export default async function AdventurePage({
     magicItemOptions,
     treasureOptions,
     adversaryOptions,
+    weaponOptions,
+    armorOptions,
+    lootOptions,
     totals,
   ] = await Promise.all([
     fetchFieldOptions("zone"),
@@ -67,6 +70,10 @@ export default async function AdventurePage({
     fetchFieldOptions("treasure"),
     // SPEC-030 T3: a 5e adventure has no adversaries to pick.
     isDaggerheart ? fetchFieldOptions("dhAdversary") : Promise.resolve([]),
+    // SPEC-030 T4: nor equipment for its loot.
+    isDaggerheart ? fetchFieldOptions("dhWeapon") : Promise.resolve([]),
+    isDaggerheart ? fetchFieldOptions("dhArmor") : Promise.resolve([]),
+    isDaggerheart ? fetchFieldOptions("dhLoot") : Promise.resolve([]),
     getBudgetTotals(id),
   ]);
 
@@ -93,6 +100,7 @@ export default async function AdventurePage({
           currencyTarget={adventure.currencyTarget}
           permanentItemTarget={adventure.permanentItemTarget}
           consumableTarget={adventure.consumableTarget}
+          goldTarget={adventure.goldTarget ?? null}
         />
         <SceneList
           rulesSystem={adventure.rulesSystem}
@@ -104,6 +112,11 @@ export default async function AdventurePage({
           magicItemOptions={magicItemOptions}
           treasureOptions={treasureOptions}
           adversaryOptions={adversaryOptions}
+          equipmentOptions={{
+            weapons: weaponOptions,
+            armor: armorOptions,
+            loot: lootOptions,
+          }}
           partySize={adventure.partySize}
           adventureTier={tierOfLevel(adventure.targetLevel)}
         />

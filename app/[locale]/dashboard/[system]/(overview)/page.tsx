@@ -25,16 +25,16 @@ export default async function Page(
   const { locale, system } = await props.params;
   if (!isGameSystem(system)) notFound();
 
-  // SPEC-022 T7: the counts below are not filtered yet (T8), so a player is
-  // sent on to the map of the campaign they are viewing, under its system,
-  // before anything is read. This is also where a player lands after
-  // signing in. Without a campaign, the map page says so.
+  // SPEC-022 T8c: a player's counts are their campaign's (`fetchCardData`),
+  // so the overview is theirs too, under that campaign's system. One whose
+  // other campaign plays this system is sent to the one they are viewing.
   const viewer = await getViewer();
-  if (viewer?.kind === "player") {
-    redirect({
-      href: dashboardPath(viewer.campaign?.system ?? system, "/geography"),
-      locale,
-    });
+  if (
+    viewer?.kind === "player" &&
+    viewer.campaign &&
+    viewer.campaign.system !== system
+  ) {
+    redirect({ href: dashboardPath(viewer.campaign.system), locale });
   }
 
   const t = await getTranslations("common.dashboard");

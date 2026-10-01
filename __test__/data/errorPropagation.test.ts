@@ -19,6 +19,11 @@ vi.mock("@/app/lib/connections/prisma", () => ({
   },
 }));
 
+// SPEC-022 T8c: the overview counts read the reader's scope; the DM's here.
+vi.mock("@/app/lib/data/visibility/getVisibilityScope", () => ({
+  default: () => Promise.resolve({ kind: "all" }),
+}));
+
 import prisma from "@/app/lib/connections/prisma";
 import fetchCardData from "@/app/lib/data/fetchCardData";
 import { deleteSpellById } from "@/app/lib/data/spells/deleteSpellById";

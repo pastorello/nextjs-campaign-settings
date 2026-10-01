@@ -13,6 +13,7 @@ describe("isPlayerPath (SPEC-022 T7)", () => {
     "/dashboard/daggerheart/domains/1",
     "/dashboard/daggerheart/domain-cards",
     "/dashboard/dnd5e/npc",
+    "/dashboard/dnd5e/search",
     "/dashboard/dnd5e/deities",
     "/dashboard/dnd5e/magicitems",
     "/dashboard/daggerheart/factions",

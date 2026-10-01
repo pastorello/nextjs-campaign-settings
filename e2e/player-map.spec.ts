@@ -116,7 +116,8 @@ test("a player sees the places revealed to their campaign, and nothing else", as
     // The root is revealed to nobody yet: nothing to see, not even the
     // root's map image.
     await signIn(player, email, password);
-    await expect(player).toHaveURL(/\/dashboard\/dnd5e\/geography/);
+    await expect(player).toHaveURL(/\/dashboard\/dnd5e$/);
+    await player.goto("/dashboard/dnd5e/geography");
     await expect(
       player.getByText(t.player.nothingRevealed.replace("{campaign}", campaign))
     ).toBeVisible();

@@ -37,10 +37,12 @@ test.describe("accounts", () => {
       await expect(row).toContainText(messages.accounts.roles.player);
       await expect(row).toContainText(t.statuses.active);
 
-      // The player signs in and lands on the map page, which says they are
-      // in no campaign yet (T7). Every DM page is the 403 page.
+      // The player signs in to the overview (T8c); the map page says they
+      // are in no campaign yet (T7). Every DM page is the 403 page.
       const player = await signedOutPage(browser);
       await signIn(player, email, firstPassword);
+      await expect(player).toHaveURL(/\/dashboard\/dnd5e$/);
+      await player.goto("/dashboard/dnd5e/geography");
       await expect(
         player.getByText(messages.geography.player.noCampaign)
       ).toBeVisible();
@@ -74,9 +76,7 @@ test.describe("accounts", () => {
       await expect(page.getByRole("dialog")).toBeHidden();
       await player.context().clearCookies();
       await signIn(player, email, secondPassword);
-      await expect(
-        player.getByText(messages.geography.player.noCampaign)
-      ).toBeVisible();
+      await expect(player).toHaveURL(/\/dashboard\/dnd5e$/);
 
       // Disabled: the open session ends, and signing in again fails.
       await row

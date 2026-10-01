@@ -5,6 +5,8 @@ const { db } = vi.hoisted(() => ({
     npc: { findMany: vi.fn() },
     zone: { findMany: vi.fn() },
     spells: { findMany: vi.fn() },
+    dhAdversary: { findMany: vi.fn() },
+    dhCommunity: { findMany: vi.fn() },
   },
 }));
 vi.mock("@/app/lib/connections/prisma", () => ({ default: db }));
@@ -71,5 +73,35 @@ describe("record links for a player", () => {
     });
 
     expect(targets).toEqual({ "spells:7": "Lantern Step" });
+  });
+});
+
+/** SPEC-028 §9 decision 3: the DM's stat blocks are never a player's link. */
+describe("a player's links to the DM's prep", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    db.dhAdversary.findMany.mockResolvedValue([{ id: 3, name: "Wraith" }]);
+    db.dhCommunity.findMany.mockResolvedValue([{ id: 4, name: "Valefolk" }]);
+  });
+
+  it("renders an adversary link as text, without reading it", async () => {
+    const { targets } = await fetchRecordLinkResolution(
+      [`<p>${link("dhAdversaries", 3)} ${link("dhCommunities", 4)}</p>`],
+      "daggerheart",
+      scope
+    );
+
+    expect(targets).toEqual({ "dhCommunities:4": "Valefolk" });
+    expect(db.dhAdversary.findMany).not.toHaveBeenCalled();
+  });
+
+  it("resolves it for the DM", async () => {
+    const { targets } = await fetchRecordLinkResolution(
+      [`<p>${link("dhAdversaries", 3)}</p>`],
+      "daggerheart",
+      { kind: "all" }
+    );
+
+    expect(targets).toEqual({ "dhAdversaries:3": "Wraith" });
   });
 });

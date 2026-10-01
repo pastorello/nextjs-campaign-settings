@@ -10,6 +10,10 @@ import { fetchFilteredDhClasses } from "@/app/lib/data/dhClasses/fetchFilteredDh
 import { fetchFilteredDhSubclasses } from "@/app/lib/data/dhSubclasses/fetchFilteredDhSubclasses";
 import { fetchFilteredDhAncestries } from "@/app/lib/data/dhAncestries/fetchFilteredDhAncestries";
 import { fetchFilteredDhCommunities } from "@/app/lib/data/dhCommunities/fetchFilteredDhCommunities";
+import { fetchFilteredDhAdversaries } from "@/app/lib/data/dhAdversaries/fetchFilteredDhAdversaries";
+import { fetchFilteredDhEnvironments } from "@/app/lib/data/dhEnvironments/fetchFilteredDhEnvironments";
+import getVisibilityScope from "@/app/lib/data/visibility/getVisibilityScope";
+import { PLAYER_PAGES } from "@/app/lib/auth/playerPages";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import isPageInSystem from "@/app/lib/config/isPageInSystem";
 import PageType from "@/app/lib/definitions/types/PageType";
@@ -35,6 +39,8 @@ export const SEARCH_DOMAINS = [
   "dhSubclasses",
   "dhAncestries",
   "dhCommunities",
+  "dhAdversaries",
+  "dhEnvironments",
 ] as const;
 
 export type SearchDomain = (typeof SEARCH_DOMAINS)[number];
@@ -72,6 +78,8 @@ const emptyResult = (): SearchAllDomainsResult => ({
   dhSubclasses: emptyGroup(),
   dhAncestries: emptyGroup(),
   dhCommunities: emptyGroup(),
+  dhAdversaries: emptyGroup(),
+  dhEnvironments: emptyGroup(),
 });
 
 /**
@@ -97,6 +105,8 @@ const SEARCH_DOMAIN_PAGE: Record<SearchDomain, PageType | null> = {
   dhSubclasses: PageType.DhSubclass,
   dhAncestries: PageType.DhAncestry,
   dhCommunities: PageType.DhCommunity,
+  dhAdversaries: PageType.DhAdversary,
+  dhEnvironments: PageType.DhEnvironment,
 };
 
 /**
@@ -111,6 +121,17 @@ export function isSearchDomainInSystem(
 ): boolean {
   const page = SEARCH_DOMAIN_PAGE[domain];
   return page === null || isPageInSystem(page, system);
+}
+
+/**
+ * Whether a player may be shown `domain`'s records by search or a record
+ * link (SPEC-028 §9 decision 3): when its list page is one they may open
+ * (`PLAYER_PAGES`). Places, which have no list, follow the visible tree
+ * instead. Opening a page to players opens its search with it.
+ */
+export function isPlayerSearchDomain(domain: SearchDomain): boolean {
+  const page = SEARCH_DOMAIN_PAGE[domain];
+  return page === null || PLAYER_PAGES.includes(`/${page}`);
 }
 
 const pickIdName = ({ id, name }: SearchResultItem): SearchResultItem => ({
@@ -155,6 +176,10 @@ const SEARCHERS: Record<
     (await fetchFilteredDhAncestries({ query: term })).map(pickIdName),
   dhCommunities: async (term) =>
     (await fetchFilteredDhCommunities({ query: term })).map(pickIdName),
+  dhAdversaries: async (term) =>
+    (await fetchFilteredDhAdversaries({ query: term })).map(pickIdName),
+  dhEnvironments: async (term) =>
+    (await fetchFilteredDhEnvironments({ query: term })).map(pickIdName),
 };
 
 const capGroup = (items: SearchResultItem[]): SearchDomainGroup => ({
@@ -188,9 +213,13 @@ export default async function searchAllDomains(
   const result = emptyResult();
   if (!isValidString(term)) return result;
 
+  // A player is not searched the DM's prep (SPEC-028 §9 decision 3).
+  const isPlayer = (await getVisibilityScope()).kind === "campaign";
   const groups = await Promise.all(
-    SEARCH_DOMAINS.filter((domain) =>
-      isSearchDomainInSystem(domain, system)
+    SEARCH_DOMAINS.filter(
+      (domain) =>
+        isSearchDomainInSystem(domain, system) &&
+        (!isPlayer || isPlayerSearchDomain(domain))
     ).map(
       async (domain) =>
         [domain, capGroup(await SEARCHERS[domain](term))] as const

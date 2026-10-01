@@ -49,6 +49,9 @@ const entityListProps = vi.fn();
 vi.mock("@/app/lib/data/dhCommunities/fetchCommunitiesAtPlace", () => ({
   default: vi.fn(),
 }));
+vi.mock("@/app/lib/data/dhEnvironments/fetchEnvironmentsAtPlace", () => ({
+  default: vi.fn(),
+}));
 vi.mock("@/app/ui/geography/PlaceCatalogueList", () => ({
   default: ({ zoneId, page }: { zoneId: number; page: string }) => (
     <div data-testid={`${page}-list`} data-zone-id={zoneId} />
@@ -346,10 +349,15 @@ describe("PlacePopover — communities (SPEC-027 T3)", () => {
     vi.clearAllMocks();
   });
 
-  it("lists a place's communities, by its id", () => {
+  it("lists a place's communities and environments, by its id", () => {
     renderPopover({ kind: "zone", place });
 
     expect(screen.getByTestId("communities-list")).toHaveAttribute(
+      "data-zone-id",
+      String(place.id)
+    );
+    // SPEC-028 §5.5.
+    expect(screen.getByTestId("environments-list")).toHaveAttribute(
       "data-zone-id",
       String(place.id)
     );
@@ -359,6 +367,7 @@ describe("PlacePopover — communities (SPEC-027 T3)", () => {
     renderPopover({ kind: "poi", poi, poiId: LANDMARK_ROW_ID });
 
     expect(screen.queryByTestId("communities-list")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("environments-list")).not.toBeInTheDocument();
   });
 });
 

@@ -46,7 +46,9 @@
       "dhClasses": "Classi",
       "dhSubclasses": "Sottoclassi",
       "dhAncestries": "Ascendenze",
-      "dhCommunities": "Comunità"
+      "dhCommunities": "Comunità",
+      "dhAdversaries": "Avversari",
+      "dhEnvironments": "Ambienti"
     },
     "auth": {
       "loginPrompt": "Accedi per continuare.",
@@ -2123,6 +2125,9 @@
       "saveButton": "Salva privilegio",
       "moveUp": "Sposta su {name}",
       "moveDown": "Sposta giù {name}"
+    },
+    "world": {
+      "title": "Ambienti"
     }
   },
   "dhStatBlock": {

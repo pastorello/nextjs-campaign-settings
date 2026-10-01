@@ -69,6 +69,8 @@ const DOMAIN_ORDER: {
       "dhSubclasses",
       "dhAncestries",
       "dhCommunities",
+      "dhAdversaries",
+      "dhEnvironments",
     ] as const
   ).map((domain) => ({
     domain,

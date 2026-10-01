@@ -6,9 +6,9 @@ import messages from "@/messages/it.json";
 /**
  * SPEC-028 T3: a Daggerheart environment that brings an adversary and
  * describes a place. Its stat block links the adversary to its own block
- * and passes axe; a feature with questions is added inline; the
- * adversary's delete is refused while the environment lists it, and goes
- * once the environment is gone. Everything it writes is invented
+ * and passes axe; a feature with questions is added inline; search finds
+ * it under Daggerheart alone (T4); the adversary's delete is refused while
+ * the environment lists it, and goes once the environment is gone. Everything it writes is invented
  * (SPEC-018 §5), and removed in `finally`.
  */
 const ADMIN = "/dashboard/daggerheart/admin/environments";
@@ -151,6 +151,22 @@ test.describe("Daggerheart environments", () => {
       await block.getByRole("link", { name: adversary }).click();
       await expect(
         page.getByRole("article", { name: adversary })
+      ).toBeVisible();
+
+      // --- Search finds it under daggerheart, not under dnd5e (T4) ----------
+      await page.goto(
+        `/dashboard/daggerheart/search?query=${encodeURIComponent(environment)}`
+      );
+      await expect(
+        page.getByRole("link", { name: environment, exact: true })
+      ).toBeVisible();
+      await page.goto(
+        `/dashboard/dnd5e/search?query=${encodeURIComponent(environment)}`
+      );
+      await expect(
+        page.getByText(
+          messages.search.page.noMatches.replace("{term}", environment)
+        )
       ).toBeVisible();
 
       // --- The listed adversary's delete is refused --------------------------

@@ -22,6 +22,9 @@ export const RECORD_LINK_DOMAINS = [
   "dhSubclasses",
   "dhAncestries",
   "dhCommunities",
+  // SPEC-028 T4: the DM's alone, so cut for a player (`isPlayerSearchDomain`).
+  "dhAdversaries",
+  "dhEnvironments",
 ] as const;
 
 type RecordLinkDomain = (typeof RECORD_LINK_DOMAINS)[number];

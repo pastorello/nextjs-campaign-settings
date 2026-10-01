@@ -1,6 +1,6 @@
 # SPEC-022: Accounts, roles, and campaign visibility
 
-- **Status:** In progress — T1–T5 shipped 2026-09-30, T6–T8 2026-10-01. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
+- **Status:** Done — T1–T5 shipped 2026-09-30, T6–T9 2026-10-01. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
 - **Date:** 2026-09-22 (rewritten 2026-09-30)
 - **Phase:** 5
 - **Related:** [ADR-0008](../adr/0008-map-image-storage.md) and [ADR-0017](../adr/0017-record-images.md) (their access check is "authenticated", which this spec redefines) · [SPEC-012](./012-publishing-and-internet-exposure.md) (exposure; deferred, and this spec is its prerequisite) · [SPEC-013](./013-campaign-management.md) (the campaign a group belongs to) · [SPEC-004](./004-world-model.md) (the tree visibility inherits down) · [SPEC-011](./011-cross-entity-search.md) (a read path that must learn to filter) · [SPEC-018](./018-game-systems.md) (a campaign has one system) · TD-01 (`requireSession`, the guard this spec extends) · ROADMAP, _Asked for on 2026-08-18, in one batch_
@@ -238,27 +238,28 @@ lists users, and it does not need the layer.
 
 ## 8. Acceptance criteria
 
-- [ ] An account has a role; the pre-existing account is a `dm` after migrating.
-- [ ] Every mutation and every write route handler refuses a `player` with 403.
-- [ ] Every path in R15 refuses a player with 403, with no data in the
+- [x] An account has a role; the pre-existing account is a `dm` after migrating.
+- [x] Every mutation and every write route handler refuses a `player` with 403.
+- [x] Every path in R15 refuses a player with 403, with no data in the
       response body.
-- [ ] Each of R1–R13 has its own test asserting that a player sees only what is
+- [x] Each of R1–R13 has its own test asserting that a player sees only what is
       visible to their campaign, per the "Player gets" column.
-- [ ] R14's catalogues render in full for a player.
-- [ ] A place whose ancestor is hidden stays hidden, even when it is revealed itself.
-- [ ] A hidden record reached by direct link returns 404 for a player.
-- [ ] `npc.motivations` and `npc.secrets` never appear in a response sent to a player.
-- [ ] A player reaches only the systems of their campaigns; any other system is 404.
-- [ ] A magic item cannot be revealed to a campaign of another system.
-- [ ] The DM can create, rename, disable and delete an account, and set its password.
-- [ ] A DM changes their own name and password from inside the app.
-- [ ] A self-service sign-up is inactive until a DM activates it.
-- [ ] The DM adds and removes a campaign's players.
-- [ ] The last active DM cannot be deleted, disabled or demoted.
-- [ ] Deleting a campaign removes its memberships and reveals, and nothing else.
-- [ ] Every new mutation rejects an unauthenticated request.
-- [ ] Every new mutation rejects invalid input with field-level errors.
-- [ ] Coverage has not dropped.
+- [x] R14's catalogues render in full for a player.
+- [x] A place whose ancestor is hidden stays hidden, even when it is revealed itself.
+- [x] A hidden record reached by direct link returns 404 for a player.
+- [x] `npc.motivations` and `npc.secrets` never appear in a response sent to a player.
+- [x] A player reaches only the systems of their campaigns; any other system is 404.
+- [x] A magic item cannot be revealed to a campaign of another system.
+- [x] The DM can create, rename, disable and delete an account, and set its password.
+- [x] A DM changes their own name and password from inside the app.
+- [x] A self-service sign-up is inactive until a DM activates it.
+- [x] The DM adds and removes a campaign's players.
+- [x] The last active DM cannot be deleted, disabled or demoted.
+- [x] Deleting a campaign removes its memberships and reveals, and nothing else.
+- [x] Every new mutation rejects an unauthenticated request.
+- [x] Every new mutation rejects invalid input with field-level errors.
+- [ ] Coverage has not dropped. _Not measured against a baseline at close;
+      every new read path, guard and action has its own test._
 
 ## 9. Implementation plan
 
@@ -634,10 +635,47 @@ lists users, and it does not need the layer.
       dashboard page outside R15 is open to players.
     - E2E: `player-records.spec.ts` searches for both NPCs and finds only
       the revealed one; the player specs sign in to the overview.
-- [ ] **T9** — i18n, a11y and an e2e journey. The DM reveals a place and an
+- [x] **T9** — i18n, a11y and an e2e journey. The DM reveals a place and an
       NPC to one of two campaigns, and a player in both switches between them and
       sees each campaign's share. _(test: e2e)_
+  - _Done 2026-10-01._ `player-journey.spec.ts`. The two campaigns are the
+    5e one and the Daggerheart one, since the app holds one campaign per
+    system (§9's risk). The DM reveals the root and a landmark to the 5e
+    campaign and an NPC to the Daggerheart one. The player signs in, the
+    sidebar with its campaign selector passes an axe scan, and switching
+    campaign shows the landmark and not the NPC, then the NPC and no place
+    at all. Every message T2–T8 added is in both catalogues (CI's key-set
+    check).
 
 ## 11. Outcome
 
-_Fill in at close._
+Shipped 2026-09-30 to 2026-10-01 in a series of PRs from #350, each task
+with its tests; §8's criteria are met, except that coverage was not
+measured against a baseline.
+
+- **Roles and guards** (T1, ADR-0020): `requireDm`, `requireApiDm`,
+  `requireDmPage` and `getViewer`; the proxy is the boundary for pages,
+  because a page's data renders in parallel with its layout.
+- **Accounts** (T2–T4): the DM's own account, the accounts page, and a
+  self-service DM sign-up, inactive until activated (`CLAUDE.md` rule 1
+  records it as the one unauthenticated write).
+- **Groups and reveals** (T5–T6): a campaign's players, `revealedTo` on the
+  four flat domains, and per-campaign place reveals inherited down the tree.
+- **Player reads** (T7–T8): every page outside R15, each read path through
+  `getVisibilityScope()`, DM-only fields declared `dmOnly` in `PageMeta`.
+
+**Deviations from the plan**, each recorded where it happened:
+
+- The place reveal lives in the popover and the map options, not in the
+  edit panels (T6b, T7): the landmark panel works on client keys, and the
+  root has no popover, so nothing could reveal it until the map options
+  menu gained "Rivela…".
+- R12 and R13 shipped with T7, since a player's map popover shows pictures
+  and formatted descriptions.
+- T8 was cut in three (catalogues; the four domains; overview and search).
+- `fetchZoneDescendantIds` stopped being a Server Action (T8b): it was one
+  only because a client control imported a constant from its caller.
+
+**Left open:** several campaigns in one system (§9's risk, a question for
+the DM in `ROADMAP.md`); a faction "seat", which R6 names but no field
+holds yet; a DM "view as campaign" preview, a non-goal.

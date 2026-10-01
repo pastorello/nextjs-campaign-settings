@@ -57,6 +57,12 @@ const InputComponent = ({
     // `MetaConfigKey` is exactly the set of real keys — the index signature
     // just can't say so.
     const optionTable = fieldMeta[fieldName]?.optionTable;
+    // A table-backed single select stands "nothing picked" in for `null`;
+    // a table-backed multiselect's nothing is the empty list (SPEC-022 T6's
+    // reveals are the first metadata-driven one).
+    const singleTable =
+      optionTable !== undefined && controlType !== ControlType.Multiselect;
+    const isEmpty = value === null || value === "";
 
     const result: FormField = {
       label: labelKey ? t(labelKey) : "",
@@ -64,13 +70,15 @@ const InputComponent = ({
       // (`MetaValue` doesn't say so — see `NO_SELECTION`); the sentinel
       // stands in only for what this control displays and emits.
       value:
-        optionTable !== undefined && (value === null || value === "")
+        singleTable && isEmpty
           ? NO_SELECTION
-          : value,
+          : optionTable !== undefined && isEmpty
+            ? []
+            : value,
       onChange: (aValue: MetaValue) =>
         setField(
           fieldName,
-          optionTable !== undefined && aValue === NO_SELECTION
+          singleTable && aValue === NO_SELECTION
             ? (null as unknown as MetaValue)
             : aValue
         ),
@@ -87,16 +95,19 @@ const InputComponent = ({
         // "none" label is named directly rather than derived — a second one
         // would need its own copy anyway ("no faction" and "no supervisor"
         // are not the same word).
-        result.options = [
-          {
-            value: NO_SELECTION,
-            label: t(
-              fieldMeta[fieldName]?.noneOptionKey ??
-                "npc.fields.faction.noneOption"
-            ),
-          },
-          ...tableOptions,
-        ];
+        // A multiselect has no "none" entry: picking nothing is nothing.
+        result.options = singleTable
+          ? [
+              {
+                value: NO_SELECTION,
+                label: t(
+                  fieldMeta[fieldName]?.noneOptionKey ??
+                    "npc.fields.faction.noneOption"
+                ),
+              },
+              ...tableOptions,
+            ]
+          : tableOptions;
       } else {
         const declaredOptions = fieldMeta[fieldName]?.options;
         if (declaredOptions !== undefined) {

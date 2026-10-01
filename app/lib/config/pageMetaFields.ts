@@ -24,6 +24,9 @@ import dhClassMeta from "./daggerheart/dhClassMeta";
 import dhSubclassMeta from "./daggerheart/dhSubclassMeta";
 import dhAncestryMeta from "./daggerheart/dhAncestryMeta";
 import dhCommunityMeta from "./daggerheart/dhCommunityMeta";
+import dhAdversaryMeta from "./daggerheart/dhAdversaryMeta";
+import dhEnvironmentMeta from "./daggerheart/dhEnvironmentMeta";
+import { dhDifficultyMeta, dhTierMeta } from "./daggerheart/dhSharedStatMetas";
 
 /**
  * Fields more than one domain meta may declare without it being an accident —
@@ -68,6 +71,8 @@ type DomainMetas = {
   dhSubclass: typeof dhSubclassMeta;
   dhAncestry: typeof dhAncestryMeta;
   dhCommunity: typeof dhCommunityMeta;
+  dhAdversary: typeof dhAdversaryMeta;
+  dhEnvironment: typeof dhEnvironmentMeta;
 };
 
 /**
@@ -172,12 +177,17 @@ const pageMetaFields = {
   ...treasureMeta,
   // Every Daggerheart catalogue's `origin` (SPEC-021), declared once.
   origin: dhOriginMeta,
+  // A stat block's tier and Difficulty (SPEC-028 §9 decision 4), likewise.
+  tier: dhTierMeta,
+  difficulty: dhDifficultyMeta,
   ...dhDomainMeta,
   ...dhDomainCardMeta,
   ...dhClassMeta,
   ...dhSubclassMeta,
   ...dhAncestryMeta,
   ...dhCommunityMeta,
+  ...dhAdversaryMeta,
+  ...dhEnvironmentMeta,
 } satisfies Record<string, PageMeta>;
 
 /**

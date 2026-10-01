@@ -55,6 +55,9 @@ An array of `{ name, text, tier? }` in a `Json` column: no table, no join, reord
 **Negative**
 
 - More tables: two now, and one per feature-bearing owner in SPEC-018 T5–T7.
+  _2026-10-01 (SPEC-028):_ three more — `dhAdversaryExperience`,
+  `dhAdversaryFeature` and `dhEnvironmentFeature`. Their inline editors
+  share one shell, `InlineOrderedList`; each keeps its own form and actions.
 - Similar code per owner (reorder, insert, delete). Where it is truly identical it should be shared as a helper that takes the per-table queries as callbacks, as `app/lib/data/campaigns/validateAndReorder.ts` already does for SPEC-013's four reorder actions — not by merging the tables.
 
 **Neutral / follow-up work**

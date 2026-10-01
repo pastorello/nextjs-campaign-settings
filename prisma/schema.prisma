@@ -218,7 +218,8 @@ model zone {
   revealedTo campaign[] @relation("zoneReveals")
 
   // SPEC-027 — the Daggerheart communities rooted in this place.
-  dhCommunities dhCommunity[] @relation("dhCommunityPlaces")
+  dhCommunities  dhCommunity[]   @relation("dhCommunityPlaces")
+  dhEnvironments dhEnvironment[] @relation("dhEnvironmentPlaces")
 
   @@index([parentId])
 }
@@ -549,16 +550,18 @@ model recordImage {
   height     Int
   createdAt  DateTime @default(now())
 
-  npc         npc?
-  deity       deities?
-  magicItem   magicitems?
-  treasure    treasure?
-  faction     faction?
-  zone        zone?
-  dhDomain    dhDomain?
+  npc           npc?
+  deity         deities?
+  magicItem     magicitems?
+  treasure      treasure?
+  faction       faction?
+  zone          zone?
+  dhDomain      dhDomain?
   // SPEC-027 — the heritage catalogues' pictures.
-  dhAncestry  dhAncestry?
-  dhCommunity dhCommunity?
+  dhAncestry    dhAncestry?
+  dhCommunity   dhCommunity?
+  dhAdversary   dhAdversary?
+  dhEnvironment dhEnvironment?
 }
 
 // SPEC-021 T1 — the Daggerheart catalogue: domains, domain cards, classes and
@@ -737,4 +740,112 @@ model dhCommunity {
   factions faction[] @relation("dhCommunityFactions")
 
   @@index([name])
+}
+
+// SPEC-028: the GM-side stat blocks. Experiences and features are ordered
+// rows, one table per owner (ADR-0018), cascading with their owner. The
+// CHECKs are in the migration: tier 1–4, HP and Stress ≤ 12, a horde's
+// density, a minion's missing thresholds, and Major < Severe.
+model dhAdversary {
+  id              Int      @id @default(autoincrement())
+  name            String
+  tier            Int
+  adversaryType   String
+  hordeDensity    Int?
+  description     String?
+  motives         String?
+  difficulty      Int
+  majorThreshold  Int?
+  severeThreshold Int?
+  hp              Int
+  stress          Int
+  attackModifier  Int
+  attackName      String
+  attackRange     String
+  attackDamage    String
+  attackType      String
+  origin          String   @default("homebrew")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  imageId Int?         @unique
+  image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+
+  experiences  dhAdversaryExperience[]
+  features     dhAdversaryFeature[]
+  environments dhEnvironmentAdversary[]
+
+  @@index([name])
+}
+
+model dhAdversaryExperience {
+  id          Int         @id @default(autoincrement())
+  adversaryId Int
+  adversary   dhAdversary @relation(fields: [adversaryId], references: [id], onDelete: Cascade)
+  position    Int
+  name        String
+  bonus       Int
+
+  @@index([adversaryId])
+}
+
+model dhAdversaryFeature {
+  id          Int         @id @default(autoincrement())
+  adversaryId Int
+  adversary   dhAdversary @relation(fields: [adversaryId], references: [id], onDelete: Cascade)
+  position    Int
+  kind        String
+  fear        Boolean     @default(false)
+  name        String
+  text        String
+
+  @@index([adversaryId])
+}
+
+model dhEnvironment {
+  id               Int      @id @default(autoincrement())
+  name             String
+  tier             Int
+  environmentType  String
+  description      String?
+  impulses         String?
+  difficulty       Int
+  otherAdversaries String?
+  origin           String   @default("homebrew")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  imageId Int?         @unique
+  image   recordImage? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+
+  adversaries dhEnvironmentAdversary[]
+  places      zone[]                   @relation("dhEnvironmentPlaces")
+  features    dhEnvironmentFeature[]
+
+  @@index([name])
+}
+
+// Explicit, so a listed adversary's delete is refused (SPEC-028 §9 decision
+// 2): `Restrict` on the adversary, `Cascade` on the environment.
+model dhEnvironmentAdversary {
+  environmentId Int
+  environment   dhEnvironment @relation(fields: [environmentId], references: [id], onDelete: Cascade)
+  adversaryId   Int
+  adversary     dhAdversary   @relation(fields: [adversaryId], references: [id], onDelete: Restrict)
+
+  @@id([environmentId, adversaryId])
+  @@index([adversaryId])
+}
+
+model dhEnvironmentFeature {
+  id            Int           @id @default(autoincrement())
+  environmentId Int
+  environment   dhEnvironment @relation(fields: [environmentId], references: [id], onDelete: Cascade)
+  position      Int
+  kind          String
+  name          String
+  text          String
+  questions     String?
+
+  @@index([environmentId])
 }

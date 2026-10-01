@@ -27,7 +27,8 @@
       "campaignSelector": "Campagna in corso",
       "campaignUnavailable": "Non fai più parte di questa campagna.",
       "dhAncestries": "Ascendenze",
-      "dhCommunities": "Comunità"
+      "dhCommunities": "Comunità",
+      "dhAdversaries": "Avversari"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -221,7 +222,18 @@
       "lastActiveDm": "È l'ultimo DM attivo: deve restarne almeno uno.",
       "campaignNotFound": "Questa campagna non esiste più.",
       "notAPlayer": "Solo un account da giocatore può far parte di una campagna.",
-      "revealWrongSystem": "Questa campagna è di un altro sistema di gioco."
+      "revealWrongSystem": "Questa campagna è di un altro sistema di gioco.",
+      "diceExpression": "Scrivi i danni come 2d8+3, d12 o un numero; i dadi sono d4, d6, d8, d10, d12 e d20.",
+      "hordeNeedsDensity": "Un'orda ha bisogno di una densità: quante creature per PF.",
+      "densityOnlyForHorde": "Solo un'orda ha una densità.",
+      "thresholdsRequired": "Solo un gregario può non avere soglie.",
+      "thresholdsPair": "Indica entrambe le soglie, o nessuna.",
+      "majorBelowSevere": "La soglia Grave deve superare quella Maggiore.",
+      "adversaryNotFound": "Questo avversario non esiste.",
+      "adversaryInEnvironments": "{count, plural, one {# ambiente elenca} other {# ambienti elencano}} ancora questo avversario. Toglilo prima da lì.",
+      "adversaryExperienceOrderMismatch": "Le esperienze indicate non corrispondono all'elenco attuale dell'avversario.",
+      "adversaryFeatureOrderMismatch": "I privilegi indicati non corrispondono all'elenco attuale dell'avversario.",
+      "environmentFeatureOrderMismatch": "I privilegi indicati non corrispondono all'elenco attuale dell'ambiente."
     },
     "errorPage": {
       "genericTitle": "Qualcosa è andato storto",
@@ -1658,6 +1670,12 @@
     "fields": {
       "origin": {
         "label": "Origine"
+      },
+      "tier": {
+        "label": "Grado"
+      },
+      "difficulty": {
+        "label": "Difficoltà"
       }
     },
     "origins": {
@@ -1668,6 +1686,46 @@
       "label": "Mostra come",
       "rows": "Righe",
       "cards": "Carte"
+    },
+    "tiers": {
+      "tier1": "Grado 1",
+      "tier2": "Grado 2",
+      "tier3": "Grado 3",
+      "tier4": "Grado 4"
+    },
+    "adversaryTypes": {
+      "bruiser": "Bruto",
+      "horde": "Orda",
+      "leader": "Capo",
+      "minion": "Gregario",
+      "ranged": "Tiratore",
+      "skulk": "Furtivo",
+      "social": "Sociale",
+      "solo": "Solitario",
+      "standard": "Standard",
+      "support": "Supporto"
+    },
+    "ranges": {
+      "melee": "Mischia",
+      "veryClose": "Molto vicino",
+      "close": "Vicino",
+      "far": "Lontano",
+      "veryFar": "Molto lontano"
+    },
+    "damageTypes": {
+      "physical": "Fisico",
+      "magic": "Magico"
+    },
+    "featureKinds": {
+      "action": "Azione",
+      "reaction": "Reazione",
+      "passive": "Passivo"
+    },
+    "environmentTypes": {
+      "exploration": "Esplorazione",
+      "social": "Sociale",
+      "traversal": "Attraversamento",
+      "event": "Evento"
     }
   },
   "dhDomains": {
@@ -1935,6 +1993,106 @@
     },
     "world": {
       "title": "Comunità"
+    }
+  },
+  "dhAdversaries": {
+    "page": {
+      "title": "Avversari",
+      "searchPlaceholder": "Cerca avversari...",
+      "itemSingular": "avversario",
+      "itemPlural": "avversari",
+      "newItemButton": "Nuovo avversario",
+      "emptyMessage": "Nessun avversario."
+    },
+    "form": {
+      "createTitle": "Crea nuovo avversario",
+      "editTitle": "Modifica avversario",
+      "createButton": "Crea avversario",
+      "editButton": "Salva avversario"
+    },
+    "fields": {
+      "adversaryType": {
+        "label": "Tipo"
+      },
+      "hordeDensity": {
+        "label": "Densità dell'orda",
+        "placeholder": "Solo per un'orda: creature per PF"
+      },
+      "motives": {
+        "label": "Motivazioni e tattiche"
+      },
+      "majorThreshold": {
+        "label": "Soglia Maggiore"
+      },
+      "severeThreshold": {
+        "label": "Soglia Grave"
+      },
+      "hp": {
+        "label": "PF"
+      },
+      "stress": {
+        "label": "Stress"
+      },
+      "attackModifier": {
+        "label": "Modificatore d'attacco"
+      },
+      "attackName": {
+        "label": "Attacco"
+      },
+      "attackRange": {
+        "label": "Gittata"
+      },
+      "attackDamage": {
+        "label": "Danni",
+        "placeholder": "2d8+3, d12 o 6"
+      },
+      "attackType": {
+        "label": "Tipo di danno"
+      }
+    },
+    "statBlock": {
+      "header": "Grado {tier} · {type}",
+      "hordeDensity": "{count} per PF",
+      "thresholds": "Soglie",
+      "noThresholds": "Nessuna",
+      "attack": "Attacco",
+      "experiences": "Esperienze",
+      "features": "Privilegi",
+      "fear": "Paura",
+      "imageAlt": "Immagine di {name}"
+    },
+    "experiences": {
+      "title": "Esperienze",
+      "addButton": "Aggiungi esperienza",
+      "saveButton": "Salva esperienza",
+      "moveUp": "Sposta su {name}",
+      "moveDown": "Sposta giù {name}"
+    },
+    "features": {
+      "title": "Privilegi",
+      "addButton": "Aggiungi privilegio",
+      "saveButton": "Salva privilegio",
+      "moveUp": "Sposta su {name}",
+      "moveDown": "Sposta giù {name}"
+    }
+  },
+  "dhStatBlock": {
+    "fields": {
+      "kind": {
+        "label": "Tipo"
+      },
+      "fear": {
+        "label": "Privilegio di Paura"
+      },
+      "experienceName": {
+        "label": "Esperienza"
+      },
+      "bonus": {
+        "label": "Bonus"
+      },
+      "questions": {
+        "label": "Domande"
+      }
     }
   },
   "dhFeature": {

@@ -14,7 +14,9 @@ type RecordImageOwner = {
     | "zone"
     | "dhDomain"
     | "dhAncestry"
-    | "dhCommunity";
+    | "dhCommunity"
+    | "dhAdversary"
+    | "dhEnvironment";
   id?: number;
 };
 

@@ -37,6 +37,8 @@ export default async function checkRecordImageReference(
         dhDomain: HOLDER,
         dhAncestry: HOLDER,
         dhCommunity: HOLDER,
+        dhAdversary: HOLDER,
+        dhEnvironment: HOLDER,
       },
     });
   } catch (error) {

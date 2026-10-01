@@ -19,6 +19,7 @@ import {
   UserCircleIcon,
   IdentificationIcon,
   HomeModernIcon,
+  ShieldExclamationIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useTranslations } from "next-intl";
@@ -144,6 +145,14 @@ const links: {
     href: "/communities",
     admin: "/admin/communities",
     icon: HomeModernIcon,
+  },
+  // SPEC-028: the DM's alone, so no player ever sees the tile.
+  {
+    key: "dhAdversaries",
+    page: PageType.DhAdversary,
+    href: "/adversaries",
+    admin: "/admin/adversaries",
+    icon: ShieldExclamationIcon,
   },
   // SPEC-022 T2, T3: the tile is the DM's own account, the pencil every
   // account. Last, beside the sign-out tile it relates to.

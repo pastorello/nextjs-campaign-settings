@@ -11,6 +11,7 @@ import DhClassMetaField from "../definitions/enums/daggerheart/DhClassMetaField"
 import DhSubclassMetaField from "../definitions/enums/daggerheart/DhSubclassMetaField";
 import DhAncestryMetaField from "../definitions/enums/daggerheart/DhAncestryMetaField";
 import DhCommunityMetaField from "../definitions/enums/daggerheart/DhCommunityMetaField";
+import DhAdversaryMetaField from "../definitions/enums/daggerheart/DhAdversaryMetaField";
 
 /**
  * The fields each domain's form holds state for (TD-09).
@@ -164,6 +165,26 @@ const formFields: Record<PageType, MetaConfigKey[]> = {
     DhCommunityMetaField.factionIds,
     DhCommunityMetaField.origin,
     DhCommunityMetaField.imageId,
+  ],
+  [PageType.DhAdversary]: [
+    DhAdversaryMetaField.name,
+    DhAdversaryMetaField.description,
+    DhAdversaryMetaField.tier,
+    DhAdversaryMetaField.adversaryType,
+    DhAdversaryMetaField.hordeDensity,
+    DhAdversaryMetaField.motives,
+    DhAdversaryMetaField.difficulty,
+    DhAdversaryMetaField.majorThreshold,
+    DhAdversaryMetaField.severeThreshold,
+    DhAdversaryMetaField.hp,
+    DhAdversaryMetaField.stress,
+    DhAdversaryMetaField.attackModifier,
+    DhAdversaryMetaField.attackName,
+    DhAdversaryMetaField.attackRange,
+    DhAdversaryMetaField.attackDamage,
+    DhAdversaryMetaField.attackType,
+    DhAdversaryMetaField.origin,
+    DhAdversaryMetaField.imageId,
   ],
 };
 

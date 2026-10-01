@@ -10,7 +10,8 @@ import type VisibilityScope from "./VisibilityScope";
  * visible to their campaign. That means a visible place, a revealed NPC,
  * deity, magic item or faction, or a Daggerheart catalogue record (a
  * domain, an ancestry or a community: the rules, shown to every player). A
- * treasure is prep material, never shown. An image no record owns is shown
+ * treasure is prep material, never shown, and so are an adversary's and an
+ * environment's (SPEC-028 §9 decision 3). An image no record owns is shown
  * to no player.
  */
 export default async function isRecordImageVisible(

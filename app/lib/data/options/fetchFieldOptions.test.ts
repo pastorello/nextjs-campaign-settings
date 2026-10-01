@@ -16,6 +16,7 @@ const {
   deitiesFindMany,
   dhDomainFindMany,
   dhClassFindMany,
+  dhAdversaryFindMany,
   campaignFindMany,
 } = vi.hoisted(() => ({
   findMany: vi.fn(),
@@ -26,6 +27,7 @@ const {
   deitiesFindMany: vi.fn(),
   dhDomainFindMany: vi.fn(),
   dhClassFindMany: vi.fn(),
+  dhAdversaryFindMany: vi.fn(),
   campaignFindMany: vi.fn(),
 }));
 vi.mock("@/app/lib/connections/prisma", () => ({
@@ -39,6 +41,7 @@ vi.mock("@/app/lib/connections/prisma", () => ({
     deities: { findMany: deitiesFindMany },
     dhDomain: { findMany: dhDomainFindMany },
     dhClass: { findMany: dhClassFindMany },
+    dhAdversary: { findMany: dhAdversaryFindMany },
   },
 }));
 
@@ -121,8 +124,9 @@ describe("fetchFieldOptions (SPEC-006 T6)", () => {
   it.each([
     ["dhDomain", dhDomainFindMany],
     ["dhClass", dhClassFindMany],
+    ["dhAdversary", dhAdversaryFindMany],
   ] as const)(
-    "maps %s rows to {value, label} sorted by name (SPEC-021 T4/T5)",
+    "maps %s rows to {value, label} sorted by name (SPEC-021 T4/T5, SPEC-028)",
     async (table, tableFindMany) => {
       tableFindMany.mockResolvedValue([{ id: 2, name: "Ember" }]);
 

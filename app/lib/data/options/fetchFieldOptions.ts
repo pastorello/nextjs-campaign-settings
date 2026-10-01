@@ -14,8 +14,8 @@ import revealedWhere from "@/app/lib/data/visibility/revealedWhere";
  *
  * Under the reader's scope (SPEC-022 T8b, R7): a player is offered only the
  * places and records their campaign has been shown, the rules catalogues in
- * full, and none of the DM's prep (treasures, campaigns). Otherwise a
- * secret place's name would sit in a filter's list.
+ * full, and none of the DM's prep (treasures, campaigns, adversaries).
+ * Otherwise a secret place's name would sit in a filter's list.
  */
 export default async function fetchFieldOptions(
   table: OptionTableName
@@ -27,7 +27,10 @@ export default async function fetchFieldOptions(
   };
   if (
     scope.kind === "campaign" &&
-    (table === "treasure" || table === "campaign" || table === "dnd5eCampaign")
+    (table === "treasure" ||
+      table === "campaign" ||
+      table === "dnd5eCampaign" ||
+      table === "dhAdversary")
   ) {
     return [];
   }
@@ -140,6 +143,20 @@ export default async function fetchFieldOptions(
         });
       } catch (error) {
         throw toDatabaseError("fetching dhClass options", error);
+      }
+
+      return rows.map((row) => ({ value: row.id, label: row.name }));
+    }
+    // SPEC-028: an environment's potential adversaries.
+    case "dhAdversary": {
+      let rows;
+      try {
+        rows = await prisma.dhAdversary.findMany({
+          select: { id: true, name: true },
+          orderBy: { name: "asc" },
+        });
+      } catch (error) {
+        throw toDatabaseError("fetching dhAdversary options", error);
       }
 
       return rows.map((row) => ({ value: row.id, label: row.name }));

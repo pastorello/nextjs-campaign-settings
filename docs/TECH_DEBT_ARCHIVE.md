@@ -3284,7 +3284,7 @@ The summary table's closed rows, moved out of [`TECH_DEBT.md`](./TECH_DEBT.md) o
 | TD-148 | ✅ `pnpm typecheck` fails after an E2E run on a half-written dev type                                          | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-149 | ✅ Typing a position into the place form moves no marker (SPEC-025 §5.2)                                       | ~~🟡 Medium~~ done   | M      | 4     |
 | TD-150 | ✅ The map panel's kind select shows raw ids (`region`, `poi`) in both locales                                 | ~~🟢 Low~~ done      | S      | 4     |
-| TD-151 | ✅ `map-move-between-maps.spec.ts` fails on a cold dev server                                                  | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-151 | ✅ `map-move-between-maps.spec.ts` counts the previous map's markers on a fresh database                       | ~~🟡 Medium~~ done   | S      | 4     |
 
 ---
 
@@ -5585,26 +5585,34 @@ catalogue labels SPEC-026's create-a-place dialog uses, added in the same
 change. `MapPOIPanel.test.tsx` checks every option's label and failed before the
 fix.
 
-### TD-151 ✅ `map-move-between-maps.spec.ts` fails on a cold dev server — **DONE (2026-10-01)**
+### TD-151 ✅ `map-move-between-maps.spec.ts` fails on a fresh database and a cold server — **DONE (2026-10-01)**
 
 **Severity:** 🟡 Medium · **Effort:** S · **Found:** 2026-10-01, red on three PRs in a row (SPEC-028 T3, SPEC-029 T3/T4) and on `main` locally
 
 The spec failed in two ways, neither in the code it tests:
 
-- **Timeout.** Warm, it takes about 20 s; on a server still compiling, the
-  first run took 30–35 s, over Playwright's default 30 s budget.
-- **A lost save.** On CI, saving the workspace's second region left the
-  map with its markers gone, then back without the new one (`Expected: 2,
-Received: 1`, the call log reading 0 elements, then 1). `test:e2e` runs
-  against `next dev`, which compiles a route on its first request and
-  broadcasts the finished compile to open pages as a Fast Refresh. The
-  local trace showed `[Fast Refresh] rebuilding` right after the first
-  map-image upload; on a slow runner that compile ends seconds later, in
-  the middle of the next save.
+- **A stale count.** `addRegion` counted the navigable markers before
+  saving and waited for one more. Entering a map is a client navigation,
+  after which `waitForLoadState("networkidle")` returns at once, so only a
+  fixed 300 ms stood between the click and the count; when the new map's
+  markers had not loaded yet, the count was the parent's. Saving then
+  showed the new map's real markers, one fewer than expected (`Expected: 2,
+Received: 1`, the call log reading 0 elements, then 1). It reproduced on
+  every attempt on CI and on a fresh local database run in CI's order; a
+  long-lived local database, with a different number of markers on the
+  root, mostly hid it.
+- **Timeout.** Warm, the walk takes about 20 s; on a server still
+  compiling, the first run took 30–35 s, over Playwright's default 30 s.
 
-**Resolution:** `world.setup.ts` asks for each image route once
-(`/api/maps/upload`, `/api/maps/[id]/image`, the three record-image
-routes) before any spec runs, so their compiles are over before a page is
-open; a cold local run now shows Fast Refresh only while a page first
-compiles, never during a save. The spec's budget is 90 s. Verified on a
-cold `.next`: three runs green, the first at 35 s.
+A first fix assumed the save itself was lost, to a Fast Refresh fired by a
+route's first compile (a trace did show one mid-test), and warmed the image
+routes in `world.setup.ts`. The fresh-database trace disproved it: both
+saves before the failure reached the server and the third region was never
+attempted. The warm-up was dropped, not shipped.
+
+**Resolution:** regions are reached by name. Since TD-133 a navigable
+marker is a `role="button"` named by its place's title, so the spec waits
+for the new region's own marker, clicks markers by name rather than by an
+index taken from a count, and treats the page's `<h1>` naming the place as
+arrival. The spec's budget is 90 s. Verified on a fresh database in CI's
+order, where the old spec failed.

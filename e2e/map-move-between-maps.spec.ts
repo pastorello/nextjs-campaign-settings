@@ -89,17 +89,19 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(300);
 
-    const navigableMarkers = page.locator(".custom-navigable-marker");
     const landmarkMarkers = page.locator(".custom-poi-marker");
 
-    // Returns the new marker's index. Markers render in `createdAt` order
-    // (`fetchPlaceChildren`), and a navigable marker carries its title only
-    // in a Leaflet tooltip — no text to select on — so the index taken at
-    // creation is how a specific one is reached again. The popover's own
-    // accessible name is asserted on arrival, so a wrong index fails there
-    // rather than silently descending into someone else's map.
+    // A navigable marker is a button named by its place's title since TD-133
+    // (`makeKeyboardActivatable`), so each region is reached by name. It used
+    // to be reached by its index in a count taken on arrival, and that count
+    // was the flake (TD-151): read before the map just entered had swapped
+    // in its own markers, it counted the parent's.
+    const regionMarker = (title: string) =>
+      page
+        .locator(".leaflet-marker-pane")
+        .getByRole("button", { name: title, exact: true });
+
     const addRegion = async (title: string, at: { x: number; y: number }) => {
-      const before = await navigableMarkers.count();
       await chooseFromContextMenu(
         page,
         at,
@@ -120,7 +122,7 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
       await page
         .getByRole("button", { name: messages.geography.poiPanel.save.save })
         .click();
-      await expect(navigableMarkers).toHaveCount(before + 1);
+      await expect(regionMarker(title)).toBeVisible();
       // The panel stays open over the map's left edge; leave it open and the
       // marker just created is occluded and unclickable.
       await page
@@ -129,7 +131,6 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
           exact: true,
         })
         .click();
-      return before;
     };
 
     const goUp = async () => {
@@ -138,13 +139,19 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
       await page.waitForTimeout(300);
     };
 
-    const descendInto = async (index: number, title: string) => {
-      await navigableMarkers.nth(index).click();
+    // Arrival is the page's own heading naming the place, not a pause: the
+    // map's markers load after the navigation, which `networkidle` does not
+    // wait for once the page has loaded.
+    const descendInto = async (title: string) => {
+      await regionMarker(title).click();
       const target = page.getByRole("dialog", { name: title, exact: true });
       await expect(target).toBeVisible();
       await target
         .getByRole("button", { name: messages.geography.popover.openMap })
         .click();
+      await expect(
+        page.getByRole("heading", { level: 1, name: title, exact: true })
+      ).toBeVisible();
       await expect(map).toBeVisible();
       await page.waitForLoadState("networkidle");
       await page.waitForTimeout(300);
@@ -152,15 +159,14 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
 
     // One marker on the root map, and it does not stay: everything else is
     // built inside it.
-    const rootMarkersBefore = await navigableMarkers.count();
-    const workspaceIndex = await addRegion(workspaceTitle, { x: 500, y: 200 });
-    await descendInto(workspaceIndex, workspaceTitle);
+    await addRegion(workspaceTitle, { x: 500, y: 200 });
+    await descendInto(workspaceTitle);
 
-    const fromIndex = await addRegion(fromTitle, { x: 500, y: 200 });
-    const toIndex = await addRegion(toTitle, { x: 260, y: 360 });
+    await addRegion(fromTitle, { x: 500, y: 200 });
+    await addRegion(toTitle, { x: 260, y: 360 });
 
     // 3. A landmark on the first map.
-    await descendInto(fromIndex, fromTitle);
+    await descendInto(fromTitle);
     await chooseFromContextMenu(
       page,
       { x: 420, y: 260 },
@@ -206,8 +212,8 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     await expect(map).toBeVisible();
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(300);
-    await descendInto(workspaceIndex, workspaceTitle);
-    await descendInto(fromIndex, fromTitle);
+    await descendInto(workspaceTitle);
+    await descendInto(fromTitle);
 
     const landmarkPopover = page.getByRole("dialog", {
       name: landmarkTitle,
@@ -243,7 +249,7 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     //    whole point: before this spec, that list held only this map's own
     //    children and the landmark was unreachable from here.
     await goUp();
-    await descendInto(toIndex, toTitle);
+    await descendInto(toTitle);
 
     const menu = await openContextMenu(page, { x: 400, y: 300 });
     await menu
@@ -270,7 +276,7 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     //    where a marker is not.
     await goUp();
     await goUp();
-    await navigableMarkers.nth(workspaceIndex).click();
+    await regionMarker(workspaceTitle).click();
     const workspacePopover = page.getByRole("dialog", {
       name: workspaceTitle,
       exact: true,
@@ -293,7 +299,7 @@ test.describe("moving a place from one map to another (SPEC-017)", () => {
     await page
       .getByRole("button", { name: messages.geography.removePlace.confirm })
       .click();
-    await expect(navigableMarkers).toHaveCount(rootMarkersBefore);
+    await expect(regionMarker(workspaceTitle)).toHaveCount(0);
 
     // 9. And the NPC came with it. The location *column* would not prove
     //    this — it shows the landmark's title, which never changed — but the

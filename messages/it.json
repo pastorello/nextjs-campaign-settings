@@ -52,7 +52,10 @@
       "dhAncestries": "Ascendenze",
       "dhCommunities": "Comunità",
       "dhAdversaries": "Avversari",
-      "dhEnvironments": "Ambienti"
+      "dhEnvironments": "Ambienti",
+      "dhWeapons": "Armi",
+      "dhArmor": "Armature",
+      "dhLoot": "Bottino"
     },
     "auth": {
       "loginPrompt": "Accedi per continuare.",

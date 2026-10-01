@@ -1,6 +1,6 @@
 # SPEC-029: Daggerheart — weapons, armor and loot
 
-- **Status:** In progress 2026-10-01. Agreed 2026-09-30. Written by Claude from SPEC-018 §6; the DM approved it and answered its question (§9).
+- **Status:** Shipped 2026-10-01 (T1–T5). Agreed 2026-09-30. Written by Claude from SPEC-018 §6; the DM approved it and answered its question (§9).
 - **Date:** 2026-09-30
 - **Phase:** 4
 - **Related:** [SPEC-018](./018-game-systems.md) T7 (§5 licence constraints and §6 catalogue structure, binding here) · [SPEC-021](./021-daggerheart-domains-and-classes.md) (the patterns reused) · [`daggerheart.md`](../domain/daggerheart.md) §3, §6, §7, §8 · [SPEC-030](./030-daggerheart-campaign-management.md) (a scene's loot, which draws on these catalogues)
@@ -153,15 +153,15 @@ model dhLoot {
 
 ## 8. Acceptance criteria
 
-- [ ] Weapons, armor and loot can be created, edited, listed with every filter in §5 and deleted under `daggerheart`, and are not found under `dnd5e`.
-- [ ] Out-of-range tier, die, burden, armor score or roll value, and Major ≥ Severe, are refused with field errors.
-- [ ] A feature name without text, or text without a name, is refused.
-- [ ] Each catalogue has a card view and the rows/cards switch.
-- [ ] Search under `daggerheart` finds the three catalogues; under `dnd5e` it does not.
-- [ ] No seed, fixture or test reproduces SRD content (checked in review).
-- [ ] New UI copy lands in both message catalogues.
-- [ ] Every new mutation rejects an unauthenticated request and invalid input.
-- [ ] Coverage has not dropped.
+- [x] Weapons, armor and loot can be created, edited, listed with every filter in §5 and deleted under `daggerheart`, and are not found under `dnd5e`.
+- [x] Out-of-range tier, die, burden, armor score or roll value, and Major ≥ Severe, are refused with field errors.
+- [x] A feature name without text, or text without a name, is refused.
+- [x] Each catalogue has a card view and the rows/cards switch.
+- [x] Search under `daggerheart` finds the three catalogues; under `dnd5e` it does not.
+- [x] No seed, fixture or test reproduces SRD content (checked in review).
+- [x] New UI copy lands in both message catalogues.
+- [x] Every new mutation rejects an unauthenticated request and invalid input.
+- [ ] Coverage has not dropped. _Not measured: each slice added tests with its code, but no before/after coverage run was made._
 
 ## 9. Implementation plan
 
@@ -242,9 +242,34 @@ damage-type vocabularies, `StatBlockView` and `isPlayerSearchDomain`.
     Major at Severe and then saved, loot with a roll value, both cards
     with axe scans, both 404s under 5e, and both deletes. The a11y scan
     covers the eight new pages.
-- [ ] **T5** — The sidebar group, search and record links (loot cut for
-      players), i18n and a11y.
+- [x] **T5** — The sidebar group, search and record links (loot cut for
+      players), i18n and a11y. _Done 2026-10-01._
+  - The group shipped with T2–T4.
+  - The three catalogues are search and record-link domains under
+    `daggerheart`. Loot is cut for a player by SPEC-028's
+    `isPlayerSearchDomain`, since it is not in `PLAYER_PAGES`.
+  - `daggerheart-weapons.spec.ts` gained the search (found under
+    Daggerheart, not under 5e).
 
 ## 11. Outcome
 
-_Fill in at close._
+Shipped 2026-10-01, T1–T5 in three PRs. Under `/dashboard/daggerheart/`
+the DM authors:
+
+- **Weapons:** a die and a bonus, the dice count left to Proficiency.
+- **Armor:** base thresholds and a score.
+- **Loot:** a kind, a rarity, an optional roll value and an effect.
+
+Each is filtered by §5's fields and read as a card, and each has its tile
+in one "Equipment" sidebar group. Search and record links reach all three.
+Weapons and armor are open to players; loot is the DM's. Nothing is
+seeded.
+
+**Deviations from the agreed text**
+
+- **Player visibility was not in the spec.** §9 decision 1 records it:
+  weapons and armor are rules, and loot is the DM's prep.
+- **The trait reuses `DhSpellcastTrait`** and its labels, the six traits
+  in one vocabulary (§9 decision 2).
+- **A feature's blank half is stored as `null`** (`blankToNull`), so the
+  pair rule, the CHECK and the card agree on "no feature".

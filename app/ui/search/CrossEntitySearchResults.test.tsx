@@ -46,6 +46,9 @@ function makeResults(
     dhCommunities: emptyGroup,
     dhAdversaries: emptyGroup,
     dhEnvironments: emptyGroup,
+    dhWeapons: emptyGroup,
+    dhArmor: emptyGroup,
+    dhLoot: emptyGroup,
     ...overrides,
   };
 }
@@ -132,6 +135,9 @@ describe("CrossEntitySearchResults (SPEC-011 T2)", () => {
           dhCommunities: one(13, "Lanternfolk"),
           dhAdversaries: one(14, "Lantern Wraith"),
           dhEnvironments: one(15, "Lamplit Market"),
+          dhWeapons: one(16, "Lantern Hook"),
+          dhArmor: one(17, "Lantern Coat"),
+          dhLoot: one(18, "Lantern Oil"),
         })}
       />
     );
@@ -148,6 +154,9 @@ describe("CrossEntitySearchResults (SPEC-011 T2)", () => {
       "dhCommunities (1)",
       "dhAdversaries (1)",
       "dhEnvironments (1)",
+      "dhWeapons (1)",
+      "dhArmor (1)",
+      "dhLoot (1)",
     ]);
     expect(screen.getByRole("link", { name: "Lanternfall" })).toHaveAttribute(
       "href",

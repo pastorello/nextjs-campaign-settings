@@ -24,6 +24,9 @@ export const RECORD_LIST_PATH: Record<RecordLinkDomain, `/${string}` | null> = {
   dhCommunities: "/communities",
   dhAdversaries: "/adversaries",
   dhEnvironments: "/environments",
+  dhWeapons: "/weapons",
+  dhArmor: "/armor",
+  dhLoot: "/loot",
 };
 
 /**

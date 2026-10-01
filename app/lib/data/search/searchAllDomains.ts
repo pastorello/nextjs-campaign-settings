@@ -12,6 +12,9 @@ import { fetchFilteredDhAncestries } from "@/app/lib/data/dhAncestries/fetchFilt
 import { fetchFilteredDhCommunities } from "@/app/lib/data/dhCommunities/fetchFilteredDhCommunities";
 import { fetchFilteredDhAdversaries } from "@/app/lib/data/dhAdversaries/fetchFilteredDhAdversaries";
 import { fetchFilteredDhEnvironments } from "@/app/lib/data/dhEnvironments/fetchFilteredDhEnvironments";
+import { fetchFilteredDhWeapons } from "@/app/lib/data/dhWeapons/fetchFilteredDhWeapons";
+import { fetchFilteredDhArmor } from "@/app/lib/data/dhArmor/fetchFilteredDhArmor";
+import { fetchFilteredDhLoot } from "@/app/lib/data/dhLoot/fetchFilteredDhLoot";
 import getVisibilityScope from "@/app/lib/data/visibility/getVisibilityScope";
 import { PLAYER_PAGES } from "@/app/lib/auth/playerPages";
 import isValidString from "@/app/lib/utils/validators/isValidString";
@@ -41,6 +44,9 @@ export const SEARCH_DOMAINS = [
   "dhCommunities",
   "dhAdversaries",
   "dhEnvironments",
+  "dhWeapons",
+  "dhArmor",
+  "dhLoot",
 ] as const;
 
 export type SearchDomain = (typeof SEARCH_DOMAINS)[number];
@@ -80,6 +86,9 @@ const emptyResult = (): SearchAllDomainsResult => ({
   dhCommunities: emptyGroup(),
   dhAdversaries: emptyGroup(),
   dhEnvironments: emptyGroup(),
+  dhWeapons: emptyGroup(),
+  dhArmor: emptyGroup(),
+  dhLoot: emptyGroup(),
 });
 
 /**
@@ -107,6 +116,9 @@ const SEARCH_DOMAIN_PAGE: Record<SearchDomain, PageType | null> = {
   dhCommunities: PageType.DhCommunity,
   dhAdversaries: PageType.DhAdversary,
   dhEnvironments: PageType.DhEnvironment,
+  dhWeapons: PageType.DhWeapon,
+  dhArmor: PageType.DhArmor,
+  dhLoot: PageType.DhLoot,
 };
 
 /**
@@ -180,6 +192,12 @@ const SEARCHERS: Record<
     (await fetchFilteredDhAdversaries({ query: term })).map(pickIdName),
   dhEnvironments: async (term) =>
     (await fetchFilteredDhEnvironments({ query: term })).map(pickIdName),
+  dhWeapons: async (term) =>
+    (await fetchFilteredDhWeapons({ query: term })).map(pickIdName),
+  dhArmor: async (term) =>
+    (await fetchFilteredDhArmor({ query: term })).map(pickIdName),
+  dhLoot: async (term) =>
+    (await fetchFilteredDhLoot({ query: term })).map(pickIdName),
 };
 
 const capGroup = (items: SearchResultItem[]): SearchDomainGroup => ({

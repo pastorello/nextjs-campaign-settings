@@ -4,8 +4,9 @@ import AxeBuilder from "@axe-core/playwright";
 import messages from "@/messages/it.json";
 
 /**
- * SPEC-029 T2: a Daggerheart weapon refused with half a feature, then
- * saved; read as a card (and scanned by axe); a 404 under 5e; deleted.
+ * SPEC-029 T2, T5: a Daggerheart weapon refused with half a feature, then
+ * saved; read as a card (and scanned by axe); found by search under
+ * Daggerheart alone; a 404 under 5e; deleted.
  * Everything it writes is invented (SPEC-018 §5), and removed in
  * `finally`.
  */
@@ -108,6 +109,18 @@ test.describe("Daggerheart weapons", () => {
         axe.violations.map((v) => `${v.id} (${v.nodes.length} nodes)`),
         "axe violations on a weapon's card"
       ).toEqual([]);
+
+      // --- Search finds it under daggerheart, not under dnd5e (T5) ----------
+      await page.goto(
+        `/dashboard/daggerheart/search?query=${encodeURIComponent(name)}`
+      );
+      await expect(page.getByRole("link", { name, exact: true })).toBeVisible();
+      await page.goto(
+        `/dashboard/dnd5e/search?query=${encodeURIComponent(name)}`
+      );
+      await expect(
+        page.getByText(messages.search.page.noMatches.replace("{term}", name))
+      ).toBeVisible();
 
       // --- Not a 5e page ----------------------------------------------------
       const fiveE = await page.goto("/dashboard/dnd5e/weapons");

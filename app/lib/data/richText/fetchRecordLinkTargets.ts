@@ -153,6 +153,22 @@ const FIND_EXISTING: Record<
       ...byIds(ids),
       select: { id: true, name: true },
     }),
+  // SPEC-029 T5.
+  dhWeapons: (ids) =>
+    prisma.dhWeapon.findMany({
+      ...byIds(ids),
+      select: { id: true, name: true },
+    }),
+  dhArmor: (ids) =>
+    prisma.dhArmor.findMany({
+      ...byIds(ids),
+      select: { id: true, name: true },
+    }),
+  dhLoot: (ids) =>
+    prisma.dhLoot.findMany({
+      ...byIds(ids),
+      select: { id: true, name: true },
+    }),
 };
 
 /**

@@ -48,7 +48,8 @@
       "passwordPlaceholder": "Inserisci la password",
       "submit": "Accedi",
       "invalidCredentials": "Credenziali non valide.",
-      "somethingWrong": "Qualcosa è andato storto."
+      "somethingWrong": "Qualcosa è andato storto.",
+      "signUpLink": "Sei un DM senza account? Richiedilo"
     },
     "search": {
       "label": "Cerca"
@@ -211,7 +212,9 @@
       "accountNotFound": "Questo account non esiste più.",
       "emailTaken": "Un altro account usa già questa email.",
       "wrongPassword": "La password attuale non è corretta.",
-      "lastActiveDm": "È l'ultimo DM attivo: deve restarne almeno uno."
+      "lastActiveDm": "È l'ultimo DM attivo: deve restarne almeno uno.",
+      "campaignNotFound": "Questa campagna non esiste più.",
+      "notAPlayer": "Solo un account da giocatore può far parte di una campagna."
     },
     "errorPage": {
       "genericTitle": "Qualcosa è andato storto",
@@ -1189,6 +1192,18 @@
       "system": {
         "label": "Sistema di gioco"
       }
+    },
+    "players": {
+      "title": "Giocatori",
+      "intro": "Chi gioca questa campagna. Vedranno ciò che le riveli (SPEC-022).",
+      "empty": "Nessun giocatore ancora.",
+      "candidate": "Account da aggiungere",
+      "add": "Aggiungi alla campagna",
+      "remove": "Togli {name} dalla campagna",
+      "added": "Giocatore aggiunto.",
+      "removed": "Giocatore tolto.",
+      "noCandidates": "Nessun account da giocatore da aggiungere. Creane uno dalla pagina degli account.",
+      "accountsLink": "Vai agli account"
     }
   },
   "adventure": {
@@ -1896,6 +1911,18 @@
       "active": "Attivo",
       "inactive": "Disattivato"
     },
-    "failed": "Operazione non riuscita. Riprova."
+    "failed": "Operazione non riuscita. Riprova.",
+    "signUp": {
+      "title": "Richiedi un account da DM",
+      "intro": "Un DM già attivo deve attivare l'account prima che tu possa accedere.",
+      "name": "Nome",
+      "email": "Email",
+      "password": "Password",
+      "passwordHint": "Almeno 8 caratteri.",
+      "submit": "Richiedi l'account",
+      "doneTitle": "Richiesta inviata",
+      "doneBody": "Se l'indirizzo non è già in uso, l'account aspetta che un DM lo attivi. Potrai accedere da allora.",
+      "backToLogin": "Torna all'accesso"
+    }
   }
 }

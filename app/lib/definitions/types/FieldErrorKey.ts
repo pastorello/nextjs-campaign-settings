@@ -97,6 +97,9 @@ export const FIELD_ERROR_KEYS = [
   "emailTaken",
   "wrongPassword",
   "lastActiveDm",
+  // Campaign membership (SPEC-022 T5)
+  "campaignNotFound",
+  "notAPlayer",
 ] as const;
 
 type FieldErrorKey = (typeof FIELD_ERROR_KEYS)[number];

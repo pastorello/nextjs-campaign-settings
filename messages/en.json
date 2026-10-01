@@ -48,7 +48,8 @@
       "passwordPlaceholder": "Enter password",
       "submit": "Log in",
       "invalidCredentials": "Invalid credentials.",
-      "somethingWrong": "Something went wrong."
+      "somethingWrong": "Something went wrong.",
+      "signUpLink": "A DM without an account? Request one"
     },
     "search": {
       "label": "Search"
@@ -211,7 +212,9 @@
       "accountNotFound": "This account no longer exists.",
       "emailTaken": "Another account already uses this email.",
       "wrongPassword": "The current password is not correct.",
-      "lastActiveDm": "This is the last active DM: at least one must remain."
+      "lastActiveDm": "This is the last active DM: at least one must remain.",
+      "campaignNotFound": "This campaign no longer exists.",
+      "notAPlayer": "Only a player account can be part of a campaign."
     },
     "errorPage": {
       "genericTitle": "Something went wrong",
@@ -1189,6 +1192,18 @@
       "system": {
         "label": "Game system"
       }
+    },
+    "players": {
+      "title": "Players",
+      "intro": "Who plays this campaign. They will see what you reveal to it (SPEC-022).",
+      "empty": "No players yet.",
+      "candidate": "Account to add",
+      "add": "Add to the campaign",
+      "remove": "Remove {name} from the campaign",
+      "added": "Player added.",
+      "removed": "Player removed.",
+      "noCandidates": "No player account left to add. Create one from the accounts page.",
+      "accountsLink": "Go to the accounts"
     }
   },
   "adventure": {
@@ -1896,6 +1911,18 @@
       "active": "Active",
       "inactive": "Disabled"
     },
-    "failed": "That did not work. Try again."
+    "failed": "That did not work. Try again.",
+    "signUp": {
+      "title": "Request a DM account",
+      "intro": "An active DM has to activate the account before you can sign in.",
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "passwordHint": "At least 8 characters.",
+      "submit": "Request account",
+      "doneTitle": "Request sent",
+      "doneBody": "If the address is not already in use, the account waits for a DM to activate it. You can sign in from then on.",
+      "backToLogin": "Back to sign in"
+    }
   }
 }

@@ -14,6 +14,7 @@ import { authenticate } from "@/app/lib/actions/authenticate";
 import { useSearchParams } from "next/navigation";
 import { DEFAULT_GAME_SYSTEM } from "@/app/lib/definitions/GameSystem";
 import { dashboardPath } from "@/i18n/dashboardPath";
+import { Link } from "@/i18n/navigation";
 
 export default function LoginForm() {
   const t = useTranslations("common.auth");
@@ -93,6 +94,13 @@ export default function LoginForm() {
             </>
           )}
         </div>
+        {/* SPEC-022 T4: the DM sign-up, inactive until a DM activates it. */}
+        <Link
+          href="/signup"
+          className="mt-4 block text-sm text-blue-700 underline"
+        >
+          {t("signUpLink")}
+        </Link>
       </div>
     </form>
   );

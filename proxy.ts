@@ -69,6 +69,10 @@ function isDashboardPath(rest: string) {
 
 const signInPage = authConfig.pages?.signIn ?? "/login";
 
+// The pages a signed-out request may reach: signing in, and asking for a DM
+// account (SPEC-022 T4), which is created inactive.
+const PUBLIC_PAGES = [signInPage, "/signup"];
+
 // The login page in the request's locale, with a callbackUrl back to where
 // the request was going.
 function signInUrlFor(req: NextRequest, locale: string) {
@@ -117,7 +121,7 @@ export default async function proxy(req: NextRequest) {
 
   if (!isAuthorized) {
     const { locale, rest } = splitLocale(req.nextUrl.pathname);
-    if (rest !== signInPage) {
+    if (!PUBLIC_PAGES.includes(rest)) {
       return NextResponse.redirect(signInUrlFor(req, locale));
     }
   }

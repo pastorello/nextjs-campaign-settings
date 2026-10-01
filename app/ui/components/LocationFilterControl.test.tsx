@@ -1,12 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Only the `UNKNOWN_ZONE_PARAM` constant is used from this module, but its
-// sibling export (`buildLocationWhere`) statically imports
-// `fetchZoneDescendantIds`, which pulls in `@/auth` — mocked here so the
-// real next-auth config module never loads.
-vi.mock("@/auth", () => ({ auth: vi.fn() }));
-
 const replace = vi.fn();
 let searchParams = new URLSearchParams();
 vi.mock("next/navigation", () => ({

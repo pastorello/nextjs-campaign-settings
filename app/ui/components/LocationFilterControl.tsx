@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 
 import fetchZones from "@/app/lib/data/maps/fetchZones";
 import fetchZoneLandmarks from "@/app/lib/data/maps/fetchZoneLandmarks";
-import { UNKNOWN_ZONE_PARAM } from "@/app/lib/data/maps/buildLocationWhere";
+import { UNKNOWN_ZONE_PARAM } from "@/app/lib/data/maps/unknownZoneParam";
 import type ZoneOption from "@/app/lib/definitions/interfaces/maps/ZoneOption";
 
 const ALL_OPTION = "";

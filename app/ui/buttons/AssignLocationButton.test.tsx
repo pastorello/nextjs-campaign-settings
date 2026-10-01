@@ -36,6 +36,7 @@ vi.mock("@/app/ui/components/AssignLocationModal", () => ({
 }));
 
 import AssignLocationButton from "./AssignLocationButton";
+import { ReadOnlyViewProvider } from "@/app/ui/dashboard/ReadOnlyView";
 import PageType from "@/app/lib/definitions/types/PageType";
 
 describe("AssignLocationButton", () => {
@@ -119,5 +120,43 @@ describe("AssignLocationButton — text variant (SPEC-007 T3)", () => {
     fireEvent.click(screen.getByText("Skreebars"));
 
     expect(screen.getByText("modal:Skreebars")).toBeInTheDocument();
+  });
+});
+
+// SPEC-022 T8b: a player reads the location on a card; assigning is the
+// DM's.
+describe("AssignLocationButton — read-only view", () => {
+  it("shows the text variant's label as plain text, with no way to assign", () => {
+    render(
+      <ReadOnlyViewProvider readOnly>
+        <AssignLocationButton
+          pageType={PageType.Npc}
+          entityId={1}
+          currentZoneId={4}
+          currentPoiId={null}
+          currentLocationLabel="Skreebars"
+          variant="text"
+        />
+      </ReadOnlyViewProvider>
+    );
+
+    expect(screen.getByText("Skreebars")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("renders nothing for the button variant", () => {
+    const { container } = render(
+      <ReadOnlyViewProvider readOnly>
+        <AssignLocationButton
+          pageType={PageType.Npc}
+          entityId={1}
+          currentZoneId={null}
+          currentPoiId={null}
+          currentLocationLabel="—"
+        />
+      </ReadOnlyViewProvider>
+    );
+
+    expect(container).toBeEmptyDOMElement();
   });
 });

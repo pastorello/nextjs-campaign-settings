@@ -12,12 +12,15 @@ describe("isPlayerPath (SPEC-022 T7)", () => {
     "/dashboard/daggerheart/subclasses/4",
     "/dashboard/daggerheart/domains/1",
     "/dashboard/daggerheart/domain-cards",
+    "/dashboard/dnd5e/npc",
+    "/dashboard/dnd5e/deities",
+    "/dashboard/dnd5e/magicitems",
+    "/dashboard/daggerheart/factions",
   ])("lets a player through to %s", (path) => {
     expect(isPlayerPath(path)).toBe(true);
   });
 
   it.each([
-    "/dashboard/dnd5e/npc",
     "/dashboard/dnd5e/admin/npc",
     "/dashboard/dnd5e/campaign",
     "/dashboard/dnd5e/geographyx",

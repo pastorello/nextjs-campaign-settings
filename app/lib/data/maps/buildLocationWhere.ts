@@ -1,8 +1,7 @@
 import fetchZoneDescendantIds from "./fetchZoneDescendantIds";
 import type { RawSearchParams } from "../validateParams";
-
-/** The `?zoneId=` value meaning "Sconosciuta" — `zoneId IS NULL` (§5). */
-export const UNKNOWN_ZONE_PARAM = "none";
+import type VisibilityScope from "../visibility/VisibilityScope";
+import { UNKNOWN_ZONE_PARAM } from "./unknownZoneParam";
 
 /**
  * Layers SPEC-008's Zone/POI filter on top of a `where` clause `getQuery`
@@ -14,20 +13,39 @@ export const UNKNOWN_ZONE_PARAM = "none";
  * path). The POI narrowing layers on top of whatever the Zone step already
  * set, independent of it — §5: "layered on top of the Zone filter rather
  * than replacing it".
+ *
+ * For a player (SPEC-022 T8b), a hidden place is no place: a record pinned
+ * there counts as "Sconosciuta", a hidden zone's subtree holds no one, and
+ * a hidden landmark's filter matches nothing. Otherwise filtering by a
+ * hidden place would tell a player who is there.
  */
 export default async function buildLocationWhere<
   TWhere extends Record<string, unknown>,
->(where: TWhere, rawSearchParams: RawSearchParams): Promise<TWhere> {
+>(
+  where: TWhere,
+  rawSearchParams: RawSearchParams,
+  scope: VisibilityScope
+): Promise<TWhere> {
   let next = where;
 
   const zoneIdParam = rawSearchParams.zoneId;
   if (zoneIdParam === UNKNOWN_ZONE_PARAM) {
-    next = { ...next, zoneId: null };
+    next =
+      scope.kind === "all"
+        ? { ...next, zoneId: null }
+        : {
+            ...next,
+            OR: [{ zoneId: null }, { zoneId: { notIn: [...scope.zones] } }],
+          };
   } else if (zoneIdParam !== undefined) {
     const zoneId = Number(zoneIdParam);
     if (Number.isInteger(zoneId) && zoneId > 0) {
       const descendantIds = await fetchZoneDescendantIds(zoneId);
-      next = { ...next, zoneId: { in: descendantIds } };
+      const visibleIds =
+        scope.kind === "all"
+          ? descendantIds
+          : descendantIds.filter((id) => scope.zones.has(id));
+      next = { ...next, zoneId: { in: visibleIds } };
     }
   }
 
@@ -35,7 +53,10 @@ export default async function buildLocationWhere<
   if (poiIdParam !== undefined) {
     const poiId = Number(poiIdParam);
     if (Number.isInteger(poiId) && poiId > 0) {
-      next = { ...next, poiId };
+      next =
+        scope.kind === "all" || scope.pois.has(poiId)
+          ? { ...next, poiId }
+          : { ...next, poiId: { in: [] } };
     }
   }
 

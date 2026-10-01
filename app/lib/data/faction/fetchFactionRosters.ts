@@ -1,5 +1,7 @@
 import prisma from "../../connections/prisma";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
+import getVisibilityScope from "@/app/lib/data/visibility/getVisibilityScope";
+import revealedWhere from "@/app/lib/data/visibility/revealedWhere";
 
 export interface RosterMember {
   id: number;
@@ -11,14 +13,26 @@ export interface RosterMember {
  * over 119 NPCs — SPEC-006 §7 calls the per-faction version "a plain read";
  * grouping a single `findMany` is the same read, just not run twenty-one
  * times).
+ *
+ * For a player (SPEC-022 T8b, R5): a roster names only the NPCs revealed to
+ * their campaign, and only factions revealed to it have one at all. The map
+ * reaches the client whole, so a hidden faction's key would still say who
+ * is in it.
  */
 export default async function fetchFactionRosters(): Promise<
   Map<number, RosterMember[]>
 > {
+  const scope = await getVisibilityScope();
   let rows;
   try {
     rows = await prisma.npc.findMany({
-      where: { faction: { not: null } },
+      where: {
+        faction: { not: null },
+        ...revealedWhere(scope),
+        ...(scope.kind === "campaign" && {
+          factionRef: revealedWhere(scope),
+        }),
+      },
       select: { id: true, name: true, faction: true },
       orderBy: { name: "asc" },
     });

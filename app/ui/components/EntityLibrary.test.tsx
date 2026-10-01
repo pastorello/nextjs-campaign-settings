@@ -146,6 +146,11 @@ vi.mock("@/app/lib/data/options/fetchFieldOptions", () => ({
 
 import EntityLibrary from "./EntityLibrary";
 
+// SPEC-022 T8b: the reads below take the reader's scope; the DM's here.
+vi.mock("@/app/lib/data/visibility/getVisibilityScope", () => ({
+  default: () => Promise.resolve({ kind: "all" }),
+}));
+
 describe("EntityLibrary", () => {
   beforeEach(() => {
     fetchDerivedAncestry.mockResolvedValue(new Map());

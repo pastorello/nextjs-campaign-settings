@@ -90,6 +90,7 @@ app/lib/config/pagesConfig.ts           Record<PageType, MetaConfigKey[]>
 | List columns & sorting | `app/ui/components/EntityList.tsx`, `SortableHeader.tsx`  | `label`, `metaField`, `options`/`optionTable`, via `listConfig`  |
 | Filtering              | `app/lib/hooks/useFilterController.ts`                    | `fieldType`, `options`                                           |
 | Query building         | `app/lib/data/getQuery.ts`                                | `fieldType` → `hasSome` for arrays, equality otherwise           |
+| Reader scope           | `app/lib/data/visibility/readerQuery.ts`                  | `dmOnly`: blanked, unfilterable and unsortable for a player      |
 
 ### The boundary: what the layer does not cover (ADR-0011)
 

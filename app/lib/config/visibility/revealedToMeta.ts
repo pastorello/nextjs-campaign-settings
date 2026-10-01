@@ -33,6 +33,9 @@ export const revealedToMeta = {
   optionTable: "campaign",
   controlType: ControlType.Multiselect,
   validator: campaignIdsValidator,
+  // Which campaigns see a record is the DM's to know (SPEC-022 T8): a
+  // player would learn of the other campaigns, and of what they were shown.
+  dmOnly: true,
 } satisfies PageMeta;
 
 export const revealedToDnd5eMeta = {

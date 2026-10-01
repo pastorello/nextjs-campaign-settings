@@ -8,6 +8,7 @@ import BaseButton from "./BaseButton";
 import ButtonSize from "./BaseButton/ButtonSize";
 import ButtonVariant from "./BaseButton/ButtonVariant";
 import AssignLocationModal from "@/app/ui/components/AssignLocationModal";
+import { useReadOnlyView } from "@/app/ui/dashboard/ReadOnlyView";
 import assignNpcLocation from "@/app/lib/data/npc/assignLocation";
 import assignDeityLocation from "@/app/lib/data/deities/assignLocation";
 import PageType from "@/app/lib/definitions/types/PageType";
@@ -58,6 +59,12 @@ export default function AssignLocationButton({
   const t = useTranslations("common.table");
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  // SPEC-022 T8b: a player reads the location; assigning it is the DM's.
+  const readOnly = useReadOnlyView();
+
+  if (readOnly) {
+    return variant === "text" ? <span>{currentLocationLabel}</span> : null;
+  }
 
   return (
     <>

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import SideNav from "@/app/ui/dashboard/sidenav";
+import { ReadOnlyViewProvider } from "@/app/ui/dashboard/ReadOnlyView";
 import getViewer from "@/app/lib/auth/getViewer";
 import { isGameSystem } from "@/app/lib/definitions/GameSystem";
 import { redirect } from "@/i18n/navigation";
@@ -41,7 +42,11 @@ export default async function Layout({
       <div className="w-full flex-none md:w-64">
         <SideNav viewer={viewer} />
       </div>
-      <div className="grow p-6 md:overflow-y-auto md:p-12">{children}</div>
+      <div className="grow p-6 md:overflow-y-auto md:p-12">
+        <ReadOnlyViewProvider readOnly={viewer.kind === "player"}>
+          {children}
+        </ReadOnlyViewProvider>
+      </div>
     </div>
   );
 }

@@ -719,6 +719,7 @@
       "editZone": "Edit",
       "remove": "Remove",
       "editLandmark": "Edit",
+      "reveal": "Reveal…",
       "errors": {
         "loadEntitiesFailed": "Could not load who is here. Try again.",
         "detachFailed": "Could not remove the link. Try again."
@@ -968,6 +969,17 @@
       "vertex": "Vertex {index} of {total}: arrows to move it, Delete to remove it",
       "midpoint": "Add a vertex between {from} and {to}",
       "centre": "The name's point: arrows to move it"
+    },
+    "revealDialog": {
+      "title": "Who sees “{title}”",
+      "intro": "A campaign sees this place only if it is revealed to it, and so is every place that contains it.",
+      "hiddenBy": "Still hidden by “{place}”, which is not revealed to this campaign.",
+      "loading": "Loading…",
+      "empty": "No campaign yet. Create one from the campaign page.",
+      "revealed": "Revealed to {campaign}.",
+      "hidden": "Hidden from {campaign}.",
+      "failed": "Could not change who sees this place.",
+      "close": "Close"
     }
   },
   "world": {

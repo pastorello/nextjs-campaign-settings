@@ -153,6 +153,21 @@ vi.mock("@/app/ui/geography/RemoveLandmarkDialog", () => ({
   },
 }));
 
+// SPEC-022 T6b: the reveal dialog reads and writes through Server Actions;
+// the popover only opens it with the right place.
+const revealDialogProps = vi.fn();
+vi.mock("@/app/ui/geography/PlaceRevealDialog", () => ({
+  default: (props: {
+    kind: string;
+    placeId: number;
+    title: string;
+    isOpen: boolean;
+  }) => {
+    revealDialogProps(props);
+    return props.isOpen ? <p>reveal dialog open</p> : null;
+  },
+}));
+
 import PlacePopover, { type PopoverTarget } from "./PlacePopover";
 import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildren";
 import type { POI } from "@/app/modules/maps/types/poi";
@@ -768,5 +783,37 @@ describe("PlacePopover — landmark (SPEC-016 T7)", () => {
       renderPopover({ kind: "poi", poi, poiId: LANDMARK_ROW_ID });
       expect(screen.queryByRole("img")).not.toBeInTheDocument();
     });
+  });
+});
+
+describe("PlacePopover — reveal (SPEC-022 T6b)", () => {
+  it("opens the reveal dialog for a zone, by its row id", () => {
+    renderZonePopover();
+
+    fireEvent.click(screen.getByRole("button", { name: "reveal" }));
+
+    expect(screen.getByText("reveal dialog open")).toBeInTheDocument();
+    expect(revealDialogProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        kind: "zone",
+        placeId: place.id,
+        title: place.title,
+        isOpen: true,
+      })
+    );
+  });
+
+  it("opens it for a landmark by the row id, not the marker's client key", () => {
+    renderLandmarkPopover();
+
+    fireEvent.click(screen.getByRole("button", { name: "reveal" }));
+
+    expect(revealDialogProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        kind: "poi",
+        placeId: LANDMARK_ROW_ID,
+        isOpen: true,
+      })
+    );
   });
 });

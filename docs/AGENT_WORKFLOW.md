@@ -83,6 +83,14 @@ the same rules apply there.
   only for the first retry. In the trace, `*-trace.trace` has the actions and
   `*-trace.network` every request; Server Action POSTs carry a `next-action`
   header. Align the two clocks through the `context-options` line.
+- **Reading a CI job's log from a cloud session:** the full log's download
+  URL (Azure blob storage) is refused by the egress proxy (403), and so is the
+  artifact. Read it through the GitHub tools' job-log call with the content
+  returned and a tail of ~420 lines: the end of an E2E job is the Postgres
+  service container's log (a `role "root" does not exist` line every 10 s),
+  and Playwright's failure summary sits just above it. The summary names each
+  `error-context.md`; reproducing locally and reading the local one gives the
+  page snapshot, which is how TD-152's out-of-bounds form value was found.
 
 ## Scope and product decisions
 

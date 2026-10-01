@@ -27,6 +27,7 @@ const counts = vi.hoisted(() => ({
   getDhAncestriesCount: vi.fn(),
   getDhCommunitiesCount: vi.fn(),
   getDhAdversariesCount: vi.fn(),
+  getDhEnvironmentsCount: vi.fn(),
 }));
 vi.mock("@/app/lib/data/dhDomains/getDhDomainsCount", () => ({
   getDhDomainsCount: counts.getDhDomainsCount,
@@ -45,6 +46,9 @@ vi.mock("@/app/lib/data/dhCommunities/getDhCommunitiesCount", () => ({
 }));
 vi.mock("@/app/lib/data/dhAdversaries/getDhAdversariesCount", () => ({
   getDhAdversariesCount: counts.getDhAdversariesCount,
+}));
+vi.mock("@/app/lib/data/dhEnvironments/getDhEnvironmentsCount", () => ({
+  getDhEnvironmentsCount: counts.getDhEnvironmentsCount,
 }));
 
 vi.mock("@/app/ui/containers/ListPage", () => ({
@@ -134,6 +138,9 @@ import AncestriesPage, {
 import AdversariesPage, {
   generateMetadata as adversariesMetadata,
 } from "./adversaries/page";
+import EnvironmentsPage, {
+  generateMetadata as environmentsMetadata,
+} from "./environments/page";
 import DomainsPage, {
   generateMetadata as domainsMetadata,
 } from "./domains/page";
@@ -219,6 +226,12 @@ describe("the public Daggerheart lists (SPEC-021 T2, T3, T6)", () => {
       adversariesMetadata,
       counts.getDhAdversariesCount,
       PageType.DhAdversary,
+    ],
+    [
+      EnvironmentsPage,
+      environmentsMetadata,
+      counts.getDhEnvironmentsCount,
+      PageType.DhEnvironment,
     ],
   ])(
     "counts with the search params and renders the library (%#)",

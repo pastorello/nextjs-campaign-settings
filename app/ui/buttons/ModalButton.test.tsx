@@ -95,6 +95,13 @@ vi.mock("../dhAncestries/DhAncestryForm", () => ({
     <button onClick={() => onSaveFinished({ id: 1 })}>save-dh-ancestry</button>
   ),
 }));
+vi.mock("../dhEnvironments/DhEnvironmentForm", () => ({
+  default: ({ onSaveFinished }: { onSaveFinished: (i: object) => void }) => (
+    <button onClick={() => onSaveFinished({ id: 1 })}>
+      save-dh-environment
+    </button>
+  ),
+}));
 vi.mock("../dhAdversaries/DhAdversaryForm", () => ({
   default: ({ onSaveFinished }: { onSaveFinished: (i: object) => void }) => (
     <button onClick={() => onSaveFinished({ id: 1 })}>save-dh-adversary</button>
@@ -145,6 +152,7 @@ describe("ModalButton", () => {
     ["dhancestryform", "save-dh-ancestry"],
     ["dhcommunityform", "save-dh-community"],
     ["dhadversaryform", "save-dh-adversary"],
+    ["dhenvironmentform", "save-dh-environment"],
   ])("renders the %s variant", (modalContent, expectedText) => {
     render(
       <ModalButton

@@ -17,6 +17,7 @@ enum PageType {
   DhCommunity = "communities",
   // SPEC-028 — the GM-side stat blocks, the DM's alone.
   DhAdversary = "adversaries",
+  DhEnvironment = "environments",
 }
 
 export default PageType;

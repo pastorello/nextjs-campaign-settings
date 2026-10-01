@@ -87,6 +87,27 @@ vi.mock("../dhCommunities/DhCommunityLibrary", () => ({
     <div>DhCommunityLibrary:{items.length}</div>
   ),
 }));
+// SPEC-028: the stat block libraries.
+vi.mock("../dhAdversaries/DhAdversaryLibrary", () => ({
+  default: ({ items }: { items: unknown[] }) => (
+    <div>DhAdversaryLibrary:{items.length}</div>
+  ),
+}));
+vi.mock("../dhEnvironments/DhEnvironmentLibrary", () => ({
+  default: ({ items }: { items: unknown[] }) => (
+    <div>DhEnvironmentLibrary:{items.length}</div>
+  ),
+}));
+const fetchFilteredDhAdversaries = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/dhAdversaries/fetchFilteredDhAdversaries", () => ({
+  fetchFilteredDhAdversaries: (...args: unknown[]) =>
+    fetchFilteredDhAdversaries(...args),
+}));
+const fetchFilteredDhEnvironments = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/dhEnvironments/fetchFilteredDhEnvironments", () => ({
+  fetchFilteredDhEnvironments: (...args: unknown[]) =>
+    fetchFilteredDhEnvironments(...args),
+}));
 const fetchFilteredDhAncestries = vi.fn<(...args: unknown[]) => unknown>();
 vi.mock("@/app/lib/data/dhAncestries/fetchFilteredDhAncestries", () => ({
   fetchFilteredDhAncestries: (...args: unknown[]) =>
@@ -311,6 +332,55 @@ describe("EntityLibrary", () => {
       expect(screen.getByText(rendered)).toBeInTheDocument();
     }
   );
+
+  // SPEC-028: the features' formatted texts are rows, not fields, and
+  // their record links resolve in the page's one batch.
+  it("resolves the record links in an adversary's feature texts", async () => {
+    fetchFilteredDhAdversaries.mockResolvedValue([
+      {
+        id: 1,
+        description: "<p>D</p>",
+        motives: null,
+        features: [{ text: "<p>F</p>" }],
+      },
+    ]);
+
+    render(
+      await EntityLibrary({
+        system: "daggerheart",
+        pageType: PageType.DhAdversary,
+      })
+    );
+
+    expect(screen.getByText("DhAdversaryLibrary:1")).toBeInTheDocument();
+    expect(resolvedValues).toHaveBeenCalledWith(
+      ["<p>D</p>", null, "<p>F</p>"],
+      "daggerheart"
+    );
+  });
+
+  it("resolves the record links in an environment's feature texts and questions", async () => {
+    fetchFilteredDhEnvironments.mockResolvedValue([
+      {
+        id: 1,
+        description: "<p>D</p>",
+        features: [{ text: "<p>F</p>", questions: "<p>Q</p>" }],
+      },
+    ]);
+
+    render(
+      await EntityLibrary({
+        system: "daggerheart",
+        pageType: PageType.DhEnvironment,
+      })
+    );
+
+    expect(screen.getByText("DhEnvironmentLibrary:1")).toBeInTheDocument();
+    expect(resolvedValues).toHaveBeenCalledWith(
+      ["<p>D</p>", "<p>F</p>", "<p>Q</p>"],
+      "daggerheart"
+    );
+  });
 
   it("gives the faction cards their communities under daggerheart only", async () => {
     fetchFilteredFactions.mockResolvedValue([{ id: 1 }]);

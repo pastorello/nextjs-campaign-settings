@@ -28,7 +28,8 @@
       "campaignUnavailable": "You are no longer in this campaign.",
       "dhAncestries": "Ancestries",
       "dhCommunities": "Communities",
-      "dhAdversaries": "Adversaries"
+      "dhAdversaries": "Adversaries",
+      "dhEnvironments": "Environments"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -2067,6 +2068,54 @@
       "saveButton": "Save experience",
       "moveUp": "Move {name} up",
       "moveDown": "Move {name} down"
+    },
+    "features": {
+      "title": "Features",
+      "addButton": "Add feature",
+      "saveButton": "Save feature",
+      "moveUp": "Move {name} up",
+      "moveDown": "Move {name} down"
+    }
+  },
+  "dhEnvironments": {
+    "page": {
+      "title": "Environments",
+      "searchPlaceholder": "Search environments...",
+      "itemSingular": "environment",
+      "itemPlural": "environments",
+      "newItemButton": "New environment",
+      "emptyMessage": "No environments."
+    },
+    "form": {
+      "createTitle": "Create new environment",
+      "editTitle": "Edit environment",
+      "createButton": "Create environment",
+      "editButton": "Save environment"
+    },
+    "fields": {
+      "environmentType": {
+        "label": "Type"
+      },
+      "impulses": {
+        "label": "Impulses"
+      },
+      "adversaryIds": {
+        "label": "Potential adversaries"
+      },
+      "otherAdversaries": {
+        "label": "Other adversaries"
+      },
+      "placeIds": {
+        "label": "Places"
+      }
+    },
+    "statBlock": {
+      "header": "Tier {tier} · {type}",
+      "impulses": "Impulses",
+      "adversaries": "Potential adversaries",
+      "places": "Places",
+      "features": "Features",
+      "imageAlt": "Image of {name}"
     },
     "features": {
       "title": "Features",

@@ -79,7 +79,7 @@ describe("NavLinks under a system", () => {
     );
   });
 
-  it("lists the adversaries, with their admin link, for the DM (SPEC-028)", () => {
+  it("lists the stat blocks, with their admin links, for the DM (SPEC-028)", () => {
     system = "daggerheart";
     pathname = "/dashboard/daggerheart";
     render(<NavLinks />);
@@ -91,6 +91,10 @@ describe("NavLinks under a system", () => {
     expect(screen.getByLabelText("manage:dhadversaries")).toHaveAttribute(
       "href",
       "/dashboard/daggerheart/admin/adversaries"
+    );
+    expect(screen.getByLabelText("dhEnvironments")).toHaveAttribute(
+      "href",
+      "/dashboard/daggerheart/environments"
     );
   });
 

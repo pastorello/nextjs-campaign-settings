@@ -22,6 +22,7 @@ import { fetchFilteredDhSubclasses } from "@/app/lib/data/dhSubclasses/fetchFilt
 import { fetchFilteredDhAncestries } from "@/app/lib/data/dhAncestries/fetchFilteredDhAncestries";
 import { fetchFilteredDhCommunities } from "@/app/lib/data/dhCommunities/fetchFilteredDhCommunities";
 import { fetchFilteredDhAdversaries } from "@/app/lib/data/dhAdversaries/fetchFilteredDhAdversaries";
+import { fetchFilteredDhEnvironments } from "@/app/lib/data/dhEnvironments/fetchFilteredDhEnvironments";
 import { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import type { OptionTableName } from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
@@ -91,6 +92,8 @@ const fetchItems = (pageType: PageType, searchParams: SearchParamsInput) => {
       return fetchFilteredDhCommunities(searchParams);
     case PageType.DhAdversary:
       return fetchFilteredDhAdversaries(searchParams);
+    case PageType.DhEnvironment:
+      return fetchFilteredDhEnvironments(searchParams);
   }
 };
 

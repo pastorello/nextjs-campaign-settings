@@ -14,6 +14,7 @@ import DhSubclassMetaField from "@/app/lib/definitions/enums/daggerheart/DhSubcl
 import DhAncestryMetaField from "@/app/lib/definitions/enums/daggerheart/DhAncestryMetaField";
 import DhCommunityMetaField from "@/app/lib/definitions/enums/daggerheart/DhCommunityMetaField";
 import DhAdversaryMetaField from "@/app/lib/definitions/enums/daggerheart/DhAdversaryMetaField";
+import DhEnvironmentMetaField from "@/app/lib/definitions/enums/daggerheart/DhEnvironmentMetaField";
 
 /**
  * Which fields make up each page, in order.
@@ -245,6 +246,25 @@ const pagesConfig: Record<PageType, PageConfig> = {
       DhAdversaryMetaField.attackDamage,
       DhAdversaryMetaField.attackType,
       DhAdversaryMetaField.origin,
+    ],
+    system: "daggerheart",
+  },
+  // SPEC-028 T3. Its features are inline rows (ADR-0011); its adversaries
+  // and places are links.
+  [PageType.DhEnvironment]: {
+    fields: [
+      "id",
+      "imageId",
+      DhEnvironmentMetaField.name,
+      DhEnvironmentMetaField.description,
+      DhEnvironmentMetaField.tier,
+      DhEnvironmentMetaField.environmentType,
+      DhEnvironmentMetaField.impulses,
+      DhEnvironmentMetaField.difficulty,
+      DhEnvironmentMetaField.adversaryIds,
+      DhEnvironmentMetaField.otherAdversaries,
+      DhEnvironmentMetaField.placeIds,
+      DhEnvironmentMetaField.origin,
     ],
     system: "daggerheart",
   },

@@ -81,12 +81,17 @@ const PAGES = [
   "/dashboard/daggerheart/communities?view=cards",
   "/dashboard/daggerheart/admin/communities",
   "/dashboard/daggerheart/admin/communities/new",
-  // SPEC-028: the adversary lists and form; the stat block itself is
-  // scanned with real rows by `daggerheart-adversaries.spec.ts`.
+  // SPEC-028: the stat block lists and forms; the blocks themselves are
+  // scanned with real rows by `daggerheart-adversaries.spec.ts` and
+  // `daggerheart-environments.spec.ts`.
   "/dashboard/daggerheart/adversaries",
   "/dashboard/daggerheart/adversaries?view=cards",
   "/dashboard/daggerheart/admin/adversaries",
   "/dashboard/daggerheart/admin/adversaries/new",
+  "/dashboard/daggerheart/environments",
+  "/dashboard/daggerheart/environments?view=cards",
+  "/dashboard/daggerheart/admin/environments",
+  "/dashboard/daggerheart/admin/environments/new",
   // SPEC-022 T2, T3: the DM's own account and the accounts page. The latter
   // always lists at least the signed-in DM.
   "/dashboard/dnd5e/account",

@@ -20,6 +20,8 @@ export const RECORD_LINK_DOMAINS = [
   "dhDomainCards",
   "dhClasses",
   "dhSubclasses",
+  "dhAncestries",
+  "dhCommunities",
 ] as const;
 
 type RecordLinkDomain = (typeof RECORD_LINK_DOMAINS)[number];

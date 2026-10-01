@@ -8,6 +8,8 @@ import { fetchFilteredDhDomains } from "@/app/lib/data/dhDomains/fetchFilteredDh
 import { fetchFilteredDhDomainCards } from "@/app/lib/data/dhDomainCards/fetchFilteredDhDomainCards";
 import { fetchFilteredDhClasses } from "@/app/lib/data/dhClasses/fetchFilteredDhClasses";
 import { fetchFilteredDhSubclasses } from "@/app/lib/data/dhSubclasses/fetchFilteredDhSubclasses";
+import { fetchFilteredDhAncestries } from "@/app/lib/data/dhAncestries/fetchFilteredDhAncestries";
+import { fetchFilteredDhCommunities } from "@/app/lib/data/dhCommunities/fetchFilteredDhCommunities";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import isPageInSystem from "@/app/lib/config/isPageInSystem";
 import PageType from "@/app/lib/definitions/types/PageType";
@@ -31,6 +33,8 @@ export const SEARCH_DOMAINS = [
   "dhDomainCards",
   "dhClasses",
   "dhSubclasses",
+  "dhAncestries",
+  "dhCommunities",
 ] as const;
 
 export type SearchDomain = (typeof SEARCH_DOMAINS)[number];
@@ -66,6 +70,8 @@ const emptyResult = (): SearchAllDomainsResult => ({
   dhDomainCards: emptyGroup(),
   dhClasses: emptyGroup(),
   dhSubclasses: emptyGroup(),
+  dhAncestries: emptyGroup(),
+  dhCommunities: emptyGroup(),
 });
 
 /**
@@ -89,6 +95,8 @@ const SEARCH_DOMAIN_PAGE: Record<SearchDomain, PageType | null> = {
   dhDomainCards: PageType.DhDomainCard,
   dhClasses: PageType.DhClass,
   dhSubclasses: PageType.DhSubclass,
+  dhAncestries: PageType.DhAncestry,
+  dhCommunities: PageType.DhCommunity,
 };
 
 /**
@@ -143,6 +151,10 @@ const SEARCHERS: Record<
     (await fetchFilteredDhClasses({ query: term })).map(pickIdName),
   dhSubclasses: async (term) =>
     (await fetchFilteredDhSubclasses({ query: term })).map(pickIdName),
+  dhAncestries: async (term) =>
+    (await fetchFilteredDhAncestries({ query: term })).map(pickIdName),
+  dhCommunities: async (term) =>
+    (await fetchFilteredDhCommunities({ query: term })).map(pickIdName),
 };
 
 const capGroup = (items: SearchResultItem[]): SearchDomainGroup => ({

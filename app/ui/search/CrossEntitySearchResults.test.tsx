@@ -42,6 +42,8 @@ function makeResults(
     dhDomainCards: emptyGroup,
     dhClasses: emptyGroup,
     dhSubclasses: emptyGroup,
+    dhAncestries: emptyGroup,
+    dhCommunities: emptyGroup,
     ...overrides,
   };
 }
@@ -124,6 +126,8 @@ describe("CrossEntitySearchResults (SPEC-011 T2)", () => {
           dhDomainCards: one(31, "Lantern Step"),
           dhClasses: one(7, "Lamplighter"),
           dhSubclasses: one(11, "Lantern Warden"),
+          dhAncestries: one(12, "Lanternkin"),
+          dhCommunities: one(13, "Lanternfolk"),
         })}
       />
     );
@@ -136,6 +140,8 @@ describe("CrossEntitySearchResults (SPEC-011 T2)", () => {
       "dhDomainCards (1)",
       "dhClasses (1)",
       "dhSubclasses (1)",
+      "dhAncestries (1)",
+      "dhCommunities (1)",
     ]);
     expect(screen.getByRole("link", { name: "Lanternfall" })).toHaveAttribute(
       "href",
@@ -152,6 +158,15 @@ describe("CrossEntitySearchResults (SPEC-011 T2)", () => {
     expect(
       screen.getByRole("link", { name: "Lantern Warden" })
     ).toHaveAttribute("href", "/dashboard/dnd5e/subclasses/11");
+    // SPEC-027 T4: no page of their own, so their list, filtered by name.
+    expect(screen.getByRole("link", { name: "Lanternkin" })).toHaveAttribute(
+      "href",
+      "/dashboard/dnd5e/ancestries?query=Lanternkin"
+    );
+    expect(screen.getByRole("link", { name: "Lanternfolk" })).toHaveAttribute(
+      "href",
+      "/dashboard/dnd5e/communities?query=Lanternfolk"
+    );
   });
 
   it("shows a see-all link only when a domain exceeds the cap, pointing at that domain's list page and the term", () => {

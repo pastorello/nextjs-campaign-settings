@@ -1,12 +1,14 @@
 import { test, expect, type Page } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 import messages from "@/messages/it.json";
 
 /**
- * SPEC-027 T3: a Daggerheart community tied to a place and a faction. Its
- * card names both as links, the faction's card under Daggerheart names the
- * community back, and deleting the community leaves the faction. Everything
- * it writes is invented (SPEC-018 §5), and removed in `finally`.
+ * SPEC-027 T3, T4: a Daggerheart community tied to a place and a faction.
+ * Its card names both as links and passes axe, the faction's card under
+ * Daggerheart names the community back, search finds it under Daggerheart
+ * alone, and deleting either side of a link leaves the other. Everything it
+ * writes is invented (SPEC-018 §5), and removed in `finally`.
  */
 const ADMIN = "/dashboard/daggerheart/admin/communities";
 const t = messages.dhCommunities;
@@ -45,16 +47,19 @@ test.describe("Daggerheart communities", () => {
   }) => {
     const stamp = Date.now();
     const faction = `E2E Fazione ${stamp}`;
+    const doomed = `E2E Fazione caduta ${stamp}`;
     const community = `E2E Comunità ${stamp}`;
 
     try {
-      // --- A faction to tie it to ------------------------------------------
-      await page.goto("/dashboard/dnd5e/admin/factions/new");
-      await page.getByLabel(messages.common.fields.name.label).fill(faction);
-      await page
-        .getByRole("button", { name: messages.factions.form.createButton })
-        .click();
-      await page.waitForURL("**/dashboard/dnd5e/admin/factions");
+      // --- Two factions to tie it to; one is deleted below ------------------
+      for (const name of [faction, doomed]) {
+        await page.goto("/dashboard/dnd5e/admin/factions/new");
+        await page.getByLabel(messages.common.fields.name.label).fill(name);
+        await page
+          .getByRole("button", { name: messages.factions.form.createButton })
+          .click();
+        await page.waitForURL("**/dashboard/dnd5e/admin/factions");
+      }
 
       // --- The community ----------------------------------------------------
       await page.goto(`${ADMIN}/new`);
@@ -72,6 +77,7 @@ test.describe("Daggerheart communities", () => {
       await page.keyboard.type("Invented feature text.");
       const place = await pickFrom(page, t.fields.placeIds.label);
       await pickFrom(page, t.fields.factionIds.label, faction);
+      await pickFrom(page, t.fields.factionIds.label, doomed);
       await page.getByRole("button", { name: t.form.createButton }).click();
       await page.waitForURL(`**${ADMIN}`);
 
@@ -83,6 +89,30 @@ test.describe("Daggerheart communities", () => {
       await expect(card.getByText("patient, wry")).toBeVisible();
       await expect(card.getByRole("link", { name: place })).toBeVisible();
       await expect(card.getByRole("link", { name: faction })).toBeVisible();
+      await page.waitForLoadState("networkidle");
+      const axe = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+        .analyze();
+      expect(
+        axe.violations.map((v) => `${v.id} (${v.nodes.length} nodes)`),
+        "axe violations on a community card with its links"
+      ).toEqual([]);
+
+      // --- Search finds it under daggerheart, not under dnd5e (T4) ----------
+      await page.goto(
+        `/dashboard/daggerheart/search?query=${encodeURIComponent(community)}`
+      );
+      await page.getByRole("link", { name: community, exact: true }).click();
+      await page.waitForURL(/\/dashboard\/daggerheart\/communities\?query=/);
+      await expect(page.getByText(community).first()).toBeVisible();
+      await page.goto(
+        `/dashboard/dnd5e/search?query=${encodeURIComponent(community)}`
+      );
+      await expect(
+        page.getByText(
+          messages.search.page.noMatches.replace("{term}", community)
+        )
+      ).toBeVisible();
 
       // --- The faction's card names it back, under Daggerheart only ---------
       await page.goto(
@@ -96,6 +126,14 @@ test.describe("Daggerheart communities", () => {
       await page.getByRole("button", { name: new RegExp(faction) }).click();
       await expect(page.getByRole("link", { name: community })).toHaveCount(0);
 
+      // --- Deleting a faction keeps the community, unlinked ------------------
+      await deleteRow(page, "/dashboard/dnd5e/admin/factions", doomed);
+      await page.goto(
+        `/dashboard/daggerheart/communities?query=${encodeURIComponent(community)}&view=cards`
+      );
+      await expect(card.getByRole("link", { name: faction })).toBeVisible();
+      await expect(card.getByRole("link", { name: doomed })).toHaveCount(0);
+
       // --- Deleting the community keeps the faction -------------------------
       await deleteRow(page, ADMIN, community);
       await page.goto(
@@ -105,6 +143,7 @@ test.describe("Daggerheart communities", () => {
     } finally {
       await deleteRow(page, ADMIN, community);
       await deleteRow(page, "/dashboard/dnd5e/admin/factions", faction);
+      await deleteRow(page, "/dashboard/dnd5e/admin/factions", doomed);
     }
   });
 });

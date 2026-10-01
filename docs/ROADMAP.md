@@ -573,7 +573,8 @@ _2026-09-30: the four slice specs are drafted for the DM's review —
 [SPEC-028](./specs/028-daggerheart-adversaries-and-environments.md),
 [SPEC-029](./specs/029-daggerheart-weapons-armor-and-loot.md),
 [SPEC-030](./specs/030-daggerheart-campaign-management.md). SPEC-030 carries
-the decision SPEC-018 reserved for T8: whether Battle Points are computed. All four were agreed the same day, and Battle Points are computed._
+the decision SPEC-018 reserved for T8: whether Battle Points are computed. All four were agreed the same day, and Battle Points are computed.
+SPEC-027 shipped 2026-10-01._
 
 ---
 

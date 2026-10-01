@@ -34,6 +34,8 @@ const result = (
   dhDomainCards: group(),
   dhClasses: group(),
   dhSubclasses: group(),
+  dhAncestries: group(),
+  dhCommunities: group(),
   ...groups,
 });
 
@@ -93,6 +95,7 @@ describe("RecordLinkPicker", () => {
     searchRecordLinks.mockResolvedValue(
       result({
         dhSubclasses: group({ id: 11, name: "Lantern Warden" }),
+        dhCommunities: group({ id: 13, name: "Lanternfolk" }),
         dhClasses: group({ id: 7, name: "Lamplighter" }),
         places: group({ id: 9, name: "Lantern Hill" }),
       })
@@ -105,9 +108,12 @@ describe("RecordLinkPicker", () => {
       "places",
       "dhClasses",
       "dhSubclasses",
+      "dhCommunities",
     ]);
     fireEvent.click(screen.getByRole("button", { name: "Lamplighter" }));
     expect(onChoose).toHaveBeenCalledWith({ domain: "dhClasses", id: 7 });
+    fireEvent.click(screen.getByRole("button", { name: "Lanternfolk" }));
+    expect(onChoose).toHaveBeenCalledWith({ domain: "dhCommunities", id: 13 });
   });
 
   it("says when nothing matches", async () => {

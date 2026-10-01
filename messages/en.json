@@ -42,7 +42,9 @@
       "dhDomains": "Domains",
       "dhDomainCards": "Domain Cards",
       "dhClasses": "Classes",
-      "dhSubclasses": "Subclasses"
+      "dhSubclasses": "Subclasses",
+      "dhAncestries": "Ancestries",
+      "dhCommunities": "Communities"
     },
     "auth": {
       "loginPrompt": "Please log in to continue.",

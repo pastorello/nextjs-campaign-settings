@@ -2,6 +2,7 @@ import prisma from "@/app/lib/connections/prisma";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import isValidString from "@/app/lib/utils/validators/isValidString";
 import type ZoneOption from "../../definitions/interfaces/maps/ZoneOption";
+import getVisibilityScope from "../visibility/getVisibilityScope";
 
 /**
  * A plain, case-insensitive `zone.title` match (SPEC-011 §7) — the sixth
@@ -26,9 +27,15 @@ export default async function searchPlacesByTitle(
 ): Promise<ZoneOption[]> {
   if (!isValidString(term)) return [];
 
+  // SPEC-022 T8c (R10): a player finds only the places their campaign can
+  // see, or a hidden place's name would turn up in the results.
+  const scope = await getVisibilityScope();
   try {
     return await prisma.zone.findMany({
-      where: { title: { contains: term, mode: "insensitive" } },
+      where: {
+        title: { contains: term, mode: "insensitive" },
+        ...(scope.kind === "campaign" && { id: { in: [...scope.zones] } }),
+      },
       select: { id: true, title: true },
       orderBy: { title: "asc" },
     });

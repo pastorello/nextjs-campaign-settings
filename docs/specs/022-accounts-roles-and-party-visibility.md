@@ -1,6 +1,6 @@
 # SPEC-022: Accounts, roles, and campaign visibility
 
-- **Status:** In progress — T1–T5 shipped 2026-09-30, T6, T7, T8a and T8b 2026-10-01. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
+- **Status:** In progress — T1–T5 shipped 2026-09-30, T6–T8 2026-10-01. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
 - **Date:** 2026-09-22 (rewritten 2026-09-30)
 - **Phase:** 5
 - **Related:** [ADR-0008](../adr/0008-map-image-storage.md) and [ADR-0017](../adr/0017-record-images.md) (their access check is "authenticated", which this spec redefines) · [SPEC-012](./012-publishing-and-internet-exposure.md) (exposure; deferred, and this spec is its prerequisite) · [SPEC-013](./013-campaign-management.md) (the campaign a group belongs to) · [SPEC-004](./004-world-model.md) (the tree visibility inherits down) · [SPEC-011](./011-cross-entity-search.md) (a read path that must learn to filter) · [SPEC-018](./018-game-systems.md) (a campaign has one system) · TD-01 (`requireSession`, the guard this spec extends) · ROADMAP, _Asked for on 2026-08-18, in one batch_
@@ -567,7 +567,7 @@ lists users, and it does not need the layer.
       image, no options menu, a popover without writes, and a 404 for a
       deep link to a missing place. `accounts.spec.ts` now expects a player
       in no campaign to land on the map page's message.
-- [ ] **T8** — Player reads, everything else: R1–R7, R10, R14 (R12 and R13
+- [x] **T8** — Player reads, everything else: R1–R7, R10, R14 (R12 and R13
       shipped with T7), and the DM-only fields stripped. _(test: one per
       path)_ Split in three:
   - [x] **T8a** — R14, the rules catalogues, and the system rule. _Done
@@ -621,7 +621,19 @@ lists users, and it does not need the layer.
     - E2E: `player-records.spec.ts`. A revealed NPC shows in a player's list,
       a hidden one is absent from the page's HTML, and the location is not a
       button.
-  - [ ] **T8c** — R1 and R10: the overview counts and the search.
+  - [x] **T8c** — R1 and R10: the overview counts and the search. _Done
+        2026-10-01._
+    - **R1.** `fetchCardData` counts, for a player, the revealed records,
+      the visible places and every spell. The overview has no prep card to
+      leave out. A player now signs in to it: T7's redirect to the map is
+      gone, and a player whose current campaign plays another system is
+      sent to that system's overview.
+    - **R10.** `searchAllDomains` reads through the list fetchers T8b
+      scoped; `searchPlacesByTitle` searches the visible places alone.
+    - `PLAYER_PAGES` gains the overview and the search. With T8a–c, every
+      dashboard page outside R15 is open to players.
+    - E2E: `player-records.spec.ts` searches for both NPCs and finds only
+      the revealed one; the player specs sign in to the overview.
 - [ ] **T9** — i18n, a11y and an e2e journey. The DM reveals a place and an
       NPC to one of two campaigns, and a player in both switches between them and
       sees each campaign's share. _(test: e2e)_

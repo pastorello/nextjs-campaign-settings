@@ -34,11 +34,20 @@ vi.mock("@/app/lib/connections/prisma", () => ({
   },
 }));
 
+// SPEC-022 T8c: the reader's scope; the DM's unless a test says otherwise.
+const scope = vi.hoisted((): { current: object } => ({
+  current: { kind: "all" },
+}));
+vi.mock("@/app/lib/data/visibility/getVisibilityScope", () => ({
+  default: () => Promise.resolve(scope.current),
+}));
+
 import fetchCardData from "./fetchCardData";
 
 describe("fetchCardData (TD-91)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    scope.current = { kind: "all" };
     transaction.mockImplementation(async (ops: Promise<unknown>[]) =>
       Promise.all(ops)
     );
@@ -82,5 +91,43 @@ describe("fetchCardData (TD-91)", () => {
     transaction.mockRejectedValue(new Error("connection reset"));
 
     await expect(fetchCardData()).rejects.toBeInstanceOf(DatabaseError);
+  });
+});
+
+// SPEC-022 T8c (R1): a player's overview counts their campaign's share.
+describe("fetchCardData for a player", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    scope.current = {
+      kind: "campaign",
+      campaignId: 7,
+      zones: new Set([1, 2]),
+      pois: new Set(),
+    };
+    transaction.mockImplementation(async (ops: Promise<unknown>[]) =>
+      Promise.all(ops)
+    );
+    for (const count of [
+      magicitemsCount,
+      npcCount,
+      spellsCount,
+      deitiesCount,
+      zoneCount,
+      factionCount,
+    ]) {
+      count.mockResolvedValue(0);
+    }
+  });
+
+  it("counts the revealed records, the visible places and every spell", async () => {
+    await fetchCardData();
+
+    const revealed = { where: { revealedTo: { some: { id: 7 } } } };
+    expect(magicitemsCount).toHaveBeenCalledWith(revealed);
+    expect(npcCount).toHaveBeenCalledWith(revealed);
+    expect(deitiesCount).toHaveBeenCalledWith(revealed);
+    expect(factionCount).toHaveBeenCalledWith(revealed);
+    expect(zoneCount).toHaveBeenCalledWith({ where: { id: { in: [1, 2] } } });
+    expect(spellsCount).toHaveBeenCalledWith();
   });
 });

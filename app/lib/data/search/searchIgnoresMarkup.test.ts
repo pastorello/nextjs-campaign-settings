@@ -5,6 +5,11 @@ vi.mock("@/app/lib/connections/prisma", () => ({
   default: { zone: { findMany } },
 }));
 
+// SPEC-022 T8c: the place search reads the reader's scope; the DM's here.
+vi.mock("@/app/lib/data/visibility/getVisibilityScope", () => ({
+  default: () => Promise.resolve({ kind: "all" }),
+}));
+
 import pageMetaFields from "@/app/lib/config/pageMetaFields";
 import queryFields from "@/app/lib/config/queryFields";
 import zoneMeta from "@/app/lib/config/geography/zoneMeta";

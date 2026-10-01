@@ -180,6 +180,8 @@ describe("NavLinks for a player", () => {
     expect(
       screen.getAllByRole("link").map((link) => link.getAttribute("href"))
     ).toEqual([
+      "/dashboard/dnd5e/search",
+      "/dashboard/dnd5e",
       "/dashboard/dnd5e/deities",
       "/dashboard/dnd5e/geography",
       "/dashboard/dnd5e/spells",
@@ -198,6 +200,8 @@ describe("NavLinks for a player", () => {
     expect(
       screen.getAllByRole("link").map((link) => link.getAttribute("href"))
     ).toEqual([
+      "/dashboard/daggerheart/search",
+      "/dashboard/daggerheart",
       "/dashboard/daggerheart/deities",
       "/dashboard/daggerheart/geography",
       "/dashboard/daggerheart/npc",

@@ -69,7 +69,7 @@ test("a player sees the NPCs revealed to their campaign, and not the others", as
   const player = await signedOutPage(browser);
   try {
     await signIn(player, email, password);
-    await expect(player).toHaveURL(/\/dashboard\/dnd5e\/geography/);
+    await expect(player).toHaveURL(/\/dashboard\/dnd5e$/);
 
     const response = await player.goto(
       `/dashboard/dnd5e/npc?query=${encodeURIComponent(`E2E`)}`
@@ -78,6 +78,17 @@ test("a player sees the NPCs revealed to their campaign, and not the others", as
     await expect(player.getByText(shown, { exact: true })).toBeVisible();
     await expect(player.getByText(hidden, { exact: true })).toHaveCount(0);
     expect(await player.content()).not.toContain(hidden);
+
+    // The search finds the one the campaign was shown, and not the other
+    // (R10, T8c).
+    await player.goto(
+      `/dashboard/dnd5e/search?query=${encodeURIComponent(String(stamp))}`
+    );
+    await expect(player.getByText(shown, { exact: true })).toBeVisible();
+    expect(await player.content()).not.toContain(hidden);
+    await player.goto(
+      `/dashboard/dnd5e/npc?query=${encodeURIComponent(`E2E`)}`
+    );
 
     // A player reads where an NPC is; assigning it is the DM's.
     await expect(

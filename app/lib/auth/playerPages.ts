@@ -9,6 +9,10 @@ type DashboardSubpath = Parameters<typeof dashboardPath>[1];
  * player to the 403 page, and the side navigation does not offer it.
  */
 export const PLAYER_PAGES: readonly DashboardSubpath[] = [
+  // The overview and the search (R1, R10, T8c): counts and hits of what
+  // the campaign has been shown.
+  "",
+  "/search",
   "/geography",
   // The shared world's records (R2–R6, T8b), each filtered to what the
   // campaign has been shown.
@@ -27,16 +31,18 @@ export const PLAYER_PAGES: readonly DashboardSubpath[] = [
 
 /**
  * Whether the proxy lets a player through to a dashboard path
- * (`/dashboard/<system>/...`, locale already stripped). The overview is
- * let through too: until T8 opens it, it sends a player on to their
- * campaign's map before reading anything.
+ * (`/dashboard/<system>/...`, locale already stripped).
  */
 export function isPlayerPath(path: string): boolean {
   const afterRoot = path.slice(DASHBOARD_ROOT.length + 1);
   const slash = afterRoot.indexOf("/");
-  const subpath = slash === -1 ? "" : afterRoot.slice(slash);
-  if (subpath === "" || subpath === "/") return true;
-  return PLAYER_PAGES.some(
-    (page) => subpath === page || subpath.startsWith(`${page}/`)
+  const subpath =
+    slash === -1 || slash === afterRoot.length - 1
+      ? ""
+      : afterRoot.slice(slash);
+  return PLAYER_PAGES.some((page) =>
+    page === ""
+      ? subpath === ""
+      : subpath === page || subpath.startsWith(`${page}/`)
   );
 }

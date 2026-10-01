@@ -53,28 +53,38 @@ describe("dashboard overview Page", () => {
     expect(redirect).not.toHaveBeenCalled();
   });
 
-  // SPEC-022 T7: the counts are not a player's until T8 filters them.
-  it("sends a player to their campaign's map, under its system", async () => {
+  // SPEC-022 T8c: a player's overview counts their campaign's share
+  // (`fetchCardData`), under that campaign's system.
+  it("shows a player the overview of the campaign they are viewing", async () => {
     getViewer.mockResolvedValue(
-      player({ id: 4, title: "Rovine", system: "daggerheart" })
+      player({ id: 4, title: "Rovine", system: "dnd5e" })
+    );
+
+    render(await Page(props("dnd5e")));
+
+    expect(screen.getByTestId("card-wrapper")).toBeInTheDocument();
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("sends a player to the system of the campaign they are viewing", async () => {
+    getViewer.mockResolvedValue(
+      player({ id: 4, title: "Marea", system: "daggerheart" })
     );
 
     await expect(Page(props("dnd5e"))).rejects.toThrow("NEXT_REDIRECT");
 
     expect(redirect).toHaveBeenCalledWith({
-      href: "/dashboard/daggerheart/geography",
+      href: "/dashboard/daggerheart",
       locale: "it",
     });
   });
 
-  it("sends a player with no campaign to the map page, which says so", async () => {
+  it("shows a player in no campaign the overview where they are", async () => {
     getViewer.mockResolvedValue(player(null));
 
-    await expect(Page(props("dnd5e"))).rejects.toThrow("NEXT_REDIRECT");
+    render(await Page(props("daggerheart")));
 
-    expect(redirect).toHaveBeenCalledWith({
-      href: "/dashboard/dnd5e/geography",
-      locale: "it",
-    });
+    expect(screen.getByTestId("card-wrapper")).toBeInTheDocument();
+    expect(redirect).not.toHaveBeenCalled();
   });
 });

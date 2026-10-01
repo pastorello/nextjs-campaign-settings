@@ -54,10 +54,14 @@ export async function signIn(page: Page, email: string, password: string) {
   await page.getByRole("button", { name: messages.common.auth.submit }).click();
 }
 
-/** Adds a player to the dnd5e campaign from its page (SPEC-022 T5). */
-export async function addPlayerToCampaign(page: Page, name: string) {
+/** Adds a player to a system's campaign from its page (SPEC-022 T5). */
+export async function addPlayerToCampaign(
+  page: Page,
+  name: string,
+  system: "dnd5e" | "daggerheart" = "dnd5e"
+) {
   const players = messages.campaign.players;
-  await page.goto("/dashboard/dnd5e/campaign");
+  await page.goto(`/dashboard/${system}/campaign`);
   const section = page.getByRole("region", { name: players.title });
   await section.getByRole("button", { name: players.candidate }).click();
   await page.getByRole("option", { name }).click();

@@ -63,7 +63,7 @@ Steps 1–3 are cheap and go in one file. Do not skip straight to 4 for anything
 | 019 | [Formatted text](./019-formatted-text.md)                                                      | Shipped 2026-09-19            | 5     |
 | 020 | [Images on records](./020-record-images.md)                                                    | Shipped 2026-09-19            | 5     |
 | 021 | [Daggerheart: domains, cards, classes, subclasses](./021-daggerheart-domains-and-classes.md)   | Shipped 2026-09-19            | 4     |
-| 022 | [Accounts, roles, and campaign visibility](./022-accounts-roles-and-party-visibility.md)       | Agreed 2026-09-30             | 5     |
+| 022 | [Accounts, roles, and campaign visibility](./022-accounts-roles-and-party-visibility.md)       | Done 2026-10-01               | 5     |
 | 023 | [One question when deleting a place](./023-one-question-when-deleting-a-place.md)              | Shipped 2026-09-24            | 4     |
 | 024 | [Polygon area footprints](./024-polygon-area-footprints.md)                                    | Shipped 2026-09-30            | 4     |
 | 025 | [Typed coordinates for a place](./025-typed-coordinates.md)                                    | Shipped 2026-09-22            | 4     |

@@ -2,6 +2,8 @@ import prisma from "@/app/lib/connections/prisma";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { OptionTableName } from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import { ResolvedOption } from "@/app/lib/definitions/types/SelectOption";
+import getVisibilityScope from "@/app/lib/data/visibility/getVisibilityScope";
+import revealedWhere from "@/app/lib/data/visibility/revealedWhere";
 
 /**
  * Reads a table-backed field's rows and maps them to the shape the metadata
@@ -9,15 +11,33 @@ import { ResolvedOption } from "@/app/lib/definitions/types/SelectOption";
  * `name` is already the display string — content, like `zone.title` — so this
  * skips `resolveOptions`' translator step entirely (ADR-0007's boundary
  * holding, not being bypassed: content has no message key to resolve).
+ *
+ * Under the reader's scope (SPEC-022 T8b, R7): a player is offered only the
+ * places and records their campaign has been shown, the rules catalogues in
+ * full, and none of the DM's prep (treasures, campaigns). Otherwise a
+ * secret place's name would sit in a filter's list.
  */
 export default async function fetchFieldOptions(
   table: OptionTableName
 ): Promise<ResolvedOption<number>[]> {
+  const scope = await getVisibilityScope();
+  // Spread into the four revealed tables' reads: nothing for the DM.
+  const revealed = scope.kind === "campaign" && {
+    where: revealedWhere(scope),
+  };
+  if (
+    scope.kind === "campaign" &&
+    (table === "treasure" || table === "campaign" || table === "dnd5eCampaign")
+  ) {
+    return [];
+  }
+
   switch (table) {
     case "faction": {
       let rows;
       try {
         rows = await prisma.faction.findMany({
+          ...revealed,
           select: { id: true, name: true },
           orderBy: { name: "asc" },
         });
@@ -31,6 +51,9 @@ export default async function fetchFieldOptions(
       let rows;
       try {
         rows = await prisma.zone.findMany({
+          ...(scope.kind === "campaign" && {
+            where: { id: { in: [...scope.zones] } },
+          }),
           select: { id: true, title: true },
           orderBy: { title: "asc" },
         });
@@ -44,6 +67,7 @@ export default async function fetchFieldOptions(
       let rows;
       try {
         rows = await prisma.npc.findMany({
+          ...revealed,
           select: { id: true, name: true },
           orderBy: { name: "asc" },
         });
@@ -57,6 +81,7 @@ export default async function fetchFieldOptions(
       let rows;
       try {
         rows = await prisma.deities.findMany({
+          ...revealed,
           select: { id: true, name: true },
           orderBy: { name: "asc" },
         });
@@ -70,6 +95,7 @@ export default async function fetchFieldOptions(
       let rows;
       try {
         rows = await prisma.magicitems.findMany({
+          ...revealed,
           select: { id: true, name: true },
           orderBy: { name: "asc" },
         });

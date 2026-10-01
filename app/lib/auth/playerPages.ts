@@ -10,6 +10,12 @@ type DashboardSubpath = Parameters<typeof dashboardPath>[1];
  */
 export const PLAYER_PAGES: readonly DashboardSubpath[] = [
   "/geography",
+  // The shared world's records (R2–R6, T8b), each filtered to what the
+  // campaign has been shown.
+  "/deities",
+  "/magicitems",
+  "/npc",
+  "/factions",
   // The rules catalogues (R14, T8): the rules the table plays by, the same
   // for every player, so no filter. Each is a 404 under the other system.
   "/spells",

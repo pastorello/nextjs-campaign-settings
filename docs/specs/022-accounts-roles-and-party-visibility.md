@@ -1,6 +1,6 @@
 # SPEC-022: Accounts, roles, and campaign visibility
 
-- **Status:** In progress — T1–T5 shipped 2026-09-30, T6, T7 and T8a 2026-10-01. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
+- **Status:** In progress — T1–T5 shipped 2026-09-30, T6, T7, T8a and T8b 2026-10-01. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
 - **Date:** 2026-09-22 (rewritten 2026-09-30)
 - **Phase:** 5
 - **Related:** [ADR-0008](../adr/0008-map-image-storage.md) and [ADR-0017](../adr/0017-record-images.md) (their access check is "authenticated", which this spec redefines) · [SPEC-012](./012-publishing-and-internet-exposure.md) (exposure; deferred, and this spec is its prerequisite) · [SPEC-013](./013-campaign-management.md) (the campaign a group belongs to) · [SPEC-004](./004-world-model.md) (the tree visibility inherits down) · [SPEC-011](./011-cross-entity-search.md) (a read path that must learn to filter) · [SPEC-018](./018-game-systems.md) (a campaign has one system) · TD-01 (`requireSession`, the guard this spec extends) · ROADMAP, _Asked for on 2026-08-18, in one batch_
@@ -586,8 +586,41 @@ lists users, and it does not need the layer.
     - E2E: `accounts.spec.ts` (a player in no campaign opens the spells and
       the Daggerheart domains) and `player-map.spec.ts` (a dnd5e player
       opens the spells, and the Daggerheart domains are a 404).
-  - [ ] **T8b** — R2–R7: NPCs, deities, magic items and factions, their
+  - [x] **T8b** — R2–R7: NPCs, deities, magic items and factions, their
         relation labels and filter options, and the DM-only fields stripped.
+        _Done 2026-10-01._
+    - **DM-only is metadata.** `PageMeta.dmOnly` marks `npc.motivations`,
+      `npc.secrets` and the two `revealedTo` fields (which campaigns see a
+      record is the DM's to know). `readerQuery.ts` reads it: for a player a
+      DM-only value is blanked to its default, and it can be neither
+      filtered nor sorted by, since either would be a way to read it.
+    - **The lists and their counts** (`fetchFiltered*`, `get*Count`) take the
+      scope, both from one `readerQueryInput` per domain call. The count's
+      total is taken within `revealedWhere` too, or it would count hidden
+      records.
+    - **R5.** `fetchFactionRosters` names only revealed NPCs, and only for
+      revealed factions: the map reaches the client whole.
+    - **R6.** `fetchDerivedAncestry` keeps only revealed records, and treats a
+      hidden place as no place: a record in a hidden zone reads as
+      "Sconosciuta", one at a hidden landmark as its zone. An NPC's faction
+      the campaign has not been shown reads as none, and filtering by it
+      matches no one (`buildNpcWhere`). No faction "seat" exists yet; R6's
+      mention of it waits for that field.
+    - **The location filter.** `buildLocationWhere` takes the scope: a hidden
+      zone's subtree holds no one, "Sconosciuta" includes records in hidden
+      places, a hidden landmark matches nothing. `fetchZoneDescendantIds` was
+      a DM-guarded Server Action only because a client control imported a
+      constant from its caller; the constant moved to `unknownZoneParam.ts`
+      and the read became server-only, so a player's filter no longer throws.
+    - **R7.** `fetchFieldOptions` offers a player the visible places, the
+      revealed records, the rules catalogues in full, and none of the DM's
+      prep (treasures, campaigns).
+    - **The cards.** `ReadOnlyViewProvider`, set by the dashboard layout,
+      tells shared cards that a player is reading. `AssignLocationButton`
+      then shows the location as plain text.
+    - E2E: `player-records.spec.ts`. A revealed NPC shows in a player's list,
+      a hidden one is absent from the page's HTML, and the location is not a
+      button.
   - [ ] **T8c** — R1 and R10: the overview counts and the search.
 - [ ] **T9** — i18n, a11y and an e2e journey. The DM reveals a place and an
       NPC to one of two campaigns, and a player in both switches between them and

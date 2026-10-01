@@ -4,9 +4,10 @@ import PageType from "@/app/lib/definitions/types/PageType";
 import { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import { entityFieldKeys } from "@/app/lib/data/validation/buildEntitySchema";
 
-// buildLocationWhere's zoneId branch calls requireDm(); mocked so the
-// real next-auth config never loads.
-vi.mock("@/auth", () => ({ auth: vi.fn() }));
+// SPEC-022 T8b: the lists read the reader's scope; the DM's here.
+vi.mock("@/app/lib/data/visibility/getVisibilityScope", () => ({
+  default: () => Promise.resolve({ kind: "all" }),
+}));
 
 // Hoisted: the fetchers below are imported statically, and each reaches the
 // mocked client at import.

@@ -144,7 +144,7 @@ describe("proxy", () => {
     });
 
     it("is rewritten to the 403 page under the dashboard, keeping the URL", async () => {
-      const response = await run("/dashboard/dnd5e/npc");
+      const response = await run("/dashboard/dnd5e/campaign");
 
       expect(response.headers.get("x-middleware-rewrite")).toBe(
         "http://localhost:3000/it/access-denied"
@@ -174,7 +174,7 @@ describe("proxy", () => {
 
     it("rewrites a POST that is not a Server Action", async () => {
       const response = await proxy(
-        new NextRequest("http://localhost:3000/dashboard/dnd5e/npc", {
+        new NextRequest("http://localhost:3000/dashboard/dnd5e/campaign", {
           method: "POST",
         })
       );

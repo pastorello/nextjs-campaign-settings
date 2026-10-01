@@ -1,7 +1,4 @@
-"use server";
-
 import prisma from "@/app/lib/connections/prisma";
-import requireDm from "@/app/lib/auth/requireDm";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
 /**
@@ -11,12 +8,15 @@ import toDatabaseError from "@/app/lib/errors/toDatabaseError";
  * `zone` table in one shot rather than one query per level (§6's edge
  * case: "not one query per level") — the same in-memory-walk approach
  * `deriveEntityAncestry` already uses for the upward walk, just downward.
+ *
+ * Not `"use server"`, like `fetchRootPlace`: only server code calls it, a
+ * guarded mutation (`checkTreePlacement`) and the list filters
+ * (`buildLocationWhere`), which a player reaches since SPEC-022 T8b. It was
+ * a DM-guarded action, which made a player's location filter throw.
  */
 export default async function fetchZoneDescendantIds(
   zoneId: number
 ): Promise<number[]> {
-  await requireDm();
-
   let zones: { id: number; parentId: number | null }[];
   try {
     zones = await prisma.zone.findMany({

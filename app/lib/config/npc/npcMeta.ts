@@ -87,6 +87,8 @@ const npcMeta = {
     labelKey: "npc.fields.motivations.label",
     defaultValue: "",
     metaField: NpcMetaField.motivations,
+    // SPEC-022 §5: what the DM knows and the players do not.
+    dmOnly: true,
     fieldType: FieldType.string,
     controlType: ControlType.RichText,
     placeholderKey: "npc.fields.motivations.placeholder",
@@ -97,6 +99,8 @@ const npcMeta = {
     labelKey: "npc.fields.secrets.label",
     defaultValue: "",
     metaField: NpcMetaField.secrets,
+    // SPEC-022 §5: what the DM knows and the players do not.
+    dmOnly: true,
     fieldType: FieldType.string,
     controlType: ControlType.RichText,
     placeholderKey: "npc.fields.secrets.placeholder",

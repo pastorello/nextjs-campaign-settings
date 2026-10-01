@@ -5,11 +5,10 @@ import { fieldMeta } from "@/app/lib/config/pageMetaFields";
 import { entityFieldKeys } from "@/app/lib/data/validation/buildEntitySchema";
 import DatabaseError from "@/app/lib/errors/DatabaseError";
 
-// fetchFilteredNpc now threads a zoneId/poiId filter (SPEC-008 T6) through
-// buildLocationWhere, which — for the zoneId branch only — calls
-// requireDm(); mocked here so the real next-auth config module never
-// loads, regardless of whether that branch actually runs in a given test.
-vi.mock("@/auth", () => ({ auth: vi.fn() }));
+// SPEC-022 T8b: the DM's scope; the player's has its own suite.
+vi.mock("@/app/lib/data/visibility/getVisibilityScope", () => ({
+  default: () => Promise.resolve({ kind: "all" }),
+}));
 
 const findMany = vi.fn();
 vi.mock("@/app/lib/connections/prisma", () => ({

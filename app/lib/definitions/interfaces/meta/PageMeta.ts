@@ -93,6 +93,14 @@ interface PageMetaBase {
   tall?: boolean;
 
   /**
+   * The DM's alone (SPEC-022 §5): never sent to a player, and a player can
+   * neither filter nor sort by it, or the results would leak it. Declared
+   * here, on the field, so a column added later says whether it is one;
+   * `app/lib/data/visibility/readerQuery.ts` reads it.
+   */
+  dmOnly?: true;
+
+  /**
    * Value → display label, for fields that genuinely format (rich text,
    * booleans, identity). Optional: an option-backed field (`options` set)
    * displays by resolving through those options — see

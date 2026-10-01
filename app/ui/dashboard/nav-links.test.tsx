@@ -179,7 +179,14 @@ describe("NavLinks for a player", () => {
 
     expect(
       screen.getAllByRole("link").map((link) => link.getAttribute("href"))
-    ).toEqual(["/dashboard/dnd5e/geography", "/dashboard/dnd5e/spells"]);
+    ).toEqual([
+      "/dashboard/dnd5e/deities",
+      "/dashboard/dnd5e/geography",
+      "/dashboard/dnd5e/spells",
+      "/dashboard/dnd5e/magicitems",
+      "/dashboard/dnd5e/npc",
+      "/dashboard/dnd5e/factions",
+    ]);
   });
 
   // T8: the rules catalogues, under the system that has them.
@@ -191,7 +198,10 @@ describe("NavLinks for a player", () => {
     expect(
       screen.getAllByRole("link").map((link) => link.getAttribute("href"))
     ).toEqual([
+      "/dashboard/daggerheart/deities",
       "/dashboard/daggerheart/geography",
+      "/dashboard/daggerheart/npc",
+      "/dashboard/daggerheart/factions",
       "/dashboard/daggerheart/domains",
       "/dashboard/daggerheart/domain-cards",
       "/dashboard/daggerheart/classes",

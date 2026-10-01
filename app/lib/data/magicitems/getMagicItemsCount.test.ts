@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
+// SPEC-022 T8b: the DM's scope; the player's has its own suite.
+vi.mock("@/app/lib/data/visibility/getVisibilityScope", () => ({
+  default: () => Promise.resolve({ kind: "all" }),
+}));
+
 const count = vi.fn();
 vi.mock("@/app/lib/connections/prisma", () => ({
   default: { magicitems: { count } },

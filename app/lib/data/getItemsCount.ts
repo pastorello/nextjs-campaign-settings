@@ -3,6 +3,7 @@ import MetaConfigKey from "../definitions/types/MetaConfigKey";
 import { RawSearchParams, SearchParamsInput } from "./validateParams";
 import type { WhereClause } from "../definitions/types/QueryClauses";
 import getQuery from "./getQuery";
+import { andWhere } from "./visibility/readerQuery";
 
 export interface ItemCount {
   total: number;
@@ -13,7 +14,7 @@ export interface ItemCount {
 
 /** The slice of a Prisma model delegate this needs: a `count` that takes a where. */
 interface Countable {
-  count(args?: { where?: WhereClause }): Promise<number>;
+  count(args?: { where?: object }): Promise<number>;
 }
 
 export async function getItemsCount(
@@ -28,7 +29,11 @@ export async function getItemsCount(
   applyWhere?: (
     where: WhereClause,
     rawSearchParams: RawSearchParams
-  ) => Promise<WhereClause>
+  ) => Promise<WhereClause>,
+  // SPEC-022 T8b: the rows the reader may see at all (`revealedWhere`).
+  // Both counts are taken within it: a player's total must not count the
+  // records their campaign has not been shown.
+  scopeWhere: object = {}
 ): Promise<ItemCount> {
   const rawSearchParams = await searchParams;
   const { where: baseWhere } = getQuery(rawSearchParams, enabledMeta);
@@ -36,8 +41,13 @@ export async function getItemsCount(
     ? await applyWhere(baseWhere, rawSearchParams)
     : baseWhere;
 
-  const total = await crudFunction.count();
-  const filtered = await crudFunction.count({ where });
+  const scoped = Object.keys(scopeWhere).length > 0;
+  const total = scoped
+    ? await crudFunction.count({ where: scopeWhere })
+    : await crudFunction.count();
+  const filtered = await crudFunction.count({
+    where: andWhere(where, scopeWhere),
+  });
 
   const result: ItemCount = {
     total,

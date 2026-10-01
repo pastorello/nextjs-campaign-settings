@@ -1,10 +1,16 @@
 import { z } from "zod";
-import queryFields from "@/app/lib/config/queryFields";
 import PageType from "@/app/lib/definitions/types/PageType";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import recordImageKeysInclude from "@/app/lib/data/recordImages/recordImageKeysInclude";
 import revealedToInclude from "@/app/lib/data/visibility/revealedToInclude";
 import withRevealedIds from "@/app/lib/data/visibility/withRevealedIds";
+import getVisibilityScope from "@/app/lib/data/visibility/getVisibilityScope";
+import revealedWhere from "@/app/lib/data/visibility/revealedWhere";
+import {
+  andWhere,
+  forReader,
+  readerQueryInput,
+} from "@/app/lib/data/visibility/readerQuery";
 import DatabaseError from "@/app/lib/errors/DatabaseError";
 import prisma from "../../connections/prisma";
 import getQuery from "../getQuery";
@@ -18,16 +24,23 @@ import applyLocationSort from "../maps/applyLocationSort";
 export async function fetchFilteredDeities(
   searchParams: SearchParamsInput
 ): Promise<Deity[]> {
-  const theParams = await searchParams;
-  const theQuery = getQuery<Prisma.deitiesWhereInput>(
-    theParams,
-    queryFields[PageType.Deity]
+  // SPEC-022 T8b (R3): a player gets the records revealed to their
+  // campaign, without the DM-only fields.
+  const scope = await getVisibilityScope();
+  const { params, fields } = readerQueryInput(
+    PageType.Deity,
+    await searchParams,
+    scope
   );
+  const theQuery = getQuery<Prisma.deitiesWhereInput>(params, fields);
 
   let result;
   try {
     result = await prisma.deities.findMany({
-      where: await buildLocationWhere(theQuery.where, theParams),
+      where: andWhere(
+        await buildLocationWhere(theQuery.where, params, scope),
+        revealedWhere(scope)
+      ),
       orderBy: applyLocationSort(theQuery.orderBy),
       skip: theQuery.skip,
       take: theQuery.take,
@@ -45,5 +58,5 @@ export async function fetchFilteredDeities(
     throw new DatabaseError("validating fetched deities", parsed.error);
   }
 
-  return parsed.data as unknown as Deity[];
+  return forReader(PageType.Deity, parsed.data as unknown as Deity[], scope);
 }

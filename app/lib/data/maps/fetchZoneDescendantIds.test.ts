@@ -1,10 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { auth } from "@/auth";
-import { UnauthorizedError } from "@/app/lib/auth/requireDm";
 import DatabaseError from "@/app/lib/errors/DatabaseError";
-
-vi.mock("@/auth", () => ({ auth: vi.fn() }));
 
 const { findMany } = vi.hoisted(() => ({ findMany: vi.fn() }));
 vi.mock("@/app/lib/connections/prisma", () => ({
@@ -16,18 +12,6 @@ import fetchZoneDescendantIds from "./fetchZoneDescendantIds";
 describe("fetchZoneDescendantIds", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({
-      user: { name: "dm", role: "dm" },
-    } as never);
-  });
-
-  it("rejects an unauthenticated request", async () => {
-    vi.mocked(auth).mockResolvedValue(null as never);
-
-    await expect(fetchZoneDescendantIds(1)).rejects.toBeInstanceOf(
-      UnauthorizedError
-    );
-    expect(findMany).not.toHaveBeenCalled();
   });
 
   it("includes the zone itself when it has no children", async () => {

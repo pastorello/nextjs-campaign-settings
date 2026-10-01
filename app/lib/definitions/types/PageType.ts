@@ -18,6 +18,8 @@ enum PageType {
   // SPEC-028 — the GM-side stat blocks, the DM's alone.
   DhAdversary = "adversaries",
   DhEnvironment = "environments",
+  // SPEC-029 — equipment, under one sidebar group.
+  DhWeapon = "weapons",
 }
 
 export default PageType;

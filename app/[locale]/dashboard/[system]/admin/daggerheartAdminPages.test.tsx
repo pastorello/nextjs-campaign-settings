@@ -31,6 +31,7 @@ const counts = vi.hoisted(() => ({
   getDhCommunitiesCount: vi.fn(),
   getDhAdversariesCount: vi.fn(),
   getDhEnvironmentsCount: vi.fn(),
+  getDhWeaponsCount: vi.fn(),
 }));
 vi.mock("@/app/lib/data/dhDomains/getDhDomainsCount", () => ({
   getDhDomainsCount: counts.getDhDomainsCount,
@@ -55,6 +56,9 @@ vi.mock("@/app/lib/data/dhAdversaries/getDhAdversariesCount", () => ({
 }));
 vi.mock("@/app/lib/data/dhEnvironments/getDhEnvironmentsCount", () => ({
   getDhEnvironmentsCount: counts.getDhEnvironmentsCount,
+}));
+vi.mock("@/app/lib/data/dhWeapons/getDhWeaponsCount", () => ({
+  getDhWeaponsCount: counts.getDhWeaponsCount,
 }));
 const { fetchFieldOptions } = vi.hoisted(() => ({
   fetchFieldOptions: vi.fn(),
@@ -136,6 +140,9 @@ vi.mock("@/app/ui/dhAdversaries/DhAdversaryForm", () => ({
 vi.mock("@/app/ui/dhEnvironments/DhEnvironmentForm", () => ({
   default: formStub("DhEnvironmentForm"),
 }));
+vi.mock("@/app/ui/dhWeapons/DhWeaponForm", () => ({
+  default: formStub("DhWeaponForm"),
+}));
 
 import DomainsLayout from "./domains/layout";
 import DomainCardsLayout from "./domain-cards/layout";
@@ -145,6 +152,7 @@ import AncestriesLayout from "./ancestries/layout";
 import CommunitiesLayout from "./communities/layout";
 import AdversariesLayout from "./adversaries/layout";
 import EnvironmentsLayout from "./environments/layout";
+import WeaponsLayout from "./weapons/layout";
 import DomainsPage, {
   generateMetadata as domainsMetadata,
 } from "./domains/page";
@@ -177,6 +185,10 @@ import EnvironmentsPage, {
   generateMetadata as environmentsMetadata,
 } from "./environments/page";
 import NewEnvironmentPage from "./environments/new/page";
+import WeaponsPage, {
+  generateMetadata as weaponsMetadata,
+} from "./weapons/page";
+import NewWeaponPage from "./weapons/new/page";
 
 describe("the Daggerheart admin layouts (SPEC-021)", () => {
   const layouts = [
@@ -188,6 +200,7 @@ describe("the Daggerheart admin layouts (SPEC-021)", () => {
     ["communities", CommunitiesLayout],
     ["adversaries", AdversariesLayout],
     ["environments", EnvironmentsLayout],
+    ["weapons", WeaponsLayout],
   ] as const;
 
   it.each(layouts)("%s renders under daggerheart only", async (_, Layout) => {
@@ -249,6 +262,7 @@ describe("the Daggerheart admin lists (SPEC-021 T2–T5)", () => {
       counts.getDhEnvironmentsCount,
       PageType.DhEnvironment,
     ],
+    [WeaponsPage, weaponsMetadata, counts.getDhWeaponsCount, PageType.DhWeapon],
   ])(
     "counts, links the new form and lists its rows (%#)",
     async (Page, metadata, count, pageType) => {
@@ -310,6 +324,12 @@ describe("the Daggerheart new-record pages (SPEC-021 T2–T5)", () => {
       () => Promise.resolve(NewAdversaryPage()),
       "",
       "/admin/adversaries",
+    ],
+    [
+      "DhWeaponForm",
+      () => Promise.resolve(NewWeaponPage()),
+      "",
+      "/admin/weapons",
     ],
   ])(
     "%s gets its options and returns to its list on cancel and on save",

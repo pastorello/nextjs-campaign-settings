@@ -13,6 +13,7 @@ import DhAncestryMetaField from "../definitions/enums/daggerheart/DhAncestryMeta
 import DhCommunityMetaField from "../definitions/enums/daggerheart/DhCommunityMetaField";
 import DhAdversaryMetaField from "../definitions/enums/daggerheart/DhAdversaryMetaField";
 import DhEnvironmentMetaField from "../definitions/enums/daggerheart/DhEnvironmentMetaField";
+import DhWeaponMetaField from "../definitions/enums/daggerheart/DhWeaponMetaField";
 
 /**
  * The fields each domain's form holds state for (TD-09).
@@ -199,6 +200,21 @@ const formFields: Record<PageType, MetaConfigKey[]> = {
     DhEnvironmentMetaField.placeIds,
     DhEnvironmentMetaField.origin,
     DhEnvironmentMetaField.imageId,
+  ],
+  [PageType.DhWeapon]: [
+    DhWeaponMetaField.name,
+    DhWeaponMetaField.tier,
+    DhWeaponMetaField.slot,
+    DhWeaponMetaField.trait,
+    DhWeaponMetaField.range,
+    DhWeaponMetaField.damageDie,
+    DhWeaponMetaField.damageBonus,
+    DhWeaponMetaField.damageType,
+    DhWeaponMetaField.burden,
+    DhWeaponMetaField.featureName,
+    DhWeaponMetaField.featureText,
+    DhWeaponMetaField.origin,
+    DhWeaponMetaField.imageId,
   ],
 };
 

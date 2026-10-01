@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next-intl", () => ({
@@ -96,6 +96,29 @@ describe("NavLinks under a system", () => {
       "href",
       "/dashboard/daggerheart/environments"
     );
+  });
+
+  it("groups the equipment under one labelled group (SPEC-029 §5.5)", () => {
+    system = "daggerheart";
+    pathname = "/dashboard/daggerheart";
+    render(<NavLinks />);
+
+    const group = screen.getByRole("group", { name: "dhEquipment" });
+    expect(within(group).getByLabelText("dhWeapons")).toHaveAttribute(
+      "href",
+      "/dashboard/daggerheart/weapons"
+    );
+    expect(within(group).getByLabelText("manage:dhweapons")).toHaveAttribute(
+      "href",
+      "/dashboard/daggerheart/admin/weapons"
+    );
+  });
+
+  it("leaves the equipment group out under dnd5e", () => {
+    pathname = "/dashboard/dnd5e";
+    render(<NavLinks />);
+
+    expect(screen.queryByRole("group")).toBeNull();
   });
 
   it("leaves the Daggerheart catalogues out under dnd5e", () => {
@@ -230,6 +253,8 @@ describe("NavLinks for a player", () => {
       "/dashboard/daggerheart/classes",
       "/dashboard/daggerheart/ancestries",
       "/dashboard/daggerheart/communities",
+      // SPEC-029: the equipment players choose from, in its group.
+      "/dashboard/daggerheart/weapons",
     ]);
   });
 });

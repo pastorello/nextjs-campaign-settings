@@ -26,6 +26,9 @@ import dhAncestryMeta from "./daggerheart/dhAncestryMeta";
 import dhCommunityMeta from "./daggerheart/dhCommunityMeta";
 import dhAdversaryMeta from "./daggerheart/dhAdversaryMeta";
 import dhEnvironmentMeta from "./daggerheart/dhEnvironmentMeta";
+import dhWeaponMeta from "./daggerheart/dhWeaponMeta";
+import dhArmorMeta from "./daggerheart/dhArmorMeta";
+import dhLootMeta from "./daggerheart/dhLootMeta";
 import { dhDifficultyMeta, dhTierMeta } from "./daggerheart/dhSharedStatMetas";
 
 /**
@@ -73,6 +76,9 @@ type DomainMetas = {
   dhCommunity: typeof dhCommunityMeta;
   dhAdversary: typeof dhAdversaryMeta;
   dhEnvironment: typeof dhEnvironmentMeta;
+  dhWeapon: typeof dhWeaponMeta;
+  dhArmor: typeof dhArmorMeta;
+  dhLoot: typeof dhLootMeta;
 };
 
 /**
@@ -188,6 +194,9 @@ const pageMetaFields = {
   ...dhCommunityMeta,
   ...dhAdversaryMeta,
   ...dhEnvironmentMeta,
+  ...dhWeaponMeta,
+  ...dhArmorMeta,
+  ...dhLootMeta,
 } satisfies Record<string, PageMeta>;
 
 /**

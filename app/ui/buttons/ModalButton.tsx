@@ -22,6 +22,7 @@ import DhAncestryForm from "../dhAncestries/DhAncestryForm";
 import DhCommunityForm from "../dhCommunities/DhCommunityForm";
 import DhAdversaryForm from "../dhAdversaries/DhAdversaryForm";
 import DhEnvironmentForm from "../dhEnvironments/DhEnvironmentForm";
+import DhWeaponForm from "../dhWeapons/DhWeaponForm";
 import OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
 interface ModalButtonProps {
@@ -190,6 +191,13 @@ const ModalButton = ({
             <DhEnvironmentForm
               {...componentProps}
               optionBundle={optionBundle}
+              onCancel={closeModal}
+              onSaveFinished={saveFinished}
+            />
+          )}
+          {modalContent === "dhweaponform" && (
+            <DhWeaponForm
+              {...componentProps}
               onCancel={closeModal}
               onSaveFinished={saveFinished}
             />

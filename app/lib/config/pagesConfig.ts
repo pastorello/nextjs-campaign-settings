@@ -15,6 +15,7 @@ import DhAncestryMetaField from "@/app/lib/definitions/enums/daggerheart/DhAnces
 import DhCommunityMetaField from "@/app/lib/definitions/enums/daggerheart/DhCommunityMetaField";
 import DhAdversaryMetaField from "@/app/lib/definitions/enums/daggerheart/DhAdversaryMetaField";
 import DhEnvironmentMetaField from "@/app/lib/definitions/enums/daggerheart/DhEnvironmentMetaField";
+import DhWeaponMetaField from "@/app/lib/definitions/enums/daggerheart/DhWeaponMetaField";
 
 /**
  * Which fields make up each page, in order.
@@ -265,6 +266,26 @@ const pagesConfig: Record<PageType, PageConfig> = {
       DhEnvironmentMetaField.otherAdversaries,
       DhEnvironmentMetaField.placeIds,
       DhEnvironmentMetaField.origin,
+    ],
+    system: "daggerheart",
+  },
+  // SPEC-029 T2. One optional feature, as two fields.
+  [PageType.DhWeapon]: {
+    fields: [
+      "id",
+      "imageId",
+      DhWeaponMetaField.name,
+      DhWeaponMetaField.tier,
+      DhWeaponMetaField.slot,
+      DhWeaponMetaField.trait,
+      DhWeaponMetaField.range,
+      DhWeaponMetaField.damageDie,
+      DhWeaponMetaField.damageBonus,
+      DhWeaponMetaField.damageType,
+      DhWeaponMetaField.burden,
+      DhWeaponMetaField.featureName,
+      DhWeaponMetaField.featureText,
+      DhWeaponMetaField.origin,
     ],
     system: "daggerheart",
   },

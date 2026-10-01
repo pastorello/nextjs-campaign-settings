@@ -29,7 +29,9 @@
       "dhAncestries": "Ascendenze",
       "dhCommunities": "Comunità",
       "dhAdversaries": "Avversari",
-      "dhEnvironments": "Ambienti"
+      "dhEnvironments": "Ambienti",
+      "dhEquipment": "Equipaggiamento",
+      "dhWeapons": "Armi"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -236,7 +238,8 @@
       "adversaryInEnvironments": "{count, plural, one {# ambiente elenca} other {# ambienti elencano}} ancora questo avversario. Toglilo prima da lì.",
       "adversaryExperienceOrderMismatch": "Le esperienze indicate non corrispondono all'elenco attuale dell'avversario.",
       "adversaryFeatureOrderMismatch": "I privilegi indicati non corrispondono all'elenco attuale dell'avversario.",
-      "environmentFeatureOrderMismatch": "I privilegi indicati non corrispondono all'elenco attuale dell'ambiente."
+      "environmentFeatureOrderMismatch": "I privilegi indicati non corrispondono all'elenco attuale dell'ambiente.",
+      "featureNeedsBoth": "Un privilegio ha un nome e un testo, o nessuno dei due."
     },
     "errorPage": {
       "genericTitle": "Qualcosa è andato storto",
@@ -1729,6 +1732,32 @@
       "social": "Sociale",
       "traversal": "Attraversamento",
       "event": "Evento"
+    },
+    "weaponSlots": {
+      "primary": "Primaria",
+      "secondary": "Secondaria"
+    },
+    "lootKinds": {
+      "item": "Oggetto",
+      "consumable": "Consumabile"
+    },
+    "rarities": {
+      "common": "Comune",
+      "uncommon": "Non comune",
+      "rare": "Raro",
+      "legendary": "Leggendario"
+    },
+    "dice": {
+      "d4": "d4",
+      "d6": "d6",
+      "d8": "d8",
+      "d10": "d10",
+      "d12": "d12",
+      "d20": "d20"
+    },
+    "burdens": {
+      "oneHanded": "A una mano",
+      "twoHanded": "A due mani"
     }
   },
   "dhDomains": {
@@ -2128,6 +2157,60 @@
     },
     "world": {
       "title": "Ambienti"
+    }
+  },
+  "dhEquipment": {
+    "fields": {
+      "featureName": {
+        "label": "Privilegio"
+      },
+      "featureText": {
+        "label": "Testo del privilegio"
+      }
+    }
+  },
+  "dhWeapons": {
+    "page": {
+      "title": "Armi",
+      "searchPlaceholder": "Cerca armi...",
+      "itemSingular": "arma",
+      "itemPlural": "armi",
+      "newItemButton": "Nuova arma",
+      "emptyMessage": "Nessuna arma."
+    },
+    "form": {
+      "createTitle": "Crea nuova arma",
+      "editTitle": "Modifica arma",
+      "createButton": "Crea arma",
+      "editButton": "Salva arma"
+    },
+    "fields": {
+      "slot": {
+        "label": "Impugnatura"
+      },
+      "trait": {
+        "label": "Tratto"
+      },
+      "range": {
+        "label": "Gittata"
+      },
+      "damageDie": {
+        "label": "Dado di danno"
+      },
+      "damageBonus": {
+        "label": "Bonus ai danni"
+      },
+      "damageType": {
+        "label": "Tipo di danno"
+      },
+      "burden": {
+        "label": "Carico"
+      }
+    },
+    "card": {
+      "header": "Grado {tier} · {slot}",
+      "damage": "Danni",
+      "imageAlt": "Immagine di {name}"
     }
   },
   "dhStatBlock": {

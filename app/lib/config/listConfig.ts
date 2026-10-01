@@ -12,6 +12,7 @@ import DhAncestryMetaField from "../definitions/enums/daggerheart/DhAncestryMeta
 import DhCommunityMetaField from "../definitions/enums/daggerheart/DhCommunityMetaField";
 import DhAdversaryMetaField from "../definitions/enums/daggerheart/DhAdversaryMetaField";
 import DhEnvironmentMetaField from "../definitions/enums/daggerheart/DhEnvironmentMetaField";
+import DhWeaponMetaField from "../definitions/enums/daggerheart/DhWeaponMetaField";
 import PageType from "../definitions/types/PageType";
 
 /**
@@ -420,6 +421,43 @@ const listConfig: Record<PageType, ListConfig> = {
     emptyMessageKey: "dhEnvironments.page.emptyMessage",
     editModalTitleKey: "dhEnvironments.form.editTitle",
     modalContent: "dhenvironmentform",
+  },
+
+  // SPEC-029 T2. Every §5 filter is a column's header filter.
+  [PageType.DhWeapon]: {
+    columns: [
+      {
+        fieldKey: DhWeaponMetaField.tier,
+        labelKey: "daggerheart.fields.tier.label",
+      },
+      {
+        fieldKey: DhWeaponMetaField.slot,
+        labelKey: "dhWeapons.fields.slot.label",
+      },
+      {
+        fieldKey: DhWeaponMetaField.trait,
+        labelKey: "dhWeapons.fields.trait.label",
+      },
+      {
+        fieldKey: DhWeaponMetaField.range,
+        labelKey: "dhWeapons.fields.range.label",
+      },
+      {
+        fieldKey: DhWeaponMetaField.damageType,
+        labelKey: "dhWeapons.fields.damageType.label",
+      },
+      {
+        fieldKey: DhWeaponMetaField.burden,
+        labelKey: "dhWeapons.fields.burden.label",
+      },
+      {
+        fieldKey: DhWeaponMetaField.origin,
+        labelKey: "daggerheart.fields.origin.label",
+      },
+    ],
+    emptyMessageKey: "dhWeapons.page.emptyMessage",
+    editModalTitleKey: "dhWeapons.form.editTitle",
+    modalContent: "dhweaponform",
   },
 };
 

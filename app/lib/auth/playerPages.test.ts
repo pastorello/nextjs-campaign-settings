@@ -31,6 +31,7 @@ describe("isPlayerPath (SPEC-022 T7)", () => {
     "/dashboard/dnd5e/admin/spells",
     // SPEC-028 §9 decision 3: the GM-side stat blocks.
     "/dashboard/daggerheart/adversaries",
+    "/dashboard/daggerheart/environments",
   ])("refuses a player %s", (path) => {
     expect(isPlayerPath(path)).toBe(false);
   });

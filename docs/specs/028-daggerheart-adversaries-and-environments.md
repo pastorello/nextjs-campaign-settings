@@ -279,11 +279,27 @@ records, and links from a catalogue into `zone`.
   - **E2E:** `daggerheart-adversaries.spec.ts` covers the refusals, the
     inline rows, the stat block with an axe scan, the 404 under 5e, and
     the delete. The a11y scan covers the four new pages.
-- [ ] **T3** — Environments end to end: lists with header filters (tier,
+- [x] **T3** — Environments end to end: lists with header filters (tier,
       type, origin, place), the form with the adversary and place links, the
       inline features, the stat-block card with links to its adversaries, and
       the refused delete of a listed adversary. _(test: links, the refusal;
-      e2e)_
+      e2e)_ _Done 2026-10-01._
+  - **Pages:** `PageType.DhEnvironment`, DM-only like adversaries. The new
+    page loads the `dhAdversary` and `zone` options.
+  - **Links:** the adversary links are rows of `dhEnvironmentAdversary`.
+    They are created on create, and replaced (`deleteMany` + `create`) on an
+    update that carries them. Places `connect`/`set` as a community's do.
+    A missing adversary or place is a field error
+    (`checkDhEnvironmentLinks`).
+  - **Place filter:** a relation filter (`buildDhEnvironmentWhere`).
+  - **Stat block:** `DhEnvironmentStatBlock`. Each adversary links to the
+    adversary list filtered by name in card view, each place to its map.
+    The features' texts and questions resolve their record links in the
+    page's batch.
+  - **E2E:** `daggerheart-environments.spec.ts` covers a minion brought by
+    an environment, a feature with questions, the link to the adversary's
+    block, the adversary's refused and then allowed delete, and the 404
+    under 5e. The a11y scan covers the four new pages.
 - [ ] **T4** — The place popover, search, record links (cut for players),
       i18n, a11y, and the e2e with invented content.
 

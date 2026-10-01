@@ -28,7 +28,8 @@
       "campaignUnavailable": "Non fai più parte di questa campagna.",
       "dhAncestries": "Ascendenze",
       "dhCommunities": "Comunità",
-      "dhAdversaries": "Avversari"
+      "dhAdversaries": "Avversari",
+      "dhEnvironments": "Ambienti"
     },
     "dashboard": {
       "title": "Dashboard"
@@ -2067,6 +2068,54 @@
       "saveButton": "Salva esperienza",
       "moveUp": "Sposta su {name}",
       "moveDown": "Sposta giù {name}"
+    },
+    "features": {
+      "title": "Privilegi",
+      "addButton": "Aggiungi privilegio",
+      "saveButton": "Salva privilegio",
+      "moveUp": "Sposta su {name}",
+      "moveDown": "Sposta giù {name}"
+    }
+  },
+  "dhEnvironments": {
+    "page": {
+      "title": "Ambienti",
+      "searchPlaceholder": "Cerca ambienti...",
+      "itemSingular": "ambiente",
+      "itemPlural": "ambienti",
+      "newItemButton": "Nuovo ambiente",
+      "emptyMessage": "Nessun ambiente."
+    },
+    "form": {
+      "createTitle": "Crea nuovo ambiente",
+      "editTitle": "Modifica ambiente",
+      "createButton": "Crea ambiente",
+      "editButton": "Salva ambiente"
+    },
+    "fields": {
+      "environmentType": {
+        "label": "Tipo"
+      },
+      "impulses": {
+        "label": "Impulsi"
+      },
+      "adversaryIds": {
+        "label": "Avversari potenziali"
+      },
+      "otherAdversaries": {
+        "label": "Altri avversari"
+      },
+      "placeIds": {
+        "label": "Luoghi"
+      }
+    },
+    "statBlock": {
+      "header": "Grado {tier} · {type}",
+      "impulses": "Impulsi",
+      "adversaries": "Avversari potenziali",
+      "places": "Luoghi",
+      "features": "Privilegi",
+      "imageAlt": "Immagine di {name}"
     },
     "features": {
       "title": "Privilegi",

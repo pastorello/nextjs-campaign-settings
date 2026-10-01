@@ -15,6 +15,7 @@ import CampaignLayout from "./campaign/layout";
 import WorldLayout from "./world/layout";
 import TreasuresLayout from "./treasures/layout";
 import AdversariesLayout from "./adversaries/layout";
+import EnvironmentsLayout from "./environments/layout";
 
 // SPEC-022 R15: the sections only the DM sees keep `requireDmPage` as the
 // second layer behind the proxy, now that the dashboard layout lets a
@@ -25,6 +26,7 @@ describe.each([
   ["world", WorldLayout, "dnd5e"],
   ["treasures", TreasuresLayout, "dnd5e"],
   ["adversaries", AdversariesLayout, "daggerheart"],
+  ["environments", EnvironmentsLayout, "daggerheart"],
 ])("the %s layout", (_, Layout, system) => {
   const params = Promise.resolve({ locale: "it", system });
 

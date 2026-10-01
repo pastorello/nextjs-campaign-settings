@@ -30,6 +30,7 @@ const counts = vi.hoisted(() => ({
   getDhAncestriesCount: vi.fn(),
   getDhCommunitiesCount: vi.fn(),
   getDhAdversariesCount: vi.fn(),
+  getDhEnvironmentsCount: vi.fn(),
 }));
 vi.mock("@/app/lib/data/dhDomains/getDhDomainsCount", () => ({
   getDhDomainsCount: counts.getDhDomainsCount,
@@ -51,6 +52,9 @@ vi.mock("@/app/lib/data/dhCommunities/getDhCommunitiesCount", () => ({
 }));
 vi.mock("@/app/lib/data/dhAdversaries/getDhAdversariesCount", () => ({
   getDhAdversariesCount: counts.getDhAdversariesCount,
+}));
+vi.mock("@/app/lib/data/dhEnvironments/getDhEnvironmentsCount", () => ({
+  getDhEnvironmentsCount: counts.getDhEnvironmentsCount,
 }));
 const { fetchFieldOptions } = vi.hoisted(() => ({
   fetchFieldOptions: vi.fn(),
@@ -129,6 +133,9 @@ vi.mock("@/app/ui/dhCommunities/DhCommunityForm", () => ({
 vi.mock("@/app/ui/dhAdversaries/DhAdversaryForm", () => ({
   default: formStub("DhAdversaryForm"),
 }));
+vi.mock("@/app/ui/dhEnvironments/DhEnvironmentForm", () => ({
+  default: formStub("DhEnvironmentForm"),
+}));
 
 import DomainsLayout from "./domains/layout";
 import DomainCardsLayout from "./domain-cards/layout";
@@ -137,6 +144,7 @@ import SubclassesLayout from "./subclasses/layout";
 import AncestriesLayout from "./ancestries/layout";
 import CommunitiesLayout from "./communities/layout";
 import AdversariesLayout from "./adversaries/layout";
+import EnvironmentsLayout from "./environments/layout";
 import DomainsPage, {
   generateMetadata as domainsMetadata,
 } from "./domains/page";
@@ -165,6 +173,10 @@ import AdversariesPage, {
   generateMetadata as adversariesMetadata,
 } from "./adversaries/page";
 import NewAdversaryPage from "./adversaries/new/page";
+import EnvironmentsPage, {
+  generateMetadata as environmentsMetadata,
+} from "./environments/page";
+import NewEnvironmentPage from "./environments/new/page";
 
 describe("the Daggerheart admin layouts (SPEC-021)", () => {
   const layouts = [
@@ -175,6 +187,7 @@ describe("the Daggerheart admin layouts (SPEC-021)", () => {
     ["ancestries", AncestriesLayout],
     ["communities", CommunitiesLayout],
     ["adversaries", AdversariesLayout],
+    ["environments", EnvironmentsLayout],
   ] as const;
 
   it.each(layouts)("%s renders under daggerheart only", async (_, Layout) => {
@@ -229,6 +242,12 @@ describe("the Daggerheart admin lists (SPEC-021 T2–T5)", () => {
       adversariesMetadata,
       counts.getDhAdversariesCount,
       PageType.DhAdversary,
+    ],
+    [
+      EnvironmentsPage,
+      environmentsMetadata,
+      counts.getDhEnvironmentsCount,
+      PageType.DhEnvironment,
     ],
   ])(
     "counts, links the new form and lists its rows (%#)",
@@ -326,6 +345,26 @@ describe("the new-community page (SPEC-027 T3)", () => {
     fireEvent.click(screen.getByRole("button", { name: "cancel" }));
     expect(push).toHaveBeenCalledWith(
       "/dashboard/daggerheart/admin/communities"
+    );
+  });
+});
+
+// SPEC-028 T3: an environment's form offers adversaries and places.
+describe("the new-environment page (SPEC-028 T3)", () => {
+  beforeEach(() => {
+    push.mockReset();
+    fetchFieldOptions.mockReset();
+    fetchFieldOptions.mockResolvedValue([{ value: 1, label: "Aerivel" }]);
+  });
+
+  it("loads the adversary and place options, and returns to its list", async () => {
+    render(await NewEnvironmentPage());
+
+    expect(fetchFieldOptions).toHaveBeenCalledWith("dhAdversary");
+    expect(fetchFieldOptions).toHaveBeenCalledWith("zone");
+    fireEvent.click(screen.getByRole("button", { name: "cancel" }));
+    expect(push).toHaveBeenCalledWith(
+      "/dashboard/daggerheart/admin/environments"
     );
   });
 });

@@ -20,6 +20,7 @@ export type DashboardDomain =
   | "deities"
   | "domain-cards"
   | "domains"
+  | "environments"
   | "factions"
   | "geography"
   | "magicitems"

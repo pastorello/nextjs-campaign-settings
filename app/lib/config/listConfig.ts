@@ -11,6 +11,7 @@ import DhSubclassMetaField from "../definitions/enums/daggerheart/DhSubclassMeta
 import DhAncestryMetaField from "../definitions/enums/daggerheart/DhAncestryMetaField";
 import DhCommunityMetaField from "../definitions/enums/daggerheart/DhCommunityMetaField";
 import DhAdversaryMetaField from "../definitions/enums/daggerheart/DhAdversaryMetaField";
+import DhEnvironmentMetaField from "../definitions/enums/daggerheart/DhEnvironmentMetaField";
 import PageType from "../definitions/types/PageType";
 
 /**
@@ -392,6 +393,33 @@ const listConfig: Record<PageType, ListConfig> = {
     emptyMessageKey: "dhAdversaries.page.emptyMessage",
     editModalTitleKey: "dhAdversaries.form.editTitle",
     modalContent: "dhadversaryform",
+  },
+
+  // SPEC-028 T3. The header filters are §5's tier, type, origin and place;
+  // places filter but cannot sort, being a relation.
+  [PageType.DhEnvironment]: {
+    columns: [
+      {
+        fieldKey: DhEnvironmentMetaField.tier,
+        labelKey: "daggerheart.fields.tier.label",
+      },
+      {
+        fieldKey: DhEnvironmentMetaField.environmentType,
+        labelKey: "dhEnvironments.fields.environmentType.label",
+      },
+      {
+        fieldKey: DhEnvironmentMetaField.placeIds,
+        labelKey: "dhEnvironments.fields.placeIds.label",
+        sortable: false,
+      },
+      {
+        fieldKey: DhEnvironmentMetaField.origin,
+        labelKey: "daggerheart.fields.origin.label",
+      },
+    ],
+    emptyMessageKey: "dhEnvironments.page.emptyMessage",
+    editModalTitleKey: "dhEnvironments.form.editTitle",
+    modalContent: "dhenvironmentform",
   },
 };
 

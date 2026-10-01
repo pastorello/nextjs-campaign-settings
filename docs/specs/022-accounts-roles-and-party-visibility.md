@@ -579,6 +579,11 @@ lists users, and it does not need the layer.
     - The dashboard layout is a 404 for a player under a system none of
       their campaigns plays (§8). A player in no campaign reads the
       catalogues of either system, per §5's edge case.
+    - Signing in lands on the default system's overview, so the proxy sends
+      a player who lands on another system's overview to their own
+      (`playerSystems`: the cookie's campaign, else their first). Without
+      it, a player whose campaigns are all Daggerheart would sign in to a
+      404.
     - E2E: `accounts.spec.ts` (a player in no campaign opens the spells and
       the Daggerheart domains) and `player-map.spec.ts` (a dnd5e player
       opens the spells, and the Daggerheart domains are a 404).

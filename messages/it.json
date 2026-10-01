@@ -719,6 +719,7 @@
       "editZone": "Modifica",
       "remove": "Rimuovi",
       "editLandmark": "Modifica",
+      "reveal": "Rivela…",
       "errors": {
         "loadEntitiesFailed": "Impossibile caricare chi si trova qui. Riprova.",
         "detachFailed": "Impossibile rimuovere il collegamento. Riprova."
@@ -968,6 +969,17 @@
       "vertex": "Vertice {index} di {total}: frecce per spostarlo, Canc per toglierlo",
       "midpoint": "Aggiungi un vertice tra {from} e {to}",
       "centre": "Punto del nome: frecce per spostarlo"
+    },
+    "revealDialog": {
+      "title": "Chi vede «{title}»",
+      "intro": "Una campagna vede questo luogo solo se è rivelato a lei, e lo sono anche tutti i luoghi che lo contengono.",
+      "hiddenBy": "Ancora nascosto da «{place}», che a questa campagna non è rivelato.",
+      "loading": "Caricamento…",
+      "empty": "Nessuna campagna ancora. Creane una dalla pagina della campagna.",
+      "revealed": "Rivelato a {campaign}.",
+      "hidden": "Nascosto a {campaign}.",
+      "failed": "Non è stato possibile cambiare chi vede questo luogo.",
+      "close": "Chiudi"
     }
   },
   "world": {

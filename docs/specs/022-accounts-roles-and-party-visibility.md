@@ -1,6 +1,6 @@
 # SPEC-022: Accounts, roles, and campaign visibility
 
-- **Status:** In progress — T1–T5 shipped 2026-09-30, T6a 2026-10-01. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
+- **Status:** In progress — T1–T5 shipped 2026-09-30, T6 2026-10-01. Agreed the same day: rewritten around the DM's answers, then approved with the last two questions answered (§9).
 - **Date:** 2026-09-22 (rewritten 2026-09-30)
 - **Phase:** 5
 - **Related:** [ADR-0008](../adr/0008-map-image-storage.md) and [ADR-0017](../adr/0017-record-images.md) (their access check is "authenticated", which this spec redefines) · [SPEC-012](./012-publishing-and-internet-exposure.md) (exposure; deferred, and this spec is its prerequisite) · [SPEC-013](./013-campaign-management.md) (the campaign a group belongs to) · [SPEC-004](./004-world-model.md) (the tree visibility inherits down) · [SPEC-011](./011-cross-entity-search.md) (a read path that must learn to filter) · [SPEC-018](./018-game-systems.md) (a campaign has one system) · TD-01 (`requireSession`, the guard this spec extends) · ROADMAP, _Asked for on 2026-08-18, in one batch_
@@ -462,7 +462,7 @@ lists users, and it does not need the layer.
     - E2E: `campaign-players.spec.ts` adds a player and removes them. The
       shared account helpers live in `e2e/helpers/accounts.ts`.
 
-- [ ] **T6** — Reveals. Split in two on 2026-10-01: the records in the
+- [x] **T6** — Reveals. Split in two on 2026-10-01: the records in the
       metadata layer, then the places on the map.
   - [x] **T6a** — The four metadata-layer domains. _Done 2026-10-01._
     - Migration `*_spec022_reveals` creates all six implicit relations
@@ -490,11 +490,31 @@ lists users, and it does not need the layer.
     - E2E: `reveals.spec.ts` reveals an NPC to a campaign from its form,
       checks the admin list shows it, and hides it again. The four domains'
       CRUD specs and the admin a11y scans are green with the new field.
-  - [ ] **T6b** — Places:
-    - the reveal control in the map's place panels (zones and landmarks);
-    - `visiblePlaceIds` and the "hidden by <ancestor>" hint.
+  - [x] **T6b** — Places. _Done 2026-10-01._
+    - **The control is a "Rivela…" entry in the place popover**, for a zone
+      and a landmark alike (`PlaceRevealDialog`), not in the edit panels
+      §10 named. The landmark panel (`MapPOIPanel`) works on the marker's
+      stable client key, not the row id (`CLAUDE.md`, 2026-09-09), while
+      the popover holds the row id for both kinds.
+    - One checkbox per campaign of every system, since places are the
+      shared world. Each tick is its own write (`setPlaceReveal`), applied
+      at once and re-read.
+    - **Inheritance** is `computeVisiblePlaces` in
+      `app/lib/data/visibility/placeTree.ts`. It reads the whole tree once
+      (`fetchPlaceTree`) and walks it in memory:
+      - a zone is visible only if it and every ancestor are revealed;
+      - a landmark is visible only if it is revealed and its zone is visible;
+      - a cycle or a missing parent hides.
 
-    _(test: inheritance)_
+      `visiblePlaceIds(campaignId)` is the helper T7's read paths will ask.
+
+    - The dialog names `hidingAncestor`, the nearest ancestor not revealed to
+      a campaign, under every campaign the place is revealed to but which
+      still cannot see it.
+    - E2E: `place-reveals.spec.ts` covers the whole flow. It reveals a new
+      landmark from its popover, sees the "still hidden by" hint (the E2E
+      root is revealed to no one), hides it again, and runs an axe scan of
+      the dialog.
 
 - [ ] **T7** — Player reads, map: `getViewer`, the campaign cookie and
       selector, and R8, R9, R11. _(test: one per path)_

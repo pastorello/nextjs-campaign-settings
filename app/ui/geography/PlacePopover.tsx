@@ -12,6 +12,7 @@ import PlaceEntityList, {
 import AttachEntityButton from "@/app/ui/geography/AttachEntityButton";
 import RemovePlaceDialog from "@/app/ui/geography/RemovePlaceDialog";
 import RemoveLandmarkDialog from "@/app/ui/geography/RemoveLandmarkDialog";
+import PlaceRevealDialog from "@/app/ui/geography/PlaceRevealDialog";
 import type { NavigableChild } from "@/app/modules/maps/hooks/useNavigableChildren";
 import type { POI } from "@/app/modules/maps/types/poi";
 import type { FocusReturnTarget } from "@/app/modules/maps/lib/utils/keyboardActivation";
@@ -183,6 +184,8 @@ export default function PlacePopover({
   const [isAttachOpen, setIsAttachOpen] = useState(false);
   const [isRemoveOpen, setIsRemoveOpen] = useState(false);
   const [isRemoveLandmarkOpen, setIsRemoveLandmarkOpen] = useState(false);
+  // SPEC-022 T6b: which campaigns see this place.
+  const [isRevealOpen, setIsRevealOpen] = useState(false);
   const [entitiesRefreshKey, setEntitiesRefreshKey] = useState(0);
   const [screenPosition, setScreenPosition] = useState<{
     x: number;
@@ -389,6 +392,18 @@ export default function PlacePopover({
           </>
         )}
 
+        {/* "Rivela…" (SPEC-022 T6b) — which campaigns see this place, for
+            a zone and a landmark alike. Here rather than in the edit
+            panels: the landmark panel works on client keys, not row ids,
+            and the popover holds the row id for both kinds. */}
+        <button
+          type="button"
+          onClick={() => setIsRevealOpen(true)}
+          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+        >
+          {t("reveal")}
+        </button>
+
         {poi && (
           <>
             {/* "Modifica" (T7) — `WorldMap` opens `MapPOIPanel` in edit
@@ -465,6 +480,14 @@ export default function PlacePopover({
           onDeleted={onDeleted}
         />
       )}
+
+      <PlaceRevealDialog
+        kind={target.kind}
+        placeId={target.kind === "zone" ? target.place.id : target.poiId}
+        title={title}
+        isOpen={isRevealOpen}
+        onClose={() => setIsRevealOpen(false)}
+      />
 
       {/* The landmark's own one question (SPEC-023) — same two outcomes as
           the zone's. A landmark is a leaf, so nothing reparents when it

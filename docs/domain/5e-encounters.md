@@ -16,6 +16,7 @@ and §7.
 | Source      | Version                                                                                                                                                                                                                                                                                                                    |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Rules**   | System Reference Document **5.2.1** (the 2024 rules), [PDF](https://media.dndbeyond.com/compendium-images/srd/5.2/SRD_CC_v5.2.1.pdf), 364 pages. Read for this file on 2026-10-02; never committed. §1 is from _Monsters_ ("Experience Points", p. 256); §2–§3 from _Gameplay Toolbox_ ("Combat Encounters", pp. 202–203). |
+| **Italian** | The Italian SRD 5.2.1 ([PDF](https://media.dndbeyond.com/compendium-images/srd/5.2/IT_SRD_CC_v5.2.1.pdf)), the DM's reference copy. Its two tables were compared with this file's on 2026-10-02 and match. It names the grades **Facile, Media, Difficile**, CR **GS** and XP **PE**.                                      |
 | **Licence** | Creative Commons Attribution 4.0 International ([CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/legalcode)). The attribution statement is below and in the repository's [`NOTICE.md`](../../NOTICE.md).                                                                                                            |
 
 **Re-check when the SRD changes.** Every number in this file was read from
@@ -112,7 +113,8 @@ The SRD's method is a **builder**: pick a grade, then spend up to it. Reading it
 backwards — given a fight, which grade is it? — is the app's use (SPEC-031 §5.B)
 and is our derivation, not an SRD rule: a fight's total XP at or under the low
 budget is low, over low up to moderate is moderate, over moderate up to high is
-high, and over high is beyond the table. 5.2.1 applies no multiplier for the
+high, and over high is beyond the table (the app calls it _Letale_ / _Deadly_;
+SPEC-031 §9, the DM's third answer). 5.2.1 applies no multiplier for the
 number of creatures, so a fight's XP is the plain sum.
 
 Worked example (numbers only): four level-1 characters have a low budget of

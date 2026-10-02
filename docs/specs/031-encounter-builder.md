@@ -110,7 +110,10 @@ without changing what is saved.
    - the fight's XP: XP each × the counted quantity, over the counted rows;
    - the party's low, moderate and high budgets: the party size (§5.C) × the
      SRD 5.2.1 per-character budget at the adventure's target level;
-   - the band the XP falls in: below low, low, moderate, high, above high.
+   - the band the XP falls in: low, moderate, high, above high — the
+     smallest budget the XP stays within, or above the high one. _(2026-10-02:
+     this said five bands, "below low" first; the SRD's three grades only
+     support four, and the DM chose them — §9, third answer.)_
 6. **Daggerheart fight scenes** keep SPEC-030's Battle Points summary, read
    with the party size and counts of §5.C.
 7. Other scene kinds show no summary; their rows keep their CR and XP.
@@ -228,6 +231,16 @@ model sceneCreature {
    either way; the NPC also has a link to its description in the app, which
    a monster does not.
 
+**The DM's third answer (2026-10-02), on the bands**
+
+The DM named four bands — "facile, medio, difficile e letale" — and, asked
+whether that meant the 2014 DMG's thresholds, chose **SRD 5.2.1 (2024 rules)**
+as the project's 5e reference from now on. The Italian SRD's own names for
+the three grades are **Facile, Media, Difficile**, so the DM's four are those
+three plus a band above Difficile, which the UI calls _Letale (oltre
+Difficile)_ / _Deadly (above High)_. The 2014 DMG's thresholds and group
+multiplier are in no SRD and stay out.
+
 **Choices Claude made in reading the second answers (agreed with the plan)**
 
 - "The number of characters in the group" is the campaign's **"Numero di
@@ -281,7 +294,7 @@ session, and the two tables were read from its extracted text, cell by cell._
 - [x] **T1** — `docs/domain/5e-encounters.md` from the SRD 5.2.1 text and the attribution statement; dated notes in SPEC-013 §3 and `campaign-design-method.md` §6. _(This spec's agreement landed first, 2026-10-01; the domain file waits on the SRD text — §9.)_
 - [x] **T2** — Schema and migration for `statsUrl` and `challengeRating`; meta, per-system rule, create/update actions, fetch. _(test: refused links; a Daggerheart CR refused; round trip)_ _(Done 2026-10-02. A blank link or CR is `""` in the metadata layer, whose string validators cannot output `null`, and the write turns it into `null` with `blankToNull`; the CR list is spelled out in `app/lib/config/dnd5e/challengeRatings.ts`, and a migration test keeps the CHECK equal to it.)_
 - [x] **T3** — The form and the row: CR filling XP, the statistics and NPC links, the CR shown. _(test: CR fills XP; a typed XP survives; the links render as anchors)_ _(Done 2026-10-02. The fill rule is `followChallengeRating`: the XP follows the CR while it is blank or still the previous CR's suggestion, so removing the CR, or picking CR 0, clears an untouched XP. `encounterBudget.ts` holds the CR-to-XP table so far; T4 adds the budget table.)_
-- [ ] **T4** — `encounterBudget.ts`, `encounterDifficulty`, `EncounterSummary`, and the on-the-fly layer (party select, Exclude/Include, −/+, Reset) under both systems. _(test: XP, budgets by level and party size, bands, rows with no XP, clamping; the hook with `localStorage` missing or throwing, reset and pruning)_
+- [x] **T4** — `encounterBudget.ts`, `encounterDifficulty`, `EncounterSummary`, and the on-the-fly layer (party select, Exclude/Include, −/+, Reset) under both systems. _(test: XP, budgets by level and party size, bands, rows with no XP, clamping; the hook with `localStorage` missing or throwing, reset and pruning)_ _(Done 2026-10-02. The store keeps a write that `localStorage` refuses in memory, so the controls still work for the visit and nothing is kept; the page's party size reaches the rows' Battle Points and both summaries through `EncounterAdjustmentsProvider`, and components outside it price from their props as before.)_
 - [ ] **T5** — i18n, a11y, an e2e journey with invented content (a 5e fight, the band, a changed party size surviving a reload, an excluded creature, Reset); close the spec, ROADMAP and PROJECT_STATE.
 
 ## 11. Outcome

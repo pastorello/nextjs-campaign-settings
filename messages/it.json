@@ -1320,7 +1320,12 @@
       "moveUp": "Sposta \"{title}\" in alto",
       "moveDown": "Sposta \"{title}\" in basso"
     },
-    "tier": "Grado {tier}"
+    "tier": "Grado {tier}",
+    "partySize": {
+      "label": "Numero di personaggi",
+      "defaultHint": "Dal gruppo: {count}. Le modifiche restano solo in questo browser.",
+      "reset": "Ripristina"
+    }
   },
   "scene": {
     "fields": {
@@ -1386,6 +1391,20 @@
       "over": "{points} oltre il budget",
       "unpriced": "{count, plural, one {# riga senza costo: nessun avversario collegato} other {# righe senza costo: nessun avversario collegato}}",
       "lowerTierSuggestion": "Un avversario è di un grado inferiore a quello dell'avventura: valuta l'aggiustamento +1."
+    },
+    "encounter": {
+      "summary": "PE: {xp} · Facile {low} · Media {moderate} · Difficile {high}",
+      "difficulty": "Difficoltà: {band}",
+      "noBand": "Nessuna creatura con PE conteggiata",
+      "bands": {
+        "low": "Facile",
+        "moderate": "Media",
+        "high": "Difficile",
+        "aboveHigh": "Letale (oltre Difficile)"
+      },
+      "unpriced": "{count, plural, one {# riga senza PE: non conteggiata} other {# righe senza PE: non conteggiate}}",
+      "reset": "Ripristina il conteggio",
+      "resetLabel": "Ripristina il conteggio delle creature di \"{title}\""
     }
   },
   "sceneCreature": {
@@ -1445,6 +1464,16 @@
     },
     "checkOff": {
       "label": "Assegnato"
+    },
+    "adjust": {
+      "exclude": "Escludi",
+      "include": "Includi",
+      "excludeLabel": "Escludi \"{name}\" dal conteggio",
+      "includeLabel": "Includi \"{name}\" nel conteggio",
+      "decreaseLabel": "Conta un \"{name}\" in meno",
+      "increaseLabel": "Conta un \"{name}\" in più",
+      "counted": "contati {counted} di {stored}",
+      "excluded": "escluso dal conteggio"
     }
   },
   "loot": {

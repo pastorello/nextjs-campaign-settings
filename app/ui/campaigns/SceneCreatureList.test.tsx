@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { SceneCreatureWithAdversary } from "@/app/lib/data/campaigns/fetchAdventureWithScenes";
 
@@ -43,6 +43,7 @@ vi.mock("@/app/lib/notifications/notify", () => ({
 vi.mock("./SceneCreatureForm", () => ({ default: () => null }));
 
 import SceneCreatureList from "./SceneCreatureList";
+import EncounterAdjustmentsProvider from "./EncounterAdjustmentsProvider";
 
 // Invented content only (SPEC-018 §5).
 const row = (
@@ -124,5 +125,79 @@ describe("SceneCreatureList — statistics, NPC page and CR (SPEC-031 T3)", () =
     expect(
       screen.getByRole("link", { name: /sceneCreature\.list\.statsLinkLabel/ })
     ).toBeInTheDocument();
+  });
+});
+
+describe("SceneCreatureList — counting on the fly (SPEC-031 T4)", () => {
+  beforeEach(() => window.localStorage.clear());
+
+  const renderFight = (
+    creatures: SceneCreatureWithAdversary[],
+    { isFight = true, partySize = 4 } = {}
+  ) =>
+    render(
+      <EncounterAdjustmentsProvider
+        adventureId={11}
+        defaultPartySize={partySize}
+        creatureIds={creatures.map((creature) => creature.id)}
+      >
+        <SceneCreatureList
+          sceneId={3}
+          creatures={creatures}
+          rulesSystem="daggerheart"
+          npcOptions={[]}
+          partySize={partySize}
+          isFight={isFight}
+        />
+      </EncounterAdjustmentsProvider>
+    );
+
+  const button = (key: string) =>
+    screen.getByRole("button", { name: new RegExp(`^${key}`) });
+
+  it("counts a row fewer times, and prices its Battle Points with that count", () => {
+    renderFight([
+      row({
+        quantity: 3,
+        dhAdversary: { name: "Ash bruiser", adversaryType: "bruiser", tier: 1 },
+      }),
+    ]);
+    expect(
+      screen.getByText(/sceneCreature\.list\.battlePoints/).textContent
+    ).toMatch(/: 12$/);
+
+    fireEvent.click(button("sceneCreature.adjust.decreaseLabel"));
+
+    expect(
+      screen.getByText('sceneCreature.adjust.counted {"counted":2,"stored":3}')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/sceneCreature\.list\.battlePoints/).textContent
+    ).toMatch(/: 8$/);
+    // The stored quantity is still what the row says.
+    expect(screen.getByText("×3")).toBeInTheDocument();
+  });
+
+  it("never counts a row fewer than once; Exclude covers zero", () => {
+    renderFight([row({ quantity: 1 })]);
+
+    expect(button("sceneCreature.adjust.decreaseLabel")).toBeDisabled();
+
+    fireEvent.click(button("sceneCreature.adjust.excludeLabel"));
+    expect(
+      screen.getByText("sceneCreature.adjust.excluded")
+    ).toBeInTheDocument();
+    fireEvent.click(button("sceneCreature.adjust.includeLabel"));
+    expect(
+      screen.queryByText("sceneCreature.adjust.excluded")
+    ).not.toBeInTheDocument();
+  });
+
+  it("offers no count controls outside a fight", () => {
+    renderFight([row({})], { isFight: false });
+
+    expect(
+      screen.queryByRole("button", { name: /sceneCreature\.adjust/ })
+    ).not.toBeInTheDocument();
   });
 });

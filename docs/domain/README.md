@@ -49,9 +49,10 @@ depends on; the domain files describe no product decisions.
 
 ## Files
 
-| File                                                       | Covers                                                                                                                                                            |
-| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`calendar.md`](./calendar.md)                             | The world's calendar — universal day numbers, the 365-day year, the unbroken week, the 28-day moon and the thirteen-sign zodiac table (SPEC-014)                  |
-| [`campaign-design-method.md`](./campaign-design-method.md) | How the DM designs and runs a campaign: adventures per level, scene kinds, pacing budgets, what is system-specific                                                |
-| [`daggerheart.md`](./daggerheart.md)                       | Daggerheart's mechanics — Duality Dice, Hope and Fear, tiers and levels, thresholds, Battle Points, gold — restated from SRD 2.0, with the SRD and DPCGL versions |
-| [`licensing.md`](./licensing.md)                           | What the SRD/CC-BY (5e), ORC and Paizo policies (PF2) and the DPCGL (Daggerheart) allow the app to hold, ship and publish                                         |
+| File                                                       | Covers                                                                                                                                                                                                  |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`calendar.md`](./calendar.md)                             | The world's calendar — universal day numbers, the 365-day year, the unbroken week, the 28-day moon and the thirteen-sign zodiac table (SPEC-014)                                                        |
+| [`campaign-design-method.md`](./campaign-design-method.md) | How the DM designs and runs a campaign: adventures per level, scene kinds, pacing budgets, what is system-specific                                                                                      |
+| [`daggerheart.md`](./daggerheart.md)                       | Daggerheart's mechanics — Duality Dice, Hope and Fear, tiers and levels, thresholds, Battle Points, gold — restated from SRD 2.0, with the SRD and DPCGL versions                                       |
+| [`licensing.md`](./licensing.md)                           | What the SRD/CC-BY (5e), ORC and Paizo policies (PF2) and the DPCGL (Daggerheart) allow the app to hold, ship and publish                                                                               |
+| [`pathfinder2.md`](./pathfinder2.md)                       | Pathfinder 2e's mechanics skeleton — three-action economy, degrees of success, levels, rarity, XP budgets — with the Golarion Insider wiki as terminology reference; figures marked `verify` until read |

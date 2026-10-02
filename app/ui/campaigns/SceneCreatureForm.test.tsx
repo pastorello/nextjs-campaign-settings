@@ -174,4 +174,78 @@ describe("SceneCreatureForm (SPEC-013 T8)", () => {
       screen.getByLabelText("sceneCreature.fields.name.label")
     ).toHaveValue("Old Grey");
   });
+
+  describe("challenge rating and statistics link (SPEC-031 T3)", () => {
+    const crSelect = () =>
+      screen.getByLabelText("sceneCreature.fields.challengeRating.label");
+    const xpInput = () =>
+      screen.getByLabelText("sceneCreature.fields.xpEach.label");
+
+    const renderForm = (rulesSystem: "dnd5e" | "daggerheart" = "dnd5e") =>
+      render(
+        <SceneCreatureForm
+          rulesSystem={rulesSystem}
+          sceneId={3}
+          nextPosition={1}
+          npcOptions={[]}
+          onCancel={onCancel}
+          onSaved={onSaved}
+        />
+      );
+
+    it("fills XP from the CR, and follows the CR while XP is untouched", () => {
+      renderForm();
+
+      fireEvent.change(crSelect(), { target: { value: "2" } });
+      expect(xpInput()).toHaveValue("450");
+
+      fireEvent.change(crSelect(), { target: { value: "1/4" } });
+      expect(xpInput()).toHaveValue("50");
+    });
+
+    it("keeps an XP the DM typed when the CR changes", () => {
+      renderForm();
+
+      fireEvent.change(xpInput(), { target: { value: "300" } });
+      fireEvent.change(crSelect(), { target: { value: "3" } });
+
+      expect(xpInput()).toHaveValue("300");
+    });
+
+    it("sends the CR and the link with the row", async () => {
+      createSceneCreature.mockResolvedValue({ ok: true });
+      renderForm();
+
+      fireEvent.change(
+        screen.getByLabelText("sceneCreature.fields.name.label"),
+        { target: { value: "Lantern wraith" } }
+      );
+      fireEvent.change(crSelect(), { target: { value: "1/2" } });
+      fireEvent.change(
+        screen.getByLabelText("sceneCreature.fields.statsUrl.label"),
+        { target: { value: "https://example.com/bestiary/wraith" } }
+      );
+      fireEvent.click(screen.getByText("sceneCreature.form.createButton"));
+
+      await vi.waitFor(() => expect(createSceneCreature).toHaveBeenCalled());
+      expect(createSceneCreature).toHaveBeenCalledWith(
+        expect.objectContaining({
+          challengeRating: "1/2",
+          xpEach: 100,
+          statsUrl: "https://example.com/bestiary/wraith",
+        })
+      );
+    });
+
+    it("gives a Daggerheart row the link but no CR", () => {
+      renderForm("daggerheart");
+
+      expect(
+        screen.queryByLabelText("sceneCreature.fields.challengeRating.label")
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByLabelText("sceneCreature.fields.statsUrl.label")
+      ).toBeInTheDocument();
+    });
+  });
 });

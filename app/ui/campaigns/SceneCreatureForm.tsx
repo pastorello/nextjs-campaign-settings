@@ -18,6 +18,11 @@ import BaseButton from "@/app/ui/buttons/BaseButton";
 import ButtonVariant from "@/app/ui/buttons/BaseButton/ButtonVariant";
 import ButtonState from "@/app/ui/buttons/BaseButton/ButtonState";
 import type GameSystem from "@/app/lib/definitions/GameSystem";
+import {
+  type ChallengeRating,
+  isChallengeRating,
+} from "@/app/lib/config/dnd5e/challengeRatings";
+import followChallengeRating from "@/app/lib/utils/dnd5e/followChallengeRating";
 
 const NONE = 0;
 
@@ -41,6 +46,10 @@ interface SceneCreatureFormProps {
  *
  * Under Daggerheart the adversary takes level's and XP's place, through the
  * same sentinel; picking one names a still-unnamed row after it.
+ *
+ * SPEC-031: a 5e row's challenge rating fills its XP while the XP is blank
+ * or still the previous CR's (`followChallengeRating`); a typed XP wins.
+ * Every row, under either system, takes a statistics link.
  */
 export default function SceneCreatureForm({
   rulesSystem = "dnd5e",
@@ -67,6 +76,10 @@ export default function SceneCreatureForm({
       ? ""
       : String(creature.xpEach)
   );
+  const [challengeRating, setChallengeRating] = useState<ChallengeRating | "">(
+    creature?.challengeRating ?? ""
+  );
+  const [statsUrl, setStatsUrl] = useState(creature?.statsUrl ?? "");
   const [quantity, setQuantity] = useState(String(creature?.quantity ?? 1));
   const [note, setNote] = useState(creature?.note ?? "");
   const [npcId, setNpcId] = useState<number>(creature?.npcId ?? NONE);
@@ -84,6 +97,27 @@ export default function SceneCreatureForm({
     { value: NONE, label: t("sceneCreature.fields.dhAdversaryId.noneOption") },
     ...adversaryOptions,
   ];
+
+  const challengeRatingMeta =
+    sceneCreatureMeta[SceneCreatureMetaField.challengeRating];
+  const challengeRatingOptions = [
+    {
+      value: "",
+      label: t("sceneCreature.fields.challengeRating.noneOption"),
+    },
+    ...challengeRatingMeta.options.map((option) => ({
+      value: option.value,
+      label: t(option.labelKey),
+    })),
+  ];
+
+  function chooseChallengeRating(value: string) {
+    const next = isChallengeRating(value) ? value : "";
+    setXpEach((current) =>
+      followChallengeRating(current, challengeRating, next)
+    );
+    setChallengeRating(next);
+  }
 
   function chooseAdversary(id: number) {
     setDhAdversaryId(id);
@@ -103,7 +137,9 @@ export default function SceneCreatureForm({
         : {
             level: level.trim() === "" ? null : Number(level),
             xpEach: xpEach.trim() === "" ? null : Number(xpEach),
+            challengeRating: challengeRating === "" ? null : challengeRating,
           }),
+      statsUrl,
       quantity: Number(quantity),
       note: note.trim() === "" ? null : note,
       npcId: npcId === NONE ? null : npcId,
@@ -137,6 +173,12 @@ export default function SceneCreatureForm({
         />
       ) : (
         <>
+          <Select
+            label={t(challengeRatingMeta.labelKey)}
+            value={challengeRating}
+            options={challengeRatingOptions}
+            onChange={(value) => chooseChallengeRating(String(value))}
+          />
           <TextInput
             label={t(
               sceneCreatureMeta[SceneCreatureMetaField.level].labelKey ?? ""
@@ -159,6 +201,13 @@ export default function SceneCreatureForm({
         )}
         value={quantity}
         onChange={(value) => setQuantity(String(value))}
+      />
+      <TextInput
+        label={t(
+          sceneCreatureMeta[SceneCreatureMetaField.statsUrl].labelKey ?? ""
+        )}
+        value={statsUrl}
+        onChange={(value) => setStatsUrl(String(value))}
       />
       <TextInput
         label={t(sceneCreatureMeta[SceneCreatureMetaField.note].labelKey ?? "")}

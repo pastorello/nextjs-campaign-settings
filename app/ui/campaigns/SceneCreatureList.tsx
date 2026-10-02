@@ -3,13 +3,15 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import reorderSceneCreatures from "@/app/lib/data/campaigns/reorderSceneCreatures";
 import deleteSceneCreatureById from "@/app/lib/data/campaigns/deleteSceneCreatureById";
 import setSceneCreatureAwarded from "@/app/lib/data/campaigns/setSceneCreatureAwarded";
 import { SceneCreatureWithAdversary } from "@/app/lib/data/campaigns/fetchAdventureWithScenes";
 import { rowBattlePoints } from "@/app/lib/utils/daggerheart/battlePoints";
 import type GameSystem from "@/app/lib/definitions/GameSystem";
+import useGameSystem from "@/app/lib/hooks/useGameSystem";
+import recordHref from "@/app/lib/utils/search/recordHref";
 import { ResolvedOption } from "@/app/lib/definitions/types/SelectOption";
 import { notifyError, notifySuccess } from "@/app/lib/notifications/notify";
 import Modal from "@/app/ui/components/Modal";
@@ -42,6 +44,11 @@ interface SceneCreatureListProps {
  * Under Daggerheart (SPEC-030 T3) a row shows its Battle Points instead, and
  * no check-off: its only effect is the XP found, which Daggerheart has none
  * of.
+ *
+ * SPEC-031: a 5e row shows its challenge rating; any row shows its
+ * statistics link, opening in a new tab, and a row linked to an NPC links
+ * to the NPC's page. The link is validated `http`/`https` on write and
+ * rendered as a plain `href`, never as markup.
  */
 export default function SceneCreatureList({
   rulesSystem = "dnd5e",
@@ -54,6 +61,12 @@ export default function SceneCreatureList({
   const t = useTranslations();
   const isDaggerheart = rulesSystem === "daggerheart";
   const router = useRouter();
+  // The dashboard the page is under, which an NPC's page link stays in.
+  const dashboardSystem = useGameSystem();
+
+  function npcName(npcId: number) {
+    return npcOptions.find((option) => option.value === npcId)?.label;
+  }
 
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -158,6 +171,12 @@ export default function SceneCreatureList({
                   <span className="ml-2 text-gray-600">
                     ×{creature.quantity}
                   </span>
+                  {!isDaggerheart && creature.challengeRating && (
+                    <span className="ml-2 text-gray-600">
+                      {t("sceneCreature.list.challengeRating")}{" "}
+                      {creature.challengeRating}
+                    </span>
+                  )}
                   {isDaggerheart ? (
                     <span className="ml-2 text-gray-600">
                       {t("sceneCreature.list.battlePoints")}:{" "}
@@ -183,6 +202,37 @@ export default function SceneCreatureList({
                         />
                       </div>
                     </>
+                  )}
+                  {(creature.statsUrl || creature.npcId !== null) && (
+                    <div className="mt-1 flex flex-wrap gap-3">
+                      {creature.statsUrl && (
+                        <a
+                          href={creature.statsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={t("sceneCreature.list.statsLinkLabel", {
+                            name: creature.name,
+                          })}
+                          className="text-blue-600 hover:underline"
+                        >
+                          {t("sceneCreature.list.statsLink")}
+                        </a>
+                      )}
+                      {creature.npcId !== null && (
+                        <Link
+                          href={recordHref(dashboardSystem, "npc", {
+                            id: creature.npcId,
+                            name: npcName(creature.npcId) ?? creature.name,
+                          })}
+                          aria-label={t("sceneCreature.list.npcLinkLabel", {
+                            name: npcName(creature.npcId) ?? creature.name,
+                          })}
+                          className="text-blue-600 hover:underline"
+                        >
+                          {t("sceneCreature.list.npcLink")}
+                        </Link>
+                      )}
+                    </div>
                   )}
                 </div>
                 <div className="flex items-center gap-1">

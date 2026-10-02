@@ -189,7 +189,7 @@ export default function SceneCreatureList({
                     ×{creature.quantity}
                   </span>
                   {!isDaggerheart && creature.challengeRating && (
-                    <span className="ml-2 text-gray-600">
+                    <span className="ml-2 whitespace-nowrap text-gray-600">
                       {t("sceneCreature.list.challengeRating")}{" "}
                       {creature.challengeRating}
                     </span>

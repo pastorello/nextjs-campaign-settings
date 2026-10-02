@@ -8,6 +8,7 @@ import SceneCreature from "@/app/lib/definitions/interfaces/campaign/SceneCreatu
 import Loot from "@/app/lib/definitions/interfaces/campaign/Loot";
 import GameSystem, { isGameSystem } from "@/app/lib/definitions/GameSystem";
 import { PricedAdversary } from "@/app/lib/utils/daggerheart/battlePoints";
+import { isChallengeRating } from "@/app/lib/config/dnd5e/challengeRatings";
 
 /** A creature row with the adversary its Battle Points come from (SPEC-030 T3). */
 export interface SceneCreatureWithAdversary extends SceneCreature {
@@ -109,6 +110,8 @@ export default async function fetchAdventureWithScenes(
                 awarded: true,
                 npcId: true,
                 dhAdversaryId: true,
+                statsUrl: true,
+                challengeRating: true,
                 dhAdversary: {
                   select: { name: true, adversaryType: true, tier: true },
                 },
@@ -166,6 +169,14 @@ export default async function fetchAdventureWithScenes(
     scenes: row.scenes.map((scene) => ({
       ...scene,
       kind: scene.kind as SceneKind,
+      // A raw `String` column, held to `CHALLENGE_RATINGS` by its CHECK
+      // (SPEC-031); narrowed here rather than asserted.
+      creatures: scene.creatures.map((creature) => ({
+        ...creature,
+        challengeRating: isChallengeRating(creature.challengeRating)
+          ? creature.challengeRating
+          : null,
+      })),
     })),
   };
 }

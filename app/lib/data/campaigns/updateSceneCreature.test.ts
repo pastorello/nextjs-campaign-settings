@@ -81,4 +81,53 @@ describe("updateSceneCreature (SPEC-013 T6)", () => {
     expect(result.ok).toBe(false);
     expect(update).not.toHaveBeenCalled();
   });
+
+  describe("statistics link and challenge rating (SPEC-031 T2)", () => {
+    const written = () =>
+      (update.mock.lastCall as [{ data: Record<string, unknown> }])[0].data;
+
+    it("writes a link and a CR, and leaves them alone when not sent", async () => {
+      update.mockResolvedValue({});
+
+      await updateSceneCreature({
+        ...validFormData,
+        statsUrl: "http://example.com/captain",
+        challengeRating: "2",
+      });
+      expect(written()).toMatchObject({
+        statsUrl: "http://example.com/captain",
+        challengeRating: "2",
+      });
+
+      await updateSceneCreature(validFormData);
+      expect(written()).not.toHaveProperty("statsUrl");
+      expect(written()).not.toHaveProperty("challengeRating");
+    });
+
+    it("clears a blanked link and CR to null", async () => {
+      update.mockResolvedValue({});
+
+      await updateSceneCreature({
+        ...validFormData,
+        statsUrl: "",
+        challengeRating: null,
+      });
+
+      expect(written()).toMatchObject({
+        statsUrl: null,
+        challengeRating: null,
+      });
+    });
+
+    it("refuses a javascript: link, without writing", async () => {
+      const result = await updateSceneCreature({
+        ...validFormData,
+        statsUrl: "javascript:alert(1)",
+      });
+
+      expect(result.ok).toBe(false);
+      expect(!result.ok && Object.keys(result.errors)).toEqual(["statsUrl"]);
+      expect(update).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -4,6 +4,10 @@ import PageMeta from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import SceneCreatureMetaField from "@/app/lib/definitions/enums/campaign/SceneCreatureMetaField";
 import nullableAmountValidator from "@/app/lib/utils/validators/nullableAmountValidator";
 import nullableToOptional from "@/app/lib/utils/validators/nullableToOptional";
+import nullableHttpUrlValidator from "@/app/lib/utils/validators/nullableHttpUrlValidator";
+import challengeRatings, {
+  CHALLENGE_RATINGS,
+} from "@/app/lib/config/dnd5e/challengeRatings";
 import z from "zod";
 
 /**
@@ -89,6 +93,31 @@ const sceneCreatureMeta = {
     optionTable: "dhAdversary",
     controlType: ControlType.Select,
     validator: z.coerce.number().int().positive().nullable().optional(),
+  },
+  // SPEC-031, any system: where the creature's statistics are. `note`
+  // carries a textual pointer instead; both may be blank.
+  [SceneCreatureMetaField.statsUrl]: {
+    metaField: "statsUrl",
+    labelKey: "sceneCreature.fields.statsUrl.label",
+    defaultValue: "",
+    fieldType: FieldType.string,
+    controlType: ControlType.Text,
+    validator: nullableHttpUrlValidator(),
+  },
+  // SPEC-031, 5e only: typed by the DM, as in the planning spreadsheet. It
+  // suggests `xpEach` in the form and never overrides it.
+  [SceneCreatureMetaField.challengeRating]: {
+    metaField: "challengeRating",
+    labelKey: "sceneCreature.fields.challengeRating.label",
+    defaultValue: "",
+    fieldType: FieldType.string,
+    options: challengeRatings,
+    controlType: ControlType.Select,
+    // Blank is "no CR", stored as `null` by the write (`blankToNull`).
+    validator: z.preprocess(
+      (raw) => (raw === null ? "" : raw),
+      z.union([z.literal(""), z.enum(CHALLENGE_RATINGS)]).optional()
+    ),
   },
 } satisfies Record<string, PageMeta>;
 

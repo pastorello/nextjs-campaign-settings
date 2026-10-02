@@ -47,4 +47,25 @@ describe("sceneCreatureMeta (SPEC-013 T6)", () => {
   it("accepts a null note, the same as an unset optional string column", () => {
     expect(sceneCreatureMeta.note.validator.safeParse(null).success).toBe(true);
   });
+
+  it("refuses a statistics link that is not http/https (SPEC-031)", () => {
+    const { validator } = sceneCreatureMeta.statsUrl;
+    expect(validator.safeParse("javascript:alert(1)").success).toBe(false);
+    expect(validator.safeParse("https://example.com/x").success).toBe(true);
+  });
+
+  it("offers the 34 challenge ratings, and refuses any other (SPEC-031)", () => {
+    const { options, validator } = sceneCreatureMeta.challengeRating;
+    expect(options.map((option) => option.value)).toEqual([
+      "0",
+      "1/8",
+      "1/4",
+      "1/2",
+      ...Array.from({ length: 30 }, (_, index) => String(index + 1)),
+    ]);
+    expect(validator.safeParse("1/8").success).toBe(true);
+    expect(validator.safeParse("").success).toBe(true);
+    expect(validator.safeParse("31").success).toBe(false);
+    expect(validator.safeParse("1/3").success).toBe(false);
+  });
 });

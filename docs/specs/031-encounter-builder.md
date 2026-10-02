@@ -279,7 +279,7 @@ session, and the two tables were read from its extracted text, cell by cell._
 ## 10. Task breakdown
 
 - [x] **T1** — `docs/domain/5e-encounters.md` from the SRD 5.2.1 text and the attribution statement; dated notes in SPEC-013 §3 and `campaign-design-method.md` §6. _(This spec's agreement landed first, 2026-10-01; the domain file waits on the SRD text — §9.)_
-- [ ] **T2** — Schema and migration for `statsUrl` and `challengeRating`; meta, per-system rule, create/update actions, fetch. _(test: refused links; a Daggerheart CR refused; round trip)_
+- [x] **T2** — Schema and migration for `statsUrl` and `challengeRating`; meta, per-system rule, create/update actions, fetch. _(test: refused links; a Daggerheart CR refused; round trip)_ _(Done 2026-10-02. A blank link or CR is `""` in the metadata layer, whose string validators cannot output `null`, and the write turns it into `null` with `blankToNull`; the CR list is spelled out in `app/lib/config/dnd5e/challengeRatings.ts`, and a migration test keeps the CHECK equal to it.)_
 - [ ] **T3** — The form and the row: CR filling XP, the statistics and NPC links, the CR shown. _(test: CR fills XP; a typed XP survives; the links render as anchors)_
 - [ ] **T4** — `encounterBudget.ts`, `encounterDifficulty`, `EncounterSummary`, and the on-the-fly layer (party select, Exclude/Include, −/+, Reset) under both systems. _(test: XP, budgets by level and party size, bands, rows with no XP, clamping; the hook with `localStorage` missing or throwing, reset and pruning)_
 - [ ] **T5** — i18n, a11y, an e2e journey with invented content (a 5e fight, the band, a changed party size surviving a reload, an excluded creature, Reset); close the spec, ROADMAP and PROJECT_STATE.

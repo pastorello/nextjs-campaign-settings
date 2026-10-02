@@ -11,6 +11,8 @@ import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import otherSystemFieldErrors from "./otherSystemFieldErrors";
 import fetchRulesSystem from "./fetchRulesSystem";
+import type { ChallengeRating } from "@/app/lib/config/dnd5e/challengeRatings";
+import { blankToNull } from "@/app/lib/data/validation/featurePairErrors";
 
 /**
  * Updates a creature row's own fields, including its position. Written
@@ -45,6 +47,17 @@ export default async function updateSceneCreature(
   const { id, ...data } = parsed.data as Partial<SceneCreature> & {
     id: number;
   };
+
+  // A blank link or CR is stored as `null`, which the CHECKs admit; a key
+  // the payload did not carry still leaves its column alone.
+  if (data.statsUrl !== undefined) {
+    data.statsUrl = blankToNull(data.statsUrl) ?? null;
+  }
+  if (data.challengeRating !== undefined) {
+    // Validated against `CHALLENGE_RATINGS` above; blanking keeps it one.
+    data.challengeRating = (blankToNull(data.challengeRating) ??
+      null) as ChallengeRating | null;
+  }
 
   try {
     await prisma.sceneCreature.update({

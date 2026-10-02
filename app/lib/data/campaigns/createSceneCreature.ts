@@ -12,6 +12,7 @@ import { z } from "zod";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import otherSystemFieldErrors from "./otherSystemFieldErrors";
 import fetchRulesSystem from "./fetchRulesSystem";
+import { blankToNull } from "@/app/lib/data/validation/featurePairErrors";
 
 /**
  * Adds a creature to a scene (SPEC-013 §5). `sceneId` is deliberately not
@@ -56,6 +57,8 @@ export default async function createSceneCreature(
     note,
     npcId,
     dhAdversaryId,
+    statsUrl,
+    challengeRating,
   } = parsed.data as Omit<SceneCreature, "id">;
 
   try {
@@ -69,6 +72,8 @@ export default async function createSceneCreature(
         quantity,
         note,
         npcId,
+        statsUrl: blankToNull(statsUrl) ?? null,
+        challengeRating: blankToNull(challengeRating) ?? null,
         ...(system === "daggerheart" && {
           dhAdversaryId: dhAdversaryId ?? null,
         }),

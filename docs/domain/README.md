@@ -31,6 +31,12 @@ not. So:
   creature, item or table in the repo, for any of the three systems — only the
   structure they share. Instances are data the DM enters in the private
   database.
+  _2026-10-02: a system's **numeric ladders** are structure, not instances —
+  Daggerheart's Battle Points, 5e's CR-to-XP and per-character budget tables
+  ([`5e-encounters.md`](./5e-encounters.md)) — and may be restated, with the
+  licence's attribution where it asks for one (5e's is in
+  [`NOTICE.md`](../../NOTICE.md)). A table of creatures, spells or items
+  still may not._
 
 The three licences differ in what the repo may hold and what the app may ever
 publish. [`licensing.md`](./licensing.md) is the reading, and its §7 lists the
@@ -51,6 +57,7 @@ depends on; the domain files describe no product decisions.
 
 | File                                                       | Covers                                                                                                                                                            |
 | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`5e-encounters.md`](./5e-encounters.md)                   | D&D 5e's encounter maths — XP by challenge rating, the per-character XP budget for low/moderate/high, the SRD's caveats — restated from SRD 5.2.1 (SPEC-031)      |
 | [`calendar.md`](./calendar.md)                             | The world's calendar — universal day numbers, the 365-day year, the unbroken week, the 28-day moon and the thirteen-sign zodiac table (SPEC-014)                  |
 | [`campaign-design-method.md`](./campaign-design-method.md) | How the DM designs and runs a campaign: adventures per level, scene kinds, pacing budgets, what is system-specific                                                |
 | [`daggerheart.md`](./daggerheart.md)                       | Daggerheart's mechanics — Duality Dice, Hope and Fear, tiers and levels, thresholds, Battle Points, gold — restated from SRD 2.0, with the SRD and DPCGL versions |

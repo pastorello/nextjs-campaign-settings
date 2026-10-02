@@ -43,6 +43,12 @@ keeps totalled.
 - **Not a rules engine.** The app computes no encounter difficulty and derives no
   XP or treasure from any system's tables. Every number is authored by the DM;
   the app only sums and compares them. See the domain file §6 for why.
+  _2026-10-02: narrowed for 5e by [SPEC-031](./031-encounter-builder.md) — a
+  5e fight scene now prices its difficulty from each row's hand-typed challenge
+  rating against SRD 5.2.1's per-character budget
+  ([`5e-encounters.md`](../domain/5e-encounters.md)), as SPEC-030 already does
+  for Daggerheart. Every input is still typed by the DM; the CR fills XP only
+  as a default the DM can overwrite._
 - **Not the combat tracker.** Running a fight round by round was SPEC-001, which
   this spec was a prerequisite for rather than a part of. That spec was withdrawn
   on 2026-09-22 along with every other play-time tool (see ROADMAP's _Explicitly

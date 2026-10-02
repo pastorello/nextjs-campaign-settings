@@ -150,4 +150,11 @@ Battle Points are computed ([SPEC-030](../specs/030-daggerheart-campaign-managem
 was PF2's numbers ending up in a 5e app, and it does not apply there. For 5e
 the rule stands._
 
+_2026-10-02: and now 5e has its helper, as the paragraph above foresaw:
+[SPEC-031](../specs/031-encounter-builder.md) prices a 5e fight from the
+challenge rating the DM types on each row, against SRD 5.2.1's — not 5.1's —
+per-character budget, restated in [`5e-encounters.md`](./5e-encounters.md).
+The DM chose the 2024 rules (SPEC-031 §9, first answer 3). PF2's numbers stay
+out, and items 1–3 above still hold for them._
+
 No rulebook text from either system is reproduced here, and none should be added.

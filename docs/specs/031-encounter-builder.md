@@ -1,6 +1,6 @@
 # SPEC-031: Encounter builder — where a creature's stats are, and how hard a fight is
 
-- **Status:** Agreed 2026-10-01. Drafted by Claude from the ROADMAP's Phase 4 entry, rewritten twice the same day around the DM's two rounds of answers (§9), and agreed by the DM with the implementation plan. **T1 is half done:** this text is agreed, but `docs/domain/5e-encounters.md` is not written yet, because the SRD 5.2.1 PDF could not be reached from the cloud session (§9, _Open before T4_).
+- **Status:** Agreed 2026-10-01. Drafted by Claude from the ROADMAP's Phase 4 entry, rewritten twice the same day around the DM's two rounds of answers (§9), and agreed by the DM with the implementation plan. **T1 done 2026-10-02:** [`docs/domain/5e-encounters.md`](../domain/5e-encounters.md) restated from the SRD 5.2.1 PDF's text, read locally (§9, _Open before T4_, is closed), and the attribution statement is in [`NOTICE.md`](../../NOTICE.md).
 - **Date:** 2026-10-01
 - **Phase:** 4
 - **Related:** [SPEC-013](./013-campaign-management.md) (the fight scene and its creature rows: "a scene with its creatures is that encounter"; §3's "not a rules engine", which this spec narrows for 5e) · [SPEC-030](./030-daggerheart-campaign-management.md) (Daggerheart's Battle Points, already a computed difficulty) · [SPEC-022](./022-accounts-roles-and-party-visibility.md) R15 (the campaign section is the DM's alone) · [`campaign-design-method.md`](../domain/campaign-design-method.md) §6 (the authored-values rule) · [`licensing.md`](../domain/licensing.md) §3 (SRD 5.2.1 under CC-BY-4.0)
@@ -95,7 +95,10 @@ without changing what is saved.
 3. **5e:** the creature form gains a **challenge rating** select: 0, 1/8, 1/4,
    1/2, then 1 to 30. Picking one fills **XP each** from the SRD's table if XP
    is blank or still the previous CR's value. XP stays editable, and a typed
-   value wins. The row shows its CR. The existing `level` field (the DM's own
+   value wins. **CR 0 fills nothing:** the SRD gives it "0 or 10" and leaves
+   the choice to each creature's statistics, so the DM types it
+   ([`5e-encounters.md`](../domain/5e-encounters.md) §1; Claude's reading,
+   2026-10-02). The row shows its CR. The existing `level` field (the DM's own
    notation, from the spreadsheet) stays as it is.
 4. **Daggerheart:** a row still links an adversary, and its challenge is the
    adversary's type and tier (SPEC-030). It gets the statistics link too, for
@@ -237,7 +240,8 @@ model sceneCreature {
 - The statistics link is **shared** across systems; a Daggerheart row may
   point outside the adversary catalogue.
 
-**Open before T4**
+**Open before T4** — _closed 2026-10-02: the PDF downloaded from a local
+session, and the two tables were read from its extracted text, cell by cell._
 
 - **The SRD numbers are not written yet.** The cloud session that agreed this
   spec could not reach `media.dndbeyond.com` (the environment's network policy
@@ -274,7 +278,7 @@ model sceneCreature {
 
 ## 10. Task breakdown
 
-- [ ] **T1** — `docs/domain/5e-encounters.md` from the SRD 5.2.1 text and the attribution statement; dated notes in SPEC-013 §3 and `campaign-design-method.md` §6. _(This spec's agreement landed first, 2026-10-01; the domain file waits on the SRD text — §9.)_
+- [x] **T1** — `docs/domain/5e-encounters.md` from the SRD 5.2.1 text and the attribution statement; dated notes in SPEC-013 §3 and `campaign-design-method.md` §6. _(This spec's agreement landed first, 2026-10-01; the domain file waits on the SRD text — §9.)_
 - [ ] **T2** — Schema and migration for `statsUrl` and `challengeRating`; meta, per-system rule, create/update actions, fetch. _(test: refused links; a Daggerheart CR refused; round trip)_
 - [ ] **T3** — The form and the row: CR filling XP, the statistics and NPC links, the CR shown. _(test: CR fills XP; a typed XP survives; the links render as anchors)_
 - [ ] **T4** — `encounterBudget.ts`, `encounterDifficulty`, `EncounterSummary`, and the on-the-fly layer (party select, Exclude/Include, −/+, Reset) under both systems. _(test: XP, budgets by level and party size, bands, rows with no XP, clamping; the hook with `localStorage` missing or throwing, reset and pruning)_

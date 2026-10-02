@@ -55,6 +55,8 @@ Every licence question here resolves to one of three situations, and they have d
 
 The SRD 5.1 statement is the same with "5.1" in place of "5.2.1". If the repository ever ships SRD material (seed data, fixtures, an import of the SRD spell list), this statement goes in a `LICENSES/` or `NOTICE` file and in the app's about/credits view.
 
+_2026-10-02: it now does. SPEC-031 restates SRD 5.2.1's CR-to-XP and per-character budget tables ([`5e-encounters.md`](./5e-encounters.md)), and the statement is in [`NOTICE.md`](../../NOTICE.md) at the repository root. The app has no about/credits view yet, so the in-app half is not done; it is noted in `docs/ROADMAP.md`._
+
 **Trademarks are not licensed.** CC-BY-4.0 §2(b)(2) excludes trademark rights, so "Dungeons & Dragons", "D&D" and "Wizards of the Coast" are not granted. The SRD 5.2.1 legal page says what may be said instead: **"compatible with fifth edition" or "5E compatible"**. Naming the system "D&D 5e" inside a settings switch is descriptive reference and is fine; putting "D&D" in the app's name or in a published product's title is not.
 
 **What is not in the SRD.** The SRD is a subset of the core rules. Excluded by design: some classes (Artificer), species (Aasimar), monsters tied to the brand (Beholder, Mind Flayer, and the like), setting names and characters (Forgotten Realms, Strahd, Orcus, Tiamat), and every spell, item or subclass that appears only in the full books. Anything outside the SRD is ordinary Wizards copyright and is available only for private use.

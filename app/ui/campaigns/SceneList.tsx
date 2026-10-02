@@ -27,6 +27,8 @@ import LootList from "./LootList";
 import { DhEquipmentOptions } from "./LootForm";
 import CheckOffControl from "./CheckOffControl";
 import BattlePointsSummary from "./BattlePointsSummary";
+import EncounterSummary from "./EncounterSummary";
+import useEncounterAdjustments from "@/app/lib/hooks/useEncounterAdjustments";
 import SceneKind from "@/app/lib/definitions/enums/campaign/SceneKind";
 import renderRichText from "@/app/lib/utils/data/renderRichText";
 import type GameSystem from "@/app/lib/definitions/GameSystem";
@@ -49,6 +51,8 @@ interface SceneListProps {
   partySize?: number;
   /** The adventure's tier, below which an adversary suggests the +1. */
   adventureTier?: number;
+  /** SPEC-031, 5e: the level a fight's XP budget is read at. */
+  targetLevel?: number;
 }
 
 function zoneName(
@@ -64,6 +68,10 @@ function zoneName(
  * adventure page's main content. Each scene nests its own creatures and
  * loot (`SceneCreatureList`/`LootList`), edited inline. Outside the
  * metadata layer (ADR-0011), same shape as `AdventureLadder`.
+ *
+ * A fight is priced from its counted rows and the page's party size
+ * (SPEC-031 §5.C) when `EncounterAdjustmentsProvider` is above it, and from
+ * the stored rows and `partySize` otherwise.
  */
 export default function SceneList({
   rulesSystem = "dnd5e",
@@ -78,8 +86,13 @@ export default function SceneList({
   equipmentOptions,
   partySize = 4,
   adventureTier = 1,
+  targetLevel = 1,
 }: SceneListProps) {
   const t = useTranslations();
+  const adjustments = useEncounterAdjustments();
+  const pricedPartySize = adjustments?.partySize ?? partySize;
+  const counted = (scene: SceneWithDetails) =>
+    adjustments?.countedRows(scene.creatures) ?? scene.creatures;
   const router = useRouter();
   const system = useGameSystem();
 
@@ -194,8 +207,8 @@ export default function SceneList({
                           )}
                           {scene.kind === SceneKind.Fight && (
                             <BattlePointsSummary
-                              creatures={scene.creatures}
-                              partySize={partySize}
+                              creatures={counted(scene)}
+                              partySize={pricedPartySize}
                               adventureTier={adventureTier}
                               adjustments={scene.battleAdjustments ?? []}
                             />
@@ -209,6 +222,32 @@ export default function SceneList({
                           {scene.grantsHeroPoint &&
                             ` · ${t("scene.fields.grantsHeroPoint.label")}`}
                         </p>
+                      )}
+                      {rulesSystem === "dnd5e" &&
+                        scene.kind === SceneKind.Fight && (
+                          <EncounterSummary
+                            creatures={counted(scene)}
+                            partySize={pricedPartySize}
+                            targetLevel={targetLevel}
+                          />
+                        )}
+                      {adjustments?.isAdjusted(scene.creatures) && (
+                        <div className="mt-1">
+                          <BaseButton
+                            onClick={() =>
+                              adjustments.resetCreatures(
+                                scene.creatures.map((creature) => creature.id)
+                              )
+                            }
+                            size={ButtonSize.small}
+                            variant={ButtonVariant.secondary}
+                            ariaLabel={t("scene.encounter.resetLabel", {
+                              title: scene.title,
+                            })}
+                          >
+                            {t("scene.encounter.reset")}
+                          </BaseButton>
+                        </div>
                       )}
                       <p className="mt-1 text-sm">
                         {scene.zoneId !== null ? (
@@ -287,6 +326,7 @@ export default function SceneList({
                       npcOptions={npcOptions}
                       adversaryOptions={adversaryOptions}
                       partySize={partySize}
+                      isFight={scene.kind === SceneKind.Fight}
                     />
                     <LootList
                       rulesSystem={rulesSystem}

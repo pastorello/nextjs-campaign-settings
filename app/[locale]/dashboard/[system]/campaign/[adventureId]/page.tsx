@@ -10,6 +10,8 @@ import tierOfLevel from "@/app/lib/utils/daggerheart/tierOfLevel";
 import AdventureHeader from "@/app/ui/campaigns/AdventureHeader";
 import BudgetPanel from "@/app/ui/campaigns/BudgetPanel";
 import SceneList from "@/app/ui/campaigns/SceneList";
+import EncounterAdjustmentsProvider from "@/app/ui/campaigns/EncounterAdjustmentsProvider";
+import PartySizeControl from "@/app/ui/campaigns/PartySizeControl";
 import { dashboardPath } from "@/i18n/dashboardPath";
 import { redirect } from "@/i18n/navigation";
 import ResolvedRecordLinks from "@/app/ui/richText/ResolvedRecordLinks";
@@ -102,24 +104,36 @@ export default async function AdventurePage({
           consumableTarget={adventure.consumableTarget}
           goldTarget={adventure.goldTarget ?? null}
         />
-        <SceneList
-          rulesSystem={adventure.rulesSystem}
+        {/* SPEC-031 §5.C: the party size and counts every fight on the page
+            is priced with, kept in this browser only. */}
+        <EncounterAdjustmentsProvider
           adventureId={adventure.id}
-          scenes={adventure.scenes}
-          currencyUnit={currencyUnit}
-          zoneOptions={zoneOptions}
-          npcOptions={npcOptions}
-          magicItemOptions={magicItemOptions}
-          treasureOptions={treasureOptions}
-          adversaryOptions={adversaryOptions}
-          equipmentOptions={{
-            weapons: weaponOptions,
-            armor: armorOptions,
-            loot: lootOptions,
-          }}
-          partySize={adventure.partySize}
-          adventureTier={tierOfLevel(adventure.targetLevel)}
-        />
+          defaultPartySize={adventure.partySize}
+          creatureIds={adventure.scenes.flatMap((scene) =>
+            scene.creatures.map((creature) => creature.id)
+          )}
+        >
+          <PartySizeControl />
+          <SceneList
+            rulesSystem={adventure.rulesSystem}
+            adventureId={adventure.id}
+            scenes={adventure.scenes}
+            currencyUnit={currencyUnit}
+            zoneOptions={zoneOptions}
+            npcOptions={npcOptions}
+            magicItemOptions={magicItemOptions}
+            treasureOptions={treasureOptions}
+            adversaryOptions={adversaryOptions}
+            equipmentOptions={{
+              weapons: weaponOptions,
+              armor: armorOptions,
+              loot: lootOptions,
+            }}
+            partySize={adventure.partySize}
+            adventureTier={tierOfLevel(adventure.targetLevel)}
+            targetLevel={adventure.targetLevel}
+          />
+        </EncounterAdjustmentsProvider>
       </div>
     </ResolvedRecordLinks>
   );

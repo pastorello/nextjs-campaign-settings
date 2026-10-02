@@ -1320,7 +1320,12 @@
       "moveUp": "Move \"{title}\" up",
       "moveDown": "Move \"{title}\" down"
     },
-    "tier": "Tier {tier}"
+    "tier": "Tier {tier}",
+    "partySize": {
+      "label": "Number of characters",
+      "defaultHint": "From the party: {count}. Changes stay in this browser only.",
+      "reset": "Reset"
+    }
   },
   "scene": {
     "fields": {
@@ -1386,6 +1391,20 @@
       "over": "{points} over budget",
       "unpriced": "{count, plural, one {# row unpriced: no adversary linked} other {# rows unpriced: no adversary linked}}",
       "lowerTierSuggestion": "An adversary is from a lower tier than the adventure's: consider the +1 adjustment."
+    },
+    "encounter": {
+      "summary": "XP: {xp} · Low {low} · Moderate {moderate} · High {high}",
+      "difficulty": "Difficulty: {band}",
+      "noBand": "No counted creature has XP",
+      "bands": {
+        "low": "Low",
+        "moderate": "Moderate",
+        "high": "High",
+        "aboveHigh": "Deadly (above High)"
+      },
+      "unpriced": "{count, plural, one {# row without XP: not counted} other {# rows without XP: not counted}}",
+      "reset": "Reset the count",
+      "resetLabel": "Reset the creature count of \"{title}\""
     }
   },
   "sceneCreature": {
@@ -1445,6 +1464,16 @@
     },
     "checkOff": {
       "label": "Awarded"
+    },
+    "adjust": {
+      "exclude": "Exclude",
+      "include": "Include",
+      "excludeLabel": "Count \"{name}\" out",
+      "includeLabel": "Count \"{name}\" in",
+      "decreaseLabel": "Count one fewer \"{name}\"",
+      "increaseLabel": "Count one more \"{name}\"",
+      "counted": "counted {counted} of {stored}",
+      "excluded": "counted out"
     }
   },
   "loot": {

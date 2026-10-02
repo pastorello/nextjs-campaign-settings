@@ -76,6 +76,7 @@ vi.mock("./LootList", () => ({
 }));
 
 import SceneList from "./SceneList";
+import EncounterAdjustmentsProvider from "./EncounterAdjustmentsProvider";
 
 const zoneOptions = [{ value: 5, label: "The Sunken Keep" }];
 
@@ -265,5 +266,88 @@ describe("SceneList (SPEC-013 T8)", () => {
     expect(screen.getByText(/scene.battlePoints.summary/)).toHaveTextContent(
       '{"spent":0,"budget":11}'
     );
+  });
+
+  describe("SPEC-031: difficulty from the counted rows and the page's party", () => {
+    const bandit = {
+      id: 31,
+      sceneId: 1,
+      position: 1,
+      name: "Road bandit",
+      level: null,
+      xpEach: 200,
+      quantity: 4,
+      note: null,
+      awarded: false,
+      npcId: null,
+    };
+
+    beforeEach(() => window.localStorage.clear());
+
+    const renderAdventure = (
+      props: Partial<React.ComponentProps<typeof SceneList>>
+    ) =>
+      render(
+        <EncounterAdjustmentsProvider
+          adventureId={1}
+          defaultPartySize={4}
+          creatureIds={[31]}
+        >
+          <SceneList {...baseProps} scenes={[]} partySize={4} {...props} />
+        </EncounterAdjustmentsProvider>
+      );
+
+    it("shows a 5e fight's encounter summary, and no other scene's", () => {
+      renderAdventure({
+        targetLevel: 3,
+        scenes: [
+          makeScene({ id: 1, kind: SceneKind.Fight, creatures: [bandit] }),
+          makeScene({ id: 2, kind: SceneKind.Explore }),
+        ],
+      });
+
+      expect(screen.getAllByText(/scene.encounter.summary/)).toHaveLength(1);
+      expect(screen.getByText(/scene.encounter.summary/)).toHaveTextContent(
+        '{"xp":800,"low":600,"moderate":900,"high":1600}'
+      );
+    });
+
+    it("prices from the counted rows and party size, with a scene Reset", () => {
+      window.localStorage.setItem(
+        "campaign.encounterAdjustments.1",
+        JSON.stringify({ partySize: 2, creatures: { "31": { quantity: 1 } } })
+      );
+      renderAdventure({
+        targetLevel: 3,
+        scenes: [makeScene({ id: 1, title: "Toll", creatures: [bandit] })],
+      });
+
+      expect(screen.getByText(/scene.encounter.summary/)).toHaveTextContent(
+        '{"xp":200,"low":300,"moderate":450,"high":800}'
+      );
+
+      fireEvent.click(
+        screen.getByRole("button", { name: /scene.encounter.resetLabel/ })
+      );
+
+      // The counts are back; the party size is the page's, kept until its own Reset.
+      expect(screen.getByText(/scene.encounter.summary/)).toHaveTextContent(
+        '{"xp":800,"low":300,"moderate":450,"high":800}'
+      );
+      expect(
+        screen.queryByRole("button", { name: /scene.encounter.resetLabel/ })
+      ).not.toBeInTheDocument();
+    });
+
+    it("prices a Daggerheart fight exactly as SPEC-030 does with nothing overridden", () => {
+      renderAdventure({
+        rulesSystem: "daggerheart",
+        scenes: [makeScene({ id: 1, kind: SceneKind.Fight })],
+      });
+
+      expect(screen.getByText(/scene.battlePoints.summary/)).toHaveTextContent(
+        '{"spent":0,"budget":14}'
+      );
+    });
   });
 });

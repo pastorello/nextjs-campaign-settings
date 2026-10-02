@@ -11,6 +11,9 @@ import { SceneCreatureWithAdversary } from "@/app/lib/data/campaigns/fetchAdvent
 import { rowBattlePoints } from "@/app/lib/utils/daggerheart/battlePoints";
 import type GameSystem from "@/app/lib/definitions/GameSystem";
 import useGameSystem from "@/app/lib/hooks/useGameSystem";
+import useEncounterAdjustments, {
+  type EncounterAdjustmentsApi,
+} from "@/app/lib/hooks/useEncounterAdjustments";
 import recordHref from "@/app/lib/utils/search/recordHref";
 import { ResolvedOption } from "@/app/lib/definitions/types/SelectOption";
 import { notifyError, notifySuccess } from "@/app/lib/notifications/notify";
@@ -32,6 +35,11 @@ interface SceneCreatureListProps {
   npcOptions: ResolvedOption<number>[];
   adversaryOptions?: ResolvedOption<number>[];
   partySize?: number;
+  /**
+   * SPEC-031: a fight's rows can be counted out, or counted more or fewer
+   * times, on the fly — inside `EncounterAdjustmentsProvider` only.
+   */
+  isFight?: boolean;
 }
 
 /**
@@ -49,6 +57,11 @@ interface SceneCreatureListProps {
  * statistics link, opening in a new tab, and a row linked to an NPC links
  * to the NPC's page. The link is validated `http`/`https` on write and
  * rendered as a plain `href`, never as markup.
+ *
+ * In a fight, each row also has Exclude/Include and − / + on the count the
+ * difficulty reads (SPEC-031 §5.C.9): browser-only, never the stored
+ * quantity, which the row's XP total keeps showing. Battle Points read the
+ * counted quantity and the page's party size.
  */
 export default function SceneCreatureList({
   rulesSystem = "dnd5e",
@@ -57,12 +70,16 @@ export default function SceneCreatureList({
   npcOptions,
   adversaryOptions = [],
   partySize = 4,
+  isFight = false,
 }: SceneCreatureListProps) {
   const t = useTranslations();
   const isDaggerheart = rulesSystem === "daggerheart";
   const router = useRouter();
   // The dashboard the page is under, which an NPC's page link stays in.
   const dashboardSystem = useGameSystem();
+  const adjustments = useEncounterAdjustments();
+  const pricedPartySize = adjustments?.partySize ?? partySize;
+  const canAdjust = isFight && adjustments !== null;
 
   function npcName(npcId: number) {
     return npcOptions.find((option) => option.value === npcId)?.label;
@@ -172,7 +189,7 @@ export default function SceneCreatureList({
                     ×{creature.quantity}
                   </span>
                   {!isDaggerheart && creature.challengeRating && (
-                    <span className="ml-2 text-gray-600">
+                    <span className="ml-2 whitespace-nowrap text-gray-600">
                       {t("sceneCreature.list.challengeRating")}{" "}
                       {creature.challengeRating}
                     </span>
@@ -180,8 +197,15 @@ export default function SceneCreatureList({
                   {isDaggerheart ? (
                     <span className="ml-2 text-gray-600">
                       {t("sceneCreature.list.battlePoints")}:{" "}
-                      {rowBattlePoints(creature, partySize) ??
-                        t("sceneCreature.list.unpriced")}
+                      {rowBattlePoints(
+                        {
+                          ...creature,
+                          quantity:
+                            adjustments?.counted(creature).quantity ??
+                            creature.quantity,
+                        },
+                        pricedPartySize
+                      ) ?? t("sceneCreature.list.unpriced")}
                     </span>
                   ) : (
                     <>
@@ -202,6 +226,12 @@ export default function SceneCreatureList({
                         />
                       </div>
                     </>
+                  )}
+                  {canAdjust && (
+                    <CountControls
+                      creature={creature}
+                      adjustments={adjustments}
+                    />
                   )}
                   {(creature.statsUrl || creature.npcId !== null) && (
                     <div className="mt-1 flex flex-wrap gap-3">
@@ -295,6 +325,79 @@ export default function SceneCreatureList({
             isSaving={isDeleting}
           />
         </Modal>
+      )}
+    </div>
+  );
+}
+
+interface CountControlsProps {
+  creature: SceneCreatureWithAdversary;
+  adjustments: EncounterAdjustmentsApi;
+}
+
+/** A fight row's on-the-fly count: Exclude/Include and − / + (SPEC-031 §5.C.9). */
+function CountControls({ creature, adjustments }: CountControlsProps) {
+  const t = useTranslations();
+  const { excluded, quantity } = adjustments.counted(creature);
+  const name = creature.name;
+
+  return (
+    <div className="mt-1 flex flex-wrap items-center gap-1">
+      <BaseButton
+        onClick={() => adjustments.setExcluded(creature, !excluded)}
+        size={ButtonSize.small}
+        variant={ButtonVariant.secondary}
+        ariaLabel={t(
+          excluded
+            ? "sceneCreature.adjust.includeLabel"
+            : "sceneCreature.adjust.excludeLabel",
+          { name }
+        )}
+      >
+        {t(
+          excluded
+            ? "sceneCreature.adjust.include"
+            : "sceneCreature.adjust.exclude"
+        )}
+      </BaseButton>
+      {!excluded && (
+        <>
+          <BaseButton
+            onClick={() =>
+              adjustments.setCountedQuantity(creature, quantity - 1)
+            }
+            disabled={quantity <= 1}
+            size={ButtonSize.small}
+            variant={ButtonVariant.secondary}
+            ariaLabel={t("sceneCreature.adjust.decreaseLabel", { name })}
+          >
+            −
+          </BaseButton>
+          <BaseButton
+            onClick={() =>
+              adjustments.setCountedQuantity(creature, quantity + 1)
+            }
+            size={ButtonSize.small}
+            variant={ButtonVariant.secondary}
+            ariaLabel={t("sceneCreature.adjust.increaseLabel", { name })}
+          >
+            +
+          </BaseButton>
+        </>
+      )}
+      {excluded ? (
+        <span className="text-amber-800">
+          {t("sceneCreature.adjust.excluded")}
+        </span>
+      ) : (
+        quantity !== creature.quantity && (
+          <span className="text-amber-800">
+            {t("sceneCreature.adjust.counted", {
+              counted: quantity,
+              stored: creature.quantity,
+            })}
+          </span>
+        )
       )}
     </div>
   );

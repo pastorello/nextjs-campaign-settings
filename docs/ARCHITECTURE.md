@@ -258,6 +258,10 @@ app/ui/calendar/         WorldDate, WorldDateInput, DateSystemToggle, EventList,
 
 ---
 
+### The encounter builder's on-the-fly state (SPEC-031)
+
+**The adventure page's party size and creature counts live in `localStorage`, by the DM's choice** ([SPEC-031](./specs/031-encounter-builder.md) §9, second answer 2) — the one place the app keeps state there. It is not a record: it changes the difficulty readout and nothing stored. `useEncounterAdjustments` reads one key per adventure through `useSyncExternalStore`, whose server snapshot is "no overrides", so the server renders the stored values and the browser's overrides apply after hydration, with no mismatch. The date-system toggle above rejected `localStorage` for exactly that flash; here it is accepted, because the overrides are a working aid that must not reach the database or another browser. Every access is in a `try`; a refused write is kept in memory for the visit. `EncounterAdjustmentsProvider` shares it between `PartySizeControl` and `SceneList`, and a component outside the provider prices from its props.
+
 ## 5. Auth flow
 
 ```

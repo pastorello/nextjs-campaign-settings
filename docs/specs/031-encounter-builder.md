@@ -1,6 +1,6 @@
 # SPEC-031: Encounter builder — where a creature's stats are, and how hard a fight is
 
-- **Status:** Agreed 2026-10-01. Drafted by Claude from the ROADMAP's Phase 4 entry, rewritten twice the same day around the DM's two rounds of answers (§9), and agreed by the DM with the implementation plan. **T1 done 2026-10-02:** [`docs/domain/5e-encounters.md`](../domain/5e-encounters.md) restated from the SRD 5.2.1 PDF's text, read locally (§9, _Open before T4_, is closed), and the attribution statement is in [`NOTICE.md`](../../NOTICE.md).
+- **Status:** Shipped 2026-10-02. Agreed 2026-10-01: drafted by Claude from the ROADMAP's Phase 4 entry, rewritten twice the same day around the DM's two rounds of answers (§9), and agreed by the DM with the implementation plan. A third answer on 2026-10-02 settled the bands (§9). See §11.
 - **Date:** 2026-10-01
 - **Phase:** 4
 - **Related:** [SPEC-013](./013-campaign-management.md) (the fight scene and its creature rows: "a scene with its creatures is that encounter"; §3's "not a rules engine", which this spec narrows for 5e) · [SPEC-030](./030-daggerheart-campaign-management.md) (Daggerheart's Battle Points, already a computed difficulty) · [SPEC-022](./022-accounts-roles-and-party-visibility.md) R15 (the campaign section is the DM's alone) · [`campaign-design-method.md`](../domain/campaign-design-method.md) §6 (the authored-values rule) · [`licensing.md`](../domain/licensing.md) §3 (SRD 5.2.1 under CC-BY-4.0)
@@ -110,7 +110,10 @@ without changing what is saved.
    - the fight's XP: XP each × the counted quantity, over the counted rows;
    - the party's low, moderate and high budgets: the party size (§5.C) × the
      SRD 5.2.1 per-character budget at the adventure's target level;
-   - the band the XP falls in: below low, low, moderate, high, above high.
+   - the band the XP falls in: low, moderate, high, above high — the
+     smallest budget the XP stays within, or above the high one. _(2026-10-02:
+     this said five bands, "below low" first; the SRD's three grades only
+     support four, and the DM chose them — §9, third answer.)_
 6. **Daggerheart fight scenes** keep SPEC-030's Battle Points summary, read
    with the party size and counts of §5.C.
 7. Other scene kinds show no summary; their rows keep their CR and XP.
@@ -183,17 +186,17 @@ model sceneCreature {
 
 ## 8. Acceptance criteria
 
-- [ ] A creature row, under either system, can carry a statistics link; a link that is not `http`/`https` is refused.
-- [ ] A row linked to an NPC links to the NPC's page; the statistics link opens in a new tab.
-- [ ] A 5e row can be given a challenge rating, which fills its XP; the XP stays editable; a CR sent to a Daggerheart row is refused.
-- [ ] A 5e fight scene shows its XP, the party's three budgets and the band; rows with no XP are counted apart, not as zero.
-- [ ] The adventure page's number of characters starts at the campaign's, can be changed and reset, survives a reload, and is not shared with another adventure or saved to the database.
-- [ ] Excluding a creature, or changing its counted quantity, changes the difficulty under both systems and nothing stored; Reset puts it back.
-- [ ] A Daggerheart scene prices exactly as SPEC-030 does when nothing is overridden.
-- [ ] The numbers come from `docs/domain/5e-encounters.md`, restated from the SRD 5.2.1 text (not from memory), with the CC-BY attribution statement in the repository.
-- [ ] New UI copy lands in both message catalogues.
-- [ ] Every changed mutation rejects an unauthenticated or non-DM request and invalid input with field-level errors.
-- [ ] Coverage has not dropped.
+- [x] A creature row, under either system, can carry a statistics link; a link that is not `http`/`https` is refused.
+- [x] A row linked to an NPC links to the NPC's page; the statistics link opens in a new tab.
+- [x] A 5e row can be given a challenge rating, which fills its XP; the XP stays editable; a CR sent to a Daggerheart row is refused.
+- [x] A 5e fight scene shows its XP, the party's three budgets and the band; rows with no XP are counted apart, not as zero.
+- [x] The adventure page's number of characters starts at the campaign's, can be changed and reset, survives a reload, and is not shared with another adventure or saved to the database.
+- [x] Excluding a creature, or changing its counted quantity, changes the difficulty under both systems and nothing stored; Reset puts it back.
+- [x] A Daggerheart scene prices exactly as SPEC-030 does when nothing is overridden.
+- [x] The numbers come from `docs/domain/5e-encounters.md`, restated from the SRD 5.2.1 text (not from memory), with the CC-BY attribution statement in the repository.
+- [x] New UI copy lands in both message catalogues.
+- [x] Every changed mutation rejects an unauthenticated or non-DM request and invalid input with field-level errors.
+- [x] Coverage has not dropped.
 
 ## 9. Implementation plan
 
@@ -227,6 +230,16 @@ model sceneCreature {
 5. **NPC or not, no difference:** both have a statistics link, external
    either way; the NPC also has a link to its description in the app, which
    a monster does not.
+
+**The DM's third answer (2026-10-02), on the bands**
+
+The DM named four bands — "facile, medio, difficile e letale" — and, asked
+whether that meant the 2014 DMG's thresholds, chose **SRD 5.2.1 (2024 rules)**
+as the project's 5e reference from now on. The Italian SRD's own names for
+the three grades are **Facile, Media, Difficile**, so the DM's four are those
+three plus a band above Difficile, which the UI calls _Letale (oltre
+Difficile)_ / _Deadly (above High)_. The 2014 DMG's thresholds and group
+multiplier are in no SRD and stay out.
 
 **Choices Claude made in reading the second answers (agreed with the plan)**
 
@@ -281,9 +294,32 @@ session, and the two tables were read from its extracted text, cell by cell._
 - [x] **T1** — `docs/domain/5e-encounters.md` from the SRD 5.2.1 text and the attribution statement; dated notes in SPEC-013 §3 and `campaign-design-method.md` §6. _(This spec's agreement landed first, 2026-10-01; the domain file waits on the SRD text — §9.)_
 - [x] **T2** — Schema and migration for `statsUrl` and `challengeRating`; meta, per-system rule, create/update actions, fetch. _(test: refused links; a Daggerheart CR refused; round trip)_ _(Done 2026-10-02. A blank link or CR is `""` in the metadata layer, whose string validators cannot output `null`, and the write turns it into `null` with `blankToNull`; the CR list is spelled out in `app/lib/config/dnd5e/challengeRatings.ts`, and a migration test keeps the CHECK equal to it.)_
 - [x] **T3** — The form and the row: CR filling XP, the statistics and NPC links, the CR shown. _(test: CR fills XP; a typed XP survives; the links render as anchors)_ _(Done 2026-10-02. The fill rule is `followChallengeRating`: the XP follows the CR while it is blank or still the previous CR's suggestion, so removing the CR, or picking CR 0, clears an untouched XP. `encounterBudget.ts` holds the CR-to-XP table so far; T4 adds the budget table.)_
-- [ ] **T4** — `encounterBudget.ts`, `encounterDifficulty`, `EncounterSummary`, and the on-the-fly layer (party select, Exclude/Include, −/+, Reset) under both systems. _(test: XP, budgets by level and party size, bands, rows with no XP, clamping; the hook with `localStorage` missing or throwing, reset and pruning)_
-- [ ] **T5** — i18n, a11y, an e2e journey with invented content (a 5e fight, the band, a changed party size surviving a reload, an excluded creature, Reset); close the spec, ROADMAP and PROJECT_STATE.
+- [x] **T4** — `encounterBudget.ts`, `encounterDifficulty`, `EncounterSummary`, and the on-the-fly layer (party select, Exclude/Include, −/+, Reset) under both systems. _(test: XP, budgets by level and party size, bands, rows with no XP, clamping; the hook with `localStorage` missing or throwing, reset and pruning)_ _(Done 2026-10-02. The store keeps a write that `localStorage` refuses in memory, so the controls still work for the visit and nothing is kept; the page's party size reaches the rows' Battle Points and both summaries through `EncounterAdjustmentsProvider`, and components outside it price from their props as before.)_
+- [x] **T5** — i18n, a11y, an e2e journey with invented content (a 5e fight, the band, a changed party size surviving a reload, an excluded creature, Reset); close the spec, ROADMAP and PROJECT_STATE. _(Done 2026-10-02: `e2e/encounter-builder.spec.ts`.)_
 
 ## 11. Outcome
 
-_Fill in at close._
+Shipped 2026-10-02, in five stacked PRs (#374 T1, #375 T2, #376 T3, #378 T4,
+and T5's).
+
+- **What landed as specified:** the statistics link (any system, `http`/`https`
+  only, CHECK and validator), the 5e challenge rating (fixed list, CHECK kept
+  equal to `CHALLENGE_RATINGS` by a migration test), CR filling XP, the NPC
+  page link, the 5e encounter summary, and the browser-only party size and
+  counts under both systems, with page and scene Resets.
+- **What changed on the way:** the bands are four, not five — the SRD's three
+  grades read as ceilings, plus "above high" (§5.B, §9's third answer). CR 0
+  fills no XP, because the SRD gives "0 or 10" (§5.A.3). A refused
+  `localStorage` write is kept in memory for the visit, so the controls still
+  work and nothing is kept.
+- **Not done:** the in-app half of the CC-BY attribution — the app has no
+  about/credits view; `NOTICE.md` carries the statement, and the view is a
+  ROADMAP note.
+- **Found by looking:** the CR label wrapped away from its value in the
+  narrow creature column; fixed in T5 with `whitespace-nowrap`.
+- **A mistake, caught at close:** T3 wrote `SceneCreatureList.test.tsx` as a
+  new file, overwriting the existing suite; the coverage comparison at T5
+  showed the component falling from 78% to 36% of lines. The old tests were
+  restored on T3's branch and merged forward. Final coverage against `main`:
+  statements 85.79 → 86.03, branches 82.66 → 83.06, functions 84.31 → 84.66,
+  lines 86.75 → 86.96.

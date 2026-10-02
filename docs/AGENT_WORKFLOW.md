@@ -63,6 +63,14 @@ the same rules apply there.
 - **Before pushing, check the branch's PR is still open:**
   `gh pr list --head <branch> --state all`. A push to a branch whose PR is
   merged fires no CI at all; cut a new branch instead.
+- **One PR per task, branched from `main`, merged before the next task
+  starts** (the maintainer, 2026-10-02). Never stack a PR on an unmerged
+  branch. `ci.yml` only runs on pull requests into `main`, so a stacked PR gets
+  no CI, and if its base lands first it merges into a dead branch instead of
+  `main` — SPEC-031's T4 and T5 (#378, #379) did exactly that and had to be
+  relanded as #380. When a task's PR is open, stop and say so; do not start the
+  next task on top of it. If the next task genuinely cannot wait, ask before
+  branching off an unmerged one.
 - **`pnpm format:check` after the literal last edit** — including doc edits
   made while writing the commit message or closing a debt item. The recurring
   failure is: all checks green, then one more edit to `docs/TECH_DEBT.md`, then

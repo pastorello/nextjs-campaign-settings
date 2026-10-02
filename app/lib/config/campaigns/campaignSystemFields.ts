@@ -22,7 +22,7 @@ const campaignSystemFields: Record<
     daggerheart: ["milestone", "battleAdjustments"],
   },
   sceneCreature: {
-    dnd5e: ["level", "xpEach"],
+    dnd5e: ["level", "xpEach", "challengeRating"],
     daggerheart: ["dhAdversaryId"],
   },
   loot: {

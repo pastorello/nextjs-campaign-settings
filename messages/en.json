@@ -1415,6 +1415,13 @@
       "dhAdversaryId": {
         "label": "Adversary",
         "noneOption": "No adversary"
+      },
+      "statsUrl": {
+        "label": "Statistics link"
+      },
+      "challengeRating": {
+        "label": "Challenge rating",
+        "noneOption": "No CR"
       }
     },
     "list": {
@@ -1721,6 +1728,44 @@
       "capricorn": "Capricorn",
       "aquarius": "Aquarius",
       "pisces": "Pisces"
+    }
+  },
+  "dnd5e": {
+    "challengeRatings": {
+      "cr0": "0",
+      "cr1_8": "1/8",
+      "cr1_4": "1/4",
+      "cr1_2": "1/2",
+      "cr1": "1",
+      "cr2": "2",
+      "cr3": "3",
+      "cr4": "4",
+      "cr5": "5",
+      "cr6": "6",
+      "cr7": "7",
+      "cr8": "8",
+      "cr9": "9",
+      "cr10": "10",
+      "cr11": "11",
+      "cr12": "12",
+      "cr13": "13",
+      "cr14": "14",
+      "cr15": "15",
+      "cr16": "16",
+      "cr17": "17",
+      "cr18": "18",
+      "cr19": "19",
+      "cr20": "20",
+      "cr21": "21",
+      "cr22": "22",
+      "cr23": "23",
+      "cr24": "24",
+      "cr25": "25",
+      "cr26": "26",
+      "cr27": "27",
+      "cr28": "28",
+      "cr29": "29",
+      "cr30": "30"
     }
   },
   "daggerheart": {

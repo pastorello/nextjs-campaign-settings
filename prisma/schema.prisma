@@ -418,6 +418,14 @@ model sceneCreature {
   dhAdversaryId Int?
   dhAdversary   dhAdversary? @relation(fields: [dhAdversaryId], references: [id], onDelete: SetNull)
 
+  // SPEC-031: where the creature's statistics are, under any system — an
+  // http/https address only (CHECK in the migration); `note` carries a
+  // textual pointer instead.
+  statsUrl        String?
+  // SPEC-031, 5e only: "0", "1/8", "1/4", "1/2", "1" … "30" (CHECK in the
+  // migration, the same list as `CHALLENGE_RATINGS`).
+  challengeRating String?
+
   @@index([sceneId])
 }
 

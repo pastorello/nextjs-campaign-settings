@@ -63,6 +63,8 @@ describe("fetchAdventureWithScenes (SPEC-013 T5)", () => {
               note: null,
               awarded: false,
               npcId: null,
+              statsUrl: "https://example.com/bestiary/bandit",
+              challengeRating: "1/8",
             },
           ],
           loot: [
@@ -90,6 +92,24 @@ describe("fetchAdventureWithScenes (SPEC-013 T5)", () => {
     expect(result?.scenes).toHaveLength(1);
     expect(result?.scenes[0]?.kind).toBe(SceneKind.Fight);
     expect(result?.scenes[0]?.creatures[0]?.name).toBe("Bandit");
+    // SPEC-031 T2: the statistics link and CR are read, and passed through.
+    expect(result?.scenes[0]?.creatures[0]).toMatchObject({
+      statsUrl: "https://example.com/bestiary/bandit",
+      challengeRating: "1/8",
+    });
+    const creatureSelect = (
+      findUnique.mock.lastCall as [
+        {
+          select: {
+            scenes: { select: { creatures: { select: object } } };
+          };
+        },
+      ]
+    )[0].select.scenes.select.creatures.select;
+    expect(creatureSelect).toMatchObject({
+      statsUrl: true,
+      challengeRating: true,
+    });
     expect(result?.scenes[0]?.loot[0]?.description).toBe("A pouch of coins");
   });
 

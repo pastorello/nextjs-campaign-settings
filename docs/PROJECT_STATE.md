@@ -1,6 +1,6 @@
 # Project State — Campaign Settings
 
-**Last updated:** 2026-09-19
+**Last updated:** 2026-10-02
 **Status:** Working prototype, not production-ready
 **Phase:** 4 (session tooling) — Phases 1–3 are complete; see [`ROADMAP.md`](./ROADMAP.md)
 **Goal of the current phase:** move from reference material to something the DM uses while _preparing_ a session — encounter builder, session notes, quick-reference panel. (Play-time tools — initiative, dice, random generators — were dropped on 2026-09-22; see ROADMAP's _Explicitly not planned_.) See [`ROADMAP.md`](./ROADMAP.md) for the full list.
@@ -79,10 +79,13 @@ the slices (SPEC-030): a Daggerheart campaign's adventures count
 milestones instead of XP, price fights in Battle Points from their
 adversaries against the party's budget, and hold loot as gold in handfuls
 and equipment; a 5e campaign is unchanged.
-The encounter builder (SPEC-031) is agreed but not built, as of
-2026-10-01: statistics links and a 5e challenge rating on each fight row,
-a 5e difficulty band from SRD 5.2.1, and an on-the-fly party size and
-creature count kept in the browser. Its 5e numbers wait on the SRD text.
+The encounter builder shipped on 2026-10-02 (SPEC-031): each fight row
+links out to its statistics, and an NPC row to the NPC's page; a 5e row's
+challenge rating fills its XP, and a 5e fight shows its XP against the
+party's SRD 5.2.1 budgets with a band (Facile, Media, Difficile, Letale).
+The adventure page's number of characters and each creature's counted
+quantity change on the fly, kept only in the browser, and both systems'
+difficulty follows them.
 
 **Identifiers are English; the UI ships bilingual (Italian + English).** See [ADR-0005](./adr/0005-english-identifiers.md), implemented as TD-19 on 2026-07-30, and [ADR-0006](./adr/0006-bilingual-ui.md), implemented as TD-21 — copy lives in `messages/{it,en}.json`, not in JSX. Postgres columns keep their Italian names, decoupled from the code by Prisma `@map` (`name @map("nome")`) — so raw SQL and `psql` still show `nome`, `descrizione`, `livello`.
 

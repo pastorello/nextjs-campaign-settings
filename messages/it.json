@@ -1432,7 +1432,12 @@
       "moveDown": "Sposta \"{name}\" in basso",
       "xpTotal": "PE totali",
       "battlePoints": "Punti Battaglia",
-      "unpriced": "senza costo"
+      "unpriced": "senza costo",
+      "challengeRating": "GS",
+      "statsLink": "Statistiche",
+      "statsLinkLabel": "Statistiche di {name} (si apre in una nuova scheda)",
+      "npcLink": "Scheda PNG",
+      "npcLinkLabel": "Scheda del PNG {name}"
     },
     "form": {
       "createButton": "Aggiungi creatura",

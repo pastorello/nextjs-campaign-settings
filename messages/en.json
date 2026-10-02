@@ -1432,7 +1432,12 @@
       "moveDown": "Move \"{name}\" down",
       "xpTotal": "XP total",
       "battlePoints": "Battle Points",
-      "unpriced": "unpriced"
+      "unpriced": "unpriced",
+      "challengeRating": "CR",
+      "statsLink": "Statistics",
+      "statsLinkLabel": "Statistics for {name} (opens in a new tab)",
+      "npcLink": "NPC page",
+      "npcLinkLabel": "NPC page for {name}"
     },
     "form": {
       "createButton": "Add creature",

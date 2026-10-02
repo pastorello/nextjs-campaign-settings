@@ -128,7 +128,11 @@ describe("Adventure page (SPEC-013 T8)", () => {
       id: 10,
       synopsis: "<p>Heist</p>",
       currencyUnit: "gold",
-      scenes: [{ description: "<p>Vault</p>" }, { description: null }],
+      // SPEC-031: the page reads every scene's creature ids.
+      scenes: [
+        { description: "<p>Vault</p>", creatures: [] },
+        { description: null, creatures: [] },
+      ],
       campaignSystem: "dnd5e",
     });
 

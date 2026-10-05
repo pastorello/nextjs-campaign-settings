@@ -32,9 +32,13 @@ done
 
 # Skills link to ../../references/<file>.md, i.e. .agents/references/.
 # Only the files the installed skills actually link to are vendored.
+# A bare references/<file>.md link is skill-local (security-and-hardening's
+# hardening-patterns.md) and already came with the skill's directory above,
+# so only the ../../ form is matched here.
 rm -rf "$DEST/references"
 mkdir -p "$DEST/references"
-grep -rhoE 'references/[A-Za-z0-9_-]+\.md' "$DEST/skills" | sort -u |
+grep -rhoE '\.\./\.\./references/[A-Za-z0-9_-]+\.md' "$DEST/skills" |
+  sed 's|^\.\./\.\./||' | sort -u |
   while read -r ref; do
     cp "$tmp/upstream/$ref" "$DEST/references/"
   done

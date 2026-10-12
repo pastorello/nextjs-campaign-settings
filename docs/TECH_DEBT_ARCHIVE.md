@@ -3286,6 +3286,7 @@ The summary table's closed rows, moved out of [`TECH_DEBT.md`](./TECH_DEBT.md) o
 | TD-150 | ✅ The map panel's kind select shows raw ids (`region`, `poi`) in both locales                                 | ~~🟢 Low~~ done      | S      | 4     |
 | TD-151 | ✅ `map-move-between-maps.spec.ts` counts the previous map's markers on a fresh database                       | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-152 | ✅ The map specs right-click a still-moving map; one reloads before the drag saves                             | ~~🟡 Medium~~ done   | S      | 4     |
+| TD-153 | ✅ The map pans ~380px down and back on its own for ~500ms on load                                             | ~~🟢 Low~~ done      | S      | 4     |
 
 ---
 
@@ -5655,3 +5656,56 @@ than at the test timeout; its budget is 60 s. Under 6× CPU throttling the
 old repositioning spec failed one run in three exactly as on CI and the new
 one passed eight in eight. The app-side pan is TD-153, left open: the wait
 is right whatever moves the map.
+
+### TD-153 ✅ The map pans ~380px down and back on its own for ~500ms on load — **DONE (2026-10-12)**
+
+**Severity:** 🟢 Low · **Effort:** S · **Found:** 2026-10-01, while diagnosing TD-152
+
+Opening `/dashboard/dnd5e/geography` on the E2E world, the map pane's
+`transform` was sampled every 20ms from the moment `.leaflet-container` is
+visible: it slides from 0 to ~381px down, then back to 0, over ~500ms, with
+the container's size unchanged throughout — on every load, throttled or
+not. The DM sees the image drop and spring back each time a map opens, and
+a right-click inside that half-second lands on a moving map (TD-152's
+failures were exactly that).
+
+Not yet traced. Nothing in `app/` calls an animated pan at mount
+(`useMapImageOverlay`'s framing is `animate: false`); the shape — out and
+back — suggests Leaflet's own `panInsideMaxBounds` on a `moveend`, animated
+by default, reacting to an earlier view change (the vendored `LeafletMap`'s
+delayed `invalidateSize`, or the interim view landing partly outside the
+bounds it then sets). Reproduce with a `page.evaluate` sampling loop like
+TD-152's, find the first `movestart`'s stack, and fix it there. The E2E
+helpers' `waitForSettledMap` stays either way: a test should not right-click
+a map that is still moving, whatever moves it.
+
+**Resolution (2026-10-12):** traced, not guessed. A probe over the map pane's
+`style` (a `Proxy` handed out by an `addInitScript`, logging the stack of every
+`transform` write) put the cause in `useMapImageOverlay`, not in the vendored
+`LeafletMap`: the interim framing called `map.setMaxBounds(bounds)` _before_
+`map.setView(initialView, initialZoom, { animate: false })`. On a loaded map
+`setMaxBounds` pulls the centre inside the new bounds at once, and does it with
+an _animated_ pan — from the construction-time centre, which is outside them.
+The non-animated `setView` that followed stops that slide, and the stop fires
+`moveend`; `setMaxBounds` had installed a `moveend` hook, which re-enforced the
+bounds from the same stale centre and started a second slide that the
+`_resetView` after it did not stop. The pane ran 0 → 381px for ~250ms and then
+the hook's own enforcement pulled it back for ~250ms. The `load` re-fit had the
+same order (`setMaxBounds(fittedBounds)` then `fitBounds`), and a second map
+opened on the same Leaflet instance would also have had its framing clamped to
+the first one's bounds.
+
+The fix is one local helper, `frameThenRestrict`: lift the old restriction
+(empty bounds clear it, and remove its `moveend` hook), set the view, then set
+the new bounds, when the centre is already inside them. Both sites use it. The
+probe's second run shows the pane written only by the three unanimated
+`_resetView` calls and never leaving `translate3d(0,0,0)`.
+
+`useMapImageOverlay.framing.test.ts` is the regression test, against real
+Leaflet with a faked container size (jsdom has no layout, and Leaflet only
+animates a pan that fits in the container): it fails on the old order with
+animated `panBy` calls on both the interim framing and the re-fit, and passes
+now. The mock-based `useMapImageOverlay.test.ts` could not see this, because
+the behaviour lives in what Leaflet does with the bounds, not in which calls
+the hook makes. `waitForSettledMap` stays, as the item said it should: a spec
+should not right-click a map that is still moving, whatever moves it.

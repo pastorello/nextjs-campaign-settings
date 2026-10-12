@@ -59,7 +59,9 @@ export function contextMenu(page: Page): Locator {
  * wherever that pixel falls in the view *at that moment*. The view is not
  * still when `.leaflet-container` turns visible: measured 2026-10-01, the
  * root map's pane pans ~380px down and back on its own for ~500ms after
- * load (TD-153), the container's size unchanged throughout. A right-click
+ * load (TD-153, fixed 2026-10-12 in `useMapImageOverlay`; the wait stays,
+ * since a spec should not right-click a map that is still moving, whatever
+ * moves it), the container's size unchanged throughout. A right-click
  * inside that window read `(400, 250)` as `-3.7` % from the image's top —
  * outside the map — so the place form refused to save, and the spec timed
  * out waiting for a row that would never appear. `map-poi-crud.spec.ts`

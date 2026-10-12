@@ -25,6 +25,7 @@ import {
   BoltIcon,
   ShieldCheckIcon,
   GiftIcon,
+  InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useTranslations } from "next-intl";
@@ -207,6 +208,9 @@ const links: (NavLink | NavGroup)[] = [
       },
     ],
   },
+  // The attribution the SRD 5.2.1's licence asks for (licensing.md §3).
+  // Open to every system and every account, so it has no page and no pencil.
+  { key: "credits", href: "/credits", icon: InformationCircleIcon },
   // SPEC-022 T2, T3: the tile is the DM's own account, the pencil every
   // account. Last, beside the sign-out tile it relates to.
   {

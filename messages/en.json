@@ -24,6 +24,7 @@
       "dhClasses": "Classes",
       "dhSubclasses": "Subclasses",
       "accounts": "Account",
+      "credits": "Credits",
       "campaignSelector": "Current campaign",
       "campaignUnavailable": "You are no longer in this campaign.",
       "dhAncestries": "Ancestries",
@@ -1204,6 +1205,14 @@
         "label": "Value (in silver)",
         "placeholder": "Value in silver pieces"
       }
+    }
+  },
+  "credits": {
+    "title": "Credits",
+    "srd": {
+      "heading": "System Reference Document 5.2.1",
+      "usedFor": "The difficulty of a fight in the encounter builder restates two tables from the SRD 5.2.1: the XP value of each challenge rating and the XP budget per character.",
+      "statement": "This work includes material from the System Reference Document 5.2.1 (\"SRD 5.2.1\") by Wizards of the Coast LLC, available at <source>https://www.dndbeyond.com/srd</source>. The SRD 5.2.1 is licensed under the Creative Commons Attribution 4.0 International License, available at <licence>https://creativecommons.org/licenses/by/4.0/legalcode</licence>."
     }
   },
   "search": {

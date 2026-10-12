@@ -132,6 +132,24 @@ describe("NavLinks under a system", () => {
     expect(within(group).getByLabelText("dhArmor")).toBeInTheDocument();
   });
 
+  it("offers the credits tile to a DM and to a player, under either system", () => {
+    for (const player of [false, true]) {
+      for (const sys of ["dnd5e", "daggerheart"]) {
+        system = sys;
+        pathname = `/dashboard/${sys}`;
+        const { unmount } = render(<NavLinks player={player} />);
+
+        expect(screen.getByLabelText("credits")).toHaveAttribute(
+          "href",
+          `/dashboard/${sys}/credits`
+        );
+        // No pencil: there is nothing to manage.
+        expect(screen.queryByLabelText("manage:credits")).toBeNull();
+        unmount();
+      }
+    }
+  });
+
   it("leaves the equipment group out under dnd5e", () => {
     pathname = "/dashboard/dnd5e";
     render(<NavLinks />);
@@ -248,6 +266,7 @@ describe("NavLinks for a player", () => {
       "/dashboard/dnd5e/magicitems",
       "/dashboard/dnd5e/npc",
       "/dashboard/dnd5e/factions",
+      "/dashboard/dnd5e/credits",
     ]);
   });
 
@@ -274,6 +293,7 @@ describe("NavLinks for a player", () => {
       // SPEC-029: the equipment players choose from, in its group.
       "/dashboard/daggerheart/weapons",
       "/dashboard/daggerheart/armor",
+      "/dashboard/daggerheart/credits",
     ]);
   });
 });

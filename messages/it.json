@@ -24,6 +24,7 @@
       "dhClasses": "Classi",
       "dhSubclasses": "Sottoclassi",
       "accounts": "Account",
+      "credits": "Crediti",
       "campaignSelector": "Campagna in corso",
       "campaignUnavailable": "Non fai più parte di questa campagna.",
       "dhAncestries": "Ascendenze",
@@ -1204,6 +1205,14 @@
         "label": "Valore (in argento)",
         "placeholder": "Valore in monete d'argento"
       }
+    }
+  },
+  "credits": {
+    "title": "Crediti",
+    "srd": {
+      "heading": "System Reference Document 5.2.1",
+      "usedFor": "La difficoltà di uno scontro nel costruttore di incontri riprende due tabelle dell'SRD 5.2.1: i PE di ogni grado di sfida e il budget di PE per personaggio.",
+      "statement": "This work includes material from the System Reference Document 5.2.1 (\"SRD 5.2.1\") by Wizards of the Coast LLC, available at <source>https://www.dndbeyond.com/srd</source>. The SRD 5.2.1 is licensed under the Creative Commons Attribution 4.0 International License, available at <licence>https://creativecommons.org/licenses/by/4.0/legalcode</licence>."
     }
   },
   "search": {

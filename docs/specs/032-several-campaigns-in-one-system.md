@@ -1,6 +1,6 @@
 # SPEC-032: Several campaigns in one system
 
-- **Status:** Draft — the DM answered the four product questions and the four points of the first review on 2026-10-12 (§9, _Answered_); one point is open (§9, _Open questions_).
+- **Status:** Agreed 2026-10-12 — the DM answered the four product questions, then the points of the first review, the same day (§9, _Answered_); nothing is open.
 - **Date:** 2026-10-12
 - **Phase:** 4
 - **Related:** [SPEC-013](./013-campaign-management.md) (the campaign, its adventures, scenes, creatures and loot; "multi-campaign support" was left to a later spec) · [SPEC-014](./014-calendar-and-timeline.md) (campaign events, world history, and the campaign's "today") · [SPEC-018](./018-game-systems.md) / [ADR-0013](../adr/0013-game-systems.md) (a campaign has one system) · [SPEC-022](./022-accounts-roles-and-party-visibility.md) (§9's risk and R15: a group is a campaign's players, and the campaign section is the DM's alone) · [SPEC-030](./030-daggerheart-campaign-management.md) · [SPEC-031](./031-encounter-builder.md) · [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md) · [ADR-0020](../adr/0020-roles-in-the-session-and-four-guards.md) · ROADMAP, _Open question for the DM: several campaigns in one system_
@@ -26,6 +26,7 @@ A DM can hold any number of campaigns in a system, each with its own page, adven
 - **Scoping the setting by campaign.** The standing decision holds (ROADMAP, _Campaigns as stories, not as scoping_): no `campaignId` on spells, NPCs, deities, factions or places. A campaign's only filter on the setting remains what it has been shown (SPEC-022 reveals).
 - **Changing a campaign's system after creation**, and **a player's one-campaign-at-a-time view** (SPEC-022 §9): both stay as they are.
 - **Read-only archives.** Archiving is visibility, not a lock (§5.6).
+- **Requiring an adventure on every campaign event.** SPEC-014 lets an event of a campaign name none, and this spec leaves that as it is (§9, _Answered_).
 
 ## 4. User stories
 
@@ -91,7 +92,7 @@ From an adventure's row in the ladder, "Copia in…" asks for a destination: any
 | Copy destination of another system                                                                    | Not offered. A standalone adventure is 5e, so it is offered 5e campaigns only.                                                       |
 | Copying an adventure with no scenes                                                                   | The header is copied; the copy has none.                                                                                             |
 | An event of the adventure names one of its scenes                                                     | The copy's event names the copy's scene.                                                                                             |
-| A campaign event names no adventure (SPEC-014 allows it)                                              | It belongs to nothing that is copied, so no copy carries it; it stays with its campaign (§9, _Open questions_).                      |
+| A campaign event names no adventure (SPEC-014 allows it)                                              | It belongs to nothing that is copied, so no copy carries it; it stays with its campaign (§9, _Answered_).                            |
 | Copying while the original is being edited                                                            | One transaction reads a consistent snapshot; either every row of the copy exists or none does.                                       |
 | Archiving a campaign a player is viewing                                                              | Their next request falls back (§5.6); the cookie is only a preference, and `getViewer` already ignores one that is not a membership. |
 | Archived campaign's reveals when a record's reveal field is saved from a picker that does not list it | Preserved. A save changes the reveals of the campaigns it listed, and only those (§9, _Risks_).                                      |
@@ -174,11 +175,12 @@ None. A campaign is outside the metadata layer (ADR-0011): `campaignMeta` keeps 
 - _The route shape?_ **The move**: adventures go to `/adventure/<id>`, as a first, pure-move task, and an old adventure bookmark is not kept.
 - _What does a copied campaign leave behind?_ **Players, reveals and the current day.** Events are not left behind: they belong to the adventure and travel with it (§5.4). The setting's own — the feasts of the deities, which repeat each year — are the world's, not a campaign's, and are never copied.
 - _Do an archived campaign's players lose sight of the world at once?_ **Yes.**
+- _A campaign event that names no adventure?_ **Left as SPEC-014 has it.** Nothing in this spec copies one, and nothing forbids creating one; making the adventure required would be its own item, not part of this.
 - _The model_ (§5.0): a setting holds campaigns, each typed by game system; two groups on the same story are that campaign copied. The question of a system's single campaign opening without the list was not answered in so many words; §5.1 keeps the list, and a shortcut is a small change if the DM wants it.
 
 **Open questions**
 
-1. **A campaign event that names no adventure.** SPEC-014 §5.4 lets an event of a campaign name no adventure; the DM's model (§5.0) has none such, since events belong to adventures. Nothing in this spec copies one, and nothing forbids creating one. The choice is to leave SPEC-014 as it is, or to require an adventure on every campaign event — a change to that spec's form and validator, which would be its own task, not part of this one. **Recommended: leave it**, and file the requirement separately if the DM wants it.
+None.
 
 ## 10. Task breakdown
 

@@ -127,7 +127,7 @@ The order is load-bearing. Item 1 types the metadata layer, which turns the swee
 
 ## Phase 5 — Sharing and polish
 
-- **Player-facing read-only view.** Share a location or deity with players without exposing DM-only fields (`secrets`, `motivations`). Requires the authorisation model that does not exist today.
+- **✅ Player-facing read-only view.** Share a location or deity with players without exposing DM-only fields (`secrets`, `motivations`). Shipped 2026-10-01 as [SPEC-022](./specs/022-accounts-roles-and-party-visibility.md) (T7–T8): a player reads every page outside the campaign section, each read path through `getVisibilityScope()`, and DM-only fields are declared `dmOnly` in `PageMeta`. Still open, per its §11: a faction "seat" and several campaigns in one system. _(This entry used to read "requires the authorisation model that does not exist today"; corrected 2026-10-12.)_
 - **Export.** PDF or Markdown of a domain, or of the whole setting.
 - **Import.** From D&D Beyond, 5e.tools, or CSV.
 - **Rich text in descriptions.** Shipped 2026-09-19 as [SPEC-019](./specs/019-formatted-text.md): the sanitiser and stored format ([ADR-0016](./adr/0016-formatted-text-as-sanitised-html.md)), a formatted renderer that supersedes TD-76's interim fix, the toolbar editor (`ControlType.RichText`) and the record-link picker, applied to every description field. See the spec's §11 for the full outcome.

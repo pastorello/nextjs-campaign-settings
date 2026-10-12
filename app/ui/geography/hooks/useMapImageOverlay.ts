@@ -90,6 +90,35 @@ export function useMapImageOverlay({
         const image = L.imageOverlay(mapUrl, bounds, { opacity: 0 });
 
         if (map) {
+          // Frame the map, *then* restrict it to `limit` (TD-153).
+          //
+          // `setMaxBounds` is not only a setting: on a loaded map it pulls
+          // the current centre inside the new bounds at once, with an
+          // *animated* pan — and the map is still at whatever view the
+          // previous image (or the construction-time default) left it at,
+          // which is outside them. Calling it before the view change started
+          // a ~250ms slide that the non-animated `setView`/`fitBounds` after
+          // it could not cancel: that call stops the slide, the stop fires
+          // `moveend`, and the `moveend` hook `setMaxBounds` had installed
+          // re-enforced the bounds from the same stale centre — a second
+          // slide, started after the reset it was meant to follow. The pane
+          // drifted ~380px down and back for ~500ms on every load, and a
+          // right-click inside that window landed on a moving map (TD-152).
+          //
+          // So the old restriction is lifted first (empty bounds clear it,
+          // and remove its `moveend` hook), the view is set unrestricted —
+          // which also stops `setView` clamping the new framing against the
+          // *previous* image's bounds — and the new bounds go on last, when
+          // the centre is already inside them and there is nothing to pan.
+          const frameThenRestrict = (
+            limit: L.LatLngBoundsExpression,
+            frame: () => void
+          ) => {
+            map.setMaxBounds(L.latLngBounds([]));
+            frame();
+            map.setMaxBounds(limit);
+          };
+
           image.addTo(map);
           setCurrentImage(image);
           setEffectiveBounds(bounds);
@@ -134,7 +163,6 @@ export function useMapImageOverlay({
             );
             map.setMinZoom(minZoom);
             map.setMaxZoom(10);
-            map.setMaxBounds(bounds);
             // `animate: false`, and not only because an animated initial
             // framing is pointless: `runWithoutClosing`'s suppression window
             // is synchronous, and Leaflet defers an *animated* zoom's
@@ -143,14 +171,11 @@ export function useMapImageOverlay({
             // has meanwhile opened. With `animate: false` the whole view
             // change, `zoomstart` included, runs inside the suppression.
             //
-            // This reasoning used to be written in terms of `movestart` and
-            // the pan `setMaxBounds`'s `panInsideMaxBounds` hook makes on the
-            // deferred `moveend` — the cascade CI caught, where the menu
-            // detached ~100ms after opening. That cascade still happens;
-            // since TD-100 the menu simply does not listen to it any more,
-            // which is why the argument for `animate: false` is now the zoom
-            // rather than the pan.
-            map.setView(initialView, initialZoom, { animate: false });
+            // The *pan* a `setMaxBounds` makes is TD-153's, and is why the
+            // bounds go on after the view — see `frameThenRestrict`.
+            frameThenRestrict(bounds, () => {
+              map.setView(initialView, initialZoom, { animate: false });
+            });
           });
 
           image.once("load", () => {
@@ -215,10 +240,12 @@ export function useMapImageOverlay({
               map.invalidateSize({ animate: false });
               const fitZoom = map.getBoundsZoom(fittedBounds);
               map.setMinZoom(computeMinZoom(fitZoom, fitZoom));
-              map.setMaxBounds(fittedBounds);
               // Same `animate: false` reasoning as the interim framing
-              // above — this re-fit is the case that actually bit in CI.
-              map.fitBounds(fittedBounds, { animate: false });
+              // above — this re-fit is the case that actually bit in CI —
+              // and the same bounds-after-view order (TD-153).
+              frameThenRestrict(fittedBounds, () => {
+                map.fitBounds(fittedBounds, { animate: false });
+              });
             });
           });
         }

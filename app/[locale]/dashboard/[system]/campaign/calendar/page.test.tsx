@@ -29,8 +29,13 @@ vi.mock("@/i18n/navigation", () => ({
   ),
 }));
 
+// Until SPEC-032 T3 the calendar's campaign is the system's first.
+const fetchCampaigns = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/campaigns/fetchCampaigns", () => ({
+  default: (...args: unknown[]) => fetchCampaigns(...args),
+}));
 const fetchCampaign = vi.fn<(...args: unknown[]) => unknown>();
-vi.mock("@/app/lib/data/campaigns/fetchCampaign", () => ({
+vi.mock("@/app/lib/data/campaigns/fetchCampaignById", () => ({
   default: (...args: unknown[]) => fetchCampaign(...args),
 }));
 const fetchCampaignEvents = vi.fn<(...args: unknown[]) => unknown>();
@@ -138,6 +143,7 @@ const event = { id: 1, startDay: 10, endDay: null };
 describe("Campaign calendar page (SPEC-014 T6)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    fetchCampaigns.mockResolvedValue([{ id: 1 }]);
     fetchCampaignEvents.mockResolvedValue([event]);
     fetchWorldHistoryBetween.mockResolvedValue([{ id: 9 }]);
   });
@@ -147,6 +153,7 @@ describe("Campaign calendar page (SPEC-014 T6)", () => {
   });
 
   it("says there is no campaign under this system, linking to the campaign page", async () => {
+    fetchCampaigns.mockResolvedValue([]);
     fetchCampaign.mockResolvedValue(null);
 
     render(await CampaignCalendarPage(routeProps()));
@@ -164,7 +171,8 @@ describe("Campaign calendar page (SPEC-014 T6)", () => {
 
     render(await CampaignCalendarPage(routeProps()));
 
-    expect(fetchCampaign).toHaveBeenCalledWith("dnd5e");
+    expect(fetchCampaigns).toHaveBeenCalledWith("dnd5e");
+    expect(fetchCampaign).toHaveBeenCalledWith(1);
     expect(screen.getByTestId("current-day")).toHaveTextContent("400");
     expect(screen.getByTestId("list")).toHaveTextContent("1/1/400");
     // Day 10 is in year 0, today (day 400) in year 1: both whole years,

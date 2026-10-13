@@ -41,11 +41,12 @@ describe("createCampaign (SPEC-013 T6)", () => {
   });
 
   it("creates the campaign on valid input", async () => {
-    create.mockResolvedValue({});
+    create.mockResolvedValue({ id: 7 });
 
     const result = await createCampaign(validFormData);
 
-    expect(result).toEqual({ ok: true });
+    // The id rides back so the form can open the new campaign (§5.3).
+    expect(result).toEqual({ ok: true, id: 7 });
     expect(create).toHaveBeenCalledWith({
       data: {
         title: validFormData.title,
@@ -53,7 +54,16 @@ describe("createCampaign (SPEC-013 T6)", () => {
         partySize: validFormData.partySize,
         system: "dnd5e",
       },
+      select: { id: true },
     });
+  });
+
+  // SPEC-032 §5.3: a campaign no longer refuses to exist once one does.
+  it("creates a second campaign, and a third with the same title", async () => {
+    create.mockResolvedValueOnce({ id: 8 }).mockResolvedValueOnce({ id: 9 });
+
+    expect(await createCampaign(validFormData)).toEqual({ ok: true, id: 8 });
+    expect(await createCampaign(validFormData)).toEqual({ ok: true, id: 9 });
   });
 
   // SPEC-018 T3: the system is asked for, and only a known one is accepted.

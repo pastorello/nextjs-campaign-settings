@@ -59,7 +59,12 @@ export default function AdventureHeader({
   return (
     <div>
       <Link
-        href={dashboardPath(system, "/campaign")}
+        href={dashboardPath(
+          system,
+          adventure.campaignId === null
+            ? "/campaign"
+            : `/campaign/${adventure.campaignId}`
+        )}
         className="mb-2 inline-block text-sm text-blue-600 underline"
       >
         {t("adventure.backToCampaign")}

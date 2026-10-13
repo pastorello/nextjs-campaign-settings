@@ -10,19 +10,22 @@ import { buildBespokeCreateSchema } from "../validation/buildBespokeEntitySchema
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
+/** A refusal, or the created campaign's id (SPEC-032 §5.3 navigates to it). */
+type CreateCampaignResult =
+  Extract<MutationResult, { ok: false }> | { ok: true; id: number };
+
 /**
- * Creates the DM's campaign (SPEC-013 §5's empty-state flow: "on first use
- * there is no campaign; a form creates one"). Outside the metadata layer
- * (ADR-0011) — validated against `campaignMeta`'s own declarations rather
- * than `buildCreateSchema`/`PageType`, which `campaign` never registers for.
+ * Creates a campaign (SPEC-013 §5's empty-state flow, and SPEC-032 §5.3's
+ * "create another"). Outside the metadata layer (ADR-0011) — validated
+ * against `campaignMeta`'s own declarations rather than
+ * `buildCreateSchema`/`PageType`, which `campaign` never registers for.
  *
- * Nothing stops a second row at the database level (`fetchCampaign`'s own
- * comment notes this), but the product only ever reads the first — a second
- * campaign is multi-campaign support, a different piece of work.
+ * Any number of campaigns may exist, in any system; the title is not a key
+ * (SPEC-032 §8). Returns the new id so the form can open the campaign.
  */
 export default async function createCampaign(
   formData: Campaign
-): Promise<MutationResult> {
+): Promise<CreateCampaignResult> {
   await requireDm();
 
   const parsed = buildBespokeCreateSchema(campaignMeta).safeParse(formData);
@@ -36,14 +39,16 @@ export default async function createCampaign(
     "id"
   >;
 
+  let id: number;
   try {
-    await prisma.campaign.create({
+    ({ id } = await prisma.campaign.create({
       data: { title, synopsis, partySize, system },
-    });
+      select: { id: true },
+    }));
   } catch (error) {
     throw toDatabaseError("creating campaign", error);
   }
 
   revalidateDashboard("campaign");
-  return { ok: true };
+  return { ok: true, id };
 }

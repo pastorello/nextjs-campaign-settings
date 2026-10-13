@@ -2,6 +2,8 @@ import { test, expect, type Browser, type Page } from "@playwright/test";
 
 import messages from "@/messages/it.json";
 
+import { ensureCampaignPath } from "./ensureCampaign";
+
 const t = messages.accounts.page;
 
 /** `{name}`-style placeholders, as next-intl fills them. */
@@ -54,14 +56,17 @@ export async function signIn(page: Page, email: string, password: string) {
   await page.getByRole("button", { name: messages.common.auth.submit }).click();
 }
 
-/** Adds a player to a system's campaign from its page (SPEC-022 T5). */
+/**
+ * Adds a player to a system's oldest campaign from its page (SPEC-022 T5;
+ * SPEC-032 T2: the page is the campaign's own, not the list).
+ */
 export async function addPlayerToCampaign(
   page: Page,
   name: string,
   system: "dnd5e" | "daggerheart" = "dnd5e"
 ) {
   const players = messages.campaign.players;
-  await page.goto(`/dashboard/${system}/campaign`);
+  await ensureCampaignPath(page, system);
   const section = page.getByRole("region", { name: players.title });
   await section.getByRole("button", { name: players.candidate }).click();
   await page.getByRole("option", { name }).click();

@@ -3,7 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 
 import messages from "@/messages/it.json";
 
-import { ensureCampaign } from "./helpers/ensureCampaign";
+import { ensureCampaign, ensureCampaignPath } from "./helpers/ensureCampaign";
 import { chooseFromContextMenu } from "./helpers/mapContextMenu";
 import { portraitPng } from "./helpers/portraitPng";
 import {
@@ -39,6 +39,8 @@ import {
  */
 const PAGES = [
   "/dashboard/dnd5e",
+  // SPEC-032: the list renders cards or its empty state, either way.
+  "/dashboard/dnd5e/campaign",
   "/dashboard/dnd5e/spells",
   "/dashboard/dnd5e/npc",
   "/dashboard/dnd5e/deities",
@@ -140,9 +142,8 @@ for (const path of PAGES) {
 
 /**
  * SPEC-013 T10: the campaign and adventure pages. These two cannot join
- * `PAGES` above — what they render depends on data (the campaign page is a
- * creation form until the one campaign exists; the adventure page needs a
- * real adventure id in the URL) — so this test builds its fixtures first,
+ * `PAGES` above — what they render depends on data (the campaign page needs
+ * a real campaign id in the URL; the adventure page, an adventure's) — so this test builds its fixtures first,
  * idempotently, the same way `world.setup.ts` does for the root place: the
  * campaign has no delete action (T6, deliberate), so the first run creates
  * "E2E Campaign" and every later run finds it already there.
@@ -158,8 +159,7 @@ for (const path of PAGES) {
 test("campaign and adventure pages have no accessibility violations", async ({
   page,
 }) => {
-  await page.goto("/dashboard/dnd5e/campaign");
-  await page.waitForLoadState("networkidle");
+  await ensureCampaignPath(page);
 
   const scan = async (label: string) => {
     // Wait for a non-empty `<title>` before axe runs, or `document-title`
@@ -179,16 +179,6 @@ test("campaign and adventure pages have no accessibility violations", async ({
     );
     expect(summary, `axe violations on ${label}`).toEqual([]);
   };
-
-  const createCampaignButton = page.getByRole("button", {
-    name: messages.campaign.form.createButton,
-  });
-  if (await createCampaignButton.isVisible().catch(() => false)) {
-    await page
-      .getByLabel(messages.campaign.fields.title.label)
-      .fill("E2E Campaign");
-    await createCampaignButton.click();
-  }
 
   const addAdventureButton = page.getByRole("button", {
     name: messages.adventure.ladder.addButton,
@@ -210,7 +200,7 @@ test("campaign and adventure pages have no accessibility violations", async ({
 
   // Campaign page: header, ladder with a row, and the add-adventure form.
   await addAdventureButton.click();
-  await scan("/dashboard/dnd5e/campaign");
+  await scan("/dashboard/dnd5e/campaign/[campaignId]");
 
   await adventureLink.click();
   await expect(

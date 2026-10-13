@@ -1,101 +1,36 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { universalCountFixture as universal } from "@/app/lib/calendar/dateSystemFixtures";
-
-// An async Server Component that reads the database (SPEC-019 T5); a
-// pass-through here, recording what the page asked it to resolve.
-const { resolvedValues } = vi.hoisted(() => ({ resolvedValues: vi.fn() }));
-vi.mock("@/app/ui/richText/ResolvedRecordLinks", () => ({
-  default: ({
-    values,
-    children,
-  }: {
-    values: unknown;
-    children: React.ReactNode;
-  }) => {
-    resolvedValues(values);
-    return children;
-  },
-}));
-
 vi.mock("next-intl/server", () => ({
   getTranslations: () => Promise.resolve((key: string) => key),
 }));
 
-vi.mock("@/i18n/navigation", () => ({
-  Link: ({ href, children }: { href: string; children: React.ReactNode }) => (
-    <a href={href}>{children}</a>
-  ),
-}));
-
-const fetchCampaign = vi.fn<(...args: unknown[]) => unknown>();
-vi.mock("@/app/lib/data/campaigns/fetchCampaign", () => ({
-  default: (...args: unknown[]) => fetchCampaign(...args),
-}));
-
-const fetchAdventureSceneProgress = vi.fn<(...args: unknown[]) => unknown>();
-vi.mock("@/app/lib/data/campaigns/fetchAdventureSceneProgress", () => ({
-  default: (...args: unknown[]) => fetchAdventureSceneProgress(...args),
-}));
-
-const fetchCampaignEvents = vi.fn<(...args: unknown[]) => unknown>();
-vi.mock("@/app/lib/data/calendar/fetchCampaignEvents", () => ({
-  default: (...args: unknown[]) => fetchCampaignEvents(...args),
-}));
-
-vi.mock("@/app/lib/data/calendar/fetchDateSystems", () => ({
-  default: () => Promise.resolve([universal]),
-}));
-
-vi.mock("@/app/lib/data/calendar/readDisplayDateSystemId", () => ({
-  default: () => Promise.resolve(null),
+const fetchCampaigns = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/campaigns/fetchCampaigns", () => ({
+  default: (...args: unknown[]) => fetchCampaigns(...args),
 }));
 
 vi.mock("@/app/ui/campaigns/CampaignForm", () => ({
   default: () => <div data-testid="campaign-form" />,
 }));
 
-vi.mock("@/app/ui/campaigns/CampaignHeader", () => ({
-  default: () => <div data-testid="campaign-header" />,
-}));
-
-vi.mock("@/app/ui/campaigns/AdventureLadder", () => ({
-  default: () => <div data-testid="adventure-ladder" />,
-}));
-
-// SPEC-022 T5: the campaign's group, below the ladder.
-vi.mock("@/app/lib/data/campaigns/fetchCampaignPlayers", () => ({
-  default: () => Promise.resolve({ members: [], candidates: [] }),
-}));
-vi.mock("@/app/ui/campaigns/CampaignPlayers", () => ({
-  default: ({ campaignId }: { campaignId: number }) => (
-    <div data-testid="campaign-players">{campaignId}</div>
-  ),
-}));
-
-vi.mock("@/app/ui/calendar/UpcomingEvents", () => ({
-  default: ({
-    upcoming,
-  }: {
-    upcoming: { event: { title: string }; startDay: number }[];
-  }) => (
-    <ul data-testid="upcoming-events">
-      {upcoming.map(({ event, startDay }) => (
-        <li key={event.title}>{`${event.title}@${startDay}`}</li>
+vi.mock("@/app/ui/campaigns/CampaignList", () => ({
+  default: ({ campaigns }: { campaigns: { id: number }[] }) => (
+    <ul data-testid="campaign-list">
+      {campaigns.map(({ id }) => (
+        <li key={id}>{id}</li>
       ))}
     </ul>
   ),
 }));
 
-const notFound = vi.fn(() => {
-  throw new Error("NEXT_NOT_FOUND");
-});
 vi.mock("next/navigation", () => ({
-  notFound: () => notFound(),
+  notFound: () => {
+    throw new Error("NEXT_NOT_FOUND");
+  },
 }));
 
-import CampaignPage, { generateMetadata } from "./page";
+import CampaignListPage, { generateMetadata } from "./page";
 
 function routeProps(system = "dnd5e") {
   return {
@@ -104,126 +39,53 @@ function routeProps(system = "dnd5e") {
   };
 }
 
-const campaign = {
-  id: 1,
-  title: "The Silver Coast",
-  synopsis: null,
-  partySize: 5,
-  currentDay: null,
-  adventures: [{ id: 10 }, { id: 11 }],
-};
-
-const event = (id: number, startDay: number, repeatsYearly = false) => ({
-  id,
-  title: `Event ${id}`,
-  description: null,
-  startDay,
-  startHour: null,
-  endDay: null,
-  endHour: null,
-  repeatsYearly,
-  adventure: null,
-  scene: null,
-});
-
-describe("Campaign page (SPEC-013 T7)", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    fetchAdventureSceneProgress.mockResolvedValue({});
-  });
+describe("Campaign list page (SPEC-032 T2)", () => {
+  beforeEach(() => vi.clearAllMocks());
 
   it("titles the page from the campaign.page catalogue", async () => {
-    const metadata = await generateMetadata();
-
-    expect(metadata.title).toBe("title");
+    expect((await generateMetadata()).title).toBe("title");
   });
 
-  it("offers the create-campaign form and nothing else on an empty installation", async () => {
-    fetchCampaign.mockResolvedValue(null);
+  it("shows the empty-state sentence and the create form with no campaign", async () => {
+    fetchCampaigns.mockResolvedValue([]);
 
-    render(await CampaignPage(routeProps()));
+    render(await CampaignListPage(routeProps()));
 
+    expect(screen.getByText("emptyState.description")).toBeInTheDocument();
+    expect(screen.queryByTestId("campaign-list")).not.toBeInTheDocument();
     expect(screen.getByTestId("campaign-form")).toBeInTheDocument();
-    expect(screen.queryByTestId("adventure-ladder")).not.toBeInTheDocument();
-    expect(fetchAdventureSceneProgress).not.toHaveBeenCalled();
   });
 
-  it("shows the campaign header and its adventure ladder once a campaign exists", async () => {
-    fetchCampaign.mockResolvedValue(campaign);
+  it("lists every campaign, and still offers the form", async () => {
+    fetchCampaigns.mockResolvedValue([{ id: 1 }, { id: 2 }]);
 
-    render(await CampaignPage(routeProps()));
+    render(await CampaignListPage(routeProps()));
 
-    expect(screen.queryByTestId("campaign-form")).not.toBeInTheDocument();
-    expect(screen.getByTestId("campaign-header")).toBeInTheDocument();
-    expect(screen.getByTestId("adventure-ladder")).toBeInTheDocument();
-    expect(fetchAdventureSceneProgress).toHaveBeenCalledWith([10, 11]);
-    // SPEC-022 T5: the campaign's players, for this campaign.
-    expect(screen.getByTestId("campaign-players")).toHaveTextContent(
-      String(campaign.id)
-    );
+    expect(screen.getAllByRole("listitem")).toHaveLength(2);
+    expect(screen.getByTestId("campaign-form")).toBeInTheDocument();
   });
 
-  // SPEC-018 T3: the list is filtered by the URL's system.
-  it("reads only the route system's campaign", async () => {
-    fetchCampaign.mockResolvedValue(null);
+  it("does not open a lone campaign on its own", async () => {
+    fetchCampaigns.mockResolvedValue([{ id: 1 }]);
 
-    render(await CampaignPage(routeProps("dnd5e")));
+    render(await CampaignListPage(routeProps()));
 
-    expect(fetchCampaign).toHaveBeenCalledWith("dnd5e");
+    expect(screen.getByTestId("campaign-list")).toBeInTheDocument();
+  });
+
+  it("reads only the route system's campaigns", async () => {
+    fetchCampaigns.mockResolvedValue([]);
+
+    render(await CampaignListPage(routeProps("daggerheart")));
+
+    expect(fetchCampaigns).toHaveBeenCalledWith("daggerheart");
   });
 
   it("is not found under an unknown system, without reading", async () => {
-    await expect(CampaignPage(routeProps("foo"))).rejects.toThrow(
+    await expect(CampaignListPage(routeProps("foo"))).rejects.toThrow(
       "NEXT_NOT_FOUND"
     );
 
-    expect(fetchCampaign).not.toHaveBeenCalled();
-  });
-});
-
-describe("Campaign page — calendar (SPEC-014 T6)", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    fetchAdventureSceneProgress.mockResolvedValue({});
-  });
-
-  it("links to the campaign calendar", async () => {
-    fetchCampaign.mockResolvedValue(campaign);
-
-    render(await CampaignPage(routeProps()));
-
-    expect(
-      screen.getByRole("link", { name: "calendar.campaign.link" })
-    ).toHaveAttribute("href", "/dashboard/dnd5e/campaign/calendar");
-  });
-
-  it("shows no upcoming events, and reads no calendar, without a current day", async () => {
-    fetchCampaign.mockResolvedValue(campaign);
-
-    render(await CampaignPage(routeProps()));
-
-    expect(screen.queryByTestId("upcoming-events")).not.toBeInTheDocument();
-    expect(fetchCampaignEvents).not.toHaveBeenCalled();
-  });
-
-  it("shows the next three events after the current day, a yearly one by its next date", async () => {
-    fetchCampaign.mockResolvedValue({ ...campaign, currentDay: 400 });
-    fetchCampaignEvents.mockResolvedValue([
-      event(1, 100), // past
-      event(2, 30, true), // yearly: next on day 30 + 2·365 = 760
-      event(3, 500),
-      event(4, 410),
-      event(5, 900),
-    ]);
-
-    render(await CampaignPage(routeProps()));
-
-    expect(fetchCampaignEvents).toHaveBeenCalledWith(1);
-    const items = screen.getByTestId("upcoming-events").querySelectorAll("li");
-    expect([...items].map((item) => item.textContent)).toEqual([
-      "Event 4@410",
-      "Event 3@500",
-      "Event 2@760",
-    ]);
+    expect(fetchCampaigns).not.toHaveBeenCalled();
   });
 });

@@ -29,7 +29,7 @@ interface CampaignFormProps {
 }
 
 /**
- * The DM's one campaign: created once from the empty state (SPEC-013 §5.1),
+ * A campaign: created from the list page (SPEC-013 §5.1, SPEC-032 §5.3),
  * edited afterwards from `CampaignHeader`. Outside the metadata layer
  * (ADR-0011) — a hand-rolled form, the same shape `CreateWorldForm` already
  * uses for SPEC-004's other single-record "root" entity, rather than
@@ -72,17 +72,19 @@ export default function CampaignForm({
       partySize: Number(partySize),
     };
 
-    const saved = await submit(() =>
-      isEditMode
-        ? updateCampaign({ ...fields, id: campaign.id })
-        : createCampaign({ ...fields, id: 0, system })
-    );
+    let createdId: number | undefined;
+    const saved = await submit(async () => {
+      if (isEditMode) return updateCampaign({ ...fields, id: campaign.id });
+      const result = await createCampaign({ ...fields, id: 0, system });
+      if (result.ok) createdId = result.id;
+      return result;
+    });
     if (!saved) return;
 
-    // A campaign created for another system is listed only under that
-    // system's URL, so go there rather than refresh into the empty state.
-    if (!isEditMode && system !== routeSystem) {
-      router.push(dashboardPath(system, "/campaign"));
+    // A new campaign opens on its own page, under its own system's URL
+    // (SPEC-032 §5.3); an edit refreshes the page it was made on.
+    if (createdId !== undefined) {
+      router.push(dashboardPath(system, `/campaign/${createdId}`));
     } else {
       router.refresh();
     }

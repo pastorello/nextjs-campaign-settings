@@ -3,7 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 
 import messages from "@/messages/it.json";
 
-import { ensureCampaign } from "./helpers/ensureCampaign";
+import { ensureCampaignPath } from "./helpers/ensureCampaign";
 
 /**
  * SPEC-031 T5: a 5e fight, end to end. An invented creature's challenge
@@ -14,7 +14,6 @@ import { ensureCampaign } from "./helpers/ensureCampaign";
  * the count controls showing. Everything it writes is invented (SPEC-018
  * §5) and removed in `finally`; the campaign stays, as it has no delete.
  */
-const CAMPAIGN = "/dashboard/dnd5e/campaign";
 const encounter = messages.scene.encounter;
 const adjust = messages.sceneCreature.adjust;
 
@@ -44,8 +43,8 @@ const choose = async (
 const partySize = messages.adventure.partySize.label;
 
 /** Deletes the adventure's row from the campaign page, if it is there. */
-const deleteAdventure = async (page: Page, title: string) => {
-  await page.goto(CAMPAIGN);
+const deleteAdventure = async (page: Page, campaign: string, title: string) => {
+  await page.goto(campaign);
   await page.waitForLoadState("networkidle");
   const row = page.getByRole("row").filter({ hasText: title });
   if ((await row.count()) === 0) return;
@@ -63,11 +62,11 @@ test("a 5e fight's difficulty follows the party and the counted creatures", asyn
   test.setTimeout(180_000);
   const adventure = `E2E Avventura 5e ${Date.now()}`;
   const creature = "Lupo inventato";
+  let campaign = "";
 
   try {
     // --- An adventure at level 3 ---------------------------------------
-    await ensureCampaign(page, "dnd5e");
-    await page.goto(CAMPAIGN);
+    campaign = await ensureCampaignPath(page, "dnd5e");
     await page.waitForLoadState("networkidle");
     await page
       .getByRole("button", { name: messages.adventure.ladder.addButton })
@@ -202,6 +201,6 @@ test("a 5e fight's difficulty follows the party and the counted creatures", asyn
     await expect(listbox(page, partySize, "4")).toBeVisible();
     await expect(page.getByText(difficulty("moderate"))).toBeVisible();
   } finally {
-    await deleteAdventure(page, adventure);
+    if (campaign) await deleteAdventure(page, campaign, adventure);
   }
 });

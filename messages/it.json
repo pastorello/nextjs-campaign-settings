@@ -1231,6 +1231,11 @@
     "page": {
       "title": "Campagna"
     },
+    "list": {
+      "players": "{count, plural, one {# giocatore} other {# giocatori}}",
+      "adventures": "{count, plural, =0 {Nessuna avventura} one {# avventura} other {# avventure}}",
+      "create": "Nuova campagna"
+    },
     "emptyState": {
       "description": "Non hai ancora una campagna. Creane una per iniziare a costruire la scaletta delle avventure."
     },

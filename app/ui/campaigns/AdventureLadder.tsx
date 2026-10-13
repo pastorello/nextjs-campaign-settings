@@ -174,7 +174,7 @@ export default function AdventureLadder({
                       <Link
                         href={dashboardPath(
                           system,
-                          `/campaign/${adventure.id}`
+                          `/adventure/${adventure.id}`
                         )}
                         className="text-blue-600 underline"
                       >

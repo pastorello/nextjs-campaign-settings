@@ -161,7 +161,7 @@ describe("Adventure page (SPEC-013 T8)", () => {
     ).rejects.toThrow("NEXT_REDIRECT");
 
     expect(redirect).toHaveBeenCalledWith({
-      href: "/dashboard/dnd5e/campaign/10",
+      href: "/dashboard/dnd5e/adventure/10",
       locale: "en",
     });
     expect(getBudgetTotals).not.toHaveBeenCalled();

@@ -153,7 +153,7 @@ describe("CampaignCalendarList (SPEC-014 T6)", () => {
 
     expect(screen.getByRole("link", { name: "Into the Mire" })).toHaveAttribute(
       "href",
-      "/dashboard/dnd5e/campaign/10"
+      "/dashboard/dnd5e/adventure/10"
     );
     expect(item("Ambush")).toHaveTextContent("The fog");
   });

@@ -135,7 +135,7 @@ export default function CampaignCalendarList({
               {t(campaignEventOwnerMeta.adventureId.labelKey)}
               {": "}
               <Link
-                href={dashboardPath(system, `/campaign/${item.adventure.id}`)}
+                href={dashboardPath(system, `/adventure/${item.adventure.id}`)}
                 className="text-blue-600 underline"
               >
                 {item.adventure.name}

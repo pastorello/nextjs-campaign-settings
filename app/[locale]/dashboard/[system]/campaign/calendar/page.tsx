@@ -4,14 +4,15 @@ import { Metadata } from "next";
 
 import { Link } from "@/i18n/navigation";
 import { dashboardPath } from "@/i18n/dashboardPath";
-import { isGameSystem } from "@/app/lib/definitions/GameSystem";
+import GameSystem, { isGameSystem } from "@/app/lib/definitions/GameSystem";
 import { monthOf } from "@/app/lib/calendar/monthOf";
 import { monthRange } from "@/app/lib/calendar/monthRange";
 import { parseMonthGridParams } from "@/app/lib/calendar/parseMonthGridParams";
 import { resolveDisplayDateSystem } from "@/app/lib/calendar/resolveDisplayDateSystem";
 import { yearSpan } from "@/app/lib/calendar/yearSpan";
 import { yearlyOccurrencesIn } from "@/app/lib/calendar/yearlyOccurrencesIn";
-import fetchCampaign from "@/app/lib/data/campaigns/fetchCampaign";
+import fetchCampaignById from "@/app/lib/data/campaigns/fetchCampaignById";
+import fetchCampaigns from "@/app/lib/data/campaigns/fetchCampaigns";
 import fetchCalendarSettings from "@/app/lib/data/calendar/fetchCalendarSettings";
 import fetchCampaignEvents from "@/app/lib/data/calendar/fetchCampaignEvents";
 import fetchCampaignScenes from "@/app/lib/data/calendar/fetchCampaignScenes";
@@ -40,7 +41,9 @@ export async function generateMetadata(): Promise<Metadata> {
  * day, and its events as a chronological list — filtered by adventure,
  * past ones dimmed, today's highlighted — beside the world history of the
  * same years, shown read-only. Only the route system's campaign is shown
- * (SPEC-018 T3), as on the campaign page; with none, the page says so.
+ * (SPEC-018 T3); with none, the page says so. Until SPEC-032 T3 moves this
+ * page under `/campaign/<campaignId>`, "the campaign" is the system's
+ * first — see `readFirstCampaign`.
  *
  * The world history shown is every event in the whole years the campaign's
  * events and its current day fall in (`yearSpan`), since the list is
@@ -61,7 +64,7 @@ export default async function CampaignCalendarPage(
   const searchParams = await props.searchParams;
   const [t, campaign, systems, preferredId] = await Promise.all([
     getTranslations("calendar.campaign"),
-    fetchCampaign(system),
+    readFirstCampaign(system),
     fetchDateSystems(),
     readDisplayDateSystemId(),
   ]);
@@ -102,7 +105,7 @@ export default async function CampaignCalendarPage(
   const header = (
     <>
       <Link
-        href={dashboardPath(system, "/campaign")}
+        href={dashboardPath(system, `/campaign/${campaign.id}`)}
         className="mb-2 inline-block text-sm text-blue-600 underline"
       >
         {t("backToCampaign")}
@@ -213,4 +216,15 @@ export default async function CampaignCalendarPage(
       </div>
     </ResolvedRecordLinks>
   );
+}
+
+/**
+ * The route system's oldest campaign, with its adventures. A bridge:
+ * SPEC-032 T2 made campaigns addressable by id, and T3 puts this calendar
+ * under that id; until then the address names no campaign, so the first
+ * one stands in, as the single campaign did before.
+ */
+async function readFirstCampaign(system: GameSystem) {
+  const [first] = await fetchCampaigns(system);
+  return first ? fetchCampaignById(first.id) : null;
 }

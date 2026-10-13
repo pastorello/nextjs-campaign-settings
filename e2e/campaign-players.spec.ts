@@ -7,7 +7,7 @@ import {
   deleteAccountIfPresent,
   fillTemplate,
 } from "./helpers/accounts";
-import { ensureCampaign } from "./helpers/ensureCampaign";
+import { ensureCampaignPath } from "./helpers/ensureCampaign";
 
 const t = messages.campaign.players;
 
@@ -17,7 +17,7 @@ test("the DM adds a player to the campaign and takes them out again", async ({
 }) => {
   const stamp = Date.now();
   const name = `E2E Group Player ${stamp}`;
-  await ensureCampaign(page);
+  const campaign = await ensureCampaignPath(page);
   await createPlayerAccount(page, {
     name,
     email: `e2e-group-${stamp}@example.test`,
@@ -25,7 +25,7 @@ test("the DM adds a player to the campaign and takes them out again", async ({
   });
 
   try {
-    await page.goto("/dashboard/dnd5e/campaign");
+    await page.goto(campaign);
     const section = page.getByRole("region", { name: t.title });
     await section.getByRole("button", { name: t.candidate }).click();
     await page.getByRole("option", { name }).click();

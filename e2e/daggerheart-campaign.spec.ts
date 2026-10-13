@@ -3,7 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 
 import messages from "@/messages/it.json";
 
-import { ensureCampaign } from "./helpers/ensureCampaign";
+import { ensureCampaignPath } from "./helpers/ensureCampaign";
 
 /**
  * SPEC-030 T5: a Daggerheart adventure, end to end. An invented Bruiser
@@ -15,7 +15,6 @@ import { ensureCampaign } from "./helpers/ensureCampaign";
  * removed in `finally`; the campaign stays, as it has no delete.
  */
 const ADVERSARIES = "/dashboard/daggerheart/admin/adversaries";
-const CAMPAIGN = "/dashboard/daggerheart/campaign";
 const adversaryFields = messages.dhAdversaries.fields;
 
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -53,6 +52,7 @@ test("a Daggerheart fight is budgeted in Battle Points and its loot in gold", as
   const adversary = `E2E Bruto ${stamp}`;
   const adventure = `E2E Avventura DH ${stamp}`;
 
+  let campaign = "";
   try {
     // --- An invented tier-1 Bruiser: 4 Battle Points -------------------
     await page.goto(`${ADVERSARIES}/new`);
@@ -72,8 +72,7 @@ test("a Daggerheart fight is budgeted in Battle Points and its loot in gold", as
     await page.waitForURL(`**${ADVERSARIES}`);
 
     // --- An adventure at level 5: tier 3, above the Bruiser's ----------
-    await ensureCampaign(page, "daggerheart");
-    await page.goto(CAMPAIGN);
+    campaign = await ensureCampaignPath(page, "daggerheart");
     await page.waitForLoadState("networkidle");
     await page
       .getByRole("button", { name: messages.adventure.ladder.addButton })
@@ -193,7 +192,7 @@ test("a Daggerheart fight is budgeted in Battle Points and its loot in gold", as
       )
     ).toEqual([]);
   } finally {
-    await deleteRow(page, CAMPAIGN, adventure);
+    if (campaign) await deleteRow(page, campaign, adventure);
     await deleteRow(page, `${ADVERSARIES}?query=${adversary}`, adversary);
   }
 });

@@ -54,7 +54,7 @@ function toCampaignSystem(system: string | undefined): GameSystem | null {
  * budget target field passes through as-authored, `null` included — an
  * unset target is not a target of zero (§5's edge cases).
  *
- * Outside the metadata layer (ADR-0011), same reasoning as `fetchCampaign`:
+ * Outside the metadata layer (ADR-0011), same reasoning as `fetchCampaignById`:
  * a plain `select`-and-map read, not `getQuery`/`buildResultSchema`.
  */
 export default async function fetchAdventureWithScenes(

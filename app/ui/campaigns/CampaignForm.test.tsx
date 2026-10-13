@@ -63,14 +63,16 @@ describe("CampaignForm (SPEC-013 T7)", () => {
     vi.clearAllMocks();
   });
 
-  it("creates a campaign with the entered fields and refreshes on success", async () => {
-    createCampaign.mockResolvedValue({ ok: true });
+  it("creates a campaign with the entered fields and opens its own page (SPEC-032 §5.3)", async () => {
+    createCampaign.mockResolvedValue({ ok: true, id: 12 });
     render(<CampaignForm />);
 
     fillTitle("The Silver Coast");
     fireEvent.click(screen.getByText("campaign.form.createButton"));
 
-    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/dashboard/dnd5e/campaign/12")
+    );
     expect(createCampaign).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "The Silver Coast",
@@ -80,11 +82,11 @@ describe("CampaignForm (SPEC-013 T7)", () => {
       })
     );
     expect(updateCampaign).not.toHaveBeenCalled();
-    expect(push).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it("asks for the system, and opens a campaign of another system under its own URL", async () => {
-    createCampaign.mockResolvedValue({ ok: true });
+    createCampaign.mockResolvedValue({ ok: true, id: 31 });
     render(<CampaignForm />);
 
     fillTitle("The Silver Coast");
@@ -94,7 +96,7 @@ describe("CampaignForm (SPEC-013 T7)", () => {
     fireEvent.click(screen.getByText("campaign.form.createButton"));
 
     await waitFor(() =>
-      expect(push).toHaveBeenCalledWith("/dashboard/daggerheart/campaign")
+      expect(push).toHaveBeenCalledWith("/dashboard/daggerheart/campaign/31")
     );
     expect(createCampaign).toHaveBeenCalledWith(
       expect.objectContaining({ system: "daggerheart" })

@@ -12,7 +12,7 @@ export interface AdventureSceneProgress {
  * adventure on the ladder, not one per row — `AdventureLadder` never learns
  * about `prisma.scene`.
  *
- * Deliberately not part of `fetchCampaign` (T5): that read has its own test
+ * Deliberately not part of `fetchCampaignById` (T5): that read has its own test
  * suite already asserting an exact shape, and this is a second, independent
  * concern — how far play has gotten, not what the ladder is made of.
  *

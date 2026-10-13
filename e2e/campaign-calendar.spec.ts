@@ -2,7 +2,7 @@ import { test, expect, type Locator, type Page } from "@playwright/test";
 
 import messages from "@/messages/it.json";
 
-import { ensureCampaign } from "./helpers/ensureCampaign";
+import { ensureCampaignPath } from "./helpers/ensureCampaign";
 
 /**
  * The campaign calendar (SPEC-014 T6): set the campaign's "today", add an
@@ -17,7 +17,6 @@ import { ensureCampaign } from "./helpers/ensureCampaign";
  * holds, so the future event is the first one coming up.
  */
 const CALENDAR = "/dashboard/dnd5e/campaign/calendar";
-const CAMPAIGN = "/dashboard/dnd5e/campaign";
 
 const input = messages.calendar.input;
 const list = messages.calendar.campaign.list;
@@ -76,7 +75,7 @@ test.describe("campaign calendar", () => {
     const pastTitle = `E2E Prima ${stamp}`;
     const futureTitle = `E2E Dopo ${stamp}`;
 
-    await ensureCampaign(page);
+    const campaign = await ensureCampaignPath(page);
     await page.goto(CALENDAR);
     await settle(page);
     await expect(
@@ -110,7 +109,7 @@ test.describe("campaign calendar", () => {
     );
 
     // --- The campaign page shows the future one coming up ----------------
-    await page.goto(CAMPAIGN);
+    await page.goto(campaign);
     const upcoming = page.getByTestId("upcoming-events");
     await expect(upcoming).toContainText(futureTitle);
     await expect(upcoming).not.toContainText(pastTitle);

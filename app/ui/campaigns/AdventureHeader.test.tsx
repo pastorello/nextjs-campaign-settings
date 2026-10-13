@@ -61,8 +61,16 @@ describe("AdventureHeader (SPEC-013 T8)", () => {
     expect(screen.getByText(/3/)).toBeInTheDocument();
   });
 
-  it("links back to the campaign page", () => {
-    render(<AdventureHeader adventure={adventure} />);
+  it("links back to its own campaign's page (SPEC-032 T2)", () => {
+    render(<AdventureHeader adventure={{ ...adventure, campaignId: 7 }} />);
+
+    expect(
+      screen.getByRole("link", { name: "adventure.backToCampaign" })
+    ).toHaveAttribute("href", "/dashboard/dnd5e/campaign/7");
+  });
+
+  it("links a standalone adventure back to the campaign list", () => {
+    render(<AdventureHeader adventure={{ ...adventure, campaignId: null }} />);
 
     expect(
       screen.getByRole("link", { name: "adventure.backToCampaign" })

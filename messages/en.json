@@ -1231,6 +1231,11 @@
     "page": {
       "title": "Campaign"
     },
+    "list": {
+      "players": "{count, plural, one {# player} other {# players}}",
+      "adventures": "{count, plural, =0 {No adventures} one {# adventure} other {# adventures}}",
+      "create": "New campaign"
+    },
     "emptyState": {
       "description": "You don't have a campaign yet. Create one to start building your adventure ladder."
     },

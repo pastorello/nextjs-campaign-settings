@@ -186,7 +186,7 @@ None.
 
 One task, one PR, merged before the next (`docs/AGENT_WORKFLOW.md`).
 
-- [ ] **T1** — Move the adventure page to `/adventure/[adventureId]`, with its layout guard, its references and its tests. No behaviour change. _(test: `dashboardPaths.test.ts`; the adventure page tests at the new path; `campaign-players`/`daggerheart-campaign` specs green)_
+- [x] **T1** — Move the adventure page to `/adventure/[adventureId]`, with its layout guard, its references and its tests. No behaviour change. _(test: `dashboardPaths.test.ts`; the adventure page tests at the new path; `campaign-players`/`daggerheart-campaign` specs green)_
 - [ ] **T2** — Campaigns by id: `fetchCampaigns`, `fetchCampaignById`, the list at `/campaign`, the campaign page at `/campaign/[campaignId]`; remove `fetchCampaign`. _(test: list, redirect to another system, 404; a second campaign is created and kept apart; E2E with two campaigns)_
 - [ ] **T3** — The campaign calendar under the campaign's address; back links, upcoming-events link and post-create navigation. _(test: `campaign-calendar.spec.ts` against two campaigns, each with its own events)_
 - [ ] **T4** — Archive and restore: migration, `activeCampaigns`, the two mutations, the list's archived section, every campaign read through the fragment. _(test: one per reader against an archived fixture; the reveal-preservation test of §8; a player whose only campaign is archived)_

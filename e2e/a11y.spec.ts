@@ -242,7 +242,7 @@ test("campaign and adventure pages have no accessibility violations", async ({
   await page
     .getByRole("button", { name: messages.loot.list.addButton })
     .click();
-  await scan("/dashboard/dnd5e/campaign/[adventureId]");
+  await scan("/dashboard/dnd5e/adventure/[adventureId]");
 });
 
 /**

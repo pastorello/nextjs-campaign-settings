@@ -37,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function AdventurePage({
   params,
-}: PageProps<"/[locale]/dashboard/[system]/campaign/[adventureId]">) {
+}: PageProps<"/[locale]/dashboard/[system]/adventure/[adventureId]">) {
   const { adventureId, system, locale } = await params;
   const id = Number(adventureId);
 
@@ -49,7 +49,7 @@ export default async function AdventurePage({
   const { campaignSystem } = adventure;
   if (campaignSystem !== null && campaignSystem !== system) {
     redirect({
-      href: dashboardPath(campaignSystem, `/campaign/${id}`),
+      href: dashboardPath(campaignSystem, `/adventure/${id}`),
       locale,
     });
   }

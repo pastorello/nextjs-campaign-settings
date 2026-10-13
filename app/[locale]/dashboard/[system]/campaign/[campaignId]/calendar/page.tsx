@@ -2,9 +2,9 @@ import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 
-import { Link } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { dashboardPath } from "@/i18n/dashboardPath";
-import GameSystem, { isGameSystem } from "@/app/lib/definitions/GameSystem";
+import { isGameSystem } from "@/app/lib/definitions/GameSystem";
 import { monthOf } from "@/app/lib/calendar/monthOf";
 import { monthRange } from "@/app/lib/calendar/monthRange";
 import { parseMonthGridParams } from "@/app/lib/calendar/parseMonthGridParams";
@@ -12,7 +12,6 @@ import { resolveDisplayDateSystem } from "@/app/lib/calendar/resolveDisplayDateS
 import { yearSpan } from "@/app/lib/calendar/yearSpan";
 import { yearlyOccurrencesIn } from "@/app/lib/calendar/yearlyOccurrencesIn";
 import fetchCampaignById from "@/app/lib/data/campaigns/fetchCampaignById";
-import fetchCampaigns from "@/app/lib/data/campaigns/fetchCampaigns";
 import fetchCalendarSettings from "@/app/lib/data/calendar/fetchCalendarSettings";
 import fetchCampaignEvents from "@/app/lib/data/calendar/fetchCampaignEvents";
 import fetchCampaignScenes from "@/app/lib/data/calendar/fetchCampaignScenes";
@@ -41,9 +40,10 @@ export async function generateMetadata(): Promise<Metadata> {
  * day, and its events as a chronological list — filtered by adventure,
  * past ones dimmed, today's highlighted — beside the world history of the
  * same years, shown read-only. Only the route system's campaign is shown
- * (SPEC-018 T3); with none, the page says so. Until SPEC-032 T3 moves this
- * page under `/campaign/<campaignId>`, "the campaign" is the system's
- * first — see `readFirstCampaign`.
+ * (SPEC-018 T3, as the campaign page does): under another system's URL it
+ * redirects to the campaign's own, and an unknown or malformed id is a 404
+ * (SPEC-032 T3 — the calendar of the campaign in the address, not the
+ * system's first).
  *
  * The world history shown is every event in the whole years the campaign's
  * events and its current day fall in (`yearSpan`), since the list is
@@ -56,33 +56,30 @@ export async function generateMetadata(): Promise<Metadata> {
  * that month, yearly ones that started earlier included.
  */
 export default async function CampaignCalendarPage(
-  props: PageProps<"/[locale]/dashboard/[system]/campaign/calendar">
+  props: PageProps<"/[locale]/dashboard/[system]/campaign/[campaignId]/calendar">
 ) {
-  const { system } = await props.params;
+  const { campaignId, system, locale } = await props.params;
   if (!isGameSystem(system)) notFound();
 
+  const id = positiveIdParam(campaignId);
+  if (id === null) notFound();
+
+  const campaign = await fetchCampaignById(id);
+  if (!campaign) notFound();
+
+  if (campaign.system !== system) {
+    redirect({
+      href: dashboardPath(campaign.system, `/campaign/${id}/calendar`),
+      locale,
+    });
+  }
+
   const searchParams = await props.searchParams;
-  const [t, campaign, systems, preferredId] = await Promise.all([
+  const [t, systems, preferredId] = await Promise.all([
     getTranslations("calendar.campaign"),
-    readFirstCampaign(system),
     fetchDateSystems(),
     readDisplayDateSystemId(),
   ]);
-
-  if (!campaign) {
-    return (
-      <div>
-        <PageTitle className="mb-4">{t("page.title")}</PageTitle>
-        <p className="mb-2">{t("noCampaign")}</p>
-        <Link
-          href={dashboardPath(system, "/campaign")}
-          className="text-blue-600 underline"
-        >
-          {t("goToCampaign")}
-        </Link>
-      </div>
-    );
-  }
 
   const displaySystem = resolveDisplayDateSystem(systems, preferredId);
   // The migration seeds the universal count, so there is always a system.
@@ -216,15 +213,4 @@ export default async function CampaignCalendarPage(
       </div>
     </ResolvedRecordLinks>
   );
-}
-
-/**
- * The route system's oldest campaign, with its adventures. A bridge:
- * SPEC-032 T2 made campaigns addressable by id, and T3 puts this calendar
- * under that id; until then the address names no campaign, so the first
- * one stands in, as the single campaign did before.
- */
-async function readFirstCampaign(system: GameSystem) {
-  const [first] = await fetchCampaigns(system);
-  return first ? fetchCampaignById(first.id) : null;
 }

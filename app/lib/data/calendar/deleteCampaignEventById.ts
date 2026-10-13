@@ -24,5 +24,5 @@ export default async function deleteCampaignEventById(
     throw toDatabaseError("deleting campaign event", error);
   }
 
-  revalidateDashboard("campaign/calendar");
+  revalidateDashboard("campaign/[campaignId]/calendar");
 }

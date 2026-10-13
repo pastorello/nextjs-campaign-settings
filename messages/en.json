@@ -1708,8 +1708,6 @@
       "page": {
         "title": "Campaign calendar"
       },
-      "noCampaign": "There is no campaign under this game system yet.",
-      "goToCampaign": "Go to the campaign",
       "backToCampaign": "Back to the campaign",
       "today": {
         "label": "Today in the campaign",

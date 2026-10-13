@@ -228,7 +228,7 @@ describe("Campaign page — calendar (SPEC-014 T6)", () => {
 
     expect(
       screen.getByRole("link", { name: "calendar.campaign.link" })
-    ).toHaveAttribute("href", "/dashboard/dnd5e/campaign/calendar");
+    ).toHaveAttribute("href", "/dashboard/dnd5e/campaign/1/calendar");
   });
 
   it("shows no upcoming events, and reads no calendar, without a current day", async () => {

@@ -23,17 +23,16 @@ vi.mock("next-intl/server", () => ({
   getTranslations: () => Promise.resolve((key: string) => key),
 }));
 
+const redirect = vi.fn((_: unknown) => {
+  throw new Error("NEXT_REDIRECT");
+});
 vi.mock("@/i18n/navigation", () => ({
   Link: ({ href, children }: { href: string; children: React.ReactNode }) => (
     <a href={href}>{children}</a>
   ),
+  redirect: (options: unknown) => redirect(options),
 }));
 
-// Until SPEC-032 T3 the calendar's campaign is the system's first.
-const fetchCampaigns = vi.fn<(...args: unknown[]) => unknown>();
-vi.mock("@/app/lib/data/campaigns/fetchCampaigns", () => ({
-  default: (...args: unknown[]) => fetchCampaigns(...args),
-}));
 const fetchCampaign = vi.fn<(...args: unknown[]) => unknown>();
 vi.mock("@/app/lib/data/campaigns/fetchCampaignById", () => ({
   default: (...args: unknown[]) => fetchCampaign(...args),
@@ -121,9 +120,9 @@ vi.mock("next/navigation", () => ({ notFound: () => notFound() }));
 
 import CampaignCalendarPage, { generateMetadata } from "./page";
 
-function routeProps(system = "dnd5e", searchParams = {}) {
+function routeProps(system = "dnd5e", searchParams = {}, campaignId = "1") {
   return {
-    params: Promise.resolve({ locale: "it", system }),
+    params: Promise.resolve({ locale: "it", system, campaignId }),
     searchParams: Promise.resolve(searchParams),
   };
 }
@@ -143,7 +142,6 @@ const event = { id: 1, startDay: 10, endDay: null };
 describe("Campaign calendar page (SPEC-014 T6)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    fetchCampaigns.mockResolvedValue([{ id: 1 }]);
     fetchCampaignEvents.mockResolvedValue([event]);
     fetchWorldHistoryBetween.mockResolvedValue([{ id: 9 }]);
   });
@@ -152,18 +150,46 @@ describe("Campaign calendar page (SPEC-014 T6)", () => {
     expect((await generateMetadata()).title).toBe("title");
   });
 
-  it("says there is no campaign under this system, linking to the campaign page", async () => {
-    fetchCampaigns.mockResolvedValue([]);
+  it("is not found when no campaign has the id, reading no events", async () => {
     fetchCampaign.mockResolvedValue(null);
 
-    render(await CampaignCalendarPage(routeProps()));
-
-    expect(screen.getByText("noCampaign")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "goToCampaign" })).toHaveAttribute(
-      "href",
-      "/dashboard/dnd5e/campaign"
-    );
+    await expect(
+      CampaignCalendarPage(routeProps("dnd5e", {}, "99"))
+    ).rejects.toThrow("NEXT_NOT_FOUND");
+    expect(fetchCampaign).toHaveBeenCalledWith(99);
     expect(fetchCampaignEvents).not.toHaveBeenCalled();
+  });
+
+  it("is not found for an id that is not a positive number, without reading", async () => {
+    await expect(
+      CampaignCalendarPage(routeProps("dnd5e", {}, "abc"))
+    ).rejects.toThrow("NEXT_NOT_FOUND");
+    expect(fetchCampaign).not.toHaveBeenCalled();
+  });
+
+  it("redirects a campaign of another system to its own calendar, keeping the locale", async () => {
+    fetchCampaign.mockResolvedValue({ ...campaign, system: "daggerheart" });
+
+    await expect(CampaignCalendarPage(routeProps())).rejects.toThrow(
+      "NEXT_REDIRECT"
+    );
+    expect(redirect).toHaveBeenCalledWith({
+      href: "/dashboard/daggerheart/campaign/1/calendar",
+      locale: "it",
+    });
+    expect(fetchCampaignEvents).not.toHaveBeenCalled();
+  });
+
+  it("reads the calendar of the campaign in the address, not the system's first", async () => {
+    fetchCampaign.mockResolvedValue({ ...campaign, id: 5 });
+
+    render(await CampaignCalendarPage(routeProps("dnd5e", {}, "5")));
+
+    expect(fetchCampaign).toHaveBeenCalledWith(5);
+    expect(fetchCampaignEvents).toHaveBeenCalledWith(5, null);
+    expect(
+      screen.getByRole("link", { name: "backToCampaign" })
+    ).toHaveAttribute("href", "/dashboard/dnd5e/campaign/5");
   });
 
   it("shows today, the events and the world history of their years", async () => {
@@ -171,7 +197,6 @@ describe("Campaign calendar page (SPEC-014 T6)", () => {
 
     render(await CampaignCalendarPage(routeProps()));
 
-    expect(fetchCampaigns).toHaveBeenCalledWith("dnd5e");
     expect(fetchCampaign).toHaveBeenCalledWith(1);
     expect(screen.getByTestId("current-day")).toHaveTextContent("400");
     expect(screen.getByTestId("list")).toHaveTextContent("1/1/400");

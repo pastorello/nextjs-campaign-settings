@@ -46,7 +46,7 @@ describe("setCampaignCurrentDay (SPEC-014 T6)", () => {
       data: { currentDay: 2_100_000 },
     });
     expect(revalidatePath).toHaveBeenCalledWith(
-      "/[locale]/dashboard/[system]/campaign/calendar",
+      "/[locale]/dashboard/[system]/campaign/[campaignId]/calendar",
       "page"
     );
   });

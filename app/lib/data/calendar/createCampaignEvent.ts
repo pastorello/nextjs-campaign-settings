@@ -52,6 +52,6 @@ export default async function createCampaignEvent(
     throw toDatabaseError("creating campaign event", error);
   }
 
-  revalidateDashboard("campaign/calendar");
+  revalidateDashboard("campaign/[campaignId]/calendar");
   return { ok: true };
 }

@@ -63,7 +63,7 @@ export default async function updateNpc(
     }
     await prisma.npc.update({
       where: { id },
-      data: { ...fields, ...revealedToUpdate(revealedTo) },
+      data: { ...fields, ...(await revealedToUpdate(revealedTo)) },
     });
   } catch (error) {
     // See createNpc — the same stale-faction-id case, reached on an edit

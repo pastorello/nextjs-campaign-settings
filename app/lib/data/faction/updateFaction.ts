@@ -61,7 +61,7 @@ export default async function updateFaction(
     }
     await prisma.faction.update({
       where: { id },
-      data: { ...fields, ...revealedToUpdate(revealedTo) },
+      data: { ...fields, ...(await revealedToUpdate(revealedTo)) },
     });
   } catch (error) {
     throw toDatabaseError("updating faction", error);

@@ -13,6 +13,7 @@ import fetchCampaignPlayers from "@/app/lib/data/campaigns/fetchCampaignPlayers"
 import fetchCampaignEvents from "@/app/lib/data/calendar/fetchCampaignEvents";
 import fetchDateSystems from "@/app/lib/data/calendar/fetchDateSystems";
 import readDisplayDateSystemId from "@/app/lib/data/calendar/readDisplayDateSystemId";
+import CampaignActions from "@/app/ui/campaigns/CampaignActions";
 import CampaignHeader from "@/app/ui/campaigns/CampaignHeader";
 import AdventureLadder from "@/app/ui/campaigns/AdventureLadder";
 import CampaignPlayersSection from "@/app/ui/campaigns/CampaignPlayers";
@@ -40,6 +41,9 @@ export async function generateMetadata(): Promise<Metadata> {
  * Links to the campaign calendar, and shows the next three events coming
  * up after the campaign's current day (SPEC-014 §5.5, T6) — nothing, and
  * no calendar read, while no current day is set.
+ *
+ * An archived campaign (§5.6) opens as any other, under a banner that says
+ * so, with "Riattiva" in place of "Archivia"; nothing in it is read-only.
  *
  * Ends with the campaign's players, its group (SPEC-022 T5).
  */
@@ -78,7 +82,22 @@ export default async function CampaignPage({
   return (
     <ResolvedRecordLinks values={[campaign.synopsis]} system={system}>
       <div>
+        {campaign.archivedAt && (
+          <p
+            role="status"
+            data-testid="archived-banner"
+            className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"
+          >
+            {t("campaign.archive.banner")}
+          </p>
+        )}
         <CampaignHeader campaign={campaign} />
+        <div className="mt-2">
+          <CampaignActions
+            campaignId={campaign.id}
+            archived={campaign.archivedAt !== null}
+          />
+        </div>
         <Link
           href={dashboardPath(system, `/campaign/${campaign.id}/calendar`)}
           className="mt-4 inline-block text-blue-600 underline"

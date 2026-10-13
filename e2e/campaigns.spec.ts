@@ -75,3 +75,99 @@ test("a campaign that does not exist is a 404", async ({ page }) => {
 
   expect(response?.status()).toBe(404);
 });
+
+const archive = messages.campaign.archive;
+
+test("an archived campaign leaves the list, keeps its reveals, and comes back (SPEC-032 T4)", async ({
+  page,
+}) => {
+  const stamp = Date.now();
+  const kept = `E2E Archiviata ${stamp}`;
+  const other = `E2E Attiva ${stamp}`;
+  const npc = `E2E Reveal archivio ${stamp}`;
+  const revealedTo = messages.common.fields.revealedTo.label;
+  const row = () => page.getByRole("row").filter({ hasText: npc });
+  const gotoNpc = async () => {
+    await page.goto(
+      `/dashboard/dnd5e/admin/npc?query=${encodeURIComponent(npc)}`
+    );
+    await page.waitForLoadState("networkidle");
+  };
+
+  const keptPath = await createCampaign(page, kept);
+  await createCampaign(page, other);
+
+  // --- An NPC revealed to both -------------------------------------------
+  await page.goto("/dashboard/dnd5e/admin/npc/new");
+  await page.waitForLoadState("networkidle");
+  await page.getByLabel(messages.common.fields.name.label).fill(npc);
+  await page.getByRole("button", { name: revealedTo }).click();
+  await page.getByRole("option", { name: kept }).click();
+  await page.getByRole("option", { name: other }).click();
+  await page.keyboard.press("Escape");
+  await page
+    .getByRole("button", { name: messages.npc.form.createButton })
+    .click();
+  await page.waitForURL("**/dashboard/dnd5e/admin/npc");
+
+  try {
+    // --- Archive the first: off the list, banner on its page -------------
+    await page.goto(keptPath);
+    await page.waitForLoadState("networkidle");
+    await page.getByRole("button", { name: archive.archive }).click();
+    await expect(page.getByTestId("archived-banner")).toBeVisible();
+
+    await page.goto(LIST);
+    await expect(
+      page.getByTestId("campaign-list").getByRole("link", { name: kept })
+    ).toHaveCount(0);
+    await expect(page.getByTestId("archived-campaigns")).toBeVisible();
+
+    // --- Editing the reveals does not disturb the archived campaign ------
+    await gotoNpc();
+    await expect(row()).toContainText(other);
+    await expect(row()).not.toContainText(kept);
+    await row()
+      .getByRole("button", { name: messages.common.table.edit })
+      .click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("button", { name: revealedTo }).click();
+    // The archived campaign is not on offer.
+    await expect(page.getByRole("option", { name: kept })).toHaveCount(0);
+    await page.getByRole("option", { name: other }).click();
+    await page.keyboard.press("Escape");
+    await dialog
+      .getByRole("button", { name: messages.npc.form.editButton })
+      .click();
+    await expect(dialog).toHaveCount(0);
+
+    // --- Restored: back on the list, still revealed to it ----------------
+    await page.goto(LIST);
+    await page.waitForLoadState("networkidle");
+    await page.getByTestId("archived-campaigns").locator("summary").click();
+    await page
+      .getByRole("button", {
+        name: messages.campaign.list.archived.restore.replace("{title}", kept),
+      })
+      .click();
+    await expect(
+      page.getByTestId("campaign-list").getByRole("link", { name: kept })
+    ).toBeVisible();
+
+    await gotoNpc();
+    await expect(row()).toContainText(kept);
+    await expect(row()).not.toContainText(other);
+  } finally {
+    await gotoNpc();
+    if (await row().count()) {
+      await row()
+        .getByRole("button", { name: messages.common.form.delete })
+        .click();
+      await page
+        .getByRole("dialog")
+        .getByRole("button", { name: messages.common.form.delete })
+        .click();
+      await expect(row()).toHaveCount(0);
+    }
+  }
+});

@@ -3,6 +3,7 @@ import { cache } from "react";
 
 import { auth } from "@/auth";
 import prisma from "@/app/lib/connections/prisma";
+import { activeCampaigns } from "@/app/lib/data/campaigns/activeCampaigns";
 import { isGameSystem } from "@/app/lib/definitions/GameSystem";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 
@@ -25,7 +26,7 @@ const getViewer = cache(async (): Promise<Viewer | null> => {
   let rows;
   try {
     rows = await prisma.campaign.findMany({
-      where: { members: { some: { id: userId } } },
+      where: { members: { some: { id: userId } }, ...activeCampaigns },
       select: { id: true, title: true, system: true },
       orderBy: [{ title: "asc" }, { id: "asc" }],
     });

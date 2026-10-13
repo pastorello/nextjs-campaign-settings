@@ -25,7 +25,7 @@ describe("fetchCampaigns (SPEC-032 T2)", () => {
 
     expect(findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { system: "daggerheart" },
+        where: { system: "daggerheart", archivedAt: null },
         orderBy: { id: "asc" },
       })
     );

@@ -62,7 +62,7 @@ export default async function updateDeity(
     }
     await prisma.deities.update({
       where: { id },
-      data: { ...fields, ...revealedToUpdate(revealedTo) },
+      data: { ...fields, ...(await revealedToUpdate(revealedTo)) },
     });
   } catch (error) {
     throw toDatabaseError("updating deity", error);

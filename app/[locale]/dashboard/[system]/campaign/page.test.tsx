@@ -10,6 +10,16 @@ vi.mock("@/app/lib/data/campaigns/fetchCampaigns", () => ({
   default: (...args: unknown[]) => fetchCampaigns(...args),
 }));
 
+const fetchArchivedCampaigns = vi.fn<(...args: unknown[]) => unknown>();
+vi.mock("@/app/lib/data/campaigns/fetchArchivedCampaigns", () => ({
+  default: (...args: unknown[]) => fetchArchivedCampaigns(...args),
+}));
+vi.mock("@/app/ui/campaigns/ArchivedCampaigns", () => ({
+  default: ({ campaigns }: { campaigns: { id: number }[] }) => (
+    <div data-testid="archived-campaigns">{campaigns.length}</div>
+  ),
+}));
+
 vi.mock("@/app/ui/campaigns/CampaignForm", () => ({
   default: () => <div data-testid="campaign-form" />,
 }));
@@ -40,7 +50,10 @@ function routeProps(system = "dnd5e") {
 }
 
 describe("Campaign list page (SPEC-032 T2)", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    fetchArchivedCampaigns.mockResolvedValue([]);
+  });
 
   it("titles the page from the campaign.page catalogue", async () => {
     expect((await generateMetadata()).title).toBe("title");
@@ -73,12 +86,17 @@ describe("Campaign list page (SPEC-032 T2)", () => {
     expect(screen.getByTestId("campaign-list")).toBeInTheDocument();
   });
 
-  it("reads only the route system's campaigns", async () => {
+  it("reads only the route system's campaigns, archived ones apart (T4)", async () => {
     fetchCampaigns.mockResolvedValue([]);
+    fetchArchivedCampaigns.mockResolvedValue([{ id: 7 }]);
 
     render(await CampaignListPage(routeProps("daggerheart")));
 
     expect(fetchCampaigns).toHaveBeenCalledWith("daggerheart");
+    expect(fetchArchivedCampaigns).toHaveBeenCalledWith("daggerheart");
+    expect(screen.getByTestId("archived-campaigns")).toHaveTextContent("1");
+    // The archived one is not a card.
+    expect(screen.queryByTestId("campaign-list")).not.toBeInTheDocument();
   });
 
   it("is not found under an unknown system, without reading", async () => {

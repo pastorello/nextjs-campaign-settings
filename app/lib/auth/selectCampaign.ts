@@ -5,6 +5,7 @@ import z from "zod";
 
 import { auth } from "@/auth";
 import prisma from "@/app/lib/connections/prisma";
+import { activeCampaigns } from "@/app/lib/data/campaigns/activeCampaigns";
 import { UnauthorizedError } from "@/app/lib/auth/requireDm";
 import type GameSystem from "@/app/lib/definitions/GameSystem";
 import { isGameSystem } from "@/app/lib/definitions/GameSystem";
@@ -36,7 +37,11 @@ export default async function selectCampaign(
   let campaign;
   try {
     campaign = await prisma.campaign.findFirst({
-      where: { id: campaignId, members: { some: { id: session.user.id } } },
+      where: {
+        id: campaignId,
+        members: { some: { id: session.user.id } },
+        ...activeCampaigns,
+      },
       select: { system: true },
     });
   } catch (error) {

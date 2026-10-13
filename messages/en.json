@@ -1234,7 +1234,13 @@
     "list": {
       "players": "{count, plural, one {# player} other {# players}}",
       "adventures": "{count, plural, =0 {No adventures} one {# adventure} other {# adventures}}",
-      "create": "New campaign"
+      "create": "New campaign",
+      "archived": {
+        "title": "{count, plural, one {# archived campaign} other {# archived campaigns}}",
+        "archivedOn": "Archived on {date}",
+        "restore": "Restore {title}",
+        "restored": "Campaign restored."
+      }
     },
     "emptyState": {
       "description": "You don't have a campaign yet. Create one to start building your adventure ladder."
@@ -1268,6 +1274,13 @@
       "removed": "Player removed.",
       "noCandidates": "No player account left to add. Create one from the accounts page.",
       "accountsLink": "Go to the accounts"
+    },
+    "archive": {
+      "archive": "Archive campaign",
+      "restore": "Restore campaign",
+      "archived": "Campaign archived.",
+      "restored": "Campaign restored.",
+      "banner": "This campaign is archived: it is out of the list and its players cannot see it. Nothing in it has been changed or deleted; restore it to bring it back."
     }
   },
   "adventure": {

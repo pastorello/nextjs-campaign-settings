@@ -9,12 +9,17 @@ export interface CampaignWithAdventures extends Campaign {
   adventures: Adventure[];
   /** The campaign's "today", a universal day; `null` = not set (SPEC-014 §5.5). */
   currentDay: number | null;
+  /** When the campaign was archived; `null` = active (SPEC-032 §5.6). */
+  archivedAt: Date | null;
 }
 
 /**
  * One campaign by id, with its adventures in ladder order — SPEC-013 §5's
  * "campaign page shows its adventures as an ordered ladder" — or `null`
  * when no campaign has that id (SPEC-032 §5.2: the page answers 404).
+ *
+ * Not filtered by the archive either (SPEC-032 §5.6): an archived campaign
+ * stays reachable by its address, with `archivedAt` set for the banner.
  *
  * Not filtered by system: the page compares the campaign's own `system`
  * with the route's and redirects, so it has to be able to read a campaign
@@ -37,6 +42,7 @@ export default async function fetchCampaignById(
         synopsis: true,
         partySize: true,
         currentDay: true,
+        archivedAt: true,
         system: true,
         adventures: {
           orderBy: { position: "asc" },
@@ -77,6 +83,7 @@ export default async function fetchCampaignById(
     synopsis: row.synopsis,
     partySize: row.partySize,
     currentDay: row.currentDay,
+    archivedAt: row.archivedAt,
     system: row.system,
     // `status` is a raw `String` column (SPEC-013 §6); the three values
     // written to it are exactly `AdventureStatus`'s members, enforced at

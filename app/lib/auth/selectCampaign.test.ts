@@ -41,7 +41,7 @@ describe("selectCampaign (SPEC-022 §9)", () => {
       system: "daggerheart",
     });
     expect(findFirst).toHaveBeenCalledWith({
-      where: { id: 2, members: { some: { id: "p" } } },
+      where: { id: 2, members: { some: { id: "p" } }, archivedAt: null },
       select: { system: true },
     });
     expect(set).toHaveBeenCalledWith(

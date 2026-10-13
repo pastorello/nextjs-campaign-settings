@@ -5,13 +5,14 @@ import { auth } from "@/auth";
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
-const { model, checkRevealCampaigns } = vi.hoisted(() => ({
+const { model, checkRevealCampaigns, campaignFindMany } = vi.hoisted(() => ({
   model: {
     create: vi.fn(),
     update: vi.fn(),
     findUnique: vi.fn(),
   },
   checkRevealCampaigns: vi.fn(),
+  campaignFindMany: vi.fn(),
 }));
 vi.mock("@/app/lib/connections/prisma", () => ({
   default: {
@@ -19,6 +20,7 @@ vi.mock("@/app/lib/connections/prisma", () => ({
     deities: model,
     faction: model,
     magicitems: model,
+    campaign: { findMany: campaignFindMany },
   },
 }));
 vi.mock("@/app/lib/data/visibility/checkRevealCampaigns", () => ({
@@ -52,6 +54,8 @@ describe("reveals in the domain actions (SPEC-022 T6)", () => {
     checkRevealCampaigns.mockResolvedValue(null);
     model.create.mockResolvedValue({});
     model.update.mockResolvedValue({});
+    // The active campaigns an update's reveals are measured against.
+    campaignFindMany.mockResolvedValue([{ id: 3 }, { id: 4 }]);
   });
 
   it("creates a faction already revealed to the given campaigns", async () => {
@@ -73,14 +77,16 @@ describe("reveals in the domain actions (SPEC-022 T6)", () => {
     });
   });
 
-  it("replaces an NPC's reveals as a set on update", async () => {
+  it("changes an NPC's reveals among the active campaigns on update, never by set", async () => {
     await expect(
       updateNpc({ id: 5, revealedTo: [3] } as never)
     ).resolves.toEqual({ ok: true });
 
     expect(model.update).toHaveBeenCalledWith({
       where: { id: 5 },
-      data: { revealedTo: { set: [{ id: 3 }] } },
+      data: {
+        revealedTo: { connect: [{ id: 3 }], disconnect: [{ id: 4 }] },
+      },
     });
   });
 
@@ -125,7 +131,12 @@ describe("reveals in the domain actions (SPEC-022 T6)", () => {
     });
     expect(model.update).toHaveBeenCalledWith({
       where: { id: 5 },
-      data: { revealedTo: { set: [{ id: 1 }] } },
+      data: {
+        revealedTo: {
+          connect: [{ id: 1 }],
+          disconnect: [{ id: 3 }, { id: 4 }],
+        },
+      },
     });
   });
 

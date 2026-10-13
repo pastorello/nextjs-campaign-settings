@@ -60,6 +60,12 @@ vi.mock("@/app/ui/campaigns/CampaignHeader", () => ({
   default: () => <div data-testid="campaign-header" />,
 }));
 
+vi.mock("@/app/ui/campaigns/CampaignActions", () => ({
+  default: ({ archived }: { archived: boolean }) => (
+    <div data-testid="campaign-actions">{String(archived)}</div>
+  ),
+}));
+
 vi.mock("@/app/ui/campaigns/AdventureLadder", () => ({
   default: () => <div data-testid="adventure-ladder" />,
 }));
@@ -109,6 +115,7 @@ const campaign = {
   title: "The Silver Coast",
   synopsis: null,
   partySize: 5,
+  archivedAt: null,
   currentDay: null,
   system: "dnd5e",
   adventures: [{ id: 10 }, { id: 11 }],
@@ -181,6 +188,31 @@ describe("Campaign page (SPEC-013 T7)", () => {
     render(await CampaignPage(routeProps("dnd5e", "1")));
 
     expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("shows no banner for an active campaign, and offers to archive it (SPEC-032 T4)", async () => {
+    fetchCampaign.mockResolvedValue(campaign);
+
+    render(await CampaignPage(routeProps()));
+
+    expect(screen.queryByTestId("archived-banner")).not.toBeInTheDocument();
+    expect(screen.getByTestId("campaign-actions")).toHaveTextContent("false");
+  });
+
+  it("opens an archived campaign under a banner, with everything else in place (SPEC-032 T4)", async () => {
+    fetchCampaign.mockResolvedValue({
+      ...campaign,
+      archivedAt: new Date("2026-10-01"),
+    });
+
+    render(await CampaignPage(routeProps()));
+
+    expect(screen.getByTestId("archived-banner")).toHaveTextContent(
+      "campaign.archive.banner"
+    );
+    expect(screen.getByTestId("campaign-actions")).toHaveTextContent("true");
+    expect(screen.getByTestId("adventure-ladder")).toBeInTheDocument();
+    expect(screen.getByTestId("campaign-players")).toBeInTheDocument();
   });
 
   it("shows the campaign header and its adventure ladder once a campaign exists", async () => {

@@ -1234,7 +1234,13 @@
     "list": {
       "players": "{count, plural, one {# giocatore} other {# giocatori}}",
       "adventures": "{count, plural, =0 {Nessuna avventura} one {# avventura} other {# avventure}}",
-      "create": "Nuova campagna"
+      "create": "Nuova campagna",
+      "archived": {
+        "title": "{count, plural, one {# campagna archiviata} other {# campagne archiviate}}",
+        "archivedOn": "Archiviata il {date}",
+        "restore": "Riattiva {title}",
+        "restored": "Campagna riattivata."
+      }
     },
     "emptyState": {
       "description": "Non hai ancora una campagna. Creane una per iniziare a costruire la scaletta delle avventure."
@@ -1268,6 +1274,13 @@
       "removed": "Giocatore tolto.",
       "noCandidates": "Nessun account da giocatore da aggiungere. Creane uno dalla pagina degli account.",
       "accountsLink": "Vai agli account"
+    },
+    "archive": {
+      "archive": "Archivia campagna",
+      "restore": "Riattiva campagna",
+      "archived": "Campagna archiviata.",
+      "restored": "Campagna riattivata.",
+      "banner": "Questa campagna è archiviata: non compare nell'elenco e i suoi giocatori non la vedono. Nulla è stato modificato o eliminato; riattivala per riportarla com'era."
     }
   },
   "adventure": {

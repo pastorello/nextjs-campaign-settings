@@ -2,6 +2,7 @@
 
 import requireDm from "@/app/lib/auth/requireDm";
 import prisma from "@/app/lib/connections/prisma";
+import { activeCampaigns } from "@/app/lib/data/campaigns/activeCampaigns";
 import {
   placeRefSchema,
   type PlaceRefInput,
@@ -27,6 +28,7 @@ export default async function fetchPlaceReveals(
   let campaigns;
   try {
     campaigns = await prisma.campaign.findMany({
+      where: activeCampaigns,
       select: { id: true, title: true },
       orderBy: [{ title: "asc" }, { id: "asc" }],
     });

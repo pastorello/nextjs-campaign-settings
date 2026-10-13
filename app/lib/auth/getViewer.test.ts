@@ -63,7 +63,7 @@ describe("getViewer (SPEC-022 T7)", () => {
       });
       expect(findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { members: { some: { id: "p" } } },
+          where: { members: { some: { id: "p" } }, archivedAt: null },
         })
       );
     });

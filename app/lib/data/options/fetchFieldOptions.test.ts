@@ -150,7 +150,9 @@ describe("fetchFieldOptions (SPEC-006 T6)", () => {
     await expect(fetchFieldOptions("campaign")).resolves.toEqual([
       { value: 2, label: "Ashes" },
     ]);
+    // An archived campaign is not offered (SPEC-032 §5.6).
     expect(campaignFindMany).toHaveBeenCalledWith({
+      where: { archivedAt: null },
       select: { id: true, title: true },
       orderBy: [{ title: "asc" }, { id: "asc" }],
     });
@@ -163,7 +165,9 @@ describe("fetchFieldOptions (SPEC-006 T6)", () => {
     await fetchFieldOptions("dnd5eCampaign");
 
     expect(campaignFindMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { system: "dnd5e" } })
+      expect.objectContaining({
+        where: { archivedAt: null, system: "dnd5e" },
+      })
     );
   });
 });

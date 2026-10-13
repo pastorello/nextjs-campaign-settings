@@ -1,4 +1,5 @@
 import prisma from "@/app/lib/connections/prisma";
+import { activeCampaigns } from "@/app/lib/data/campaigns/activeCampaigns";
 import type GameSystem from "@/app/lib/definitions/GameSystem";
 import { isGameSystem } from "@/app/lib/definitions/GameSystem";
 
@@ -17,7 +18,7 @@ export default async function playerSystems(
   let rows;
   try {
     rows = await prisma.campaign.findMany({
-      where: { members: { some: { id: userId } } },
+      where: { members: { some: { id: userId } }, ...activeCampaigns },
       select: { id: true, system: true },
       orderBy: [{ title: "asc" }, { id: "asc" }],
     });

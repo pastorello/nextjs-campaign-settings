@@ -1,4 +1,5 @@
 import prisma from "@/app/lib/connections/prisma";
+import { activeCampaigns } from "@/app/lib/data/campaigns/activeCampaigns";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { OptionTableName } from "@/app/lib/definitions/interfaces/meta/PageMeta";
 import { ResolvedOption } from "@/app/lib/definitions/types/SelectOption";
@@ -190,7 +191,10 @@ export default async function fetchFieldOptions(
       let rows;
       try {
         rows = await prisma.campaign.findMany({
-          ...(table === "dnd5eCampaign" && { where: { system: "dnd5e" } }),
+          where: {
+            ...activeCampaigns,
+            ...(table === "dnd5eCampaign" && { system: "dnd5e" }),
+          },
           select: { id: true, title: true },
           orderBy: [{ title: "asc" }, { id: "asc" }],
         });

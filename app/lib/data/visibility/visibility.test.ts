@@ -33,6 +33,18 @@ describe("checkRevealCampaigns (SPEC-022 T6)", () => {
     ).resolves.toBeNull();
   });
 
+  it("reads only active campaigns, so an archived one is not found (SPEC-032 §5.6)", async () => {
+    findMany.mockResolvedValue([]);
+
+    await expect(
+      checkRevealCampaigns([9], { field: "revealedTo" })
+    ).resolves.toEqual({ revealedTo: [{ key: "campaignNotFound" }] });
+    expect(findMany).toHaveBeenCalledWith({
+      where: { id: { in: [9] }, archivedAt: null },
+      select: { id: true, system: true },
+    });
+  });
+
   it("names a missing campaign under the field", async () => {
     findMany.mockResolvedValue([{ id: 1, system: "dnd5e" }]);
 
@@ -67,15 +79,41 @@ describe("revealedToWrite", () => {
     expect(revealedToCreate(undefined)).toEqual({});
   });
 
-  it("replaces the set on update, emptying it when told to", () => {
-    expect(revealedToUpdate([3])).toEqual({
-      revealedTo: { set: [{ id: 3 }] },
+  // SPEC-032 §9, _Risks_: the picker lists active campaigns only, so an
+  // update must neither `set` the relation nor touch an archived campaign.
+  it("connects the listed campaigns and disconnects only the active ones left out", async () => {
+    findMany.mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }]);
+
+    await expect(revealedToUpdate([3, 1])).resolves.toEqual({
+      revealedTo: {
+        connect: [{ id: 3 }, { id: 1 }],
+        disconnect: [{ id: 2 }],
+      },
     });
-    expect(revealedToUpdate([])).toEqual({ revealedTo: { set: [] } });
+    expect(findMany).toHaveBeenCalledWith({
+      where: { archivedAt: null },
+      select: { id: true },
+    });
   });
 
-  it("leaves the reveals alone when an update does not carry the field", () => {
-    expect(revealedToUpdate(undefined)).toEqual({});
+  it("empties the active reveals when told to, and never names an archived campaign", async () => {
+    // Campaign 9 is archived: the active read does not return it.
+    findMany.mockResolvedValue([{ id: 1 }, { id: 2 }]);
+
+    const write = await revealedToUpdate([]);
+
+    expect(write).toEqual({
+      revealedTo: { connect: [], disconnect: [{ id: 1 }, { id: 2 }] },
+    });
+    expect(JSON.stringify(write)).not.toContain('"id":9');
+    expect(write.revealedTo).not.toHaveProperty("set");
+  });
+
+  it("leaves the reveals alone, without a read, when an update does not carry the field", async () => {
+    findMany.mockClear();
+
+    await expect(revealedToUpdate(undefined)).resolves.toEqual({});
+    expect(findMany).not.toHaveBeenCalled();
   });
 });
 

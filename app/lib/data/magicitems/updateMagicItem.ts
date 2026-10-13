@@ -62,7 +62,7 @@ export default async function updateMagicItem(
     }
     await prisma.magicitems.update({
       where: { id },
-      data: { ...fields, ...revealedToUpdate(revealedTo) },
+      data: { ...fields, ...(await revealedToUpdate(revealedTo)) },
     });
   } catch (error) {
     throw toDatabaseError("updating magic item", error);

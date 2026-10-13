@@ -317,6 +317,9 @@ model campaign {
   // SPEC-014 T2 — the campaign's "today", a universal day number (§5.5).
   // Null = no today set, so nothing reads as past.
   currentDay Int?
+  // SPEC-032 T4: null = active. A timestamp rather than a boolean so the
+  // list can say when it was put away. Nothing is deleted or cascaded by it.
+  archivedAt DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

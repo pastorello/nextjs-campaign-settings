@@ -18,7 +18,7 @@ describe("playerSystems (SPEC-022 §8)", () => {
     await expect(playerSystems("u1", null)).resolves.toBeNull();
     expect(findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { members: { some: { id: "u1" } } },
+        where: { members: { some: { id: "u1" } }, archivedAt: null },
       })
     );
   });

@@ -1,4 +1,5 @@
 import prisma from "@/app/lib/connections/prisma";
+import { activeCampaigns } from "@/app/lib/data/campaigns/activeCampaigns";
 import fieldError from "@/app/lib/data/validation/fieldError";
 import type FieldErrors from "@/app/lib/definitions/types/FieldErrors";
 import type GameSystem from "@/app/lib/definitions/GameSystem";
@@ -19,7 +20,7 @@ export default async function checkRevealCampaigns(
   let campaigns;
   try {
     campaigns = await prisma.campaign.findMany({
-      where: { id: { in: ids } },
+      where: { id: { in: ids }, ...activeCampaigns },
       select: { id: true, system: true },
     });
   } catch (error) {

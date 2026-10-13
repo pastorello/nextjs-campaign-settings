@@ -2,6 +2,8 @@ import prisma from "@/app/lib/connections/prisma";
 import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import GameSystem from "@/app/lib/definitions/GameSystem";
 
+import { activeCampaigns } from "./activeCampaigns";
+
 /** One card of the campaign list (SPEC-032 §5.1). */
 export interface CampaignCard {
   id: number;
@@ -13,8 +15,9 @@ export interface CampaignCard {
 }
 
 /**
- * The route system's campaigns, oldest first, as the list's cards
- * (SPEC-032 §5.1) — empty on a system with none (§5.1's empty state).
+ * The route system's campaigns that are not archived, oldest first, as the
+ * list's cards (SPEC-032 §5.1) — empty on a system with none (§5.1's empty
+ * state). The archived ones are `fetchArchivedCampaigns`.
  *
  * Filtered by `system` (ADR-0013 rule 9): switching system shows that
  * system's campaigns. Two campaigns may share a title; the title is not a
@@ -28,7 +31,7 @@ export default async function fetchCampaigns(
   let rows;
   try {
     rows = await prisma.campaign.findMany({
-      where: { system },
+      where: { system, ...activeCampaigns },
       orderBy: { id: "asc" },
       select: {
         id: true,

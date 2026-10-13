@@ -16,7 +16,6 @@ import { ensureCampaignPath } from "./helpers/ensureCampaign";
  * every date picker), which sorts before any other event the database
  * holds, so the future event is the first one coming up.
  */
-const CALENDAR = "/dashboard/dnd5e/campaign/calendar";
 
 const input = messages.calendar.input;
 const list = messages.calendar.campaign.list;
@@ -76,7 +75,7 @@ test.describe("campaign calendar", () => {
     const futureTitle = `E2E Dopo ${stamp}`;
 
     const campaign = await ensureCampaignPath(page);
-    await page.goto(CALENDAR);
+    await page.goto(`${campaign}/calendar`);
     await settle(page);
     await expect(
       page.getByRole("heading", {
@@ -115,12 +114,68 @@ test.describe("campaign calendar", () => {
     await expect(upcoming).not.toContainText(pastTitle);
 
     // --- Restore: delete both, clear today --------------------------------
-    await page.goto(CALENDAR);
+    await page.goto(`${campaign}/calendar`);
     await settle(page);
     await deleteEvent(page, pastTitle);
     await deleteEvent(page, futureTitle);
 
     await page.getByRole("button", { name: today.clearButton }).click();
     await expect(page.getByTestId("current-day-value")).toHaveText(today.unset);
+  });
+
+  test("two campaigns keep their own events (SPEC-032 T3)", async ({
+    page,
+  }) => {
+    const stamp = Date.now();
+    const calendars: { title: string; path: string }[] = [];
+
+    for (const [index, title] of [
+      `E2E Prima ${stamp}`,
+      `E2E Seconda ${stamp}`,
+    ].entries()) {
+      await page.goto("/dashboard/dnd5e/campaign");
+      await settle(page);
+      await page
+        .getByLabel(messages.campaign.fields.title.label, { exact: true })
+        .fill(`E2E Calendario ${index} ${stamp}`);
+      await page
+        .getByRole("button", { name: messages.campaign.form.createButton })
+        .click();
+      await page.waitForURL(/\/dashboard\/dnd5e\/campaign\/\d+$/);
+      const path = new URL(page.url()).pathname;
+      calendars.push({ title, path });
+
+      await page.goto(`${path}/calendar`);
+      await settle(page);
+      await addEvent(page, title, 5 + index);
+    }
+
+    // Each calendar shows its own event and none of the other's.
+    for (const { title, path } of calendars) {
+      await page.goto(`${path}/calendar`);
+      await settle(page);
+      await expect(eventItem(page, title)).toBeVisible();
+      for (const other of calendars.filter((c) => c.title !== title)) {
+        await expect(eventItem(page, other.title)).toHaveCount(0);
+      }
+    }
+
+    // The campaign's page links to its own calendar.
+    const last = calendars.slice(-1)[0];
+    if (!last) throw new Error("no campaign was created");
+    await page.goto(last.path);
+    await page
+      .getByRole("link", { name: messages.calendar.campaign.link })
+      .click();
+    await expect(page).toHaveURL(new RegExp(`${last.path}/calendar$`));
+    await settle(page);
+    await expect(eventItem(page, last.title)).toBeVisible();
+
+    // Restore: the campaigns have no delete before T4, their events do.
+    for (const { title, path } of calendars) {
+      await page.goto(`${path}/calendar`);
+      await settle(page);
+      await deleteEvent(page, title);
+    }
   });
 });

@@ -12,6 +12,8 @@ interface UpcomingEventsProps {
   /** The next events after today, soonest first (`upcomingEvents`). */
   upcoming: UpcomingEvent<CalendarEventBase>[];
   displaySystem: DateSystem;
+  /** The campaign whose calendar the link opens (SPEC-032 T3). */
+  campaignId: number;
   system: GameSystem;
 }
 
@@ -25,6 +27,7 @@ interface UpcomingEventsProps {
 export default function UpcomingEvents({
   upcoming,
   displaySystem,
+  campaignId,
   system,
 }: UpcomingEventsProps) {
   const t = useTranslations("calendar.campaign.upcoming");
@@ -50,7 +53,7 @@ export default function UpcomingEvents({
         ))}
       </ul>
       <Link
-        href={dashboardPath(system, "/campaign/calendar")}
+        href={dashboardPath(system, `/campaign/${campaignId}/calendar`)}
         className="text-sm text-blue-600 underline"
       >
         {t("openCalendar")}

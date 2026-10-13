@@ -16,7 +16,7 @@ export type DashboardDomain =
   | "admin/classes"
   | "admin/subclasses"
   | "campaign"
-  | "campaign/calendar"
+  | "campaign/[campaignId]/calendar"
   | "communities"
   | "deities"
   | "domain-cards"

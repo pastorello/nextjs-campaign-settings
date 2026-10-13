@@ -101,7 +101,7 @@ describe("createCampaignEvent (SPEC-014 T6)", () => {
       },
     });
     expect(revalidatePath).toHaveBeenCalledWith(
-      "/[locale]/dashboard/[system]/campaign/calendar",
+      "/[locale]/dashboard/[system]/campaign/[campaignId]/calendar",
       "page"
     );
   });

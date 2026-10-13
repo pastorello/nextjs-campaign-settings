@@ -42,7 +42,7 @@ describe("deleteCampaignEventById (SPEC-014 T6)", () => {
 
     expect(remove).toHaveBeenCalledWith({ where: { id: 5 } });
     expect(revalidatePath).toHaveBeenCalledWith(
-      "/[locale]/dashboard/[system]/campaign/calendar",
+      "/[locale]/dashboard/[system]/campaign/[campaignId]/calendar",
       "page"
     );
   });

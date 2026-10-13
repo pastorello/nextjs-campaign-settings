@@ -33,6 +33,7 @@ function renderUpcoming(
       <UpcomingEvents
         upcoming={upcoming}
         displaySystem={universal}
+        campaignId={7}
         system="dnd5e"
       />
     </NextIntlClientProvider>
@@ -59,6 +60,6 @@ describe("UpcomingEvents (SPEC-014 T6)", () => {
       screen.getByRole("link", {
         name: en.calendar.campaign.upcoming.openCalendar,
       })
-    ).toHaveAttribute("href", "/dashboard/dnd5e/campaign/calendar");
+    ).toHaveAttribute("href", "/dashboard/dnd5e/campaign/7/calendar");
   });
 });

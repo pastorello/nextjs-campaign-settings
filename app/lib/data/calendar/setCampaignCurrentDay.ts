@@ -41,6 +41,6 @@ export default async function setCampaignCurrentDay(
     throw toDatabaseError("setting the campaign's current day", error);
   }
 
-  revalidateDashboard("campaign/calendar");
+  revalidateDashboard("campaign/[campaignId]/calendar");
   return { ok: true };
 }

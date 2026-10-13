@@ -80,7 +80,7 @@ export default async function CampaignPage({
       <div>
         <CampaignHeader campaign={campaign} />
         <Link
-          href={dashboardPath(system, "/campaign/calendar")}
+          href={dashboardPath(system, `/campaign/${campaign.id}/calendar`)}
           className="mt-4 inline-block text-blue-600 underline"
         >
           {t("calendar.campaign.link")}
@@ -89,6 +89,7 @@ export default async function CampaignPage({
           <UpcomingEvents
             upcoming={upcoming.events}
             displaySystem={upcoming.displaySystem}
+            campaignId={campaign.id}
             system={system}
           />
         )}

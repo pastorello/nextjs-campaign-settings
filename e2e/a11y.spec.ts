@@ -3,7 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 
 import messages from "@/messages/it.json";
 
-import { ensureCampaign, ensureCampaignPath } from "./helpers/ensureCampaign";
+import { ensureCampaignPath } from "./helpers/ensureCampaign";
 import { chooseFromContextMenu } from "./helpers/mapContextMenu";
 import { portraitPng } from "./helpers/portraitPng";
 import {
@@ -243,11 +243,11 @@ test("campaign and adventure pages have no accessibility violations", async ({
 test("the campaign calendar has no accessibility violations", async ({
   page,
 }) => {
-  await ensureCampaign(page);
+  const campaign = await ensureCampaignPath(page);
 
   for (const path of [
-    "/dashboard/dnd5e/campaign/calendar",
-    "/dashboard/dnd5e/campaign/calendar?view=grid",
+    `${campaign}/calendar`,
+    `${campaign}/calendar?view=grid`,
   ]) {
     await page.goto(path);
     await page.waitForLoadState("networkidle");

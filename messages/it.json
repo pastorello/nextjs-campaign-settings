@@ -1708,8 +1708,6 @@
       "page": {
         "title": "Calendario della campagna"
       },
-      "noCampaign": "Non c'è ancora una campagna per questo sistema di gioco.",
-      "goToCampaign": "Vai alla campagna",
       "backToCampaign": "Torna alla campagna",
       "today": {
         "label": "Oggi nella campagna",

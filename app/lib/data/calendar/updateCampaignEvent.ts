@@ -50,6 +50,6 @@ export default async function updateCampaignEvent(
     throw toDatabaseError("updating campaign event", error);
   }
 
-  revalidateDashboard("campaign/calendar");
+  revalidateDashboard("campaign/[campaignId]/calendar");
   return { ok: true };
 }

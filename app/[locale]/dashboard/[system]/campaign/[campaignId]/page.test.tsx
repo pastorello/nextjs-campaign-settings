@@ -70,6 +70,11 @@ vi.mock("@/app/ui/campaigns/AdventureLadder", () => ({
   default: () => <div data-testid="adventure-ladder" />,
 }));
 
+// SPEC-032 T5: the copy destinations the ladder offers.
+vi.mock("@/app/lib/data/campaigns/fetchCampaigns", () => ({
+  default: () => Promise.resolve([{ id: 2, title: "Second group" }]),
+}));
+
 // SPEC-022 T5: the campaign's group, below the ladder.
 vi.mock("@/app/lib/data/campaigns/fetchCampaignPlayers", () => ({
   default: () => Promise.resolve({ members: [], candidates: [] }),

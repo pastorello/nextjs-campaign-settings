@@ -73,7 +73,7 @@ Steps 1–3 are cheap and go in one file. Do not skip straight to 4 for anything
 | 029 | [Daggerheart: weapons, armor and loot](./029-daggerheart-weapons-armor-and-loot.md)            | Shipped 2026-10-01            | 4     |
 | 030 | [Daggerheart: campaign management](./030-daggerheart-campaign-management.md)                   | Shipped 2026-10-01            | 4     |
 | 031 | [Encounter builder](./031-encounter-builder.md)                                                | Shipped 2026-10-02            | 4     |
-| 032 | [Several campaigns in one system](./032-several-campaigns-in-one-system.md)                    | Agreed 2026-10-12             | 4     |
+| 032 | [Several campaigns in one system](./032-several-campaigns-in-one-system.md)                    | Shipped 2026-10-14            | 4     |
 
 Feature ideas live in [`../ROADMAP.md`](../ROADMAP.md) until they are ready for a spec.
 

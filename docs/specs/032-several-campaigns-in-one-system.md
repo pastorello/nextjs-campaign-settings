@@ -1,6 +1,6 @@
 # SPEC-032: Several campaigns in one system
 
-- **Status:** Agreed 2026-10-12 — the DM answered the four product questions, then the points of the first review, the same day (§9, _Answered_); nothing is open.
+- **Status:** Shipped 2026-10-14 (T1–T6, #396–#400; copy timeouts timed in #401) — agreed 2026-10-12, when the DM answered the four product questions, then the points of the first review, the same day (§9, _Answered_); nothing is open.
 - **Date:** 2026-10-12
 - **Phase:** 4
 - **Related:** [SPEC-013](./013-campaign-management.md) (the campaign, its adventures, scenes, creatures and loot; "multi-campaign support" was left to a later spec) · [SPEC-014](./014-calendar-and-timeline.md) (campaign events, world history, and the campaign's "today") · [SPEC-018](./018-game-systems.md) / [ADR-0013](../adr/0013-game-systems.md) (a campaign has one system) · [SPEC-022](./022-accounts-roles-and-party-visibility.md) (§9's risk and R15: a group is a campaign's players, and the campaign section is the DM's alone) · [SPEC-030](./030-daggerheart-campaign-management.md) · [SPEC-031](./031-encounter-builder.md) · [ADR-0011](../adr/0011-inline-collections-outside-the-metadata-layer.md) · [ADR-0020](../adr/0020-roles-in-the-session-and-four-guards.md) · ROADMAP, _Open question for the DM: several campaigns in one system_

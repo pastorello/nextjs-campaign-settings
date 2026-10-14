@@ -99,6 +99,7 @@ export default async function CampaignPage({
           <CampaignActions
             campaignId={campaign.id}
             archived={campaign.archivedAt !== null}
+            system={system}
           />
         </div>
         <Link

@@ -1288,7 +1288,10 @@
       "copying": "Copying…",
       "copied": "Adventure copied.",
       "failed": "The adventure could not be copied.",
-      "titlePrefix": "Copy of {title}"
+      "titlePrefix": "Copy of {title}",
+      "campaignButton": "Copy campaign",
+      "campaignCopied": "Campaign copied.",
+      "campaignFailed": "The campaign could not be copied."
     },
     "archive": {
       "archive": "Archive campaign",

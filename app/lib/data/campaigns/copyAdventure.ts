@@ -15,7 +15,7 @@ import toDatabaseError from "@/app/lib/errors/toDatabaseError";
 import { revalidateDashboard } from "@/app/lib/utils/revalidateDashboard";
 
 import { activeCampaigns } from "./activeCampaigns";
-import buildAdventureCopy from "./buildAdventureCopy";
+import writeAdventureCopy, { adventureCopyInclude } from "./writeAdventureCopy";
 
 type CopyAdventureResult =
   Extract<MutationResult, { ok: false }> | { ok: true; id: number };
@@ -60,10 +60,7 @@ export default async function copyAdventure(
       async (tx): Promise<CopyAdventureResult> => {
         const source = await tx.adventure.findUnique({
           where: { id: adventureId },
-          include: {
-            scenes: { include: { creatures: true, loot: true } },
-            calendarEvents: true,
-          },
+          include: adventureCopyInclude,
         });
         if (!source) {
           return {
@@ -112,7 +109,7 @@ export default async function copyAdventure(
         });
         const sameCampaign = destinationCampaignId === source.campaignId;
 
-        const copy = buildAdventureCopy(source, {
+        const id = await writeAdventureCopy(tx, source, {
           campaignId: destinationCampaignId,
           position: (last._max.position ?? 0) + 1,
           title: sameCampaign
@@ -120,39 +117,7 @@ export default async function copyAdventure(
             : source.title,
         });
 
-        const created = await tx.adventure.create({
-          data: {
-            ...copy.adventure,
-            scenes: {
-              create: copy.scenes.map(({ scene, creatures, loot }) => ({
-                ...scene,
-                creatures: { create: creatures },
-                loot: { create: loot },
-              })),
-            },
-          },
-          select: {
-            id: true,
-            // Ids follow the order the nested creates ran in.
-            scenes: { select: { id: true }, orderBy: { id: "asc" } },
-          },
-        });
-
-        if (copy.events.length > 0) {
-          await tx.calendarEvent.createMany({
-            data: copy.events.map(({ event, sceneIndex }) => ({
-              ...event,
-              campaignId: destinationCampaignId,
-              adventureId: created.id,
-              sceneId:
-                sceneIndex === null
-                  ? null
-                  : (created.scenes[sceneIndex]?.id ?? null),
-            })),
-          });
-        }
-
-        return { ok: true, id: created.id };
+        return { ok: true, id };
       },
       {
         isolationLevel: "RepeatableRead",

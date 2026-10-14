@@ -1288,7 +1288,10 @@
       "copying": "Copia in corso…",
       "copied": "Avventura copiata.",
       "failed": "Non è stato possibile copiare l'avventura.",
-      "titlePrefix": "Copia di {title}"
+      "titlePrefix": "Copia di {title}",
+      "campaignButton": "Copia campagna",
+      "campaignCopied": "Campagna copiata.",
+      "campaignFailed": "Non è stato possibile copiare la campagna."
     },
     "archive": {
       "archive": "Archivia campagna",

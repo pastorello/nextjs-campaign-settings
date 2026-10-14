@@ -171,3 +171,65 @@ test("an archived campaign leaves the list, keeps its reveals, and comes back (S
     }
   }
 });
+
+/**
+ * SPEC-032 T5, T6: copying. An adventure is copied into another campaign
+ * through the ladder's "Copia in…", then the whole campaign is copied from its
+ * header. The copy of the campaign is a new, active campaign carrying the
+ * adventure, and the DM lands on it. Copies stay in the test database, under
+ * titles no other spec looks for.
+ */
+test("an adventure and a campaign are copied", async ({ page }) => {
+  const stamp = Date.now();
+  const source = `E2E Origine ${stamp}`;
+  const target = `E2E Destinazione ${stamp}`;
+  const adventure = `E2E Avventura copiata ${stamp}`;
+  const copy = messages.campaign.copy;
+
+  const sourcePath = await createCampaign(page, source);
+  const targetPath = await createCampaign(page, target);
+
+  // --- An adventure in the source ---------------------------------------
+  await page.goto(sourcePath);
+  await page.waitForLoadState("networkidle");
+  await page
+    .getByRole("button", { name: messages.adventure.ladder.addButton })
+    .click();
+  const adventureForm = page.locator("form");
+  await adventureForm
+    .getByLabel(adventureFields.title.label, { exact: true })
+    .fill(adventure);
+  await adventureForm
+    .getByRole("button", { name: messages.adventure.form.createButton })
+    .click();
+  await expect(page.getByRole("link", { name: adventure })).toBeVisible();
+
+  // --- Copy the adventure into the other campaign -----------------------
+  await page.getByRole("button", { name: copy.button }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByRole("button", { name: /E2E/ }).first().click();
+  await page.getByRole("option", { name: target }).click();
+  await dialog.getByRole("button", { name: copy.confirm, exact: true }).click();
+  await page.waitForURL(/\/dashboard\/dnd5e\/adventure\/\d+/);
+
+  await page.goto(targetPath);
+  await expect(page.getByRole("link", { name: adventure })).toBeVisible();
+
+  // --- Copy the whole source campaign -----------------------------------
+  await page.goto(sourcePath);
+  await page.waitForLoadState("networkidle");
+  const started = Date.now();
+  await page.getByRole("button", { name: copy.campaignButton }).click();
+  await page.waitForURL(
+    (url) =>
+      /\/dashboard\/dnd5e\/campaign\/\d+$/.test(url.pathname) &&
+      url.pathname !== sourcePath
+  );
+  console.info(`copyCampaign round trip: ${Date.now() - started} ms`);
+
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    copy.titlePrefix.replace("{title}", source)
+  );
+  await expect(page.getByRole("link", { name: adventure })).toBeVisible();
+  await expect(page.getByTestId("archived-banner")).toHaveCount(0);
+});

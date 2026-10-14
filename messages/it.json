@@ -234,6 +234,8 @@
       "campaignNotFound": "Questa campagna non esiste più.",
       "notAPlayer": "Solo un account da giocatore può far parte di una campagna.",
       "revealWrongSystem": "Questa campagna è di un altro sistema di gioco.",
+      "adventureNotFound": "Questa avventura non esiste più.",
+      "copyWrongSystem": "Questa destinazione usa un altro sistema di gioco.",
       "diceExpression": "Scrivi i danni come 2d8+3, d12 o un numero; i dadi sono d4, d6, d8, d10, d12 e d20.",
       "hordeNeedsDensity": "Un'orda ha bisogno di una densità: quante creature per PF.",
       "densityOnlyForHorde": "Solo un'orda ha una densità.",
@@ -1274,6 +1276,19 @@
       "removed": "Giocatore tolto.",
       "noCandidates": "Nessun account da giocatore da aggiungere. Creane uno dalla pagina degli account.",
       "accountsLink": "Vai agli account"
+    },
+    "copy": {
+      "button": "Copia in…",
+      "title": "Copia \"{title}\"",
+      "description": "La copia parte come pianificata, senza nulla assegnato o preso, e va in fondo alle avventure della destinazione. Gli eventi del calendario vengono copiati con essa.",
+      "destination": "Destinazione",
+      "standalone": "Nessuna campagna (avventura a sé)",
+      "noDestination": "Nessun'altra campagna di questo sistema di gioco è disponibile.",
+      "confirm": "Copia",
+      "copying": "Copia in corso…",
+      "copied": "Avventura copiata.",
+      "failed": "Non è stato possibile copiare l'avventura.",
+      "titlePrefix": "Copia di {title}"
     },
     "archive": {
       "archive": "Archivia campagna",

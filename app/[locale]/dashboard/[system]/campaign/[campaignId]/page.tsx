@@ -7,6 +7,7 @@ import { dashboardPath } from "@/i18n/dashboardPath";
 import { isGameSystem } from "@/app/lib/definitions/GameSystem";
 import { resolveDisplayDateSystem } from "@/app/lib/calendar/resolveDisplayDateSystem";
 import { upcomingEvents } from "@/app/lib/calendar/upcomingEvents";
+import fetchCampaigns from "@/app/lib/data/campaigns/fetchCampaigns";
 import fetchCampaignById from "@/app/lib/data/campaigns/fetchCampaignById";
 import fetchAdventureSceneProgress from "@/app/lib/data/campaigns/fetchAdventureSceneProgress";
 import fetchCampaignPlayers from "@/app/lib/data/campaigns/fetchCampaignPlayers";
@@ -69,12 +70,14 @@ export default async function CampaignPage({
 
   const t = await getTranslations();
 
-  const [progress, upcoming, players] = await Promise.all([
+  const [progress, upcoming, players, destinations] = await Promise.all([
     fetchAdventureSceneProgress(
       campaign.adventures.map((adventure) => adventure.id)
     ),
     readUpcoming(campaign.id, campaign.currentDay),
     fetchCampaignPlayers(campaign.id),
+    // Reads through `activeCampaigns`: an archived campaign is no destination.
+    fetchCampaigns(system),
   ]);
 
   // The synopsis is formatted text (SPEC-019 T5), shown by the header and
@@ -116,6 +119,10 @@ export default async function CampaignPage({
           campaignId={campaign.id}
           adventures={campaign.adventures}
           progress={progress}
+          copyDestinations={destinations.map(({ id, title }) => ({
+            id,
+            title,
+          }))}
         />
         <CampaignPlayersSection campaignId={campaign.id} players={players} />
       </div>

@@ -51,6 +51,10 @@ vi.mock("@/app/lib/data/campaigns/deleteAdventureById", () => ({
   default: (...args: unknown[]) => deleteAdventureById(...args),
 }));
 
+vi.mock("@/app/lib/data/campaigns/copyAdventure", () => ({
+  default: vi.fn(),
+}));
+
 const notifySuccess = vi.fn<(...args: unknown[]) => void>();
 const notifyError = vi.fn<(...args: unknown[]) => void>();
 vi.mock("@/app/lib/notifications/notify", () => ({
@@ -102,6 +106,7 @@ describe("AdventureLadder (SPEC-013 T7)", () => {
         campaignId={1}
         adventures={[adventureA, adventureB]}
         progress={{}}
+        copyDestinations={[]}
       />
     );
 
@@ -118,7 +123,14 @@ describe("AdventureLadder (SPEC-013 T7)", () => {
   });
 
   it("shows the empty message and no table when there are no adventures", () => {
-    render(<AdventureLadder campaignId={1} adventures={[]} progress={{}} />);
+    render(
+      <AdventureLadder
+        campaignId={1}
+        adventures={[]}
+        progress={{}}
+        copyDestinations={[]}
+      />
+    );
 
     expect(
       screen.getByText("adventure.ladder.emptyMessage")
@@ -132,6 +144,7 @@ describe("AdventureLadder (SPEC-013 T7)", () => {
         campaignId={1}
         adventures={[adventureA, adventureB]}
         progress={{}}
+        copyDestinations={[]}
       />
     );
 
@@ -149,6 +162,7 @@ describe("AdventureLadder (SPEC-013 T7)", () => {
         campaignId={1}
         adventures={[adventureA, adventureB]}
         progress={{}}
+        copyDestinations={[]}
       />
     );
 
@@ -167,6 +181,7 @@ describe("AdventureLadder (SPEC-013 T7)", () => {
         campaignId={1}
         adventures={[adventureA, adventureB]}
         progress={{}}
+        copyDestinations={[]}
       />
     );
 
@@ -181,7 +196,12 @@ describe("AdventureLadder (SPEC-013 T7)", () => {
   it("deletes an adventure after confirmation and refreshes", async () => {
     deleteAdventureById.mockResolvedValue(undefined);
     render(
-      <AdventureLadder campaignId={1} adventures={[adventureA]} progress={{}} />
+      <AdventureLadder
+        campaignId={1}
+        adventures={[adventureA]}
+        progress={{}}
+        copyDestinations={[]}
+      />
     );
 
     fireEvent.click(screen.getByText("common.form.delete"));
@@ -193,7 +213,14 @@ describe("AdventureLadder (SPEC-013 T7)", () => {
   });
 
   it("shows and hides the add-adventure form", () => {
-    render(<AdventureLadder campaignId={1} adventures={[]} progress={{}} />);
+    render(
+      <AdventureLadder
+        campaignId={1}
+        adventures={[]}
+        progress={{}}
+        copyDestinations={[]}
+      />
+    );
 
     expect(screen.queryByTestId("adventure-form")).not.toBeInTheDocument();
 
@@ -202,5 +229,22 @@ describe("AdventureLadder (SPEC-013 T7)", () => {
 
     fireEvent.click(screen.getByTestId("adventure-form"));
     expect(screen.queryByTestId("adventure-form")).not.toBeInTheDocument();
+  });
+
+  it("opens the copy dialog for the row's adventure", () => {
+    render(
+      <AdventureLadder
+        campaignId={1}
+        adventures={[adventureA, adventureB]}
+        progress={{}}
+        copyDestinations={[{ id: 2, title: "Second group" }]}
+      />
+    );
+
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "campaign.copy.button" })[0]!
+    );
+
+    expect(screen.getByText("campaign.copy.destination")).toBeInTheDocument();
   });
 });

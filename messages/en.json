@@ -234,6 +234,8 @@
       "campaignNotFound": "This campaign no longer exists.",
       "notAPlayer": "Only a player account can be part of a campaign.",
       "revealWrongSystem": "This campaign belongs to another game system.",
+      "adventureNotFound": "This adventure no longer exists.",
+      "copyWrongSystem": "This destination plays under another game system.",
       "diceExpression": "Write damage as 2d8+3, d12 or a number; the dice are d4, d6, d8, d10, d12 and d20.",
       "hordeNeedsDensity": "A horde needs a density: how many creatures per HP.",
       "densityOnlyForHorde": "Only a horde has a density.",
@@ -1274,6 +1276,19 @@
       "removed": "Player removed.",
       "noCandidates": "No player account left to add. Create one from the accounts page.",
       "accountsLink": "Go to the accounts"
+    },
+    "copy": {
+      "button": "Copy to…",
+      "title": "Copy \"{title}\"",
+      "description": "The copy starts planned, with nothing awarded or taken, and goes at the end of the destination's adventures. Its calendar events come with it.",
+      "destination": "Destination",
+      "standalone": "No campaign (standalone adventure)",
+      "noDestination": "No other campaign of this game system is available.",
+      "confirm": "Copy",
+      "copying": "Copying…",
+      "copied": "Adventure copied.",
+      "failed": "The adventure could not be copied.",
+      "titlePrefix": "Copy of {title}"
     },
     "archive": {
       "archive": "Archive campaign",

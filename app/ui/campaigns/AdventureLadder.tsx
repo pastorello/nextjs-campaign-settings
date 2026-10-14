@@ -25,11 +25,16 @@ import SectionTitle from "@/app/ui/typography/SectionTitle";
 import type { AdventureSceneProgress } from "@/app/lib/data/campaigns/fetchAdventureSceneProgress";
 
 import AdventureForm from "./AdventureForm";
+import CopyAdventureDialog, {
+  type CopyDestination,
+} from "./CopyAdventureDialog";
 
 interface AdventureLadderProps {
   campaignId: number;
   adventures: Adventure[];
   progress: Record<number, AdventureSceneProgress>;
+  /** The campaigns a copy may go to: active, of this campaign's system. */
+  copyDestinations: CopyDestination[];
 }
 
 /**
@@ -47,6 +52,7 @@ export default function AdventureLadder({
   campaignId,
   adventures,
   progress,
+  copyDestinations,
 }: AdventureLadderProps) {
   const t = useTranslations();
   const router = useRouter();
@@ -55,6 +61,7 @@ export default function AdventureLadder({
   const [isAdding, setIsAdding] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<Adventure | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [pendingCopy, setPendingCopy] = useState<Adventure | null>(null);
 
   const statusOptions = resolveOptions(adventureStatuses, t);
 
@@ -219,6 +226,13 @@ export default function AdventureLadder({
                           })}
                         />
                         <BaseButton
+                          onClick={() => setPendingCopy(adventure)}
+                          size={ButtonSize.small}
+                          variant={ButtonVariant.secondary}
+                        >
+                          {t("campaign.copy.button")}
+                        </BaseButton>
+                        <BaseButton
                           onClick={() => setPendingDelete(adventure)}
                           size={ButtonSize.small}
                           variant={ButtonVariant.danger}
@@ -233,6 +247,16 @@ export default function AdventureLadder({
             </tbody>
           </table>
         </div>
+      )}
+
+      {pendingCopy && (
+        <CopyAdventureDialog
+          adventure={pendingCopy}
+          destinations={copyDestinations}
+          allowStandalone={system === "dnd5e"}
+          system={system}
+          onClose={() => setPendingCopy(null)}
+        />
       )}
 
       {pendingDelete && (

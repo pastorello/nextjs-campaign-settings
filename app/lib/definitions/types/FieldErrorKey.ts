@@ -118,6 +118,9 @@ export const FIELD_ERROR_KEYS = [
   "notAPlayer",
   // Reveals (SPEC-022 T6)
   "revealWrongSystem",
+  // Copying an adventure (SPEC-032 T5)
+  "adventureNotFound",
+  "copyWrongSystem",
 ] as const;
 
 type FieldErrorKey = (typeof FIELD_ERROR_KEYS)[number];

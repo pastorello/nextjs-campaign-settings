@@ -130,7 +130,7 @@ bespoke editor is correct is written down too, with the test for telling them ap
   thresholds against a real Postgres, production build, and the full E2E suite. `next`, `react` and
   `prisma` are pinned exactly; pnpm's version comes from `package.json` so CI and a laptop cannot
   drift.
-- **Decisions are written down before the code, and corrected in public.** 20 ADRs, 31 specs. A
+- **Decisions are written down before the code, and corrected in public.** 20 ADRs, 32 specs. A
   spec is written from an interview with the person who will use the feature, carries the answers it
   was agreed on, and ends with an outcome section saying what actually shipped. When a decision was
   wrong it gets a dated supersession note rather than a quiet edit: rectangles became polygons,
@@ -220,7 +220,7 @@ maintainer's own work.
 | [`docs/TESTING.md`](./docs/TESTING.md)             | Test strategy, coverage policy, E2E setup                      |
 | [`docs/TECH_DEBT.md`](./docs/TECH_DEBT.md)         | Debt register — open items, and nothing else                   |
 | [`docs/adr/`](./docs/adr/)                         | 20 architecture decision records — the _why_                   |
-| [`docs/specs/`](./docs/specs/)                     | 31 feature specs, written before the code                      |
+| [`docs/specs/`](./docs/specs/)                     | 32 feature specs, written before the code                      |
 | [`docs/domain/`](./docs/domain/)                   | Game rules restated in our own words, and the licence analysis |
 | [`CLAUDE.md`](./CLAUDE.md)                         | Conventions, rules, and decisions already rejected             |
 
@@ -232,7 +232,8 @@ caught them drifting.
 A working prototype that is used, not a product. It runs self-hosted behind a login for one table;
 the intent is to put it on a domain, which is why accounts and roles shipped first and why
 [SPEC-012](./docs/specs/012-publishing-and-internet-exposure.md) is the gate rather than a
-deployment script. Export and import of a setting is what is being specified now. Not planned,
+deployment script. Export and import of a setting is what is being specified now
+([SPEC-033](./docs/specs/033-export.md), agreed and not started). Not planned,
 deliberately: real-time collaboration, a virtual tabletop, table-time tooling, multi-tenant hosting
 and AI-generated content — each with its reason in [`docs/ROADMAP.md`](./docs/ROADMAP.md).
 

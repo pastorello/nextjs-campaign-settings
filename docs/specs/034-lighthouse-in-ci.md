@@ -1,6 +1,6 @@
 # SPEC-034: Lighthouse (Core Web Vitals) checks in CI
 
-- **Status:** Draft — written 2026-10-15 from the ROADMAP's Phase 5 entry of the same name. Five questions wait for the maintainer (§9, _Open questions_); each carries a recommendation. Nothing is implemented.
+- **Status:** Agreed 2026-10-15 — written 2026-10-15 from the ROADMAP's Phase 5 entry of the same name. The maintainer answered every question the same day (§9, _Answered_): every recommendation was taken, and the page set was cut from five to three. Nothing is implemented yet: the tasks in §10 wait to be started, each as its own PR.
 - **Date:** 2026-10-15
 - **Phase:** 5
 - **Related:** `.github/workflows/ci.yml` (the `build` and `e2e` jobs this one borrows from) · `e2e/a11y.spec.ts` (TD-15/TD-24, the accessibility gate this does not replace) · `e2e/auth.setup.ts` and `e2e/fixtures/testUser.ts` (the seeded account and the login flow) · [ADR-0020](../adr/0020-roles-in-the-session-and-four-guards.md) (what a valid session carries) · `docs/AGENT_WORKFLOW.md` _Ratchet, do not flip_ · ADR-0021 (to be written in T1)
@@ -21,8 +21,8 @@ Every pull request into `main` runs Lighthouse against a production build of the
 
 - **Field data.** No `web-vitals` reporting from real browsers, no RUM endpoint, no dashboard. This is lab data on a CI runner.
 - **INP.** Interaction to Next Paint needs a real interaction; Lighthouse's navigation audit cannot produce it. Total Blocking Time is its lab proxy and is what is asserted. Anything that describes this check (README, a CV) says "LCP, CLS and TBT", not "all three Core Web Vitals".
-- **Replacing the accessibility gate.** `e2e/a11y.spec.ts` asserts zero axe violations on ~30 pages and stays the gate. Lighthouse's accessibility category runs a subset of the same axe rules on five pages; it is recorded, not asserted (§9 Q5).
-- **SEO and PWA categories.** Every page but `/login` sits behind auth, so SEO scores mean nothing here; Lighthouse 12 removed the PWA category.
+- **Replacing the accessibility gate.** `e2e/a11y.spec.ts` asserts zero axe violations on ~30 pages and stays the gate. Lighthouse's accessibility category runs a subset of the same axe rules on three pages; it is recorded, not asserted (§9 Q5).
+- **SEO and PWA categories.** Every audited page sits behind auth, so SEO scores mean nothing here; Lighthouse 12 removed the PWA category.
 - **A Lighthouse CI server** (`lhci server`), historical charts, or uploading reports to `temporary-public-storage` — that target publishes every report to a public Google bucket. Reports stay a CI artifact.
 - **Performance work.** This spec measures. If the baseline shows a slow page, that is a debt item of its own, not part of this spec.
 - **Dev-server numbers.** Turbopack's dev server compiles on request and ships unminified code; auditing it would measure the compiler.
@@ -41,16 +41,16 @@ Every pull request into `main` runs Lighthouse against a production build of the
 2. It builds the app (`pnpm build`) and starts it with `pnpm start` on `:3000`.
 3. A login script (`scripts/lighthouse/login.ts`) drives the real login form with Playwright's library API — not the test runner, whose `webServer` would start `pnpm dev` — as the seeded `TEST_USER`, and writes the session cookie to a file outside the repo's tracked paths.
 4. `lhci collect` audits each page three times with the **desktop** preset (§9 Q1), sending that cookie through Lighthouse's `extraHeaders`, using Playwright's pinned Chromium (`chromePath`) so the browser version moves with the lockfile, not with the runner image.
-5. A guard (`scripts/lighthouse/checkFinalUrls.ts`) reads every report and fails the job if any audit ended anywhere but the URL it asked for — above all on `/login`. Without it, an expired or rejected cookie makes Lighthouse audit the login page five times and pass.
+5. A guard (`scripts/lighthouse/checkFinalUrls.ts`) reads every report and fails the job if any audit ended anywhere but the URL it asked for — above all on `/login`. Without it, an expired or rejected cookie makes Lighthouse audit the login page in place of every page and pass.
 6. `lhci assert` checks the median run of each page against the budgets in `lighthouserc.cjs` (§9 Q4).
 7. `.lighthouseci/` is uploaded as the `lighthouse-report` artifact, kept 7 days like `playwright-report`, whether the job passed or not.
 
 **Pages audited** (§9 Q2)
 
+Three, chosen because each exercises a different heavy part of the app; all three render inside the dashboard layout and sidebar, so those are measured on every one. `/login` and `/dashboard/dnd5e` were in the first draft and were cut by the maintainer on cost (roughly a minute of CI per page): the login page is a small public form, and the dashboard home adds nothing the layout does not already bring to the other three.
+
 | Page                                | Why this one                                                                     |
 | ----------------------------------- | -------------------------------------------------------------------------------- |
-| `/login`                            | The only public page, and the first one anyone sees                              |
-| `/dashboard/dnd5e`                  | The landing page after login; the sidebar and layout every page shares           |
 | `/dashboard/dnd5e/spells`           | The largest seeded list: cards, filters, pagination — the metadata layer at work |
 | `/dashboard/dnd5e/admin/spells/new` | The heaviest form: two Tiptap rich-text editors (SPEC-019)                       |
 | `/dashboard/dnd5e/geography`        | The Leaflet map, the largest client-side module                                  |
@@ -119,23 +119,23 @@ None.
 **Risks**
 
 - **Noise.** Shared runners vary in CPU. Lighthouse's default simulated throttling (Lantern) models the network and CPU from the trace rather than slowing the browser, which keeps the spread smaller than DevTools throttling would; three runs and a median do the rest. If a metric still flaps, the margin widens through a debt item (§5).
-- **Job time.** A second production build plus 5 pages × 3 runs. Estimated at 6–9 minutes, running in parallel with `e2e`, which is longer, so the PR's wall-clock time should not grow. Reusing the `build` job's `.next` through an artifact is a later optimisation, not part of this spec.
+- **Job time.** A second production build plus 3 pages × 3 runs. Estimated at 4–6 minutes, running in parallel with `e2e`, which is longer, so the PR's wall-clock time should not grow. Reusing the `build` job's `.next` through an artifact is a later optimisation, not part of this spec.
 - **A false green.** An audit of the wrong page passes everything. The final-URL guard exists for exactly this, and its test is the one that must fail first.
 
-**Open questions**
+**Answered (the maintainer, 2026-10-15)** — every recommendation was taken; Q2 was narrowed.
 
-1. **Desktop or mobile preset?** _Recommended: desktop._ The app is where the DM builds the setting, not where sessions are run (CLAUDE.md, 2026-09-22), and that happens at a desk. The mobile preset's 4× CPU slowdown would set budgets for a device this app is not used on. Mobile can be added later as a second, `warn`-only collection.
-2. **The five pages in §5 — right set?** _Recommended: as listed._ Adding a page costs roughly a minute of CI per page.
-3. **Required from day one, or after a burn-in?** _Recommended: budgets set from the first CI baseline (the ratchet rule), but the job made a required status check only after ~10 green runs on `main` with no flake._ That is a branch-protection setting only the maintainer can change.
-4. **Margins.** _Recommended:_ category scores at the baseline median − 0.05; LCP and TBT at the baseline median + 20%; CLS at the baseline + 0.02, and never looser than 0.1 (Google's "good" line). Tightened later through debt items, never loosened silently.
-5. **Assert Lighthouse's accessibility score too?** _Recommended: no — report it._ The axe suite is stricter (zero violations, ~30 pages); a second, weaker gate on the same rules adds a failure that can never be the first one to fire.
+1. **Desktop or mobile preset?** **Desktop.** The app is where the DM builds the setting, not where sessions are run (CLAUDE.md, 2026-09-22), and that happens at a desk. The mobile preset's 4× CPU slowdown would set budgets for a device this app is not used on. Mobile can be added later as a second, `warn`-only collection.
+2. **Which pages?** **Three, not the first draft's five:** the spells list, the new-spell form and the map (§5). At roughly a minute of CI per page, `/login` and the dashboard home did not earn theirs.
+3. **Required from day one, or after a burn-in?** **Budgets from the first CI baseline (the ratchet rule); the job becomes a required status check only after ~10 green runs on `main` with no flake.** That is a branch-protection setting the maintainer changes by hand.
+4. **Margins.** **Category scores at the baseline median − 0.05; LCP and TBT at the baseline median + 20%; CLS at the baseline + 0.02, and never looser than 0.1** (Google's "good" line). Tightened later through debt items, never loosened silently.
+5. **Assert Lighthouse's accessibility score too?** **No — report it.** The axe suite is stricter (zero violations, ~30 pages); a second, weaker gate on the same rules adds a failure that can never be the first one to fire.
 
 ## 10. Task breakdown
 
 - [ ] **T1** — ADR-0021: Lighthouse CI with `@lhci/cli`, the login through Playwright's library, reports as an artifact only; the rejected alternatives above. _(test: none — a document)_
 - [ ] **T2** — `cookieHeader.ts` and `checkFinalUrls.ts`, test first. _(test: unit — a storage state without the session cookie throws; a report fixture whose final URL is `/login` fails the check)_
-- [ ] **T3** — `login.ts`, `lighthouserc.cjs` with every assertion at `warn`, `pnpm lighthouse`; run locally against `pnpm build && pnpm start` on `.env.test`'s database. _(test: the local run produces five reports, none on `/login`)_
-- [ ] **T4** — The `lighthouse` job in `ci.yml`, still `warn`-only, with the artifact upload. Record the first CI runs' medians per page in §11 as the baseline. _(test: the job is green on the PR and the artifact holds 15 reports)_
+- [ ] **T3** — `login.ts`, `lighthouserc.cjs` with every assertion at `warn`, `pnpm lighthouse`; run locally against `pnpm build && pnpm start` on `.env.test`'s database. _(test: the local run produces three reports, none on `/login`)_
+- [ ] **T4** — The `lighthouse` job in `ci.yml`, still `warn`-only, with the artifact upload. Record the first CI runs' medians per page in §11 as the baseline. _(test: the job is green on the PR and the artifact holds 9 reports)_
 - [ ] **T5** — Assertions to `error` at the baseline with the margins of Q4; `docs/TESTING.md`, `CLAUDE.md` commands, `README.md` highlight; ROADMAP entry ✅. _(test: a throwaway commit that adds a 2 s artificial delay to `/dashboard/dnd5e/spells` fails the job; reverted before merge)_
 
 ## 11. Outcome

@@ -3287,6 +3287,7 @@ The summary table's closed rows, moved out of [`TECH_DEBT.md`](./TECH_DEBT.md) o
 | TD-151 | ✅ `map-move-between-maps.spec.ts` counts the previous map's markers on a fresh database                       | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-152 | ✅ The map specs right-click a still-moving map; one reloads before the drag saves                             | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-153 | ✅ The map pans ~380px down and back on its own for ~500ms on load                                             | ~~🟢 Low~~ done      | S      | 4     |
+| TD-154 | ✅ The seed ships Italian rulebook prose for eight SRD records                                                 | ~~🟠 High~~ done     | S      | 5     |
 
 ---
 
@@ -5709,3 +5710,68 @@ now. The mock-based `useMapImageOverlay.test.ts` could not see this, because
 the behaviour lives in what Leaflet does with the bounds, not in which calls
 the hook makes. `waitForSettledMap` stays, as the item said it should: a spec
 should not right-click a map that is still moving, whatever moves it.
+
+### TD-154 ✅ The seed ships Italian rulebook prose for eight SRD records — **DONE (2026-10-15)**
+
+**Severity:** 🟠 High · **Effort:** S · **Found:** 2026-09-11 as finding 1 of
+[`docs/domain/licensing.md`](./domain/licensing.md) §6; filed in the register 2026-10-15, while
+rewriting `README.md`, because nothing had carried it there and the README was about to claim the
+opposite.
+
+**(original)** `app/seed/initial-data/spells.ts` holds four SRD spells (Aiuto, Bacche Benefiche,
+Caduta Morbida, Dardo Incantato) and `magicitems.ts` four SRD items (Anello di Rigenerazione,
+Bacchetta dei Segreti, Cintura della Forza dei Giganti, Difensiva) whose descriptions are the
+Italian _Player's Handbook_ / _Dungeon Master's Guide_ translation — not the CC-licensed Italian
+SRD, which is a different translation of overlapping content. That is protected expression in a
+public repository, and it was the one place the repo broke its own rule (`CLAUDE.md`: mechanics
+restated, never text; `licensing.md` §7 rule 3: rulebook text, official translations included, is
+private-database content only). `importLibrary.ts` already documents the rule for the DM's real
+library and keeps it gitignored; the seed slipped past because it is small.
+
+**Outcome:** the eight `description` values are invented prose written for this repository. Record
+names, every other field and the stored format are unchanged — the values are still sanitised
+rich-text HTML fragments (`<p>…</p>\n`, per [ADR-0016](./adr/0016-formatted-text-as-sanitised-html.md)), the
+Cintura keeps its three-paragraph shape with the `<br />`-separated table, and the prose is Italian
+of roughly the original length, so the seeded pages still look populated. Each file opens with a
+comment saying the prose is invented and why, pointing at `licensing.md` §7 rule 3 and at
+`importLibrary.ts` for the same rule applied to the real library.
+
+**Ten values, not eight.** The item (and the finding behind it) counted only `description`. Two
+`upcast` values — Aiuto's and Dardo Incantato's — are the same translation's "ai livelli superiori"
+paragraph, and `upcast` is a `RichText` field like `description`
+([`SpellsMeta.ts`](../app/lib/config/spells/SpellsMeta.ts)). Leaving them would have left rulebook
+prose under `app/seed/` while the register called the item closed, so both were replaced in the
+same change. They keep their existing unwrapped-string shape rather than gaining `<p>` tags: the
+brief was to change the prose and nothing else.
+
+**The chosen fix was the simpler of the two the analysis offered.** The alternative — substituting
+the official Italian SRD wording and adding the CC-BY attribution statement — carries a notice
+obligation for demo data that exists only to populate a page. Invented prose needs no notice at all
+and matches the custom-only rule, so no third-party notice entered the repo. Do not "upgrade" the
+seed to real SRD text later without taking that obligation on deliberately.
+
+**No test read the replaced text.** Grepping the eight names and the distinctive description
+phrases across `app/**`, `__test__/**` and `e2e/**` found name-only references:
+`renderFieldValue.test.ts`, `usePageManager.test.ts`, `fetchFilteredSpells.test.ts` and
+`validSpellFixture.ts` use "Aiuto"/"Dardo Incantato" as a name with their own short descriptions,
+`pagination.spec.ts` filters on `?nome=Dardo Incantato`, `mobile-viewport.spec.ts` asserts the
+"Aiuto" row is visible, and `rich-text.spec.ts` formats a faction it creates itself. Nothing
+asserted a seeded description, so the change needed no test edit, and no new test is meaningful
+here — the defect was the content of a data file, not behaviour.
+
+**Existing databases do not pick this up.** [`prismaSeed.ts`](../app/seed/prismaSeed.ts) is
+idempotent by name (`exists: … findFirst({ where: { name } })` then skip), so `pnpm db:seed` leaves
+an already-seeded row's description alone. Both local databases — `my_database` and
+`my_database_e2e` — were therefore rewritten directly with a one-off script that read the committed
+seed and `updateMany`'d by name, so the stored text matches the file exactly rather than a
+hand-copy; the script was not committed. A fresh database gets the new text from the seed. **Any
+other checkout still holds the old prose until its rows are rewritten the same way** — the fix is
+in the file, not in anybody's existing data.
+
+**`e2e/rich-text.spec.ts` fails in this environment, before and after this change.** Verified by
+stashing the two seed files and running it alone on the clean tree: it fails there too, at the
+toolbar's `aria-pressed` assertion on one run and in `deleteRow`'s cleanup on another, on a faction
+it creates itself. `spells-crud.spec.ts` and `magicitems-crud.spec.ts` pass with the change, alone
+and together. Not filed as a new item: it is a local-environment or flake question that CI on a
+fresh database answers better, and the `npc` table in `my_database_e2e` holds 24 leftover `E2E%`
+rows from earlier sessions, which is the more likely cause.

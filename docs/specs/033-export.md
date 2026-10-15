@@ -1,6 +1,6 @@
 # SPEC-033: Export and import the setting — a zip of Markdown, structured data and images
 
-- **Status:** Draft — written 2026-10-15 from the ROADMAP's Phase 5 entries "Export" and "Import". The DM answered the first round of product questions the same day (§9, _Answered_); two remain open (§9, _Open_). Nothing is implemented until they are answered and this is agreed.
+- **Status:** Agreed 2026-10-15 — written 2026-10-15 from the ROADMAP's Phase 5 entries "Export" and "Import". The DM answered the first round of product questions the same day (§9, _Answered_); every question is answered (§9) and the spec is agreed as written. Nothing is implemented yet: the tasks in §10 wait for the DM to say go.
 - **Date:** 2026-10-15
 - **Phase:** 5
 - **Related:** [ADR-0003](../adr/0003-metadata-driven-domain-configuration.md) (the metadata layer both directions are driven by) · [ADR-0008](../adr/0008-map-image-storage.md) and [ADR-0017](../adr/0017-record-images.md) (where images live and how they are validated) · [ADR-0016](../adr/0016-formatted-text-as-sanitised-html.md) (descriptions, and the record links inside them) · [SPEC-022](./022-accounts-roles-and-party-visibility.md) (`dmOnly`, reveals) · [SPEC-018](./018-game-systems.md) §5 and [`licensing.md`](../domain/licensing.md) (what carrying content out of the app requires) · `app/seed/importLibrary.ts` (the existing `pnpm db:import`, which this supersedes for new exports)
@@ -64,18 +64,18 @@ A DM downloads the whole setting as one zip — readable Markdown, structured da
 
 **Edge cases**
 
-| Situation                                          | Expected behaviour                                                                         |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Empty domain on export                             | The file says there are no records; the archive keeps the folder                           |
-| A record with no value for a field                 | Omitted from the Markdown; `null` in the JSON                                              |
-| `dmOnly` field                                     | Exported (the DM alone exports); imported into the same field                              |
-| Import into a database that already has the world  | Succeeds, creates a second copy; the summary warned of the name collisions first (§9, Q7)  |
-| A zip with a path like `../x` or an absolute path  | Refused whole (zip-slip); entries are read by exact expected name, never extracted to disk |
-| A zip that decompresses to far more than it claims | Refused: entry count, per-entry size and total uncompressed size are capped before reading |
-| An image that is not an image, or too large        | The record is imported without its image and the summary lists it — or refuses (§9, Q8)    |
-| Rich-text link to a record not in the file         | Plain text                                                                                 |
-| A file exported by a newer app version             | Refused with the version it needs                                                          |
-| Two records of one domain with the same name       | Both are imported; the slug of the second gets its id appended in the Markdown             |
+| Situation                                          | Expected behaviour                                                                              |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Empty domain on export                             | The file says there are no records; the archive keeps the folder                                |
+| A record with no value for a field                 | Omitted from the Markdown; `null` in the JSON                                                   |
+| `dmOnly` field                                     | Exported (the DM alone exports); imported into the same field                                   |
+| Import into a database that already has the world  | Succeeds, creates a second copy; the summary warned of the name collisions first (§9, answer 8) |
+| A zip with a path like `../x` or an absolute path  | Refused whole (zip-slip); entries are read by exact expected name, never extracted to disk      |
+| A zip that decompresses to far more than it claims | Refused: entry count, per-entry size and total uncompressed size are capped before reading      |
+| An image that is not an image, or too large        | The record is imported without its image and the summary lists it (§9, answer 10)               |
+| Rich-text link to a record not in the file         | Plain text                                                                                      |
+| A file exported by a newer app version             | Refused with the version it needs                                                               |
+| Two records of one domain with the same name       | Both are imported; the slug of the second gets its id appended in the Markdown                  |
 
 ## 6. Data model changes
 
@@ -110,11 +110,9 @@ Probably none. The one candidate is a per-field `exportable?: false` for a field
 6. **Who:** the DM only.
 7. **Import and export in one spec** (the DM, over splitting them), and "campagna" means the **setting**, not the game campaigns.
 
-**Open**
-
-8. **What an import does when the world is already there.** Recommendation: it adds (a second copy), after a dry-run summary that lists the name collisions; the alternative, matching by name and updating, is what `importLibrary.ts` does and is destructive. Which?
-9. **World history.** The calendar's date systems and world-history events (the ones with no campaign, linked to places, NPCs, deities, factions) are part of the world rather than of a campaign. In or out of the first version? Recommendation: out, as a follow-up once the rest round-trips — their many-to-many links double the remapping.
-10. **A bad image.** Refuse the whole import, or import the record without its image and say so? Recommendation: import without, and list it.
+8. **Import into a database that already has the world:** it adds a second copy, after a dry-run summary that lists the name collisions. No matching by name, no update (what `importLibrary.ts` does, and destructive).
+9. **World history:** out of the first version. The calendar's date systems and world-history events (no campaign; many-to-many links to places, NPCs, deities, factions) are a follow-up once the rest round-trips.
+10. **A bad image:** the record is imported without its image and the summary lists it; the import is not refused.
 
 **Files touched, in order** (provisional)
 
@@ -138,7 +136,7 @@ Probably none. The one candidate is a per-field `exportable?: false` for a field
 
 ## 10. Task breakdown
 
-One task, one PR, merged before the next. **Blocked on §9, questions 8–10 and on the DM agreeing the spec.**
+One task, one PR, merged before the next. **Agreed; not started — the DM starts it.**
 
 - [ ] **T1** — `renderRecordMarkdown` and `htmlToMarkdown`, pure; a single record's and a list's Markdown export, DM only. _(test: every field in order; a new meta field appears; rich-text conversion over the allow-list; an unauthenticated request and a `player` are refused)_
 - [ ] **T2** — Structured rows (`toRecordJson`) and the `manifest.json` format, with its version. _(test: the JSON of a record carries every field and the rich-text links as stored)_

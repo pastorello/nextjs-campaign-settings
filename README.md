@@ -138,22 +138,23 @@ bespoke editor is correct is written down too, with the test for telling them ap
   ([ADR-0005](./docs/adr/0005-english-identifiers.md)), and a 50-call-site `revalidatePath` cleanup
   was reversed twice before it landed behind one helper
   ([ADR-0014](./docs/adr/0014-corrected-revalidate-paths-behind-a-helper.md)).
-- **Nothing stays half-tracked.** TD-01 through TD-153 are closed and archived _with_ their
+- **Nothing stays half-tracked.** TD-01 through TD-154 are closed and archived _with_ their
   write-ups, so [`TECH_DEBT_ARCHIVE.md`](./docs/TECH_DEBT_ARCHIVE.md) doubles as the record of what
-  was tried and rejected — which is the thing git history cannot tell you. One item is open, TD-154,
-  filed while this file was being rewritten, because a licence finding from 2026-09-11 turned out to
-  have never reached the register. The habit underneath is auditing the docs against the code: counts
-  and statuses rot, reasoning does not, so the documents that had drifted were corrected _with the
-  evidence of the drift left in place_.
+  was tried and rejected — which is the thing git history cannot tell you. The last entry is a
+  worked example of the habit: a licence finding from 2026-09-11 had never reached the register, so
+  rewriting this README filed it as TD-154 and it was closed the same day. The habit underneath is
+  auditing the docs against the code: counts and statuses rot, reasoning does not, so the documents
+  that had drifted were corrected _with the evidence of the drift left in place_.
 - **Rules structure in the repository; rules text in the DM's own database.** Game mechanics are not
   copyrightable, rulebook prose is, so the catalogues ship as field shapes and the content is
   whatever the DM wrote. The one place SRD material is restated (5e's CR-to-XP and encounter budget
   tables) carries its CC-BY attribution in [`NOTICE.md`](./NOTICE.md) and in an in-app credits page
   kept word-for-word equal to it by a test. Three publishers' licences were read before the
-  multi-system work was built, and the reading is in
-  [`docs/domain/licensing.md`](./docs/domain/licensing.md) — including the one breach of the rule
-  that is still open: eight demo records in the seed carry Italian rulebook prose, filed as
-  [TD-154](./docs/TECH_DEBT.md) rather than left unwritten.
+  multi-system work was built, and that reading
+  ([`docs/domain/licensing.md`](./docs/domain/licensing.md)) is also what caught the repository
+  breaking its own rule: eight seeded demo records carried Italian rulebook prose. Fixing it
+  (TD-154) replaced ten values, not the eight the finding had counted — two `upcast` paragraphs are
+  rich text as well.
 
 ## If you only have ten minutes
 

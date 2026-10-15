@@ -1,8 +1,14 @@
+// Demo data only. Every `description` and `upcast` value here is invented prose
+// written for this repository (TD-154): the records keep SRD names so the
+// seeded pages look like a real library, but no rulebook text — the official
+// Italian translations included — is committed. See docs/domain/licensing.md §7
+// rule 3, and app/seed/importLibrary.ts for the same rule applied to the DM's
+// real, gitignored library.
 const spells = [
   {
     name: "Aiuto",
     description:
-      "<p>Questo incantesimo rafforza il vigore e la determinazione degli alleati. L’incantatore sceglie fino a tre creature entro gittata. 11 massimo dei punti ferita e i punti ferita attuali di ogni bersaglio aumentano di 5 per la durata dell’incantesimo.</p>\n",
+      "<p>L’incantatore intreccia un filo di volontà condivisa fra sé e un massimo di tre compagni entro gittata. Ogni bersaglio percepisce la presenza degli altri come un peso sollevato dalle spalle: finché l’incantesimo dura, la stanchezza non ha presa su di loro e nessuno può essere separato dal gruppo dalla paura.</p>\n",
     level: 2,
     circle: [18, 19, 3, 2, 4, 20],
     classes: [1, 4],
@@ -14,12 +20,12 @@ const spells = [
     ritual: false,
     concentration: true,
     upcast:
-      "Quando l'incantatore lancia questo incantesimo usando uno slot incantesimo di 3° livello o superiore, i punti ferita di un bersaglio aumentano di altri 5 punti per ogni slot di livello superiore al 2°.",
+      "Impiegando uno slot di livello superiore al secondo, l’incantatore può legare al filo un compagno in più per ogni livello oltre il secondo.",
   },
   {
     name: "Bacche Benefiche",
     description:
-      "<p>Fino a dieci bacche compaiono in mano all’incantatore e sono pervase di magia per la durata dell’incantesimo. Una creatura può usare la sua azione per mangiare una bacca. Mangiare una bacca ripristina 1 punto ferita e la bacca fornisce nutrimento sufficiente a sfamare una creatura per un giorno. Le bacche perdono il loro potere se non vengono mangiate entro 24 ore dal lancio di questo incantesimo.</p>\n",
+      "<p>Dai palmi dell’incantatore germogliano piccoli frutti scuri, tiepidi al tatto e dal sapore di resina. Chi ne mangia uno sente la fame allontanarsi e le ferite più leggere chiudersi da sole. I frutti si spengono e diventano cenere al primo chiarore del mattino seguente, qualunque cura si usi per conservarli.</p>\n",
     level: 1,
     circle: [21, 8, 9],
     classes: [2, 5],
@@ -35,7 +41,7 @@ const spells = [
   {
     name: "Caduta Morbida",
     description:
-      "<p>L’incantatore sceglie fino a cinque creature in caduta entro gittata. La velocità di discesa di una creatura in caduta rallenta fino a 18 metri per round finché l’incantesimo non termina. Se la creatura atterra prima che l’incantesimo termini, essa non subisce alcun danno da caduta e può atterrare in piedi, e l’incantesimo termina per quella creatura.</p>\n",
+      "<p>Una corrente d’aria densa si raccoglie sotto chi sta precipitando entro gittata e ne spezza la discesa in una lunga planata. Chi tocca terra mentre l’incantesimo è attivo si rialza senza un graffio, e la corrente si dissolve in un soffio tiepido appena il piede trova appoggio.</p>\n",
     level: 1,
     circle: [17, 15, 13, 6, 1, 0, 5, 7, 14, 16],
     classes: [6, 3, 0],
@@ -51,7 +57,7 @@ const spells = [
   {
     name: "Dardo Incantato",
     description:
-      "<p>L’incantatore crea tre dardi lucenti di forza magica. Ogni dardo colpisce una creatura scelta dall’incantatore, situata entro gittata e che egli sia in grado di vedere. Un dardo infligge 1d4+1 danni da forza al suo bersaglio. Tutti i dardi colpiscono simultaneamente e l’incantatore può dirigerli per colpire una sola creatura o più creature.</p>\n",
+      "<p>Tre schegge di luce pallida si staccano dalle dita dell’incantatore e si incurvano nell’aria fino a trovare i bersagli che egli ha scelto e può vedere. Le schegge non mancano mai il colpo, ma si consumano nell’istante in cui toccano la preda e non lasciano dietro di sé che un bagliore freddo.</p>\n",
     level: 1,
     circle: [7, 5, 17, 13, 14, 15, 16, 6],
     classes: [3, 6],
@@ -63,7 +69,7 @@ const spells = [
     ritual: false,
     concentration: true,
     upcast:
-      "Quando l'incantatore lancia questo incantesimo usando uno slot incantesimo di 2° livello o superiore, l'incantesimo crea un dardo aggiuntivo per ogni slot di livello superiore al 1°.",
+      "Impiegando uno slot di livello superiore al primo, si stacca dalle dita dell’incantatore una scheggia in più per ogni livello oltre il primo.",
   },
 ];
 

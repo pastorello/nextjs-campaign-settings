@@ -1,8 +1,14 @@
+// Demo data only. Every `description` value here is invented prose written for
+// this repository (TD-154): the records keep SRD names so the seeded pages look
+// like a real library, but no rulebook text — the official Italian translations
+// included — is committed. See docs/domain/licensing.md §7 rule 3, and
+// app/seed/importLibrary.ts for the same rule applied to the DM's real,
+// gitignored library.
 const magicitems = [
   {
     name: "Anello di Rigenerazione",
     description:
-      "<p>Mentre indossi questo anello, recuperi 1d6 punti ferita ogni 10 minuti, purché ti rimanga almeno 1 punto ferita. Se perdi una parte del corpo, l’anello fa sì che la parte mancante ricresca e ritorni alla sua completa funzionalità in 1d6 + 1 giorni, purché per tutto il periodo ti rimanga sempre almeno 1 punto ferita.</p>\n",
+      "<p>Chi porta questo anello al dito sente un calore costante risalire il braccio: le ferite si chiudono da sole, lentamente, e la fatica di una giornata di marcia si scioglie nel giro di una notte. L’anello non riporta indietro chi è già morto, e si raffredda del tutto quando il portatore perde conoscenza.</p>\n",
     rarity: 3,
     type: 0,
     attuned: true,
@@ -11,7 +17,7 @@ const magicitems = [
   {
     name: "Bacchetta dei Segreti",
     description:
-      "<p>Mentre impugni questa bacchetta, puoi usare un’azione per spendere 1 carica, e se una porta segreta o trappola si trova entro 9 metri da te, la bacchetta pulsa e punta a quella più vicina a te. La bacchetta ha 3 cariche. La bacchetta recupera 1d3 cariche spese all’alba di ciascun giorno.</p>\n",
+      "<p>Stringendo questa bacchetta e pronunciandone la parola di comando, la punta si scalda e devia come un ramo da rabdomante verso il più vicino meccanismo nascosto. La bacchetta tace davanti alle porte semplicemente chiuse a chiave, e si limita a tremare quando il passaggio che ha trovato è sorvegliato.</p>\n",
     rarity: 1,
     type: 3,
     attuned: false,
@@ -20,7 +26,7 @@ const magicitems = [
   {
     name: "Cintura della Forza dei Giganti",
     description:
-      "<p>Finché il personaggio indossa questa cintura, il suo punteggio di Forza cambia in un determinato punteggio conferito dalla cintura. Se il punteggio di Forza del personaggio senza cintura è pari o superiore a quello conferito dalla cintura, l’oggetto non ha alcun effetto.</p>\n<p>Esistono sei varietà di questa cintura, corrispondenti per tipo e rarità ai sei tipi di giganti puri esistenti. La cintura della forza dei giganti delle pietre e la cintura della forza dei giganti del gelo sono diverse nell’aspetto, ma hanno lo stesso effetto.</p>\n<p>Tipo\tForza\tRarità<br />\nGigante delle colline (Raro): Forza 21<br />\nGigante delle pietra/del gelo (Molto raro): Forza 23<br />\nGigante del fuoco (Molto raro): Forza\t25<br />\nGigante delle nuvole (Leggendario) Forza 27<br />\nGigante delle tempeste (Leggendario) Forza 29\t</p>\n",
+      "<p>Chi allaccia questa cintura sente le spalle allargarsi e i tendini irrigidirsi come funi bagnate: il vigore del portatore diventa quello della stirpe gigantesca a cui la cintura è intonata, e nessun allenamento può portarlo oltre quel limite finché la indossa.</p>\n<p>Le cinture conosciute sono sei, una per ciascuna delle stirpi che gli artigiani antichi riuscirono a imitare. Due di esse si somigliano nell’effetto pur essendo lavorate in metalli diversi, e i collezionisti le confondono con regolarità.</p>\n<p>Stirpe\tVigore\tFattura<br />\nGuardiano delle brughiere (Rara): Vigore 21<br />\nScalpellino di pietra e di gelo (Molto rara): Vigore 23<br />\nFonditore di fuoco (Molto rara): Vigore 25<br />\nPastore di nubi (Leggendaria): Vigore 27<br />\nAraldo delle tempeste (Leggendaria): Vigore 29\t</p>\n",
     rarity: 6,
     type: 5,
     attuned: true,
@@ -29,7 +35,7 @@ const magicitems = [
   {
     name: "Difensiva",
     description:
-      "<p>Il personaggio ottiene un bonus di +3 ai tiri per colpire e ai tiri per i danni effettuati con quest’arma magica. La prima volta in ogni suo turno in cui attacca con quest’arma, il personaggio può trasferire tutto il bonus dell’arma o una qualsiasi parte di esso alla propria Classe Armatura, anziché usarlo negli attacchi effettuati in quel turno. Potrebbe, per esempio, ridurre il bonus ai tiri per colpire e ai tiri per i danni a +1 e ottenere un bonus di +2 alla CA. I bonus modificati restano in vigore fino all’inizio del turno successivo del personaggio, che deve però impugnare l’arma per ottenere il bonus alla CA.</p>\n",
+      "<p>Quest’arma porta incisa sulla guardia una spirale che si chiude su se stessa. Chi la impugna può scegliere, nell’istante in cui attacca, di trattenere parte dello slancio del colpo e lasciare che la lama si frapponga fra sé e i nemici: il colpo perde mordente e in cambio la guardia si fa più stretta. La scelta vale fino al principio del turno seguente e cade subito se l’arma lascia la mano.</p>\n",
     rarity: 4,
     type: 1,
     attuned: true,

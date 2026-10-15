@@ -1,16 +1,17 @@
 # Documentation
 
-| Document                                         | What it is                                                      | Read it when                            |
-| ------------------------------------------------ | --------------------------------------------------------------- | --------------------------------------- |
-| [`PROJECT_STATE.md`](./PROJECT_STATE.md)         | Inventory: stack, layout, data model, current health, dead code | Starting a session; onboarding          |
-| [`ARCHITECTURE.md`](./ARCHITECTURE.md)           | How the pieces fit; the metadata layer explained; gaps marked   | Touching metadata, data access or auth  |
-| [`TECH_DEBT.md`](./TECH_DEBT.md)                 | Summary table + the write-ups of items still open               | Deciding what to work on                |
-| [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md) | Full write-up of every closed item, plus retired doc sections   | Checking if something was already tried |
-| [`TESTING.md`](./TESTING.md)                     | Test strategy, coverage targets, techniques, E2E setup          | Writing any test                        |
-| [`ROADMAP.md`](./ROADMAP.md)                     | Five phases; feature backlog; explicit non-goals                | Planning; logging an idea               |
-| [`adr/`](./adr/)                                 | Architecture decision records — the _why_ behind the code       | Making or revisiting a decision         |
-| [`specs/`](./specs/)                             | Feature specs, written before implementation                    | Building a feature                      |
-| [`../CLAUDE.md`](../CLAUDE.md)                   | Conventions and rules for AI-assisted development               | Every AI session                        |
+| Document                                         | What it is                                                       | Read it when                            |
+| ------------------------------------------------ | ---------------------------------------------------------------- | --------------------------------------- |
+| [`SETUP.md`](./SETUP.md)                         | Install, configure, seed, import, run the tests; troubleshooting | Setting the project up, or running E2E  |
+| [`PROJECT_STATE.md`](./PROJECT_STATE.md)         | Inventory: stack, layout, data model, current health, dead code  | Starting a session; onboarding          |
+| [`ARCHITECTURE.md`](./ARCHITECTURE.md)           | How the pieces fit; the metadata layer explained; gaps marked    | Touching metadata, data access or auth  |
+| [`TECH_DEBT.md`](./TECH_DEBT.md)                 | Summary table + the write-ups of items still open                | Deciding what to work on                |
+| [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md) | Full write-up of every closed item, plus retired doc sections    | Checking if something was already tried |
+| [`TESTING.md`](./TESTING.md)                     | Test strategy, coverage targets, techniques, E2E setup           | Writing any test                        |
+| [`ROADMAP.md`](./ROADMAP.md)                     | Five phases; feature backlog; explicit non-goals                 | Planning; logging an idea               |
+| [`adr/`](./adr/)                                 | Architecture decision records — the _why_ behind the code        | Making or revisiting a decision         |
+| [`specs/`](./specs/)                             | Feature specs, written before implementation                     | Building a feature                      |
+| [`../CLAUDE.md`](../CLAUDE.md)                   | Conventions and rules for AI-assisted development                | Every AI session                        |
 
 ## How these fit together
 

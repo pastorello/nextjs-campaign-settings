@@ -2,6 +2,7 @@
 
 **Last updated:** 2026-10-15
 **Status:** Working prototype, not production-ready
+**Running it:** [`SETUP.md`](./SETUP.md) — install, configure, seed, run the suites
 **Phase:** 4 (session preparation) — Phases 1–3 are complete, most of Phase 4 has shipped, and Phase 5 started early; see [`ROADMAP.md`](./ROADMAP.md)
 **Goal of the current phase:** move from reference material to something the DM uses while _preparing_ a session. Campaign management, the calendar and the encounter builder have shipped; session notes and the quick-reference panel have not. (Play-time tools — initiative, dice, random generators — were dropped on 2026-09-22; see ROADMAP's _Explicitly not planned_.) Phase 5 items have landed out of order — formatted text, record images, roles and party visibility, the credits view — so the phase number is a reading order for `ROADMAP.md`, not a queue.
 
@@ -187,7 +188,8 @@ pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageM
 ├── __test__/                # Next mocks and a handful of suites; almost every test
 │                            #   now sits beside the file it covers
 ├── auth.ts, auth.config.ts, proxy.ts
-└── docker-compose.yaml
+├── docker-compose.yaml
+└── LICENSE, NOTICE.md         # MIT for the code; the SRD 5.2.1 attribution (SPEC-031)
 ```
 
 This block is a map, not an inventory: `ls -d app/*/ app/lib/*/` regenerates the

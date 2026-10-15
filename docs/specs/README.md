@@ -81,3 +81,4 @@ Feature ideas live in [`../ROADMAP.md`](../ROADMAP.md) until they are ready for 
 tools are out of scope (ROADMAP, _Explicitly not planned_). The number is not
 reused, so nothing that cites SPEC-001 in an older document points at a different
 feature.
+| 033 | [Export and import the setting](./033-export.md) | Agreed 2026-10-15 | 5 |

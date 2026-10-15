@@ -1,27 +1,41 @@
 # Project State — Campaign Settings
 
-**Last updated:** 2026-10-02
+**Last updated:** 2026-10-15
 **Status:** Working prototype, not production-ready
-**Phase:** 4 (session tooling) — Phases 1–3 are complete; see [`ROADMAP.md`](./ROADMAP.md)
-**Goal of the current phase:** move from reference material to something the DM uses while _preparing_ a session — encounter builder, session notes, quick-reference panel. (Play-time tools — initiative, dice, random generators — were dropped on 2026-09-22; see ROADMAP's _Explicitly not planned_.) See [`ROADMAP.md`](./ROADMAP.md) for the full list.
+**Phase:** 4 (session preparation) — Phases 1–3 are complete, most of Phase 4 has shipped, and Phase 5 started early; see [`ROADMAP.md`](./ROADMAP.md)
+**Goal of the current phase:** move from reference material to something the DM uses while _preparing_ a session. Campaign management, the calendar and the encounter builder have shipped; session notes and the quick-reference panel have not. (Play-time tools — initiative, dice, random generators — were dropped on 2026-09-22; see ROADMAP's _Explicitly not planned_.) Phase 5 items have landed out of order — formatted text, record images, roles and party visibility, the credits view — so the phase number is a reading order for `ROADMAP.md`, not a queue.
 
-**The standing goal underneath every phase** is unchanged: keep the project sustainable to work on — no bugs, no dead code, tested, documented, CI-verified, organised so a future session (human or agent) picks it up cheaply. Phases 1 and 2 established that; Phase 3 builds on it without regressing it (see `ROADMAP.md`, "Phases close; they do not stay closed").
+**The standing goal underneath every phase** is unchanged: keep the project sustainable to work on — no bugs, no dead code, tested, documented, CI-verified, organised so a future session (human or agent) picks it up cheaply. Phases 1 and 2 established that; every phase since builds on it without regressing it (see `ROADMAP.md`, "Phases close; they do not stay closed").
 
 ---
 
 ## 1. What this project is
 
-A self-hosted web app for a Dungeon Master to manage a D&D 5e campaign setting: the reference material of a homebrew world. It is a CRUD dashboard over seven domains, plus an interactive world map:
+A self-hosted web app for a Dungeon Master to build a homebrew campaign setting and prepare sessions in it. **One world, two rule sets** — D&D 5e and Daggerheart ([ADR-0013](./adr/0013-game-systems.md)) — each under `/dashboard/<system>/`, with a switch in the sidebar. The world itself is shared; the rules catalogues belong to one system and 404 under the other.
 
-| Domain      | Name in code | Description                                                                                    |
-| ----------- | ------------ | ---------------------------------------------------------------------------------------------- |
-| Spells      | `spells`     | Spell compendium with level, subclasses (`circle`), classes, casting time, range, duration     |
-| Magic items | `magicitems` | Items with rarity, type, attunement flag, and (SPEC-013) a consumable/permanent flag           |
-| NPCs        | `npc`        | Name, title, role, alignment, faction, location, appearance, personality, motivations, secrets |
-| Deities     | `deities`    | Patrons with rank, tarot card, celestial body, element, tradition, alignment, divine residence |
-| Factions    | `faction`    | Organizations and groups with descriptions, rosters of NPCs                                    |
-| Treasure    | `treasure`   | SPEC-013's catalogue of non-magical valuables — coins, art objects, gems, trade goods          |
-| Geography   | `geography`  | Interactive world map (Leaflet) with POIs, measurement, tile switching                         |
+Each catalogue is a page declared in the metadata layer. The live list is
+`grep -o 'PageType\.[A-Za-z]*' app/lib/config/pagesConfig.ts | sort -u`, and the
+`system:` key in that same file is what assigns each one (absent = shared, ADR-0013 rule 4):
+
+| Scope       | Pages                                                                                                                                             | What they hold                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Shared      | `npc`                                                                                                                                             | Name, title, role, alignment, faction, location, appearance, personality, motivations, secrets            |
+| Shared      | `deities`                                                                                                                                         | Patrons with rank, tarot card, celestial body, element, tradition, alignment, divine residence            |
+| Shared      | `faction`                                                                                                                                         | Organizations and groups with descriptions, rosters of NPCs                                               |
+| D&D 5e      | `spells`                                                                                                                                          | Spell compendium with level, subclasses (`circle`), classes, casting time, range, duration                |
+| D&D 5e      | `magicitems`                                                                                                                                      | Items with rarity, type, attunement flag, and (SPEC-013) a consumable/permanent flag                      |
+| D&D 5e      | `treasure`                                                                                                                                        | SPEC-013's catalogue of non-magical valuables — coins, art objects, gems, trade goods                     |
+| Daggerheart | `dhDomain`, `dhDomainCard`, `dhClass`, `dhSubclass`, `dhAncestry`, `dhCommunity`, `dhAdversary`, `dhEnvironment`, `dhWeapon`, `dhArmor`, `dhLoot` | The character-build and GM-side catalogues of SPEC-021, SPEC-027, SPEC-028 and SPEC-029 — described below |
+
+**Geography is shared and sits outside that list**, because it is not a metadata-layer catalogue: an interactive world map (Leaflet) under `app/modules/maps/`, with a tree of places, landmarks, polygon footprints (SPEC-024, [ADR-0019](./adr/0019-polygon-geometry-from-small-libraries.md)) and measurement. Campaign management is outside it too, for the same reason — see below.
+
+> **This section described a single-system app until 2026-10-15.** It opened
+> _"a CRUD dashboard over seven domains"_ for _"a D&D 5e campaign setting"_, and
+> the table had no system column — while the paragraphs immediately below it
+> described the two systems and the eleven Daggerheart catalogues that shipped
+> between 2026-09-19 and 2026-10-01. The table is a section's summary and is what
+> a reader stops at, so the one part of §1 that had not been updated was also the
+> part most likely to be believed.
 
 **Campaign management (SPEC-013) shipped 2026-08-19, outside this table.** `campaign`, `adventure`, `scene`, `sceneCreature` and `loot` are Phase 4 additions with their own shape — `scene`/`sceneCreature`/`loot` are ordered inline collections deliberately kept outside the metadata layer ([ADR-0011](./adr/0011-inline-collections-outside-the-metadata-layer.md)), not a domain in the table above. The pages live under `app/[locale]/dashboard/[system]/campaign/` (the list), `campaign/[campaignId]/` and `adventure/[adventureId]/`: the adventure ladder, scenes with their creatures and loot edited inline, the budget panel reading `getBudgetTotals`, and the awarded/taken check-offs. The task-by-task account of how it got there is [SPEC-013](./specs/013-campaign-management.md) §11, which is where it belongs now that it is closed.
 
@@ -63,7 +77,7 @@ domains under `app/lib/config/daggerheart/`, `dh`-prefixed tables, features one
 table per owner ([ADR-0018](./adr/0018-daggerheart-features-one-table-per-owner.md))
 edited inline per ADR-0011. A class's page (`/classes/[id]`) shows its
 features, its subclasses by tier and both domains' cards by level; search and
-record links reach all four catalogues under `daggerheart` only. The 5e
+record links reach those four under `daggerheart` only. The 5e
 catalogues are a 404 there, and the Daggerheart ones under `dnd5e`. No rules
 content is in the repository: nothing is seeded, and tests use invented
 content (SPEC-018 §5). See the spec's §11.
@@ -105,21 +119,31 @@ difficulty follows them.
 
 ## 2. Stack
 
-| Layer         | Technology                                                            | Pinning                                        |
-| ------------- | --------------------------------------------------------------------- | ---------------------------------------------- |
-| Framework     | Next.js (App Router, RSC, Server Actions)                             | pinned exactly (TD-07)                         |
-| Runtime       | React                                                                 | pinned exactly (TD-07)                         |
-| Language      | TypeScript (`strict: true`)                                           | pinned exactly                                 |
-| Database      | PostgreSQL via Docker Compose                                         | port 5432                                      |
-| ORM           | Prisma with `@prisma/adapter-pg` driver adapter                       | caret; CLI and client bump together (TD-59)    |
-| Auth          | NextAuth v5 (beta) — Credentials provider + bcrypt                    | beta, pinned exactly                           |
-| Styling       | Tailwind CSS v4 + `@tailwindcss/forms`                                | caret                                          |
-| UI primitives | Radix UI, Headless UI, Heroicons, Lucide, Framer Motion, Vaul, Sonner | —                                              |
-| Maps          | Leaflet + custom hook layer                                           | caret                                          |
-| Validation    | Zod                                                                   | caret                                          |
-| Tests         | Vitest + Testing Library · Playwright                                 | see §6 — counts are derived, not recorded here |
+| Layer          | Technology                                                            | Pinning                                        |
+| -------------- | --------------------------------------------------------------------- | ---------------------------------------------- |
+| Framework      | Next.js (App Router, RSC, Server Actions)                             | pinned exactly (TD-07)                         |
+| Runtime        | React                                                                 | pinned exactly (TD-07)                         |
+| Language       | TypeScript (`strict: true`)                                           | pinned exactly                                 |
+| Database       | PostgreSQL via Docker Compose                                         | port 5432                                      |
+| ORM            | Prisma with `@prisma/adapter-pg` driver adapter                       | caret; CLI and client bump together (TD-59)    |
+| Auth           | NextAuth v5 (beta) — Credentials provider + bcrypt                    | beta, pinned exactly                           |
+| Styling        | Tailwind CSS v4 + `@tailwindcss/forms`                                | caret                                          |
+| UI primitives  | Radix UI, Headless UI, Heroicons, Lucide, Framer Motion, Vaul, Sonner | —                                              |
+| Maps           | Leaflet + custom hook layer                                           | caret                                          |
+| Map geometry   | Turf, `polygon-clipping`, `polylabel` (SPEC-024, ADR-0019)            | caret                                          |
+| i18n           | `next-intl`, catalogues in `messages/{it,en}.json` (TD-21, ADR-0006)  | caret                                          |
+| Formatted text | Tiptap editor + `sanitize-html` on write and render (SPEC-019)        | caret                                          |
+| Images         | `sharp` — decode, strip, resize server-side (SPEC-020, ADR-0017)      | caret                                          |
+| Validation     | Zod                                                                   | caret                                          |
+| Tests          | Vitest + Testing Library · Playwright                                 | see §6 — counts are derived, not recorded here |
 
 > **Version numbers deliberately left out of this table, 2026-08-13.** It used to carry one per row, and four of them had rotted (Next.js, Prisma, Zod, and the Tailwind/Leaflet patches) — the same failure `docs/README.md` §Keeping them honest describes and this file's §6 already fixed for test counts. `package.json` is the source of truth; `pnpm ls next react prisma zod` shows what is actually installed. What is worth recording is the _pinning policy_, which is a decision and does not rot: `next`/`react`/`react-dom` are pinned exactly (TD-07), and Prisma's CLI and client are grouped so they cannot bump independently (TD-59).
+>
+> **Five rows were added on 2026-10-15,** for subsystems that had shipped without
+> reaching this table: map geometry, i18n, the rich-text editor and its sanitiser,
+> and image processing. Dropping the version numbers stopped the rows from rotting;
+> it did nothing about the rows that were never written. `node -e "console.log(Object.keys(require('./package.json').dependencies).join(' '))"`
+> is the full list, and is the check this table failed.
 
 pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageManager` and `engines` are declared, and CI derives its pnpm version from that field rather than pinning its own.
 
@@ -130,30 +154,54 @@ pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageM
 ```
 .
 ├── app/
-│   ├── api/                 # Route handlers: 5 DELETE, 2 countries GeoJSON, 2 map-image (ADR-0008)
-│   ├── [locale]/dashboard/  # Authenticated area (locale segment added by TD-21)
+│   ├── api/                 # Route handlers: one DELETE per domain (both systems),
+│   │                        #   countries GeoJSON, map images (ADR-0008),
+│   │                        #   record images (ADR-0017)
+│   ├── [locale]/dashboard/[system]/   # Authenticated area (locale: TD-21 · system: ADR-0013)
 │   │   ├── (overview)/      # Landing cards
 │   │   ├── admin/           # Create pages for each domain
-│   │   ├── spells|magicitems|npc|deities|geography/
+│   │   ├── campaign/ adventure/       # SPEC-013, SPEC-030, SPEC-031
+│   │   ├── world/ search/ account/ credits/
+│   │   └── spells|magicitems|treasures|npc|deities|factions|geography|domains|…
 │   ├── lib/
+│   │   ├── actions/         # authenticate.ts + search/ — domain writes live in data/
+│   │   ├── auth/            # the four guards of ADR-0020, viewer, visibility scope
+│   │   ├── calendar/        # the universal day number and date systems (ADR-0015)
 │   │   ├── config/          # Per-domain field metadata (the "meta" system)
 │   │   ├── connections/     # prisma.ts (singleton) — the only DB connection
-│   │   ├── data/            # Data access: create/update/delete/fetch per domain
+│   │   ├── data/            # Data access and Server Actions, one function per file
 │   │   ├── definitions/     # enums / interfaces / types, one per file
-│   │   ├── hooks/           # usePageManager (one, generic) + useFilterController
-│   │   ├── utils/           # validators, data helpers
-│   │   └── actions/
-│   │       ├── authenticate.ts  # authenticate() server action
-│   │       └── search/          # useClearSearchParams
+│   │   ├── errors/          # typed errors raised across the boundary
+│   │   ├── hooks/           # usePageManager, useFilterController, useGameSystem, …
+│   │   ├── notifications/   # notify.ts (toast) + logServerIssue.ts (TD-10)
+│   │   ├── storage/         # map and record image stores (ADR-0008, ADR-0017)
+│   │   ├── test/            # shared test helpers
+│   │   └── utils/           # validators, data, richText, i18n, currency helpers
 │   ├── modules/maps/        # Self-contained Leaflet module (components/hooks/contexts/types)
-│   ├── seed/                # Prisma seed + initial data
-│   └── ui/                  # All presentational components
+│   ├── seed/                # Prisma seed, initial data, and db:import
+│   └── ui/                  # Presentational components, one directory per domain
+├── e2e/                     # Playwright specs
+├── i18n/, messages/         # next-intl request config and the it/en catalogues (TD-21)
 ├── prisma/                  # schema.prisma + migrations
 ├── generated/prisma/        # Generated client (gitignored)
-├── __test__/                # Vitest tests and Next mocks (getQuery suite lives in app/)
+├── __test__/                # Next mocks and a handful of suites; almost every test
+│                            #   now sits beside the file it covers
 ├── auth.ts, auth.config.ts, proxy.ts
 └── docker-compose.yaml
 ```
+
+This block is a map, not an inventory: `ls -d app/*/ app/lib/*/` regenerates the
+two levels that matter, and `find app/api -name route.ts` is the only route-handler
+list worth trusting.
+
+> **The `app/api/` line read "5 DELETE, 2 countries GeoJSON, 2 map-image" until 2026-10-15,**
+> which was true of the four-domain app and had drifted by a factor of three: there
+> is one DELETE endpoint per domain across both systems, and record images added
+> three more handlers in SPEC-020. The same line also predated `[system]` in the
+> dashboard path, and the `lib/` listing omitted seven directories that exist —
+> among them `auth/`, which holds the four guards every mutation in the app calls.
+> An agent reading this tree to find where auth lives would have concluded there
+> was no such place.
 
 ### Architectural patterns already in place
 
@@ -174,20 +222,48 @@ This is a genuinely good pattern, and since TD-08 it is type-safe: `PageMeta` is
 
 ## 4. Data model
 
-Eight Prisma models — the four domains plus `users`, `faction`, and the two the world-tree work left behind: **`zone`** (the places: the tree itself) and **`poi`** (the landmarks sitting on a place's map). `grep "^model" prisma/schema.prisma` is the current list.
+`grep "^model" prisma/schema.prisma` is the list and `grep -c` is the count — **35 on
+2026-10-15**. They fall into six groups: the 5e catalogues; the seventeen `dh`-prefixed
+Daggerheart ones, which are §1's eleven catalogues plus the feature, experience
+and link tables that sit one per owner ([ADR-0018](./adr/0018-daggerheart-features-one-table-per-owner.md));
+campaign management (SPEC-013, SPEC-030, SPEC-031); the calendar (SPEC-014, [ADR-0015](./adr/0015-time-as-a-universal-day-number.md));
+`recordImage` (SPEC-020); and `users` plus the two the world-tree work left behind —
+**`zone`** (the places: the tree itself) and **`poi`** (the landmarks sitting on a
+place's map).
+
+> **This said "Eight Prisma models" until 2026-10-15,** and named them: the four
+> domains plus `users`, `faction`, `zone` and `poi`. That was the schema of
+> mid-August; twenty-seven models landed between then and now, so anyone sizing up
+> the data model from this line was out by a factor of four. The number above is
+> dated for exactly that reason — it will be wrong again, and the command beside it
+> will not be.
 
 > **`poi` was the whole tree and is not any more.** SPEC-004 built one polymorphic `poi` table holding places and pins alike ([ADR-0009](./adr/0009-world-tree-as-one-polymorphic-table.md)); [SPEC-008](./specs/008-entity-location-reference.md) T8 split it in two, and `zone` is the tree today — `zone.parentId` is the self-relation, `poi.zoneId` says which place a landmark sits on. Docs written between those two dates say `poi` where they now mean `zone`.
 
-Seed data is four to six demo records per domain. A real library — 361 spells, 119 NPCs, 62 magic items — is loaded with `pnpm db:import <export.json>`; those exports are gitignored, because campaign content is the DM's and the spell prose is rulebook text.
+Seed data covers four domains and nothing else: `ls app/seed/initial-data/` holds
+`spells`, `magicitems`, `npc` and `deities` — two to five demo records each — plus one
+user. A freshly seeded database therefore has no treasures, no campaigns, no calendar
+and none of the eleven Daggerheart catalogues; those pages come up empty, which is
+expected rather than broken. A real library — 361 spells, 119 NPCs, 62 magic items —
+is loaded with `pnpm db:import <export.json>`; those exports are gitignored, because
+campaign content is the DM's and the spell prose is rulebook text. _(This paragraph
+said "four to six demo records per domain" until 2026-10-15, when "per domain" had
+grown from four domains to seventeen catalogues and the sentence had quietly become a
+promise the seed never made.)_
 
 Observations:
 
-- ✅ `createdAt` / `updatedAt` on the four domain models (TD-11); `@@index([name])` on each (`users` is indexed by its unique `email`).
-- **Relations exist now, in several places, and the rest is still bare `Int`s.** `zone.parentId` is a self-relation with `onDelete: Restrict` — the world tree ([ADR-0009](./adr/0009-world-tree-as-one-polymorphic-table.md)) — `poi.zoneId` puts each landmark on a place, `npc`/`deities` carry nullable `zoneId`/`poiId` FKs ([ADR-0010](./adr/0010-entity-location-as-stored-reference.md), SPEC-008), and `npc.faction` has a real foreign key to `faction`. Every other option-backed column (`alignment`, `rarity`, `class`, …) is still an `Int` indexing a hardcoded TypeScript array. Since TD-61 those are membership-validated at the Zod boundary, so a value outside the list is rejected rather than silently rendering as a blank cell; renumbering an array still repoints existing rows, and that has not changed.
-- **✅ `faction` is a fifth domain now.** SPEC-004 T1 shipped the table and its foreign key and nothing read either; [SPEC-006](./specs/006-factions.md) (shipped 2026-08-10) made it a domain with its own pages, a roster read from `npc.faction`, and the `PageMeta.optionTable` mechanism driving the NPC form's dropdown from rows rather than a static list. _(This entry said "a table nothing reads" until 2026-08-13, three days after that shipped.)_
-- **No ownership**, and per [SPEC-004](./specs/004-world-model.md) §3 that is now a decision rather than a gap: a campaign is a story told inside the one universe, not a scoping boundary, so **no `campaignId` belongs on any entity**. (This section previously said multi-campaign support "requires a schema change" — it does not, because it is not being built that way.) What is genuinely still open is authorisation; see §5.
-- Migrations: `ls prisma/migrations` is the list — sixteen as of 2026-08-13 (SPEC-010 T1 added `20260813150844_spec010_poi_position_nullable` the same day this line was last corrected, which is why it went stale within hours rather than days). Two of the earlier ones are worth knowing about — `20260730020000_rename_png_table_to_npc` (TD-19: `@map` retargets a field, but renaming a _model_ renames the table, so this was hand-written to avoid dropping 119 rows) and `20260806220000_add_faction_table_and_fk` (seeds `faction` with raw SQL, which is why `db push` cannot substitute for `migrate deploy` — TD-73).
-- **✅ The local dev database's migration history is intact.** It was broken for a long stretch — two migrations unapplied, `migrate dev`/`migrate deploy` both failing against it, every schema change hand-applied — and this entry described that as ongoing and **TD-63** as open. TD-63 closed it on 2026-08-08. Verified against the running database on 2026-08-13: `prisma migrate status` reports all sixteen migrations applied and "Database schema is up to date!". _(This is the third time this exact line has gone stale and been re-verified rather than trusted — the count keeps moving because migrations keep landing, which is the actual lesson: a hardcoded count on a line about "verified" is a contradiction in terms. Re-check it with the command, not the register.)_
+- ✅ **`createdAt` / `updatedAt` started as TD-11's fix on the four domain models and became the default since.** Most models carry them; `awk '/^model /{m=$2;h=0} /createdAt/{h=1} /^}/{if(m&&!h)print m;m=""}' prisma/schema.prisma` lists the ones that do not. Most of that list is deliberate — the inline child rows of [ADR-0011](./adr/0011-inline-collections-outside-the-metadata-layer.md) and ADR-0018 (`sceneCreature`, `loot`, the feature and experience tables) are only ever read through their parent, and `calendarSettings` is one row per campaign. **`faction` is the one entry that looks like an oversight rather than a decision:** it became a domain in SPEC-006, after TD-11 had set the convention on the four models that existed then, and it is the only metadata-layer catalogue without the pair. It costs nothing today, because nothing in the app reads `createdAt` at all — no sort, no filter, no query (`grep -rn createdAt app/lib/config app/lib/data/getQuery.ts` comes back empty) — so it is not filed as debt. It is recorded here so the next person adding a model does not take `faction` for the pattern.
+
+  `@@index([name])` is on the sixteen catalogue models whose list pages filter and sort by it. Of the nine other models that have a `name`: `users` is indexed by its unique `email`, `faction` and `dateSystem` are small enough not to need one, and the rest are inline child rows read through their parent.
+
+- **Relations are the norm now; option-backed columns are still bare `Int`s.** `grep -c "@relation" prisma/schema.prisma` counts them — 70 on 2026-10-15, where this bullet used to say "in several places". `zone.parentId` is a self-relation with `onDelete: Restrict` — the world tree ([ADR-0009](./adr/0009-world-tree-as-one-polymorphic-table.md)) — `poi.zoneId` puts each landmark on a place, `npc`/`deities` carry nullable `zoneId`/`poiId` FKs ([ADR-0010](./adr/0010-entity-location-as-stored-reference.md), SPEC-008), `npc.faction` has a real foreign key to `faction`, and everything SPEC-013 onwards added is related properly, the inline collections by `onDelete: Cascade` from their parent. What has _not_ changed is the other half: every option-backed column (`alignment`, `rarity`, `class`, …) is still an `Int` indexing a hardcoded TypeScript array. Since TD-61 those are membership-validated at the Zod boundary, so a value outside the list is rejected rather than silently rendering as a blank cell; renumbering an array still repoints existing rows, and that has not changed.
+- **✅ `faction` is a domain in its own right.** _(This bullet read "a fifth domain now" until 2026-10-15, counting from the four-domain app.)_ SPEC-004 T1 shipped the table and its foreign key and nothing read either; [SPEC-006](./specs/006-factions.md) (shipped 2026-08-10) made it a domain with its own pages, a roster read from `npc.faction`, and the `PageMeta.optionTable` mechanism driving the NPC form's dropdown from rows rather than a static list. _(This entry said "a table nothing reads" until 2026-08-13, three days after that shipped.)_
+- **No ownership**, and per [SPEC-004](./specs/004-world-model.md) §3 that is now a decision rather than a gap: a campaign is a story told inside the one universe, not a scoping boundary, so **no `campaignId` belongs on any entity**. (This section previously said multi-campaign support "requires a schema change" — it does not, because it is not being built that way.) Still true after SPEC-022: `awk '/^model /{m=$2} /campaignId/{print m}' prisma/schema.prisma` finds `campaignId` only on `adventure` and `calendarEvent`, which are the campaign's own structure, never on a world entity. What authorisation does instead is filter reads by what a campaign has been shown; see §5.
+- Migrations: `ls -d prisma/migrations/2*` is the list, `| wc -l` the count — 33 on 2026-10-15. This line carried "sixteen as of 2026-08-13" until then; SPEC-010 T1 added a migration the same day it was last corrected, which is why it went stale within hours rather than days, and seventeen more have landed since. Two of the earlier ones are worth knowing about — `20260730020000_rename_png_table_to_npc` (TD-19: `@map` retargets a field, but renaming a _model_ renames the table, so this was hand-written to avoid dropping 119 rows) and `20260806220000_add_faction_table_and_fk` (seeds `faction` with raw SQL, which is why `db push` cannot substitute for `migrate deploy` — TD-73).
+- **The migration history is sound; whether your local database is up to date is a question only the command answers.** The history was broken for a long stretch — two migrations unapplied, `migrate dev`/`migrate deploy` both failing against it, every schema change hand-applied — and this entry described that as ongoing and **TD-63** as open until TD-63 closed it on 2026-08-08. That fix holds: migrations have landed cleanly ever since. What does _not_ hold is a recorded verdict about the developer's own database. Checked on 2026-10-15 against the running container: 33 migrations found, 32 applied, and `20261013100000_spec032_campaign_archived_at` **not yet applied** — SPEC-032 shipped two days earlier and the local database had not caught up. Run `prisma migrate status` and, if it says so, `prisma migrate deploy`; a stale local database shows up as a Prisma error on a column that exists in `schema.prisma`, which reads like a code bug and is not one.
+
+  _This line has now gone stale four times. The first three were the count moving; this one was the "✅ verified" itself, which is the part that could never stay true — a verdict about mutable local state, written down in a document that is read months later. What belongs here is the command and the failure mode, not the result of having once run it._
 
 ---
 
@@ -203,19 +279,29 @@ The matcher excludes `/api`, so the proxy cannot protect the route handlers or S
 
 ## 6. Current health
 
-**Every gate is green, and none of them is green by exception** — no skipped test, no disabled rule, no lowered threshold.
+**Every gate is green, and none of them is green by exception** — no skipped test, no disabled rule, no lowered threshold. `pnpm typecheck`, `pnpm lint`, `pnpm test` and `pnpm format:check` were re-run on 2026-10-15 and all four pass with nothing skipped. `pnpm build` and `pnpm test:e2e` were not re-run here — the first is slow and floods a session's context, the second needs `.env.test` and a free port 3000 — and both are blocking CI jobs on every pull request, which is the honest place to read their state.
 
-| Check               | State                                                                                                             |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `pnpm typecheck`    | ✅ clean (19 errors before TD-06)                                                                                 |
-| `pnpm build`        | ✅ passes on Turbopack — same bundler as `dev` (TD-18)                                                            |
-| `pnpm test`         | ✅ all passing, nothing skipped                                                                                   |
-| `pnpm lint`         | ✅ 0 errors, 0 warnings (was 293) — TD-22; every rule back to `error`, including `no-explicit-any`                |
-| `pnpm format:check` | ✅ clean — Prettier repo-wide (TD-05/TD-16)                                                                       |
-| `pnpm test:e2e`     | ✅ all passing, nothing skipped (TD-24, then TD-15's zero-violation axe gate)                                     |
-| CI                  | ✅ four blocking gates: `static` (typecheck + lint) / `test` / `build` / `e2e` (TD-23 made the last one blocking) |
-| Coverage            | ✅ above the Phase 2 exit criterion; enforced as a CI ratchet, thresholds in `vitest.config.ts` — never lowered   |
-| `.env`              | ✅ gitignored                                                                                                     |
+The table below is therefore about what each gate costs and what holds it in place, not about a status that was true on one afternoon:
+
+| Check               | What it took to get here, and what keeps it there                                                                                                                                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm typecheck`    | 19 errors before TD-06. Runs `next typegen` first, and `tsc` on `tsconfig.typecheck.json` since TD-148 — see below                                                                                                                               |
+| `pnpm build`        | Turbopack, the same bundler as `dev` (TD-18)                                                                                                                                                                                                     |
+| `pnpm test`         | Vitest; nothing skipped, and the coverage ratchet runs with it                                                                                                                                                                                   |
+| `pnpm lint`         | 293 warnings before TD-22; every rule back to `error`, including `no-explicit-any`                                                                                                                                                               |
+| `pnpm format:check` | Prettier repo-wide (TD-05/TD-16), and the check that most often fails late — run it after the literal last edit                                                                                                                                  |
+| `pnpm test:e2e`     | Playwright, nothing skipped (TD-24, then TD-15's zero-violation axe gate); serial, one worker, boots its own dev server                                                                                                                          |
+| CI                  | Four blocking jobs in `.github/workflows/ci.yml`: `static` (typecheck + lint + format) · `test` · `build` · `e2e` (TD-23 made the last one blocking). `awk '/^jobs:/{f=1;next} f&&/^  [a-z0-9]+:/' .github/workflows/ci.yml` is the current list |
+| Coverage            | Above the Phase 2 exit criterion; a CI ratchet, thresholds in `vitest.config.ts` — never lowered                                                                                                                                                 |
+| `.env`              | Gitignored                                                                                                                                                                                                                                       |
+
+> **The "State" column is gone, 2026-10-15.** Every row used to carry a ✅ and the
+> claim beside it, which is the same mistake the counts made one paragraph down: a
+> status is a measurement, and the document outlives the afternoon the measurement
+> was taken on. The CI row was wrong in the same way — the `static` job runs
+> `format:check` as a third step, and the row listed only "typecheck + lint", so a
+> reader could believe formatting was unenforced in CI. It is the gate that fails
+> most often.
 
 > **Counts deliberately are not written here.** This table used to carry "267 tests", "40 E2E", "27.6% lines" and "PRs #1–#61", every one of which was wrong within days — and a 2026-07-30 audit had already caught this same table claiming 117 tests against an actual 173. [`docs/README.md`](./README.md#keeping-them-honest) drew the conclusion: _counts and statuses rot; prose about why does not._ So the numbers now come from the commands that produce them:
 >
@@ -239,7 +325,7 @@ The matcher excludes `/api`, so the proxy cannot protect the route handlers or S
 
 **Nothing is outstanding here.** Both items this section used to list are closed:
 
-- ✅ `copy-webpack-plugin` and the `webpack` hook are gone from `next.config.ts` — which is now four lines, `reactStrictMode` only — and the plugin is not in `package.json`. `pnpm build` passes on Turbopack (TD-18). This section claimed the hook made the build "fail outright" for three days after §6 above recorded the build as passing; the two statements sat in the same document.
+- ✅ `copy-webpack-plugin` and the `webpack` hook are gone from `next.config.ts`, and the plugin is not in `package.json`. The config is still small, but it is no longer the "four lines, `reactStrictMode` only" this entry claimed until 2026-10-15: it also wraps the app in next-intl's plugin (TD-21) and turns on `experimental.authInterrupts`, which is what makes SPEC-022's `forbidden()` and its `forbidden.tsx` page work. `pnpm build` passes on Turbopack (TD-18). This section claimed the hook made the build "fail outright" for three days after §6 above recorded the build as passing; the two statements sat in the same document.
 - ✅ `sendNotification.ts` is deleted, along with the whole `app/lib/actions/notifications/` directory. TD-10 split it by audience, which was the actual bug: `app/lib/notifications/notify.ts` raises a sonner toast for the user, `logServerIssue.ts` writes to the server console and does not pretend to be a notification. No `alert()` remains anywhere in `app/`.
 
 Two things are deliberately kept despite having no importers, and must survive a cleanup pass — see CLAUDE.md, _Decisions and rejected approaches_:
@@ -257,7 +343,7 @@ Worth saying explicitly, because the refactor should preserve these:
 - `app/modules/maps/` is well-factored: separated hooks, contexts, error boundary, typed constants.
 - One-concept-per-file discipline in `definitions/` and `data/` is consistent and easy to navigate.
 - Prisma singleton correctly guards against hot-reload connection leaks.
-- `loading.tsx`, `error.tsx`, `not-found.tsx` and `Suspense` boundaries are already used — the App Router idioms are understood.
+- `loading.tsx`, `error.tsx`, `not-found.tsx`, `forbidden.tsx` (SPEC-022) and `Suspense` boundaries are already used — the App Router idioms are understood.
 - Skeleton components exist for loading states.
 
 ---

@@ -368,9 +368,9 @@ they should, which makes the change additive rather than a break.
 ### Publishing this app — asked for on 2026-08-18, to be planned
 
 The DM intends to put this app on a domain rather than run it locally. Recorded
-as work, not as a wish: `README.md`'s quickstart and `docker-compose.yml` are the
-whole deployment story today, and every doc that says "self-hosted" means "on the
-DM's machine".
+as work, not as a wish: [`docs/SETUP.md`](./SETUP.md) (`README.md`'s quickstart
+until 2026-10-15) and `docker-compose.yaml` are the whole deployment story today,
+and every doc that says "self-hosted" means "on the DM's machine".
 
 **Now specified: [SPEC-012](./specs/012-publishing-and-internet-exposure.md)** — _deferred by the DM on 2026-09-30 ("not now")_ —
 written 2026-08-18 at the DM's request, carrying a ten-finding security audit

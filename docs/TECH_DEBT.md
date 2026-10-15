@@ -3,7 +3,7 @@
 **Last updated:** 2026-10-12
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**No item is open.** The last closed, TD-153, closed on 2026-10-12 and is archived with the rest. The next thing found goes in as TD-154.
+**One item is open: TD-154**, filed 2026-10-15. TD-153, the last one closed, closed on 2026-10-12 and is archived with the rest.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -32,7 +32,34 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-_No open items._
+| ID     | Title                                                       | Severity | Effort | Phase |
+| ------ | ----------------------------------------------------------- | -------- | ------ | ----- |
+| TD-154 | The seed ships Italian rulebook prose for eight SRD records | 🟠 High  | S      | 5     |
+
+### TD-154 The seed ships Italian rulebook prose for eight SRD records
+
+**Severity:** 🟠 High · **Effort:** S · **Found:** 2026-09-11 as finding 1 of
+[`docs/domain/licensing.md`](./domain/licensing.md) §6; filed here 2026-10-15, while rewriting
+`README.md`, because nothing had carried it into this register and the README was about to claim the
+opposite.
+
+`app/seed/initial-data/spells.ts` holds four SRD spells (Aiuto, Bacche Benefiche, Caduta Morbida,
+Dardo Incantato) and `magicitems.ts` four SRD items (Anello di Rigenerazione, Bacchetta dei Segreti,
+Cintura della Forza dei Giganti, Difensiva) whose descriptions are the Italian _Player's Handbook_ /
+_Dungeon Master's Guide_ translation — not the CC-licensed Italian SRD, which is a different
+translation of overlapping content. That is protected expression in a public repository, and it is
+the one place the repo breaks its own rule (`CLAUDE.md`: mechanics restated, never text;
+`licensing.md` §7 rule 3: rulebook text, official translations included, is private-database content
+only). `importLibrary.ts` already documents the rule for the DM's real library and keeps it
+gitignored; the seed slipped past because it is small.
+
+**Fix (the simpler of the two the analysis offers):** replace the eight descriptions with invented
+placeholder prose, which needs no notice at all and matches the custom-only rule. The alternative —
+substituting the official Italian SRD wording and adding the CC-BY attribution statement — carries a
+notice obligation for demo data that exists only to populate a page. Watch for E2E and unit
+assertions on seeded descriptions, and for `rich-text` fixtures that may read one of them.
+
+---
 
 **All 134 closed rows moved to the archive on 2026-09-22**, with the write-ups they
 index — see [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)'s _Index of every closed

@@ -130,7 +130,7 @@ bespoke editor is correct is written down too, with the test for telling them ap
   thresholds against a real Postgres, production build, and the full E2E suite. `next`, `react` and
   `prisma` are pinned exactly; pnpm's version comes from `package.json` so CI and a laptop cannot
   drift.
-- **Decisions are written down before the code, and corrected in public.** 20 ADRs, 32 specs. A
+- **Decisions are written down before the code, and corrected in public.** 20 ADRs, 33 specs. A
   spec is written from an interview with the person who will use the feature, carries the answers it
   was agreed on, and ends with an outcome section saying what actually shipped. When a decision was
   wrong it gets a dated supersession note rather than a quiet edit: rectangles became polygons,

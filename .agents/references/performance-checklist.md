@@ -214,18 +214,31 @@ npx vite-bundle-visualizer
 
 # Check bundle size
 npx bundlesize
+```
 
-# Web Vitals in code
-import { onLCP, onINP, onCLS } from 'web-vitals';
+```javascript
+// Web Vitals in code
+import { onLCP, onINP, onCLS } from "web-vitals";
 onLCP(console.log);
 onINP(console.log);
 onCLS(console.log);
 
-# INP with interaction-level detail (attribution build)
-import { onINP } from 'web-vitals/attribution';
+// INP with interaction-level detail (attribution build)
+import { onINP } from "web-vitals/attribution";
 onINP(({ value, attribution }) => {
-  const { interactionTarget, inputDelay, processingDuration, presentationDelay } = attribution;
-  console.log({ value, interactionTarget, inputDelay, processingDuration, presentationDelay });
+  const {
+    interactionTarget,
+    inputDelay,
+    processingDuration,
+    presentationDelay,
+  } = attribution;
+  console.log({
+    value,
+    interactionTarget,
+    inputDelay,
+    processingDuration,
+    presentationDelay,
+  });
 });
 ```
 

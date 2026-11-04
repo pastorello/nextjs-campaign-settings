@@ -111,18 +111,20 @@ describe("getQuery", () => {
 
   describe("ordering", () => {
     it("falls back to ascending name", () => {
-      expect(getQuery({}, []).orderBy).toEqual([{ name: "asc" }]);
+      expect(getQuery({}, []).orderBy).toEqual([{ name: "asc" }, { id: "asc" }]);
     });
 
     it("orders name descending when sort is desc", () => {
       expect(getQuery({ sort: "desc" }, []).orderBy).toEqual([
         { name: "desc" },
+        { id: "asc" },
       ]);
     });
 
     it("ignores an unrecognised sort direction", () => {
       expect(getQuery({ sort: "sideways" }, []).orderBy).toEqual([
         { name: "asc" },
+        { id: "asc" },
       ]);
     });
 
@@ -132,7 +134,21 @@ describe("getQuery", () => {
         []
       );
 
-      expect(orderBy).toEqual([{ level: "desc" }, { name: "asc" }]);
+      expect(orderBy).toEqual([
+        { level: "desc" },
+        { name: "asc" },
+        { id: "asc" },
+      ]);
+    });
+
+    // Two records may share a name (two NPCs called "Guard"). Ordered by name
+    // alone, Postgres may return them in either order on each query, so a
+    // page boundary between them can show one twice and skip the other — on
+    // the list pages, and in an export that reads every page (SPEC-033 T1).
+    it("breaks ties by id, last, so every page boundary is stable", () => {
+      const { orderBy } = getQuery({ sort: "desc" }, []);
+
+      expect(orderBy.at(-1)).toEqual({ id: "asc" });
     });
   });
 });

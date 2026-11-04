@@ -81,6 +81,10 @@ export default function getQuery<TWhere = WhereClause>(
   }
 
   orderBy.push({ name: validatedParams.sort === "desc" ? "desc" : "asc" });
+  // Names are not unique: without a unique last key, rows that share a name
+  // may come back in a different order on each query, and a page boundary
+  // between them shows one twice and skips the other.
+  orderBy.push({ id: "asc" });
 
   return {
     where: whereClause as TWhere,

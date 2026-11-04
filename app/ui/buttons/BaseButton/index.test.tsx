@@ -85,3 +85,25 @@ describe("BaseButton — aria-pressed (TD-134)", () => {
     expect(screen.getByRole("link")).toHaveAttribute("aria-pressed", "true");
   });
 });
+
+// SPEC-033 T1: an export is a file response. `next/link` would prefetch it
+// and route to it client-side; a download is a plain anchor.
+describe("BaseButton — download links (SPEC-033 T1)", () => {
+  it("renders a plain anchor that downloads", () => {
+    render(
+      <BaseButton to="/api/export/spells?id=3" download ariaLabel="Export Aid">
+        icon
+      </BaseButton>
+    );
+
+    const link = screen.getByRole("link", { name: "Export Aid" });
+    expect(link).toHaveAttribute("href", "/api/export/spells?id=3");
+    expect(link).toHaveAttribute("download");
+  });
+
+  it("leaves an ordinary link to next/link, without download", () => {
+    render(<BaseButton to="/dashboard">Home</BaseButton>);
+
+    expect(screen.getByRole("link")).not.toHaveAttribute("download");
+  });
+});

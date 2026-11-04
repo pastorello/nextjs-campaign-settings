@@ -88,6 +88,8 @@
       "edit": "Edit",
       "editItem": "Edit {name}",
       "deleteItem": "Delete {name}",
+      "exportItem": "Export {name} as Markdown",
+      "exportList": "Export list as Markdown",
       "location": "Location",
       "assignLocation": "Place"
     },

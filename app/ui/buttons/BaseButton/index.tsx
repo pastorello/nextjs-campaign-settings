@@ -23,6 +23,12 @@ interface BaseButtonProps {
   icon?: IconType;
   size?: ButtonSize;
   to?: string;
+  /**
+   * With `to`: the link downloads a file (SPEC-033's exports), so it is a
+   * plain `<a download>` — `next/link` would prefetch it and route to a file
+   * response client-side.
+   */
+  download?: boolean;
   buttonState?: ButtonState;
   type?: "submit";
 
@@ -78,6 +84,7 @@ const BaseButton = ({
   icon,
   size = ButtonSize.medium,
   to,
+  download = false,
   buttonState = ButtonState.Default,
   ariaLabel,
   isToggle = false,
@@ -128,6 +135,14 @@ const BaseButton = ({
       )}
     </>
   );
+
+  if (isValidString(to) && download) {
+    return (
+      <a className={buttonClasses} href={to} download aria-label={ariaLabel}>
+        {theButton}
+      </a>
+    );
+  }
 
   if (isValidString(to)) {
     // Links have no `disabled` attribute; approximate it so a non-interactive

@@ -1,5 +1,8 @@
-import { getTranslations } from "next-intl/server";
-import { PencilSquareIcon } from "@heroicons/react/24/outline";
+import { getLocale, getTranslations } from "next-intl/server";
+import {
+  ArrowDownTrayIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/24/outline";
 
 import renderFieldValue from "@/app/lib/utils/data/renderFieldValue";
 import listConfig from "@/app/lib/config/listConfig";
@@ -10,6 +13,7 @@ import PageType from "@/app/lib/definitions/types/PageType";
 import { SearchParamsInput } from "@/app/lib/data/validateParams";
 import fetchListItems from "@/app/lib/data/lists/fetchListItems";
 import fetchOptionBundle from "@/app/lib/data/options/fetchOptionBundle";
+import exportHref from "@/app/lib/utils/export/exportHref";
 
 import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
 import { toDerivedPlacements } from "@/app/modules/maps/lib/utils/deriveEntityAncestry";
@@ -18,6 +22,8 @@ import type DerivedPlacement from "@/app/lib/definitions/interfaces/maps/Derived
 import SortableHeader from "../buttons/SortableHeader";
 import DeleteButton from "../buttons/DeleteButton";
 import ModalButton from "../buttons/ModalButton";
+import BaseButton from "../buttons/BaseButton";
+import ButtonSize from "../buttons/BaseButton/ButtonSize";
 import ButtonVariant from "../buttons/BaseButton/ButtonVariant";
 import AssignLocationButton from "../buttons/AssignLocationButton";
 import LocationFilterControl from "./LocationFilterControl";
@@ -64,6 +70,7 @@ export default async function EntityList(props: {
   searchParams?: SearchParamsInput | undefined;
 }) {
   const t = await getTranslations();
+  const locale = await getLocale();
   const config = listConfig[props.pageType];
   // Rows of a domain that can carry an image get a thumbnail beside the
   // name (SPEC-020 T4), its keys read in the same query as the rows.
@@ -75,7 +82,8 @@ export default async function EntityList(props: {
         name={item.name as string}
       />
     );
-  const items = await fetchListItems(props.pageType, props.searchParams ?? {});
+  const listParams = await (props.searchParams ?? {});
+  const items = await fetchListItems(props.pageType, listParams);
 
   // Attached after the fetch, not read from it: `fetchFiltered*`'s result
   // schema (`buildResultSchema`, keyed off `pagesConfig`) strips any key it
@@ -108,7 +116,9 @@ export default async function EntityList(props: {
   // (TD-136), which is what the e2e suite matches row buttons by. The
   // phone-viewport stacked row below (TD-113) repeats the edit/delete pair
   // but deliberately leaves out AssignLocationButton, per that item's scope
-  // (name, the domain's first two columns, edit and delete).
+  // (name, the domain's first two columns, edit and delete) — and so does
+  // the Markdown export (SPEC-033 T1), which the list-wide export above the
+  // table still offers on a phone.
   const renderRowActions = (item: ListItem) => (
     <>
       {placements &&
@@ -137,6 +147,17 @@ export default async function EntityList(props: {
         buttonVariant={ButtonVariant.secondary}
         icon={<PencilSquareIcon className="h-4 w-4" aria-hidden="true" />}
       />
+      <BaseButton
+        to={exportHref(props.pageType, locale, { id: String(item.id) })}
+        download
+        size={ButtonSize.small}
+        variant={ButtonVariant.secondary}
+        ariaLabel={t("common.table.exportItem", {
+          name: item.name as string,
+        })}
+      >
+        <ArrowDownTrayIcon className="h-4 w-4" aria-hidden="true" />
+      </BaseButton>
       <DeleteButton
         pageName={item.name as string}
         pageId={item.id as number}
@@ -158,6 +179,20 @@ export default async function EntityList(props: {
     >
       <div className="mt-6 flow-root">
         {placements && <LocationFilterControl />}
+        {!isArrayEmpty(items) && (
+          // Every page of the list under its current filter (SPEC-033 T1).
+          <div className="mb-2 flex justify-end">
+            <BaseButton
+              to={exportHref(props.pageType, locale, listParams)}
+              download
+              size={ButtonSize.small}
+              variant={ButtonVariant.secondary}
+            >
+              <ArrowDownTrayIcon className="mr-1 h-4 w-4" aria-hidden="true" />
+              {t("common.table.exportList")}
+            </BaseButton>
+          </div>
+        )}
         <div className="block min-w-full align-middle md:inline-block">
           <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
             {isArrayEmpty(items) && <p>{t(config.emptyMessageKey)}</p>}

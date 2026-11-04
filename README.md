@@ -125,9 +125,11 @@ bespoke editor is correct is written down too, with the test for telling them ap
   54 Playwright specs including an axe-core accessibility suite and a mobile-viewport suite. Bug
   fixes land with the regression test that reproduces them. Coverage is a ratchet enforced in CI,
   raised when a change earns it and never lowered — and it is treated as a diagnostic, not a goal
-  ([`docs/TESTING.md`](./docs/TESTING.md)).
-- **CI has four jobs and they all block:** lint + typecheck + formatting, unit tests with coverage
-  thresholds against a real Postgres, production build, and the full E2E suite. `next`, `react` and
+  ([`docs/TESTING.md`](./docs/TESTING.md)). Components have a Storybook whose every story also runs
+  as a browser test with an axe check; Server Actions and Prisma are stubbed from the source, with
+  no hand-kept mock list ([ADR-0021](./docs/adr/0021-storybook-for-ui-components.md)).
+- **CI has five jobs and they all block:** lint + typecheck + formatting, unit tests with coverage
+  thresholds against a real Postgres, the story tests, production build, and the full E2E suite. `next`, `react` and
   `prisma` are pinned exactly; pnpm's version comes from `package.json` so CI and a laptop cannot
   drift.
 - **Decisions are written down before the code, and corrected in public.** 20 ADRs, 33 specs. A
@@ -180,19 +182,19 @@ bespoke editor is correct is written down too, with the test for telling them ap
 
 ## Stack
 
-| Layer      | Choice                                        | Why                                                                                                           |
-| ---------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Framework  | Next.js 16, App Router                        | Server Components keep database access on the server, with no API layer to maintain and keep in sync          |
-| Language   | TypeScript 5.9, `strict`                      | The metadata layer is the kind of abstraction that only pays off if the compiler checks it                    |
-| Database   | PostgreSQL + Prisma 7 (`@prisma/adapter-pg`)  | Array columns map cleanly; 35 models and 34 migrations, every one applied by `migrate deploy`                 |
-| Auth       | NextAuth v5 + bcrypt, credentials only        | Roles live in the session and are checked by four guards, one per surface                                     |
-| Validation | Zod 4                                         | Declared per field in the metadata, so the form and the write boundary cannot disagree                        |
-| i18n       | next-intl                                     | Italian and English catalogues, with a CI check that neither locale is missing a key                          |
-| Styling    | Tailwind CSS v4                               | Utilities in the markup; there is no design system yet, and the roadmap says what specifying one would settle |
-| Maps       | Leaflet + Turf / polygon-clipping / polylabel | Self-hosted images, no tile account, no API key; the geometry comes from small single-purpose libraries       |
-| Editor     | Tiptap 3 + sanitize-html                      | Rich text stored as a restricted HTML fragment, sanitised on write and on render                              |
-| Images     | sharp                                         | Uploads decoded, stripped of metadata and resized server-side; originals are not kept                         |
-| Tests      | Vitest 5 + Testing Library · Playwright + axe | Native ESM/TS unit suite, browser E2E, accessibility in the same pipeline                                     |
+| Layer      | Choice                                                       | Why                                                                                                           |
+| ---------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| Framework  | Next.js 16, App Router                                       | Server Components keep database access on the server, with no API layer to maintain and keep in sync          |
+| Language   | TypeScript 5.9, `strict`                                     | The metadata layer is the kind of abstraction that only pays off if the compiler checks it                    |
+| Database   | PostgreSQL + Prisma 7 (`@prisma/adapter-pg`)                 | Array columns map cleanly; 35 models and 34 migrations, every one applied by `migrate deploy`                 |
+| Auth       | NextAuth v5 + bcrypt, credentials only                       | Roles live in the session and are checked by four guards, one per surface                                     |
+| Validation | Zod 4                                                        | Declared per field in the metadata, so the form and the write boundary cannot disagree                        |
+| i18n       | next-intl                                                    | Italian and English catalogues, with a CI check that neither locale is missing a key                          |
+| Styling    | Tailwind CSS v4                                              | Utilities in the markup; there is no design system yet, and the roadmap says what specifying one would settle |
+| Maps       | Leaflet + Turf / polygon-clipping / polylabel                | Self-hosted images, no tile account, no API key; the geometry comes from small single-purpose libraries       |
+| Editor     | Tiptap 3 + sanitize-html                                     | Rich text stored as a restricted HTML fragment, sanitised on write and on render                              |
+| Images     | sharp                                                        | Uploads decoded, stripped of metadata and resized server-side; originals are not kept                         |
+| Tests      | Vitest 5 + Testing Library · Playwright + axe · Storybook 10 | Native ESM/TS unit suite, story tests and browser E2E, accessibility in the same pipeline                     |
 
 ## Running it
 

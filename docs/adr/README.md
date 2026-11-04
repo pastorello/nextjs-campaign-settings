@@ -44,3 +44,4 @@ Do **not** write one for routine implementation choices, naming, or anything a c
 | [0018](./0018-daggerheart-features-one-table-per-owner.md)      | Daggerheart features in one table per owner                             | Accepted | 2026-09-19 |
 | [0019](./0019-polygon-geometry-from-small-libraries.md)         | Polygon geometry from small, single-purpose libraries                   | Accepted | 2026-09-30 |
 | [0020](./0020-roles-in-the-session-and-four-guards.md)          | Carry the role in the session, check it fresh, guard at four boundaries | Accepted | 2026-09-30 |
+| [0021](./0021-storybook-for-ui-components.md)                   | Storybook for the UI components, run as Vitest browser tests            | Accepted | 2026-11-05 |

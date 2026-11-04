@@ -52,9 +52,11 @@ pnpm dev                # dev server (Turbopack)
 pnpm build              # production build
 pnpm typecheck          # next typegen && tsc on tsconfig.typecheck.json — MUST pass
 pnpm lint               # eslint .              — MUST pass
-pnpm test               # vitest run            — MUST pass
-pnpm test:watch         # vitest
-pnpm test:coverage      # vitest run --coverage
+pnpm test               # vitest run --project unit       — MUST pass
+pnpm test:watch         # vitest --project unit
+pnpm test:coverage      # vitest run --project unit --coverage
+pnpm test:storybook     # every story as a browser test   — MUST pass
+pnpm storybook          # Storybook on :6006 (ADR-0021)
 pnpm format:check       # prettier --check .    — MUST pass
 pnpm test:e2e           # playwright test       — MUST pass
 pnpm test:e2e:ui        # playwright test --ui
@@ -137,6 +139,7 @@ No change is complete until all of these hold:
 - [ ] `pnpm lint` passes
 - [ ] `pnpm test` passes; coverage did not drop
 - [ ] New behaviour has a test that fails without the change
+- [ ] A new UI component has a story (`storyCoverage.test.ts` enforces it), and `pnpm test:storybook` passes
 - [ ] Bug fixes have a regression test reproducing the original bug
 - [ ] No new `any`, no new `@ts-ignore`, no new `eslint-disable` without an inline reason
 - [ ] Docs updated if the change alters architecture, conventions or setup
@@ -237,6 +240,8 @@ app/lib/definitions/**        enums / interfaces / types, one per file
 app/lib/hooks/**              page manager + filter hooks
 app/lib/utils/**              pure helpers and validators
 app/modules/maps/**           self-contained Leaflet module
+app/**/*.stories.tsx          a component's stories, beside it (ADR-0021)
+.storybook/**                 Storybook config, server-module stubs, mocks, fixtures
 app/ui/<domain>/**            ← live domain components
 app/ui/forms/inputs/**        metadata-driven form controls
 prisma/schema.prisma          data model

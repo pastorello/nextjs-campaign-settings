@@ -1,9 +1,9 @@
 # Technical Debt Register
 
-**Last updated:** 2026-10-15
+**Last updated:** 2026-11-05
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**No item is open.** The last closed, TD-154, was filed and closed on 2026-10-15 and is archived with the rest. The next thing found goes in as TD-155.
+**Two items are open, TD-155 and TD-156**, both filed 2026-11-05 with Storybook (ADR-0021). The last closed, TD-154, is archived with the rest. The next thing found goes in as TD-157.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -32,7 +32,10 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-_No open items._
+| ID     | Item                                                                   | Severity  | Effort | Phase |
+| ------ | ---------------------------------------------------------------------- | --------- | ------ | ----- |
+| TD-155 | Four text colours fail WCAG AA contrast, found by Storybook's axe gate | 🟡 Medium | S      | 5     |
+| TD-156 | 171 UI components have no story yet                                    | 🟢 Low    | L      | 5     |
 
 **All 134 closed rows moved to the archive on 2026-09-22**, with the write-ups they
 index — see [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)'s _Index of every closed
@@ -50,4 +53,29 @@ Everything the 2026-07-22 audit found, plus everything found while doing the wor
 
 ## Open items
 
-None.
+### TD-155 🟡 Four text colours fail WCAG AA contrast, found by Storybook's axe gate
+
+**Found 2026-11-05**, on the first run of the story tests (ADR-0021). The E2E axe pass (TD-15) never reached any of these, because each one needs a state the specs do not create: a card's value, a toast, a failed sign-in.
+
+| Where                                     | Text on background             | Measured | Story marked `todo`                                   |
+| ----------------------------------------- | ------------------------------ | -------- | ----------------------------------------------------- |
+| `ItemMeta`, every card's label–value row  | `text-gray-400` on white       | 2.6:1    | `app/ui/components/ItemMeta.stories.tsx` (whole file) |
+| `Toaster`: Sonner's `richColors`, success | `#008a2e` on `#ecfdf3`         | 4.25:1   | `app/ui/components/Toaster.stories.tsx` (whole file)  |
+| `Toaster`: Sonner's `richColors`, error   | `#e60000` on `#fff0f0`         | 4.34:1   | same                                                  |
+| `LoginForm`'s error message               | `text-red-500` on `bg-gray-50` | 3.64:1   | `app/ui/LoginForm.stories.tsx`, `WrongCredentials`    |
+
+The AA floor for normal text is 4.5:1. **Fix:** darker steps (`text-gray-600`, `text-red-700`). For Sonner, either set `toastOptions.classNames` per type or drop `richColors` for the app's own classes. The toast region is excluded from every other story's axe check (`.storybook/preview.tsx`), so the toasts are tracked only in `Toaster.stories.tsx`. **Done when** each story above is back to the default `a11y.test: "error"`, and that file's comment is gone. `ItemMeta` is on every card, so check the change against Phase 5's design-system entry rather than retuning greys one call site at a time (compare TD-112's reverted colours).
+
+### TD-156 🟢 171 UI components have no story yet
+
+**Filed 2026-11-05** with ADR-0021. The first change covered the shared layer: buttons, form inputs, components, typography, the dashboard chrome, the login form and one domain form (`SpellForm`). It also set up the infrastructure and patterns for the rest. The remaining components are listed by domain in `.storybook/pendingStories.ts`. `storyCoverage.test.ts` keeps that list honest: a new component with no story fails `pnpm test`, and so does a pending entry a story now covers.
+
+**Plan:** one PR per batch, each removing its lines from `PENDING_STORIES`:
+
+1. 5e domains: spells, magic items, NPC, deities, factions, treasures (cards, forms, libraries).
+2. Daggerheart: `daggerheart/` and the eleven `dh*` folders.
+3. Campaigns and calendar.
+4. Geography and `app/modules/maps`. Leaflet renders in the browser runner, but the map's data hooks call several Server Actions, so these stories need the most fixtures.
+5. What is left: accounts, search, rich text, the data shells (`EntityList`, `EntityLibrary`, `ListPage`, `cards.tsx`), `ModalButton`, `ImageInput`, the location assignment components.
+
+Batches 1–3 are mechanical once the patterns exist (`.storybook/fixtures/`, `SpellForm.stories.tsx`, `docs/TESTING.md` §Stories). **Done when** `PENDING_STORIES` is empty and deleted.

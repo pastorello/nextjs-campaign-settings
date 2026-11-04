@@ -111,6 +111,58 @@ jobs:
           retention-days: 7
 
   # ---------------------------------------------------------------------------
+  # Every story rendered in headless Chromium: its play function and an axe
+  # check (ADR-0021). No database: Server Actions and Prisma modules are
+  # stubbed, so this needs only the Playwright browser the E2E job also uses.
+  # The static build is uploaded so a reviewer can open the catalogue of a PR.
+  # ---------------------------------------------------------------------------
+  storybook:
+    name: Story tests
+    runs-on: ubuntu-latest
+    env:
+      # prisma.config.ts reads this at `prisma generate`; never connected to.
+      DATABASE_URL: postgresql://admin:postgres@localhost:5432/placeholder
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm prisma generate
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium
+
+      - name: Run story tests
+        run: pnpm test:storybook
+
+      - name: Build Storybook
+        run: pnpm storybook:build --quiet
+
+      - name: Upload Storybook
+        uses: actions/upload-artifact@v7
+        with:
+          name: storybook-static
+          path: storybook-static/
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
   # Production build. Catches errors that only appear outside dev mode.
   # ---------------------------------------------------------------------------
   build:

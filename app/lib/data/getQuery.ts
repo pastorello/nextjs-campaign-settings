@@ -43,6 +43,14 @@ export default function getQuery<TWhere = WhereClause>(
     };
   }
 
+  // One record through the same reader as its list (SPEC-033 T1's export
+  // of a single record): every domain's table has an `id`, so it filters on
+  // any page without being one of its `queryFields`.
+  const { id } = validatedParams;
+  if (typeof id === "number" && Number.isInteger(id)) {
+    whereClause.id = id;
+  }
+
   enabledMeta.forEach((item: MetaConfigKey) => {
     if (!pageMetaFields[item]) {
       // A key in `enabledMeta` with no declaration is a programming error, not

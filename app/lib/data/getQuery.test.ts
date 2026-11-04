@@ -80,6 +80,28 @@ describe("getQuery", () => {
     });
   });
 
+  // One record through the same reader as its list (SPEC-033 T1): `id` is
+  // in no page's `queryFields`, yet every domain's table has one.
+  describe("one record by id", () => {
+    it("filters by id on any page, whatever enabledMeta says", () => {
+      expect(getQuery({ id: "7" }, []).where).toEqual({ id: 7 });
+    });
+
+    it("combines with the other filters", () => {
+      const { where } = getQuery({ id: "7", [SpellMetaField.level]: "3" }, [
+        SpellMetaField.level,
+      ]);
+
+      expect(where).toEqual({ id: 7, [SpellMetaField.level]: 3 });
+    });
+
+    it("drops an id that is not a whole number", () => {
+      expect(getQuery({ id: "seven" }, []).where).toEqual({});
+      expect(getQuery({ id: "-1" }, []).where).toEqual({});
+      expect(getQuery({ id: "7.5" }, []).where).toEqual({});
+    });
+  });
+
   describe("pagination", () => {
     it("takes the default page size and skips nothing on page 1", () => {
       const { skip, take } = getQuery({}, []);
@@ -111,7 +133,10 @@ describe("getQuery", () => {
 
   describe("ordering", () => {
     it("falls back to ascending name", () => {
-      expect(getQuery({}, []).orderBy).toEqual([{ name: "asc" }, { id: "asc" }]);
+      expect(getQuery({}, []).orderBy).toEqual([
+        { name: "asc" },
+        { id: "asc" },
+      ]);
     });
 
     it("orders name descending when sort is desc", () => {

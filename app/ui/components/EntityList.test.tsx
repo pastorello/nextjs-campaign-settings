@@ -26,6 +26,7 @@ vi.mock("../richText/ResolvedRecordLinks", () => ({
 }));
 
 vi.mock("next-intl/server", () => ({
+  getLocale: () => Promise.resolve("it"),
   getTranslations: () =>
     Promise.resolve((key: string, values?: Record<string, unknown>) =>
       values ? `${key}:${JSON.stringify(values)}` : key
@@ -452,6 +453,53 @@ describe("EntityList", () => {
     // One instance in the table, one in the phone-viewport row (TD-113).
     expect(screen.getAllByText("common.table.edit")).toHaveLength(2);
     expect(screen.getAllByText("delete-Fireball")).toHaveLength(2);
+  });
+
+  describe("the Markdown export (SPEC-033 T1)", () => {
+    const guard = { id: 7, name: "Guard", alignment: 1, alignmentDomain: 1 };
+
+    it("gives each table row a download of that record, named after it", async () => {
+      fetchFilteredNpc.mockResolvedValue([guard]);
+
+      render(await EntityList({ system: "dnd5e", pageType: PageType.Npc }));
+
+      const link = screen.getByRole("link", {
+        name: 'common.table.exportItem:{"name":"Guard"}',
+      });
+      expect(link).toHaveAttribute("href", "/api/export/npc?id=7&locale=it");
+      expect(link).toHaveAttribute("download");
+    });
+
+    it("offers the whole list under its current filter, without the page", async () => {
+      fetchFilteredNpc.mockResolvedValue([guard]);
+
+      render(
+        await EntityList({
+          system: "dnd5e",
+          pageType: PageType.Npc,
+          searchParams: Promise.resolve({ query: "gua", page: "2" }),
+        })
+      );
+
+      const link = screen.getByRole("link", {
+        name: "common.table.exportList",
+      });
+      expect(link).toHaveAttribute(
+        "href",
+        "/api/export/npc?query=gua&locale=it"
+      );
+      expect(link).toHaveAttribute("download");
+    });
+
+    it("offers no list export when the list is empty", async () => {
+      fetchFilteredNpc.mockResolvedValue([]);
+
+      render(await EntityList({ system: "dnd5e", pageType: PageType.Npc }));
+
+      expect(
+        screen.queryByRole("link", { name: "common.table.exportList" })
+      ).not.toBeInTheDocument();
+    });
   });
 
   // TD-113: below `md` the table is `hidden`, so without this fallback a

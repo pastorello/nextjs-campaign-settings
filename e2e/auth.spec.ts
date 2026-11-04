@@ -72,4 +72,14 @@ test.describe("authentication", () => {
 
     expect(response.status()).toBe(401);
   });
+
+  // SPEC-033 T1: the export reads the whole setting, so it is guarded like
+  // a write. Read-only, so any domain will do.
+  test("GET on the Markdown export without a session returns 401", async ({
+    request,
+  }) => {
+    const response = await request.get("/api/export/npc");
+
+    expect(response.status()).toBe(401);
+  });
 });

@@ -157,7 +157,8 @@ pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageM
 ├── app/
 │   ├── api/                 # Route handlers: one DELETE per domain (both systems),
 │   │                        #   countries GeoJSON, map images (ADR-0008),
-│   │                        #   record images (ADR-0017)
+│   │                        #   record images (ADR-0017), the Markdown
+│   │                        #   export (SPEC-033)
 │   ├── [locale]/dashboard/[system]/   # Authenticated area (locale: TD-21 · system: ADR-0013)
 │   │   ├── (overview)/      # Landing cards
 │   │   ├── admin/           # Create pages for each domain

@@ -1,5 +1,8 @@
-import { getTranslations } from "next-intl/server";
-import { PencilSquareIcon } from "@heroicons/react/24/outline";
+import { getLocale, getTranslations } from "next-intl/server";
+import {
+  ArrowDownTrayIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/24/outline";
 
 import renderFieldValue from "@/app/lib/utils/data/renderFieldValue";
 import listConfig from "@/app/lib/config/listConfig";
@@ -8,35 +11,19 @@ import isArrayEmpty from "@/app/lib/utils/validators/isArrayEmpty";
 import ListItem from "@/app/lib/definitions/interfaces/ListItem";
 import PageType from "@/app/lib/definitions/types/PageType";
 import { SearchParamsInput } from "@/app/lib/data/validateParams";
+import fetchListItems from "@/app/lib/data/lists/fetchListItems";
+import fetchOptionBundle from "@/app/lib/data/options/fetchOptionBundle";
+import exportHref from "@/app/lib/utils/export/exportHref";
 
-import { fetchFilteredDeities } from "@/app/lib/data/deities/fetchFilteredDeities";
-import { fetchFilteredMagicItems } from "@/app/lib/data/magicitems/fetchFilteredMagicItems";
-import { fetchFilteredNpc } from "@/app/lib/data/npc/fetchFilteredNpc";
-import { fetchFilteredSpells } from "@/app/lib/data/spells/fetchFilteredSpells";
-import { fetchFilteredFactions } from "@/app/lib/data/faction/fetchFilteredFactions";
-import { fetchFilteredTreasures } from "@/app/lib/data/treasure/fetchFilteredTreasures";
-import { fetchFilteredDhDomains } from "@/app/lib/data/dhDomains/fetchFilteredDhDomains";
-import { fetchFilteredDhDomainCards } from "@/app/lib/data/dhDomainCards/fetchFilteredDhDomainCards";
-import { fetchFilteredDhClasses } from "@/app/lib/data/dhClasses/fetchFilteredDhClasses";
-import { fetchFilteredDhSubclasses } from "@/app/lib/data/dhSubclasses/fetchFilteredDhSubclasses";
-import { fetchFilteredDhAncestries } from "@/app/lib/data/dhAncestries/fetchFilteredDhAncestries";
-import { fetchFilteredDhCommunities } from "@/app/lib/data/dhCommunities/fetchFilteredDhCommunities";
-import { fetchFilteredDhAdversaries } from "@/app/lib/data/dhAdversaries/fetchFilteredDhAdversaries";
-import { fetchFilteredDhEnvironments } from "@/app/lib/data/dhEnvironments/fetchFilteredDhEnvironments";
-import { fetchFilteredDhWeapons } from "@/app/lib/data/dhWeapons/fetchFilteredDhWeapons";
-import { fetchFilteredDhArmor } from "@/app/lib/data/dhArmor/fetchFilteredDhArmor";
-import { fetchFilteredDhLoot } from "@/app/lib/data/dhLoot/fetchFilteredDhLoot";
-import { fieldMeta } from "@/app/lib/config/pageMetaFields";
-import type { OptionTableName } from "@/app/lib/definitions/interfaces/meta/PageMeta";
-import fetchFieldOptions from "@/app/lib/data/options/fetchFieldOptions";
 import fetchDerivedAncestry from "@/app/lib/data/maps/fetchDerivedAncestry";
 import { toDerivedPlacements } from "@/app/modules/maps/lib/utils/deriveEntityAncestry";
 import type DerivedPlacement from "@/app/lib/definitions/interfaces/maps/DerivedPlacement";
-import type OptionBundle from "@/app/lib/definitions/types/OptionBundle";
 
 import SortableHeader from "../buttons/SortableHeader";
 import DeleteButton from "../buttons/DeleteButton";
 import ModalButton from "../buttons/ModalButton";
+import BaseButton from "../buttons/BaseButton";
+import ButtonSize from "../buttons/BaseButton/ButtonSize";
 import ButtonVariant from "../buttons/BaseButton/ButtonVariant";
 import AssignLocationButton from "../buttons/AssignLocationButton";
 import LocationFilterControl from "./LocationFilterControl";
@@ -62,76 +49,6 @@ const NAME_FIELD = "name";
  */
 
 /**
- * Kept as an explicit switch rather than a lookup table in `listConfig`. The
- * config lives in `app/lib/config/`, the fetches in `app/lib/data/`, and the
- * data layer already imports the config — pointing the config back at the data
- * layer would close that loop for no benefit.
- */
-const fetchItems = (pageType: PageType, searchParams: SearchParamsInput) => {
-  switch (pageType) {
-    case PageType.Spell:
-      return fetchFilteredSpells(searchParams);
-    case PageType.Npc:
-      return fetchFilteredNpc(searchParams);
-    case PageType.Deity:
-      return fetchFilteredDeities(searchParams);
-    case PageType.MagicItem:
-      return fetchFilteredMagicItems(searchParams);
-    case PageType.Faction:
-      return fetchFilteredFactions(searchParams);
-    case PageType.Treasure:
-      return fetchFilteredTreasures(searchParams);
-    case PageType.DhDomain:
-      return fetchFilteredDhDomains(searchParams);
-    case PageType.DhDomainCard:
-      return fetchFilteredDhDomainCards(searchParams);
-    case PageType.DhClass:
-      return fetchFilteredDhClasses(searchParams);
-    case PageType.DhSubclass:
-      return fetchFilteredDhSubclasses(searchParams);
-    case PageType.DhAncestry:
-      return fetchFilteredDhAncestries(searchParams);
-    case PageType.DhCommunity:
-      return fetchFilteredDhCommunities(searchParams);
-    case PageType.DhAdversary:
-      return fetchFilteredDhAdversaries(searchParams);
-    case PageType.DhEnvironment:
-      return fetchFilteredDhEnvironments(searchParams);
-    case PageType.DhWeapon:
-      return fetchFilteredDhWeapons(searchParams);
-    case PageType.DhArmor:
-      return fetchFilteredDhArmor(searchParams);
-    case PageType.DhLoot:
-      return fetchFilteredDhLoot(searchParams);
-  }
-};
-
-/**
- * Every table a page's fields read their options from, resolved once per
- * request (SPEC-006 §7, decision 10) — `undefined` for a page with none.
- * Read from the metadata, so a table-backed field added to a page is
- * resolved without touching this list (SPEC-021 T4/T5 added the first ones
- * after the NPC's faction).
- */
-async function fetchOptionBundle(
-  pageType: PageType
-): Promise<OptionBundle | undefined> {
-  const tables = [
-    ...new Set(
-      pagesConfig[pageType].fields
-        .map((key) => fieldMeta[key]?.optionTable)
-        .filter((table): table is OptionTableName => table !== undefined)
-    ),
-  ];
-  if (tables.length === 0) return undefined;
-  return Object.fromEntries(
-    await Promise.all(
-      tables.map(async (table) => [table, await fetchFieldOptions(table)])
-    )
-  ) as OptionBundle;
-}
-
-/**
  * The formatted text of the rows' inline features (SPEC-021 T4/T5), which
  * the edit dialog's feature editor shows — resolved with the rows' own
  * formatted fields, so a link in a feature resolves like one in a field.
@@ -153,6 +70,7 @@ export default async function EntityList(props: {
   searchParams?: SearchParamsInput | undefined;
 }) {
   const t = await getTranslations();
+  const locale = await getLocale();
   const config = listConfig[props.pageType];
   // Rows of a domain that can carry an image get a thumbnail beside the
   // name (SPEC-020 T4), its keys read in the same query as the rows.
@@ -164,10 +82,8 @@ export default async function EntityList(props: {
         name={item.name as string}
       />
     );
-  const items = (await fetchItems(
-    props.pageType,
-    props.searchParams ?? {}
-  )) as unknown as ListItem[];
+  const listParams = await (props.searchParams ?? {});
+  const items = await fetchListItems(props.pageType, listParams);
 
   // Attached after the fetch, not read from it: `fetchFiltered*`'s result
   // schema (`buildResultSchema`, keyed off `pagesConfig`) strips any key it
@@ -200,7 +116,9 @@ export default async function EntityList(props: {
   // (TD-136), which is what the e2e suite matches row buttons by. The
   // phone-viewport stacked row below (TD-113) repeats the edit/delete pair
   // but deliberately leaves out AssignLocationButton, per that item's scope
-  // (name, the domain's first two columns, edit and delete).
+  // (name, the domain's first two columns, edit and delete) — and so does
+  // the Markdown export (SPEC-033 T1), which the list-wide export above the
+  // table still offers on a phone.
   const renderRowActions = (item: ListItem) => (
     <>
       {placements &&
@@ -229,6 +147,17 @@ export default async function EntityList(props: {
         buttonVariant={ButtonVariant.secondary}
         icon={<PencilSquareIcon className="h-4 w-4" aria-hidden="true" />}
       />
+      <BaseButton
+        to={exportHref(props.pageType, locale, { id: String(item.id) })}
+        download
+        size={ButtonSize.small}
+        variant={ButtonVariant.secondary}
+        ariaLabel={t("common.table.exportItem", {
+          name: item.name as string,
+        })}
+      >
+        <ArrowDownTrayIcon className="h-4 w-4" aria-hidden="true" />
+      </BaseButton>
       <DeleteButton
         pageName={item.name as string}
         pageId={item.id as number}
@@ -250,6 +179,20 @@ export default async function EntityList(props: {
     >
       <div className="mt-6 flow-root">
         {placements && <LocationFilterControl />}
+        {!isArrayEmpty(items) && (
+          // Every page of the list under its current filter (SPEC-033 T1).
+          <div className="mb-2 flex justify-end">
+            <BaseButton
+              to={exportHref(props.pageType, locale, listParams)}
+              download
+              size={ButtonSize.small}
+              variant={ButtonVariant.secondary}
+            >
+              <ArrowDownTrayIcon className="mr-1 h-4 w-4" aria-hidden="true" />
+              {t("common.table.exportList")}
+            </BaseButton>
+          </div>
+        )}
         <div className="block min-w-full align-middle md:inline-block">
           <div className="rounded-lg bg-gray-50 p-2 md:pt-0">
             {isArrayEmpty(items) && <p>{t(config.emptyMessageKey)}</p>}

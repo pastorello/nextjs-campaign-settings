@@ -1,6 +1,6 @@
 # SPEC-033: Export and import the setting — a zip of Markdown, structured data and images
 
-- **Status:** Agreed 2026-10-15 — written 2026-10-15 from the ROADMAP's Phase 5 entries "Export" and "Import". The DM answered the first round of product questions the same day (§9, _Answered_); every question is answered (§9) and the spec is agreed as written. Nothing is implemented yet: the tasks in §10 wait for the DM to say go.
+- **Status:** In progress — T1 shipped 2026-11-04 (the DM said go the same day); T2–T6 open. Agreed 2026-10-15 — written 2026-10-15 from the ROADMAP's Phase 5 entries "Export" and "Import". The DM answered the first round of product questions the same day (§9, _Answered_); every question is answered (§9) and the spec is agreed as written.
 - **Date:** 2026-10-15
 - **Phase:** 5
 - **Related:** [ADR-0003](../adr/0003-metadata-driven-domain-configuration.md) (the metadata layer both directions are driven by) · [ADR-0008](../adr/0008-map-image-storage.md) and [ADR-0017](../adr/0017-record-images.md) (where images live and how they are validated) · [ADR-0016](../adr/0016-formatted-text-as-sanitised-html.md) (descriptions, and the record links inside them) · [SPEC-022](./022-accounts-roles-and-party-visibility.md) (`dmOnly`, reveals) · [SPEC-018](./018-game-systems.md) §5 and [`licensing.md`](../domain/licensing.md) (what carrying content out of the app requires) · `app/seed/importLibrary.ts` (the existing `pnpm db:import`, which this supersedes for new exports)
@@ -136,9 +136,12 @@ Probably none. The one candidate is a per-field `exportable?: false` for a field
 
 ## 10. Task breakdown
 
-One task, one PR, merged before the next. **Agreed; not started — the DM starts it.**
+One task, one PR, merged before the next. **Started by the DM on 2026-11-04.**
 
-- [ ] **T1** — `renderRecordMarkdown` and `htmlToMarkdown`, pure; a single record's and a list's Markdown export, DM only. _(test: every field in order; a new meta field appears; rich-text conversion over the allow-list; an unauthenticated request and a `player` are refused)_
+- [x] **T1** — `renderRecordMarkdown` and `htmlToMarkdown`, pure; a single record's and a list's Markdown export, DM only. _(test: every field in order; a new meta field appears; rich-text conversion over the allow-list; an unauthenticated request and a `player` are refused)_
+  - _Done 2026-11-04._ `GET /api/export/[pageType]` (`requireApiDm`) writes the list under its query string's filter, every page of it, or with `?id=` one record; `?locale=` picks the catalogue. Both read through the list's own reader (`fetchListItems`, moved out of `EntityList`), so an export filters exactly like its page. Two `getQuery` changes came with it, each its own commit: `id` as the last sort key (names are not unique, so a page boundary between two equal names could repeat one and skip the other — on the list pages too), and a generic `id` filter, since `id` is in no page's `queryFields`.
+  - **Where the actions are:** on the admin list (`EntityList`) — a download per table row and "Export list" above the table — not on the public cards. The admin list is the DM's own surface and one component for every domain; the cards are shared with players and have no DM-only control today. A card-level action is a later change if the DM wants one. The phone-width row leaves the per-record action out, like `AssignLocationButton`; the list-wide one is there.
+  - **Not in the Markdown yet:** places (no list page of this shape — they come with the archive, T3), inline collections (a Daggerheart class's or adversary's features, ADR-0011 — not `pagesConfig` fields), and an NPC's or deity's location (derived, not a field). Left out on purpose: `id`, the image (a file in T3's archive) and the `revealedTo*` fields (§3).
 - [ ] **T2** — Structured rows (`toRecordJson`) and the `manifest.json` format, with its version. _(test: the JSON of a record carries every field and the rich-text links as stored)_
 - [ ] **T3** — ADR for the zip library; the whole-setting archive with images and `NOTICE.md`. _(test: archive contents and layout; no campaign, user or reveal; images present)_
 - [ ] **T4** — `readSettingArchive` and the dry-run summary. _(test: each hostile zip of §8; an invalid row names its entry; nothing is written)_

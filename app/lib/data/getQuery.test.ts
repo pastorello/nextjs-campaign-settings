@@ -80,6 +80,28 @@ describe("getQuery", () => {
     });
   });
 
+  // One record through the same reader as its list (SPEC-033 T1): `id` is
+  // in no page's `queryFields`, yet every domain's table has one.
+  describe("one record by id", () => {
+    it("filters by id on any page, whatever enabledMeta says", () => {
+      expect(getQuery({ id: "7" }, []).where).toEqual({ id: 7 });
+    });
+
+    it("combines with the other filters", () => {
+      const { where } = getQuery({ id: "7", [SpellMetaField.level]: "3" }, [
+        SpellMetaField.level,
+      ]);
+
+      expect(where).toEqual({ id: 7, [SpellMetaField.level]: 3 });
+    });
+
+    it("drops an id that is not a whole number", () => {
+      expect(getQuery({ id: "seven" }, []).where).toEqual({});
+      expect(getQuery({ id: "-1" }, []).where).toEqual({});
+      expect(getQuery({ id: "7.5" }, []).where).toEqual({});
+    });
+  });
+
   describe("pagination", () => {
     it("takes the default page size and skips nothing on page 1", () => {
       const { skip, take } = getQuery({}, []);
@@ -111,18 +133,23 @@ describe("getQuery", () => {
 
   describe("ordering", () => {
     it("falls back to ascending name", () => {
-      expect(getQuery({}, []).orderBy).toEqual([{ name: "asc" }]);
+      expect(getQuery({}, []).orderBy).toEqual([
+        { name: "asc" },
+        { id: "asc" },
+      ]);
     });
 
     it("orders name descending when sort is desc", () => {
       expect(getQuery({ sort: "desc" }, []).orderBy).toEqual([
         { name: "desc" },
+        { id: "asc" },
       ]);
     });
 
     it("ignores an unrecognised sort direction", () => {
       expect(getQuery({ sort: "sideways" }, []).orderBy).toEqual([
         { name: "asc" },
+        { id: "asc" },
       ]);
     });
 
@@ -132,7 +159,21 @@ describe("getQuery", () => {
         []
       );
 
-      expect(orderBy).toEqual([{ level: "desc" }, { name: "asc" }]);
+      expect(orderBy).toEqual([
+        { level: "desc" },
+        { name: "asc" },
+        { id: "asc" },
+      ]);
+    });
+
+    // Two records may share a name (two NPCs called "Guard"). Ordered by name
+    // alone, Postgres may return them in either order on each query, so a
+    // page boundary between them can show one twice and skip the other — on
+    // the list pages, and in an export that reads every page (SPEC-033 T1).
+    it("breaks ties by id, last, so every page boundary is stable", () => {
+      const { orderBy } = getQuery({ sort: "desc" }, []);
+
+      expect(orderBy.at(-1)).toEqual({ id: "asc" });
     });
   });
 });

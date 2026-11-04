@@ -4,6 +4,7 @@ generated
 coverage
 public
 playwright-report
+storybook-static
 pnpm-lock.yaml
 package-lock.json
 *.tsbuildinfo

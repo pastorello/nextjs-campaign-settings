@@ -1,6 +1,7 @@
 import next from "eslint-config-next/core-web-vitals";
 import tseslint from "typescript-eslint";
 import prettier from "eslint-config-prettier";
+import storybook from "eslint-plugin-storybook";
 
 export default tseslint.config(
   {
@@ -16,6 +17,8 @@ export default tseslint.config(
       ".claude/**",
       "next-env.d.ts",
       "*.tsbuildinfo",
+      // `pnpm storybook:build`'s output (ADR-0021).
+      "storybook-static/**",
     ],
   },
 
@@ -104,6 +107,11 @@ export default tseslint.config(
       "@typescript-eslint/unbound-method": "off",
     },
   },
+
+  // CSF rules for `*.stories.tsx` and `.storybook/main.ts` (ADR-0021): a story
+  // file must default-export its meta, export only stories, and use only
+  // installed addons.
+  ...storybook.configs["flat/recommended"],
 
   // Must stay last: turns off every stylistic rule Prettier owns.
   prettier

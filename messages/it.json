@@ -2137,7 +2137,7 @@
     "features": {
       "title": "Privilegi di sottoclasse",
       "addButton": "Aggiungi privilegio",
-      "addToTier": "Aggiungi un privilegio: {tier}",
+      "addToTier": "Aggiungi privilegio: {tier}",
       "saveButton": "Salva privilegio",
       "emptyTier": "Ancora nessun privilegio in questo grado."
     }

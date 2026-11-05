@@ -3,7 +3,7 @@
 **Last updated:** 2026-11-05
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Two items are open, TD-156 and TD-158**, filed 2026-11-05 with Storybook (ADR-0021). Batch 2 of TD-156 found TD-158. The last two closed, TD-155 and TD-157, were filed and closed the same day and are archived with the rest; TD-157, found by batch 1, undid half of TD-155. The next thing found goes in as TD-159.
+**One item is open, TD-156**, filed 2026-11-05 with Storybook (ADR-0021). Its first two batches found TD-157 and TD-158, and TD-155 came before them; all three were filed and closed the same day and are archived with the rest, as is TD-160 (an E2E time budget). TD-159 is taken by batch 3. The next thing found goes in as TD-161.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -28,25 +28,11 @@
 
 Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
-### TD-158 🟢 Inline feature lists break heading order in edit forms
-
-**Filed 2026-11-05** by TD-156 batch 2. Two axe findings, both in the Daggerheart edit forms:
-
-- **`heading-order`.** `EntityForm` titles itself with `PageTitle`, an `h1`. The inline lists under it (`InlineOrderedList`, `DhClassFeatureList`, `DhSubclassFeatureList`) title themselves with an `h3`, skipping `h2`. It shows in the Edit story of `DhAdversaryForm`, `DhClassForm`, `DhEnvironmentForm` and `DhSubclassForm`.
-- **`label-content-name-mismatch`.** `DhSubclassFeatureList`'s per-tier add button has the visible text of `dhSubclasses.features.addButton` but an `aria-label` of `addToTier` ("Aggiungi un privilegio: {tier}"), which does not contain it. WCAG 2.5.3 wants the visible text inside the accessible name.
-
-Those four Edit stories, and the stories of `DhSubclassFeatureList`, carry `a11y: { test: "todo" }` until this is fixed.
-
-**Fix:** the list title at the level the page gives it (a prop, or `h2`), and the add button's `aria-label` starting with its visible text. Then drop the `todo` parameters. Check the 5e `LootList`-shaped lists for the same heading skip.
-
----
-
 ## Summary
 
-| ID     | Item                                                   | Severity | Effort | Phase |
-| ------ | ------------------------------------------------------ | -------- | ------ | ----- |
-| TD-158 | Inline feature lists break heading order in edit forms | 🟢 Low   | S      | 5     |
-| TD-156 | 106 UI components have no story yet                    | 🟢 Low   | L      | 5     |
+| ID     | Item                                | Severity | Effort | Phase |
+| ------ | ----------------------------------- | -------- | ------ | ----- |
+| TD-156 | 106 UI components have no story yet | 🟢 Low   | L      | 5     |
 
 **All 134 closed rows moved to the archive on 2026-09-22**, with the write-ups they
 index — see [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)'s _Index of every closed

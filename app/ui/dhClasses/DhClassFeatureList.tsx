@@ -95,9 +95,9 @@ export default function DhClassFeatureList({
   return (
     <section aria-labelledby="dh-class-features-title" className="p-4">
       <div className="mb-2 flex items-center justify-between">
-        <h3 id="dh-class-features-title" className="text-lg font-semibold">
+        <h2 id="dh-class-features-title" className="text-lg font-semibold">
           {t("dhClasses.features.title")}
-        </h3>
+        </h2>
         <BaseButton onClick={() => setIsAdding(true)} size={ButtonSize.small}>
           {t("dhClasses.features.addButton")}
         </BaseButton>

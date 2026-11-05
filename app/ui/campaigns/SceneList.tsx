@@ -190,9 +190,9 @@ export default function SceneList({
                       <span className="mr-2 rounded-full border px-2 py-0.5 text-xs font-medium uppercase">
                         {t(`scene.kinds.${scene.kind}`)}
                       </span>
-                      <span className="text-lg font-semibold">
+                      <h3 className="inline text-lg font-semibold">
                         {scene.title}
-                      </span>
+                      </h3>
                       {scene.description && (
                         <div className="mt-1 text-sm text-gray-700">
                           {renderRichText(scene.description)}

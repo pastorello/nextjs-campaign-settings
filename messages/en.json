@@ -1451,7 +1451,7 @@
       },
       "unpriced": "{count, plural, one {# row without XP: not counted} other {# rows without XP: not counted}}",
       "reset": "Reset the count",
-      "resetLabel": "Reset the creature count of \"{title}\""
+      "resetLabel": "Reset the count of creatures in \"{title}\""
     }
   },
   "sceneCreature": {

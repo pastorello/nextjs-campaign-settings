@@ -9,9 +9,6 @@ import DhSubclassFeatureList from "./DhSubclassFeatureList";
 const meta = {
   component: DhSubclassFeatureList,
   args: { subclassId: 1, features: vigilFeatures },
-  // TD-158: the tier add buttons' aria-label omits their visible text
-  // (label-content-name-mismatch).
-  parameters: { a11y: { test: "todo" } },
 } satisfies Meta<typeof DhSubclassFeatureList>;
 
 export default meta;

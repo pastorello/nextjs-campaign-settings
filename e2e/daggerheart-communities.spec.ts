@@ -22,10 +22,18 @@ const deleteRow = async (page: Page, listUrl: string, name: string) => {
   const row = rowFor(page, name);
   if ((await row.count()) === 0) return;
   await row.getByRole("button", { name: messages.common.form.delete }).click();
+  // Wait for the DELETE itself, not just 5 s for the row to go: on a cold
+  // dev server the route's first compile alone can outlast that (TD-160).
+  const deleted = page.waitForResponse(
+    (response) =>
+      response.url().includes("/api/") &&
+      response.request().method() === "DELETE"
+  );
   await page
     .getByRole("dialog")
     .getByRole("button", { name: messages.common.form.delete })
     .click();
+  await deleted;
   await expect(row).toHaveCount(0);
 };
 

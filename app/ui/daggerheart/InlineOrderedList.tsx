@@ -107,9 +107,9 @@ export default function InlineOrderedList<
   return (
     <section aria-labelledby={titleId} className="p-4">
       <div className="mb-2 flex items-center justify-between">
-        <h3 id={titleId} className="text-lg font-semibold">
+        <h2 id={titleId} className="text-lg font-semibold">
           {copy.title}
-        </h3>
+        </h2>
         <BaseButton onClick={() => setIsAdding(true)} size={ButtonSize.small}>
           {copy.addButton}
         </BaseButton>

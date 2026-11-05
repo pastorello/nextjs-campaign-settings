@@ -3,7 +3,7 @@
 **Last updated:** 2026-11-05
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Three items are open, TD-156, TD-157 and TD-158**, filed 2026-11-05 with Storybook (ADR-0021). The last closed, TD-155, was filed and closed the same day and is archived with the rest. Batch 1 of TD-156 found TD-157 and batch 2 found TD-158. The next thing found goes in as TD-159.
+**One item is open, TD-156**, filed 2026-11-05 with Storybook (ADR-0021). Its first two batches found TD-157 and TD-158, and TD-155 came before them; all three were filed and closed the same day and are archived with the rest. The next thing found goes in as TD-159.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -28,30 +28,10 @@
 
 Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
-### TD-158 🟢 Inline feature lists break heading order in edit forms
-
-**Filed 2026-11-05** by TD-156 batch 2. Two axe findings, both in the Daggerheart edit forms:
-
-- **`heading-order`.** `EntityForm` titles itself with `PageTitle`, an `h1`. The inline lists under it (`InlineOrderedList`, `DhClassFeatureList`, `DhSubclassFeatureList`) title themselves with an `h3`, skipping `h2`. It shows in the Edit story of `DhAdversaryForm`, `DhClassForm`, `DhEnvironmentForm` and `DhSubclassForm`.
-- **`label-content-name-mismatch`.** `DhSubclassFeatureList`'s per-tier add button has the visible text of `dhSubclasses.features.addButton` but an `aria-label` of `addToTier` ("Aggiungi un privilegio: {tier}"), which does not contain it. WCAG 2.5.3 wants the visible text inside the accessible name.
-
-Those four Edit stories, and the stories of `DhSubclassFeatureList`, carry `a11y: { test: "todo" }` until this is fixed.
-
-**Fix:** the list title at the level the page gives it (a prop, or `h2`), and the add button's `aria-label` starting with its visible text. Then drop the `todo` parameters. Check the 5e `LootList`-shaped lists for the same heading skip.
-
-### TD-157 🟢 `ItemMeta` values fail contrast on the dark cards
-
-**Filed 2026-11-05** by TD-156 batch 1. `ItemMeta` renders its value in `text-gray-600`. On a card's `bg-slate-800` that is 1.93:1, against the 4.5:1 AA floor. `ItemMeta`'s own stories sit on a light background, so they never saw it. It shows once a card is opened: `SpellCard` and `DeityCard` use `ItemMeta` in their panels. Their `Expanded` and `Plain` stories carry `a11y: { test: "todo" }` until this is fixed.
-
-**Fix:** a lighter value colour that holds on `slate-800` (as TD-155 did for four other colours), then drop the two `todo` parameters in each story file. Check the page's other `ItemMeta` uses (the cards of other domains) and a light background, so the fix does not trade one failure for another.
-
----
-
 ## Summary
 
 | ID     | Item                                                    | Severity | Effort | Phase |
 | ------ | ------------------------------------------------------- | -------- | ------ | ----- |
-| TD-158 | Inline feature lists break heading order in edit forms  | 🟢 Low   | S      | 5     |
 | TD-157 | Card values (`ItemMeta`) fail contrast on the dark card | 🟢 Low   | S      | 5     |
 | TD-156 | 106 UI components have no story yet                     | 🟢 Low   | L      | 5     |
 

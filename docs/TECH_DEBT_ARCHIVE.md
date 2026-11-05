@@ -3289,6 +3289,7 @@ The summary table's closed rows, moved out of [`TECH_DEBT.md`](./TECH_DEBT.md) o
 | TD-153 | ✅ The map pans ~380px down and back on its own for ~500ms on load                                             | ~~🟢 Low~~ done      | S      | 4     |
 | TD-154 | ✅ The seed ships Italian rulebook prose for eight SRD records                                                 | ~~🟠 High~~ done     | S      | 5     |
 | TD-155 | ✅ Four text colours fail WCAG AA contrast, found by Storybook's axe gate                                      | ~~🟡 Medium~~ done   | S      | 5     |
+| TD-158 | ✅ Inline feature lists break heading order in edit forms                                                      | ~~🟢 Low~~ done      | S      | 5     |
 
 ---
 
@@ -5804,3 +5805,28 @@ Sonner keeps `richColors` for the backgrounds and borders. The text goes through
 The three stories are back on `a11y.test: "error"`, so they now fail if any of these drops under 4.5:1 again. Before the change they failed on exactly these four measurements. `Toaster.stories.tsx` also waits for the toast to finish sliding in (`data-mounted`, then an opacity of 1) before axe runs. Sonner animates with a CSS transition that `MotionGlobalConfig.skipAnimations` does not reach, and axe would otherwise measure a half-faded colour. For the same reason the toast region stays excluded from every other story's check (`.storybook/preview.tsx`).
 
 **Not done here:** the grey scale elsewhere. `ItemMeta` was the only finding; the ~120 raw colour classes are still Phase 5's design-system question, as TD-112's reverted overrides showed.
+
+### TD-158 ✅ Inline feature lists break heading order in edit forms — **DONE (2026-11-05)**
+
+**(original)**
+Filed 2026-11-05 by TD-156 batch 2. Two axe findings, both in the Daggerheart edit forms:
+
+- **`heading-order`.** `EntityForm` titles itself with `PageTitle`, an `h1`. The inline lists under it (`InlineOrderedList`, `DhClassFeatureList`, `DhSubclassFeatureList`) title themselves with an `h3`, skipping `h2`. It shows in the Edit story of `DhAdversaryForm`, `DhClassForm`, `DhEnvironmentForm` and `DhSubclassForm`.
+- **`label-content-name-mismatch`.** `DhSubclassFeatureList`'s per-tier add button has the visible text of `dhSubclasses.features.addButton` but an `aria-label` of `addToTier` ("Aggiungi un privilegio: {tier}"), which does not contain it. WCAG 2.5.3 wants the visible text inside the accessible name.
+
+Those four Edit stories, and the stories of `DhSubclassFeatureList`, carry `a11y: { test: "todo" }` until this is fixed.
+
+**Fix:** the list title at the level the page gives it (a prop, or `h2`), and the add button's `aria-label` starting with its visible text. Then drop the `todo` parameters. Check the 5e `LootList`-shaped lists for the same heading skip.
+
+### TD-157 🟢 `ItemMeta` values fail contrast on the dark cards
+
+**Filed 2026-11-05** by TD-156 batch 1. `ItemMeta` renders its value in `text-gray-600`. On a card's `bg-slate-800` that is 1.93:1, against the 4.5:1 AA floor. `ItemMeta`'s own stories sit on a light background, so they never saw it. It shows once a card is opened: `SpellCard` and `DeityCard` use `ItemMeta` in their panels. Their `Expanded` and `Plain` stories carry `a11y: { test: "todo" }` until this is fixed.
+
+**Fix:** a lighter value colour that holds on `slate-800` (as TD-155 did for four other colours), then drop the two `todo` parameters in each story file. Check the page's other `ItemMeta` uses (the cards of other domains) and a light background, so the fix does not trade one failure for another.
+
+**Outcome:**
+
+- **Heading order.** The inline lists' titles went from `h3` to `h2`: `InlineOrderedList` (adversary experiences and features, environment features), `DhClassFeatureList` and `DhSubclassFeatureList`. Every one of them renders only inside an edit form, directly under `EntityForm`'s `h1`. The subclass list's per-tier headings moved down with them, from `h4` to `h3`. The classes stay the same, so nothing changes visually. `SectionTitle` was not adopted: it is `font-bold`, and switching would have restyled the lists too.
+- **Accessible name.** `dhSubclasses.features.addToTier` now starts with the button's visible text: "Aggiungi privilegio: {tier}" / "Add feature: {tier}", where it was "Aggiungi un privilegio: {tier}" / "Add a {tier} feature".
+- **The 5e check the fix asked for found the same skip.** `SceneList` titles itself with `SectionTitle` (`h2`), but each scene's title was a styled `span`. So `SceneCreatureList`'s and `LootList`'s `h4` titles followed an `h2`. The scene title is now an inline `h3`, which fills the gap. No campaign story existed yet to catch it (TD-156 batch 3), so `SceneList.test.tsx` pins it.
+- **Tests.** The five Daggerheart stories are back on `a11y.test: "error"`, and all ten story files around these lists pass. `DhSubclassFeatureList.test.tsx` now queries the tier headings at level 3. The new `SceneList` test fails without the change.

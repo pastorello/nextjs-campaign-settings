@@ -2137,7 +2137,7 @@
     "features": {
       "title": "Subclass features",
       "addButton": "Add feature",
-      "addToTier": "Add a {tier} feature",
+      "addToTier": "Add feature: {tier}",
       "saveButton": "Save feature",
       "emptyTier": "No features in this tier yet."
     }

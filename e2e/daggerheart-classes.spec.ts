@@ -81,6 +81,11 @@ test.describe("Daggerheart classes and subclasses", () => {
   test("a class with features reordered inline, a subclass, and the delete order", async ({
     page,
   }) => {
+    // Two domains, a class with features reordered inline, a subclass, a
+    // refused delete and four cleanup deletes, each behind a `networkidle`
+    // wait: CI finished the assertions and then ran out of the default 30 s
+    // in the cleanup, in most runs of 2026-11-05 (TD-160).
+    test.setTimeout(120_000);
     const stamp = Date.now();
     const domainA = `E2E Dominio A ${stamp}`;
     const domainB = `E2E Dominio B ${stamp}`;

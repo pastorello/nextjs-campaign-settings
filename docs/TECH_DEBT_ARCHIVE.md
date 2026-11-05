@@ -3291,6 +3291,7 @@ The summary table's closed rows, moved out of [`TECH_DEBT.md`](./TECH_DEBT.md) o
 | TD-155 | ✅ Four text colours fail WCAG AA contrast, found by Storybook's axe gate                                      | ~~🟡 Medium~~ done   | S      | 5     |
 | TD-157 | ✅ Card values (`ItemMeta`) fail contrast on the dark card                                                     | ~~🟢 Low~~ done      | S      | 5     |
 | TD-158 | ✅ Inline feature lists break heading order in edit forms                                                      | ~~🟢 Low~~ done      | S      | 5     |
+| TD-160 | ✅ `daggerheart-classes.spec.ts` runs past the default 30 s E2E budget                                         | ~~🟡 Medium~~ done   | S      | 5     |
 
 ---
 
@@ -5847,3 +5848,18 @@ Those four Edit stories, and the stories of `DhSubclassFeatureList`, carry `a11y
 - **Accessible name.** `dhSubclasses.features.addToTier` now starts with the button's visible text: "Aggiungi privilegio: {tier}" / "Add feature: {tier}", where it was "Aggiungi un privilegio: {tier}" / "Add a {tier} feature".
 - **The 5e check the fix asked for found the same skip.** `SceneList` titles itself with `SectionTitle` (`h2`), but each scene's title was a styled `span`. So `SceneCreatureList`'s and `LootList`'s `h4` titles followed an `h2`. The scene title is now an inline `h3`, which fills the gap. No campaign story existed yet to catch it (TD-156 batch 3), so `SceneList.test.tsx` pins it.
 - **Tests.** The five Daggerheart stories are back on `a11y.test: "error"`, and all ten story files around these lists pass. `DhSubclassFeatureList.test.tsx` now queries the tier headings at level 3. The new `SceneList` test fails without the change.
+
+### TD-160 ✅ `daggerheart-classes.spec.ts` runs past the default 30 s E2E budget — **DONE (2026-11-05)**
+
+**(original)**
+Filed 2026-11-05, while PRs #424 and #425 were red on E2E alone. `daggerheart-classes.spec.ts:81` failed in all four red CI runs that day, two of them on `main` pushes (09:38 and 14:50), so it was not caused by the PRs. Every time, all of its assertions had passed. It then ran out of the default 30 s test timeout in the cleanup: `gotoRow`'s `goto` or `networkidle` wait, or `deleteRow`'s wait for the `DELETE`. The flow is two domains, a class with features reordered inline, a subclass, a refused delete and four cleanup deletes. Locally it takes 34.5 s, so it can never fit in 30 s; it only passed on CI when the retries happened to run fast. The other long Daggerheart specs set their own budget (`daggerheart-environments` 120 s, `daggerheart-armor-loot` 90 s), and this one never did.
+
+`daggerheart-communities.spec.ts:45` failed alongside it in three of those runs, as flaky (it passed on retry). Its `deleteRow` clicks the confirm, then gives the row the default 5 s to disappear. It never waits for the `DELETE`, and on a cold dev server the route's first compile can take longer than that.
+
+**Outcome:**
+
+- **Classes spec:** `test.setTimeout(120_000)`, with a comment saying why, as `daggerheart-environments` does.
+- **Communities spec:** `deleteRow` waits for the `/api/` `DELETE` response before asserting the row is gone, the same pattern `daggerheart-classes.spec.ts` uses.
+- **Local run:** both specs pass, at 34.5 s and 24.2 s.
+
+**Not done:** `accounts.spec.ts` (`Target page, context or browser has been closed`) and `a11y.spec.ts:617` each failed once that day, on a run already slowed by the classes timeout and its retries. Neither recurred. Revisit only if one does.

@@ -3,7 +3,7 @@
 **Last updated:** 2026-11-05
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Eight items are open, TD-156 and TD-161 – TD-167**, filed 2026-11-05 with Storybook (ADR-0021). Batch 4 of TD-156 found TD-161 – TD-167 (axe findings). Every item the earlier batches found, TD-157 to TD-159, and the two found beside them, TD-155 and TD-160 (an E2E time budget), was filed and closed the same day and is archived with the rest. TD-157, found by batch 1, undid half of TD-155. The next thing found goes in as TD-168.
+**Seven items are open, TD-161 – TD-167**, filed 2026-11-05 with Storybook (ADR-0021) by the last batches of TD-156 (archived), which found them as axe findings. Every item the earlier batches found, TD-157 to TD-159, and the two found beside them, TD-155 and TD-160 (an E2E time budget), was filed and closed the same day and is archived with the rest. TD-157, found by batch 1, undid half of TD-155. The next thing found goes in as TD-168.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -39,7 +39,6 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-165 | The vendored map starter components fail four axe rules             | 🟢 Low   | M      | 5     |
 | TD-166 | The map's context menu is a `menu` of buttons, with a faint heading | 🟢 Low   | S      | 5     |
 | TD-167 | The landmark panel has unnamed selects and a faint empty state      | 🟢 Low   | S      | 5     |
-| TD-156 | 30 UI components have no story yet                                  | 🟢 Low   | L      | 5     |
 
 **All 134 closed rows moved to the archive on 2026-09-22**, with the write-ups they
 index — see [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)'s _Index of every closed
@@ -103,17 +102,3 @@ Those stories carry `todo`. **Decide** whether each is fixed, or the component i
 **Filed 2026-11-05** by TD-156 batch 4. In `MapPOIPanel`'s form the kind and category `<select>`s sit under a `<label>` with no `htmlFor` (`select-name`), and the empty state's subtitle is `text-gray-400`, 2.6:1. The `Add`, `Edit` and `Empty` stories carry `todo`.
 
 **Fix:** associate the labels (`htmlFor`/`id`), `text-gray-600` on the subtitle.
-
-### TD-156 🟢 30 UI components have no story yet
-
-**Filed 2026-11-05** with ADR-0021. The first change covered the shared layer: buttons, form inputs, components, typography, the dashboard chrome, the login form and one domain form (`SpellForm`). It also set up the infrastructure and patterns for the rest. The remaining components are listed by domain in `.storybook/pendingStories.ts`. `storyCoverage.test.ts` keeps that list honest: a new component with no story fails `pnpm test`, and so does a pending entry a story now covers.
-
-**Plan:** one PR per batch, each removing its lines from `PENDING_STORIES`:
-
-1. ~~5e domains: spells, magic items, NPC, deities, factions, treasures (cards, forms, libraries).~~ Done 2026-11-05: 26 stories in 18 files, fixtures in `.storybook/fixtures/`.
-2. ~~Daggerheart: `daggerheart/` and the eleven `dh*` folders.~~ Done 2026-11-05: 48 components, one story file each, fixtures in `.storybook/fixtures/daggerheart.ts`. Found TD-158.
-3. ~~Campaigns and calendar.~~ Done 2026-11-05: 44 components in 44 story files, fixtures in `.storybook/fixtures/campaigns.ts` and `calendar.ts`. Found TD-159.
-4. ~~Geography and `app/modules/maps`.~~ Done 2026-11-05: 40 components in 40 story files. The map fixtures (a drawn PNG map, `MapStage`, `mockWorld`) are in `.storybook/fixtures/maps.tsx` and `.storybook/public/api/maps/`. Found TD-161 – TD-167. `MapMain` is vendored and asks OpenStreetMap for tiles; it renders in isolation only because its story answers Leaflet's `getTileUrl`.
-5. What is left: accounts, search, rich text, the data shells (`EntityList`, `EntityLibrary`, `ListPage`, `cards.tsx`), `ModalButton`, `ImageInput`, the location assignment components.
-
-Batches 1–4 are mechanical once the patterns exist (`.storybook/fixtures/`, `SpellForm.stories.tsx`, `docs/TESTING.md` §Stories). **Done when** `PENDING_STORIES` is empty and deleted.

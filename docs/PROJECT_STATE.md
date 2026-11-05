@@ -183,7 +183,7 @@ pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageM
 │   ├── seed/                # Prisma seed, initial data, and db:import
 │   └── ui/                  # Presentational components, one directory per domain
 ├── .storybook/              # Storybook (ADR-0021): config, server-module stubs,
-│                            #   mocks, fixtures, the story-coverage ratchet
+│                            #   mocks, fixtures; every component has a story (TD-156)
 ├── e2e/                     # Playwright specs
 ├── i18n/, messages/         # next-intl request config and the it/en catalogues (TD-21)
 ├── prisma/                  # schema.prisma + migrations

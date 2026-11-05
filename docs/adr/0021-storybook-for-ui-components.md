@@ -29,7 +29,7 @@ How it fits this codebase:
 4. **Async Server Components render** through `features.experimentalRSC`.
 5. **a11y is a gate, not a panel.** `parameters.a11y.test = "error"` checks the whole `body`, portals included. A story the code cannot pass yet opts down to `"todo"` and names its debt item (TD-155). It never goes to `"off"`. This is the project's ratchet: ship at the level the code passes, then tighten.
 6. **`pnpm test` is unchanged.** `vitest.config.ts` now has two projects: `unit` (jsdom, the old suite, the coverage ratchet) and `storybook` (browser). `pnpm test` runs `--project unit`; `pnpm test:storybook` runs the stories. CI runs the stories in their own job.
-7. **Coverage is a ratchet too.** `.storybook/storyCoverage.test.ts`, in `pnpm test`, fails on a new component that no story imports. It also fails on a `PENDING_STORIES` entry (TD-156) that a story now covers. The list only shrinks.
+7. **Coverage is a ratchet too.** `.storybook/storyCoverage.test.ts`, in `pnpm test`, fails on a new component that no story imports. Only a context with no UI of its own is exempt (`.storybook/noUiComponents.ts`). TD-156 brought every existing component under it.
 
 ## Alternatives considered
 
@@ -70,7 +70,7 @@ Both are lighter. Neither has an equivalent of the Next framework integration or
 
 **Neutral / follow-up work**
 
-- TD-156: 171 components still have no story, grouped by domain in `.storybook/pendingStories.ts`. The batches are wide but shallow once the patterns exist.
+- TD-156 is closed: every component has a story. TD-161 – TD-167 are open axe findings that batch 4 found; each affected story is marked `"todo"`.
 - TD-155: the contrast findings. Each story marked `"todo"` returns to `"error"` when its finding is fixed.
 
 ## Revisit when

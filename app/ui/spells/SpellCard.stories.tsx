@@ -26,8 +26,6 @@ export const Collapsed: Story = {
 
 /** Opened by its header button: the details appear. */
 export const Expanded: Story = {
-  // TD-157: ItemMeta's text-gray-600 value on the card's slate-800.
-  parameters: { a11y: { test: "todo" } },
   play: async ({ canvas, userEvent }) => {
     await userEvent.click(canvas.getAllByRole("button")[0]!);
     await expect(await canvas.findByText(/velo di ghiaccio/)).toBeVisible();
@@ -36,8 +34,6 @@ export const Expanded: Story = {
 
 /** A second record: no image, and where the model allows it, fewer fields. */
 export const Plain: Story = {
-  // TD-157: ItemMeta's text-gray-600 value on the card's slate-800.
-  parameters: { a11y: { test: "todo" } },
   args: { cardItem: lanternOfTheLost },
   play: async ({ canvas, userEvent }) => {
     await userEvent.click(canvas.getAllByRole("button")[0]!);

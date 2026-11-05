@@ -3289,6 +3289,7 @@ The summary table's closed rows, moved out of [`TECH_DEBT.md`](./TECH_DEBT.md) o
 | TD-153 | ✅ The map pans ~380px down and back on its own for ~500ms on load                                             | ~~🟢 Low~~ done      | S      | 4     |
 | TD-154 | ✅ The seed ships Italian rulebook prose for eight SRD records                                                 | ~~🟠 High~~ done     | S      | 5     |
 | TD-155 | ✅ Four text colours fail WCAG AA contrast, found by Storybook's axe gate                                      | ~~🟡 Medium~~ done   | S      | 5     |
+| TD-157 | ✅ Card values (`ItemMeta`) fail contrast on the dark card                                                     | ~~🟢 Low~~ done      | S      | 5     |
 | TD-158 | ✅ Inline feature lists break heading order in edit forms                                                      | ~~🟢 Low~~ done      | S      | 5     |
 
 ---
@@ -5804,6 +5805,28 @@ Sonner keeps `richColors` for the backgrounds and borders. The text goes through
 
 The three stories are back on `a11y.test: "error"`, so they now fail if any of these drops under 4.5:1 again. Before the change they failed on exactly these four measurements. `Toaster.stories.tsx` also waits for the toast to finish sliding in (`data-mounted`, then an opacity of 1) before axe runs. Sonner animates with a CSS transition that `MotionGlobalConfig.skipAnimations` does not reach, and axe would otherwise measure a half-faded colour. For the same reason the toast region stays excluded from every other story's check (`.storybook/preview.tsx`).
 
+**Not done here:** the grey scale elsewhere. `ItemMeta` was the only grey finding; the ~120 raw colour classes are still Phase 5's design-system question, as TD-112's reverted overrides showed.
+
+> **Correction, 2026-11-05 (TD-157):** the `ItemMeta` row was a false finding, and its fix caused a real one. `ItemMeta` only renders inside `SpellCard` and `DeityCard`, on `bg-slate-800`, never on white. The story measured it on Storybook's default white canvas, where nothing in the app puts it. On the real card, `text-gray-400` was 5.6:1 and `text-gray-600` dropped it to 1.9:1. TD-157 reverted it. The other three rows stand: the login error and the toasts really sit on light backgrounds.
+
+### TD-157 ✅ Card values (`ItemMeta`) fail contrast on the dark card — **DONE (2026-11-05)**
+
+**(original)**
+Filed 2026-11-05 by TD-156 batch 1. `ItemMeta` renders its value in `text-gray-600`. On a card's `bg-slate-800` that is 1.93:1, against the 4.5:1 AA floor. `ItemMeta`'s own stories sit on a light background, so they never saw it. It shows once a card is opened: `SpellCard` and `DeityCard` use `ItemMeta` in their panels. Their `Expanded` and `Plain` stories carry `a11y: { test: "todo" }` until this is fixed.
+
+**Fix:** a lighter value colour that holds on `slate-800` (as TD-155 did for four other colours), then drop the two `todo` parameters in each story file. Check the page's other `ItemMeta` uses (the cards of other domains) and a light background, so the fix does not trade one failure for another.
+
+**Outcome:** a revert, not a new colour. TD-155 caused this item. Its `gray-400 → gray-600` change answered a measurement taken on a white story canvas, and `ItemMeta` never sits on white. Its only callers are `SpellCard` and `DeityCard`, both `bg-slate-800`. No other domain's card uses it: `MagicItemCard` and the rest only share the `…MetaField` name. Measured with Tailwind v4's own `oklch` values on `slate-800`:
+
+| Value colour    | Contrast |
+| --------------- | -------- |
+| `text-gray-600` | 1.94:1   |
+| `text-gray-500` | 3.03:1   |
+| `text-gray-400` | 5.63:1   |
+| `text-gray-300` | 9.96:1   |
+
+`text-gray-400` is back. That is the original colour, and the lightest step still dim enough to read as secondary next to the white label. `ItemMeta.stories.tsx` now renders on a dark card decorator, so its axe check judges the surface the app actually shows. The four `todo` parameters in `SpellCard.stories.tsx` and `DeityCard.stories.tsx` are gone, so those stories gate at `"error"` again. The light-background check the fix text asked for does not apply: there is no light-background use to protect. The lesson went into `docs/TESTING.md` §Stories: a story renders a component on the surface it lives on.
+
 **Not done here:** the grey scale elsewhere. `ItemMeta` was the only finding; the ~120 raw colour classes are still Phase 5's design-system question, as TD-112's reverted overrides showed.
 
 ### TD-158 ✅ Inline feature lists break heading order in edit forms — **DONE (2026-11-05)**
@@ -5817,12 +5840,6 @@ Filed 2026-11-05 by TD-156 batch 2. Two axe findings, both in the Daggerheart ed
 Those four Edit stories, and the stories of `DhSubclassFeatureList`, carry `a11y: { test: "todo" }` until this is fixed.
 
 **Fix:** the list title at the level the page gives it (a prop, or `h2`), and the add button's `aria-label` starting with its visible text. Then drop the `todo` parameters. Check the 5e `LootList`-shaped lists for the same heading skip.
-
-### TD-157 🟢 `ItemMeta` values fail contrast on the dark cards
-
-**Filed 2026-11-05** by TD-156 batch 1. `ItemMeta` renders its value in `text-gray-600`. On a card's `bg-slate-800` that is 1.93:1, against the 4.5:1 AA floor. `ItemMeta`'s own stories sit on a light background, so they never saw it. It shows once a card is opened: `SpellCard` and `DeityCard` use `ItemMeta` in their panels. Their `Expanded` and `Plain` stories carry `a11y: { test: "todo" }` until this is fixed.
-
-**Fix:** a lighter value colour that holds on `slate-800` (as TD-155 did for four other colours), then drop the two `todo` parameters in each story file. Check the page's other `ItemMeta` uses (the cards of other domains) and a light background, so the fix does not trade one failure for another.
 
 **Outcome:**
 

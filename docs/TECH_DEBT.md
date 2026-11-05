@@ -30,10 +30,9 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-| ID     | Item                                                    | Severity | Effort | Phase |
-| ------ | ------------------------------------------------------- | -------- | ------ | ----- |
-| TD-157 | Card values (`ItemMeta`) fail contrast on the dark card | 🟢 Low   | S      | 5     |
-| TD-156 | 106 UI components have no story yet                     | 🟢 Low   | L      | 5     |
+| ID     | Item                                | Severity | Effort | Phase |
+| ------ | ----------------------------------- | -------- | ------ | ----- |
+| TD-156 | 106 UI components have no story yet | 🟢 Low   | L      | 5     |
 
 **All 134 closed rows moved to the archive on 2026-09-22**, with the write-ups they
 index — see [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)'s _Index of every closed

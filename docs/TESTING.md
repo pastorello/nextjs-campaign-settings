@@ -207,9 +207,55 @@ Use `page.getByRole` / `getByLabel`, not CSS selectors — role-based queries do
 - **Stopping a dev server by hand.** `pkill -f "next dev"` also matches — and kills — the shell running it, since that shell's command line contains the same words (exit 144, and everything after it in the command is lost). `ss` is not installed either. Find the PID listening on :3000 another way (`fuser 3000/tcp`, or `lsof -i :3000` where present) and kill that, or let `timeout` end a server started under it. Remember `reuseExistingServer: false`: anything left on :3000 makes the next `pnpm test:e2e` refuse to start.
 - **A cold first spec is a real signal, not noise.** TD-152's map failure reproduced locally only on the first spec after a cold start, and again under 6× CPU throttling (`Emulation.setCPUThrottlingRate` through a CDP session, in a throwaway copy of the spec). Use throttling to reproduce a CI-only timing failure before fixing it; delete the copy afterwards.
 
+### Stories — Storybook + Vitest browser mode
+
+**Added 2026-11-05 ([ADR-0021](./adr/0021-storybook-for-ui-components.md)).** A component's stories sit beside it as `Component.stories.tsx`, and each one is a test as well as a catalogue entry. `pnpm test:storybook` renders every story in headless Chromium, runs its `play` function, and fails on any axe violation in the page. `pnpm storybook` serves the same stories at `http://localhost:6006`, with docs, controls, and a toolbar for the locale (it/en) and the viewer (DM/player).
+
+**What a story file holds.** It has a `meta` with the component and default `args`. It has one story per state worth seeing: empty, filled, error, read-only, loading. A `play` function asserts whatever the state is _for_. Query by role and accessible name, as in a unit test. The default locale is Italian, so names are the Italian copy. `SpellForm.stories.tsx` is the pattern for a domain form, `DeleteButton.stories.tsx` for a component that calls `fetch`, and `SideNav.stories.tsx` for an async Server Component.
+
+**Server Actions and database modules are spies.** Any module that starts with `"use server"` or imports the Prisma connection is replaced in Storybook by `fn()` spies (`.storybook/serverModuleStubs.ts`). Each resolves `undefined` until a story says otherwise. Import the real path and set the answer in `beforeEach`. Storybook resets it before the next story:
+
+```tsx
+import createSpell from "@/app/lib/data/spells/createSpell";
+
+export const Create: Story = {
+  beforeEach: () => {
+    mocked(createSpell).mockResolvedValue({ ok: true });
+  },
+  play: async ({ canvas, userEvent }) => {
+    // …
+    await waitFor(() => expect(createSpell).toHaveBeenCalled());
+  },
+};
+```
+
+A server module that exports something other than a function or a literal cannot be stubbed. `.storybook/serverModuleStubs.test.ts` fails on it in `pnpm test`, and names the file.
+
+**Everything else the app's runtime provides:**
+
+| Need                                   | How                                                                                                                              |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| A URL, query params, `[system]`        | `parameters.nextjs.navigation: { pathname, query, segments: [["system", "dnd5e"]] }`; the preview defaults to `/dashboard/dnd5e` |
+| What the router was asked to do        | `getRouter()` from `@storybook/nextjs-vite/navigation.mock`: `expect(getRouter().replace).toHaveBeenCalledWith(…)`               |
+| A `fetch` answer (the `DELETE` routes) | `spyOn(globalThis, "fetch").mockResolvedValue(new Response(…))` in `beforeEach`                                                  |
+| Copy from a Server Component           | Nothing to do: `next-intl/server` is aliased to `.storybook/mocks/nextIntlServer.ts`, over the real catalogues                   |
+| A record's image                       | `portrait` from `.storybook/fixtures/images.ts`, served from `.storybook/public/api/record-images/`                              |
+| A record                               | `.storybook/fixtures/<domain>.ts`, with prose invented for this repo, never rulebook or SRD text (CLAUDE.md, 2026-10-15)         |
+| A dialog, menu or toast                | `screen`, not `canvas`: they render in a portal outside the story root                                                           |
+
+**Accessibility.** `a11y.test` is `"error"` for every story, over the whole `body`. A violation in the component itself goes in a debt item, and its stories set `parameters: { a11y: { test: "todo" } }` with a comment naming the item (TD-155). They never set `"off"`. The toast region is checked only in `Toaster.stories.tsx`, because one Sonner finding should not fail every story that toasts. Under test, framer-motion animations are skipped (`.storybook/preview.tsx`), since axe otherwise measures a dialog mid-fade.
+
+**Coverage.** `.storybook/storyCoverage.test.ts` runs in `pnpm test`. It fails on a component under `app/ui/` or `app/modules/` that no story imports, unless the component is on TD-156's `PENDING_STORIES` list or is a context with no UI of its own. It also fails on a pending entry a story now covers, so delete the line in the same change as the story.
+
+**Traps found while setting it up:**
+
+- **`toHaveTextContent(/regex/)` is a type error in unit tests now.** Installing `@vitest/browser-playwright` makes Vitest's own types load its browser-mode jest-dom matchers, and those take a string only. Pass a substring instead; that is what the RegExp without anchors meant anyway.
+- **"Vite unexpectedly reloaded a test"** on a first run means the dependency optimiser met a library late. Rerun, and add the library to `UI_DEPENDENCIES` in `.storybook/main.ts`.
+- **Headless UI's `Label` needs a `Field`** around it, or it throws. A story of `FormLabel` alone must wrap it.
+
 ### Explicitly out of scope
 
-- Visual regression testing (Percy/Chromatic) — nice, not worth the setup cost yet.
+- Visual regression testing (Percy/Chromatic, or Vitest screenshot assertions) — still not worth the setup cost; ADR-0021 says when stories make it worth revisiting.
 - Load testing — single-user tool.
 - Testing Leaflet's own rendering — test our hooks around it.
 - Snapshot tests of markup.

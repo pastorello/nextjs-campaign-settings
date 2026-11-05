@@ -136,7 +136,7 @@ difficulty follows them.
 | Formatted text | Tiptap editor + `sanitize-html` on write and render (SPEC-019)        | caret                                          |
 | Images         | `sharp` — decode, strip, resize server-side (SPEC-020, ADR-0017)      | caret                                          |
 | Validation     | Zod                                                                   | caret                                          |
-| Tests          | Vitest + Testing Library · Playwright                                 | see §6 — counts are derived, not recorded here |
+| Tests          | Vitest + Testing Library · Playwright · Storybook 10 (ADR-0021)       | see §6 — counts are derived, not recorded here |
 
 > **Version numbers deliberately left out of this table, 2026-08-13.** It used to carry one per row, and four of them had rotted (Next.js, Prisma, Zod, and the Tailwind/Leaflet patches) — the same failure `docs/README.md` §Keeping them honest describes and this file's §6 already fixed for test counts. `package.json` is the source of truth; `pnpm ls next react prisma zod` shows what is actually installed. What is worth recording is the _pinning policy_, which is a decision and does not rot: `next`/`react`/`react-dom` are pinned exactly (TD-07), and Prisma's CLI and client are grouped so they cannot bump independently (TD-59).
 >
@@ -182,6 +182,8 @@ pnpm is the only package manager (TD-07): `package-lock.json` is gone, `packageM
 │   ├── modules/maps/        # Self-contained Leaflet module (components/hooks/contexts/types)
 │   ├── seed/                # Prisma seed, initial data, and db:import
 │   └── ui/                  # Presentational components, one directory per domain
+├── .storybook/              # Storybook (ADR-0021): config, server-module stubs,
+│                            #   mocks, fixtures, the story-coverage ratchet
 ├── e2e/                     # Playwright specs
 ├── i18n/, messages/         # next-intl request config and the it/en catalogues (TD-21)
 ├── prisma/                  # schema.prisma + migrations
@@ -286,17 +288,18 @@ The matcher excludes `/api`, so the proxy cannot protect the route handlers or S
 
 The table below is therefore about what each gate costs and what holds it in place, not about a status that was true on one afternoon:
 
-| Check               | What it took to get here, and what keeps it there                                                                                                                                                                                                |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `pnpm typecheck`    | 19 errors before TD-06. Runs `next typegen` first, and `tsc` on `tsconfig.typecheck.json` since TD-148 — see below                                                                                                                               |
-| `pnpm build`        | Turbopack, the same bundler as `dev` (TD-18)                                                                                                                                                                                                     |
-| `pnpm test`         | Vitest; nothing skipped, and the coverage ratchet runs with it                                                                                                                                                                                   |
-| `pnpm lint`         | 293 warnings before TD-22; every rule back to `error`, including `no-explicit-any`                                                                                                                                                               |
-| `pnpm format:check` | Prettier repo-wide (TD-05/TD-16), and the check that most often fails late — run it after the literal last edit                                                                                                                                  |
-| `pnpm test:e2e`     | Playwright, nothing skipped (TD-24, then TD-15's zero-violation axe gate); serial, one worker, boots its own dev server                                                                                                                          |
-| CI                  | Four blocking jobs in `.github/workflows/ci.yml`: `static` (typecheck + lint + format) · `test` · `build` · `e2e` (TD-23 made the last one blocking). `awk '/^jobs:/{f=1;next} f&&/^  [a-z0-9]+:/' .github/workflows/ci.yml` is the current list |
-| Coverage            | Above the Phase 2 exit criterion; a CI ratchet, thresholds in `vitest.config.ts` — never lowered                                                                                                                                                 |
-| `.env`              | Gitignored                                                                                                                                                                                                                                       |
+| Check                 | What it took to get here, and what keeps it there                                                                                                                                                                                                       |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm typecheck`      | 19 errors before TD-06. Runs `next typegen` first, and `tsc` on `tsconfig.typecheck.json` since TD-148 — see below                                                                                                                                      |
+| `pnpm build`          | Turbopack, the same bundler as `dev` (TD-18)                                                                                                                                                                                                            |
+| `pnpm test`           | Vitest; nothing skipped, and the coverage ratchet runs with it                                                                                                                                                                                          |
+| `pnpm lint`           | 293 warnings before TD-22; every rule back to `error`, including `no-explicit-any`                                                                                                                                                                      |
+| `pnpm format:check`   | Prettier repo-wide (TD-05/TD-16), and the check that most often fails late — run it after the literal last edit                                                                                                                                         |
+| `pnpm test:e2e`       | Playwright, nothing skipped (TD-24, then TD-15's zero-violation axe gate); serial, one worker, boots its own dev server                                                                                                                                 |
+| `pnpm test:storybook` | Every story rendered in headless Chromium, its `play` function and an axe check (ADR-0021); a story the code cannot pass yet is `todo` with its debt item (TD-155), never `off`                                                                         |
+| CI                    | Five blocking jobs in `.github/workflows/ci.yml`: `static` (typecheck + lint + format) · `test` · `storybook` · `build` · `e2e` (TD-23 made `e2e` blocking). `awk '/^jobs:/{f=1;next} f&&/^  [a-z0-9]+:/' .github/workflows/ci.yml` is the current list |
+| Coverage              | Above the Phase 2 exit criterion; a CI ratchet, thresholds in `vitest.config.ts` — never lowered                                                                                                                                                        |
+| `.env`                | Gitignored                                                                                                                                                                                                                                              |
 
 > **The "State" column is gone, 2026-10-15.** Every row used to carry a ✅ and the
 > claim beside it, which is the same mistake the counts made one paragraph down: a

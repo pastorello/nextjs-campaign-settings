@@ -1,5 +1,7 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
+import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
+import { playwright } from "@vitest/browser-playwright";
 
 export default defineConfig({
   plugins: [react()],
@@ -8,25 +10,61 @@ export default defineConfig({
   // the vite-tsconfig-paths plugin is no longer needed.
   resolve: { tsconfigPaths: true },
   test: {
-    environment: "jsdom",
-    globals: true,
-    // Mirrors the CI job env (`.github/workflows/ci.yml`) so `pnpm test` is
-    // green on a fresh checkout with no `.env` file. `env.ts` validates
-    // `DATABASE_URL` at import time (TD-02b), and this is the only value
-    // that reaches it here — no real database is touched by unit tests. (TD-75)
-    env: {
-      DATABASE_URL: "postgresql://admin:postgres@localhost:5432/placeholder",
-    },
-    setupFiles: ["./vitest.setup.ts"],
-    include: ["**/*.{test,spec}.{ts,tsx}"],
-    // `.claude/**` holds agent worktrees — full checkouts of this repo. Without
-    // excluding them the suite collects every test twice, which inflates both
-    // the test count and the coverage ratchet against a copy nobody is editing.
-    exclude: [
-      "**/node_modules/**",
-      "**/e2e/**",
-      "**/.next/**",
-      "**/.claude/**",
+    // Two projects (ADR-0021). `pnpm test` runs `unit` only — jsdom, no
+    // browser, nothing in the environment — exactly what it ran before
+    // Storybook existed. `pnpm test:storybook` runs `storybook`: every story
+    // rendered in headless Chromium, its `play` function and an axe check.
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "unit",
+          environment: "jsdom",
+          globals: true,
+          // Mirrors the CI job env (`.github/workflows/ci.yml`) so `pnpm test`
+          // is green on a fresh checkout with no `.env` file. `env.ts`
+          // validates `DATABASE_URL` at import time (TD-02b), and this is the
+          // only value that reaches it here — no real database is touched by
+          // unit tests. (TD-75)
+          env: {
+            DATABASE_URL:
+              "postgresql://admin:postgres@localhost:5432/placeholder",
+          },
+          setupFiles: ["./vitest.setup.ts"],
+          include: ["**/*.{test,spec}.{ts,tsx}"],
+          // `.claude/**` holds agent worktrees — full checkouts of this repo.
+          // Without excluding them the suite collects every test twice, which
+          // inflates both the test count and the coverage ratchet against a
+          // copy nobody is editing.
+          exclude: [
+            "**/node_modules/**",
+            "**/e2e/**",
+            "**/.next/**",
+            "**/.claude/**",
+          ],
+        },
+      },
+      {
+        // Not `extends: true`: the unit project's jsdom environment, its
+        // `vi.mock("next-intl")` and its React plugin would all fight a real
+        // browser render. Storybook's framework brings its own Vite setup,
+        // `.storybook/main.ts`'s `viteFinal` included.
+        plugins: [
+          storybookTest({
+            configDir: ".storybook",
+            storybookScript: "pnpm storybook --no-open",
+          }),
+        ],
+        test: {
+          name: "storybook",
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: playwright(),
+            instances: [{ browser: "chromium" }],
+          },
+        },
+      },
     ],
     coverage: {
       provider: "v8",
@@ -38,6 +76,10 @@ export default defineConfig({
         "app/seed/**",
         "**/*.d.ts",
         "app/modules/maps/components/ui/**",
+        // Stories are tested by the `storybook` project, which `pnpm
+        // test:coverage` does not run; counting them here would only add
+        // uncovered lines to the unit ratchet.
+        "**/*.stories.*",
       ],
       // No `all: true` here — Vitest 4's v8 provider (this repo runs 4.1.10)
       // removed the option because instrumenting every `include`d file,

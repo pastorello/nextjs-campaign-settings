@@ -1,0 +1,24 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Introduction" />
+
+# Campaign Settings — component catalogue
+
+Every component the app renders, beside its source as `*.stories.tsx`, grouped as the folders are:
+**UI** is `app/ui/`, **Modules** is `app/modules/`.
+
+Each story is also a test. `pnpm test:storybook` renders it in Chromium, runs its interactions, and
+fails on any accessibility violation. The **Testing** widget in the sidebar runs the same tests here.
+
+## The toolbar
+
+- **Locale** — Italian or English, from the same catalogues the app ships (ADR-0006).
+- **Viewer** — the DM, or a player's read-only view (SPEC-022): a card drops the DM's actions.
+
+## What is not real here
+
+- **Server Actions and database reads are spies.** Their calls appear in the **Actions** panel. A
+  story sets what the server answers (ADR-0021).
+- **Records are invented** for these stories (`.storybook/fixtures/`), as is the artwork.
+
+How to write a story — and the traps — is in `docs/TESTING.md`, §Stories.

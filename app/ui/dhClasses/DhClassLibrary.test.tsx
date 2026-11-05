@@ -56,7 +56,7 @@ describe("DhClassLibrary (SPEC-021 T6)", () => {
       "href",
       "/dashboard/daggerheart/classes/7"
     );
-    expect(article).toHaveTextContent(/Veilwright · Emberroot/);
+    expect(article).toHaveTextContent("Veilwright · Emberroot");
     expect(within(article).getByText("Keeps the roads lit.")).toBeVisible();
     expect(
       screen.getByRole("article", { name: "Ashwalker" })

@@ -30,6 +30,11 @@ the same rules apply there.
   on :3000** (`reuseExistingServer: false`). In a cloud session,
   `scripts/cloud-setup.sh` provides both — see `docs/TESTING.md` §E2E.
 - The full E2E suite belongs in CI and the final pre-PR check, not in the loop.
+- **Stories:** `pnpm test:storybook <path>` for the story files you touched;
+  it boots headless Chromium, so the same Playwright browser as E2E. A
+  "Vite unexpectedly reloaded a test" on the first run after adding a library
+  is the dependency optimiser, not your story: rerun, and add the library to
+  `UI_DEPENDENCIES` in `.storybook/main.ts`. See `docs/TESTING.md` §Stories.
 
 ## Reading and output
 

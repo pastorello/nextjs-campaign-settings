@@ -120,18 +120,21 @@ pnpm build          # production build
 pnpm typecheck      # next typegen && tsc on tsconfig.typecheck.json
 pnpm lint           # eslint .
 pnpm format:check   # prettier --check .
-pnpm test           # vitest run
-pnpm test:watch     # vitest
-pnpm test:coverage  # vitest run --coverage
+pnpm test           # vitest run --project unit
+pnpm test:watch     # vitest --project unit
+pnpm test:coverage  # vitest run --project unit --coverage
+pnpm test:storybook # every story as a browser test (ADR-0021)
 pnpm test:e2e       # playwright test
 pnpm test:e2e:ui    # playwright test --ui
+pnpm storybook      # Storybook on http://localhost:6006
+pnpm storybook:build # static Storybook in storybook-static/
 pnpm db:seed        # seed demo data
 pnpm db:import FILE # load a campaign library export
 pnpm db:studio      # Prisma Studio
 ```
 
-`typecheck`, `lint`, `format:check`, `test` and `test:e2e` are the five checks CI runs; all of them
-must pass before a change is done ([`CLAUDE.md`](../CLAUDE.md), _Definition of done_).
+`typecheck`, `lint`, `format:check`, `test`, `test:storybook` and `test:e2e` are the six checks CI
+runs; all of them must pass before a change is done ([`CLAUDE.md`](../CLAUDE.md), _Definition of done_).
 
 ## Running the tests
 
@@ -141,6 +144,18 @@ must pass before a change is done ([`CLAUDE.md`](../CLAUDE.md), _Definition of d
 pnpm test                      # everything
 pnpm test app/lib/data/spells  # just the paths you touched
 ```
+
+**Story tests** render every `*.stories.tsx` in headless Chromium — no database, no `.env`, but
+Playwright's browser, the same one E2E uses:
+
+```bash
+pnpm exec playwright install chromium   # once, and again after a Playwright bump
+pnpm test:storybook                      # every story
+pnpm test:storybook app/ui/buttons       # just the stories you touched
+```
+
+`pnpm storybook` serves the catalogue on port 6006; its _Testing_ widget runs the same tests from
+the browser. [`docs/TESTING.md`](./TESTING.md) §Stories has how to write one.
 
 **E2E tests** drive a real browser against a real database, and have two prerequisites that fail
 loudly and confusingly if missed:

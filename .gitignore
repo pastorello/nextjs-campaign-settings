@@ -54,3 +54,6 @@ next-env.d.ts
 # rulebook prose. Load them with `pnpm db:import <file>`; never commit them.
 export-*.json
 *.library.json
+
+# Storybook (ADR-0021)
+/storybook-static

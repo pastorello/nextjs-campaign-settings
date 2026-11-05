@@ -3,7 +3,7 @@
 **Last updated:** 2026-11-05
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Eight items are open, TD-156 and TD-161 – TD-167**, filed 2026-11-05 with Storybook (ADR-0021). Its first two batches found TD-157 and TD-158, and TD-155 came before them; all three were filed and closed the same day and are archived with the rest, as is TD-160 (an E2E time budget). TD-159 is taken by batch 3. TD-161 – TD-167 are axe findings from batch 4. The next thing found goes in as TD-168.
+**Nine items are open, TD-156, TD-159 and TD-161 – TD-167**, filed 2026-11-05 with Storybook (ADR-0021). Batch 3 of TD-156 found TD-159 and batch 4 found TD-161 – TD-167 (axe findings). The closed ones, TD-155, TD-157, TD-158 and TD-160 (an E2E time budget), were filed and closed the same day and are archived with the rest; TD-157, found by batch 1, undid half of TD-155, and TD-158 came from batch 2. The next thing found goes in as TD-168.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -28,10 +28,21 @@
 
 Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
+### TD-159 🟢 The NPC link in a scene's creature row fails `label-content-name-mismatch`
+
+**Filed 2026-11-05** by TD-156 batch 3. `SceneCreatureList` links a creature to its NPC page with the visible text `sceneCreature.list.npcLink` ("Scheda PNG") but an `aria-label` of `npcLinkLabel` ("Scheda del PNG {name}"), which does not contain it. WCAG 2.5.3 wants the visible text inside the accessible name. English passes by luck ("NPC page" / "NPC page for {name}"); Italian does not. The statistics link beside it is fine ("Statistiche di {name} …" starts with "Statistiche").
+
+Every story of `SceneCreatureList` and `SceneList` that shows a creature row linked to an NPC carries `a11y: { test: "todo" }` until this is fixed.
+
+**Fix:** reword `sceneCreature.list.npcLinkLabel` in `it.json` so it starts with the visible text ("Scheda PNG di {name}"), then drop the `todo` parameters. Search the other `aria-label`s built from a catalogue key for the same mismatch (TD-158 found one in `DhSubclassFeatureList`).
+
+---
+
 ## Summary
 
 | ID     | Item                                                                | Severity | Effort | Phase |
 | ------ | ------------------------------------------------------------------- | -------- | ------ | ----- |
+| TD-159 | Scene NPC link: label omits its visible text                        | 🟢 Low   | S      | 5     |
 | TD-161 | The map upload dialog has no accessible name                        | 🟢 Low   | S      | 5     |
 | TD-162 | A place's entity list repeats each name as image alt text           | 🟢 Low   | S      | 5     |
 | TD-163 | The destructive removal choice fails contrast when selected         | 🟢 Low   | S      | 5     |
@@ -39,7 +50,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 | TD-165 | The vendored map starter components fail four axe rules             | 🟢 Low   | M      | 5     |
 | TD-166 | The map's context menu is a `menu` of buttons, with a faint heading | 🟢 Low   | S      | 5     |
 | TD-167 | The landmark panel has unnamed selects and a faint empty state      | 🟢 Low   | S      | 5     |
-| TD-156 | 74 UI components have no story yet                                  | 🟢 Low   | L      | 5     |
+| TD-156 | 30 UI components have no story yet                                  | 🟢 Low   | L      | 5     |
 
 **All 134 closed rows moved to the archive on 2026-09-22**, with the write-ups they
 index — see [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)'s _Index of every closed
@@ -104,7 +115,7 @@ Those stories carry `todo`. **Decide** whether each is fixed, or the component i
 
 **Fix:** associate the labels (`htmlFor`/`id`), `text-gray-600` on the subtitle.
 
-### TD-156 🟢 74 UI components have no story yet
+### TD-156 🟢 30 UI components have no story yet
 
 **Filed 2026-11-05** with ADR-0021. The first change covered the shared layer: buttons, form inputs, components, typography, the dashboard chrome, the login form and one domain form (`SpellForm`). It also set up the infrastructure and patterns for the rest. The remaining components are listed by domain in `.storybook/pendingStories.ts`. `storyCoverage.test.ts` keeps that list honest: a new component with no story fails `pnpm test`, and so does a pending entry a story now covers.
 
@@ -112,7 +123,7 @@ Those stories carry `todo`. **Decide** whether each is fixed, or the component i
 
 1. ~~5e domains: spells, magic items, NPC, deities, factions, treasures (cards, forms, libraries).~~ Done 2026-11-05: 26 stories in 18 files, fixtures in `.storybook/fixtures/`.
 2. ~~Daggerheart: `daggerheart/` and the eleven `dh*` folders.~~ Done 2026-11-05: 48 components, one story file each, fixtures in `.storybook/fixtures/daggerheart.ts`. Found TD-158.
-3. Campaigns and calendar.
+3. ~~Campaigns and calendar.~~ Done 2026-11-05: 44 components in 44 story files, fixtures in `.storybook/fixtures/campaigns.ts` and `calendar.ts`. Found TD-159.
 4. ~~Geography and `app/modules/maps`.~~ Done 2026-11-05: 40 components in 40 story files. The map fixtures (a drawn PNG map, `MapStage`, `mockWorld`) are in `.storybook/fixtures/maps.tsx` and `.storybook/public/api/maps/`. Found TD-161 – TD-167. `MapMain` is vendored and asks OpenStreetMap for tiles; it renders in isolation only because its story answers Leaflet's `getTileUrl`.
 5. What is left: accounts, search, rich text, the data shells (`EntityList`, `EntityLibrary`, `ListPage`, `cards.tsx`), `ModalButton`, `ImageInput`, the location assignment components.
 

@@ -21,9 +21,6 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  // TD-159: the NPC link's aria-label omits its visible text
-  // (label-content-name-mismatch).
-  parameters: { a11y: { test: "todo" } },
   play: async ({ canvas }) => {
     await expect(canvas.getByText(/Predone del passo/)).toBeVisible();
     await expect(
@@ -42,9 +39,6 @@ export const Empty: Story = {
 };
 
 export const Reorder: Story = {
-  // TD-159: the NPC link's aria-label omits its visible text
-  // (label-content-name-mismatch).
-  parameters: { a11y: { test: "todo" } },
   beforeEach: () => {
     mocked(reorderSceneCreatures).mockResolvedValue({ ok: true });
   },
@@ -61,9 +55,6 @@ export const Reorder: Story = {
 };
 
 export const Delete: Story = {
-  // TD-159: the NPC link's aria-label omits its visible text
-  // (label-content-name-mismatch).
-  parameters: { a11y: { test: "todo" } },
   beforeEach: () => {
     mocked(deleteSceneCreatureById).mockResolvedValue(undefined);
   },

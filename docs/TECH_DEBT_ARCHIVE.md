@@ -3289,6 +3289,7 @@ The summary table's closed rows, moved out of [`TECH_DEBT.md`](./TECH_DEBT.md) o
 | TD-153 | ✅ The map pans ~380px down and back on its own for ~500ms on load                                             | ~~🟢 Low~~ done      | S      | 4     |
 | TD-154 | ✅ The seed ships Italian rulebook prose for eight SRD records                                                 | ~~🟠 High~~ done     | S      | 5     |
 | TD-155 | ✅ Four text colours fail WCAG AA contrast, found by Storybook's axe gate                                      | ~~🟡 Medium~~ done   | S      | 5     |
+| TD-156 | ✅ 171 UI components have no story yet                                                                         | ~~🟢 Low~~ done      | S      | 5     |
 | TD-157 | ✅ Card values (`ItemMeta`) fail contrast on the dark card                                                     | ~~🟢 Low~~ done      | S      | 5     |
 | TD-158 | ✅ Inline feature lists break heading order in edit forms                                                      | ~~🟢 Low~~ done      | S      | 5     |
 | TD-159 | ✅ The NPC link in a scene's creature row has an accessible name without its visible text                      | ~~🟢 Low~~ done      | S      | 5     |
@@ -5880,3 +5881,17 @@ Every story of `SceneCreatureList` and `SceneList` that shows a creature row lin
 - **The `todo` markers.** They are gone from `SceneList.stories.tsx` (5) and `SceneCreatureList.stories.tsx` (3), so those stories gate at `"error"` again. With the old label, 8 of their 11 stories fail `label-content-name-mismatch`.
 - **The search the fix asked for found one more, in English only.** It paired every catalogue-built `aria-label` with its visible catalogue text, in both locales. `scene.encounter.resetLabel` read "Reset the creature count of "{title}"" next to a visible "Reset the count". It is now "Reset the count of creatures in "{title}"". The Italian pair already matched. The other hits were icon-only buttons the heuristic paired with the next button's text.
 - **Why the English one got through.** Stories run in Italian by default, so axe never measured it. Any English-only copy is unchecked until a story is run with the English locale (a `locale` global already exists in `.storybook/preview.tsx`).
+
+### TD-156 ✅ 171 UI components have no story yet — **DONE (2026-11-05)**
+
+**Filed 2026-11-05** with ADR-0021. The first change covered the shared layer: buttons, form inputs, components, typography, the dashboard chrome, the login form and one domain form (`SpellForm`). It also set up the infrastructure and patterns for the rest. The remaining components are listed by domain in `.storybook/pendingStories.ts`. `storyCoverage.test.ts` keeps that list honest: a new component with no story fails `pnpm test`, and so does a pending entry a story now covers.
+
+**(original)** Plan: one PR per batch, each removing its lines from `PENDING_STORIES`:
+
+1. ~~5e domains: spells, magic items, NPC, deities, factions, treasures (cards, forms, libraries).~~ Done 2026-11-05: 26 stories in 18 files, fixtures in `.storybook/fixtures/`.
+2. ~~Daggerheart: `daggerheart/` and the eleven `dh*` folders.~~ Done 2026-11-05: 48 components, one story file each, fixtures in `.storybook/fixtures/daggerheart.ts`. Found TD-158.
+3. ~~Campaigns and calendar.~~ Done 2026-11-05: 44 components in 44 story files, fixtures in `.storybook/fixtures/campaigns.ts` and `calendar.ts`. Found TD-159.
+4. ~~Geography and `app/modules/maps`.~~ Done 2026-11-05: 40 components in 40 story files. The map fixtures (a drawn PNG map, `MapStage`, `mockWorld`) are in `.storybook/fixtures/maps.tsx` and `.storybook/public/api/maps/`. Found TD-161 – TD-167. `MapMain` is vendored and asks OpenStreetMap for tiles; it renders in isolation only because its story answers Leaflet's `getTileUrl`.
+5. ~~What is left: accounts, search, rich text, the data shells, `ModalButton`, `ImageInput`, the location assignment components.~~ Done 2026-11-05: 22 components in 22 story files, fixtures in `.storybook/fixtures/zones.ts`. The async data shells mock the readers (`mocked(fetchFilteredSpells)`, `fetchRecordLinkTargets`, `getViewer`); `fetchRecordLinkResolution` is not a stub, since it does not import Prisma.
+
+**Outcome:** five batches, one PR each (#419 infrastructure, #421, #422, #425, #426, #428), and every component has a story or is a context with no UI of its own. `PENDING_STORIES` is deleted. `storyCoverage.test.ts` now requires a story for every component; the exemption list, `NO_UI_OF_THEIR_OWN`, moved to `.storybook/noUiComponents.ts`. The batches found TD-157 – TD-159 (fixed and archived) and TD-161 – TD-167 (open), plus TD-155 and TD-160 beside them.

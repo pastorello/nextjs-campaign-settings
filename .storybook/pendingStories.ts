@@ -120,10 +120,6 @@ export const PENDING_STORIES: readonly string[] = [
   "app/ui/daggerheart/StatBlockView.tsx",
   // app/ui/dashboard
   "app/ui/dashboard/cards.tsx",
-  // app/ui/deities
-  "app/ui/deities/DeityCard.tsx",
-  "app/ui/deities/DeityForm.tsx",
-  "app/ui/deities/DeityLibrary.tsx",
   // app/ui/dhAdversaries
   "app/ui/dhAdversaries/DhAdversaryExperienceForm.tsx",
   "app/ui/dhAdversaries/DhAdversaryExperienceList.tsx",
@@ -175,10 +171,6 @@ export const PENDING_STORIES: readonly string[] = [
   "app/ui/dhWeapons/DhWeaponCard.tsx",
   "app/ui/dhWeapons/DhWeaponForm.tsx",
   "app/ui/dhWeapons/DhWeaponLibrary.tsx",
-  // app/ui/factions
-  "app/ui/factions/FactionCard.tsx",
-  "app/ui/factions/FactionForm.tsx",
-  "app/ui/factions/FactionLibrary.tsx",
   // app/ui/forms
   "app/ui/forms/EntityForm.tsx",
   "app/ui/forms/inputs/ImageInput.tsx",
@@ -206,25 +198,10 @@ export const PENDING_STORIES: readonly string[] = [
   "app/ui/geography/RemovePlaceDialog.tsx",
   "app/ui/geography/WorldMap.tsx",
   "app/ui/geography/ZoneEditPanel.tsx",
-  // app/ui/magicitems
-  "app/ui/magicitems/MagicItemCard.tsx",
-  "app/ui/magicitems/MagicItemForm.tsx",
-  "app/ui/magicitems/MagicItemLibrary.tsx",
-  // app/ui/npc
-  "app/ui/npc/NpcCard.tsx",
-  "app/ui/npc/NpcForm.tsx",
-  "app/ui/npc/NpcLibrary.tsx",
   // app/ui/richText
   "app/ui/richText/ClientResolvedRecordLinks.tsx",
   "app/ui/richText/RecordLink.tsx",
   "app/ui/richText/ResolvedRecordLinks.tsx",
   // app/ui/search
   "app/ui/search/CrossEntitySearchResults.tsx",
-  // app/ui/spells
-  "app/ui/spells/SpellCard.tsx",
-  "app/ui/spells/SpellLibrary.tsx",
-  // app/ui/treasures
-  "app/ui/treasures/TreasureCard.tsx",
-  "app/ui/treasures/TreasureForm.tsx",
-  "app/ui/treasures/TreasureLibrary.tsx",
 ];

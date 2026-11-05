@@ -58,7 +58,7 @@ Both are lighter. Neither has an equivalent of the Next framework integration or
 **Positive**
 
 - The shared components have a catalogue with variants, controls and autodocs. That is the "where their variants are written down" half of Phase 5's design-system entry.
-- Every story is an interaction and axe test in a real browser. On its first run the axe gate found four contrast failures the E2E axe pass never reached (TD-155): `ItemMeta`'s value text on every card, Sonner's `richColors` toasts, the login error, and a dialog measured mid-fade-in. The last was a test-timing artefact, fixed by skipping framer-motion animations in test mode.
+- Every story is an interaction and axe test in a real browser. On its first run the axe gate found four contrast failures the E2E axe pass never reached (TD-155): `ItemMeta`'s value text on every card, Sonner's `richColors` toasts, the login error, and a dialog measured mid-fade-in. The last was a test-timing artefact, fixed by skipping framer-motion animations in test mode. _Corrected 2026-11-05 (TD-157):_ the `ItemMeta` finding was an artefact too. Its story rendered on a white canvas, but the component only ever sits on a dark card, where its original colour passes. Darkening it broke the real cards, and TD-157 reverted it. So a story renders a component on the surface it lives on.
 - Server Actions, Prisma and auth never load in a story, and that holds without upkeep.
 
 **Negative**

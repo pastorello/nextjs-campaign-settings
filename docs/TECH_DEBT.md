@@ -3,7 +3,7 @@
 **Last updated:** 2026-11-05
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**One item is open, TD-156**, filed 2026-11-05 with Storybook (ADR-0021). Its first two batches found TD-157 and TD-158, and TD-155 came before them; all three were filed and closed the same day and are archived with the rest, as is TD-160 (an E2E time budget). TD-159 is taken by batch 3. The next thing found goes in as TD-161.
+**Eight items are open, TD-156 and TD-161 – TD-167**, filed 2026-11-05 with Storybook (ADR-0021). Its first two batches found TD-157 and TD-158, and TD-155 came before them; all three were filed and closed the same day and are archived with the rest, as is TD-160 (an E2E time budget). TD-159 is taken by batch 3. TD-161 – TD-167 are axe findings from batch 4. The next thing found goes in as TD-168.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -30,9 +30,16 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 ## Summary
 
-| ID     | Item                                | Severity | Effort | Phase |
-| ------ | ----------------------------------- | -------- | ------ | ----- |
-| TD-156 | 106 UI components have no story yet | 🟢 Low   | L      | 5     |
+| ID     | Item                                                                | Severity | Effort | Phase |
+| ------ | ------------------------------------------------------------------- | -------- | ------ | ----- |
+| TD-161 | The map upload dialog has no accessible name                        | 🟢 Low   | S      | 5     |
+| TD-162 | A place's entity list repeats each name as image alt text           | 🟢 Low   | S      | 5     |
+| TD-163 | The destructive removal choice fails contrast when selected         | 🟢 Low   | S      | 5     |
+| TD-164 | The map error screen's "Riprova" button fails contrast              | 🟢 Low   | S      | 5     |
+| TD-165 | The vendored map starter components fail four axe rules             | 🟢 Low   | M      | 5     |
+| TD-166 | The map's context menu is a `menu` of buttons, with a faint heading | 🟢 Low   | S      | 5     |
+| TD-167 | The landmark panel has unnamed selects and a faint empty state      | 🟢 Low   | S      | 5     |
+| TD-156 | 74 UI components have no story yet                                  | 🟢 Low   | L      | 5     |
 
 **All 134 closed rows moved to the archive on 2026-09-22**, with the write-ups they
 index — see [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)'s _Index of every closed
@@ -50,7 +57,54 @@ Everything the 2026-07-22 audit found, plus everything found while doing the wor
 
 ## Open items
 
-### TD-156 🟢 106 UI components have no story yet
+### TD-161 🟢 The map upload dialog has no accessible name
+
+**Filed 2026-11-05** by TD-156 batch 4. `MapUploadControl` opens its dialog with `title=""`, on purpose: the file input already has a label, and a title would duplicate it (the comment in the file says so). But Headless UI names the dialog from its title, so the dialog itself has none: axe `aria-dialog-name`. All three stories of `MapUploadControl` carry `a11y: { test: "todo" }`.
+
+**Fix:** give `Modal` a way to name the dialog without printing a visible title (an `aria-label`), or title it "Carica la mappa". Then drop the `todo`.
+
+### TD-162 🟢 A place's entity list repeats each name as image alt text
+
+**Filed 2026-11-05** by TD-156 batch 4. `PlaceEntityList` renders `RecordThumbnail` (whose `alt` is the record's name) right beside the same name as text: axe `image-redundant-alt`. Only the `Listed` story of `PlaceEntityList` has a portrait, and carries `todo`.
+
+**Fix:** pass an empty `alt` where the name is adjacent (a `RecordThumbnail` prop), keeping the name as alt where the image stands alone. Check the other lists that put a thumbnail beside its name.
+
+### TD-163 🟢 The destructive removal choice fails contrast when selected
+
+**Filed 2026-11-05** by TD-156 batch 4. In `RemovalOutcomeChoices` the "Elimina definitivamente" label is `text-red-600`, and a selected row is `bg-indigo-50`: under 4.5:1 (`color-contrast`). It shows in the `DestructiveChosen` story, which carries `todo`.
+
+**Fix:** `text-red-700` for the destructive label, as TD-155 did elsewhere. Then drop the `todo`.
+
+### TD-164 🟢 The map error screen's "Riprova" button fails contrast
+
+**Filed 2026-11-05** by TD-156 batch 4. `MapErrorBoundary`'s "Riprova" is white on `bg-blue-500`, 3.76:1 against 4.5:1. It is live code, `GeographyExplorer` wraps the map in it. The `Failed` story carries `todo`.
+
+**Fix:** `bg-blue-600` (check its hover), then drop the `todo`.
+
+### TD-165 🟢 The vendored map starter components fail four axe rules
+
+**Filed 2026-11-05** by TD-156 batch 4. All in the vendored, unwired `app/modules/maps/components/map/`, which is not to be edited without asking (CLAUDE.md, "unused is not dead"), so this item exists to decide, not to fix blindly:
+
+- `MapTileSwitcher`: the main button's `aria-label` ("Tile layer options") does not contain its visible text (`label-content-name-mismatch`).
+- `MapDetailsPanel`: the "Directions" label is white 10px text on teal, 3.66:1 (`color-contrast`).
+- `MapSearchBar`: the results `listbox` holds buttons, not `option`s (`aria-required-children`).
+- `MapMain` mounts `MapTileSwitcher`, so its one story inherits the first.
+
+Those stories carry `todo`. **Decide** whether each is fixed, or the component is deleted if the DM confirms it will never be wired. `MapMain` also asks OpenStreetMap for tiles; its story answers them with Leaflet's `getTileUrl`, since a story may not reach the network.
+
+### TD-166 🟢 The map's context menu is a `menu` of buttons, with a faint heading
+
+**Filed 2026-11-05** by TD-156 batch 4. `MapContextMenu` is `role="menu"`, but its entries are plain `<button>`s and a search input: `aria-required-children`. The picker's group headings ("Su questa mappa") are `text-gray-400` on white, 2.6:1. Every open story of the file carries `todo`.
+
+**Fix:** either `role="menuitem"` on the entries (and arrow-key handling that already exists) or drop `role="menu"` for a labelled group of buttons; `text-gray-600` on the headings.
+
+### TD-167 🟢 The landmark panel has unnamed selects and a faint empty state
+
+**Filed 2026-11-05** by TD-156 batch 4. In `MapPOIPanel`'s form the kind and category `<select>`s sit under a `<label>` with no `htmlFor` (`select-name`), and the empty state's subtitle is `text-gray-400`, 2.6:1. The `Add`, `Edit` and `Empty` stories carry `todo`.
+
+**Fix:** associate the labels (`htmlFor`/`id`), `text-gray-600` on the subtitle.
+
+### TD-156 🟢 74 UI components have no story yet
 
 **Filed 2026-11-05** with ADR-0021. The first change covered the shared layer: buttons, form inputs, components, typography, the dashboard chrome, the login form and one domain form (`SpellForm`). It also set up the infrastructure and patterns for the rest. The remaining components are listed by domain in `.storybook/pendingStories.ts`. `storyCoverage.test.ts` keeps that list honest: a new component with no story fails `pnpm test`, and so does a pending entry a story now covers.
 
@@ -59,7 +113,7 @@ Everything the 2026-07-22 audit found, plus everything found while doing the wor
 1. ~~5e domains: spells, magic items, NPC, deities, factions, treasures (cards, forms, libraries).~~ Done 2026-11-05: 26 stories in 18 files, fixtures in `.storybook/fixtures/`.
 2. ~~Daggerheart: `daggerheart/` and the eleven `dh*` folders.~~ Done 2026-11-05: 48 components, one story file each, fixtures in `.storybook/fixtures/daggerheart.ts`. Found TD-158.
 3. Campaigns and calendar.
-4. Geography and `app/modules/maps`. Leaflet renders in the browser runner, but the map's data hooks call several Server Actions, so these stories need the most fixtures.
+4. ~~Geography and `app/modules/maps`.~~ Done 2026-11-05: 40 components in 40 story files. The map fixtures (a drawn PNG map, `MapStage`, `mockWorld`) are in `.storybook/fixtures/maps.tsx` and `.storybook/public/api/maps/`. Found TD-161 – TD-167. `MapMain` is vendored and asks OpenStreetMap for tiles; it renders in isolation only because its story answers Leaflet's `getTileUrl`.
 5. What is left: accounts, search, rich text, the data shells (`EntityList`, `EntityLibrary`, `ListPage`, `cards.tsx`), `ModalButton`, `ImageInput`, the location assignment components.
 
-Batches 1–3 are mechanical once the patterns exist (`.storybook/fixtures/`, `SpellForm.stories.tsx`, `docs/TESTING.md` §Stories). **Done when** `PENDING_STORIES` is empty and deleted.
+Batches 1–4 are mechanical once the patterns exist (`.storybook/fixtures/`, `SpellForm.stories.tsx`, `docs/TESTING.md` §Stories). **Done when** `PENDING_STORIES` is empty and deleted.

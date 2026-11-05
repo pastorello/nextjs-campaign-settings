@@ -32,7 +32,7 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 | ID     | Item                               | Severity | Effort | Phase |
 | ------ | ---------------------------------- | -------- | ------ | ----- |
-| TD-156 | 62 UI components have no story yet | 🟢 Low   | L      | 5     |
+| TD-156 | 40 UI components have no story yet | 🟢 Low   | L      | 5     |
 
 **All 134 closed rows moved to the archive on 2026-09-22**, with the write-ups they
 index — see [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)'s _Index of every closed
@@ -50,7 +50,7 @@ Everything the 2026-07-22 audit found, plus everything found while doing the wor
 
 ## Open items
 
-### TD-156 🟢 62 UI components have no story yet
+### TD-156 🟢 40 UI components have no story yet
 
 **Filed 2026-11-05** with ADR-0021. The first change covered the shared layer: buttons, form inputs, components, typography, the dashboard chrome, the login form and one domain form (`SpellForm`). It also set up the infrastructure and patterns for the rest. The remaining components are listed by domain in `.storybook/pendingStories.ts`. `storyCoverage.test.ts` keeps that list honest: a new component with no story fails `pnpm test`, and so does a pending entry a story now covers.
 
@@ -60,6 +60,6 @@ Everything the 2026-07-22 audit found, plus everything found while doing the wor
 2. ~~Daggerheart: `daggerheart/` and the eleven `dh*` folders.~~ Done 2026-11-05: 48 components, one story file each, fixtures in `.storybook/fixtures/daggerheart.ts`. Found TD-158.
 3. ~~Campaigns and calendar.~~ Done 2026-11-05: 44 components in 44 story files, fixtures in `.storybook/fixtures/campaigns.ts` and `calendar.ts`. Found TD-159.
 4. Geography and `app/modules/maps`. Leaflet renders in the browser runner, but the map's data hooks call several Server Actions, so these stories need the most fixtures.
-5. What is left: accounts, search, rich text, the data shells (`EntityList`, `EntityLibrary`, `ListPage`, `cards.tsx`), `ModalButton`, `ImageInput`, the location assignment components.
+5. ~~What is left: accounts, search, rich text, the data shells (`EntityList`, `EntityLibrary`, `ListPage`, `cards.tsx`), `ModalButton`, `ImageInput`, the location assignment components.~~ Done 2026-11-05: 22 components in 22 story files, fixtures in `.storybook/fixtures/zones.ts`. The async data shells mock the readers (`mocked(fetchFilteredSpells)`, `fetchRecordLinkTargets`, `getViewer`) — `fetchRecordLinkResolution` is not a stub, since it does not import Prisma.
 
 Batches 1–3 are mechanical once the patterns exist (`.storybook/fixtures/`, `SpellForm.stories.tsx`, `docs/TESTING.md` §Stories). **Done when** `PENDING_STORIES` is empty and deleted.

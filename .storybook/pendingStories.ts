@@ -46,30 +46,6 @@ export const PENDING_STORIES: readonly string[] = [
   "app/modules/maps/components/ui/drawer.tsx",
   "app/modules/maps/components/ui/dropdown-menu.tsx",
   "app/modules/maps/components/ui/sonner.tsx",
-  // app/ui/accounts
-  "app/ui/accounts/AccountRowActions.tsx",
-  "app/ui/accounts/AccountsTable.tsx",
-  "app/ui/accounts/NewAccountForm.tsx",
-  "app/ui/accounts/OwnAccountForms.tsx",
-  "app/ui/accounts/SignUpForm.tsx",
-  // app/ui/buttons
-  "app/ui/buttons/AssignLocationButton.tsx",
-  "app/ui/buttons/ModalButton.tsx",
-  "app/ui/buttons/ResetSearchButton.tsx",
-  // app/ui/components
-  "app/ui/components/AssignLocationModal.tsx",
-  "app/ui/components/EntityLibrary.tsx",
-  "app/ui/components/EntityList.tsx",
-  "app/ui/components/LocationFilterControl.tsx",
-  // app/ui/containers
-  "app/ui/containers/ListPage.tsx",
-  // app/ui/dashboard
-  "app/ui/dashboard/cards.tsx",
-  // app/ui/forms
-  "app/ui/forms/EntityForm.tsx",
-  "app/ui/forms/inputs/ImageInput.tsx",
-  "app/ui/forms/inputs/richText/RecordLinkPicker.tsx",
-  "app/ui/forms/inputs/richText/RichTextToolbar.tsx",
   // app/ui/geography
   "app/ui/geography/AttachEntityButton.tsx",
   "app/ui/geography/CreatePlaceForm.tsx",
@@ -92,10 +68,4 @@ export const PENDING_STORIES: readonly string[] = [
   "app/ui/geography/RemovePlaceDialog.tsx",
   "app/ui/geography/WorldMap.tsx",
   "app/ui/geography/ZoneEditPanel.tsx",
-  // app/ui/richText
-  "app/ui/richText/ClientResolvedRecordLinks.tsx",
-  "app/ui/richText/RecordLink.tsx",
-  "app/ui/richText/ResolvedRecordLinks.tsx",
-  // app/ui/search
-  "app/ui/search/CrossEntitySearchResults.tsx",
 ];

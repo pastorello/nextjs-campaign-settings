@@ -13,9 +13,9 @@ import Toaster from "./Toaster";
  */
 const meta = {
   component: Toaster,
-  // TD-155: Sonner's `richColors` text measures 4.25:1 (success) and 4.34:1
-  // (error) on its own backgrounds, just under the 4.5:1 AA floor.
-  parameters: { a11y: { test: "todo", context: "body" } },
+  // The one place the toast region is checked (see `.storybook/preview.tsx`):
+  // TD-155 darkened Sonner's rich-colour text to pass AA.
+  parameters: { a11y: { context: "body" } },
   render: () => (
     <div className="flex gap-2">
       <BaseButton onClick={() => notifySuccess("Incantesimo salvato")}>
@@ -34,19 +34,29 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+/**
+ * Waits until the toast has finished sliding in. Sonner animates with a CSS
+ * transition, which `MotionGlobalConfig.skipAnimations` does not reach; axe
+ * measuring a half-faded toast would report a contrast it does not have.
+ */
+async function toastSettled(text: string) {
+  const title = await screen.findByText(text);
+  const toast = title.closest("[data-sonner-toast]");
+  await waitFor(() => expect(toast).toHaveAttribute("data-mounted", "true"));
+  await waitFor(() => expect(getComputedStyle(toast!).opacity).toBe("1"));
+  return title;
+}
+
 export const Success: Story = {
   play: async ({ canvas }) => {
     await userEvent.click(canvas.getByRole("button", { name: "Successo" }));
-    // Sonner slides the toast in; wait for the animation, not just the node.
-    const toast = await screen.findByText("Incantesimo salvato");
-    await waitFor(() => expect(toast).toBeVisible());
+    await expect(await toastSettled("Incantesimo salvato")).toBeVisible();
   },
 };
 
 export const Error: Story = {
   play: async ({ canvas }) => {
     await userEvent.click(canvas.getByRole("button", { name: "Errore" }));
-    const toast = await screen.findByText("Salvataggio non riuscito");
-    await waitFor(() => expect(toast).toBeVisible());
+    await expect(await toastSettled("Salvataggio non riuscito")).toBeVisible();
   },
 };

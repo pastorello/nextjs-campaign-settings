@@ -3288,6 +3288,7 @@ The summary table's closed rows, moved out of [`TECH_DEBT.md`](./TECH_DEBT.md) o
 | TD-152 | ✅ The map specs right-click a still-moving map; one reloads before the drag saves                             | ~~🟡 Medium~~ done   | S      | 4     |
 | TD-153 | ✅ The map pans ~380px down and back on its own for ~500ms on load                                             | ~~🟢 Low~~ done      | S      | 4     |
 | TD-154 | ✅ The seed ships Italian rulebook prose for eight SRD records                                                 | ~~🟠 High~~ done     | S      | 5     |
+| TD-155 | ✅ Four text colours fail WCAG AA contrast, found by Storybook's axe gate                                      | ~~🟡 Medium~~ done   | S      | 5     |
 
 ---
 
@@ -5775,3 +5776,31 @@ it creates itself. `spells-crud.spec.ts` and `magicitems-crud.spec.ts` pass with
 and together. Not filed as a new item: it is a local-environment or flake question that CI on a
 fresh database answers better, and the `npc` table in `my_database_e2e` holds 24 leftover `E2E%`
 rows from earlier sessions, which is the more likely cause.
+
+### TD-155 ✅ Four text colours fail WCAG AA contrast, found by Storybook's axe gate — **DONE (2026-11-05)**
+
+**(original)**
+Found 2026-11-05, on the first run of the story tests (ADR-0021). The E2E axe pass (TD-15) never reached any of these, because each one needs a state the specs do not create: a card's value, a toast, a failed sign-in.
+
+| Where                                     | Text on background             | Measured | Story marked `todo`                                   |
+| ----------------------------------------- | ------------------------------ | -------- | ----------------------------------------------------- |
+| `ItemMeta`, every card's label–value row  | `text-gray-400` on white       | 2.6:1    | `app/ui/components/ItemMeta.stories.tsx` (whole file) |
+| `Toaster`: Sonner's `richColors`, success | `#008a2e` on `#ecfdf3`         | 4.25:1   | `app/ui/components/Toaster.stories.tsx` (whole file)  |
+| `Toaster`: Sonner's `richColors`, error   | `#e60000` on `#fff0f0`         | 4.34:1   | same                                                  |
+| `LoginForm`'s error message               | `text-red-500` on `bg-gray-50` | 3.64:1   | `app/ui/LoginForm.stories.tsx`, `WrongCredentials`    |
+
+The AA floor for normal text is 4.5:1. **Fix:** darker steps (`text-gray-600`, `text-red-700`). For Sonner, either set `toastOptions.classNames` per type or drop `richColors` for the app's own classes. The toast region is excluded from every other story's axe check (`.storybook/preview.tsx`), so the toasts are tracked only in `Toaster.stories.tsx`. **Done when** each story above is back to the default `a11y.test: "error"`, and that file's comment is gone. `ItemMeta` is on every card, so check the change against Phase 5's design-system entry rather than retuning greys one call site at a time (compare TD-112's reverted colours).
+
+**Outcome:** each colour moved to a darker step of the same hue, the plan agreed with the DM before the change:
+
+| Where                      | Was                            | Now                                 | Contrast             |
+| -------------------------- | ------------------------------ | ----------------------------------- | -------------------- |
+| `ItemMeta`'s value         | `text-gray-400`                | `text-gray-600`                     | 2.6:1 → about 7.6:1  |
+| `LoginForm`'s error        | `text-red-500` (text and icon) | `text-red-700`                      | 3.64:1 → about 6.1:1 |
+| `Toaster`, success / error | Sonner's `richColors` text     | `text-green-800!` / `text-red-800!` | about 6.8:1 / 7.5:1  |
+
+Sonner keeps `richColors` for the backgrounds and borders. The text goes through `toastOptions.classNames` with Tailwind's important modifier, because Sonner sets `color` with a three-attribute selector (`[data-rich-colors][data-sonner-toast][data-type]`) that a single utility class cannot outrank. The login form's icon moved with its text so the pair stays one colour; at 3.64:1 it already passed the 3:1 floor for non-text.
+
+The three stories are back on `a11y.test: "error"`, so they now fail if any of these drops under 4.5:1 again. Before the change they failed on exactly these four measurements. `Toaster.stories.tsx` also waits for the toast to finish sliding in (`data-mounted`, then an opacity of 1) before axe runs. Sonner animates with a CSS transition that `MotionGlobalConfig.skipAnimations` does not reach, and axe would otherwise measure a half-faded colour. For the same reason the toast region stays excluded from every other story's check (`.storybook/preview.tsx`).
+
+**Not done here:** the grey scale elsewhere. `ItemMeta` was the only finding; the ~120 raw colour classes are still Phase 5's design-system question, as TD-112's reverted overrides showed.

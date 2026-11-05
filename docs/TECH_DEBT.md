@@ -3,7 +3,7 @@
 **Last updated:** 2026-11-05
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Two items are open, TD-156 and TD-157**, filed 2026-11-05 with Storybook (ADR-0021). The last closed, TD-155, was filed and closed the same day and is archived with the rest. Batch 1 of TD-156 found TD-157. The next thing found goes in as TD-158.
+**Three items are open, TD-156, TD-157 and TD-158**, filed 2026-11-05 with Storybook (ADR-0021). The last closed, TD-155, was filed and closed the same day and is archived with the rest. Batch 1 of TD-156 found TD-157 and batch 2 found TD-158. The next thing found goes in as TD-159.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -28,6 +28,17 @@
 
 Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
+### TD-158 🟢 Inline feature lists break heading order in edit forms
+
+**Filed 2026-11-05** by TD-156 batch 2. Two axe findings, both in the Daggerheart edit forms:
+
+- **`heading-order`.** `EntityForm` titles itself with `PageTitle`, an `h1`. The inline lists under it (`InlineOrderedList`, `DhClassFeatureList`, `DhSubclassFeatureList`) title themselves with an `h3`, skipping `h2`. It shows in the Edit story of `DhAdversaryForm`, `DhClassForm`, `DhEnvironmentForm` and `DhSubclassForm`.
+- **`label-content-name-mismatch`.** `DhSubclassFeatureList`'s per-tier add button has the visible text of `dhSubclasses.features.addButton` but an `aria-label` of `addToTier` ("Aggiungi un privilegio: {tier}"), which does not contain it. WCAG 2.5.3 wants the visible text inside the accessible name.
+
+Those four Edit stories, and the stories of `DhSubclassFeatureList`, carry `a11y: { test: "todo" }` until this is fixed.
+
+**Fix:** the list title at the level the page gives it (a prop, or `h2`), and the add button's `aria-label` starting with its visible text. Then drop the `todo` parameters. Check the 5e `LootList`-shaped lists for the same heading skip.
+
 ### TD-157 🟢 `ItemMeta` values fail contrast on the dark cards
 
 **Filed 2026-11-05** by TD-156 batch 1. `ItemMeta` renders its value in `text-gray-600`. On a card's `bg-slate-800` that is 1.93:1, against the 4.5:1 AA floor. `ItemMeta`'s own stories sit on a light background, so they never saw it. It shows once a card is opened: `SpellCard` and `DeityCard` use `ItemMeta` in their panels. Their `Expanded` and `Plain` stories carry `a11y: { test: "todo" }` until this is fixed.
@@ -40,8 +51,9 @@ Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
 | ID     | Item                                                    | Severity | Effort | Phase |
 | ------ | ------------------------------------------------------- | -------- | ------ | ----- |
+| TD-158 | Inline feature lists break heading order in edit forms  | 🟢 Low   | S      | 5     |
 | TD-157 | Card values (`ItemMeta`) fail contrast on the dark card | 🟢 Low   | S      | 5     |
-| TD-156 | 154 UI components have no story yet                     | 🟢 Low   | L      | 5     |
+| TD-156 | 106 UI components have no story yet                     | 🟢 Low   | L      | 5     |
 
 **All 134 closed rows moved to the archive on 2026-09-22**, with the write-ups they
 index — see [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md)'s _Index of every closed
@@ -59,14 +71,14 @@ Everything the 2026-07-22 audit found, plus everything found while doing the wor
 
 ## Open items
 
-### TD-156 🟢 154 UI components have no story yet
+### TD-156 🟢 106 UI components have no story yet
 
 **Filed 2026-11-05** with ADR-0021. The first change covered the shared layer: buttons, form inputs, components, typography, the dashboard chrome, the login form and one domain form (`SpellForm`). It also set up the infrastructure and patterns for the rest. The remaining components are listed by domain in `.storybook/pendingStories.ts`. `storyCoverage.test.ts` keeps that list honest: a new component with no story fails `pnpm test`, and so does a pending entry a story now covers.
 
 **Plan:** one PR per batch, each removing its lines from `PENDING_STORIES`:
 
 1. ~~5e domains: spells, magic items, NPC, deities, factions, treasures (cards, forms, libraries).~~ Done 2026-11-05: 26 stories in 18 files, fixtures in `.storybook/fixtures/`.
-2. Daggerheart: `daggerheart/` and the eleven `dh*` folders.
+2. ~~Daggerheart: `daggerheart/` and the eleven `dh*` folders.~~ Done 2026-11-05: 48 components, one story file each, fixtures in `.storybook/fixtures/daggerheart.ts`. Found TD-158.
 3. Campaigns and calendar.
 4. Geography and `app/modules/maps`. Leaflet renders in the browser runner, but the map's data hooks call several Server Actions, so these stories need the most fixtures.
 5. What is left: accounts, search, rich text, the data shells (`EntityList`, `EntityLibrary`, `ListPage`, `cards.tsx`), `ModalButton`, `ImageInput`, the location assignment components.

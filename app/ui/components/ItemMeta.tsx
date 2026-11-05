@@ -9,7 +9,7 @@ interface ItemMetaProps {
 const ItemMeta = ({ label, value }: ItemMetaProps) => (
   <div className="flex">
     <div className="w-[110px]">{label}:</div>
-    <div className="flex-1 text-gray-400">{value}</div>
+    <div className="flex-1 text-gray-600">{value}</div>
   </div>
 );
 

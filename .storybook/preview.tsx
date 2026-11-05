@@ -68,9 +68,10 @@ const preview: Preview = {
     },
     // An axe violation fails the story's test. A story that cannot pass yet
     // opts down to "todo" with the debt item that tracks it — never "off".
-    // The whole body is checked, so a dialog or menu in a portal is too; the
-    // toast region is left to `Toaster.stories.tsx`, where its own contrast
-    // finding (TD-155) is tracked once instead of in every story that toasts.
+    // The whole body is checked, so a dialog or menu in a portal is too. The
+    // toast region is left to `Toaster.stories.tsx`, which checks it after the
+    // toast has finished sliding in: elsewhere axe would run while Sonner's
+    // CSS transition is half done and measure a blended colour.
     a11y: {
       test: "error",
       context: { include: ["body"], exclude: ["[data-sonner-toaster]"] },

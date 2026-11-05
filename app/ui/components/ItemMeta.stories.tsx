@@ -7,9 +7,6 @@ import ItemMeta from "./ItemMeta";
 const meta = {
   component: ItemMeta,
   args: { label: "Livello", value: "2" },
-  // TD-155: the value's `text-gray-400` on white measures 2.6:1, under the
-  // 4.5:1 AA floor. Back to "error" once that item lands.
-  parameters: { a11y: { test: "todo" } },
 } satisfies Meta<typeof ItemMeta>;
 
 export default meta;

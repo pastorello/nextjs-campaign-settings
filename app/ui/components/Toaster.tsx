@@ -14,7 +14,10 @@ import { Toaster as Sonner } from "sonner";
  * `useTheme()` from next-themes, and there is no ThemeProvider.
  *
  * `richColors` is what gives success and error their own palettes without a
- * design system to inherit from.
+ * design system to inherit from. Their text, though, is darkened: Sonner's own
+ * measures 4.25:1 (success) and 4.34:1 (error) on its backgrounds, under the
+ * 4.5:1 AA floor (TD-155). Sonner sets that colour with a three-attribute
+ * selector, which a single utility class cannot outrank — hence the `!`.
  */
 export default function Toaster() {
   return (
@@ -22,7 +25,10 @@ export default function Toaster() {
       position="bottom-right"
       richColors
       closeButton
-      toastOptions={{ duration: 5000 }}
+      toastOptions={{
+        duration: 5000,
+        classNames: { success: "text-green-800!", error: "text-red-800!" },
+      }}
     />
   );
 }

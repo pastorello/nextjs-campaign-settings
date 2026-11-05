@@ -30,8 +30,6 @@ type Story = StoryObj<typeof meta>;
 export const Empty: Story = {};
 
 export const WrongCredentials: Story = {
-  // TD-155: the error's `text-red-500` on `bg-gray-50` measures 3.64:1.
-  parameters: { a11y: { test: "todo" } },
   beforeEach: () => {
     mocked(authenticate).mockResolvedValue("Credenziali non valide.");
   },

@@ -89,8 +89,8 @@ export default function LoginForm() {
         <div className="flex h-8 items-end space-x-1">
           {errorMessage && (
             <>
-              <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-              <p className="text-sm text-red-500">{errorMessage}</p>
+              <ExclamationCircleIcon className="h-5 w-5 text-red-700" />
+              <p className="text-sm text-red-700">{errorMessage}</p>
             </>
           )}
         </div>

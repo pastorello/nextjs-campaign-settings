@@ -101,18 +101,18 @@ export default function DhSubclassFeatureList({
 
   return (
     <section aria-labelledby="dh-subclass-features-title" className="p-4">
-      <h3
+      <h2
         id="dh-subclass-features-title"
         className="mb-2 text-lg font-semibold"
       >
         {t("dhSubclasses.features.title")}
-      </h3>
+      </h2>
       {groups.map(([tier, rows]) => (
         <div key={tier} className="mb-4" data-testid={`tier-${tier}`}>
           <div className="mb-2 flex items-center justify-between">
-            <h4 className="text-sm font-semibold">
+            <h3 className="text-sm font-semibold">
               {t(`dhSubclasses.tiers.${tier}`)}
-            </h4>
+            </h3>
             <BaseButton
               onClick={() => setAddingTier(tier)}
               size={ButtonSize.small}

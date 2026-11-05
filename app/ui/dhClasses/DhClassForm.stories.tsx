@@ -44,8 +44,6 @@ export const Create: Story = {
 };
 
 export const Edit: Story = {
-  // TD-158: an h3 follows the form's h1 (heading-order).
-  parameters: { a11y: { test: "todo" } },
   args: { formData: warden },
   beforeEach: () => {
     mocked(updateDhClass).mockResolvedValue({ ok: true });

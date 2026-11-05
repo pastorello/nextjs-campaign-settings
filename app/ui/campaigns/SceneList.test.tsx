@@ -154,6 +154,20 @@ describe("SceneList (SPEC-013 T8)", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("titles each scene with an h3, between the list's h2 and its creatures' and loot's h4 (TD-158)", () => {
+    render(
+      <SceneList
+        {...baseProps}
+        scenes={[makeScene({ id: 1, title: "The bridge" })]}
+      />
+    );
+
+    expect(screen.getByRole("heading", { level: 2 })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 3, name: "The bridge" })
+    ).toBeInTheDocument();
+  });
+
   it("shows the empty message and no scenes when there are none", () => {
     render(<SceneList {...baseProps} scenes={[]} />);
 

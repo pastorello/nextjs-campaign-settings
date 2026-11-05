@@ -92,7 +92,7 @@ describe("DhSubclassFeatureList (SPEC-021 T5)", () => {
     expect(names("specialization")).toEqual(["Banked Coals"]);
     expect(names("mastery")).toEqual(["Crowned Flame"]);
     const headings = screen
-      .getAllByRole("heading", { level: 4 })
+      .getAllByRole("heading", { level: 3 })
       .map((node) => node.textContent);
     expect(headings).toEqual([
       "dhSubclasses.tiers.foundation",

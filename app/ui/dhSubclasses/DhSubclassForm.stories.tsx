@@ -44,8 +44,6 @@ export const Create: Story = {
 };
 
 export const Edit: Story = {
-  // TD-158: heading-order, and the tier add buttons' aria-label omits their visible text (label-content-name-mismatch).
-  parameters: { a11y: { test: "todo" } },
   args: { formData: vigil },
   beforeEach: () => {
     mocked(updateDhSubclass).mockResolvedValue({ ok: true });

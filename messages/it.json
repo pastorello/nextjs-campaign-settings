@@ -1503,7 +1503,7 @@
       "statsLink": "Statistiche",
       "statsLinkLabel": "Statistiche di {name} (si apre in una nuova scheda)",
       "npcLink": "Scheda PNG",
-      "npcLinkLabel": "Scheda del PNG {name}"
+      "npcLinkLabel": "Scheda PNG di {name}"
     },
     "form": {
       "createButton": "Aggiungi creatura",

@@ -3,7 +3,7 @@
 **Last updated:** 2026-11-05
 **What this file is for:** deciding what to work on next. It carries the summary table and the write-ups of items that are **still open** — nothing else. Every closed item's full write-up lives in [`TECH_DEBT_ARCHIVE.md`](./TECH_DEBT_ARCHIVE.md), which is where to look for whether something was already tried and rejected.
 
-**Nine items are open, TD-156, TD-159 and TD-161 – TD-167**, filed 2026-11-05 with Storybook (ADR-0021). Batch 3 of TD-156 found TD-159 and batch 4 found TD-161 – TD-167 (axe findings). The closed ones, TD-155, TD-157, TD-158 and TD-160 (an E2E time budget), were filed and closed the same day and are archived with the rest; TD-157, found by batch 1, undid half of TD-155, and TD-158 came from batch 2. The next thing found goes in as TD-168.
+**Eight items are open, TD-156 and TD-161 – TD-167**, filed 2026-11-05 with Storybook (ADR-0021). Batch 4 of TD-156 found TD-161 – TD-167 (axe findings). Every item the earlier batches found, TD-157 to TD-159, and the two found beside them, TD-155 and TD-160 (an E2E time budget), was filed and closed the same day and is archived with the rest. TD-157, found by batch 1, undid half of TD-155. The next thing found goes in as TD-168.
 
 **Scope note.** TD-01 – TD-22 came out of the 2026-07-22 audit; TD-23 onward were found while doing the work, which is why the numbering is chronological rather than thematic. Each item is sized to be completable in one focused session.
 
@@ -28,21 +28,10 @@
 
 Effort: **S** ≈ under 1h · **M** ≈ 1–3h · **L** ≈ half a day or more.
 
-### TD-159 🟢 The NPC link in a scene's creature row fails `label-content-name-mismatch`
-
-**Filed 2026-11-05** by TD-156 batch 3. `SceneCreatureList` links a creature to its NPC page with the visible text `sceneCreature.list.npcLink` ("Scheda PNG") but an `aria-label` of `npcLinkLabel` ("Scheda del PNG {name}"), which does not contain it. WCAG 2.5.3 wants the visible text inside the accessible name. English passes by luck ("NPC page" / "NPC page for {name}"); Italian does not. The statistics link beside it is fine ("Statistiche di {name} …" starts with "Statistiche").
-
-Every story of `SceneCreatureList` and `SceneList` that shows a creature row linked to an NPC carries `a11y: { test: "todo" }` until this is fixed.
-
-**Fix:** reword `sceneCreature.list.npcLinkLabel` in `it.json` so it starts with the visible text ("Scheda PNG di {name}"), then drop the `todo` parameters. Search the other `aria-label`s built from a catalogue key for the same mismatch (TD-158 found one in `DhSubclassFeatureList`).
-
----
-
 ## Summary
 
 | ID     | Item                                                                | Severity | Effort | Phase |
 | ------ | ------------------------------------------------------------------- | -------- | ------ | ----- |
-| TD-159 | Scene NPC link: label omits its visible text                        | 🟢 Low   | S      | 5     |
 | TD-161 | The map upload dialog has no accessible name                        | 🟢 Low   | S      | 5     |
 | TD-162 | A place's entity list repeats each name as image alt text           | 🟢 Low   | S      | 5     |
 | TD-163 | The destructive removal choice fails contrast when selected         | 🟢 Low   | S      | 5     |

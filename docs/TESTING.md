@@ -233,15 +233,16 @@ A server module that exports something other than a function or a literal cannot
 
 **Everything else the app's runtime provides:**
 
-| Need                                   | How                                                                                                                              |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| A URL, query params, `[system]`        | `parameters.nextjs.navigation: { pathname, query, segments: [["system", "dnd5e"]] }`; the preview defaults to `/dashboard/dnd5e` |
-| What the router was asked to do        | `getRouter()` from `@storybook/nextjs-vite/navigation.mock`: `expect(getRouter().replace).toHaveBeenCalledWith(…)`               |
-| A `fetch` answer (the `DELETE` routes) | `spyOn(globalThis, "fetch").mockResolvedValue(new Response(…))` in `beforeEach`                                                  |
-| Copy from a Server Component           | Nothing to do: `next-intl/server` is aliased to `.storybook/mocks/nextIntlServer.ts`, over the real catalogues                   |
-| A record's image                       | `portrait` from `.storybook/fixtures/images.ts`, served from `.storybook/public/api/record-images/`                              |
-| A record                               | `.storybook/fixtures/<domain>.ts`, with prose invented for this repo, never rulebook or SRD text (CLAUDE.md, 2026-10-15)         |
-| A dialog, menu or toast                | `screen`, not `canvas`: they render in a portal outside the story root                                                           |
+| Need                                   | How                                                                                                                                                                                  |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| A URL, query params, `[system]`        | `parameters.nextjs.navigation: { pathname, query, segments: [["system", "dnd5e"]] }`; the preview defaults to `/dashboard/dnd5e`                                                     |
+| What the router was asked to do        | `getRouter()` from `@storybook/nextjs-vite/navigation.mock`: `expect(getRouter().replace).toHaveBeenCalledWith(…)`                                                                   |
+| A `fetch` answer (the `DELETE` routes) | `spyOn(globalThis, "fetch").mockResolvedValue(new Response(…))` in `beforeEach`                                                                                                      |
+| Copy from a Server Component           | Nothing to do: `next-intl/server` is aliased to `.storybook/mocks/nextIntlServer.ts`, over the real catalogues                                                                       |
+| A Daggerheart page                     | `parameters: { nextjs: dhPage("/adversaries", { view: "cards" }) }` from `.storybook/fixtures/daggerheart.ts`: it sets the `daggerheart` system segment, which `useGameSystem` reads |
+| A record's image                       | `portrait` from `.storybook/fixtures/images.ts`, served from `.storybook/public/api/record-images/`                                                                                  |
+| A record                               | `.storybook/fixtures/<domain>.ts`, with prose invented for this repo, never rulebook or SRD text (CLAUDE.md, 2026-10-15)                                                             |
+| A dialog, menu or toast                | `screen`, not `canvas`: they render in a portal outside the story root                                                                                                               |
 
 **Accessibility.** `a11y.test` is `"error"` for every story, over the whole `body`. A violation in the component itself goes in a debt item, and its stories set `parameters: { a11y: { test: "todo" } }` with a comment naming the item, as TD-155's four contrast failures did until they were fixed. They never set `"off"`. Under test, framer-motion animations are skipped (`.storybook/preview.tsx`), since axe otherwise measures a dialog mid-fade. Sonner's CSS transition is not framer-motion, so the toast region is checked only in `Toaster.stories.tsx`, after its `play` waits for the toast to settle.
 

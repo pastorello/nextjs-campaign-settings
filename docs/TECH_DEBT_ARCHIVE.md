@@ -3291,6 +3291,7 @@ The summary table's closed rows, moved out of [`TECH_DEBT.md`](./TECH_DEBT.md) o
 | TD-155 | ✅ Four text colours fail WCAG AA contrast, found by Storybook's axe gate                                      | ~~🟡 Medium~~ done   | S      | 5     |
 | TD-157 | ✅ Card values (`ItemMeta`) fail contrast on the dark card                                                     | ~~🟢 Low~~ done      | S      | 5     |
 | TD-158 | ✅ Inline feature lists break heading order in edit forms                                                      | ~~🟢 Low~~ done      | S      | 5     |
+| TD-159 | ✅ The NPC link in a scene's creature row has an accessible name without its visible text                      | ~~🟢 Low~~ done      | S      | 5     |
 | TD-160 | ✅ `daggerheart-classes.spec.ts` runs past the default 30 s E2E budget                                         | ~~🟡 Medium~~ done   | S      | 5     |
 
 ---
@@ -5863,3 +5864,19 @@ Filed 2026-11-05, while PRs #424 and #425 were red on E2E alone. `daggerheart-cl
 - **Local run:** both specs pass, at 34.5 s and 24.2 s.
 
 **Not done:** `accounts.spec.ts` (`Target page, context or browser has been closed`) and `a11y.spec.ts:617` each failed once that day, on a run already slowed by the classes timeout and its retries. Neither recurred. Revisit only if one does.
+
+### TD-159 ✅ The NPC link in a scene's creature row fails `label-content-name-mismatch` — **DONE (2026-11-05)**
+
+**(original)**
+Filed 2026-11-05 by TD-156 batch 3. `SceneCreatureList` links a creature to its NPC page with the visible text `sceneCreature.list.npcLink` ("Scheda PNG") but an `aria-label` of `npcLinkLabel` ("Scheda del PNG {name}"), which does not contain it. WCAG 2.5.3 wants the visible text inside the accessible name. English passes by luck ("NPC page" / "NPC page for {name}"); Italian does not. The statistics link beside it is fine ("Statistiche di {name} …" starts with "Statistiche").
+
+Every story of `SceneCreatureList` and `SceneList` that shows a creature row linked to an NPC carries `a11y: { test: "todo" }` until this is fixed.
+
+**Fix:** reword `sceneCreature.list.npcLinkLabel` in `it.json` so it starts with the visible text ("Scheda PNG di {name}"), then drop the `todo` parameters. Search the other `aria-label`s built from a catalogue key for the same mismatch (TD-158 found one in `DhSubclassFeatureList`).
+
+**Outcome:**
+
+- **The Italian label.** `sceneCreature.list.npcLinkLabel` is now "Scheda PNG di {name}". It used to read "Scheda del PNG {name}". The English, "NPC page for {name}", already contained "NPC page".
+- **The `todo` markers.** They are gone from `SceneList.stories.tsx` (5) and `SceneCreatureList.stories.tsx` (3), so those stories gate at `"error"` again. With the old label, 8 of their 11 stories fail `label-content-name-mismatch`.
+- **The search the fix asked for found one more, in English only.** It paired every catalogue-built `aria-label` with its visible catalogue text, in both locales. `scene.encounter.resetLabel` read "Reset the creature count of "{title}"" next to a visible "Reset the count". It is now "Reset the count of creatures in "{title}"". The Italian pair already matched. The other hits were icon-only buttons the heuristic paired with the next button's text.
+- **Why the English one got through.** Stories run in Italian by default, so axe never measured it. Any English-only copy is unchecked until a story is run with the English locale (a `locale` global already exists in `.storybook/preview.tsx`).
